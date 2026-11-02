@@ -1,6 +1,6 @@
 # Research acceptance — November 2, 2026
 
-Owner: Sean Balsiger · Version 1 · Preparation; current-build acceptance pending
+Owner: Sean Balsiger · Version 2 · Data freshness and authenticated browser acceptance verified; phone pending
 
 Sean authorized GTL coordination in this order: finish #408, then Research and
 iPhone acceptance. This record advances only verified Research criteria in
@@ -20,12 +20,13 @@ percentage or a mathematical average of the rows below.
 | Source and November 1 app/data release | Complete in the linked release record | Preserve its source and API-bundle attestation limits |
 | First automatic publication | Verified, 100% of this subcriterion | Retain failed-run and delivery-delay history |
 | Current public publication | Six of six compressed assets passed size, checksum and shared schema/redaction validation | Recheck the index after the next publication |
-| Current source dependencies | **Open readiness blocker: stale** at 22:30:28 UTC / 2:30:28 PM Pacific | Completed and schedule dependency hashes must both match live public source, with no missing finals |
-| Populated authenticated current build | Unverified; deliberately waits for stable #408 release | Current published week, statistics/evidence, assessments, freshness and reveal states in Light/Dark |
+| Current source dependencies | Resolved at 23:21:08 UTC / 3:21:08 PM Pacific after one authorized normal refresh | Freshness remains time-bounded and must fail closed on later drift |
+| Populated authenticated current build | Verified on stable #408 frontend with an existing authenticated Community account | Physical device remains separate; no cross-account isolation pass inferred |
 | Physical iPhone | Pending; sole device owner retains operation | Record actual device/build/launch mode and the bounded accepted flows |
 
-No deployment, manual refresh, provider-credit request, player write, account
-credential transfer or phone input was performed by these preparation checks.
+Initial preparation performed no publication. The later coordinated normal data
+refresh and browser checks below made no API/frontend deployment, provider-credit
+request, player write, credential transfer or phone input.
 
 ## Actual scheduled publication
 
@@ -46,7 +47,7 @@ build and publish/verify steps, and a downloaded receipt matching the current in
 The workflow's UTC cron is `23 */4 * * *`. Actual observed delivery is irregular;
 the last run's creation time does not establish the next delivery time.
 
-## Current bytes, source dates and independent readiness
+## Initial bytes and stale readiness — historical as of 22:30 UTC
 
 At **22:28:49.599 UTC / 2:28:49 PM Pacific**, independent public readback fetched
 the [current index](https://github.com/seanbalz/guess-the-line/releases/download/research-data-2026/index.json)
@@ -110,29 +111,99 @@ contents, account credentials, links, submitted predictions or quotes were read.
 These metadata checks do not replace actual authenticated route, account-isolation
 or per-market reveal acceptance, and are not a new claim of the older 16 HTTP probes.
 
-## Final acceptance checklist
+## Resolved freshness after one coordinated publication
 
-After the #408 owner confirms its stable served build, record its actual
-frontend source/Pages identity and current API version before evaluating:
+After the sole release captain confirmed stable #408 deployment, a fresh check at
+23:17 UTC still found schedule drift and no active Research publication. Exactly
+one authorized normal `research-refresh.yml` run with `dry_run=false` was dispatched:
+[41544353761](https://github.com/seanbalz/guess-the-line/actions/runs/41544353761).
+It succeeded from `b66d3c042a7dd51045cec6a596a1a2c5fc2cca8e`, building at
+`2026-11-02T23:18:21.125Z`. Its six-file publication and readback succeeded.
+This is a data publication source, distinct from the frontend source below.
 
-1. A real signed-in account's current published season/week, independent of an
-   older selected private-league week; no synthetic sign-in or borrowed tokens.
-2. Populated observed scoring statistics, accessible historical evidence and
-   honest play-statistics/recommendation locks under that account's real gates.
-3. Separate source observation, snapshot-build, current fetch and retained quote
-   times. A stale/missing quote may correctly produce gray; no green model,
-   proprietary charting, automatic X extraction or prop-price coverage is implied.
-4. Filters, detail/back navigation, read-only refresh/retry and account/week
-   invalidation, with no unrevealed market values or private submissions leaked.
-5. Light/Dark readability, populated phone-width layout and navigation clearance,
-   explicitly separate from actual physical-iPhone acceptance.
+Independent readback at **23:21:08.168 UTC / 3:21:08 PM Pacific** verified the
+receipt, index and all six compressed assets using the actual shared schema,
+size, SHA-256 and redacted-target validators. Index SHA-256 is
+`0220846ceb769838879194694b7eeb9d1b218caffb94eb45319ac9aa1eb63411`.
+The receipt contains 120 completed/PBP games through November 1, 750 candidates,
+eight historical qualifiers and 272 matchup-statistics entries. Each period
+contains 750 candidates, 152 redacted upcoming targets and 272 play-statistics entries.
 
-Observe the next existing automatic publication and repeat exact index/file/
-receipt/dependency checks. If matching fresh data has not arrived after #408 is
-stable, coordinate one normal manual refresh with the sole release captain;
-do not start parallel publications or bypass stale gates. No such manual run
-has been dispatched by this preparation.
+| Period | Compressed bytes | Verified SHA-256 |
+| --- | ---: | --- |
+| recent30 | 500441 | `f2f562108e43be04d02b76582f0eeddf91fe8390a211968f6b3be7c7c4712558` |
+| recent25 | 477697 | `9257a9b0c624ebaa3bd501a3047b9987b29c6285804e0c43ba8a2ed0da8565c2` |
+| season | 408044 | `7f7fa8f5ac375b41f6c83ac6bd9f6c5eb0d830c8ea5dcc19b02e233f552fa155` |
+| previousSeason | 535684 | `3fa3fb13deb0a1343dd5bfb0581298272e50b3a85984f785f2210ea708af8218` |
+| rolling12 | 529607 | `72832d0c4105490bb70909f46ed2d994ed68bcec99bd2089eb7e12113f904a5d` |
+| all | 693572 | `441f951e071cf3b9bb5946941e5883f94026ba79298b465552662f5a3a4d9d33` |
 
-Detailed downloaded receipts, public source bytes and readback reports remain
-ignored under `.local/research-acceptance/`. No private account data or screenshots
-are published. The frozen v62 tracker is unchanged.
+Raw build source SHA-256: `d07f8d8c7ff8b816d5eefe8f02d3124b656addb0b370a0c4a95b8d016f4a5c83`.
+PBP SHA-256: `bce5875c230e33625cd372cb1f79814fc183014777773389f9b16b964b78251c`.
+Live raw CSV SHA-256: `c0a148e69b5ca39212adb32f107c3788c12706e3a476c06599ce2c7ff81e454a`.
+The normalized completed dependency matches `fd486080d1eebe66078ec49b36c40f08e613750d2c9527a1da7dcf60519bb630`;
+the normalized schedule dependency matches `7dc3c93b56aa3afb82f6112fbee055ff38f332dcc090dfe087bba8947f5d03a9`.
+Missing finals: **zero**. `dependencyFresh`: **true**. Raw CSV bytes differ,
+but both normalized dependencies match; the earlier stale blocker is resolved
+without weakening its gate. No second manual refresh was dispatched.
+
+## Current-build authenticated browser acceptance
+
+The sole release captain cleared frontend source
+`e7a38c6e9017a9c49cdf2a526482c05f8219f29f`, Pages
+`6c458d6d-a845-45a9-a213-e1db661feb64`, successful deployment run
+[41542487945](https://github.com/seanbalz/guess-the-line/actions/runs/41542487945).
+This lane independently observed the served entry asset `index-B1JMAPIH.js`
+and tested an existing authenticated Community account in its own Chrome tab.
+The captain's 127-asset and preservation checks are separately owned evidence.
+API remains v45; no API/schema deployment was performed here.
+
+- The real current view selects **2026 Week 9**, with **15 game-statistics links**.
+  Scoring averages, completed-game samples, recent game dates/results and
+  nflverse attribution are populated. Unadjusted averages are labelled honestly.
+- After one Show more action, **40 visible assessments** comprise seven Research
+  leans, five Evidence against and 28 Insufficient evidence; two leans explicitly
+  carry opposing evidence. No Estimated value model is presented.
+- Lean detail exposes historical samples, dates, push handling and attribution,
+  explicitly descriptive rather than a calculated betting edge. Two supporting
+  findings correctly count as one underlying evidence group. Gray detail can
+  have a valid retained quote but no qualifying supporting evidence.
+- Research build time **3:18 PM Pacific** and latest completed game **November 1**
+  remain distinct from the retained quote's own time. Current history and current
+  retained-quote availability are shown. Closed play statistics explain that both
+  game markets must be open; no submission or reveal state was changed.
+- Totals gives an honest empty assessment list while retaining 15 statistics links;
+  Estimated value gives an honest no-matching-assessments state. Detail/back,
+  All games research, filters and Show more work. Filters were restored to All.
+- All eight external feeds report automatic access unavailable; no reviewed
+  external snapshot is claimed. No link, tracked bet or player entry was saved.
+- Read-only Refresh research preserves **current history**, the populated list,
+  build/source dates, retained-quote state and closed play-statistics explanation.
+  Its disclosure says it reads stored research/prices without requesting quotes.
+- Light and Dark screenshots at **320×844 and 390×844** show readable populated
+  layouts with no horizontal overflow. Market and Assessment selects measure
+  **44 px** tall. At maximum scroll in 390×844, the last disclosure ends at y731
+  and fixed navigation starts at y780, leaving **49 px clearance**. No captured
+  console errors were reported. These are browser viewport checks, not a phone pass.
+- Original Light appearance and default **1920×873** viewport were restored.
+
+This is one real account's observed read-only UI acceptance. It does not establish
+cross-account isolation, an unlocked play-statistics pass, account/week invalidation,
+all markets/providers, renewed strict HTTP probes or actual physical-device behavior.
+Public source validation and earlier catalog/HTTP evidence remain distinct.
+
+## Remaining acceptance and ownership
+
+Keep #398 **open** and the bounded workstream estimate **85–95%** until the sole
+phone operator records actual iPhone device/build/launch mode and accepted flows.
+No phone input was performed here; the captain retains the existing readiness
+request. Current publication, automatic publication, fresh dependencies and this
+signed-in desktop/browser-width acceptance are verified subcriteria, not 100%
+physical acceptance. Automatic X extraction, proprietary charting, fresh props,
+a validated green model and separate #363 discovery scope remain outside this pass.
+
+Detailed receipts, public downloads and screenshots stay ignored under
+`.local/research-acceptance/`; no account identity, private prediction or live
+quote detail is published. The frozen v62 tracker is unchanged. The release
+captain owns consolidation of these three evidence files into the combined
+acceptance PR; this lane makes no separate runtime or evidence PR.
