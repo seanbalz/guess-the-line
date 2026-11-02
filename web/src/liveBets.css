@@ -171,7 +171,7 @@
 .gx .gx-bets .gx-ticket-tracker .social-metrics > div:nth-child(even) { border-left: 1px solid var(--gx-border); }
 .gx .gx-bets .gx-ticket-tracker .social-metrics > div:nth-child(n+3) { border-top: 1px solid var(--gx-border); }
 .gx .gx-bets .gx-ticket-tracker .social-metrics strong { font-size: 24px; line-height: 28px; }
-.gx .gx-bets .gx-ticket-tracker .social-feed { gap: 0; overflow: hidden; border: 1px solid var(--gx-border); border-radius: var(--gx-radius-lg); box-shadow: var(--gx-e2); }
+.gx .gx-bets .gx-ticket-tracker .social-feed:not(.gx-tracked-feed) { gap: 0; overflow: hidden; border: 1px solid var(--gx-border); border-radius: var(--gx-radius-lg); box-shadow: var(--gx-e2); }
 .gx .gx-bets .gx-ticket-tracker .social-bet-card { border-radius: var(--gx-radius-md); background: var(--gx-surface-2); }
 .gx .gx-bets .gx-ticket-tracker .social-content { gap: var(--gx-space-4); }
 .gx .gx-bets .recommended-action { flex-wrap: wrap; }

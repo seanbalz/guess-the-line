@@ -26,4 +26,10 @@ describe('selected roomy ticket preview and full grid',()=>{
   const custom=renderToStaticMarkup(<PlayerPropEntry {...common} leg={{...legs[0],selection:'Original custom ticket'}}/>);
   expect(custom).toContain('Original custom ticket');
  });
+ it('filters player suggestions to the matchup while retaining manual names without roster coverage',()=>{
+  const props={game:{id:'CHI-SEA'},disabled:false,onChange:()=>{},leg:{gameId:'CHI-SEA',market:'prop',side:'',selection:'',propFields:{player:'Sample',stat:'receiving yards',direction:'at least',line:40}}};
+  const html=renderToStaticMarkup(<PlayerPropEntry {...props} players={[{id:'1',name:'Sample Receiver',team:'SEA',position:'WR'},{id:'2',name:'Sample Elsewhere',team:'DAL',position:'WR'}]}/>);
+  expect(html).toContain('Sample Receiver');expect(html).not.toContain('Sample Elsewhere');
+  const manual=renderToStaticMarkup(<PlayerPropEntry {...props}/>);expect(manual).toContain('value="Sample"');expect(manual).not.toContain('Matching players');
+ });
 });

@@ -1,5 +1,14 @@
 # Guess The Line — sequential platform work
 
+## My bets follow-up — November 2, 2026
+
+The [spacing and entry follow-up](../docs/RELEASE_2026_11_02_MY_BETS.md) fixes the
+reproduced zero-gap override and adds source/matchup search, roster-backed player
+suggestions and explicit Monday pending-answer refresh. Local implementation
+is under verification; production release and physical-phone acceptance are
+recorded separately. No existing guesses are reset. The frozen tracker remains
+unchanged.
+
 Owner: Sean Balsiger · Current reconciliation October 28, 2026
 
 Sean approved completing the existing redesign and optimizations first, updating
