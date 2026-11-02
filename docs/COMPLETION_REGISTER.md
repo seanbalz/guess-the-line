@@ -20,6 +20,21 @@ first,” with D-55 Round 3 charts. No new design selection is required for this
 The frozen v62 tracker is unchanged. The previous, cumulative register is retained
 as a [dated archive](COMPLETION_REGISTER_ARCHIVE_2026_10_26.md).
 
+## Pick reminders follow-ups from the #411 review — November 2, 2026
+
+Menu › Pick reminders now shows in EPL as well as NFL: the EPL frame takes the
+push guard (`pushConfigured`) from the same Community read its Menu already
+opens for commissioner access, and the row opens the same per-device switch.
+Tapping a Points reminder (tag `gtl-points-…`) opens Play › Points
+(`/#play/points`); every other tag still opens `/#picks`. `web/public/sw.js`
+maps only the fixed tag prefix to one of these two addresses, so the payload
+still cannot choose a URL. Node tests run the worker itself (points, other,
+missing and look-alike tags; payload `url`/`data` ignored; focus an open
+window, else open one); a 390 px browser check covers the EPL Menu row. Phone
+captures of the Menu in EPL and NFL, Light and Dark, are in
+[design/qa/reminder-followups-2026-11-02](../design/qa/reminder-followups-2026-11-02/).
+Frontend only; it ships with the next Pages release. A tap on a real phone is not verified.
+
 ## Player context on the Points ballot (Board i63) — November 2, 2026
 
 Each Points slot showed only the player, matchup and kickoff. A slot's sheet
