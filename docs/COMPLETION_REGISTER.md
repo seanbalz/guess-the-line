@@ -76,13 +76,16 @@ verifies the public data publication, protected API v45 and frontend release,
 research access denials and unchanged score/ballot/settlement fingerprints.
 The real public loader plus captured production read inputs return 14 scoring/
 play-statistics matchups, 68 assessments and eight evidence entries; this is a
-local projection. [November 2 acceptance preparation](RESEARCH_ACCEPTANCE_2026_11_02.md)
-now verifies the first successful automatic publication and all six current public
-asset hashes. A fresh public-source check finds a changed schedule dependency,
-so current source freshness remains an open readiness blocker. Populated real
-signed-in current-build and physical-phone acceptance remain pending, ordered
-after stable #408 deployment; the bounded Research estimate remains 85–95%.
-No automatic X feed is connected.
+local projection. [November 2 acceptance evidence](RESEARCH_ACCEPTANCE_2026_11_02.md)
+verifies automatic publication, all six current public assets and resolution of
+schedule drift through one coordinated normal refresh (run 41544353761). Both
+normalized source dependencies match, with zero missing finals at 23:21 UTC.
+A real signed-in account on stable #408 frontend shows Week 9, 15 statistics
+links and populated qualitative assessments/evidence; read-only refresh, filters,
+Light/Dark and 320/390-pixel layouts pass. Physical iPhone acceptance remains
+with the sole device owner; #398 stays open at the bounded 85–95% estimate.
+The record distinguishes one-account browser checks from device, cross-account
+and unlocked-market acceptance. No automatic X feed is connected.
 
 ## Independent research assessments — October 30, 2026
 

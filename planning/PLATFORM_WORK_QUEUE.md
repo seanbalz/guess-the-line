@@ -82,15 +82,16 @@ and [November 1 release evidence](../docs/RELEASE_2026_11_01_RESEARCH_DATA.md).
 PR #397, all twelve exact-main checks, populated public data publication and
 protected API v45/frontend deployment are complete. Production assets, critical
 API source files, strict research denials and preserved records are verified.
-Signed-in populated production readback remains the repair's acceptance gate;
-the public-loader projection uses captured production inputs locally. Verify
-the first automatic scheduled refresh separately. [November 2 evidence](../docs/RESEARCH_ACCEPTANCE_2026_11_02.md)
-now verifies successful scheduled publication and six current public files, but
-live schedule-dependency drift leaves current freshness blocked. Keep #398 open
-and the bounded Research estimate at 85–95%; final populated authenticated
-current-build acceptance follows stable #408 release, with phone operation owned
-separately. Retain source-access and physical-phone limits; automatic X extraction
-is still unconnected.
+[November 2 evidence](../docs/RESEARCH_ACCEPTANCE_2026_11_02.md) verifies the
+first successful scheduled publication, six current public files, and fresh
+normalized dependencies after one coordinated normal refresh (41544353761).
+Signed-in stable #408 browser acceptance now passes: current Week 9, populated
+statistics/evidence, qualitative/empty states, read-only refresh, filters and
+Light/Dark at 320/390 pixels. Keep #398 open at the bounded **85–95%** estimate
+until the sole phone owner completes actual iPhone acceptance. Browser results
+do not certify cross-account or unlocked-market flows. The release captain
+consolidates evidence; no separate runtime change is needed here. Automatic X
+extraction remains unconnected.
 
 Sean selected **Research and charts** as the next player-facing design batch on
 October 26, ahead of the next commissioner page. Continue one implementation lane at a time. The approved four-tab “One thing first”
