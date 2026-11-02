@@ -1,5 +1,14 @@
 # Guess The Line — current completion register
 
+## Tracked bets Overview — November 2, 2026
+
+The [Overview follow-up](TRACKED_BETS_OVERVIEW_2026_11_02.md) restores a first-class
+chart destination beside Tickets, with performance, outcome, type, market and
+sportsbook breakdowns, shared filters and optional cash display. Accounting uses
+the existing core; this frontend change does not alter saved tickets or guesses.
+Local browser verification is in progress. Merge, deployment and physical-phone
+acceptance remain separate evidence states.
+
 ## My bets spacing and entry follow-up — November 2, 2026
 
 Sean's screenshot reproduced a legacy CSS override that removed the card gap.

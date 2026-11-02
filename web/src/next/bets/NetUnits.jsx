@@ -4,12 +4,15 @@
 import { TrendDetail } from '../charts/TrendDetail.jsx';
 import { StatTiles } from '../charts/StatTiles.jsx';
 import { signed } from '../charts/geometry.js';
+import {cashText,validUnitCash} from '../../trackedBetTerms.js';
 
 const pct = value => (Number.isFinite(value) ? `${Math.round(value * 10) / 10}%` : '—');
 
-export function NetUnits({ summary = {}, points = [], player }) {
+export function NetUnits({ summary = {}, points = [], player, amounts = 'units', unitCash }) {
   const own = points.filter(point => (!player || point.ownerId === player) && Number.isFinite(point.cumulativeNetUnits));
   const values = [0, ...own.map(point => point.cumulativeNetUnits)];
+  const cash=amounts==='cash'&&validUnitCash(unitCash),title=cash?'Net profit':'Net units';
+  const format=value=>cash?cashText(value*unitCash):`${signed(value,2)} U`;
   const net = summary.roiSampleCount ? summary.netUnits : null;
   const tiles = [
     { label: 'Record', value: summary.record || '0–0–0', sub: `${summary.pending || 0} pending` },
@@ -19,8 +22,8 @@ export function NetUnits({ summary = {}, points = [], player }) {
   if (own.length < 2) {
     return (
       <section className="gx-tc-card" aria-label="Your record" data-bets="metrics">
-        <div className="gx-tc-head"><h2 className="gx-t-strong gx-grow">Net units</h2></div>
-        <p className="gx-tc-headline"><span className="gx-tc-big">{net === null ? '—' : `${signed(net, 2)} U`}</span><span className="gx-tc-headline-sub">{own.length ? 'One settled ticket so far' : 'Your first settled ticket starts this chart'}</span></p>
+        <div className="gx-tc-head"><h2 className="gx-t-strong gx-grow">{title}</h2></div>
+        <p className="gx-tc-headline"><span className="gx-tc-big">{net === null ? '—' : format(net)}</span><span className="gx-tc-headline-sub">{own.length ? 'One settled ticket so far' : 'Your first settled ticket starts this chart'}</span></p>
         <StatTiles tiles={tiles}/>
       </section>
     );
@@ -29,14 +32,15 @@ export function NetUnits({ summary = {}, points = [], player }) {
   return (
     <div data-bets="metrics">
       <TrendDetail
-        title="Net units"
+        title={title}
         line={{
-          values,
+          values:cash?values.map(value=>value*unitCash):values,
+          formatValue:cash?cashText:undefined,
           start: day(own[0].at),
           end: day(own.at(-1).at),
-          label: `Cumulative net units over ${own.length} settled tickets, ending at ${signed(values.at(-1), 2)}`,
-          tip: i => (i === 0 ? { value: '0.00 U', label: 'Start' } : { value: `${signed(values[i], 2)} U`, label: `Ticket ${i} · ${day(own[i - 1].at)}` }),
-          headline: { value: net === null ? '—' : `${signed(net, 2)} U`, sub: `${own.length} settled tickets` },
+          label: `Cumulative ${cash?'profit in dollars':'net units'} over ${own.length} settled tickets, ending at ${format(values.at(-1))}`,
+          tip: i => ({value:format(values[i]),label:i===0?'Start':`Ticket ${i} · ${day(own[i-1].at)}`}),
+          headline: { value: net === null ? '—' : format(net), sub: `${own.length} settled tickets` },
           tiles,
         }}
       />

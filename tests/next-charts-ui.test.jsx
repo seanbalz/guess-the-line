@@ -215,6 +215,12 @@ describe('recent outcome counts', () => {
 });
 
 describe('visible chart scales', () => {
+  it('uses a caller currency format for both the scale and zero baseline without changing unit defaults', () => {
+    const formatValue=value=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(value);
+    const html=render(<TrendLine values={[0,100,75]} tip={i=>({value:formatValue([0,100,75][i]),label:'Ticket'})} label="Cash profit" formatValue={formatValue}/>);
+    expect(html).toContain('$0.00 to $100.00');expect(html).not.toContain('0 U');expect(html).not.toContain('100 U');
+    expect(html).toMatch(/class="gx-tc-zero-label"[^>]*>\$0\.00<\/span>/);expect(markupProblems(html)).toEqual([]);
+  });
   it('states the plotted unit range, preserving small nonzero values and missing evidence', async () => {
     const { ChartScale } = await import('../web/src/next/charts/ChartScale.jsx');
     for (const [extent, text] of [

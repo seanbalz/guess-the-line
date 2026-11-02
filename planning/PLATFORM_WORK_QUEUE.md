@@ -1,5 +1,13 @@
 # Guess The Line — sequential platform work
 
+## Tracked bets Overview — November 2, 2026
+
+Sean requested a visible Overview tab after the graph became hard to find.
+The [implementation record](../docs/TRACKED_BETS_OVERVIEW_2026_11_02.md) covers
+charts, ticket-level breakdowns, shared filters, unit/cash display and drill-down
+to matching tickets. Local verification is in progress; the single release
+captain handles the eventual frontend batch. Saved records are unchanged.
+
 ## My bets follow-up — November 2, 2026
 
 The [spacing and entry follow-up](../docs/RELEASE_2026_11_02_MY_BETS.md) fixes the
