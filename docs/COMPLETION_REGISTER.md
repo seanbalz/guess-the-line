@@ -59,10 +59,11 @@ Safari tab's one-line "add to Home Screen first") and a one-time prompt under
 Play's Points card, remembered per account on the device. Both reuse
 `web/src/webPush.js` and the existing `/push/*` routes, ask for permission only
 on a tap and show only while `pushConfigured` is true. Frontend only; no route,
-migration or Edge Function changed. It is included in the verified e7a frontend
-release documented in the [My bets release follow-through](RELEASE_2026_11_02_MY_BETS.md).
-This lane did not opt in, change notification permission or verify delivery to a
-real iPhone from the Home Screen app.
+migration or Edge Function changed. Released November 2 in Pages `6c458d6d` from
+`e7a38c6` ([release record](RELEASE_2026_11_02_REMINDERS.md), card #414); the release
+owner saw the prompt and Menu row live, signed in, and reported 0 subscriptions
+at that observation. This acceptance lane did not opt in or change notification
+permission. Delivery to a real iPhone from the Home Screen app is not verified.
 
 ## My bets Roomy cards and inline expansion — November 1, 2026
 

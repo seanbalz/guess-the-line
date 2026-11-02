@@ -1,6 +1,9 @@
 # My bets spacing, searchable entry and Monday answers — November 2, 2026
 
-Status: merged, deployed in the newer combined frontend, independently verified and accepted in the signed-in browser; physical iPhone acceptance pending.
+Status: released November 2 in Pages `6c458d6d` from `e7a38c6`, together with
+Pick reminders opt-in; see the [combined release record](RELEASE_2026_11_02_REMINDERS.md).
+Independent signed-in My bets browser acceptance passed. Physical iPhone
+acceptance remains open.
 
 Sean's phone screenshots showed adjacent ticket borders touching after the Roomy
 cards release. The legacy `.gx .gx-bets .gx-ticket-tracker .social-feed` rule
