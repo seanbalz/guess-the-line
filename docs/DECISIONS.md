@@ -1,5 +1,24 @@
 # Decision log
 
+## D-69 — Play › Your guesses becomes nesting cards: the week, then one game (November 2, 2026)
+
+Sean asked for the next design pass, "cut text on Home and Play the way Research was done". On the live app Home
+(139 words) and the Play landing (59 words) were already lean. Play › Your guesses was the long screen: 15 stacked
+525px cards, about 9,000px, with 1,317 words and 252 buttons on the open Total ballot. Of five options on the
+[comparison canvas](https://claude.ai/artifact/5Kj42mrQJZ2UJGqsxm4nSn), he chose "1 · Nesting cards".
+- **Week layer:** "Week 9", one meta line ("4 of 15 locked"), the Spread / Total control and one tile per game. Each
+  tile shows its state tag, the matchup as marks and your guess as one big number, or "—". No tile shows the line,
+  points or anyone else's guess.
+- **Game layer:** a tap opens the game with a "Week 9 · Total" lip. It holds the picker and "Lock in" as its one
+  primary button, or the receipt and everyone's guesses once you lock. "Next to lock" opens the next game in its place.
+- **Addresses:** a game uses its existing `pickGame` address, so reload, Back and deep links from Lines and Bets work.
+  Rule text and guess help move behind ⓘ.
+- **Unchanged:** the lock-in, draft, sit-out and reveal rules (D-16, D-20, D-30, D-31, D-36, D-37, D-39); the editor's
+  saving logic; the whole-market path; the old app's list; Home.
+
+Details and tests are in [the design spec](superpowers/specs/2026-11-02-play-picks-nesting-cards-design.md). This
+extends D-66's layout to Play's guesses only; the four tabs and D-58's type, palette, icons and motion stay.
+
 ## Shared NFL/EPL interface — October 29, 2026
 
 Sean confirmed a shared interface with sport-specific game modes, the same
