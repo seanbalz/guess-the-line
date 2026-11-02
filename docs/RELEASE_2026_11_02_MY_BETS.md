@@ -37,7 +37,7 @@ readback. Unrelated ticket entries, other social weeks, all Guess ballots and
 Points guesses/slates matched their pre-write fingerprints. Private selections,
 account identifiers and reconciliation payloads remain outside the repository.
 
-Local validation passed: typecheck, 17 focused Node checks, all 621 component
+Local validation passed: typecheck, 31 focused Node checks, all 621 component
 checks, all 27 browser scenarios across Bets and per-game Play, the cloud build,
 private-bundle scan and brand-document QA. The browser scenarios include measured
 multi-card spacing, actual source/matchup search and player selection, exact

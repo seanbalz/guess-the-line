@@ -5,7 +5,7 @@
 Sean's screenshot reproduced a legacy CSS override that removed the card gap.
 The [follow-up record](RELEASE_2026_11_02_MY_BETS.md) covers the actual 32px
 separation, searchable manual sources/matchups, same-week player suggestions and
-clearer Monday pending-answer refresh. Local checks pass: 17 focused Node, 621
+clearer Monday pending-answer refresh. Local checks pass: 31 focused Node, 621
 component and 27 browser scenarios, typecheck, build, privacy scan and brand QA.
 Merge and deployment are not yet claimed. Authorized profile reconciliation was verified
 privately through the existing audited writer. Fantasy opens Tuesday under
