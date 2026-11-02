@@ -47,8 +47,10 @@ Safari tab's one-line "add to Home Screen first") and a one-time prompt under
 Play's Points card, remembered per account on the device. Both reuse
 `web/src/webPush.js` and the existing `/push/*` routes, ask for permission only
 on a tap and show only while `pushConfigured` is true. Frontend only; no route,
-migration or Edge Function changed; it ships with the next Pages release.
-Delivery to a real iPhone from the Home Screen app is not verified.
+migration or Edge Function changed. Released November 2 in Pages `6c458d6d` from
+`e7a38c6` ([release record](RELEASE_2026_11_02_REMINDERS.md), card #414); the prompt
+and Menu row were seen live, signed in. Delivery to a real iPhone from the Home
+Screen app is not verified, and push subscriptions are still 0 until someone opts in.
 
 ## My bets Roomy cards and inline expansion — November 1, 2026
 
