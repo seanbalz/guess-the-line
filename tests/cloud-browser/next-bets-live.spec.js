@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import fs from 'node:fs';
 import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, signIn, sendBallot, storeBookLines } from './community-world.mjs';
 import { ALL } from '../migrations.mjs';
 
@@ -597,5 +598,59 @@ test('guided milestone keeps 70+ and four-decimal units after save and correctio
   await row.getByRole('button',{name:'Ticket details',exact:true}).click();await row.getByText('Details & history',{exact:true}).click();await row.getByRole('button',{name:'Correct ticket',exact:true}).click();
   const correction=page.getByRole('dialog',{name:'Correct saved bet'});await correction.getByLabel('Reason for correction',{exact:true}).fill('Reviewed exact recorded milestone');await correction.getByRole('button',{name:'Save correction',exact:true}).click();await expect(correction).toHaveCount(0);
   const fixed=calls.find(c=>c.path==='social/correct');expect(fixed.body.stakeUnits).toBe(.0747);expect(fixed.body.legs[0].selection).toBe('Fixture Runner 70+ rushing yards');expect(world.errors).toEqual([]);
+ }finally{await world.db.close();}
+});
+
+test('populated tickets keep a measured 32px gap after lazy styles load and inline expansion',async({page,baseURL})=>{
+ const world=await communityWorld(page,baseURL,{games:3});
+ try{
+  await openBets(page);
+  for(let i=0;i<3;i++){
+   const editor=await fillTicket(page,world.state.games[i].id);
+   await editor.getByRole('button',{name:'Save tracked bet',exact:true}).click();await expect(editor).toHaveCount(0);
+  }
+  const rows=page.locator('.gx-tracked-row');await expect(rows).toHaveCount(3);
+  for(const theme of ['light','dark'])for(const width of [320,390]){
+   await page.evaluate(t=>document.documentElement.dataset.theme=t,theme);await page.setViewportSize({width,height:844});
+   for(const expanded of [false,true]){
+    if(expanded)await rows.first().locator('.gx-tracked-preview').click();
+    const geometry=await rows.evaluateAll(elements=>elements.map((el,i)=>({gap:i?el.getBoundingClientRect().top-elements[i-1].getBoundingClientRect().bottom:null,left:el.getBoundingClientRect().left,right:el.getBoundingClientRect().right})));
+    for(const row of geometry){if(row.gap!==null)expect(row.gap,`${theme} ${width}px expanded=${expanded}`).toBeCloseTo(32,0);expect(row.left).toBeGreaterThanOrEqual(0);expect(row.right).toBeLessThanOrEqual(width);}
+    if(expanded)await rows.first().getByRole('button',{name:/^Collapse /}).click();
+   }
+   await page.screenshot({path:`.local/weekend-bets/spacing-${theme}-${width}.png`,fullPage:true});
+  }
+  await page.reload();await expect(rows).toHaveCount(3);
+  expect(await rows.nth(1).evaluate(el=>el.getBoundingClientRect().top-el.previousElementSibling.getBoundingClientRect().bottom)).toBeCloseTo(32,0);
+  expect(world.errors).toEqual([]);
+ }finally{await world.db.close();}
+});
+
+test('matchup and sportsbook searches plus roster suggestions keep exact manually selected prop terms',async({page,baseURL})=>{
+ const world=await communityWorld(page,baseURL,{games:8});
+ try{
+  const snapshot=JSON.parse(fs.readFileSync('shared/fantasy/2026-week-06.json','utf8'));
+  snapshot.week=world.state.league.week;snapshot.statsThroughWeek=snapshot.week-1;
+  const game=world.state.games[0],teams=game.id.split('-').map(t=>t==='LAR'?'LA':t);
+  const matching=snapshot.players.find(p=>teams.includes(p.team));expect(matching).toBeTruthy();
+  await page.route(url=>url.origin===SUPABASE&&url.pathname.endsWith('/gtl-api/fantasy/week'),route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({snapshot,review:null,index:{season:2026,snapshots:[{week:snapshot.week}]},source:{stale:false}})}));
+  const calls=callsFrom(page);await openBets(page);await page.getByRole('button',{name:'Add bet',exact:true}).click();
+  const editor=page.getByRole('dialog',{name:'Add a tracked bet'});
+  await editor.getByLabel('Find matchup',{exact:true}).fill(teams[0]);
+  await editor.getByRole('group',{name:'Matchup',exact:true}).getByRole('button',{name:game.id.replace('-',' @ '),exact:true}).click();
+  await editor.getByRole('group',{name:'Market',exact:true}).getByRole('button',{name:'Player prop',exact:true}).click();
+  await editor.getByLabel('Player name',{exact:true}).fill(matching.name.slice(0,3));
+  await editor.getByRole('group',{name:'Matching players'}).getByRole('button',{name:`${matching.name} · ${matching.team} ${matching.position}`,exact:true}).click();
+  await expect(editor.getByLabel('Player name',{exact:true})).toHaveValue(matching.name);
+  await editor.getByLabel('Prop market',{exact:true}).selectOption('receiving yards');
+  await editor.getByRole('group',{name:'Prop direction',exact:true}).getByRole('button',{name:'At least (+)',exact:true}).click();await editor.getByLabel('Prop line',{exact:true}).fill('40');
+  await editor.getByText('More sportsbooks',{exact:true}).click();await editor.getByLabel('Find sportsbook',{exact:true}).fill('Prophet');
+  await editor.getByLabel('Find sportsbook',{exact:true}).press('Enter');await expect(editor).toBeVisible();
+  expect(calls.filter(c=>c.path==='social/create')).toHaveLength(0);
+  await editor.getByRole('button',{name:'ProphetX',exact:true}).click();
+  expect(calls.filter(c=>c.path==='social/create')).toHaveLength(0);
+  await editor.getByRole('button',{name:'Save tracked bet',exact:true}).click();await expect(editor).toHaveCount(0);
+  const write=calls.find(c=>c.path==='social/create');expect(write.body.source).toBe('ProphetX');expect(write.body.legs[0]).toEqual({gameId:game.id,market:'prop',side:matching.name,line:40,selection:`${matching.name} 40+ receiving yards`});
+  expect(world.errors).toEqual([]);
  }finally{await world.db.close();}
 });
