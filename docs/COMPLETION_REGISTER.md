@@ -20,6 +20,19 @@ first,” with D-55 Round 3 charts. No new design selection is required for this
 The frozen v62 tracker is unchanged. The previous, cumulative register is retained
 as a [dated archive](COMPLETION_REGISTER_ARCHIVE_2026_10_26.md).
 
+## Pick reminders opt-in in the new app (Board i39) — November 2, 2026
+
+Verified November 2: 0 push subscriptions and 0 reminders ever sent, although
+`gtl-push-reminders` v5 (Spread/Total and Points) runs every 15 minutes; the
+opt-in lived only in the retired old app. The new app now has Menu › Pick
+reminders (one switch per device: on, off, blocked, unsupported, or an iPhone
+Safari tab's one-line "add to Home Screen first") and a one-time prompt under
+Play's Points card, remembered per account on the device. Both reuse
+`web/src/webPush.js` and the existing `/push/*` routes, ask for permission only
+on a tap and show only while `pushConfigured` is true. Frontend only; no route,
+migration or Edge Function changed; it ships with the next Pages release.
+Delivery to a real iPhone from the Home Screen app is not verified.
+
 ## My bets Roomy cards and inline expansion — November 1, 2026
 
 Sean requested more spacing and compact previews that open the current full bet

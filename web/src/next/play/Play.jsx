@@ -1,6 +1,6 @@
 // The account-wide Play surface follows live server capabilities. M-07 opens per-game entry and receipts;
 // until all capabilities are reported, the existing whole-market editor retains the hosted rules.
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { WeekPicks } from '../../CommunityHome.jsx';
 import { useAppData, useSharedRead } from '../data/AppData.jsx';
 import { COMMUNITY } from '../data/league.js';
@@ -27,6 +27,8 @@ import { PointsBallot, PointsLandingCard, usePointsRead } from './points/PointsB
 // Badges, streaks and awards (redesign stage 71): their own screen and one row in More in Play; nothing shows until M-25 answers.
 import { FeaturesScreen } from '../features/FeaturesScreen.jsx';
 import { PlayFeaturesRow } from '../features/FeatureRows.jsx';
+// Pick reminders (Board i39): a one-time prompt under the Points card, the same flow as Menu › Pick reminders.
+import { ReminderPrompt } from '../me/PickReminders.jsx';
 
 const modeOf = value => value === 'total' || value === 'guess_total' ? 'guess_total'
   : value === 'spread' || value === 'guess_spread' ? 'guess_spread' : null;
@@ -49,8 +51,13 @@ function PlayLanding() {
   const app = useAppData(), shell = useShell(), data = app.community.data;
   const preferences = useAccountPreferences(app);
   const points = usePointsRead(app);
-  // Decision 1C (D-56 addendum, Oct 23): Points is a glow card under the plain Spread and Total rows.
-  const pointsCard = <PointsLandingCard read={points} onOpen={() => shell.go('play', { section: 'points' })}/>;
+  const pointsRef = useRef(null);
+  // Decision 1C (D-56 addendum, Oct 23): Points is a glow card under the plain Spread and Total rows. The reminder prompt
+  // sits under it until it is answered; when it leaves, focus returns to the Points card.
+  const pointsCard = <>
+    <PointsLandingCard ref={pointsRef} read={points} onOpen={() => shell.go('play', { section: 'points' })}/>
+    <ReminderPrompt key={app.accountId} onGone={() => pointsRef.current?.focus()}/>
+  </>;
   const hero = data ? homeHero({ community: data }) : null;
   const market = nextGuess(data), other = market === 'spread' ? 'total' : 'spread';
   const name = value => value === 'spread' ? 'Guess the Spread' : 'Guess the Total';

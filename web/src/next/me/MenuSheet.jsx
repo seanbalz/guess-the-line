@@ -2,12 +2,16 @@
 // Sign out. Profile, History, How to play and Settings join it in the Me stages. Appearance opens in place as a
 // sub-view ("‹ Menu"), with Dark, Light or System and Reduce motion. Both are kept on this device under the old app's
 // own keys (`gtl.theme`, and the motion choice in `gtl.dashboard.preferences.v1`), so the two apps always agree.
+// Pick reminders (Board i39) opens the same way, with this device's push switch; its row shows only while the server can
+// send pushes (the shell's `pushConfigured`, from the Community read's stage 2 push guard).
 import { lazy, Suspense, useState } from 'react';
 import { Avatar, Button, Card, LinkRow, List, Segmented, Sheet, Switch } from '../ui/index.js';
 import { useThemePreference } from '../../Theme.jsx';
 import { useDashboardPreferences } from '../../dashboardPreferences.js';
 import { useShell } from '../shell/context.js';
 import { AccountPreferences } from './AccountPreferences.jsx';
+import { PickReminderSettings } from './PickReminders.jsx';
+import { REMINDER_COPY } from './reminders.js';
 import { ProfileSettings } from './ProfileSettings.jsx';
 import { GUIDANCE_ORDER, INFO } from '../info.js';
 
@@ -83,6 +87,13 @@ export function MenuSheet({ args }) {
       </Sheet>
     );
   }
+  if (args.sub === 'reminders') {
+    return (
+      <Sheet title={REMINDER_COPY.title} back={{ label: MENU_COPY.title, onBack: () => shell.setSheetArgs({ sub: null }) }} onClose={shell.closeSheet}>
+        <PickReminderSettings key={shell.you.id}/>
+      </Sheet>
+    );
+  }
   if (args.sub === 'appearance') {
     return (
       <Sheet title={MENU_COPY.appearance} back={{ label: MENU_COPY.title, onBack: () => shell.setSheetArgs({ sub: null }) }} onClose={shell.closeSheet}>
@@ -110,6 +121,7 @@ export function MenuSheet({ args }) {
           <LinkRow key="history" icon="clock" onClick={() => shell.openPage('page.history', {})}>{MENU_COPY.history}</LinkRow>
           <LinkRow key="export" icon="receipt" onClick={() => shell.setSheetArgs({ sub: 'export' })}>{MENU_COPY.export}</LinkRow>
           <LinkRow key="preferences" icon="pencil" onClick={() => shell.setSheetArgs({ sub: 'preferences' })}>Settings · sportsbooks and guidance</LinkRow>
+          {shell.pushConfigured === true && <LinkRow key="reminders" icon="bell" onClick={() => shell.setSheetArgs({ sub: 'reminders' })}>{REMINDER_COPY.title}</LinkRow>}
           <LinkRow key="guidance" icon="info" onClick={() => shell.setSheetArgs({ sub: 'guidance' })}>{MENU_COPY.guidance}</LinkRow>
           <LinkRow key="appearance" icon="palette" onClick={() => shell.setSheetArgs({ sub: 'appearance' })}>{MENU_COPY.appearance}</LinkRow>
         </List>
