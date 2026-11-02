@@ -1,5 +1,41 @@
 # Guess The Line — current completion register
 
+## EPL Week 9 results and weekly automation — November 2, 2026
+
+Owner: Sean Balsiger · Verified hosted data maintenance; no source deployment.
+The supplied FEPL screenshot agrees with all eight weekly points-for and
+points-against deltas from the stored `after-mw08` baseline to a fresh public
+Sleeper capture at `2026-11-02T23:28:21Z` (season 2026, state week 10). The six
+responses retain their raw-body SHA-256 provenance; only the existing trimmed
+form was saved through `gtl_epl_save_snapshot` as `after-mw9`. Raw captures and
+individual player data remain outside this public repository.
+
+An ordinary `gtl_epl_dispatch_jobs('settle')` run
+`13cbd5e0-7c97-4709-93a9-080c8a64ab16` collected the tenth final fixture and
+correctly stopped at `snapshot_pending` before the import. All ten fixtures are
+now final. The existing eight picks retain digest
+`f6d56eb4181d8d0430b7b4f4af97335e`; all seven earlier snapshots retain digest
+`0deee1439cb6851753964334187bb079` (MD5 of ordered complete row JSON).
+
+Live schedule/cron readback confirms seven enabled jobs. Snapshots run every
+15 minutes; settlement runs at 09:41 and 21:41 UTC; fixture collection at
+05:47 and 17:47 UTC; draft deadline resolution every five minutes. Reuse these
+jobs rather than adding a duplicate ChatGPT automation. M-33/M-35 correction
+and verified capture-interval RPCs are still absent: the current worker reports
+those optional capabilities unavailable and uses its legacy window-end path.
+This maintenance does not apply migrations, change cron, or establish future
+Tuesday correction/full-cycle acceptance.
+
+Settlement run `8b87b1b7-0ff9-4700-8427-fd3e08d432ed` succeeded after the import:
+three tied winning-margin awards were written and MW10 opened automatically
+using the existing scoring/order functions. MW9 is settled; its eight picks
+retain the same digest. The next draft order includes the bonus and season-total
+tie-break. Individual scores/picks were verified privately, not committed here.
+
+Local verification: all 53 existing Sleeper math/job tests and the document
+brand check passed. Hosted readback confirmed the imported label/state and
+unchanged preservation digests; browser/phone acceptance remains separate.
+
 ## My bets spacing and entry follow-up — November 2, 2026
 
 Sean's screenshot reproduced a legacy CSS override that removed the card gap.
