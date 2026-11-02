@@ -11,6 +11,9 @@
 .gx .gx-picks-lead { color: var(--gx-text-2); }
 /* One game's card body sits inside its nesting card: no second frame, so the picker keeps 44px chips at 320. */
 .gx .gx-live-play .gx-play-game.gx-play-game--nested { padding: 0; border: 0; background: none; box-shadow: none; }
+/* Next to lock wraps its matchup onto a second line when the nested card is narrow (320, wider fallback fonts), so it
+   never widens the column into a sideways scroll. */
+.gx .gx-per-game--nest .gx-play-next { flex-wrap: wrap; min-width: 0; max-width: 100%; padding-block: var(--gx-space-2); }
 /* Next to lock as the lime button (after a lock): the matchup's codes and "@" take the button's text color. */
 .gx .gx-play-next.gx-btn--primary .gx-mu-side, .gx .gx-play-next.gx-btn--primary .gx-mu-at { color: inherit; }
 @media (max-width: 359px) {

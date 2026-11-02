@@ -1748,9 +1748,9 @@ test('your pick sheet separates draft and locked references and returns focus to
       }, { once: true, capture: true });
     });
     await total.getByRole('button', { name: 'Open Total in Play', exact: true }).click();
-    await expect(page.getByRole('article', { name: 'SEA at DEN Total', exact: true })).toBeFocused();
+    await expect(page.getByRole('heading', { name: 'SEA @ DEN', exact: true })).toBeFocused(); // D-69: the game card's heading
     await page.evaluate(() => window.resumeRouteFrames());
-    await expect(page.getByRole('article', { name: 'SEA at DEN Total', exact: true })).toBeFocused();
+    await expect(page.getByRole('heading', { name: 'SEA @ DEN', exact: true })).toBeFocused(); // D-69: the game card's heading
     expect(calls.filter(call => !READS.includes(call))).toEqual([]); expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
@@ -1829,7 +1829,8 @@ test('League bets loads one game on demand with protected terms, phone layout an
     const action = sheet(page, 'SEA @ DEN').getByRole('button', { name: /^Open League bets for / });
     await expect(action).toBeFocused(); await phoneChecks(page); expect(await axe(page)).toEqual([]);
     await action.click(); await bets.getByRole('button', { name: 'Open Spread in Play', exact: true }).click();
-    await expect(page.getByRole('article', { name: 'SEA at DEN Spread', exact: true })).toBeFocused();
+    await expect(page.getByRole('article', { name: 'SEA at DEN Spread', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'SEA @ DEN', exact: true })).toBeFocused(); // D-69: the game card's heading
     expect(calls.filter(call => ![...READS, 'POST /bets/read'].includes(call))).toEqual([]);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
