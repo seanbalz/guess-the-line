@@ -34,12 +34,19 @@ Virtual Units views retain their existing access and reveal rules.
 
 ## Verification and release status
 
-Local verification is in progress. The focused helper/token checks pass (22
-tests), as do typecheck, the production build and all 649 component tests.
-Browser checks cover populated/empty dashboards, owner isolation, accounting,
-filter drill-down, cash display, keyboard chart selection, 320/390px layouts,
-both themes, accessibility and no writes while exploring. Their final outcome
-and the PR/merge evidence will be recorded after completion.
+Local checks pass: 43 focused Node tests, all 650 component tests, typecheck,
+the production build, the bundle privacy scan and Brand QA. All 16 tracked-bet
+browser scenarios pass, including populated/empty dashboards, owner isolation,
+accounting, filter drill-down, cash display, keyboard chart selection, 320/390px
+layouts, both themes, no accessibility violations and no writes while exploring.
+Saved database state is identical before and after the dashboard flow. Existing
+ticket creation, concurrent-response recovery, inline expansion, manual entry
+and measured 32px gaps retain regression coverage. Cash scales and zero labels
+are currency-formatted; other charts retain their default unit format.
+
+PR and exact-main checks are separate from these local results and will be
+recorded with the merge/release handoff. Local browser evidence is not a
+physical-phone acceptance claim.
 
 Deployment is separate under the repository's single-captain release train.
 No production deployment or physical-phone acceptance is claimed here.
