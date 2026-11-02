@@ -7,9 +7,21 @@ The [follow-up record](RELEASE_2026_11_02_MY_BETS.md) covers the actual 32px
 separation, searchable manual sources/matchups, same-week player suggestions and
 clearer Monday pending-answer refresh. Local checks pass: 31 focused Node, 621
 component and 27 browser scenarios, typecheck, build, privacy scan and brand QA.
-Merge and deployment are not yet claimed. Authorized profile reconciliation was verified
-privately through the existing audited writer. Fantasy opens Tuesday under
-D-61; existing locked guesses remain intact.
+PR #408 is merged as `e02fed3b2e3cd9acf5bc63b4ecda1d0c3bcf5356` after all twelve PR checks.
+Its interrupted exact-main browser checks recovered in attempt 3, then source
+check 41543354162 passed. An external controller deployed the newer combined
+`e7a38c6e9017a9c49cdf2a526482c05f8219f29f` in protected run 41542487945; this
+lane did not deploy or approve it and did not overwrite it with e02. All seven
+#408 runtime files are identical. Independent readback matched all 127 served
+files, and protected-data aggregates stayed unchanged before/after deployment
+and browser QA. Actual signed-in checks verify 32px gaps across populated tickets
+at 320/390px in Light/Dark, expansion/reload, search/Enter, roster/manual entry,
+prop resets and a read refresh of 15 already-available locked receipts. Only the
+unsaved QA draft was discarded; original settings/filter/viewport were restored.
+Approximate completion is **90–95%**: physical iPhone acceptance is pending the
+OS-required phone lock. Research acceptance follows the verified stable release;
+#388 remains open for its physical matrix. Points retains D-61's Tuesday opening
+and fresh-snapshot prerequisites; no existing locked guess was reset.
 
 Owner: Sean Balsiger · Reconciled October 29, 2026
 
@@ -63,9 +75,10 @@ Play's Points card, remembered per account on the device. Both reuse
 `web/src/webPush.js` and the existing `/push/*` routes, ask for permission only
 on a tap and show only while `pushConfigured` is true. Frontend only; no route,
 migration or Edge Function changed. Released November 2 in Pages `6c458d6d` from
-`e7a38c6` ([release record](RELEASE_2026_11_02_REMINDERS.md), card #414); the prompt
-and Menu row were seen live, signed in. Delivery to a real iPhone from the Home
-Screen app is not verified, and push subscriptions are still 0 until someone opts in.
+`e7a38c6` ([release record](RELEASE_2026_11_02_REMINDERS.md), card #414); the release
+owner saw the prompt and Menu row live, signed in, and reported 0 subscriptions
+at that observation. This acceptance lane did not opt in or change notification
+permission. Delivery to a real iPhone from the Home Screen app is not verified.
 
 ## My bets Roomy cards and inline expansion — November 1, 2026
 
@@ -123,8 +136,16 @@ verifies the public data publication, protected API v45 and frontend release,
 research access denials and unchanged score/ballot/settlement fingerprints.
 The real public loader plus captured production read inputs return 14 scoring/
 play-statistics matchups, 68 assessments and eight evidence entries; this is a
-local projection. Real signed-in production/physical-phone acceptance and the
-first observed scheduled refresh remain open. No automatic X feed is connected.
+local projection. [November 2 acceptance evidence](RESEARCH_ACCEPTANCE_2026_11_02.md)
+verifies automatic publication, all six current public assets and resolution of
+schedule drift through one coordinated normal refresh (run 41544353761). Both
+normalized source dependencies match, with zero missing finals at 23:21 UTC.
+A real signed-in account on stable #408 frontend shows Week 9, 15 statistics
+links and populated qualitative assessments/evidence; read-only refresh, filters,
+Light/Dark and 320/390-pixel layouts pass. Physical iPhone acceptance remains
+with the sole device owner; #398 stays open at the bounded 85–95% estimate.
+The record distinguishes one-account browser checks from device, cross-account
+and unlocked-market acceptance. No automatic X feed is connected.
 
 ## Independent research assessments — October 30, 2026
 
