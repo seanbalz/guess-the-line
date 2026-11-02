@@ -32,6 +32,12 @@ using the existing scoring/order functions. MW9 is settled; its eight picks
 retain the same digest. The next draft order includes the bonus and season-total
 tie-break. Individual scores/picks were verified privately, not committed here.
 
+Fixture run `36d05e98-a65c-42eb-a07c-2b004d270a7d` then succeeded: ten MW10
+fixtures and twenty median h2h prices were stored, no unknown clubs, 485 free
+credits remaining. The real first kickoff moved the draft deadline to
+`2026-11-06T20:00:00Z` (November 6, noon Pacific). All earlier snapshots still
+match their preservation digest. MW10 is open with a usable fixture slate.
+
 Local verification: all 53 existing Sleeper math/job tests and the document
 brand check passed. Hosted readback confirmed the imported label/state and
 unchanged preservation digests; browser/phone acceptance remains separate.
