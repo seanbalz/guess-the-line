@@ -27,7 +27,9 @@ now has a player context card from the week's public Fantasy Track 1 snapshot
 (signed-in `/fantasy/week`, committed copy as fallback): last-3 and season Full
 PPR averages with game counts, the opponent and what it allows to the position,
 and the game or practice report with the snapshot time; missing values are "—".
-"Open profile" shows the existing Fantasy profile as the sheet's sub-view. GTL's
+"Open profile" shows the existing Fantasy profile as the sheet's sub-view, its
+code loaded on that tap (the player tools' styles now have their own
+`fantasyTools.css`, so `FantasyScreen` keeps its own lazy chunk). GTL's
 weekly estimate is the House, so the strip never shows it and the profile keeps
 it (and the rest-of-season estimate) behind a lock line until the read carries
 the House (lock-in or kickoff, D-56). No implied team totals (D-57). The ballot

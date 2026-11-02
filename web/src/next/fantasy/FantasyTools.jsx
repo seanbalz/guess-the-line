@@ -8,6 +8,7 @@ import { Minus, Plus, X } from 'lucide-react';
 import { SCORING_OPTIONS, formatFantasyNumber as number } from '../../../../shared/fantasy-rankings.mjs';
 import { COMPARE_PERIODS, MAX_COMPARE, USAGE_METRICS, comparePlayers, playerProfile, searchPlayers } from '../../../../shared/fantasy-tools.mjs';
 import { Button, Card, IconButton, LockLine, Segmented, Sheet } from '../ui/index.js';
+import './fantasyTools.css';
 
 const label = (options, value) => options.find(option => option.value === value)?.label ?? value;
 const games = n => `${n} ${n === 1 ? 'game' : 'games'}`;

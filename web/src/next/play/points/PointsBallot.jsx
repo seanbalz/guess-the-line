@@ -10,14 +10,12 @@
 // The server decides every gate (cloud/points.mjs): this screen only draws what /points/read returned. Until P-01 is
 // applied the read answers 404 and the screen says "Points is coming soon".
 // Board i63: the slot's sheet adds the player's context from the week's public Fantasy snapshot (SlotContext.jsx) and
-// opens his Fantasy profile in place; GTL's weekly estimate there is the House, so it stays locked until the read
-// carries the House (D-56). The ballot is keyed by account, so an account switch starts it, and the context, empty.
+// opens his Fantasy profile in place, its code loaded on that tap (PointsProfile.jsx); GTL's weekly estimate there is
+// the House, so it stays locked until the read carries the House (D-56). The ballot is keyed by account, so an account
+// switch starts it, and the context, empty.
 import { useEffect, useRef, useState } from 'react';
 import { pointsApi } from '../../../api.js';
 import { fantasyWeekKey, useFantasySnapshot } from '../../../fantasyData.js';
-import { playerProfile } from '../../../../../shared/fantasy-tools.mjs';
-import { PlayerProfileBody } from '../../fantasy/FantasyTools.jsx';
-import '../../fantasy/fantasy.css';
 import { useAppData } from '../../data/AppData.jsx';
 import { useShell } from '../../shell/context.js';
 import { PlayEmpty, PlayFailure, PlayLoading } from '../PlayStates.jsx';
@@ -25,8 +23,8 @@ import { Avatar, AvatarStack, Button, Card, CardButton, Dialog, Icon, InfoButton
 import { INFO } from '../../info.js';
 import { GUESS_MAX, GUESS_MIN, SLOT_NAMES, closestLine, comingSoon, editable, kickoffText, landingCard, lineWords, matchupCodes, matchupText, numberLine, publishTarget, pts, resultTiles, slotStatus, step, summaryLine } from './pointsModel.js';
 import { PointsPublish } from './PointsPublish.jsx';
-import { SlotContext } from './SlotContext.jsx';
-import { CONTEXT_COPY, contextSettings, estimateOpen } from './pointsContext.js';
+import { ProfileView, SlotContext } from './SlotContext.jsx';
+import { contextSettings } from './pointsContext.js';
 import './points.css';
 
 /** The slot's game as marks (D-62), or the player's team as text when the game key has another form. */
@@ -257,10 +255,9 @@ export function SlotSheet({ data, slot, viewer, weekStatus, setDirty, onClose, o
   }
   const choose = update => { setValue(update); setNotice(''); };
   const title = `${slot.slot} · ${slot.name}`;
-  const profile = view === 'profile' && fantasy.status === 'ready' ? playerProfile(fantasy.snapshot, slot.playerId, settings) : null;
-  if (profile) {
-    return <Sheet title={profile.player.name} back={{ label: title, onBack: () => setView('slot') }} onClose={() => { if (!busy) onClose(); }} tall className="gx-pt-sheet gx-fantasy-profile">
-      <PlayerProfileBody profile={profile} snapshot={fantasy.snapshot} settings={settings} estimateLocked={estimateOpen(slot) ? null : CONTEXT_COPY.estimateLocked}/>
+  if (view === 'profile' && fantasy.status === 'ready') {
+    return <Sheet title={slot.name} back={{ label: title, onBack: () => setView('slot') }} onClose={() => { if (!busy) onClose(); }} tall className="gx-pt-sheet gx-fantasy-profile">
+      <ProfileView snapshot={fantasy.snapshot} slot={slot} settings={settings}/>
     </Sheet>;
   }
   const footer = can ? <Button variant="primary" block disabled={busy || value === null || Boolean(pending)} onClick={() => setConfirm(true)}>{value === null ? 'Choose a guess to lock in' : `Lock in ${value}`}</Button> : null;

@@ -2,9 +2,30 @@
 // counts, the opponent and what it allows to the position, the game or practice report with the snapshot's time, and
 // "Open profile" into the Fantasy profile (shown in place as the sheet's sub-view). It draws only slotContext()
 // (pointsContext.js): never GTL's weekly estimate, which is the House (D-56), and never an implied team total (D-57).
-import { useId } from 'react';
+// The profile's code (FantasyTools and its stylesheet) loads on that tap, as Research › Fantasy loads its own on a visit.
+import { lazy, Suspense, useId, useRef, useState } from 'react';
+import { Boundary } from '../../shell/Boundary.jsx';
 import { Button, Card } from '../../ui/index.js';
+import { retryViewImport } from '../../ui/retryViewImport.js';
 import { CONTEXT_COPY, contextNumber, gamesText, slotContext } from './pointsContext.js';
+
+const importProfile = retryViewImport(() => import('./PointsProfile.jsx'));
+const loadProfile = () => lazy(importProfile);
+
+/** The profile sub-view's body: the lazily loaded profile, with a local retry if its code cannot load. */
+export function ProfileView(props) {
+  const [Profile, setProfile] = useState(loadProfile), [attempt, setAttempt] = useState(0);
+  const region = useRef(null);
+  const retry = () => { region.current?.focus({ preventScroll: true }); setProfile(loadProfile); setAttempt(n => n + 1); };
+  return <div ref={region} role="group" aria-label="Player profile" tabIndex={-1} className="gx-vstack gx-gap-16">
+    <Boundary key={attempt} fallback={() => <div className="gx-vstack gx-gap-8" role="alert">
+      <p className="gx-t-body">{CONTEXT_COPY.profileFailed}</p>
+      <Button variant="secondary" onClick={retry}>{CONTEXT_COPY.profileRetry}</Button>
+    </div>}>
+      <Suspense fallback={<p className="gx-t-body" role="status">{CONTEXT_COPY.profileLoading}</p>}><Profile {...props}/></Suspense>
+    </Boundary>
+  </div>;
+}
 
 /** A number, or "—" read out as `missing`. */
 function Value({ value, missing }) {

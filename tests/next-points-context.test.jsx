@@ -24,6 +24,7 @@ vi.mock('../web/src/fantasyData.js', () => ({
 }));
 const { SlotSheet } = await import('../web/src/next/play/points/PointsBallot.jsx');
 const { slotContext, estimateOpen, contextSettings, gamesText, CONTEXT_COPY } = await import('../web/src/next/play/points/pointsContext.js');
+const { default: PointsProfile } = await import('../web/src/next/play/points/PointsProfile.jsx');
 
 const root = path.resolve(import.meta.dirname, '..');
 const SNAPSHOT = pointsContextSnapshot();
@@ -131,24 +132,40 @@ describe('the slot sheet’s context strip', () => {
 });
 
 describe('Open profile: the Fantasy profile as the sheet’s sub-view', () => {
-  it('before lock-in the pace estimate (the House) and the rest-of-season estimate stay behind a lock line', () => {
+  const profile = target => renderToStaticMarkup(<div className="gx"><PointsProfile snapshot={SNAPSHOT} slot={target} settings={PPR}/></div>);
+
+  it('opens in place under "‹ QB · Player", with no Lock in footer, while its code loads on the tap', () => {
     const html = sheet(SLOTS.QB, 'profile');
     expect(markupProblems(html)).toEqual([]);
+    expect(text(html)).toMatch(/QB · Fixture QB Player Fixture QB Player/);
+    expect(html).toContain(CONTEXT_COPY.profileLoading);
+    expect(html).toContain('gx-fantasy-profile');
+    expect(html).not.toContain('Lock in');
+    // A sheet whose snapshot is not ready stays on the slot.
+    expect(sheet(SLOTS.QB, 'profile', { status: 'loading' })).toContain('Choose a guess to lock in');
+  });
+
+  it('before lock-in the pace estimate (the House) and the rest-of-season estimate stay behind a lock line', () => {
+    const html = profile(SLOTS.QB);
+    expect(markupProblems(html)).toEqual([]);
     const words = text(html);
-    expect(words).toContain('QB · Fixture QB Player');
     expect(words).toContain('Observed production');
     expect(words).toContain(`GTL pace estimate ${CONTEXT_COPY.estimateLocked}`);
     expect(words).not.toContain('19.4');
     expect(words).not.toContain('Rest of season');
-    expect(html).toContain('gx-fantasy-profile');
-    expect(html).not.toContain('Lock in');
     expect(words).not.toMatch(/implied/i);
+    // Revealed without the House in the read (never sent) stays locked too.
+    expect(text(profile({ ...SLOTS.QB, revealed: true }))).toContain(CONTEXT_COPY.estimateLocked);
   });
 
   it('once the read carries the House (lock-in or kickoff), the estimate shows', () => {
-    const words = text(sheet(LOCKED_QB, 'profile'));
+    const words = text(profile(LOCKED_QB));
     expect(words).toContain('19.4');
     expect(words).not.toContain(CONTEXT_COPY.estimateLocked);
+  });
+
+  it('a player missing from the snapshot gets one sentence, not an empty profile', () => {
+    expect(text(profile(SLOTS.FLEX))).toBe(`${CONTEXT_COPY.notInSnapshot}.`);
   });
 });
 
@@ -158,6 +175,9 @@ describe('an account switch clears it', () => {
     expect(source).toMatch(/<PointsBallotView key=\{app\.accountId\} app=\{app\}/);
     // The context lives only in the slot sheet (no module or storage state of its own): the strip reads useFantasySnapshot there.
     expect(source.match(/useFantasySnapshot\(/g)).toHaveLength(1);
+    // The profile's code and the Fantasy stylesheets load on the tap, never with the ballot (Fantasy detail code waits for a visit).
+    expect(source).not.toMatch(/FantasyTools|fantasy\.css|fantasyTools\.css/);
+    expect(fs.readFileSync(path.join(root, 'web/src/next/play/points/SlotContext.jsx'), 'utf8')).toMatch(/retryViewImport\(\(\) => import\('\.\/PointsProfile\.jsx'\)\)/);
     expect(fs.readFileSync(path.join(root, 'web/src/next/play/points/pointsContext.js'), 'utf8')).not.toMatch(/localStorage|sessionStorage|let \w+ = /);
   });
 });

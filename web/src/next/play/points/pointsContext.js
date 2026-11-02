@@ -21,6 +21,9 @@ export const CONTEXT_COPY = Object.freeze({
   retry: 'Try again',
   notInSnapshot: 'Not in this week’s player data',
   profile: 'Open profile',
+  profileLoading: 'Loading profile…',
+  profileFailed: 'The profile couldn’t load. Check your connection and try again.',
+  profileRetry: 'Try the profile again',
   // The profile's estimate card before the gate opens (D-56).
   estimateLocked: 'GTL’s estimate for this week is the House. It opens once you lock in this player, or at his kickoff.',
 });
