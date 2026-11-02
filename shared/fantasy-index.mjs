@@ -38,10 +38,18 @@ export function validateFantasyIndex(index) {
   return { valid: errors.length === 0, errors };
 }
 
+/**
+ * Superseded copies to delete after a publish: each week's reviews keep the indexed copy plus the `keep` newest others.
+ * Snapshot copies are never deleted. The Points worker (cloud/points-jobs.mjs) drafts week W once, from whichever copy
+ * index.json names when that run reads it, and records that file in the slate's provenance; every refresh before the
+ * weekend freeze publishes a new copy, so neither the first nor the newest copy is provably the cited one, and the
+ * publisher cannot read the slate. Week 8's slate cites its first copy, 2026-week-08.6bf97f7d.json (October 27, 2026),
+ * which the fifth copy's publish pruned (November 1). At most one copy per run, about 1.1 MB each.
+ */
 export function assetsToPrune(assets, index, keep = 3) {
   const named = new Set([...index.snapshots, ...index.reviews].map(entry => entry.file)), groups = new Map();
   for (const asset of assets) {
-    if (named.has(asset.name) || !(SNAPSHOT_FILE.test(asset.name) || REVIEW_FILE.test(asset.name))) continue;
+    if (named.has(asset.name) || !REVIEW_FILE.test(asset.name)) continue;
     const key = asset.name.replace(/\.[0-9a-f]{8}\.json$/, '');
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(asset);

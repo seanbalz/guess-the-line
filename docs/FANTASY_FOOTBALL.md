@@ -131,12 +131,23 @@ assets on the tag `fantasy-data-<season>` (a new season gets a new tag
 automatically). Snapshots are `<season>-week-NN.<sha8>.json` and reviews are
 `<season>-review-week-NN.<sha8>.json`, named by the first eight characters of their
 SHA-256 and never replaced. `index.json` lists them, is uploaded last and is the
-only replaced asset. Each week keeps its three newest superseded copies.
+only replaced asset. Snapshot copies are never pruned (since November 2, 2026): a
+Guess the Points slate cites whichever copy `index.json` named when the worker
+drafted it, and the publisher can't tell which one that was. Each week's reviews keep
+their three newest superseded copies.
 
 **Schedule.** `.github/workflows/fantasy-refresh.yml` runs daily at 11:00 UTC
-(4:00 AM PT in daylight time) and publishes on that run; a manual run is a dry run
-by default and publishes only when `dry_run` is false. `GH_TOKEN` is given only to the
-Publish step, and checkout does not persist credentials.
+(4:00 AM PDT, 3:00 AM PST) and publishes on that run; a manual run is a dry run
+by default and publishes only when `dry_run` is false. For the D-61 Points open
+(Tuesday 12:00 AM PT: 07:00 UTC in PDT, 08:00 UTC in PST) it also runs on Tuesday at
+06:17, 06:47, 07:17, 08:17, 09:17, 09:47 and 10:17 UTC. A week's snapshot needs that
+Monday night's nflverse stats (about 05:33 UTC, with later updates seen around 09:00
+and 10:47 UTC), and GitHub started every scheduled run 3h11m to 9h36m late from October
+24 to November 2, so each slot is another chance. Build and Publish get the workflow's
+own short-lived `GH_TOKEN`. Build uses it only for its api.github.com source lookups,
+after the October 29 run failed on an unauthenticated 403. Each source request is
+retried on a 403, 429, 5xx or network error, three attempts in all, and the token is
+never logged. Checkout does not persist credentials.
 
 **Weekend freeze.** A week's snapshot is rebuilt each run until the first kickoff
 of its weekend slate (Saturday or Sunday Pacific), then frozen. A week never

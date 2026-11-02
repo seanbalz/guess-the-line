@@ -1,15 +1,24 @@
 name: Fantasy refresh
 # D-57: builds the Fantasy snapshot and last week's review from nflverse and publishes them as release assets of this
-# repository (data only). Daily at 11:00 UTC (4:00 AM PT; 3:00 AM PT in standard time), after nflverse's overnight
-# updates; manual runs stay available and default to a dry run. D-61: Points opens Tuesday 12:00 AM PT (07:00 UTC in
-# daylight time, 08:00 UTC in standard time), so three Tuesday runs build the new week's snapshot right after nflverse's
-# Monday-night stats run (05:33 UTC); off-the-hour minutes, because GitHub delays top-of-hour schedules the most.
+# repository (data only). Daily at 11:00 UTC (4:00 AM PDT; 3:00 AM PST), after nflverse's overnight updates; manual runs
+# stay available and default to a dry run. D-61: Points opens Tuesday 12:00 AM PT (07:00 UTC in PDT, 08:00 UTC in PST)
+# and drafts its slate only from the new week's snapshot, which needs nflverse's Monday-night stats (about 05:33 UTC;
+# later updates were seen at about 09:00 and 10:47 UTC on Tuesday, October 27). Seven Tuesday runs, 06:17 to 10:17 UTC,
+# cover both offsets and those late updates (in PST, 06:17 to 10:17 UTC is Monday 10:17 PM to Tuesday 2:17 AM). GitHub
+# started every scheduled run 3h11m to 9h36m late from October 24 to November 2, so each slot is another chance;
+# off-the-hour minutes, because GitHub delays top-of-hour schedules most. Build gets the workflow's own short-lived token
+# only for its api.github.com source lookups (the unauthenticated lookup failed with 403 on October 29); the job's
+# permissions are unchanged.
 on:
   schedule:
     - cron: '0 11 * * *'
     - cron: '17 6 * * 2'
     - cron: '47 6 * * 2'
     - cron: '17 7 * * 2'
+    - cron: '17 8 * * 2'
+    - cron: '17 9 * * 2'
+    - cron: '47 9 * * 2'
+    - cron: '17 10 * * 2'
   workflow_dispatch:
     inputs:
       dry_run:
@@ -34,6 +43,8 @@ jobs:
         with:
           node-version: 22
       - name: Build
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: node scripts/fantasy-refresh.mjs --out .local/fantasy-release
       - name: Publish
         if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.dry_run == false) }}

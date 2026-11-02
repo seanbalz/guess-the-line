@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Uploads a refresh's files to the fantasy-data-<season> release (data only, prerelease): new content-addressed files
-// first, index.json last, then prunes superseded copies and reads every uploaded file back through its public URL.
+// first, index.json last, then prunes superseded review copies (snapshot copies are kept: shared/fantasy-index.mjs
+// assetsToPrune) and reads every uploaded file back through its public URL.
 import { readFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
