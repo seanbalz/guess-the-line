@@ -4,9 +4,12 @@
 
 The [spacing and entry follow-up](../docs/RELEASE_2026_11_02_MY_BETS.md) fixes the
 reproduced zero-gap override and adds source/matchup search, roster-backed player
-suggestions and explicit Monday pending-answer refresh. Local implementation
-is under verification; production release and physical-phone acceptance are
-recorded separately. No existing guesses are reset. The frozen tracker remains
+suggestions and explicit Monday pending-answer refresh. Source merged in #408 after twelve passing PR checks; approximate completion
+is 75–85%, with exact-main browser recovery, protected release and live/physical
+acceptance remaining. The named frontend release stays pinned to e02fed3b;
+unrelated #409 is excluded. A conflicting newer CI retry cancelled exact-source
+recovery again; coordinate its operator before further retries. Production/device
+evidence is recorded separately. No existing guesses are reset. The frozen tracker remains
 unchanged.
 
 Owner: Sean Balsiger · Current reconciliation October 28, 2026

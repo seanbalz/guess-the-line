@@ -7,7 +7,14 @@ The [follow-up record](RELEASE_2026_11_02_MY_BETS.md) covers the actual 32px
 separation, searchable manual sources/matchups, same-week player suggestions and
 clearer Monday pending-answer refresh. Local checks pass: 31 focused Node, 621
 component and 27 browser scenarios, typecheck, build, privacy scan and brand QA.
-Merge and deployment are not yet claimed. Authorized profile reconciliation was verified
+PR #408 is merged as `e02fed3b2e3cd9acf5bc63b4ecda1d0c3bcf5356` after all twelve PR checks.
+Approximate completion is 75–85%: exact-main browser recovery, protected release
+and live/physical acceptance remain. A concurrent unrelated merge cancelled
+three browser jobs; those jobs are rerunning on the exact source without changing
+tests. A separate actor restarted the deferred newer CI and cancelled the retry
+again; operator reconciliation is now required before another retry. #409 is not
+bundled and no protected gate is bypassed. Deployment is not
+yet claimed. Authorized profile reconciliation was verified
 privately through the existing audited writer. Fantasy opens Tuesday under
 D-61; existing locked guesses remain intact.
 

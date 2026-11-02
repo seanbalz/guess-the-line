@@ -1,6 +1,6 @@
 # My bets spacing, searchable entry and Monday answers — November 2, 2026
 
-Status: implemented and verified locally; release not yet dispatched.
+Status: source merged; exact-main browser recovery and protected release pending.
 
 Sean's phone screenshots showed adjacent ticket borders touching after the Roomy
 cards release. The legacy `.gx .gx-bets .gx-ticket-tracker .social-feed` rule
@@ -51,3 +51,43 @@ connections and schedules stay compatible. Rollback is a protected frontend
 release from the prior production source
 `46097802899472cdfb1bdb00c7c50248e2f24dab`; it does not roll back profile activity.
 Physical-phone and actual signed-in production acceptance remain separate.
+
+
+## Coordinated finish — November 2, 2026
+
+Sean requested #408 first, then Research and iPhone acceptance. This chat is the
+sole release/phone lane; UI support independently reviewed the final published
+head with no actionable finding. All twelve PR checks passed on
+`b107aea83047a23dfbcc40d5bd0f2e4663349b42`. PR #408 was already merged by another
+session at the captain's final reread; actual merge/source is
+`e02fed3b2e3cd9acf5bc63b4ecda1d0c3bcf5356`. No duplicate merge occurred.
+
+Exact-main Tests 41537656678 and Brand QA 41537656635 passed. Dashboard
+41537656726 passed Persona, dashboard and browser shard 4; another session's
+unrelated #409 merge cancelled browser shards 1–3 despite a visible hold.
+Following the requested #408-first order, the coordinator explicitly serialized
+reversible CI scheduling: newer Dashboard 41538786993 was deferred, and only the
+three cancelled e02 jobs were retried in attempt 2. Another actor then restarted
+the deferred newer run (attempt 2), cancelling the e02 retry again. Further CI
+changes paused pending operator reconciliation; the captain did not restart that
+newer run or silently substitute its source. No test/assertion/source or
+release gate was bypassed. The deferred #409 check must be restored once e02's
+source pin is secured; #409's merged source is outside this named frontend release.
+
+Fresh signed-in production baseline reproduces 0px gaps across 27 existing Week 8
+tickets, entry `index-DWufmrF4.js`. The actual current published Week 9 has no
+tracked tickets in this account. No ticket was saved or changed. Read-only
+aggregate preservation fingerprints were captured before release. Backend,
+shared code, schema, release scripts and locked dependencies match prior
+frontend source 460978 byte for byte. Real-account screenshots and raw receipts
+remain ignored/private.
+
+Approximate completion: **75–85%**, a judgment rather than a task-count metric.
+Source/review/PR CI/merge are complete; conflicting CI control must be reconciled
+before exact-main recovery, protected source/
+readiness/deploy, served readback, fresh signed-in acceptance and physical
+Safari/applicable Home Screen checks remain. Protected production reviewer
+approval is required under SHARED_DEPLOYMENT: a relayed request does not confer
+the own-session exception for captain API approvals. No readiness or deploy run
+has been dispatched yet. Research population/refresh acceptance follows a stable
+#408 release; #388 stays open until fresh physical Fantasy/Trends acceptance.
