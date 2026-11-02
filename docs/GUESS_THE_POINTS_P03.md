@@ -92,6 +92,27 @@ routes in `gtl-api`, not the jobs. P-03 adds no objects other code depends on, s
 - **A missed week raises no alarm.** A draft never published before its first kickoff finishes the run as
   `skipped/nothing_due`. Treating that as a failure is a separate decision.
 
+## On time and same night (i62, November 2, 2026)
+
+**Snapshot on time.** The worker drafts a week only once its Track 1 snapshot exists. GitHub started every scheduled
+Fantasy refresh 3h11m to 9h36m late from October 24 to November 2, and the October 29 run failed on an unauthenticated
+api.github.com 403. `.github/workflows/fantasy-refresh.yml` now also runs Tuesday at 08:17, 09:17, 09:47 and 10:17 UTC
+(seven Tuesday runs from 06:17), and its Build step sends the workflow's own token to api.github.com only. Each source
+request is retried on a 403, 429, 5xx or network error, three attempts in all. The schedule takes effect from `main`; no
+release is needed.
+
+**Cited snapshots kept.** A slate's `provenance.snapshotFile` is whichever copy `index.json` named when the worker drafted
+it. Every refresh before the weekend freeze adds a copy, so neither the first nor the newest copy is provably the cited
+one. `scripts/fantasy-publish.mjs` therefore never prunes a snapshot copy; reviews still keep three superseded copies.
+Week 8's slate cites `2026-week-08.6bf97f7d.json`, published October 27 and pruned November 1. That file can't be
+recovered, so Week 8's House numbers can't be re-checked from public files.
+
+**Same-night results.** `supabase/admin/points_jobs_cron_results.sql` adds runs at Monday 02:30 and 06:30 UTC and Tuesday
+06:30 UTC (`gtl-points-sunday-results`, `gtl-points-sunday-night-results`, `gtl-points-monday-night-results`). Before,
+Sunday slots scored at the daily 11:30 UTC run. Each new run sits in a clock hour no installed Points job uses. A load
+keyed on an unchanged stats file replays, so a run before nflverse's update is a no-op. Sean runs the file by hand in the
+SQL editor; it carries commented `cron.unschedule` lines for rollback.
+
 ## Deviations from the spec and plan (for Sean's review)
 
 - **One job kind, `run`.** Each run drafts, publishes when due, loads actuals and finalizes. P-01 still enforces
