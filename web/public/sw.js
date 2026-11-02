@@ -19,10 +19,19 @@ self.addEventListener('push', event => {
   }));
 });
 
-// A click always opens this app's own Picks screen; the payload cannot choose a URL.
+// A click opens one of this app's own screens, picked only by the notification's fixed tag prefix: the Points reminder
+// (tag gtl-points-<season>-<week>, cloud/push-reminders.mjs) opens Play › Points; every other tag, or none, opens Picks.
+// The payload cannot choose a URL: nothing reads a url or data field, and a tag can only pick from this fixed list.
+const CLICK_TARGETS = [['gtl-points-', '/#play/points']];
+const DEFAULT_TARGET = '/#picks';
+function clickTarget(tag) {
+  const match = typeof tag === 'string' ? CLICK_TARGETS.find(([prefix]) => tag.startsWith(prefix)) : null;
+  return match ? match[1] : DEFAULT_TARGET;
+}
+
 self.addEventListener('notificationclick', event => {
+  const target = new URL(clickTarget(event.notification.tag), self.location.origin).href;
   event.notification.close();
-  const target = new URL('/#picks', self.location.origin).href;
   event.waitUntil((async () => {
     const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     const open = windows.find(client => new URL(client.url).origin === self.location.origin);
