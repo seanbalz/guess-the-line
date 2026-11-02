@@ -1,6 +1,7 @@
 # My bets spacing, searchable entry and Monday answers — November 2, 2026
 
-Status: implemented and verified locally; release not yet dispatched.
+Status: released November 2, 2026 in Pages `6c458d6d` from `e7a38c6`, together with the Pick reminders opt-in; see
+[RELEASE_2026_11_02_REMINDERS.md](RELEASE_2026_11_02_REMINDERS.md). Phone acceptance is still open.
 
 Sean's phone screenshots showed adjacent ticket borders touching after the Roomy
 cards release. The legacy `.gx .gx-bets .gx-ticket-tracker .social-feed` rule
