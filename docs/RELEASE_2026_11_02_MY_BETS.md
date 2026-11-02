@@ -70,7 +70,11 @@ reversible CI scheduling: newer Dashboard 41538786993 was deferred, and only the
 three cancelled e02 jobs were retried in attempt 2. Another actor then restarted
 the deferred newer run (attempt 2), cancelling the e02 retry again. Further CI
 changes paused pending operator reconciliation; the captain did not restart that
-newer run or silently substitute its source. No test/assertion/source or
+newer run or silently substitute its source. A subsequent unrelated #411 merge
+`e7a38c6e9017a9c49cdf2a526482c05f8219f29f` cancelled the newer run too and
+started Dashboard 41540130137. The coordinator directed letting the current run
+settle before any further exact-e02 retry; no additional CI mutation occurred.
+No test/assertion/source or
 release gate was bypassed. The deferred #409 check must be restored once e02's
 source pin is secured; #409's merged source is outside this named frontend release.
 
