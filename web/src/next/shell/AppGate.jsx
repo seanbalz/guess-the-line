@@ -36,6 +36,12 @@ function LeagueCover({ app }) {
  */
 export const removedFromCommunity = community => community.status === 'error' && community.error?.status === 403;
 
+/**
+ * What the EPL frame takes from the Community read (opened by its Menu): commissioner access and the push guard, so the
+ * shared Menu offers Commissioner tools and Pick reminders (the same per-device switch) in EPL too. No NFL counter.
+ */
+export const eplCommunity = data => ({ admin: data?.admin === true, pushConfigured: data?.pushConfigured === true });
+
 export function AppGate({ session, onSignOut, sport = 'nfl', shellProps }) {
   const app = useAppData();
   const [notice, setNotice] = useState(null);
@@ -78,7 +84,7 @@ export function AppGate({ session, onSignOut, sport = 'nfl', shellProps }) {
       onSignOut={onSignOut}
       league={app.league}
       you={you}
-      data={sport === 'epl' ? { community: { admin: app.community.data?.admin === true } } : app.counters}
+      data={sport === 'epl' ? { community: eplCommunity(app.community.data) } : app.counters}
       cover={covered ? <LeagueCover app={app}/> : null}
       initialLayer={sport === 'nfl' && app.savedInvite ? 'sh.switcher' : null}
       notice={notice}
