@@ -24,7 +24,7 @@ Before M-35 exists, exact missing-function responses retain the previous window-
 
 ## Corrected order
 
-M-35 appends outcomes without rewriting M-33's correction audit or original snapshots. It uses corrected season totals, the prior round's latest eligible original/corrected baseline, verified bonus, and the same weekly score/season-total tiebreak semantics as settlement. Missing settlement/baseline/interval remains retryable without adding a terminal outcome every tick.
+M-35 appends outcomes without rewriting M-33's correction audit or original snapshots. It uses corrected Sleeper season totals, the prior round's latest eligible original/corrected baseline, and the same weekly score/season-total tiebreak semantics as settlement. Under Sean's November 2 ruling, bonuses are applied in Sleeper and never added again here. Missing settlement/baseline/interval remains retryable without adding a terminal outcome every tick.
 
 Only an open next draft before its stored deadline and verified cutoff, with **zero picks**, can receive a recomputed order. The function locks the same next-week row as the pick writer: the first accepted operation determines which order the other observes. Any entered pick or closed deadline preserves every pick and the original order under D-68 item 23. The commissioner review reader retains those unresolved/preserved flags; completed `applied`/`same_order` outcomes disappear from the pending list. No acknowledgement writer or new resolution operation is introduced.
 

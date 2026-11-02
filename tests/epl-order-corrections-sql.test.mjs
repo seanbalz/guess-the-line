@@ -27,10 +27,10 @@ async function fixture(t, { baseline = true } = {}) {
   return {db,rpc,apply,order,addBaseline};
 }
 
-test('empty-draft correction agrees with pure pickOrder, bonus/season tiebreaks and immutable audit replay', {skip}, async t => {
+test('empty-draft correction uses Sleeper scores/season ties without readding recorded bonuses, with immutable audit replay', {skip}, async t => {
   const f=await fixture(t);
   await f.db.query("insert into public.gtl_epl_bonus(season,week,owner_id,points,margin,club) values(2026,9,$1,15,3,'ARS'),(2026,8,$2,5,1,'LIV')",[ORDER[1],ORDER[2]]);
-  const expected=pickOrder(ORDER.map((owner,i)=>({id:owner,weekScore:i===0?100:i===1?0:10,weekBonus:i===1?15:0,seasonTotal:500.25+(i===0?100:i===1?0:10)+(i===1?15:i===2?5:0)})));
+  const expected=pickOrder(ORDER.map((owner,i)=>({id:owner,weekScore:i===0?100:i===1?0:10,weekBonus:0,seasonTotal:500.25+(i===0?100:i===1?0:10)})));
   assert.deepEqual(await f.apply(),{applied:1,sameOrder:0,preserved:0,pending:0});
   assert.deepEqual(await f.order(),expected);
   assert.deepEqual(await f.apply(),{applied:0,sameOrder:0,preserved:0,pending:0});

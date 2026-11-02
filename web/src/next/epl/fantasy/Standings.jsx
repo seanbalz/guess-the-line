@@ -1,4 +1,4 @@
-// Research › Fantasy › Standings: every manager as a bar of season points plus the Pick a Team bonus (spec 6.5), ranked,
+// Research › Fantasy › Standings: every manager as a bar of Sleeper season points, including commissioner-added bonuses, ranked,
 // with W–L (a missing name, record or total is an em dash, never empty or 0); your bar is lime and your row aria-current. Tapping a row opens the split: Sleeper's raw total and the bonus.
 import { useId } from 'react';
 import { Card } from '../../ui/index.js';

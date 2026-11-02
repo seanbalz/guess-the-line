@@ -7,7 +7,7 @@ import { resolveClubCrest } from '../../teamLogoRegistry.js';
 import { fmtWhen } from '../format.js';
 
 export const PICK_COPY = Object.freeze({
-  draftLabel: week => `MW${week} draft · order from MW${week - 1} score + bonus`,
+  draftLabel: week => `MW${week} draft · order from MW${week - 1} Sleeper score`,
   onClock: name => `${name} is on the clock`,
   chooseBelow: 'Choose a club below.',
   pickAClub: 'Pick a club',
@@ -22,7 +22,7 @@ export const PICK_COPY = Object.freeze({
   queue: 'Set my backup ranking (queue)',
   bonusTitle: 'Last matchweek’s bonus',
   review: 'Results under review',
-  reviewBody: 'The commissioner is checking this matchweek’s results before the bonus is added.',
+  reviewBody: 'The commissioner is checking this matchweek’s results.',
   noBonus: 'No bonus recorded for last matchweek.',
   picked: name => `You picked ${name}.`,
   changed: name => `You changed to ${name}.`,
