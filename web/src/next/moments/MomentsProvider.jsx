@@ -4,15 +4,14 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { createMomentsEngine } from './engine.js';
 import { isSettled } from './launch.js';
-import { winHaptic } from '../ui/haptics.js';
+import { playBig } from './play.js';
 import { motionReduced } from '../ui/motion.js';
 import './moments.css';
 
 const MomentsContext = createContext(null);
 const none = () => () => {};
 
-/** The overlay's item from a moment (FlashOverlay reads key, title, meta, parts, icon and rarity). */
-export const flashItem = m => ({ key: m.id, title: m.title, meta: m.meta, parts: m.parts, icon: m.icon, rarity: m.rarity });
+export { flashItem } from './play.js';
 
 export function MomentsProvider({ account, showOverlay, children }) {
   const overlay = useRef(showOverlay);
@@ -21,21 +20,22 @@ export function MomentsProvider({ account, showOverlay, children }) {
   const engine = useMemo(() => createMomentsEngine({
     account: typeof account === 'string' && account ? account : null,
     isSettled,
-    onBig: moments => { winHaptic(undefined, motionReduced()); overlay.current?.('ov.flash', { items: moments.map(flashItem) }); },
+    onBig: moments => playBig(moments, { showOverlay: overlay.current, reduced: motionReduced() }),
     onSmall: m => setPopped(prev => new Set(prev).add(m.id)),
   }), [account]);
   // An account switch or unmount never lets an old engine pop a moment.
   useEffect(() => () => engine.dispose(), [engine]);
   // One `report` per engine, so a caller's effect that depends on it runs only when its read changes.
   const report = useMemo(() => candidates => engine.report(candidates), [engine]);
-  const value = useMemo(() => ({ engine, popped, report }), [engine, popped, report]);
+  const api = useMemo(() => ({ report }), [report]);
+  const value = useMemo(() => ({ engine, popped, report, api }), [engine, popped, report, api]);
   return <MomentsContext.Provider value={value}>{children}</MomentsContext.Provider>;
 }
 
 /** `{ report(candidates) }`, or null outside the app (tests, the old app). */
 export function useMoments() {
   const ctx = useContext(MomentsContext);
-  return ctx ? { report: ctx.report } : null;
+  return ctx ? ctx.api : null;
 }
 
 /** Marks `scope` as showing while the calling card is mounted (a card that holds moments). */
