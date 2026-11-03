@@ -2,6 +2,7 @@
 // as the innermost card, and the trend's address. A tile is one picture and one number; the opened trend keeps its
 // sample and tier as tags and puts its sentence, conditions and notes behind ⓘ.
 import { lockedRecordsText, lockedTrendText } from '../../../../shared/lines-view.mjs';
+import { sinceText } from '../../../../shared/trends-view.mjs';
 import { useShell } from '../shell/context.js';
 import { Button, Icon, InfoButton, Nest, NestMeter, Pill } from '../ui/index.js';
 import { TrendDetail } from '../charts/TrendDetail.jsx';
@@ -28,7 +29,9 @@ export function TrendTile({ card, rules, onOpen }) {
   }
   return <li><button type="button" className="gx-nest-tile" data-trend={card.kind} onClick={onOpen}>
     <span className="gx-nest-tile-label">{card.title}</span>
-    <span className="gx-n-m gx-nest-num">{card.record}</span>
+    {/* The record's years beside it: "this season" in a title is the condition, not the sample (November 3). */}
+    <span className="gx-nest-tile-num"><span className="gx-n-m gx-nest-num">{card.record}</span>
+      <span className="gx-t-meta"> {sinceText(card.years)}</span></span>
     <NestMeter share={card.share} label={shareWords(card.share)}/>
   </button></li>;
 }

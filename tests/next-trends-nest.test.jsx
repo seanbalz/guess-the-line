@@ -98,6 +98,12 @@ describe('TeamsNest: one smaller layer per tap', () => {
     expect(html).not.toContain('CAR on the road: ATS');
     expect(html).toContain('Game details · CAR @ GB');
   });
+  it('a trend tile names the years its record covers, so a long record never reads as this season (November 3 readback)', () => {
+    const html = render({ teamsTeam: 'GB' });
+    const tiles = nodes(html).filter(n => n.tag === 'button' && n.attrs?.['data-trend']);
+    expect(tiles.length).toBeGreaterThan(0);
+    for (const tile of tiles) expect(textOf(tile)).toMatch(/\d+–\d+(–\d+)? ?since 2002/);
+  });
   it('one trend: two lips, the big record, the sample and tier as tags, windows behind a disclosure; the address hides the key', () => {
     const key = `${GB_ATS}@GB`, slug = trendSlug(key);
     expect(slug).toMatch(/^t[0-9a-z]+$/);

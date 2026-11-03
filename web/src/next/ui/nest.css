@@ -32,6 +32,7 @@
 .gx .gx-nest[data-depth="0"] .gx-nest-tile { background: var(--gx-surface-2); }
 .gx .gx-nest-tile-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--gx-space-2); min-width: 0; }
 .gx .gx-nest-num { white-space: nowrap; }
+.gx .gx-nest-tile-num { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--gx-space-2); min-width: 0; }
 .gx .gx-nest-tile-label { min-width: 0; color: var(--gx-text-2); font: 600 13px/18px var(--gx-font-body); overflow-wrap: anywhere; }
 .gx .gx-nest-tags { display: flex; flex-wrap: wrap; gap: var(--gx-space-2); }
 .gx .gx-nest-meter { position: relative; display: block; height: 6px; border-radius: 3px; background: var(--gx-surface-1); }
