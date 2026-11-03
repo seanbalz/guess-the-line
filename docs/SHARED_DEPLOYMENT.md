@@ -1,6 +1,6 @@
 # Guess The Line shared production releases
 
-Owner: Sean Balsiger · Version 2 · October 15, 2026, updated October 26, 2026 (`push-reminders` and `points-jobs` targets), October 27, 2026 (`league-features`) and October 28, 2026 (`fantasy-ingest` and `epl-jobs`)
+Owner: Sean Balsiger · Version 2 · October 15, 2026, updated October 26, 2026 (`push-reminders` and `points-jobs` targets), October 27, 2026 (`league-features`), October 28, 2026 (`fantasy-ingest` and `epl-jobs`) and November 3, 2026 (`ops-alerts`)
 
 The manual **Shared production release** workflow gives a local or online agent
 the same release path: an exact GitHub commit, successful CI, Sean's production
@@ -29,7 +29,7 @@ not a claim that administrators cannot override repository settings.
 | `readiness` | Protected environment secrets, after approval | Builds and scans the frontend, reads hosted schedule and migration history, validates fresh published schedule evidence and probes signed-out boundaries. Produces the migration-history digest for review; does not deploy. |
 | `deploy` | Protected environment secrets, after approval | Repeats readiness, compares the reviewed migration digest, deploys the selected component(s), then verifies metadata, boundaries and, for targets that upload Pages, served frontend bytes. |
 
-Targets are `frontend`, `api`, `api-and-frontend`, `push-reminders`, `points-jobs`, `league-features`, `fantasy-ingest`, or `epl-jobs`. The combined target deploys
+Targets are `frontend`, `api`, `api-and-frontend`, `push-reminders`, `points-jobs`, `league-features`, `fantasy-ingest`, `epl-jobs`, or `ops-alerts`. The combined target deploys
 only `gtl-api`, then only `.local/cloud-dist` to the existing Pages production
 project. Choose it only when that order is compatible. A reply-shape change that
 needs tolerant Pages first uses two separately approved runs, frontend then API.
@@ -45,6 +45,7 @@ There is no automatic deploy on push, pull request, merge, or schedule.
 | `league-features` | Only the `gtl-league-features` Edge Function (the redesign stage 70 badges, awards and streaks worker); its first deploy creates it | No |
 | `fantasy-ingest` | Only the `gtl-fantasy-ingest` Edge Function (the D-59 fantasy feed upload worker); its first deploy creates it | No |
 | `epl-jobs` | Only the `gtl-epl-jobs` Edge Function (the EPL Pick a Team slate, results and settle jobs worker); its first deploy creates it | No |
+| `ops-alerts` | Only the `gtl-ops-alerts` Edge Function (the item 22 Supabase job alerts push worker); its first deploy creates it | No |
 
 Every deploy step's condition names the targets it serves; none selects by
 exclusion, so a target reaches only its own deploy step.
@@ -117,6 +118,17 @@ as `league-features` does. This task adds only the release target; the function 
 lands with its own task, and the target's source check refuses a commit that lacks it.
 Applying M-30, deploying `gtl-api` and registering the cron stay separate steps.
 
+`ops-alerts` was added November 3, 2026 for the Supabase job alerts worker
+(`supabase/functions/gtl-ops-alerts/index.ts`, `cloud/ops-alerts.mjs`, item 22). It
+follows `epl-jobs` exactly: the source check requires
+`[functions.gtl-ops-alerts] verify_jwt = false` and the entry file, its first deploy may
+create the function (the preflight records `opsAlertsBefore`), and verification applies
+the create or the update rule. Its caller presents a one-run capability checked in SQL.
+It reads the reminder worker's three VAPID secrets and needs no new secret. Applying
+M-38, running `supabase/admin/ops_alerts_cron.sql` (the schedule row and its cron) and
+adding the worker's boundary probe stay separate steps; see
+[the release record](RELEASE_2026_11_03_OPS_ALERTS_M38.md).
+
 The workflow does not apply SQL, run `db push`, deploy collector functions,
 change cron schedules or data budgets, or flip the default app. Existing
 [Gate M](REDESIGN_BUILD_PLAN.md#42-gate-m-applying-a-migration) and
@@ -124,7 +136,7 @@ change cron schedules or data budgets, or flip the default app. Existing
 replaces the requirement to hold CLI logins on the Mac mini for the API, frontend
 and worker targets: protected API and frontend runs are verified; the
 `push-reminders` and `points-jobs` targets have run (October 26) and `league-features` (October 27);
-`fantasy-ingest` and `epl-jobs` are covered by local tests only until their first runs. Existing dated release records remain historical evidence of the
+`fantasy-ingest`, `epl-jobs` and `ops-alerts` are covered by local tests only until their first runs. Existing dated release records remain historical evidence of the
 Mac mini releases.
 
 ## One-time configuration
@@ -141,7 +153,7 @@ allowlisted and checked against the existing production project/account.
 | Variable | `CLOUDFLARE_ACCOUNT_ID` | `83bd659d712e968e7a61efa14107465a` |
 | Variable | `CLOUDFLARE_PAGES_PROJECT` | `guess-the-line` |
 | Secret | `SUPABASE_ACCESS_TOKEN` | A dedicated project-scoped token permitting database read-only preflight and Edge Function read/deploy. Required even for frontend readiness because the schedule/history gate is hosted. |
-| Secret | `CLOUDFLARE_API_TOKEN` | Dedicated Cloudflare Pages Edit token for this account; required for frontend or combined releases, not API-only or worker (`push-reminders`, `points-jobs`, `league-features`, `fantasy-ingest`, `epl-jobs`) releases |
+| Secret | `CLOUDFLARE_API_TOKEN` | Dedicated Cloudflare Pages Edit token for this account; required for frontend or combined releases, not API-only or worker (`push-reminders`, `points-jobs`, `league-features`, `fantasy-ingest`, `epl-jobs`, `ops-alerts`) releases |
 
 Create dedicated tokens in the providers' secure interfaces, then enter them
 directly into GitHub environment secrets. Do not paste them into a task, commit
@@ -255,15 +267,15 @@ observing metadata. Frontend asset equivalence is independently checked.
 
 For `frontend`, `api` and `api-and-frontend`, any Edge Function other than
 `gtl-api` that changes, appears or disappears during the run (either worker
-included) fails verification, as before. For `push-reminders`, `points-jobs`, `league-features`, `fantasy-ingest` and `epl-jobs`,
+included) fails verification, as before. For `push-reminders`, `points-jobs`, `league-features`, `fantasy-ingest`, `epl-jobs` and `ops-alerts`,
 verification requires:
 
 - the target's worker is ACTIVE, `verify_jwt` is false, and its `ezbr_sha256`
   bundle digest is present;
 - for `push-reminders`, its version went up by exactly one; for `points-jobs`,
-  `league-features`, `fantasy-ingest` and `epl-jobs`, version 1 if the preflight recorded it absent
+  `league-features`, `fantasy-ingest`, `epl-jobs` and `ops-alerts`, version 1 if the preflight recorded it absent
   (created), otherwise exactly one up. A pre-deploy report without the matching
-  `pointsJobsBefore`, `leagueFeaturesBefore`, `fantasyIngestBefore` or `eplJobsBefore` record is refused;
+  `pointsJobsBefore`, `leagueFeaturesBefore`, `fantasyIngestBefore`, `eplJobsBefore` or `opsAlertsBefore` record is refused;
 - `gtl-api` is unchanged (version, status, JWT setting and bundle digest) and
   still ACTIVE with JWT verification, the other worker and every other function
   are unchanged, and no function was added or removed;

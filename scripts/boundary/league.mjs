@@ -12,6 +12,8 @@ export const tables = Object.freeze([
   'feature_runs', 'badge_events', 'weekly_awards', 'player_streaks', 'features_schedule', 'features_schedule_runs',
   // M-34: pending private dated standings and immutable deadline references.
   'epl_standings', 'epl_standings_usage',
+  // M-38 ops alerts (item 22): the schedule, its runs and the incidents. Service-only.
+  'ops_alert_schedule', 'ops_alert_runs', 'ops_incidents',
 ]);
 
 export const rpcChecks = Object.freeze([
@@ -66,6 +68,15 @@ export const rpcChecks = Object.freeze([
   // it writes nothing.
   ['gtl_kickoff_slots', { p_season: 1999, p_week: 1 }],
   ['gtl_write_kickoff_posts', { p_season: 1999, p_week: 1, p_actor: missingId }],
+  // M-38 ops alerts (20261103190000_gtl_ops_alerts.sql, item 22): the cron-only checks and dispatcher, and the worker's claim,
+  // mark, delivery and completion and the test alert, all service-only. The probes name no real run, claim or device.
+  ['gtl_ops_findings', { p_now: null }],
+  ['gtl_dispatch_ops_alerts', {}],
+  ['gtl_claim_ops_alerts', { p_token: '0'.repeat(64), p_run: missingId }],
+  ['gtl_mark_ops_notification', { p_run: missingId, p_claim: missingId, p_incident: 0, p_phase: 'opened' }],
+  ['gtl_record_ops_delivery', { p_run: missingId, p_claim: missingId, p_endpoint: 'https://boundary.invalid/', p_outcome: 'failed' }],
+  ['gtl_complete_ops_alerts', { p_run: missingId, p_claim: missingId, p_reason: null, p_sent: 0, p_failed: 0 }],
+  ['gtl_ops_test_alert', {}],
 ]);
 
 export const apiChecks = Object.freeze([
@@ -107,4 +118,15 @@ export const awaitingDeploy = Object.freeze({
   'rpc/gtl_epl_save_standings': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
   'rpc/gtl_epl_resolve_with_standings': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
   'rpc/gtl_epl_standings_provenance': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
+  // M-38 is written and not applied; its apply record removes these (Gate M step 8).
+  'table/ops_alert_schedule': '20261103190000 (M-38 ops alerts apply)',
+  'table/ops_alert_runs': '20261103190000 (M-38 ops alerts apply)',
+  'table/ops_incidents': '20261103190000 (M-38 ops alerts apply)',
+  'rpc/gtl_ops_findings': '20261103190000 (M-38 ops alerts apply)',
+  'rpc/gtl_dispatch_ops_alerts': '20261103190000 (M-38 ops alerts apply)',
+  'rpc/gtl_claim_ops_alerts': '20261103190000 (M-38 ops alerts apply)',
+  'rpc/gtl_mark_ops_notification': '20261103190000 (M-38 ops alerts apply)',
+  'rpc/gtl_record_ops_delivery': '20261103190000 (M-38 ops alerts apply)',
+  'rpc/gtl_complete_ops_alerts': '20261103190000 (M-38 ops alerts apply)',
+  'rpc/gtl_ops_test_alert': '20261103190000 (M-38 ops alerts apply)',
 });

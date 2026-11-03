@@ -1,5 +1,17 @@
 # Guess The Line — current completion register
 
+## Supabase job alerts by phone push, M-38 — November 3, 2026
+
+Item 22, second half. A pg_cron row says `succeeded` when the dispatcher ran, not when the work happened (Points
+logged `nothing_due` six times while Week 9 had no slate). M-38 (`20261103190000`) reads each job family's own run table
+and the weekly outcomes, keeps each problem as an incident, and the new `gtl-ops-alerts` worker pushes one alert per
+change to Sean's phone. The `ops-alerts` release target, `supabase/admin/ops_alerts_cron.sql` (row disabled first, with
+a findings read-back before the enable) and `ops_alerts_test.sql` are written. Local checks, executed on branch
+`claude/ops-watchdog`: the M-38 PGlite suite (boundaries, no duplicate pushes, re-alert after recovery, privacy), the
+worker suite with an end-to-end run, the release-target contract and migration/rollback registry tests, with
+`# skipped 0`. M-38 is **not applied** (Gate M, Sean's "apply M-38"). `gtl-ops-alerts` is **not deployed**, no schedule
+row or cron exists. See the [release card](RELEASE_2026_11_03_OPS_ALERTS_M38.md).
+
 ## Lock-in refresh, D-71 — November 3, 2026
 
 Sean chose "Refresh on lock-in" ([D-71](DECISIONS.md)). Since redesign stage 18 a per-game lock-in skipped the D-17
