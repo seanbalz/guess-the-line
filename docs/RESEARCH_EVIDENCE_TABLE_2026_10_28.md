@@ -53,11 +53,14 @@ selector now includes its own title after the accessible-name change.
 ## Source and remaining checkpoints
 
 Branch: `codex/research-evidence-table`, [PR #321](https://github.com/seanbalz/guess-the-line/pull/321)
-(open; own CI and merge pending). PR #313 merged as
+(merged October 28 as `d06019c9a58e9106b4e65af95c60372912c5c0d6`; all nine
+checks passed on `ee9419f8fd8e3545ab55723bd31f2fea28fc5afd`). PR #313 merged as
 `9eadb74370ff819496ba5457059f5b643a99e9da` after all nine checks passed on
-`81c9286825151e1a725d367ea4b60cb0a5a0c288`; reviews and threads were empty. This batch
-needs its own CI/merge, release/readback and physical-iPhone/assistive-technology
-acceptance. The frozen v62 tracker is preserved. Remaining live-status and
+`81c9286825151e1a725d367ea4b60cb0a5a0c288`; reviews and threads were empty.
+This source is included in the successful frontend release 40887118540
+from `76329b7`; feature-specific readback and physical-iPhone/assistive-technology
+acceptance remain open. This is release-lane evidence, not a new hosted audit here.
+The frozen v62 tracker is preserved. Remaining live-status and
 Bet/Challenge destinations remain open. No deployment, migration apply,
 collection-budget change or product-rule change.
 
