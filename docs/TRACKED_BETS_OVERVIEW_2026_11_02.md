@@ -44,9 +44,11 @@ ticket creation, concurrent-response recovery, inline expansion, manual entry
 and measured 32px gaps retain regression coverage. Cash scales and zero labels
 are currency-formatted; other charts retain their default unit format.
 
-PR and exact-main checks are separate from these local results and will be
-recorded with the merge/release handoff. Local browser evidence is not a
-physical-phone acceptance claim.
-
-Deployment is separate under the repository's single-captain release train.
-No production deployment or physical-phone acceptance is claimed here.
+PR #420 merged after all 12 PR checks; all 12 exact-main checks also passed on
+the deployed source `c6d6434c0c39ae2c631d7dd6345b79261533949b`. The protected
+frontend release passed November 3 at 07:34:40 UTC. Independent production
+readback at 07:40:33 UTC matched all 129 served files and confirmed Overview in
+the live bundle. Pages: `2308ab8e-7fd3-40f2-af1e-cad6c4e1cfcf`.
+The [release record](RELEASE_2026_11_03_TRACKED_BETS_OVERVIEW.md) contains source,
+workflow, fingerprints and preservation evidence. Signed-in production and
+physical-phone acceptance remain separate from deployment verification.
