@@ -63,7 +63,7 @@ export function LeagueHistory({ app, place, mode, parents = [], historyLip, onPl
   return <PlayLayer label="League history" parents={parents} layer="league:history" title={`${HISTORY_COPY.title} · ${MODE[market]}`} info={<InfoButton title={HISTORY_COPY.about} body={[HISTORY_COPY.aboutBody]}/>}>
     {state ?? <>
       {filters}
-      {seasons ? <ul className="gx-nest-grid" aria-label={HISTORY_COPY.seasons}>{seasons.map(tile => <Tile key={tile.season} tile={tile} aria-pressed={tile.on} onClick={() => onPlace({ season: tile.season, week: null })}/>)}</ul> : null}
+      {seasons ? <ul className="gx-nest-grid" aria-label={HISTORY_COPY.seasons}>{seasons.map(tile => <Tile key={tile.season} tile={tile} aria-pressed={tile.on} aria-label={tile.on ? `Season ${tile.season}, showing` : `Season ${tile.season}`} onClick={() => onPlace({ season: tile.season, week: null })}/>)}</ul> : null}
       {weeks.length ? <ul className="gx-nest-grid" aria-label={`${own ? 'Your' : `${who}’s`} weeks`}>{weeks.map(tile => <Tile key={tile.week} tile={tile} aria-label={tile.aria} onClick={() => onPlace({ week: tile.week })}/>)}</ul>
         : <LeagueEmpty text={HISTORY_COPY.empty} actionLabel="Refresh" onAction={read.retry}/>}
     </>}

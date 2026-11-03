@@ -6,8 +6,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { markupProblems, nameFrom, parseMarkup, readText, walk } from './helpers/ui-markup.mjs';
 
-const state = vi.hoisted(() => ({ app: null, feed: null, read: null, waiting: 0 }));
+const state = vi.hoisted(() => ({ app: null, feed: null, read: null, waiting: 0, links: [] }));
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn(), leagueApi: vi.fn(), meApi: vi.fn(), date: value => String(value) }));
+// Every LinkRow draws as usual, and its props are kept so a test can press it (the markup is static, so it has no click).
+vi.mock('../web/src/next/ui/index.js', async importOriginal => { const actual = await importOriginal(); return { ...actual, LinkRow: props => { state.links.push(props); return actual.LinkRow(props); } }; });
 vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: () => state.app }));
 vi.mock('../web/src/next/features/useFeatures.js', () => ({ useFeatures: () => ({ model: null }) }));
 vi.mock('../web/src/next/feed/useLeagueFeed.js', () => ({ useLeagueFeed: () => state.feed, feedReaderKnown: () => true }));
@@ -17,6 +19,8 @@ vi.mock('../web/src/next/moments/MomentsProvider.jsx', () => ({ useMoments: () =
 vi.mock('../web/src/next/play/PlayTile.jsx', () => ({ PlayTile: ({ label, big, sub, tone, isNew, ariaLabel }) => <output data-label={label} data-big={big} data-sub={sub} data-tone={tone} data-new={String(isNew)} aria-label={ariaLabel}/> }));
 const { ShellContext } = await import('../web/src/next/shell/context.js');
 const { LeagueScreen } = await import('../web/src/next/league/LeagueScreen.jsx');
+const { LeagueHistory } = await import('../web/src/next/league/LeagueHistory.jsx');
+const { leagueLayer } = await import('../web/src/next/league/leagueModel.js');
 const { LeagueTile } = await import('../web/src/next/league/LeagueTile.jsx');
 const { seenKey } = await import('../web/src/next/feed/feedModel.js');
 const { rankKey } = await import('../web/src/next/league/rankMoment.js');
@@ -39,7 +43,8 @@ function render(node, league = {}, app = {}, feedState = {}) {
   vi.stubGlobal('localStorage', { getItem: key => store.get(key) ?? null, setItem: (key, value) => store.set(key, String(value)) });
   return renderToStaticMarkup(<ShellContext.Provider value={shell}><div className="gx">{node}</div></ShellContext.Provider>).replace(/<!-- -->/g, '');
 }
-afterEach(() => { store.clear(); state.waiting = 0; state.read = null; vi.unstubAllGlobals(); });
+afterEach(() => { store.clear(); state.waiting = 0; state.read = null; state.links = []; shell.go.mockClear(); vi.unstubAllGlobals(); });
+const press = text => state.links.find(link => link.children === text || (Array.isArray(link.children) && link.children.some(child => child === text)))?.onClick();
 
 describe('League, board first (P6A)', () => {
   it('the landing: the league\'s board, your rank chip and total, then the newest two posts with NEW, the feed and History', () => {
@@ -124,5 +129,30 @@ describe('League › History (P6A)', () => {
       'Seattle Seahawks at Denver Broncos · Line Broncos −3 · You Broncos −3 · 10 / 10', 'Buffalo Bills at Kansas City Chiefs · Line Even · You Bills −2.5 · 5 / 10']);
     expect([readText(games[0]), readText(games[1])]).toEqual([expect.stringContaining('Final · SEA 20, DEN 17 · Fixture final'), expect.stringContaining('Commissioner-ruled line (D-25)')]);
     expect(find(root, n => n.tag === 'button').map(nameFrom)).toContain('Every game in Your score');
+  });
+  it('Every game in Your score hands off the week and the market: the layer calls onScore, and the screen goes to Score', () => {
+    state.read = { loading: false, error: null, data: HISTORY, retry: vi.fn() };
+    const onScore = vi.fn(), spread = leagueLayer({ view: 'history', week: 5 });
+    render(<LeagueHistory app={{ accountId: YOU, requestSignIn: vi.fn(), refresh: vi.fn() }} place={spread} mode="guess_spread" onPlace={vi.fn()} onScore={onScore}/>);
+    press('Every game in Your score');
+    expect(onScore).toHaveBeenCalledExactlyOnceWith(2026, 5, 'guess_spread');
+    onScore.mockClear(); state.links = [];
+    render(<LeagueHistory app={{ accountId: YOU, requestSignIn: vi.fn(), refresh: vi.fn() }} place={spread} mode="guess_total" onPlace={vi.fn()} onScore={onScore}/>);
+    press('Every game in Your score');
+    expect(onScore).toHaveBeenCalledExactlyOnceWith(2026, 5, 'guess_total');
+    // The screen's mapping: the market becomes the Score page's 'spread' or 'total'.
+    state.links = [];
+    render(<LeagueScreen/>, { view: 'history', week: 5 });
+    press('Every game in Your score');
+    expect(shell.go).toHaveBeenLastCalledWith('play', { section: 'score', season: 2026, week: 5, market: 'spread' });
+    state.links = [];
+    render(<LeagueScreen/>, { view: 'history', week: 5, market: 'total' });
+    press('Every game in Your score');
+    expect(shell.go).toHaveBeenLastCalledWith('play', { section: 'score', season: 2026, week: 5, market: 'total' });
+  });
+  it('season tiles carry their own names: "Season 2026, showing" for the one on, "Season 2025" for the other', () => {
+    state.read = { loading: false, error: null, data: { ...HISTORY, seasons: [2026, 2025] }, retry: vi.fn() };
+    const tiles = find(find(parseMarkup(render(<LeagueScreen/>, { view: 'history' })), n => n.attrs['aria-label'] === 'Seasons')[0], n => n.tag === 'button');
+    expect(tiles.map(tile => [tile.attrs['aria-label'], tile.attrs['aria-pressed']])).toEqual([['Season 2026, showing', 'true'], ['Season 2025', 'false']]);
   });
 });
