@@ -234,7 +234,30 @@ describe('This Week layers: top trends, games, one game, one trend', async () =>
     expect(nameFrom(tile).startsWith('Carolina Panthers at Green Bay Packers')).toBe(true);
     expect(html).not.toContain('Past results since 2002');
     expect(nodes(html).some(n => n.tag === 'button' && nameFrom(n) === 'About this week’s trends')).toBe(true);
+    expect(nodes(html).some(n => n.attrs?.['data-hero'] !== undefined)).toBe(true);
+    expect(html).not.toContain('gx-nest-more'); // one trend: nothing to fold
     for (const sentence of surfaceSentences(html)) expect(sentence.split(/\s+/).length, sentence).toBeLessThanOrEqual(12);
+  });
+  const many = () => {
+    const week = weekOf();
+    week.cards = Object.fromEntries(['c1', 'c2', 'c3', 'c4'].map((id, i) => [id, { ...card, title: `Trend ${i + 1}: ATS`, score: { score: 90 - i }, record: { W: 30 - i, L: 20, P: 0 } }]));
+    week.games[0].tier2 = ['c1', 'c2', 'c3', 'c4'].map(id => ({ card: id }));
+    return week;
+  };
+  it('This week leads with one hero, then two tiles, then All N trends this week (D-75)', () => {
+    const html = show({}, { week: many() });
+    expect(markupProblems(html)).toEqual([]);
+    expect(nodes(html).filter(n => n.attrs?.['data-hero'] !== undefined)).toHaveLength(1);
+    const more = nodes(html).find(n => n.tag === 'button' && n.attrs?.class?.includes('gx-nest-more'));
+    expect(nameFrom(more)).toContain('All 4 trends this week');
+    for (const sentence of surfaceSentences(html)) expect(sentence.split(/\s+/).length, sentence).toBeLessThanOrEqual(12);
+  });
+  it('All trends: a lip back to This week and every trend as a glass tile (D-75)', () => {
+    const html = show({ weekList: 'all' }, { week: many() });
+    expect(markupProblems(html)).toEqual([]);
+    expect(lips(html)).toEqual(['Back to This week']);
+    expect(nodes(html).find(n => n.tag === 'h2').children.map(textOf).join('')).toBe('All trends');
+    expect(nodes(html).filter(n => n.tag === 'button' && n.attrs?.class?.includes('gx-nest-tile--glass') && n.attrs?.['data-trend'])).toHaveLength(4);
   });
   it('one game: a lip back to This week, its trends as tiles, and a closed market as a lock', () => {
     const open = show({ weekGame: 'CAR-GB' });
