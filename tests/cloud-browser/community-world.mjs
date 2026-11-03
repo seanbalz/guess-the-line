@@ -217,16 +217,18 @@ export async function createCommunityWorld({ deadline = openDeadline(), games = 
  * /virtual-units has named-book quotes. lines: { spread: { gameId: line }, total: { gameId: line } }, home spread and total.
  * Returns the quotes' observation time, which a /virtual-pick body sends back as quotedAt.
  */
-export async function storeBookLines(world, lines, { capturedAt = Date.now() - 60_000 } = {}) {
+// standIn (D-74 proposal, a draft): FanDuel absent and BetRivers standing in for it, as the provider adapter records it.
+export async function storeBookLines(world, lines, { capturedAt = Date.now() - 60_000, standIn = false } = {}) {
   const { db, state } = world, { season, week } = state.league;
   const at = new Date(capturedAt).toISOString(), observed = new Date(capturedAt - 1000).toISOString();
   const signature = (await db.query('select signature from public.gtl_weekly_slates where season=$1 and week=$2', [season, week])).rows[0].signature;
   const payload = { provider: 'the-odds-api', sport: 'americanfootball_nfl', officialVerified: false, fetchedAt: at, games: state.games.map((g, i) => ({
     gameId: g.id, home: g.home, away: g.away, kickoff: g.kickoff, providerEventId: `event${i}`, matchStatus: 'matched',
-    markets: Object.fromEntries(['spread', 'total'].map(market => { const line = lines[market][g.id]; return [market, { quotes: ['draftkings', 'fanduel', 'betmgm'].map(book => ({
-      provider: 'the-odds-api', providerEventId: `event${i}`, book, market, value: line, timeBasis: 'provider_market_last_update', collectedAt: at, providerObservedAt: observed,
-      outcomes: market === 'spread' ? { home: { line, odds: -110 }, away: { line: -line, odds: -110 } } : { over: { line, odds: -110 }, under: { line, odds: -110 } },
-    })) }]; })) })) };
+    markets: Object.fromEntries(['spread', 'total'].map(market => { const line = lines[market][g.id]; return [market, { quotes: (standIn ? ['draftkings', 'betmgm', 'betrivers'] : ['draftkings', 'fanduel', 'betmgm']).map(book => {
+      const odds = book === 'betrivers' ? -105 : -110;
+      return { provider: 'the-odds-api', providerEventId: `event${i}`, book, market, value: line, timeBasis: 'provider_market_last_update', collectedAt: at, providerObservedAt: observed,
+        outcomes: market === 'spread' ? { home: { line, odds }, away: { line: -line, odds } } : { over: { line, odds }, under: { line, odds } } };
+    }), ...(standIn ? { unavailable: [{ book: 'fanduel', reason: 'book_missing' }], standIns: [{ book: 'betrivers', for: 'fanduel' }] } : {}) }]; })) })) };
   const key = randomUUID();
   await db.query("insert into public.gtl_odds_collections(id,actor_id,operation,status,lease_token,started_at,expires_at,reserved_credits,season,week,slate_signature) values($1,$2,'collect','succeeded',$3,now(),now()+interval '90 seconds',2,$4,$5,$6)", [key, ACCOUNTS.sean.id, randomUUID(), season, week, signature]);
   await db.query('insert into public.gtl_market_snapshots(id,season,week,slate_signature,payload,created_at) values($1,$2,$3,$4,$5,$6)', [key, season, week, signature, payload, at]);

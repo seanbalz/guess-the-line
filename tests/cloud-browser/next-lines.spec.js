@@ -1163,6 +1163,36 @@ test('game market details preserve saved references, gate quotes and show record
   } finally { await world.db.close(); }
 });
 
+// D-74 proposal (November 3, 2026, a draft; needs M-39): FanDuel missing from the reply and BetRivers standing in. The
+// game's book lines name BetRivers, the line still says three books, and the phone rules and axe hold in both themes.
+// The screenshots are the mockups Sean reviews before any release.
+test('D-74 draft: a BetRivers stand-in shows by name in the game book lines, with three books and FanDuel absent', async ({ page, baseURL }, testInfo) => {
+  const { world } = await lukesWeek(page, baseURL);
+  try {
+    await storeBookLines(world, { ...LINES, total: { ...LINES.total, 'SEA-DEN': 45.5 } }, { capturedAt: Date.now() - 1000, standIn: true });
+    await openLines(page);
+    await card(page, 'SEA-DEN').click();
+    const game = sheet(page, 'SEA @ DEN'), markets = game.getByRole('region', { name: 'Market lines', exact: true });
+    const total = markets.locator('[data-market-details="total"]');
+    await expect(total).toContainText('Current line'); await expect(total).toContainText('45.5');
+    await expect(total).toContainText('Consensus from 3 books');
+    await total.locator('summary', { hasText: 'Book lines' }).click();
+    const books = total.locator('.gx-md-books');
+    await expect(books.getByRole('listitem')).toHaveCount(3);
+    await expect(books).toContainText('DraftKings'); await expect(books).toContainText('BetMGM'); await expect(books).toContainText('BetRivers');
+    await expect(books).not.toContainText('FanDuel');
+    for (const theme of ['dark', 'light']) {
+      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      await page.setViewportSize({ width: 390, height: 844 });
+      await phoneChecks(page); expect(await axe(page)).toEqual([]);
+      await books.scrollIntoViewIfNeeded();
+      await page.screenshot({ path: testInfo.outputPath(`backup-book-lines-390-${theme}.png`) });
+    }
+    await noLeak(page, world, 'BetRivers stand-in book lines');
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
 test('market details hide previous quotes on refresh failure and recover from the existing reader', async ({ page, baseURL }) => {
   const { world } = await lukesWeek(page, baseURL);
   try {
