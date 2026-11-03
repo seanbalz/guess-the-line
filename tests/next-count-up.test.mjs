@@ -66,6 +66,19 @@ test('D-69: a later value in the same mount counts from the value on screen, nev
   assert.equal(C.countUpPlan({ seen: 12, shown: 20, value: 24, hidden: true }).animate, false);
 });
 
+test('D-69: before the first press every value is a launch value (as the engine holds moments); after it, only a mount\'s first value on the launch screen', () => {
+  assert.equal(C.launchValue({ first: true, settled: false, navigated: false }), true, 'a page load');
+  assert.equal(C.launchValue({ first: false, settled: false, navigated: false }), true, 'the 5-minute refresh before any press still shows its final value');
+  assert.equal(C.launchValue({ first: false, settled: true, navigated: false }), false, 'a refresh after a press counts in place');
+  assert.equal(C.launchValue({ first: true, settled: true, navigated: false }), true, 'a card that first shows on the launch screen, after a scroll press');
+  assert.equal(C.launchValue({ first: true, settled: true, navigated: true }), false, 'a card opened after a navigation');
+  // The screen stays honest across them: 20 at the launch, 22 on a refresh before any press, then 24 after a press.
+  const plan = (shown, value, first, settled) => C.countUpPlan({ seen: 12, shown, value, launch: C.launchValue({ first, settled, navigated: false }) });
+  assert.deepEqual(plan(null, 20, true, false), { animate: false, from: 20, to: 20, remember: false });
+  assert.deepEqual(plan(20, 22, false, false), { animate: false, from: 22, to: 22, remember: false }, 'no count and nothing remembered before a press');
+  assert.deepEqual(plan(22, 24, false, true), { animate: true, from: 22, to: 24, remember: true }, 'after the press it counts from the value on screen');
+});
+
 test('frames: the last frame is exactly the server value, and no frame leaves the range between the two values', () => {
   const pop = C.bezierEasing(C.parseBezier(tokens.ease.pop)); // overshoots past 1 on purpose
   let overshoot = 0;

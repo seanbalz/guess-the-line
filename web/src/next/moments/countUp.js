@@ -130,6 +130,13 @@ export function formatCount(value, decimals = decimalsOf(value)) {
 }
 
 /**
+ * D-69: whether a value is a launch value (it shows its final value at once and nothing remembers it). Every value is,
+ * before the member's first press (`settled`), as the moments engine holds every moment until then; after it, only a
+ * mount's `first` value while the member is still on the launch screen (not yet `navigated`).
+ */
+export const launchValue = ({ first, settled, navigated }) => !settled || (first && !navigated);
+
+/**
  * Whether to count and from where: `{ animate, from, to, remember }`. `shown` is the value this mount last showed at
  * rest, `seen` the one this device remembers. It counts from `shown` when there is one (a later value in the same
  * mount moves on from the screen, never back through an older record), otherwise from `seen`: only from a finite
