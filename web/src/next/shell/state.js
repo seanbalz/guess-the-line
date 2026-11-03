@@ -31,7 +31,7 @@ export const navigationPatch = (state, tab, patch) => !!patch && (
   || (['bets', 'league'].includes(tab) && Object.hasOwn(patch, 'view') && patch.view !== state.views[tab]?.view)
   || (tab === 'bets' && Object.hasOwn(patch, 'assessment') && (patch.assessment ?? null) !== (state.views.bets.assessment ?? null))
   || (tab === 'play' && state.views.play.section === 'picks' && ['market', 'season', 'week'].some(key => Object.hasOwn(patch, key) && patch[key] !== state.views.play[key]))
-  // D-69: opening or closing one game's card in Your guesses is a step, so back returns to the week.
+  // D-70: opening or closing one game's card in Your guesses is a step, so back returns to the week.
   || (tab === 'play' && state.views.play.section === 'picks' && Object.hasOwn(patch, 'pickGame') && (patch.pickGame ?? null) !== (state.views.play.pickGame ?? null))
   // D-66: opening or closing a Trends nesting card is a step, so back closes one layer. The account reset in
   // TrendsScreen also clears the history window; it is not a step, so back never restores another account's choice.
@@ -105,7 +105,7 @@ function returnsToPrior(state, tab, patch) {
   const after = { ...state.views[adapter ?? tab], ...patch };
   return ROUTE_KEYS.every(key => (after[key] ?? null) === (before[key] ?? null));
 }
-/** D-69: one game's card opening in place of another (Next) while the week is the place under it. */
+/** D-70: one game's card opening in place of another (Next) while the week is the place under it. */
 const swapsGame = (state, tab, patch) => tab === 'play' && !!state.views.play.pickGame && !!patch.pickGame
   && patch.pickGame !== state.views.play.pickGame && returnsToPrior(state, tab, { pickGame: undefined });
 const mergeAdapters =(views, adapters) => Object.fromEntries(Object.entries(adapters ?? {}).map(([tab, view]) => [tab, { ...views[tab], ...view }]));
@@ -152,7 +152,7 @@ export function reduce(state, action) {
         // D-66: a step that lands exactly on the previous place (a nesting card's lip to its parent) goes back, so the
         // next Back leaves the section instead of reopening the layer just closed.
         if (returnsToPrior(state, action.tab, action.patch)) return reduce(state, { type: 'back' });
-        // D-69: Next swaps one game's card for another, so the trail keeps the week under it, never the previous game.
+        // D-70: Next swaps one game's card for another, so the trail keeps the week under it, never the previous game.
         // `replace` tells the router to rewrite the current entry instead of adding one.
         if (swapsGame(state, action.tab, action.patch)) return { ...reduce(reduce(state, { type: 'back' }), action), navMode: 'replace' };
         return reduce(state, { type: 'go', tab: action.tab, view: action.patch });

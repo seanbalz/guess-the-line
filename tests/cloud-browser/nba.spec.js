@@ -343,7 +343,7 @@ for (const view of ['next']) test(`${view} sport entry/return, NFL and NBA draft
     await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: /^Play/ }).click();
     // The four-tab Play landing (c6afb02) opens the per-game editor from its one primary action.
     await page.getByRole('button', { name: 'Continue guessing', exact: true }).click();
-    // The current per-game entry owns the Shell dirty registry (D-69: a game's card opens from its week tile).
+    // The current per-game entry owns the Shell dirty registry (D-70: a game's card opens from its week tile).
     await page.locator('.gx-per-game [data-tile]').first().click();
     await page.getByRole('button', { name: /Pick'em/i }).first().click();
     let confirms = 0;

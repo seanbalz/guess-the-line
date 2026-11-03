@@ -84,7 +84,7 @@ them. No server
 route or rule changes. The legacy D-16 benchmark freeze (`BenchmarkControls`) is not
 carried over: it applies only under the retired common-reference scoring policy.
 
-**November 2 (D-69):** Play › Your guesses uses nesting cards in the new app.
+**November 2 (D-70):** Play › Your guesses uses nesting cards in the new app.
 - **The week:** one card of game tiles.
 - **One game:** a tile opens that game's own card, at its `pickGame` address.
 - **Unchanged:** `PerGameEditor` keeps every draft, save, check, sit-out and reveal path. The old Community Picks page

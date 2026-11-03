@@ -150,7 +150,7 @@ function SelectedPlay({ app, shell, current, mode, onMode }) {
   const season = Number.isInteger(view.season) ? view.season : current.season;
   const week = Number.isInteger(view.week) ? view.week : current.week;
   const read = useLeagueRead(`${app.accountId}:play:${season}:${week}:${mode}`, signal => cloudApi('personal/read', { season, week }, { signal }), error => { if (error.status === 401) app.requestSignIn(); });
-  // D-69: the week and its games are nesting cards on one address key (`pickGame`); the editor and its drafts stay
+  // D-70: the week and its games are nesting cards on one address key (`pickGame`); the editor and its drafts stay
   // mounted between them, so moving there never asks to leave unsaved guesses.
   const { setView } = shell, { market: viewMarket, season: viewSeason, week: viewWeek } = view;
   const keeps = useCallback(next => next.tab === 'play' && next.views.play.section === 'picks'

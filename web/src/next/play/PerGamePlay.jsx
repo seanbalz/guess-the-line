@@ -58,7 +58,7 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', f
     focusedGame.current?.focus({ preventScroll: true });
     focusedGame.current?.scrollIntoView({ block: 'start', behavior: 'instant' });
   }, [focusGame, key]);
-  // D-69: a game address that mounts the editor (a deep link, a reload) lands on that game card's heading; later
+  // D-70: a game address that mounts the editor (a deep link, a reload) lands on that game card's heading; later
   // layer changes move focus inside Nest.
   const openedOnMount = useRef(nest?.game && initialData.games?.some(game => game.id === nest.game));
   useEffect(() => { if (openedOnMount.current) section.current?.querySelector('.gx-nest-title')?.focus({ preventScroll: true }); }, [key]);
@@ -67,7 +67,7 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', f
   const [storageFailed, setStorageFailed] = useState(false), [elapsed, setElapsed] = useState(0);
   // The lock-in moment: the games a fresh read just confirmed as locked (the stamp plays on their cards once).
   const [moment, setMoment] = useState(null);
-  // D-69: opening another card ends the moment, so reopening a locked game never stamps it again.
+  // D-70: opening another card ends the moment, so reopening a locked game never stamps it again.
   useEffect(() => { setMoment(null); }, [nest?.game]);
   const draftRef = useRef(draft), running = useRef(false), alive = useRef(true);
   const [olderDrafts] = useState(() => [
@@ -96,7 +96,7 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', f
     return () => clearInterval(timer);
   }, [data.now]);
   useEffect(() => { setData(initialData); }, [initialData]);
-  // D-69: moving between this week and one of its games keeps the editor and its drafts on screen (`nest.keeps`).
+  // D-70: moving between this week and one of its games keeps the editor and its drafts on screen (`nest.keeps`).
   const keeps = nest?.keeps;
   useEffect(() => { setDirty?.(key, !satOut && dirty || uncertain || busy, keeps); return () => setDirty?.(key, false); }, [key, dirty, satOut, uncertain, busy, setDirty, keeps]);
   function keep(next) {
@@ -215,7 +215,7 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', f
     {storageFailed && dirty && <p className="gx-t-meta gx-c-2">This browser cannot keep a recovery copy. Keep this page open until saved.</p>}
     {draft && dirty && !uncertain && !satOut && <p className="gx-t-meta gx-c-2">Unsaved guesses stay in this tab. Save draft to use another device.</p>}
   </>;
-  // Monday answers: it says "Check below", so it sits right above the check button (on the week card, D-69).
+  // Monday answers: it says "Check below", so it sits right above the check button (on the week card, D-70).
   const waitingLine = waitingAnswers>0&&<p className="gx-t-body gx-c-2" role="status">{waitingAnswers} locked {waitingAnswers===1?'guess is':'guesses are'} waiting for a sportsbook line. Monday guesses show answers as soon as the first qualifying line arrives. Check below to refresh.</p>;
   const checkAndSave = <>
     <div className="gx-score-navigation"><Button disabled={busy} onClick={check}>{busy ? 'Checking…' : waitingAnswers>0&&!uncertain ? 'Check for answers' : 'Check saved picks'}</Button><Button disabled={busy || !dirty || uncertain || !active || satOut} onClick={() => save()}>Save draft</Button></div>
@@ -229,7 +229,7 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', f
     }}>Use unlocked drafts</Button></details>)}
   </>;
   const sitOutButton = canSitOut && !uncertain ? <Button variant="ghost" disabled={busy} onClick={() => setConfirmSitOut(true)}>Sit out remaining {market} games</Button> : null;
-  /** One game's card: the stacked list's card, or (`nested`, D-69) the body of that game's nesting card. */
+  /** One game's card: the stacked list's card, or (`nested`, D-70) the body of that game's nesting card. */
   function gameCard(game, nested = false) {
     const index = data.games.indexOf(game);
     const lock = lockedAt(ballot, game.id), value = picks[game.id], closed = !Number.isFinite(now) || !(now < Date.parse(game.kickoff)), notOpen = weekNotOpen;
@@ -263,7 +263,7 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', f
   const marketControl = <Segmented label="Market" options={SCORE_MARKETS} value={mode} onChange={value => { if (!busy && !uncertain) onMode?.(value); }}/>;
 
   if (nest) {
-    // D-69: the week is one nesting card of game tiles; a game's address (`nest.game`) opens that game's card instead.
+    // D-70: the week is one nesting card of game tiles; a game's address (`nest.game`) opens that game's card instead.
     const open = data.games.find(game => game.id === nest.game) ?? null;
     const guessOf = id => lockedAt(ballot, id) ? number(ballot.picks?.[id]) : picks[id];
     const after = open ? nextAfter(progress, open.id) : null;
