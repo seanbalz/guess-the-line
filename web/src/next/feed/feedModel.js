@@ -8,6 +8,7 @@
 //   post" always reaches each one (D-23: nothing hidden).
 // - Reactions: one per person; the row shows at most three, most first, and always keeps yours in view.
 // - Times are Pacific through Intl (web/src/next/format.js), never a fixed offset.
+import { featuresView } from '../features/layers.js';
 import { DASH, fmtLate, fmtMatchup, fmtNum, fmtSpreadPick, fmtWhen, pacificParts, plural } from '../format.js';
 
 /** The six reactions (D-35), in the prototype's order. Glyphs render only inside a data-emoji-ok element. */
@@ -114,14 +115,16 @@ export function namesLine(names) {
 const SYSTEM_KINDS = new Set(['kickoff', 'week_published', 'weekly_recap', 'season_champion']);
 export const systemPost = post => SYSTEM_KINDS.has(post.kind);
 export const realSlipPost = post => post.kind === 'bet_posted' || post.kind === 'bet_settled';
-const FEATURES = Object.freeze({ tab: 'play', view: Object.freeze({ section: 'features' }) });
+// D-69: each post opens the Badges and awards layer it is about.
+const featuresLink = layer => Object.freeze({ tab: 'play', view: Object.freeze(featuresView(layer)) });
 
 /** The one link under a post, or null: a real slip opens Bets; a badge, streak or awards post opens Badges and awards. */
 export function postLink(post) {
   if (realSlipPost(post)) return { text: 'See real slips', tab: 'bets', view: { section: 'tracked' } };
-  if (post.kind === 'badge_earned') return { text: 'See badges', ...FEATURES };
-  if (post.kind === 'streak_milestone') return { text: 'See your streaks', ...FEATURES };
-  if (post.kind === 'weekly_recap' || post.kind === 'season_champion') return { text: 'See the awards', ...FEATURES };
+  if (post.kind === 'badge_earned') return { text: 'See badges', ...featuresLink(null) };
+  if (post.kind === 'streak_milestone') return { text: 'See your streaks', ...featuresLink('streaks') };
+  if (post.kind === 'weekly_recap') return { text: 'See the awards', ...featuresLink('awards') };
+  if (post.kind === 'season_champion') return { text: 'See the awards', ...featuresLink('season') };
   return null;
 }
 

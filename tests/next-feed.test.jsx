@@ -149,6 +149,8 @@ describe('post cards draw only what the server let through', () => {
     }
     expect(model.postLink(post('bet_posted'))).toEqual({ text: 'See real slips', tab: 'bets', view: { section: 'tracked' } });
     expect(model.postLink(post('joined'))).toBeNull();
+    // D-69: each post opens the layer it is about.
+    expect(['badge_earned', 'streak_milestone', 'weekly_recap', 'season_champion'].map(kind => model.postLink(post(kind)).view.layer)).toEqual([undefined, 'streaks', 'awards', 'season']);
   });
 });
 

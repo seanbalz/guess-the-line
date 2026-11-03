@@ -251,14 +251,6 @@ test('League board: faces, the leader, week badges, the race strip and counting 
     await expect(lukeBadges.getByRole('button')).toHaveCount(4);
     await expect(lukeBadges.getByRole('button', { name: 'Bullseye, 3 times, Week 4' })).toContainText('×3');
     await expect(board.getByRole('group', { name: 'Troy Fixture’s Week 4 badges' }).getByRole('button', { name: 'Sharp, 2 times, Week 4' })).toBeVisible();
-    // A row's badge opens that player's detail: the rule, how often and when.
-    await lukeBadges.getByRole('button', { name: 'Bullseye, 3 times, Week 4' }).click();
-    const sheet = page.getByRole('dialog', { name: 'Bullseye' });
-    await expect(sheet).toContainText('Earned 3 times');
-    await expect(sheet).toContainText('Week 4 · Seattle Seahawks at Denver Broncos'); // D-62: the game as marks, read as one sentence
-    await sheet.getByRole('button', { name: 'Close' }).click();
-    await expect(sheet).toHaveCount(0);
-
     await expect(page.locator('[data-board="race"]').getByRole('img')).toHaveAttribute('aria-label', 'Spread season points: You 20, Troy Fixture 12');
     const troyTotal = board.locator(`[data-board-row="${TROY}"] .gx-countup`);
     await expect(troyTotal).toHaveAttribute('data-count', 'rest');
@@ -283,6 +275,28 @@ test('League board: faces, the leader, week badges, the race strip and counting 
     await expect(board.locator(`[data-board-row="${LUKE}"] .gx-move`)).toHaveText('▲2up 2');
     await page.waitForTimeout(800);
     await expect(page.locator('.gx-toast')).toHaveCount(0);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+// D-69 section 4.1: a row's badge opens that player's badge layer (Play › Badges and awards, its own address), and
+// Back returns to the board. The test above checks the board's count-ups without leaving it, so this one is separate.
+test("League board: a row's badge opens that player's badge layer; Back returns to the board", async ({ page, baseURL }) => {
+  const world = await featuresWorld(page, baseURL);
+  try {
+    await openAs(page, 'luke', '#play/league?view=board');
+    const board = page.getByRole('list', { name: 'Spread season standings' });
+    await board.getByRole('group', { name: 'Your Week 4 badges' }).getByRole('button', { name: 'Bullseye, 3 times, Week 4' }).click();
+    await expect(page).toHaveURL(/#play\/features\?layer=badge&item=bullseye$/);
+    const layer = page.locator('[data-landing="features"]');
+    await expect(layer.getByRole('heading', { name: 'Bullseye', level: 2 })).toBeVisible();
+    await expect(layer).toContainText('Earned 3 times');
+    await expect(layer).toContainText('Week 4 · Seattle Seahawks at Denver Broncos'); // D-62: the game as marks, read as one sentence
+    await page.goBack();
+    await expect(board).toBeVisible();
+    await board.getByRole('group', { name: 'Troy Fixture’s Week 4 badges' }).getByRole('button', { name: 'Sharp, 2 times, Week 4' }).click();
+    await expect(page).toHaveURL(new RegExp(`#play/features\\?layer=badge&item=sharp%40${TROY}$`));
+    await expect(layer).toContainText('Troy Fixture: earned 2 times');
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

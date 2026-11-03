@@ -9,6 +9,7 @@ import { boardFor } from '../../../../shared/guess-board.mjs';
 import { Avatar, Badge, Card, List, Move, Pill, Rank, Row, Strip } from '../ui/index.js';
 import { CountUp } from '../ui/CountUp.jsx';
 import { boardFact } from '../features/model.js';
+import { featuresView } from '../features/layers.js';
 import { useRankMoment } from './useRankMoment.js';
 import { LeagueEmpty } from './useLeagueRead.jsx';
 
@@ -115,7 +116,7 @@ export function BoardCard({ app, shell, league, mode, rows, label, features, row
       <List label={label}>
         {rows.map(row => (
           <BoardRow key={row.id} row={row} rows={rows} account={app?.accountId ?? null} badgeWeek={badgeWeek}
-            badges={features?.weekBadgesOf?.(row.id) ?? []} onBadge={(badge, userId) => shell?.openSheet?.('sh.badge', { badge, userId })}
+            badges={features?.weekBadgesOf?.(row.id) ?? []} onBadge={(badge, userId) => shell?.go?.('play', featuresView('badge', { badge, member: userId === app?.accountId ? null : userId }))}
             move={row.you ? moment.move : null} fresh={row.you && moment.fresh} {...rowProps(row)}/>
         ))}
       </List>
