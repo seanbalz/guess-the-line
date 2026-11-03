@@ -27,8 +27,8 @@ The choices were made on the private canvas
 
 ### Every trend tile
 
-- **The look:** glass, using the existing `--gx-glass` and `--gx-glass-shadow` tokens, with a 20px radius and a 12px
-  gap. The two themes already differ: dark is translucent with an inner highlight, light is white with a soft shadow.
+- **The look:** glass, using the existing `--gx-glass` and `--gx-glass-shadow` tokens, with the `--gx-radius-md` (16px)
+  radius for tiles and `--gx-radius-lg` (24px) for the hero and the chart card, and a 12px gap. The two themes already differ: dark is translucent with an inner highlight, light is white with a soft shadow.
 - **Content:** the trend's title, then **one big number, the win rate** to one decimal ("55.6%"), then one meta line:
   "712 games · since 2002" (`sinceText`, so a coach reads "since 2024").
 - **Removed:** the W–L–P record and the meter bar.
