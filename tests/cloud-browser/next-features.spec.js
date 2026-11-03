@@ -55,8 +55,8 @@ test('without M-25: no new row on Play or Home, and the screen says "coming soon
   expect((await world.api('luke', 'league/features', {})).status).toBe(404);
   await openNewApp(page);
   await expect(page.locator('[data-landing="play"]')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'My league' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Badges and awards' })).toHaveCount(0);
+  await expect(page.locator('[data-play-tile="league"]').getByRole('button')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Badges, coming soon' })).toBeVisible();
   await tabs(page).getByRole('button', { name: /^Home(,|$)/ }).click();
   await expect(page.locator('[data-landing="home"]')).toBeVisible();
   await expect(page.getByRole('button', { name: /awards$/ })).toHaveCount(0);
@@ -69,7 +69,7 @@ test('before the job has run: an empty recap with no sample, streaks at 0 and th
   const world = await communityWorld(page, baseURL, { migrations: ALL });
   await seedFinishedWeek(world);
   await openNewApp(page);
-  const row = page.getByRole('button', { name: 'Badges and awards' });
+  const row = page.getByRole('button', { name: /^Badges, 0 earned/ });
   await expect(row).toBeVisible();
   await row.click();
   await expect(page).toHaveURL(/#play\/features/);
@@ -91,9 +91,11 @@ test('before the job has run: an empty recap with no sample, streaks at 0 and th
   const flash = page.getByRole('dialog', { name: 'New results' });
   await expect(flash).toBeVisible();
   await expect(flash).toContainText('Bullseye');
-  // One overlay however many arrived (Luke has 7 badges and 4 awards): three lines and the count of the rest.
+  // One overlay however many arrived (Luke has 7 badges and 4 awards): three lines and the count of the rest. The Play
+  // landing (P1B) now mounts Your score, whose first read on this device saw three of the finished week's moments
+  // (shared ids) before the job ran, so they are not new here: 11 less 3 leaves 3 lines and 5 more.
   await expect(flash.locator('.gx-fx-lines li')).toHaveCount(3);
-  await expect(flash).toContainText('and 8 more');
+  await expect(flash).toContainText('and 5 more');
   expect(await flash.locator('.gx-fx-burst').evaluate(el => getComputedStyle(el).animationName)).toBe('gx-fx-burst');
   expect(await axe(page)).toEqual([]);
   expect(await page.evaluate(layoutProblems)).toEqual([]);

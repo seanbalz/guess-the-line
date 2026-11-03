@@ -37,7 +37,7 @@ async function fixture(page, baseURL, { beforePlay } = {}) {
   await signIn(page, 'luke');
   if (beforePlay) { await expect(tabs(page)).toBeVisible(); await beforePlay(personal); }
   await tabs(page).getByRole('button', { name: /^Play(,|$)/ }).click();
-  await page.getByRole('button', { name: 'Continue guessing', exact: true }).click();
+  await page.getByRole('button', { name: 'Make picks', exact: true }).click();
   await expect(page.locator('.gx-per-game')).toBeVisible();
   return { ...world, personal, writes, control };
 }
@@ -147,7 +147,7 @@ test('native sit-out keeps an existing lock and unsaved draft, confirms through 
     });
     await signIn(page, 'luke');
     await tabs(page).getByRole('button', { name: /^Play(,|$)/ }).click();
-    await page.getByRole('button', { name: 'Continue guessing', exact: true }).click();
+    await page.getByRole('button', { name: 'Make picks', exact: true }).click();
     await expect(page.locator('.gx-per-game')).toBeVisible();
     const [first, second] = world.state.games, card = await choose(page, first.id);
     await card.getByRole('button', { name: 'Lock in Spread' }).click();

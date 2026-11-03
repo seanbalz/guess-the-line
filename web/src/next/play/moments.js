@@ -128,3 +128,8 @@ export function writeSeen(storage, key, seen) {
 /** The stagger step for the reveal: rows after the sixth start together, so the whole reveal stays inside `big`. */
 export const REVEAL_STAGGER_CAP = 6;
 export const staggerIndex = i => Math.min(Math.max(0, i), REVEAL_STAGGER_CAP);
+
+
+/** The Whole week locked moment's id for one market and week (D-69 step 1): play/landing.js reports it; the picks card
+ * and the landing pop the line that says it. */
+export const weekLockedId = (season, week, mode) => `weekLocked:${season}:${week}:${mode}`;

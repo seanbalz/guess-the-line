@@ -15,7 +15,7 @@ vi.mock('../web/src/CommunityHome.jsx', () => ({ WeekPicks: () => <div className
 vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: () => state.app, useSharedRead: () => ({ data: null }) }));
 // Board i63: a Points slot sheet reads the week's Fantasy snapshot; these renders leave it loading.
 vi.mock('../web/src/fantasyData.js', () => ({ fantasyWeekKey: (season, week) => `${season}-${String(week).padStart(2, '0')}`, useFantasySnapshot: () => ({ status: 'loading' }) }));
-const { PointsBallotView, PointsLandingCard } = await import('../web/src/next/play/points/PointsBallot.jsx');
+const { PointsBallotView } = await import('../web/src/next/play/points/PointsBallot.jsx');
 const { PointsBoardView } = await import('../web/src/next/play/points/PointsBoard.jsx');
 const model = await import('../web/src/next/play/points/pointsModel.js');
 const { ShellContext } = await import('../web/src/next/shell/context.js');
@@ -234,7 +234,6 @@ describe('feature flag and empty states', () => {
       expect(html).not.toContain('Try again');
       expect(html).not.toMatch(/of 50|Lock in/);
     }
-    expect(model.landingCard(null, { status: 404 })).toEqual({ progress: null, meta: 'Points is coming soon', label: 'Guess the Points, Points is coming soon' });
   });
 
   it('another failure offers a retry instead of coming soon', () => {
@@ -246,32 +245,6 @@ describe('feature flag and empty states', () => {
   it('an unopened week says when weeks open', () => {
     const html = ballot(ready({ season: null, week: null, status: 'unopened', groupId: null, slots: [], result: null, standings: { week: [], season: [] } }));
     expect(html).toContain('A new week opens Tuesdays at 12:00 AM PT.');
-  });
-});
-
-describe('Play landing row', () => {
-  it('1C: Guess the Points is a glow card under the plain Spread and Total rows', () => {
-    state.app = { ...APP, community: { status: 'ready', data: { week: { season: 2026, week: 7, games: [] }, picksDue: { state: 'due', week: 7, modes: [{ mode: 'guess_total' }] }, due: [{ mode: 'guess_spread', submitted: true }, { mode: 'guess_total', filled: 0, games: 2 }] } } };
-    const html = renderToStaticMarkup(<ShellContext.Provider value={{ ...SHELL, league: APP.league, tab: vi.fn(), reload: vi.fn() }}><div className="gx"><Play/></div></ShellContext.Provider>);
-    expect(markupProblems(html)).toEqual([]);
-    const order = ['Guess the Spread', 'data-points-landing', 'My league'].map(name => html.indexOf(name));
-    const glowing = [...walk(parseMarkup(html))].filter(n => /gx-card--hero/.test(n.attrs?.class || ''));
-    expect(glowing.some(n => n.attrs['data-points-landing'] !== undefined)).toBe(true);
-    expect([...walk(parseMarkup(html))].filter(n => n.attrs?.['aria-label'] === 'Guess the Spread')[0]?.attrs.class).not.toMatch(/hero/);
-    expect(order.every(index => index >= 0)).toBe(true);
-    expect([...order].sort((a, b) => a - b)).toEqual(order);
-    expect((html.match(/gx-btn--primary/g) || [])).toHaveLength(1);
-  });
-
-  it('1C: a glass pill, a big "2/5" (locked of 5) and the meta line "Next locks …"', () => {
-    expect(model.landingCard(READ, null)).toEqual({ progress: '2/5', meta: 'Next locks Sun 10:00 AM PT', label: 'Guess the Points, 2 of 5 locked, Next locks Sun 10:00 AM PT' });
-    expect(model.landingCard(DONE, null).meta).toBe('Week 7 · You 6.6 of 50 · PROVISIONAL');
-    expect(model.landingCard({ status: 'unopened', slots: [] }, null)).toMatchObject({ progress: null, meta: 'Opens Tuesdays at 12:00 AM PT' });
-    expect(model.landingCard(null, { status: 503 }).meta).toBe('Points could not be loaded');
-    const html = renderToStaticMarkup(<div className="gx"><PointsLandingCard read={ready()} onOpen={() => {}}/></div>);
-    expect(markupProblems(html)).toEqual([]);
-    expect(html).toMatch(/gx-card--hero/);
-    expect(text(parseMarkup(html))).toMatch(/Guess the Points\s+2\/5\s+Next locks Sun 10:00 AM PT/);
   });
 });
 

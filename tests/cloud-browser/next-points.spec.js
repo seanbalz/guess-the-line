@@ -75,14 +75,14 @@ test('without P-01 the routes answer 404 and Play and the League board say "Poin
   expect((await world.api('luke', 'points/read', {})).status).toBe(404);
   await openNewApp(page);
   const row = page.getByRole('button', { name: 'Guess the Points, Points is coming soon', exact: true });
-  await expect(row).toHaveClass(/gx-card--hero/);
+  await expect(row).not.toHaveClass(/gx-card--hero/); // P1B: Points is a tile; the one glow card is the next move
   await row.click();
   await expect(page).toHaveURL(/#play\/points/);
   await expect(page.getByRole('heading', { name: 'Points is coming soon' })).toBeVisible();
   await expect(page.getByRole('button', { name: /^Lock in/ })).toHaveCount(0);
   await page.goBack();
   await expect(page.locator('[data-landing="play"]')).toBeVisible();
-  await page.getByRole('button', { name: 'My league', exact: true }).click();
+  await page.locator('[data-play-tile="league"]').getByRole('button').click();
   await page.getByRole('group', { name: 'Standings market' }).getByRole('button', { name: 'Points', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Points is coming soon' })).toBeVisible();
   expect(world.errors).toEqual([]);
@@ -92,11 +92,11 @@ test('a fixture week: draft, lock in with a confirm, then Everyone and the House
   const world = await communityWorld(page, baseURL, { migrations: ALL });
   await seedWeek(world);
   await openNewApp(page);
-  // Decision 1C: a glow card with a glass pill, a big "0/5" and "Next locks …"; Spread and Total stay plain rows.
-  const landing = page.locator('[data-points-landing]');
+  // D-69 P1B: Points is a tile with a big "0 / 5" and "Next locks …"; the one glow card is the next move.
+  const landing = page.getByRole('button', { name: /^Guess the Points, / });
   await expect(landing).toHaveAccessibleName(/^Guess the Points, 0 of 5 locked, Next locks /);
-  await expect(landing).toHaveClass(/gx-card--hero/);
-  await expect(landing).toContainText('0/5');
+  await expect(landing).not.toHaveClass(/gx-card--hero/);
+  await expect(landing).toContainText('0 / 5');
   await landing.click();
   await expect(page.getByRole('heading', { name: 'Week 7 Points', exact: true })).toBeVisible();
   const layer = pointsLayer(page);
@@ -226,7 +226,7 @@ test('keyboard only, with reduced motion: open a slot, use the stepper, and the 
   const world = await communityWorld(page, baseURL, { migrations: ALL });
   await seedWeek(world);
   await openNewApp(page);
-  await page.locator('[data-points-landing]').click();
+  await page.getByRole('button', { name: /^Guess the Points, / }).click();
   const wr = page.locator('[data-slot="WR"]');
   await wr.focus();
   await page.keyboard.press('Enter');
@@ -302,8 +302,8 @@ test('Pick reminders: the Points prompt and the Menu switch ask permission only 
   await openNewApp(page);
   const prompt = page.getByRole('region', { name: 'Get a nudge before picks are due' });
   await expect(prompt).toBeVisible();
-  // The prompt follows the Points card and offers no lime button (one primary action per screen stays the hero's).
-  await expect(page.locator('[data-points-landing] + [data-reminder-prompt]')).toHaveCount(1);
+  // The prompt follows the first card, before the tiles, and offers no lime button.
+  await expect(page.locator('[data-play="hero"] ~ [data-reminder-prompt] ~ [data-play="tiles"]')).toHaveCount(1);
   await expect(prompt.locator('.gx-btn--primary')).toHaveCount(0);
   expect(await page.evaluate(() => window.__permissionAsks), 'never asked on load').toBe(0);
   await themesAndWidths(page, info, 'reminders-prompt');
@@ -329,13 +329,13 @@ test('Pick reminders: the Points prompt and the Menu switch ask permission only 
   await page.keyboard.press('Escape');
   await expect(sheet).toHaveCount(0);
 
-  // "Not now" retires the prompt for this account on this device, focus returns to the Points card, and a reload keeps it away.
+  // "Not now" retires the prompt for this account on this device, focus returns to the first card's button, and a reload keeps it away.
   await prompt.getByRole('button', { name: 'Not now', exact: true }).click();
   await expect(prompt).toHaveCount(0);
-  await expect(page.locator('[data-points-landing]')).toBeFocused();
+  await expect(page.locator('[data-play="hero"] .gx-btn--primary')).toBeFocused();
   await page.reload();
   await expect(page.locator('[data-landing="play"]')).toBeVisible();
-  await expect(page.locator('[data-points-landing]')).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Guess the Points, / })).toBeVisible();
   await expect(page.locator('[data-reminder-prompt]')).toHaveCount(0);
   expect(await page.evaluate(() => window.__permissionAsks)).toBe(0);
   logs.check();
@@ -415,7 +415,7 @@ test('Player context: averages with game counts, the opponent, the report and it
   const world = await communityWorld(page, baseURL, { migrations: ALL, fantasyFetch: fixtureRelease(pointsContextSnapshot()) });
   await seedWeek(world);
   await openNewApp(page);
-  await page.locator('[data-points-landing]').click();
+  await page.getByRole('button', { name: /^Guess the Points, / }).click();
   await page.locator('[data-slot="QB"]').click();
   const sheet = pointsLayer(page);
   await expect(sheet.getByRole('heading', { name: 'QB · Fixture QB Player', exact: true })).toBeVisible();
@@ -491,7 +491,7 @@ test('Player context: averages with game counts, the opponent, the report and it
   await page.getByRole('dialog', { name: 'Menu' }).getByRole('button', { name: 'Sign out', exact: true }).click();
   await signIn(page, 'sean', { navigate: false });
   await tabs(page).getByRole('button', { name: /^Play(,|$)/ }).click();
-  await page.locator('[data-points-landing]').click();
+  await page.getByRole('button', { name: /^Guess the Points, / }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.locator('[data-slot="QB"]').click();
   const seanSheet = pointsLayer(page);
@@ -509,7 +509,7 @@ test('an exact guess plays once when the ballot is opened after the launch, neve
   const world = await communityWorld(page, baseURL, { migrations: ALL });
   await seedPlayedWeek(world);
   await openNewApp(page);
-  await page.locator('[data-points-landing]').click();
+  await page.getByRole('button', { name: /^Guess the Points, / }).click();
   const qb = page.locator('[data-slot="QB"]');
   await expect(qb).toContainText('Pending stats');
   // This device's first Points read seeded the moments record; now the QB's 21 lands while Luke is away.
@@ -519,7 +519,7 @@ test('an exact guess plays once when the ballot is opened after the launch, neve
   const flash = page.getByRole('dialog', { name: 'Exact guess' });
   await expect(flash).toHaveCount(0);
   await tabs(page).getByRole('button', { name: /^Play(,|$)/ }).click();
-  await page.locator('[data-points-landing]').click();
+  await page.getByRole('button', { name: /^Guess the Points, / }).click();
   await expect(flash).toBeVisible();
   await expect(flash).toContainText('Week 7 · QB · Fixture QB Player · 21 points');
   await flash.getByRole('button', { name: 'Nice', exact: true }).click();
@@ -528,7 +528,7 @@ test('an exact guess plays once when the ballot is opened after the launch, neve
   await expect(pointsLayer(page)).toContainText('Exact · 10 points');
   await page.goBack();
   await page.goBack();
-  await page.locator('[data-points-landing]').click();
+  await page.getByRole('button', { name: /^Guess the Points, / }).click();
   await expect(qb).toBeVisible();
   await expect(flash).toHaveCount(0);
   expect(world.errors).toEqual([]);

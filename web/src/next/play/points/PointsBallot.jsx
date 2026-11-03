@@ -24,7 +24,7 @@ import { PlayLayer } from '../PlayLayer.jsx';
 import { PlayTile } from '../PlayTile.jsx';
 import { Avatar, AvatarStack, Button, Card, CardButton, Dialog, Icon, InfoButton, Matchup, Pill, Skeleton } from '../../ui/index.js';
 import { INFO } from '../../info.js';
-import { GUESS_MAX, GUESS_MIN, SLOT_NAMES, boardTile, closestLine, comingSoon, editable, isExact, kickoffText, landingCard, matchupCodes, matchupText, numberLine, publishTarget, pts, resultTiles, slotStatus, slotTile, step, weekBar, weekLine } from './pointsModel.js';
+import { GUESS_MAX, GUESS_MIN, SLOT_NAMES, boardTile, closestLine, comingSoon, editable, isExact, kickoffText, matchupCodes, matchupText, numberLine, publishTarget, pts, resultTiles, slotStatus, slotTile, step, weekBar, weekLine } from './pointsModel.js';
 import { pointsMoments, pointsSource } from './pointsMoments.js';
 import { PointsPublish } from './PointsPublish.jsx';
 import { ProfileView, SlotContext } from './SlotContext.jsx';
@@ -71,15 +71,6 @@ export function usePointsMoments(read, groupId = null) {
   const report = useMoments()?.report;
   const data = read.data;
   useEffect(() => { if (data && report) report(pointsMoments(data), { source: pointsSource(groupId) }); }, [data, report, groupId]);
-}
-
-/** Decision 1C: the old Play landing's Points row. The new landing uses PointsTile.jsx (D-69 P1B). */
-export function PointsLandingCard({ ref, read, onOpen }) {
-  const card = landingCard(read.data, read.error);
-  return <CardButton ref={ref} variant="hero" className="gx-pt-landing gx-vstack gx-gap-8" aria-label={card.label} data-points-landing onClick={onOpen}>
-    <span className="gx-pt-landing-top"><span className="gx-pt-pill gx-t-strong">Guess the Points</span>{card.progress && <span className="gx-n-l gx-t-strong">{card.progress}</span>}</span>
-    <span className="gx-t-meta gx-pt-sub">{card.meta}</span>
-  </CardButton>;
 }
 
 export function PointsComingSoon() {

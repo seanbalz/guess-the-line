@@ -87,23 +87,6 @@ export function resultTiles(slot) {
   ];
 }
 
-/**
- * The Play landing's glow row (decision 1C): `{ progress, meta, label }`. `progress` is "2/5" (locked of five) while a week
- * is open, else null; `meta` is the line under it ("Next locks Sun 10:00 AM PT"); `label` reads both in words.
- */
-export function landingCard(read, error) {
-  const plain = meta => ({ progress: null, meta, label: `Guess the Points, ${meta}` });
-  if (comingSoon(error)) return plain('Points is coming soon');
-  if (error) return plain('Points could not be loaded');
-  if (!read) return plain('Loading Points…');
-  if (read.status !== 'open') return plain('Opens Tuesdays at 12:00 AM PT');
-  const slots = read.slots || [];
-  const locked = slots.filter(slot => slot.own?.locked).length;
-  const next = nextLock(read);
-  const meta = next ? `Next locks ${kickoffText(next)}` : `Week ${read.week} · ${summaryLine(read)}`;
-  return { progress: `${locked}/${slots.length}`, meta, label: `Guess the Points, ${locked} of ${slots.length} locked, ${meta}` };
-}
-
 /** The earliest kickoff among the slots the viewer can still save or lock, or null when none is left. */
 export const nextLock = read => (read?.slots ?? []).filter(slot => editable(read, slot)).map(slot => slot.kickoff).sort()[0] ?? null;
 

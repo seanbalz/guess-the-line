@@ -410,3 +410,24 @@ test('D-69 League layers: board first, #feed opens the feed, and a History week 
   assert.equal(shell.state.views.league.week, 8);
   shell.connection.disconnect();
 });
+
+// play/PlayLayer.jsx CLOSED_LAYER (a .jsx module, so its value is restated here): what openPlay clears.
+const CLOSED_LAYER = Object.freeze({ layer: undefined, item: undefined, scoreGame: undefined });
+test('D-69 step 1: the Play landing opens each section on its first layer, a reload reopens it, and Back returns to the landing', () => {
+  // A game card left open earlier, then the landing.
+  let state = initialState({ tab: 'play', view: { section: 'picks', market: 'total', season: 2026, week: 9, pickGame: 'DEN-CAR' } });
+  state = reduce(state, { type: 'go', tab: 'play', view: { section: undefined, ...CLOSED_LAYER } });
+  assert.equal(placeFromFragment(fragmentFor('play', state.views.play)).view.section, undefined, 'the landing is Play with no section');
+  assert.equal(state.views.play.pickGame, undefined);
+  // "Make picks" and the ballot tile (openPlay with the week the landing shows): the week's card, never the old game.
+  const picks = reduce(state, { type: 'go', tab: 'play', view: { section: 'picks', ...CLOSED_LAYER, market: 'spread', season: 2026, week: 9 } });
+  assert.equal(picks.views.play.pickGame, undefined);
+  assert.equal(fragmentFor('play', picks.views.play), '#play/picks?market=spread&season=2026&week=9');
+  assert.deepEqual(placeFromFragment(fragmentFor('play', picks.views.play)), { tab: 'play', view: { section: 'picks', market: 'spread', season: 2026, week: 9 } });
+  assert.equal(reduce(picks, { type: 'back' }).views.play.section, undefined, 'Back from a section returns to the landing');
+  // "View your results" and the other tiles open their section the same way.
+  for (const section of ['score', 'compare', 'points', 'features', 'league']) {
+    const opened = reduce(state, { type: 'go', tab: 'play', view: { section, ...CLOSED_LAYER } });
+    assert.equal(placeFromFragment(fragmentFor('play', opened.views.play)).view.section, section);
+  }
+});

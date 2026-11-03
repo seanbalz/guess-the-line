@@ -35,7 +35,7 @@ async function fixture(page, baseURL) {
   page.on('dialog', dialog => { dialogs.push(dialog.message()); return dialog.dismiss(); });
   await signIn(page, 'luke');
   await tabs(page).getByRole('button', { name: /^Play(,|$)/ }).click();
-  await page.getByRole('button', { name: 'Continue guessing', exact: true }).click();
+  await page.getByRole('button', { name: 'Make picks', exact: true }).click();
   await expect(page.locator('.gx-per-game [data-tile]').first()).toBeVisible();
   return { ...world, personal, writes, dialogs };
 }
@@ -106,7 +106,7 @@ test('the week is one tile per game; a tile opens its card; Lock in then Next sw
     await expect(page.locator('[data-play="count"]')).toHaveText(`2 of ${world.personal.games.length} locked`);
     await expect(page.locator(`[data-tile="${first.id}"]`)).toHaveAttribute('data-state', 'locked');
     await page.goBack();
-    await expect(page.getByRole('button', { name: 'Continue guessing', exact: true })).toBeVisible();
+    await expect(page.locator('[data-landing="play"] [data-play="hero"]').getByRole('button', { name: 'Make picks', exact: true })).toBeVisible();
     expect(world.dialogs).toEqual([]);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }

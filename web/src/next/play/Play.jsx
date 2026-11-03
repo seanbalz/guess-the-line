@@ -1,34 +1,41 @@
-// The account-wide Play surface follows live server capabilities. M-07 opens per-game entry and receipts;
-// until all capabilities are reported, the existing whole-market editor retains the hosted rules.
-import { useCallback, useMemo, useRef } from 'react';
-import { WeekPicks } from '../../CommunityHome.jsx';
+// Play (D-69 step 1). The landing is Sean's P1B (November 3, 2026): one glow card with the ballot to do next, then six
+// tiles in two columns, each opening its own section on its first layer (openPlay). Picks are the per-game cards
+// (PerGamePlay.jsx).
+import { useCallback, useId, useMemo, useRef } from 'react';
+import { WeekPicks } from '../../CommunityHome.jsx'; // 7b
 import { useAppData, useSharedRead } from '../data/AppData.jsx';
-import { COMMUNITY } from '../data/league.js';
+import { COMMUNITY } from '../data/league.js'; // 7b
 import { useShell } from '../shell/context.js';
-import { Button, InfoButton } from '../ui/index.js';
-import { INFO } from '../info.js';
-import { FocusAction, FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
+import { Button, Card, Meter } from '../ui/index.js';
+import '../ui/focusLanding.css';
 import { HomeGuide } from '../home/HomeGuide.jsx';
 import { useAccountPreferences } from '../me/AccountPreferences.jsx';
-import { homeHero } from '../../../../shared/home-view.mjs';
-import { nextGuess } from './nextGuess.js';
 import { LeagueScreen } from '../league/LeagueScreen.jsx';
-import { playPresentation } from './PlayPresentation.jsx';
+import { LeagueTile } from '../league/LeagueTile.jsx';
+import { playPresentation } from './PlayPresentation.jsx'; // 7b
 import './play.css';
+import './landing.css';
 import { cloudApi } from '../../api.js';
 import { useLeagueRead } from '../league/useLeagueRead.jsx';
 import { PerGameEditor } from './PerGamePlay.jsx';
 import { PlayEmpty, PlayFailure, PlayLoading } from './PlayStates.jsx';
 import { ScoreComparison } from './ScoreComparison.jsx';
 import { WeeklyScore } from './WeeklyScore.jsx';
-import { perGameReady } from './scoring.js';
-// Guess the Points (D-56): the third Play game, its own ballot and read; "coming soon" until P-01 is applied.
-import { PointsBallot, PointsLandingCard, usePointsRead } from './points/PointsBallot.jsx';
-// Badges, streaks and awards (redesign stage 71): their own screen and one row in More in Play; nothing shows until M-25 answers.
+import { perGameReady } from './scoring.js'; // 7b
+import { ScoreTile } from './ScoreTile.jsx';
+import { CompareTile } from './CompareTile.jsx';
+import { PlayTile } from './PlayTile.jsx';
+import { openPlay } from './PlayLayer.jsx';
+import { ballotTile, otherMarket, playHero } from './landing.js';
+import { weekLockedId } from './moments.js';
+import { useWeekLocked } from './useWeekLocked.js';
+import { PointsBallot } from './points/PointsBallot.jsx';
+import { PointsTile } from './points/PointsTile.jsx';
 import { FeaturesScreen } from '../features/FeaturesScreen.jsx';
-import { PlayFeaturesRow } from '../features/FeatureRows.jsx';
-// Pick reminders (Board i39): a one-time prompt under the Points card, the same flow as Menu › Pick reminders.
+import { BadgesTile } from '../features/BadgesTile.jsx';
 import { ReminderPrompt } from '../me/PickReminders.jsx';
+import { SCOPES } from '../moments/catalog.js';
+import { useMomentScope, useNewCount, usePopped } from '../moments/MomentsProvider.jsx';
 
 const modeOf = value => value === 'total' || value === 'guess_total' ? 'guess_total'
   : value === 'spread' || value === 'guess_spread' ? 'guess_spread' : null;
@@ -38,7 +45,9 @@ function rememberedMarket(accountId) {
 }
 
 export function Play() {
-  const shell = useShell();
+  const shell = useShell(), app = useAppData();
+  // D-69: Whole week locked reads the shared Community read wherever Play is open (the landing or the picks card).
+  useWeekLocked(app);
   const section = shell.state.views.play.section;
   if (section === 'league') return <LeagueScreen/>;
   if (section === 'points') return <PointsBallot/>;
@@ -50,41 +59,42 @@ export function Play() {
 function PlayLanding() {
   const app = useAppData(), shell = useShell(), data = app.community.data;
   const preferences = useAccountPreferences(app);
-  const points = usePointsRead(app);
-  const pointsRef = useRef(null);
-  // Decision 1C (D-56 addendum, Oct 23): Points is a glow card under the plain Spread and Total rows. The reminder prompt
-  // sits under it until it is answered; when it leaves, focus returns to the Points card.
-  const pointsCard = <>
-    <PointsLandingCard ref={pointsRef} read={points} onOpen={() => shell.go('play', { section: 'points' })}/>
-    <ReminderPrompt key={app.accountId} onGone={() => pointsRef.current?.focus()}/>
-  </>;
-  const hero = data ? homeHero({ community: data }) : null;
-  const market = nextGuess(data), other = market === 'spread' ? 'total' : 'spread';
-  const name = value => value === 'spread' ? 'Guess the Spread' : 'Guess the Total';
-  const open = value => shell.go('play', { section: 'picks', market: value, season: data?.week?.season ?? null, week: data?.week?.week ?? null });
-  const status = value => {
-    const row = data?.due?.find(item => item.mode === `guess_${value}`);
-    if (!row) return 'Open your saved guesses';
-    if (row.satOut) return 'Sitting out this week';
-    if (Number.isInteger(row.locked)) return `${row.locked} locked · ${row.openGames ?? 0} still open`;
-    return row.submitted ? 'Submitted' : `${row.filled ?? 0} of ${row.games ?? data?.week?.games?.length ?? 0} picked`;
-  };
-  return <div className="gx-screen" data-landing="play">
+  useMomentScope(SCOPES.play);
+  const heroButton = useRef(null), pointsTile = useRef(null), eyebrowId = useId();
+  const hero = data ? playHero(data) : null, week = data?.week ?? null;
+  const other = otherMarket(hero?.market ?? 'spread'), tile = ballotTile(data, other);
+  // NEW: a Whole week locked moment waits for the picks card (while a ballot is open it can only be the tile's market).
+  const waiting = useNewCount(SCOPES.picks) > 0;
+  const lockedId = mode => (week && Number.isInteger(week.season) ? weekLockedId(week.season, week.week, mode) : '');
+  const heroPop = usePopped(hero?.progress ? lockedId(hero.progress.mode) : '');
+  const tilePop = usePopped(lockedId(modeOf(other)));
+  const openPicks = market => openPlay(shell, 'picks', { market, season: week?.season ?? null, week: week?.week ?? null });
+  const go = target => (target.section === 'picks' ? openPicks(target.market) : openPlay(shell, target.section));
+  // The reminder prompt sits under the first card until it is answered; when it leaves, focus returns to that card's
+  // button (or, with no week loaded, to the Points tile).
+  const onPromptGone = () => (heroButton.current ?? pointsTile.current)?.focus();
+  return <div className="gx-screen gx-play-landing" data-landing="play">
     <div className="gx-focus-heading"><h1 className="gx-t-title">Play</h1>{hero?.week != null && <p className="gx-t-meta">Week {hero.week}</p>}</div>
-    {!hero ? app.community.status === 'error' ? <PlayFailure what="Your picks" error={app.community.error} onRetry={() => app.refresh({ only: ['community'] })}/> : <PlayLoading>Loading your picks…</PlayLoading>
-      : <><FocusAction title={hero.action.primary ? name(market) : 'Your week, at a glance.'} eyebrow={hero.action.primary ? 'Your next move' : 'Your results'} description={hero.action.primary ? status(market) : hero.state === 'none' ? 'No week is open yet. Your past results are still here.' : 'Review your guesses and their saved scoring lines.'} action={hero.action.primary ? 'Continue guessing' : 'View your results'} onAction={() => hero.action.primary ? open(market) : shell.go('play', { section: 'score' })}/>
-      {app.community.status === 'error' && <p className="gx-play-state-line gx-t-body" role="status">This week could not refresh. Showing the last loaded update. <Button variant="ghost" onClick={() => app.refresh({ only: ['community'] })}>Refresh week</Button></p>}
-      <FocusRows label="Spread and Total">
-        {(!hero.action.primary ? [market, other] : [other]).map(value => <FocusRow key={value} icon="target" title={name(value)} sub={status(value)} onClick={() => open(value)}/>)}
-      </FocusRows>
-      {pointsCard}
-      <FocusRows label="More in Play">
-        <FocusRow icon="trophy" title="My league" sub={app.league.name} onClick={() => shell.go('league', { view: 'board' })}/>
-        {hero.action.primary && <FocusRow icon="chart" title="Your results" sub="Scores, comparisons and history" onClick={() => shell.go('play', { section: 'score' })}/>}
-        <PlayFeaturesRow app={app}/>
-      </FocusRows></>}
-    {!hero && pointsCard}
-    {!hero && <FocusRows label="More in Play"><FocusRow icon="trophy" title="My league" sub={app.league.name} onClick={() => shell.go('league', { view: 'board' })}/><PlayFeaturesRow app={app}/></FocusRows>}
+    {hero ? <Card as="section" variant="hero" className="gx-play-hero" aria-labelledby={eyebrowId} data-play="hero" data-hero={hero.kind}>
+      <p className="gx-t-micro gx-play-hero-eyebrow" id={eyebrowId}>{hero.eyebrow}</p>
+      <h2 className="gx-t-title">{hero.title}</h2>
+      {hero.progress ? <Meter value={hero.progress.done} max={hero.progress.of} className="gx-play-hero-meter"/> : null}
+      <p className="gx-t-meta" data-play="hero-line" data-moment={heroPop ? 'pop' : undefined}>{hero.line}</p>
+      <Button ref={heroButton} variant="primary" block onClick={() => go(hero.target)}>{hero.action}</Button>
+    </Card>
+      : app.community.status === 'error' ? <PlayFailure what="Your picks" error={app.community.error} onRetry={() => app.refresh({ only: ['community'] })}/>
+      : <PlayLoading>Loading your picks…</PlayLoading>}
+    {/* A failed refresh keeps the last good copy with its error noted (data/store.js): say so under the card. */}
+    {data && (app.community.status === 'error' || app.community.error) ? <p className="gx-play-state-line gx-t-body" role="status">This week could not refresh. Showing the last loaded update. <Button variant="ghost" onClick={() => app.refresh({ only: ['community'] })}>Refresh week</Button></p> : null}
+    <ReminderPrompt key={app.accountId} onGone={onPromptGone}/>
+    <ul className="gx-nest-grid gx-play-tiles" aria-label="Play sections" data-play="tiles">
+      <li data-play-tile="ballot" data-moment={tilePop ? 'pop' : undefined}><PlayTile icon="target" label={tile.label} big={tile.big} sub={tile.sub} tone={tile.tone} ariaLabel={waiting ? `${tile.ariaLabel}, new` : tile.ariaLabel} isNew={waiting} onClick={() => openPicks(other)}/></li>
+      <li data-play-tile="points"><PointsTile ref={pointsTile} onOpen={() => openPlay(shell, 'points')}/></li>
+      <li data-play-tile="score"><ScoreTile onOpen={patch => openPlay(shell, 'score', patch)}/></li>
+      <li data-play-tile="league"><LeagueTile onOpen={() => openPlay(shell, 'league')}/></li>
+      <li data-play-tile="badges"><BadgesTile onOpen={() => openPlay(shell, 'features')}/></li>
+      <li data-play-tile="compare"><CompareTile onOpen={view => openPlay(shell, 'compare', view)}/></li>
+    </ul>
     <details className="gx-focus-help"><summary className="gx-t-strong">How to play</summary><HomeGuide key={app.accountId} preferences={preferences} perGame={data?.rules?.perGameScoring === true}/></details>
   </div>;
 }
