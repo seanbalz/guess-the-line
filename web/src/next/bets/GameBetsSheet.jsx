@@ -1,6 +1,6 @@
 import { useAppData, useSharedRead } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
-import { Button, InfoButton, Sheet } from '../ui/index.js';
+import { Button, InfoButton, Sheet, Skeleton } from '../ui/index.js';
 import { INFO } from '../info.js';
 import { EveryoneGame } from './EveryoneBets.jsx';
 import { useGameBets } from './useGameBets.js';
@@ -12,7 +12,7 @@ export function GameBetsSheet({ args }) {
   const scopeName = app.league?.community === false ? app.league.name : 'Community';
   return <Sheet title="League bets" onClose={close} tall>
     <div className="gx-hstack gx-gap-8"><p className="gx-t-meta gx-grow">{scopeName} · Week {args.week} · {args.season} · Virtual Units</p><InfoButton {...INFO.gameBets}/></div>
-    {read.status === 'loading' ? <p className="gx-t-body" role="status">Loading this game’s league bets…</p>
+    {read.status === 'loading' ? <Skeleton label="Loading this game’s league bets…" shape="rows" count={3}/>
       : read.status === 'error' ? <><p className="gx-t-body" role="alert">League bets are unavailable for this game.</p><Button onClick={read.reload}>Retry league bets</Button></>
         : <><div className="gx-ev gx-vstack gx-gap-12">
           {!read.view.published ? <p className="gx-t-body">This week’s games are not published yet.</p>

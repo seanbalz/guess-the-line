@@ -6,7 +6,7 @@ import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
 import { LeagueFailure, useLeagueRead } from '../league/useLeagueRead.jsx';
 import { forgetSharedReads } from '../../sharedReads.js';
-import { Button, Card, Sheet } from '../ui/index.js';
+import { Button, Card, Sheet, Skeleton } from '../ui/index.js';
 import '../play/comparison.css';
 const DRAFT = 'account-preferences';
 const same = (a,b) => JSON.stringify(preferenceValue(a)) === JSON.stringify(preferenceValue(b));
@@ -19,7 +19,7 @@ export function AccountPreferences() {
   if (!initial.current && read.data) initial.current=read.data;
   const leave = action => { if (shell.confirmLeave()) action(); };
   return <Sheet title="Settings" back={{ label: 'Menu', onBack: () => leave(() => shell.setSheetArgs({ sub: null })) }} onClose={() => leave(shell.closeSheet)}>
-    {initial.current ? <PreferencesEditor key={app.accountId} accountId={app.accountId} initial={initial.current} setDirty={shell.setDirty}/> : read.loading ? <p className="gx-t-body" role="status">Loading settings…</p> : read.error ? <LeagueFailure error={read.error} onRetry={read.retry}/> : <PreferencesEditor key={app.accountId} accountId={app.accountId} initial={read.data} setDirty={shell.setDirty}/>}
+    {initial.current ? <PreferencesEditor key={app.accountId} accountId={app.accountId} initial={initial.current} setDirty={shell.setDirty}/> : read.loading ? <Skeleton label="Loading settings…" shape="panels" count={2}/> : read.error ? <LeagueFailure error={read.error} onRetry={read.retry}/> : <PreferencesEditor key={app.accountId} accountId={app.accountId} initial={read.data} setDirty={shell.setDirty}/>}
   </Sheet>;
 }
 function recover(accountId, initial) {

@@ -198,6 +198,21 @@ Every number style sets `font-variant-numeric: tabular-nums` after its font, bec
 ### Motion
 Durations: tap 100ms, quick 160ms, base 240ms (sheets in), exit 200ms, big 600ms (bursts, count-ups, at most), pulse 1800ms (the LIVE dot, the only loop). Easing: standard, enter, exit and pop (a small overshoot for selections, saves and wins). Only transform and opacity animate. Motion explains a change; saves get a small moment, verified wins a big one, losses stay quiet; one big moment at a time and never on page load; never more than 3 flashes a second. Reduced motion (the device setting, or `data-motion="reduce"` on the app root) stops every animation and transition; numbers show their final value.
 
+**Moments (D-69, November 2, 2026).** One engine (`web/src/next/moments/`) decides every moment's size from Sean's
+choice ("Use PICK column"), plays only on a fresh server read, never replays (a per-account seen record on the device,
+cleared on sign-out), never plays on page load (results from while you were away show NEW and play when their card is
+opened) and shows one big moment at a time (`ov.flash`, "New results"). Small moments are 240 ms apart.
+
+| Moment | Size |
+|---|---|
+| Lock in a pick · Whole week locked · Rank up · Pick streak grows · Tracked bet wins | Small |
+| Bullseye · Week final · Reaching 1st · Guess the Points exact · Badge or award | Big |
+| Loss or big miss | Quiet |
+
+**Nesting cards on every tab (D-69).** Every tab's sections are D-66 nesting cards: a deeper layer rises in (240 ms),
+its first six units follow 30 ms apart (160 ms), a restored parent settles (200 ms), and a tab change fades only the
+screen (160 ms). The bars never animate.
+
 ### Themes, contrast and other modes
 - Dark is the default. Light applies when `Theme.jsx` sets `data-theme="light"` on `<html>` (it resolves System), or `data-theme="light"` on the app root. Light keeps the layout; glows become 2px rings; every lime fill gets a 1px `accent-ink` edge, since lime on the light surfaces is only 1.07 to 1.32:1 (1.07 on surface-3, 1.32 on white; the edge is 7.06:1 on white).
 - Checked on the token values for both themes (`tests/next-tokens.test.mjs`): at least 4.5:1 for every text and icon color on every surface and on your-row tint, each state color and `text-1`/`text-2` on the state tints, text on lime and on solid state fills; at least 3:1 for control outlines, the focus ring and the edge of a lime fill. Lowest text pairs: dark `text-3` on your-row tint 4.80, light `win` on surface-3 4.87. Lowest outline: light `border-strong` on surface-3 3.39. Avatar initials 9.41 (Iris) to 13.94 (Butter).
@@ -256,7 +271,7 @@ instead of a hairline border. Dark's page wash is a deeper blue at the top.
 
 ### Where glow and glass may appear
 
-- At most two glow cards in view: the screen's one action card (each root's hero, the kit's
+- Any number of glow cards may be in view (D-56 addendum, October 23, 2026, which replaced D-55's two-card limit), for example the screen's one action card (each root's hero, the kit's
   `gx-card--hero`) and one opened trend.
 - Glass only on a glow card: its pills, tooltips, segmented control and tiles.
 - **Lime exception:** in Dark, lime is the decorative last stop of the chart

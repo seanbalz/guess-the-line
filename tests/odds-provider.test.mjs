@@ -75,6 +75,21 @@ test('event order is irrelevant and exact matching never remaps a team, kickoff 
   assert.equal((await mock({odds:changed}).collect()).games[0].matchStatus,'event_id_changed');
 });
 
+// Board item 40: Week 8 CHI-SEA never matched at any book and nothing recorded why.
+test('a schedule mismatch records what the provider listed instead (kickoff, reversed teams); other games carry no extra field',async()=>{
+  const shifted=events();shifted[0].commence_time='2026-10-09T00:20:00Z';
+  const result=await mock({preflight:shifted}).collect();
+  assert.deepEqual(result.games[0].providerSchedule,[{kickoff:'2026-10-09T00:20:00.000Z',reversed:false}]);
+  assert(result.games.slice(1).every(g=>g.matchStatus==='matched'&&!Object.hasOwn(g,'providerSchedule')));
+  const checked=await mock({preflight:shifted}).provider.preflight({games:slate});
+  assert.deepEqual(checked.games[0].providerSchedule,[{kickoff:'2026-10-09T00:20:00.000Z',reversed:false}]);
+  assert(checked.games.slice(1).every(g=>!Object.hasOwn(g,'providerSchedule')));
+  const reversed=events();[reversed[0].home_team,reversed[0].away_team]=[reversed[0].away_team,reversed[0].home_team];
+  assert.deepEqual((await mock({preflight:reversed}).collect()).games[0].providerSchedule,[{kickoff:new Date(slate[0].kickoff).toISOString(),reversed:true}]);
+  const missing=(await mock({preflight:events().slice(1)}).collect()).games[0];
+  assert.equal(missing.matchStatus,'event_missing');assert(!Object.hasOwn(missing,'providerSchedule'));
+});
+
 test('unavailable slate uses no odds credits; duplicate IDs or repeated matchup events fail closed',async()=>{
   const missing=mock({preflight:[]}),out=await missing.collect();
   assert.equal(missing.requests.length,1);assert.equal(out.quota.estimatedMaxCost,0);assert.equal(out.status,'unavailable');

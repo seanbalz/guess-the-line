@@ -5,12 +5,16 @@
 import { useShell } from '../shell/context.js';
 import { FocusRow } from '../ui/FocusLanding.jsx';
 import { useFeatures } from './useFeatures.js';
+import { useMomentScope, useNewCount } from '../moments/MomentsProvider.jsx';
 
 const open = shell => () => shell.go('play', { section: 'features' });
 
 export function PlayFeaturesRow({ app }) {
   const shell = useShell();
+  useMomentScope('play');
+  const fresh = useNewCount('features');
   const { model } = useFeatures(app, shell);
   if (!model) return null;
-  return <FocusRow icon="trophy" title="Badges and awards" sub={model.recap ? `Week ${model.recap.week} awards are in` : 'Your badges, streaks and awards'} onClick={open(shell)}/>;
+  const sub = model.recap ? `Week ${model.recap.week} awards are in` : 'Your badges, streaks and awards';
+  return <FocusRow icon="trophy" title="Badges and awards" sub={fresh ? `${fresh} new · ${sub}` : sub} onClick={open(shell)}/>;
 }

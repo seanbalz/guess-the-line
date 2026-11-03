@@ -1,4 +1,4 @@
-import { Button, Card } from '../ui/index.js';
+import { Button, Card, Skeleton } from '../ui/index.js';
 import { displayUnits } from './route.js';
 const countLabel = (count, singular, plural = `${singular}s`) => `${count} ${count === 1 ? singular : plural}`;
 export function Bets({ data, route, onFilters, onEdit, refresh, loading, error }) {
@@ -15,7 +15,7 @@ export function Bets({ data, route, onFilters, onEdit, refresh, loading, error }
     </div>
     <Button onClick={() => onFilters({ ...filters, from: undefined, to: undefined })}>All dates</Button>
     {error && <p role="alert">{error.status === 401 ? 'Sign in again. ' : ''}Could not load tickets. {error.message}</p>}
-    {loading && <p role="status">Loading tickets…</p>}
+    {loading && <Skeleton label="Loading tickets…" shape="rows" count={3}/>}
     <Button disabled={loading} onClick={() => refresh()}>Refresh tickets</Button>
     {summary && <Card className="gx-nba-stack" aria-label="Filtered totals"><h2 className="gx-t-section">Filtered totals · {countLabel(summary.count, 'ticket')}</h2><p>{countLabel(summary.wins, 'win')} · {countLabel(summary.losses, 'loss', 'losses')} · {countLabel(summary.pushes, 'push', 'pushes')} · {countLabel(summary.voids, 'void')}</p><p className="gx-nba-number">Net {displayUnits(summary.netUnits)} U</p><p>Pending stake {displayUnits(summary.pendingStakeUnits)} U · {summary.pending} pending</p><p>Settled risk {displayUnits(summary.riskUnits)} U · ROI {displayUnits(summary.roi)}%</p></Card>}
     {data && !data.tickets.length && !error && <Card>No tickets match these filters.</Card>}

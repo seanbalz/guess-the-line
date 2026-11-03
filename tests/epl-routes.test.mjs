@@ -65,6 +65,13 @@ function fakeService({ member = ADAM, admin = false, state = weekState(), queue 
   };
 }
 const call = (route, body, service, user = USER) => handleEpl({ route, body, user, service, clock: () => NOW });
+
+test('draft read advertises turn queues only after the database capability is installed, without exposing other queues',async()=>{
+ const legacy=await call('/epl/draft/read',{},fakeService());assert.equal(legacy.queueOnTurn,undefined);
+ const service=fakeService({state:weekState({queueOnTurn:true})});const current=await call('/epl/draft/read',{},service);
+ assert.equal(current.queueOnTurn,true);assert.deepEqual(current.myQueue,['ARS','LIV']);assert.equal(current.queues,undefined);
+ assert(!service.calls.some(([name])=>name==='gtl_epl_advance_queues'),'read never assigns teams');
+});
 const rejectsWith = (promise, status, code) => assert.rejects(promise, error => {
   assert.ok(error instanceof EplError, `${error?.message}`);
   assert.equal(error.status, status, error.message);

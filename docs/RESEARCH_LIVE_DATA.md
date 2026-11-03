@@ -38,8 +38,11 @@ field when the optional `no_play` column is absent. No-play penalties are exclud
 unknown play status stays unknown. Team aliases follow GTL's established mapping.
 Every matchup's sample excludes its own game and all later observations.
 
-The Research data refresh workflow runs every four hours on main, with a manual
-dry-run option. It needs only GitHub's repository token, and never receives
+The Research data refresh workflow is scheduled hourly on main, with a manual
+dry-run option. GitHub delays and drops scheduled runs under load (with four-hour
+slots, 5 of about 13 ran from November 1 to 3, 2026), so the slots are hourly and each
+source download is retried twice after a timeout, network failure, 408, 429 or 5xx.
+A failure names the source and its HTTP status. It needs only GitHub's repository token, and never receives
 Supabase or odds-provider credentials. Immutable files upload and pass public
 byte readback before `research-data-<season>/index.json` changes. Superseded files
 remain for 48 hours for cached readers, then only generated, noncurrent assets

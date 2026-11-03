@@ -18,7 +18,7 @@ import { useAppData } from '../../data/AppData.jsx';
 import { fmtFull } from '../../format.js';
 import { useTrendWeek } from '../../lines/trendsHooks.js';
 import { useShell } from '../../shell/context.js';
-import { Button, Card, LinkRow, List, Pill, Sheet } from '../../ui/index.js';
+import { Button, Card, LinkRow, List, Pill, Sheet, Skeleton } from '../../ui/index.js';
 import { FinalScoresEditor, oddsScheduleText } from './LegacyTools.jsx';
 import { OddsConnection } from './OddsConnection.jsx';
 import './commissioner.css';
@@ -231,7 +231,7 @@ function Referees({ app, week }) {
   }
   return <>
     <p className="gx-t-body gx-c-2">Week {number}. Pick each game’s referee once the NFL announces crews. Every member’s trends then show that referee’s records. Changes are kept with their history, never deleted.</p>
-    {trends.status === 'loading' && <p className="gx-t-body" role="status">Loading Week {number} games…</p>}
+    {trends.status === 'loading' && <Skeleton label={`Loading Week ${number} games…`} shape="panels" count={2}/>}
     {trends.status === 'missing' && <p className="gx-t-body" role="status">The Week {number} trends file is not published yet, so there is no game or referee list to choose from.</p>}
     {trends.status === 'error' && <div role="alert" className="gx-cm-stack"><p className="gx-t-body gx-cm-problem">The Week {number} games could not load.</p><Button onClick={trends.retry}>Retry</Button></div>}
     {state === 'not_deployed' && <p className="gx-t-body" role="status">Saving referees needs the next gtl-api deploy and the game officials migration.</p>}
@@ -256,7 +256,7 @@ function Referees({ app, week }) {
 /** Final scores and Odds connection: the original Triple Threat commissioner only, as in the old Settings page. */
 function TripleThreatTool({ app, tool }) {
   const triple = useTripleThreat(app.requestSignIn);
-  if (triple.loading) return <p className="gx-t-body" role="status">Loading the Triple Threat week…</p>;
+  if (triple.loading) return <Skeleton label="Loading the Triple Threat week…" shape="panels" count={2}/>;
   if (!triple.data) return <div className="gx-cm-stack"><Problem>{plain(triple.error)}</Problem><Button onClick={triple.reload}>Try again</Button></div>;
   if (tool === 'results') return triple.data.resultReview ? <FinalScoresEditor data={triple.data} onReviewed={triple.reload}/> : <p className="gx-t-body">{COMMISSIONER_COPY.originalOnly}</p>;
   return triple.commissioner ? <OddsConnection data={triple.data} onCollected={triple.reload}/> : <p className="gx-t-body">{COMMISSIONER_COPY.originalOnly}</p>;
@@ -275,7 +275,7 @@ export function CommissionerTools({ tool = null }) {
   else if (shown === 'status') body = <Status app={app} week={week}/>;
   else if (shown === 'weeks') body = <WeekOpening key={week ? `${week.season}:${week.week}` : 'none'} app={app} week={week} notice={weekNotice} onNotice={setWeekNotice}/>;
   else if (shown === 'referees') body = <Referees key={week ? `${week.season}:${week.week}` : 'none'} app={app} week={week}/>;
-  else if (shown === 'epl-corrections') body = <Suspense fallback={<p role="status" className="gx-t-body">Loading EPL correction reviews…</p>}><EplCorrectionReviews/></Suspense>;
+  else if (shown === 'epl-corrections') body = <Suspense fallback={<Skeleton label="Loading EPL correction reviews…" shape="panels" count={2}/>}><EplCorrectionReviews/></Suspense>;
   else body = <TripleThreatTool key={shown} app={app} tool={shown}/>;
   return <Sheet title={shown ? label(shown) : COMMISSIONER_COPY.title} back={back} onClose={shell.closeSheet} tall className="gx-cm">
     <div className="gx-cm-stack" data-commissioner-tool={shown ?? 'hub'}>{body}</div>

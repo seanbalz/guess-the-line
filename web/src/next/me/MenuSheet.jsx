@@ -5,7 +5,7 @@
 // Pick reminders (Board i39) opens the same way, with this device's push switch; its row shows only while the server can
 // send pushes (the shell's `pushConfigured`, from the Community read's stage 2 push guard).
 import { lazy, Suspense, useState } from 'react';
-import { Avatar, Button, Card, LinkRow, List, Segmented, Sheet, Switch } from '../ui/index.js';
+import { Avatar, Button, Card, LinkRow, List, Segmented, Sheet, Switch, Skeleton } from '../ui/index.js';
 import { useThemePreference } from '../../Theme.jsx';
 import { useDashboardPreferences } from '../../dashboardPreferences.js';
 import { useShell } from '../shell/context.js';
@@ -75,9 +75,9 @@ function Guidance() {
 export function MenuSheet({ args }) {
   const shell = useShell();
   const [busy, setBusy] = useState(false);
-  if (args.sub === 'members') return <Suspense fallback={<Sheet title="Community members" onClose={shell.closeSheet}><p role="status">Loading members…</p></Sheet>}><Members key={shell.you.id}/></Suspense>;
-  if (args.sub === 'commissioner' && shell.communityAdmin) return <Suspense fallback={<Sheet title="Commissioner tools" onClose={shell.closeSheet}><p role="status">Loading…</p></Sheet>}><Commissioner key={shell.you.id} tool={args.tool ?? null}/></Suspense>;
-  if (args.sub === 'export') return <Suspense fallback={<Sheet title={MENU_COPY.export} onClose={shell.closeSheet}><p role="status">Loading…</p></Sheet>}><ExportData key={shell.you.id}/></Suspense>;
+  if (args.sub === 'members') return <Suspense fallback={<Sheet title="Community members" onClose={shell.closeSheet}><Skeleton label="Loading members…" shape="rows" count={4}/></Sheet>}><Members key={shell.you.id}/></Suspense>;
+  if (args.sub === 'commissioner' && shell.communityAdmin) return <Suspense fallback={<Sheet title="Commissioner tools" onClose={shell.closeSheet}><Skeleton label="Loading…" shape="rows" count={4}/></Sheet>}><Commissioner key={shell.you.id} tool={args.tool ?? null}/></Suspense>;
+  if (args.sub === 'export') return <Suspense fallback={<Sheet title={MENU_COPY.export} onClose={shell.closeSheet}><Skeleton label="Loading…" shape="rows" count={4}/></Sheet>}><ExportData key={shell.you.id}/></Suspense>;
   if (args.sub === 'preferences') return <AccountPreferences key={shell.you.id}/>;
   if (args.sub === 'profile') return <ProfileSettings key={shell.you.id}/>;
   if (args.sub === 'guidance') {

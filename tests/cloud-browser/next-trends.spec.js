@@ -505,3 +505,32 @@ test('trend builder: conditions, honest result card, this week’s matches, save
   expect(world.errors).toEqual([]);
  }finally{await world.db.close();}
 });
+test('D-69: the session\'s first layer change rises in; the launch screen never moves, even after a press',async({page,baseURL})=>{
+ const world=await ready(page,baseURL);
+ try{
+  const week=page.getByRole('region',{name:'Week trends',exact:true}), card=week.locator('.gx-nest-card');
+  await expect(card).not.toHaveAttribute('data-enter',/./);
+  await page.locator('[data-trend-availability]').click(); // a press on words: the member is here, still on the launch screen
+  await expect(card).not.toHaveAttribute('data-enter',/./);
+  await week.locator('[data-game=CAR-PHI]').click(); // the first navigation of the session is this layer change
+  await expect(week.getByRole('heading',{level:2,name:'Carolina Panthers at Philadelphia Eagles',exact:true})).toBeFocused();
+  await expect(card,'a deeper layer rises in').toHaveAttribute('data-enter','in');
+  expect(world.errors).toEqual([]);
+ }finally{await world.db.close();}
+});
+test('D-69: on a launch at a deeper layer, the session\'s first Back settles the parent',async({page,baseURL})=>{
+ const world=await ready(page,baseURL);
+ try{
+  const week=page.getByRole('region',{name:'Week trends',exact:true}), card=week.locator('.gx-nest-card');
+  await page.goto('about:blank'); await page.goto('/#research/trends?weekGame=CAR-PHI');
+  const game=week.getByRole('heading',{level:2,name:'Carolina Panthers at Philadelphia Eagles',exact:true});
+  await expect(game).toBeVisible();
+  await expect(card).not.toHaveAttribute('data-enter',/./);
+  await game.click(); // a press on the layer's heading: the member is here, still on the launch screen
+  await expect(card).not.toHaveAttribute('data-enter',/./);
+  await week.getByRole('button',{name:'Back to This week',exact:true}).click(); // the session's first navigation
+  await expect(week.getByRole('heading',{level:2,name:'This week',exact:true})).toBeVisible();
+  await expect(card,'the restored parent settles').toHaveAttribute('data-enter','back');
+  expect(world.errors).toEqual([]);
+ }finally{await world.db.close();}
+});

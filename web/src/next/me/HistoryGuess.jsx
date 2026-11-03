@@ -5,7 +5,7 @@
 // words (/me/changes). Another member's hidden guesses stay hidden: the server sends none (D-31, D-39).
 import { useId } from 'react';
 import { communityApi, meApi } from '../../api.js';
-import { Button, Card, Chip, ChipRail, Icon, List, Pill, Row, Segmented } from '../ui/index.js';
+import { Button, Card, Chip, ChipRail, Icon, List, Pill, Row, Segmented, Skeleton } from '../ui/index.js';
 import { useShell } from '../shell/context.js';
 import { useAppData } from '../data/AppData.jsx';
 import { LeagueFailure, useLeagueRead } from '../league/useLeagueRead.jsx';
@@ -41,7 +41,7 @@ export function HistoryGuess({ args }) {
   const app = useAppData(), shell = useShell(), seasonId = useId();
   const season = Number.isInteger(args.season) ? args.season : null;
   const read = useHistoryRead(app, season), records = useRecordsRead(app);
-  if (read.loading) return <p className="gx-t-body gx-c-2" role="status">{GUESS_COPY.loading}</p>;
+  if (read.loading) return <Skeleton label={GUESS_COPY.loading} shape="rows" count={2}/>;
   if (read.error) return <LeagueFailure error={read.error} onRetry={read.retry}/>;
   const data = read.data, viewer = data.viewer ?? app.accountId, members = data.members || [];
   const player = members.some(member => member.id === args.player) ? args.player : viewer;
@@ -178,7 +178,7 @@ function OwnChanges({ season, week, mode }) {
   return (
     <section className="gx-vstack gx-gap-8" aria-label={GUESS_COPY.changes} data-own-changes>
       <h3 className="gx-t-strong">{GUESS_COPY.changes}</h3>
-      {read.loading ? <p className="gx-t-meta gx-c-2" role="status">Loading your changes…</p>
+      {read.loading ? <Skeleton label="Loading your changes…" shape="rows" count={2}/>
         : read.error ? <p className="gx-t-meta gx-c-2">{read.error.status === 503 ? GUESS_COPY.changesOff : read.error.message || GUESS_COPY.changesOff}</p>
         : <>
           {lines.length ? (

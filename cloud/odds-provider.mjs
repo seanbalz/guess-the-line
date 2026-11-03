@@ -74,7 +74,14 @@ function matchEvents(events, games, now) {
     const paired = events.filter(e => record(e) && ((e.home_team === game.home && e.away_team === game.away) || (e.home_team === game.away && e.away_team === game.home)));
     const exact = paired.filter(e => e.sport_key === SPORT && e.home_team === game.home && e.away_team === game.away && isoTime(e.commence_time) === isoTime(game.kickoff) && token(e.id) && e.completed !== true);
     if (exact.length > 1 || exact.some(e => counts.get(e.id) !== 1)) return { game, event: null, reason: 'ambiguous_event' };
-    if (exact.length !== 1) return { game, event: null, reason: paired.length ? 'schedule_mismatch' : 'event_missing' };
+    if (!paired.length) return { game, event: null, reason: 'event_missing' };
+    // What the provider listed instead, so a mismatch can be read back (Week 8 CHI-SEA never matched and nothing said why):
+    // its kickoff and whether it has the teams the other way round. A kickoff and orientation that both agree point to the
+    // sport, ID or completed checks.
+    if (exact.length !== 1) return { game, event: null, reason: 'schedule_mismatch', providerSchedule: paired.slice(0, 3).map(e => {
+      const kickoff = isoTime(e.commence_time);
+      return { kickoff: Number.isFinite(kickoff) ? iso(kickoff) : null, reversed: e.home_team !== game.home };
+    }) };
     return { game, event: exact[0], reason: null };
   });
 }
@@ -106,9 +113,9 @@ function marketQuote(event, game, book, marketKey, now) {
   } };
 }
 function normalize(matches, books, now) {
-  return matches.map(({ game, event, reason }) => ({
+  return matches.map(({ game, event, reason, providerSchedule }) => ({
     gameId: game.id, home: game.home, away: game.away, kickoff: game.kickoff,
-    providerEventId: event?.id ?? null, matchStatus: reason || 'matched',
+    providerEventId: event?.id ?? null, matchStatus: reason || 'matched', ...(providerSchedule ? { providerSchedule } : {}),
     markets: Object.fromEntries([['spread', 'spreads'], ['total', 'totals']].map(([key, providerKey]) => {
       const quotes = [], unavailable = [];
       for (const bookKey of books) {
@@ -208,9 +215,9 @@ export function createOddsProvider({ apiKey, fetchImpl = fetch, clock = Date.now
         if (result.quota.last !== null && result.quota.last > 0) { stopped = true; throw new OddsProviderError('ODDS_QUOTA_COST', result.quota); }
         const now = clock();
         return { provider: 'the-odds-api', sport: SPORT, fetchedAt: iso(now), officialVerified: false,
-          games: matchEvents(result.data, games, now).map(({ game, event, reason }) => ({
+          games: matchEvents(result.data, games, now).map(({ game, event, reason, providerSchedule }) => ({
             gameId: game.id, home: game.home, away: game.away, kickoff: game.kickoff,
-            providerEventId: event?.id ?? null, matchStatus: reason || 'matched',
+            providerEventId: event?.id ?? null, matchStatus: reason || 'matched', ...(providerSchedule ? { providerSchedule } : {}),
           })), quota: result.quota,
         };
       } catch (error) { if (error instanceof OddsProviderError) throw error; throw new OddsProviderError('ODDS_UNAVAILABLE'); }

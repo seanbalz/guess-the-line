@@ -4,7 +4,7 @@
 // unchanged. Seeing the newest post clears the new-posts dot on this device.
 import { useEffect, useMemo } from 'react';
 import { useShell } from '../shell/context.js';
-import { Button, Card } from '../ui/index.js';
+import { Button, Card, Skeleton } from '../ui/index.js';
 import { LeagueFailure } from '../league/useLeagueRead.jsx';
 import { foldPosts, hasNewPosts, readSeen, seenKey, writeSeen } from './feedModel.js';
 import { DigestCard } from './DigestCard.jsx';
@@ -27,7 +27,7 @@ export function Feed({ app, leagueId = null, leagueName = 'Community', legacy = 
   useEffect(() => { if (feed.status === 'ready' && newest) writeSeen(seenKey(app.accountId, leagueId), newest); }, [feed.status, newest, app.accountId, leagueId]);
   const names = useMemo(() => new Map((feed.page?.members ?? []).map(member => [member.id, member])), [feed.page]);
   if (feed.status === 'legacy' || (feed.status === 'loading' && legacy && feedReaderKnown() !== true)) return legacy;
-  if (feed.status === 'loading') return <p className="gx-t-body gx-c-2" role="status">Loading the feed…</p>;
+  if (feed.status === 'loading') return <Skeleton label="Loading the feed…" shape="rows" count={4}/>;
   if (feed.status === 'error' && !feed.page) return <LeagueFailure error={feed.error} onRetry={feed.retry}/>;
   const now = feed.page?.now ?? null, viewer = app.accountId;
   const items = foldPosts(feed.posts, viewer);

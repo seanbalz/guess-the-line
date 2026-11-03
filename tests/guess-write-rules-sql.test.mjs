@@ -403,11 +403,13 @@ test('deployed before the apply: on the hosted schema the new gtl-api keeps D-16
   assert.equal(res.status, 503, 'the API refuses per-game lock-in until the live database advertises support');
 });
 
-test('/personal/ballot lockIn on the route: checked before the database; the lock-in off switch; no refresh is tried first', async () => {
+test('/personal/ballot lockIn on the route: checked before the database; the lock-in off switch; a lock-in goes through the refresh path (D-71)', async () => {
   const calls = [], service = { rpc: async (name, args) => { calls.push([name, args]); return { saved: true }; } };
   const user = { id: id('sean') }, body = lockIn => ({ season: 2026, week: 7, mode: 'guess_total', weeklyRevision: 1, picks: { 'SEA-DEN': 38.5, 'NE-NYJ': 43.5 }, submit: false, revision: 2, requestId: randomUUID(), ...(lockIn === undefined ? {} : { lockIn }) });
-  const submitBallot = async () => { throw new Error('the refresh path is not used for a lock-in'); };
+  // D-71 (Sean, November 3, 2026: "Refresh on lock-in"): the D-17 refresh runs first, with the lock-in in its payload.
+  const refreshedWith = [], submitBallot = async (payload, commit) => { refreshedWith.push(payload.lockIn); return commit(); };
   assert.deepEqual(await handlePersonal({ route: '/personal/ballot', body: body(['SEA-DEN']), user, service, submitBallot }), { saved: true });
+  assert.deepEqual(refreshedWith, [['SEA-DEN']], 'the lock-in reaches the refresh path with its games');
   assert.deepEqual(calls.at(-1)[1].p_body.lockIn, ['SEA-DEN']);
   for (const lockIn of ['SEA-DEN', ['SEA-DEN', 'SEA-DEN'], ['KC-LV'], [7], Array(33).fill('SEA-DEN')]) {
     await assert.rejects(() => handlePersonal({ route: '/personal/ballot', body: body(lockIn), user, service, submitBallot }), error => error.status === 400, JSON.stringify(lockIn));

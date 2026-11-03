@@ -84,6 +84,15 @@ them. No server
 route or rule changes. The legacy D-16 benchmark freeze (`BenchmarkControls`) is not
 carried over: it applies only under the retired common-reference scoring policy.
 
+**November 2 (D-70):** Play › Your guesses uses nesting cards in the new app.
+- **The week:** one card of game tiles.
+- **One game:** a tile opens that game's own card, at its `pickGame` address.
+- **Unchanged:** `PerGameEditor` keeps every draft, save, check, sit-out and reveal path. The old Community Picks page
+  passes no `nest` and keeps the stacked list.
+- **Leave guard:** the editor's unsaved-work entry carries `keeps(next)`, so moving between the week and its games
+  never asks. Leaving Your guesses still asks. See the
+  [design spec](superpowers/specs/2026-11-02-play-picks-nesting-cards-design.md).
+
 ## Data protection and save recovery
 
 - Play keeps account/week/market draft recovery and the existing revision and

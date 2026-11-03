@@ -230,6 +230,23 @@ describe('loading and refusals', () => {
 });
 
 describe('the backup ranking (queue)', () => {
+  it('shows the turn rule only when the server confirms it is installed', () => {
+    const props={clubs:CLUBS,queue:['CHE'],onChange:()=>{},onSave:()=>{},onClose:()=>{}};
+    const current=text(renderToStaticMarkup(<QueueSheetView {...props} onTurn/>));
+    expect(current).toContain('When your turn starts');expect(current).toContain('your turn stays open for a manual pick');
+    expect(text(renderToStaticMarkup(<QueueSheetView {...props}/>))).toContain('If you haven’t picked by first kickoff');
+  });
+  it('confirms only the viewer’s actual recorded queue pick, with a stable per-assignment identity', () => {
+    const reply=read(),at='2026-10-29T15:00:00Z';
+    reply.queueOnTurn=true;reply.picks.push({ownerId:reply.me,club:'CHE',source:'queue',pickedAt:at,final:false});
+    const model=boardModel(reply,BEFORE);expect(model.queueOnTurn).toBe(true);expect(model.backupPick.name).toBe('Chelsea');
+    const page=html(viewProps({model}));expect(text(page)).toContain('Chelsea was assigned from your backup ranking.');expect(page).toContain('aria-label="Backup pick confirmed"');expect(markupProblems(page)).toEqual([]);
+    expect(boardModel(structuredClone(reply),BEFORE).backupPick.key).toBe(model.backupPick.key);
+    const mine=reply.picks.at(-1);mine.source='pick';expect(boardModel(reply,BEFORE).backupPick).toBeNull();
+    mine.source='queue';mine.pickedAt='invalid';expect(boardModel(reply,BEFORE).backupPick).toBeNull();
+    mine.pickedAt=at;reply.me=null;expect(boardModel(reply,BEFORE).backupPick).toBeNull();
+    expect(boardModel(read(),BEFORE).queueOnTurn).toBe(false);
+  });
   it('lists your ranked clubs with move and remove buttons, then the other clubs to add', () => {
     const page = renderToStaticMarkup(<div className="gx"><QueueSheetView clubs={CLUBS} queue={['CHE', 'MUN']} onChange={() => {}} onSave={() => {}} onClose={() => {}} busy={false}/></div>);
     expect(text(page)).toContain('Backup ranking');

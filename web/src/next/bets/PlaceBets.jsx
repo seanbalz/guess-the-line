@@ -8,7 +8,7 @@ import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
 import { Dock } from '../shell/Frame.jsx';
 import { LeagueFailure, useLeagueRead } from '../league/useLeagueRead.jsx';
-import { AvatarStack, Button, Card, Chip, ChipRail, GateBanner, IconButton, LockLine, Matchup, Meter, Pill, Sheet, Tag } from '../ui/index.js';
+import { AvatarStack, Button, Card, Chip, ChipRail, GateBanner, IconButton, LockLine, Matchup, Meter, Pill, Sheet, Tag, Skeleton } from '../ui/index.js';
 import { fmtNum, fmtU, fmtWhen } from '../format.js';
 import { PLACE_COPY, UNIT_CHIPS, placeBoard, placeRequest, slipEntries, slipKey, stepUnits, weekCard } from './place.js';
 import './place.css';
@@ -56,7 +56,7 @@ export function PlaceBets({ onDirty }) {
     } finally { setBusy(false); }
   }
 
-  if (read.loading && !board) return <p className="gx-t-body" role="status">Loading this week’s games and prices…</p>;
+  if (read.loading && !board) return <Skeleton label="Loading this week’s games and prices…" shape="cards" count={3}/>;
   if (read.error && !board) return <LeagueFailure error={read.error} onRetry={read.retry}/>;
   if (!board.published) return <p className="gx-t-body" role="status">{PLACE_COPY.unpublished}</p>;
   const units = entries.reduce((sum, entry) => sum + entry.units, 0);

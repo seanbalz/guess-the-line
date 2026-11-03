@@ -247,7 +247,7 @@ function weekView(raw) {
     .map(b => ({ ownerId: b.ownerId, name: nameOf(b.ownerId), points: earnedEplBonusPoints(b),
       margin: Number.isInteger(b.margin) ? b.margin : null, club: isClub(b.club) ? b.club : null }));
   return { season: raw.season, week: raw.week, status: text(row.status), seeded: row.seeded === true, deadline: text(row.firstKickoff),
-    windowStart: text(row.windowStart), windowEnd: text(row.windowEnd), order, picks, clubs, bonus };
+    windowStart: text(row.windowStart), windowEnd: text(row.windowEnd), order, picks, clubs, bonus, queueOnTurn: raw.queueOnTurn === true };
 }
 const draftPicks = picks => picks.map(p => ({ managerId: p.ownerId, club: p.club }));
 const isOpen = (view, now) => view.status === 'open' && Number.isFinite(Date.parse(view.deadline)) && now < Date.parse(view.deadline);
@@ -333,6 +333,7 @@ async function draftRead({ body, user, service, now }) {
     onTheClock: isOpen(view, now) ? onTheClock(view.order, draftPicks(view.picks)) : null,
     clubs: view.clubs,
     myQueue: myQueue === null ? null : [...myQueue],
+    ...(view.queueOnTurn ? { queueOnTurn: true } : {}),
     bonusLastWeek: view.bonus,
     // An unlinked caller's unclaimed managers (M-31 applied); null for a linked manager or before M-31.
     claim,
