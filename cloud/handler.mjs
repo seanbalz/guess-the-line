@@ -294,6 +294,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
           submitBallot: (payload, commit) => submitWithFreshOdds(user, {
             season: payload.season, week: payload.week, mode: payload.mode, revision: payload.weeklyRevision,
             picks: payload.picks, submit: payload.submit, personalRevision: payload.revision, requestId: payload.requestId,
+            ...(payload.lockIn === undefined ? {} : { lockIn: payload.lockIn }),
           }, commit),
         });
         // /personal/read is /personal for a chosen week; both replies replace the same view on the client.

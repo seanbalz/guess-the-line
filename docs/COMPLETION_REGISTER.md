@@ -1,5 +1,13 @@
 # Guess The Line — current completion register
 
+## Lock-in refresh, D-71 — November 3, 2026
+
+Sean chose "Refresh on lock-in" ([D-71](DECISIONS.md)). Since redesign stage 18 a per-game lock-in skipped the D-17
+refresh. The new app saves by lock-in, so lines saved with guesses had a median age of 6.9 hours in Week 8, against 68
+seconds in Week 7. `gtl-api` now sends lock-ins through the same refresh; the hosted SQL already accepted them (M-07).
+Local checks pass, including a PGlite run of the deployed handler and mutation checks. **Not deployed** (`api` target,
+Sean's approval); see the [release card](RELEASE_2026_11_03_LOCKIN_REFRESH.md).
+
 ## Odds refresh fixes, M-37 — November 3, 2026
 
 Board item 40. A read-only hosted readback found most "partial" odds runs were only the label: the provider stops
