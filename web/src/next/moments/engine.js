@@ -22,7 +22,7 @@ export function createMomentsEngine({
 }) {
   let seen = account ? readMomentSeen(account, storage) : null;
   let disposed = false;
-  const pending = new Map(); // id -> the moment, its `late` and its `source`
+  const pending = new Map(); // id -> the moment, its `late` and its `sources` (every source whose read has it)
   const reported = new Set(); // the sources this engine has had a read from
   const scopes = new Map(); // scope -> 'launch' | 'settled': what planMoments reads as open
   const holders = new Map(); // scope -> how many cards hold it open
@@ -65,9 +65,13 @@ export function createMomentsEngine({
       const marker = `${SOURCE_PREFIX}${source}`;
       const first = !reported.has(source);
       reported.add(source);
-      // What waits from this source and is gone from its read (a revoked badge) never plays.
+      // A waiting moment waits for every source whose read has it (a badge reaches every league). Gone from one read,
+      // it leaves that source; gone from all of them (a revoked badge), it never plays.
       const ids = new Set((candidates ?? []).map(c => c?.id));
-      for (const [id, m] of pending) if (m.source === source && !ids.has(id)) pending.delete(id);
+      for (const [id, m] of pending) {
+        if (ids.has(id)) m.sources.add(source);
+        else if (m.sources.delete(source) && m.sources.size === 0) pending.delete(id);
+      }
       if (seen === null || !seen.has(marker)) {
         // This device's first read of the source seeds it, even when empty, so a reload still knows it: nothing waits,
         // and opening a league for the first time here never floods.
@@ -81,7 +85,7 @@ export function createMomentsEngine({
       // The session's first read of a source brings results from while you were away: they wait as NEW, pressed or not.
       // A later read (a refresh, the timer, focus) plays in place once the member is here.
       const late = first ? false : isSettled();
-      for (const m of fresh) if (!pending.has(m.id)) pending.set(m.id, { ...m, late, source });
+      for (const m of fresh) if (!pending.has(m.id)) pending.set(m.id, { ...m, late, sources: new Set([source]) });
       flush();
       notify();
     },

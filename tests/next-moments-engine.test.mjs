@@ -5,6 +5,7 @@ import { armLaunch, hasNavigated, isSettled, markNavigated, markSettled, onLaunc
 import { createMomentsEngine } from '../web/src/next/moments/engine.js';
 import { SCOPES } from '../web/src/next/moments/catalog.js';
 import { SEEN_CAP, momentsKey } from '../web/src/next/moments/seen.js';
+import { featureMoments } from '../web/src/next/features/model.js';
 
 const memory = () => { const map = new Map(); return { getItem: k => (map.has(k) ? map.get(k) : null), setItem: (k, v) => map.set(k, String(v)), removeItem: k => map.delete(k), key: i => [...map.keys()][i] ?? null, get length() { return map.size; } }; };
 const badge = id => ({ id, kind: 'badge', scopes: [SCOPES.features, SCOPES.home], title: id });
@@ -245,4 +246,31 @@ test('engine: source markers outlive the record cap, so a long-used device never
   const kept = record(storage);
   assert.equal(kept.length, SEEN_CAP);
   assert.ok(kept.includes('source:features:community'));
+});
+
+test('engine with feature moments: a badge seen through the Community never plays again when a league\'s read brings it', () => {
+  // Badge events have no league: the same award key reaches every league the player is in.
+  const reply = leagueId => ({ leagueId, season: 2026, awards: [], badges: [{ userId: 'u-1', badge: 'bullseye', key: 'bullseye:u-1:2026:6:SEA-DEN', week: 6,
+    visibleAt: '2026-10-16T00:15:00Z', facts: { gameId: 'SEA-DEN', away: 'SEA', home: 'DEN', market: 'total', guess: 41 } }] });
+  const storage = memory();
+  storage.setItem(momentsKey('acct'), JSON.stringify(['source:features:community', 'source:features:L2']));
+  const r = rig({ storage, settled: { value: true } });
+  r.engine.open(SCOPES.features);
+  r.engine.report(featureMoments(reply(null), 'u-1'), { source: 'features:community' });
+  assert.equal(r.big.length, 1, 'it plays once, through the Community');
+  r.engine.report(featureMoments(reply('L2'), 'u-1'), { source: 'features:L2' });
+  assert.equal(r.big.length, 1, 'the league\'s read brings the same badge: it never plays again');
+});
+
+test('engine: a moment waiting from two sources survives one dropping it, and goes when both have', () => {
+  const storage = memory();
+  storage.setItem(momentsKey('acct'), JSON.stringify(['source:features:community', 'source:features:L2']));
+  const r = rig({ storage });
+  r.engine.report([badge('b1')], { source: 'features:community' });
+  r.engine.report([badge('b1')], { source: 'features:L2' });
+  assert.equal(r.engine.newCount(SCOPES.features), 1, 'one moment, however many reads bring it');
+  r.engine.report([], { source: 'features:community' });
+  assert.equal(r.engine.newCount(SCOPES.features), 1, 'the league\'s read still has it');
+  r.engine.report([], { source: 'features:L2' });
+  assert.equal(r.engine.newCount(SCOPES.features), 0, 'no read has it any more: it never plays');
 });

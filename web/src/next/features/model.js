@@ -138,15 +138,17 @@ export const FEATURE_SCOPES = Object.freeze([SCOPES.features, SCOPES.home, SCOPE
 /**
  * Every badge and award of the viewer in a features reply, as moments (moments/detect.js decides which are new):
  * `{ id, kind: 'badge' | 'award', scopes, title, meta, icon, rarity }`; a badge also carries `parts` (badgeParts) so the
- * overlay draws its game as marks. Badges oldest first, then awards. Ids are stable across reads and name the league
- * ("community" for the community) and, for awards, the season, so another league's Week 7 award is another moment.
+ * overlay draws its game as marks. Badges oldest first, then awards. Ids are stable across reads. A badge's id is its
+ * award key (badge, player, season and week; badge events have no league), so a badge is one moment in every league
+ * and never plays twice. An award's id names the league ("community" for the community) and the season, so another
+ * league's Week 7 award is another moment.
  */
 export function featureMoments(reply, viewer) {
   if (!record(reply) || typeof viewer !== 'string' || !viewer) return [];
   const league = reply.leagueId ?? 'community', season = reply.season;
   const out = (reply.badges ?? []).filter(b => b.userId === viewer && BADGE_BY_ID[b.badge])
     .sort((a, b) => Date.parse(a.visibleAt) - Date.parse(b.visibleAt))
-    .map(b => ({ id: `badge:${league}:${b.key}`, kind: 'badge', scopes: [...FEATURE_SCOPES], title: BADGE_BY_ID[b.badge].name, meta: badgeLine(b), parts: badgeParts(b), icon: BADGE_ICONS[b.badge], rarity: BADGE_BY_ID[b.badge].rarity }));
+    .map(b => ({ id: `badge:${b.key}`, kind: 'badge', scopes: [...FEATURE_SCOPES], title: BADGE_BY_ID[b.badge].name, meta: badgeLine(b), parts: badgeParts(b), icon: BADGE_ICONS[b.badge], rarity: BADGE_BY_ID[b.badge].rarity }));
   for (const w of reply.awards ?? []) for (const a of w.awards) {
     if (!a.winners.includes(viewer)) continue;
     out.push({ id: `award:${league}:${season}:${w.week}:${a.id}`, kind: 'award', scopes: [...FEATURE_SCOPES], title: AWARD_BY_ID[a.id]?.name ?? a.id, meta: `Week ${w.week}${SEP}${awardValue(a)}`, icon: AWARD_ICONS[a.id], rarity: 'rare' });

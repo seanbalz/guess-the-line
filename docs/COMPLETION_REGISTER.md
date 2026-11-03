@@ -39,8 +39,8 @@ kit the page-by-page steps build on: the moments engine (`web/src/next/moments`:
 the Q3 sizes, a per-account seen record of ids only, nothing played on page
 load or on the launch screen, results from while you were away marked NEW and
 played when their card opens, several big moments as one `ov.flash` card,
-small ones 240 ms apart), with badges and awards moved onto it per league and
-season; `ui/CountUp.jsx`, counting from the last value shown; nesting-card
+small ones 240 ms apart), with badges and awards moved onto it (awards per league
+and season); `ui/CountUp.jsx`, counting from the last value shown; nesting-card
 entrances (`ui/Nest.jsx`) and the 160 ms tab fade, with the bars never moving;
 `tap` and `win` vibration that reduced motion stops; `ui/Skeleton.jsx`
 placeholders in place of the "Loading" text; and the brand guide's moments
