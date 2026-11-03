@@ -37,6 +37,16 @@ export function writeSeen(key, value, storage = deviceStorage()) {
   try { storage.setItem(key, String(value)); } catch { /* No count-up next time on this device. */ }
 }
 
+/** Forgets every account's count-up values on this device (sign-out, an account switch). Other gtl. keys stay. */
+export function clearCountUpSeen(storage = deviceStorage()) {
+  if (!storage) return;
+  try {
+    const keys = [];
+    for (let i = 0; i < storage.length; i += 1) { const key = storage.key(i); if (key?.startsWith(COUNT_UP_PREFIX)) keys.push(key); }
+    for (const key of keys) storage.removeItem(key);
+  } catch { /* Storage blocked: there is nothing to clear. */ }
+}
+
 /** `[x1, y1, x2, y2]` from a token such as "cubic-bezier(0.05, 0.7, 0.1, 1)", or null. */
 export function parseBezier(text) {
   const m = /^\s*cubic-bezier\(\s*([^,]+),\s*([^,]+),\s*([^,]+),\s*([^)]+)\)\s*$/.exec(String(text ?? ''));
