@@ -10,7 +10,7 @@ import { HOME_COPY, heroProgress, homeHero, homeTiles } from '../../../../shared
 import { HOME_LOADING } from '../copy.js';
 import { useShell } from '../shell/context.js';
 import { SHELL_COPY } from '../shell/tabs.js';
-import { Avatar, Button, Card, Countdown, Meter, Move, Pill } from '../ui/index.js';
+import { Avatar, Button, Card, Countdown, Meter, Move, Pill, Skeleton } from '../ui/index.js';
 import { useHomeData } from './homeData.js';
 import { useTicketSummary } from '../bets/useTicketSummary.js';
 import { FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
@@ -182,7 +182,7 @@ export function Home() {
             <Button variant="ghost" onClick={shell.reload}>{APP_RELOAD_COPY.reload}</Button>
           </section>
         ) : (
-          <p className="gx-t-body gx-c-2" role="status">{HOME_LOADING}</p>
+          <Skeleton label={HOME_LOADING} shape="panels" count={3}/>
         )}
       </div>
     );

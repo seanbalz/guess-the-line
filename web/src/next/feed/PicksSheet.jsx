@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { communityApi } from '../../api.js';
 import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
-import { Button, Card, LockLine, Pill, Sheet } from '../ui/index.js';
+import { Button, Card, LockLine, Pill, Sheet, Skeleton } from '../ui/index.js';
 import { fmtLate, fmtNum } from '../format.js';
 import { MARKET, gameName, guessText } from './feedModel.js';
 import { shareResult } from './feedActions.js';
@@ -45,7 +45,7 @@ export function PicksSheet({ args }) {
   const games = state.data?.games ?? [];
   return <Sheet title={own ? `Your ${market} picks` : `${name}’s ${market} picks`} onClose={shell.closeSheet}>
     {state.data?.week ? <p className="gx-t-meta gx-c-2">Week {state.data.week}</p> : null}
-    {state.loading ? <p className="gx-t-body gx-c-2" role="status">Loading picks…</p> : null}
+    {state.loading ? <Skeleton label="Loading picks…" shape="rows" count={3}/> : null}
     {state.error ? <p className="gx-t-body gx-c-loss" role="alert">{state.error.status ? state.error.message : 'No connection. Reconnect and try again.'}</p> : null}
     {games.length ? <Card variant="flush" className="gx-feed-picks"><ul className="gx-list" role="list" aria-label={`${market} picks by game`}>{games.map(game => {
       const row = game.rows.find(r => r.userId === userId);

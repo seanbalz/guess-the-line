@@ -7,7 +7,7 @@ import { SEASON_FINAL_WEEK } from '../../../../shared/game-features/catalog.mjs'
 import { useAppData } from '../data/AppData.jsx';
 import { INFO } from '../info.js';
 import { useShell } from '../shell/context.js';
-import { Badge, Button, Card, DriveMeter, InfoButton } from '../ui/index.js';
+import { Badge, Button, Card, DriveMeter, InfoButton, Skeleton } from '../ui/index.js';
 import { LeagueFailure } from '../league/useLeagueRead.jsx';
 import { earnedText } from './model.js';
 import { AwardRows } from './AwardRows.jsx';
@@ -95,7 +95,7 @@ export function FeaturesScreen() {
     <div className="gx-screen gx-vstack gx-gap-16" data-landing="features">
       <div className="gx-play-titlebar"><h1 className="gx-t-title gx-grow">{FEATURES_COPY.title}</h1><InfoButton title={INFO.features.title} body={INFO.features.body}/></div>
       <p className="gx-t-meta gx-c-2">{app.league?.name ?? 'Community'}</p>
-      {features.loading ? <p className="gx-t-body gx-c-2" role="status">{FEATURES_COPY.loading}</p>
+      {features.loading ? <Skeleton label={FEATURES_COPY.loading} shape="panels" count={2}/>
         : features.off ? <Card><p className="gx-t-body">{FEATURES_COPY.off}</p></Card>
         : features.error ? <LeagueFailure error={features.error} onRetry={features.retry}/>
         : model ? <>

@@ -1,6 +1,6 @@
 import { lazy, useCallback, useEffect, useMemo, useState } from 'react';
 import { Coins, Users } from 'lucide-react';
-import DeferredScreen from '../../DeferredScreen.jsx';
+import { Deferred } from '../ui/Deferred.jsx';
 import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
 import { Button } from '../ui/Button.jsx';
@@ -110,8 +110,8 @@ function BetsDetail() {
   };
   const topic = destination === 'everyone' ? 'everyone' : TOPIC[view];
   if (view === 'research') return <>
-    <DeferredScreen resetKey={`${app.accountId}:research`} label="research recommendations"><ResearchAssessments key={app.accountId} onDirty={dirty} onTrack={trackRecommendation}/></DeferredScreen>
-    {ticketRequest?.accountId === app.accountId && <DeferredScreen resetKey={ticketRequest.id} label="bet review"><SocialBetTracker key={ticketRequest.id} player={app.accountId} reviewOnly initialView="mybets" ticketRequest={ticketRequest} onReviewDone={reviewDone} onDirty={reviewDirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>}
+    <Deferred resetKey={`${app.accountId}:research`} label="research recommendations"><ResearchAssessments key={app.accountId} onDirty={dirty} onTrack={trackRecommendation}/></Deferred>
+    {ticketRequest?.accountId === app.accountId && <Deferred resetKey={ticketRequest.id} label="bet review"><SocialBetTracker key={ticketRequest.id} player={app.accountId} reviewOnly initialView="mybets" ticketRequest={ticketRequest} onReviewDone={reviewDone} onDirty={reviewDirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred>}
   </>;
   return <section className="gx-screen gx-bets gx-live-workflow" aria-labelledby="gx-bets-title">
     <header className="gx-bets-heading">
@@ -126,10 +126,10 @@ function BetsDetail() {
       <Button aria-label="Virtual Units" aria-pressed={view === 'virtual'} onClick={() => choose('virtual')}>Virtual</Button>
     </div>
     {view === 'tracked' ? <>
-      <DeferredScreen label="tracked bets"><SocialBetTracker key={`${app.accountId}:${destination}:${shell.state.nav}`} player={app.accountId} initialOutcome={destination === 'active' ? 'pending' : destination === 'settled' ? 'settled' : ''} initialAllHistory={destination === 'active' || destination === 'settled'} autoCreate={destination === 'add'} navigationState={trackerState} onNavigationState={rememberTracker} initialView="mybets" embedded compactTickets TicketRow={TrackedBetRow} MetricsView={NetUnits} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>
+      <Deferred label="tracked bets"><SocialBetTracker key={`${app.accountId}:${destination}:${shell.state.nav}`} player={app.accountId} initialOutcome={destination === 'active' ? 'pending' : destination === 'settled' ? 'settled' : ''} initialAllHistory={destination === 'active' || destination === 'settled'} autoCreate={destination === 'add'} navigationState={trackerState} onNavigationState={rememberTracker} initialView="mybets" embedded compactTickets TicketRow={TrackedBetRow} MetricsView={NetUnits} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred>
     </> : view === 'recommended' ? <>
-      <DeferredScreen resetKey={`${app.accountId}:recommended`} label="recommended bets"><VirtualUnits key={`${app.accountId}:recommended`} accountId={app.accountId} embedded initialView="recommended" accountRecommendations showViewTabs={false} recommendedMarket={recommendedMarket} onRecommendedMarket={chooseRecommendedMarket} marketControl={marketControl} onTrackTicket={trackRecommendation} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>
-      {ticketRequest?.accountId === app.accountId && <DeferredScreen resetKey={ticketRequest.id} label="bet review"><SocialBetTracker key={ticketRequest.id} player={app.accountId} reviewOnly initialView="mybets" ticketRequest={ticketRequest} onReviewDone={reviewDone} onDirty={reviewDirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></DeferredScreen>}
+      <Deferred resetKey={`${app.accountId}:recommended`} label="recommended bets"><VirtualUnits key={`${app.accountId}:recommended`} accountId={app.accountId} embedded initialView="recommended" accountRecommendations showViewTabs={false} recommendedMarket={recommendedMarket} onRecommendedMarket={chooseRecommendedMarket} marketControl={marketControl} onTrackTicket={trackRecommendation} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred>
+      {ticketRequest?.accountId === app.accountId && <Deferred resetKey={ticketRequest.id} label="bet review"><SocialBetTracker key={ticketRequest.id} player={app.accountId} reviewOnly initialView="mybets" ticketRequest={ticketRequest} onReviewDone={reviewDone} onDirty={reviewDirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred>}
     </> : <>
       <Segmented label="Virtual Units view" value={destination === 'everyone' ? 'everyone' : 'virtual'} onChange={chooseVirtual} options={VIRTUAL_VIEWS}/>
       {/* Stages 43 and 44 (Sean, October 28, 2026): Your picks is the account-level placing screen for every league. */}
