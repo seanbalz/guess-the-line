@@ -10,7 +10,7 @@ export const STATE_ICONS = Object.freeze({ locked: Lock, draft: Pencil, open: Ci
 
 /**
  * `progress` is weekProgress(); `market` is "Spread" or "Total"; `onNext(gameId)` moves to that game's card. `nested`
- * (D-69, inside the week's nesting card) leaves out the count and the strip: the card's meta line and its game tiles
+ * (D-70, inside the week's nesting card) leaves out the count and the strip: the card's meta line and its game tiles
  * say both, so the meter, the legend and the next button remain.
  */
 export function WeekProgress({ progress, market, week, onNext, nested = false }) {

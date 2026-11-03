@@ -12,6 +12,14 @@ worker suite with an end-to-end run, the release-target contract and migration/r
 `# skipped 0`. M-38 is **not applied** (Gate M, Sean's "apply M-38"). `gtl-ops-alerts` is **not deployed**, no schedule
 row or cron exists, and the branch is not pushed. See the [release card](RELEASE_2026_11_03_OPS_ALERTS_M38.md).
 
+## Lock-in refresh, D-71 — November 3, 2026
+
+Sean chose "Refresh on lock-in" ([D-71](DECISIONS.md)). Since redesign stage 18 a per-game lock-in skipped the D-17
+refresh. The new app saves by lock-in, so lines saved with guesses had a median age of 6.9 hours in Week 8, against 68
+seconds in Week 7. `gtl-api` now sends lock-ins through the same refresh; the hosted SQL already accepted them (M-07).
+Local checks pass, including a PGlite run of the deployed handler and mutation checks. **Not deployed** (`api` target,
+Sean's approval); see the [release card](RELEASE_2026_11_03_LOCKIN_REFRESH.md).
+
 ## Odds refresh fixes, M-37 — November 3, 2026
 
 Board item 40. A read-only hosted readback found most "partial" odds runs were only the label: the provider stops
@@ -19,8 +27,10 @@ listing a game once it kicks off. Two real faults remain. A preflight race skipp
 `budget_guard` with 400 credits left. Week 8 CHI-SEA never matched at any book, and nothing recorded why. M-37
 (`20261103170000`) preflights after 23 hours instead of 24 and counts partial only against unstarted games. The provider now
 records what it listed for a mismatched game. Local checks pass, including PGlite runs of the deployed worker and
-mutation checks. M-37 is **not applied** (Gate M, Sean's "apply M-37"). The provider change is **not deployed**
-(next `gtl-api` release and a Mac mini `gtl-odds-refresh` deploy). See the [release card](RELEASE_2026_11_03_ODDS_REFRESH_M37.md).
+mutation checks. M-37 is **applied and verified** as hosted `20261103164210`. On Sean's "merge and apply" it went in
+through his SQL editor; both bodies, permissions and the earlier history rows were checked, and the score hash is unchanged.
+The provider change is **not deployed** (next `gtl-api` release and a Mac mini `gtl-odds-refresh` deploy). The first
+scheduled run after the apply is still to be read back. See the [release card](RELEASE_2026_11_03_ODDS_REFRESH_M37.md).
 
 ## Ops alerts for the data refreshes (item 22) — November 3, 2026
 
@@ -107,7 +117,7 @@ and nesting rules. Follow-ups: reset `usePopped` before step 1; the tab fade
 stays on once it starts; a tab change into a Nest moves twice; and the old app's
 AuthGate spinner.
 
-## Play › Your guesses nesting cards (D-69) — November 2, 2026
+## Play › Your guesses nesting cards (D-70) — November 2, 2026
 
 Sean asked for the next design pass, to cut text on Home and Play. On the live app Home (139 words) and the Play
 landing (59) were already lean. Your guesses was the long screen: 15 stacked 525px cards, 9,043px, 1,317 words

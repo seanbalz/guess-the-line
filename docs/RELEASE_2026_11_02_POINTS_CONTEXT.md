@@ -23,7 +23,7 @@ No migration, Edge Function or server change.
   - Menu › Pick reminders now also shows in the EPL section.
   - In `sw.js`, a tap on a reminder tagged `gtl-points-` opens `/#play/points`; every other
     reminder opens `/#picks`. The payload never supplies a URL.
-- PR #419 is docs only. PR #418 (D-69) is not in this source and is released separately.
+- PR #419 is docs only. PR #418 (D-70) is not in this source and is released separately.
 
 ## Gates
 

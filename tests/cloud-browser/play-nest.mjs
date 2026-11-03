@@ -1,4 +1,4 @@
-// D-69: Your guesses is the week's game tiles, then one game's card. These open a game's card from its tile (via the
+// D-70: Your guesses is the week's game tiles, then one game's card. These open a game's card from its tile (via the
 // lip back to the week when another game is open) and return to the week, the way a player does.
 import { expect } from '@playwright/test';
 

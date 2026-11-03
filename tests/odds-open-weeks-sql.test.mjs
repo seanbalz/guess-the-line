@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { ALL, HOSTED, NOT_HOSTED, PRELUDE, migrationSql } from './migrations.mjs';
+import { ALL, APPLIED, HOSTED, NOT_HOSTED, PRELUDE, migrationSql } from './migrations.mjs';
 import { catalog, readMigrations } from '../scripts/migration-functions.mjs';
 import { seed } from '../server/store.mjs';
 import { createOddsProvider } from '../cloud/odds-provider.mjs';
@@ -161,9 +161,10 @@ async function fixture(t, { files = ALL, monday = 2 * HOUR, now, priced } = {}) 
       headers: { authorization: `Bearer token-${who}`, 'content-type': 'application/json' }, body: JSON.stringify(body) }));
     return { status: response.status, body: await response.json() };
   };
-  const save = async (who, n, picks, submit) => {
+  const save = async (who, n, picks, submit, lockIn) => {
     const view = (await call(who, '/personal/read', { season: 2026, week: n })).body;
-    return call(who, '/personal/ballot', { season: 2026, week: n, mode: 'guess_spread', weeklyRevision: view.weeklyRevision, picks, submit, requestId: crypto.randomUUID(), revision: view.revision });
+    return call(who, '/personal/ballot', { season: 2026, week: n, mode: 'guess_spread', weeklyRevision: view.weeklyRevision, picks, submit, requestId: crypto.randomUUID(), revision: view.revision,
+      ...(lockIn === undefined ? {} : { lockIn }) });
   };
   return { db, as, rpc, q, log, results, week, signature, api, run, claim, resetRuns, cooldownPassed, budget, collections, snapshots, call, save };
 }
@@ -514,11 +515,11 @@ test('M-05 is idempotent, adds one function, and every function it writes is ser
 // M-37 (20261103170000_gtl_odds_refresh_fixes.sql, board item 40). The claim asks for a preflight once the last one is
 // over 23 hours old, so the collection's 24-hour check moments later always passes (the October 29 06:15 UTC run was
 // skipped as budget_guard with 400 credits left); and a run is partial only against the games still to be played when
-// its collection began (every run after Thursday's kickoff was partial). HOSTED is the schema before M-37.
+// its collection began (every run after Thursday's kickoff was partial). `before` is the hosted schema without M-37.
 const M37 = '20261103170000_gtl_odds_refresh_fixes.sql';
 
 test('M-37 static: each body is the one it replaces with only its own change; no table, grant or schedule change', () => {
-  assert(NOT_HOSTED.includes(20261103170000), 'not applied until Gate M');
+  assert(APPLIED.includes(20261103170000) && !NOT_HOSTED.includes(20261103170000), 'hosted as 20261103164210 (Gate M)');
   const read = file => fs.readFileSync(path.join('supabase/migrations', file), 'utf8');
   const code = (sql, name) => {
     const start = [...sql.matchAll(new RegExp(`create (?:or replace )?function public\\.${name}\\(`, 'g'))].at(-1).index;
@@ -536,8 +537,8 @@ test('M-37 static: each body is the one it replaces with only its own change; no
 
 test('M-37: the scheduled run keeps its preflight valid to the end, and partial means a game still to play has no line', { skip }, async t => {
   const now = Date.now();
-  const before = await fixture(t, { files: HOSTED, now }), f = await fixture(t, { now });
-  const age = (fx, interval) => fx.db.query(`update public.gtl_odds_budget set last_successful_preflight_at=clock_timestamp()-interval '${interval}'`);
+  const before = await fixture(t, { files: HOSTED.filter(file => file !== M37), now }), f = await fixture(t, { now });
+  const age =(fx, interval) => fx.db.query(`update public.gtl_odds_budget set last_successful_preflight_at=clock_timestamp()-interval '${interval}'`);
   const begin = (fx, job) => fx.rpc('gtl_begin_odds_collection', { p_user: id(COMMISSIONER), p_request: job.collectionRequestId, p_operation: 'collect' });
 
   await t.test('a preflight 23 to 24 hours old is redone first, so the collection never refuses it', async () => {
@@ -589,4 +590,39 @@ test('M-37: the scheduled run keeps its preflight valid to the end, and partial 
     for (const [[started, matched], expected] of cases)
       assert.deepEqual([await complete(before, started, matched), await complete(f, started, matched)], expected, `${started} started, ${matched} matched`);
   });
+});
+
+// D-71 (Sean, November 3, 2026: "Refresh on lock-in"). A per-game lock-in, the new app's save, goes through the D-17
+// refresh like a send: with no stored line, or one over five minutes old, it tries one shared collection inside the free
+// limits first, then saves the fresh line. Before this, a lock-in skipped the refresh and saved the newest scheduled line
+// (Week 8 median 6.9 hours old). The deployed gtl-api handler, provider adapter and SQL run here; the provider is the
+// local double.
+test('D-71: a lock-in refreshes a missing or stale line first and saves the fresh one; a second lock-in minutes later reuses it', { skip }, async t => {
+  const f = await fixture(t);
+  const [a, b] = f.week.next.games.slice(1, 3).map(g => g.id);
+  const reference = async gameId => (await f.q("select ballot->'scoringReferences'->$2 ref from public.gtl_weekly_ballots where user_id=$1 and season=2026 and week=7 and mode='guess_spread'", [id(TWO), gameId]))[0]?.ref;
+
+  // No week 7 line is stored yet: the lock-in collects once, then saves that line with its age.
+  let res = await f.save(TWO, 7, { [a]: -3 }, false, [a]);
+  assert.equal(res.status, 200, JSON.stringify(res.body));
+  const [preflight] = f.results('gtl_preflight_submission');
+  assert.deepEqual(preflight.args.p_intent.lockIn, [a], 'the refresh intent carries the lock-in');
+  assert.deepEqual([preflight.result.requiresReferences, preflight.result.ready], [true, false]);
+  assert.equal(f.api.of('odds').length, 1, 'one provider odds request');
+  const [job] = (await f.collections()).filter(c => c.operation === 'collect' && c.credits === 2);
+  const ref = await reference(a);
+  assert.deepEqual([ref.status, ref.value, ref.snapshotId], ['available', OTHER_LINE.spread, job.id]);
+  assert(ref.ageSeconds <= 300, `the saved line is fresh (${ref.ageSeconds} s)`);
+
+  // Moments later the stored line is under five minutes old: the next lock-in reuses it and spends nothing.
+  res = await f.save(TWO, 7, { [a]: -3, [b]: -2.5 }, false, [b]);
+  assert.equal(res.status, 200, JSON.stringify(res.body));
+  assert.equal(f.results('gtl_preflight_submission').at(-1).result.ready, true);
+  assert.equal(f.api.of('odds').length, 1, 'no second provider request');
+  assert.deepEqual([(await reference(b)).status, (await reference(b)).snapshotId], ['available', job.id]);
+  // A draft save that locks nothing still starts no collection (requiresReferences false).
+  res = await f.save(THREE, 7, { [a]: -1 }, false);
+  assert.equal(res.status, 200, JSON.stringify(res.body));
+  assert.equal(f.results('gtl_preflight_submission').at(-1).result.requiresReferences, false);
+  assert.equal(f.api.of('odds').length, 1);
 });

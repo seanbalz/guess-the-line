@@ -125,7 +125,7 @@ export function connectHistory(win, { getState, dispatch, confirmLeave = () => t
       if (hasLayers(next)) write(next, true, true, true);
       return;
     }
-    // D-69: one game's card in place of another rewrites this entry, so browser Back still lands on the week.
+    // D-70: one game's card in place of another rewrites this entry, so browser Back still lands on the week.
     if (navigation && next.navMode === 'replace' && !hasLayers(next) && !history.state?.gxLayer) { write(next); return; }
     if (navigation && next.navMode === 'back' && history.state?.gxRoute?.trail?.length > next.trail.length) {
       ours += 1;
