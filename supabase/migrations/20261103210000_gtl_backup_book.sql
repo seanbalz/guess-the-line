@@ -9,7 +9,8 @@
 --    exactly three quotes, three distinct books, observed within five minutes of the collection and of each other,
 --    and all three within five points of the median. Three distinct books out of four always leave at least two of
 --    the selected ones; the adapter never adds BetRivers when all three are quoted.
--- 2. gtl_book_quotes_from_snapshot names `betrivers` "BetRivers" in the book-level prices.
+-- 2. gtl_book_quotes_from_snapshot names `betrivers` "BetRivers" in the book-level prices and, for a book that stood in,
+--    adds `standInFor`: the selected book it replaced, as the snapshot's `standIns` records it (Sean: "Add the label").
 --
 -- Lines already saved are untouched (D-16, D-23). Challenge selections, Virtual Units and the frozen spread
 -- benchmark keep their three books. Each body is otherwise the current hosted definition, byte for byte.
@@ -82,7 +83,11 @@ begin
     end loop;
     books:=books||jsonb_build_array(jsonb_build_object('book',r->>'book',
       'source',case r->>'book' when 'draftkings' then 'DraftKings' when 'fanduel' then 'FanDuel' when 'betmgm' then 'BetMGM' when 'betrivers' then 'BetRivers' end,
-      'line',r->'value','prices',prices,'observedAt',r->'observedAt'));
+      'line',r->'value','prices',prices,'observedAt',r->'observedAt')
+      ||coalesce((select jsonb_build_object('standInFor',x->>'for') from jsonb_array_elements(case when jsonb_typeof(e#>array['markets',p_market,'standIns'])='array'
+        then e#>array['markets',p_market,'standIns'] else '[]'::jsonb end) x
+        where r->>'book'='betrivers' and x->>'book'='betrivers' and x->>'for' in ('draftkings','fanduel','betmgm')
+          and not exists(select 1 from jsonb_array_elements(line->'quotes') y where y->>'book'=x->>'for') limit 1),'{}'::jsonb));
   end loop;
   return books;
 exception when invalid_text_representation or numeric_value_out_of_range then return null;

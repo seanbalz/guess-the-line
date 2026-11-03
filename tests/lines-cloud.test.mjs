@@ -165,6 +165,18 @@ test('/lines/game projection: books, prices, movement and the kickoff line only 
   assert.throws(() => projectGameLines({ game: null }), /Invalid game lines reply/);
 });
 
+// D-74 proposal (November 3, 2026, a draft; Sean: "Add the label"): BetRivers standing in for a selected book carries
+// that book's name; nothing else can claim a stand-in.
+test('/lines/game projection: a BetRivers stand-in names the book it replaced; no other book or unknown book can', () => {
+  const book = (key, standInFor) => ({ book: key, line: -3.5, prices: { home: -110, away: -110 }, observedAt: T, ...(standInFor === undefined ? {} : { standInFor }) });
+  const raw = { viewer: VIEWER, season: 2026, week: 6, now: T, game: { id: 'SEA-DEN', awayCode: 'SEA', homeCode: 'DEN', away: 'Seattle Seahawks', home: 'Denver Broncos', kickoff: T, started: false },
+    spread: { visible: true, line: LINE, kickoffLine: null, movement: [], books: [book('draftkings', 'fanduel'), book('betmgm'), book('betrivers', 'fanduel')] },
+    total: { visible: true, line: LINE, kickoffLine: null, movement: [], books: [book('draftkings'), book('fanduel'), book('betrivers', 'bovada')] } };
+  const detail = projectGameLines(raw);
+  assert.deepEqual(detail.spread.books.map(b => [b.book, b.source, b.standInFor]), [['draftkings', 'DraftKings', undefined], ['betmgm', 'BetMGM', undefined], ['betrivers', 'BetRivers', 'FanDuel']]);
+  assert.deepEqual(detail.total.books.map(b => [b.book, Object.hasOwn(b, 'standInFor')]), [['draftkings', false], ['fanduel', false], ['betrivers', false]]);
+});
+
 test('through the handler: signed out is 401, GTL_FEATURE_OFF=lines is 503 before any database call, a mapped refusal keeps its status', async () => {
   const calls = [];
   const lines = { rpc: async (name, args) => {

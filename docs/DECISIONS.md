@@ -12,7 +12,8 @@ no new line can be made while FanDuel is missing.
   - BetRivers can stand in for one selected book (DraftKings, FanDuel or BetMGM) that the provider's reply could not
     quote. This is game by game and market by market, with the same checks as the other books.
   - It never replaces a book that was quoted. BetRivers is asked for in the same request, at no extra credits.
-- **Shown:** where BetRivers stood in, the missing book stays listed as missing and BetRivers is named.
+- **Shown:** BetRivers is named wherever it stood in. In the game sheet it says "Standing in for FanDuel" (Sean: "Add
+  the label"), and the revealed sources table lists the missing book as missing.
 - **Unchanged:**
   - lines already saved (D-16, D-23);
   - Challenge selections, Virtual Units and the frozen spread benchmark;

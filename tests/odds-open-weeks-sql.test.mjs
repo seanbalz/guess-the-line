@@ -702,7 +702,12 @@ test('D-74 draft: FanDuel missing, BetRivers stands in: the lock-in collects onc
   const [stored] = (await f.snapshots()).filter(s => s.week === 7);
   const game = f.week.next.games.find(g => g.id === a);
   const books = (await f.q("select public.gtl_book_quotes_from_snapshot($1::jsonb,$2::jsonb,'spread') v", [JSON.stringify(stored.payload), JSON.stringify(game)]))[0].v;
-  assert.deepEqual(books.map(b => [b.book, b.source]), [['betmgm', 'BetMGM'], ['betrivers', 'BetRivers'], ['draftkings', 'DraftKings']]);
+  assert.deepEqual(books.map(b => [b.book, b.source, b.standInFor]), [['betmgm', 'BetMGM', undefined], ['betrivers', 'BetRivers', 'fanduel'], ['draftkings', 'DraftKings', undefined]]);
+  // Through the deployed /lines/game route, the game sheet's reader: BetRivers names the book it replaced.
+  const detail = await f.call(TWO, '/lines/game', { season: 2026, week: 7, gameId: a });
+  assert.equal(detail.status, 200, JSON.stringify(detail.body));
+  assert.equal(detail.body.spread.visible, true, 'a locked-in game shows its own Spread lines');
+  assert.deepEqual(detail.body.spread.books.map(b => [b.source, b.standInFor]), [['BetMGM', undefined], ['BetRivers', 'FanDuel'], ['DraftKings', undefined]]);
   // With M-39 the snapshot makes the line; without it the same call makes none (only the three selected books count).
   const line = sql => sql.q("select public.gtl_line_from_snapshot($1::jsonb,$2::jsonb,'spread') v", [JSON.stringify(stored.payload), JSON.stringify(game)]);
   assert.deepEqual([(await line(f))[0].v.value, (await line(f))[0].v.bookCount], [OTHER_LINE.spread, 3]);

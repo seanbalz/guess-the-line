@@ -31,7 +31,9 @@ occasionally, so the gap may close by itself; the November 4 06:15 UTC run will 
     unchanged: observation windows, the five-point spread around the median, the median itself.
   - With three distinct books out of four, at least two are always selected ones.
 - **Shown:**
-  - Book-level prices (`gtl_book_quotes_from_snapshot`, the Lines sheet) name BetRivers.
+  - Book-level prices (`gtl_book_quotes_from_snapshot`, the Lines sheet) name BetRivers. Under it, the game sheet says
+    "Standing in for FanDuel" (Sean, November 3: "Add the label"; `standInFor`).
+  - Phone mockups from the real app: [design/backup-book-2026-11-03](../design/backup-book-2026-11-03/README.md).
   - The revealed sources table lists the missing book as missing ("BetRivers stood in.") and BetRivers as included ("Stood
     in for FanDuel.").
   - The app already lists a book that is not required as "Not a required book".
@@ -47,8 +49,8 @@ occasionally, so the gap may close by itself; the November 4 06:15 UTC run will 
 1. **Rule:** may a backup book stand in for a missing one? That is D-74 itself.
 2. **Which backup:** BetRivers is the one free US book already allowed in the adapter. Caesars (`williamhill_us`) and
    Fanatics are listed by the provider but not allowed by the adapter, and Caesars is marked unavailable on the current plan.
-3. **Mockups:** BetRivers rows appear in the Lines sheet and the sources table. Sean's standing rule is phone mockups of
-   every visible change before release.
+3. **Mockups:** phone mockups of the Lines sheet are in `design/backup-book-2026-11-03/`, with the label Sean asked for.
+   They wait for his OK, like every visible change.
 
 ## Not verified (needs a real collection)
 

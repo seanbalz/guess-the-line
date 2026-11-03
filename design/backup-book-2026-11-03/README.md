@@ -18,12 +18,11 @@ not live quotes. The test blocks web fonts, so the text uses a fallback system f
 
 - **The book list:** it shows BetMGM, BetRivers and DraftKings instead of BetMGM, DraftKings and FanDuel, only while
   BetRivers stands in.
+- **The label:** under BetRivers, a "Standing in for FanDuel" line says which book it replaced (Sean, November 3: "Add
+  the label"). No other book carries it, and FanDuel has no row of its own.
 - **Unchanged:** the line reads "The Odds API · 3-book median" and "Consensus from 3 books", as today. Nothing else on the
   sheet changes.
 - **"Best recorded":** it can land on BetRivers when its price is best, here −105 against −110.
 
-## Open choice
-
-Nothing says BetRivers is standing in for FanDuel. A small "Standing in for FanDuel" line under BetRivers is possible. It
-would need `gtl_book_quotes_from_snapshot` (M-39) to pass the stand-in through, plus the book row to show it. Not built
-unless Sean asks.
+The label comes from the snapshot's `standIns`, through M-39's `gtl_book_quotes_from_snapshot` (`standInFor`) and the
+`/lines/game` projection.

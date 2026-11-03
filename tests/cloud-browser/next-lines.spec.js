@@ -1166,7 +1166,7 @@ test('game market details preserve saved references, gate quotes and show record
 // D-74 proposal (November 3, 2026, a draft; needs M-39): FanDuel missing from the reply and BetRivers standing in. The
 // game's book lines name BetRivers, the line still says three books, and the phone rules and axe hold in both themes.
 // The screenshots are the mockups Sean reviews before any release.
-test('D-74 draft: a BetRivers stand-in shows by name in the game book lines, with three books and FanDuel absent', async ({ page, baseURL }, testInfo) => {
+test('D-74 draft: a BetRivers stand-in shows by name and says "Standing in for FanDuel" in the game book lines, with three books', async ({ page, baseURL }, testInfo) => {
   const { world } = await lukesWeek(page, baseURL);
   try {
     await storeBookLines(world, { ...LINES, total: { ...LINES.total, 'SEA-DEN': 45.5 } }, { capturedAt: Date.now() - 1000, standIn: true });
@@ -1180,7 +1180,10 @@ test('D-74 draft: a BetRivers stand-in shows by name in the game book lines, wit
     const books = total.locator('.gx-md-books');
     await expect(books.getByRole('listitem')).toHaveCount(3);
     await expect(books).toContainText('DraftKings'); await expect(books).toContainText('BetMGM'); await expect(books).toContainText('BetRivers');
-    await expect(books).not.toContainText('FanDuel');
+    // Sean, November 3: "Add the label". Only BetRivers says what it stands in for; FanDuel has no row of its own.
+    await expect(books.getByRole('listitem').filter({ hasText: 'BetRivers' })).toContainText('Standing in for FanDuel');
+    await expect(books.getByText('Standing in for', { exact: false })).toHaveCount(1);
+    await expect(books.getByRole('listitem').filter({ hasText: 'FanDuel' })).toHaveCount(1);
     for (const theme of ['dark', 'light']) {
       await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
       await page.setViewportSize({ width: 390, height: 844 });
