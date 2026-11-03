@@ -11,4 +11,7 @@ export const MOMENTS = Object.freeze({
 export const sizeOf = kind => (typeof kind === 'string' && Object.hasOwn(MOMENTS, kind) ? MOMENTS[kind] : 'quiet');
 
 /** The cards that hold moments. A moment plays when one of its scopes is open (see detect.js). */
-export const SCOPES = Object.freeze({ home: 'home', play: 'play', league: 'league', features: 'features' });
+/** The cards that hold moments. A moment plays when one of its scopes is open (see detect.js). D-69 step 1 adds the
+ * Play cards that hold their own moments: Your score (Bullseye, Week final), the picks (Whole week locked) and Guess
+ * the Points (Points exact). */
+export const SCOPES = Object.freeze({ home: 'home', play: 'play', league: 'league', features: 'features', score: 'score', picks: 'picks', points: 'points' });

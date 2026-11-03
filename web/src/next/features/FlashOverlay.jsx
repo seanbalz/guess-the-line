@@ -1,4 +1,4 @@
-// `ov.flash`: the celebration for a new badge or award of your own (design system 7.16, "stadium flash"; the prototype's
+// `ov.flash`: the celebration for a big moment of your own (a new badge or award, a Bullseye, a week final, a Points exact guess, reaching 1st) (design system 7.16, "stadium flash"; the prototype's
 // Bullseye flash and New results). Brand Motion: verified outcomes only, one big moment at a time (one overlay however
 // many arrived) and never on page load. Celebrations come from the D-69 moments engine (moments/), which shows this card
 // for big moments on a fresh read, where their card is open. Only transform and opacity move, for at most 600 ms, once;
@@ -8,6 +8,8 @@ import { useShell } from '../shell/context.js';
 import { Badge, Button, Overlay } from '../ui/index.js';
 import { SEP } from '../format.js';
 import { BadgeLine } from './BadgeLine.jsx';
+import { flashDestination } from '../moments/play.js';
+import { openPlay } from '../play/PlayLayer.jsx';
 import './features.css';
 
 // A badge's line draws its game as marks (D-62); an award's line is words.
@@ -20,6 +22,7 @@ export function FlashOverlay({ args }) {
   const close = () => shell.closeOverlay(args.key);
   // At most three lines, so the card stays one screen; the rest wait on the badges screen.
   const first = items[0], many = items.length > 1, shown = items.slice(0, 3), more = items.length - shown.length;
+  const place = flashDestination(items);
   return (
     <Overlay labelledBy={titleId} onClose={close} className="gx-fx-flash">
       <span className="gx-fx-burst" aria-hidden="true"></span>
@@ -30,7 +33,7 @@ export function FlashOverlay({ args }) {
           {more > 0 ? <p className="gx-t-meta gx-c-2">and {more} more</p> : null}</>
         : <p className="gx-t-body gx-c-2">{metaOf(first)}</p>}
       <Button variant="primary" block onClick={close}>Nice</Button>
-      <Button variant="ghost" onClick={() => { close(); shell.go('play', { section: 'features' }); }}>See badges</Button>
+      {place ? <Button variant="ghost" onClick={() => { close(); openPlay(shell, place.section, place.view); }}>{place.label}</Button> : null}
     </Overlay>
   );
 }
