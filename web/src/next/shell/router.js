@@ -125,6 +125,8 @@ export function connectHistory(win, { getState, dispatch, confirmLeave = () => t
       if (hasLayers(next)) write(next, true, true, true);
       return;
     }
+    // D-69: one game's card in place of another rewrites this entry, so browser Back still lands on the week.
+    if (navigation && next.navMode === 'replace' && !hasLayers(next) && !history.state?.gxLayer) { write(next); return; }
     if (navigation && next.navMode === 'back' && history.state?.gxRoute?.trail?.length > next.trail.length) {
       ours += 1;
       try { history.back(); } catch { ours -= 1; }
@@ -161,7 +163,7 @@ export function connectHistory(win, { getState, dispatch, confirmLeave = () => t
     }
     const saved = readEntry(history.state, route);
     const place = saved ?? address ?? { tab: DEFAULT_TAB };
-    if (!confirmLeave()) { rejectTraversal(); return; }
+    if (!confirmLeave({ type: 'restore', place })) { rejectTraversal(); return; }
     index = targetIndex;
     beforeNavigate();
     dispatch({ type: 'restore', place });

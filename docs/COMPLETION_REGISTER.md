@@ -1,5 +1,15 @@
 # Guess The Line — current completion register
 
+## Tracked bets Overview — November 2, 2026
+
+The [Overview follow-up](TRACKED_BETS_OVERVIEW_2026_11_02.md) restores a first-class
+chart destination beside Tickets, with performance, outcome, type, market and
+sportsbook breakdowns, shared filters and optional cash display. Accounting uses
+the existing core; this frontend change does not alter saved tickets or guesses.
+Local checks pass: 43 focused Node tests, 650 component tests and 16 tracked-bet
+browser scenarios, plus typecheck, build, bundle privacy scan and Brand QA.
+Merge, deployment and physical-phone acceptance remain separate evidence states.
+
 ## My bets spacing and entry follow-up — November 2, 2026
 
 Sean's screenshot reproduced a legacy CSS override that removed the card gap.
@@ -48,6 +58,29 @@ and nesting rules. Follow-ups: reset `usePopped` before step 1; the tab fade
 stays on once it starts; a tab change into a Nest moves twice; and the old app's
 AuthGate spinner.
 
+## Play › Your guesses nesting cards (D-69) — November 2, 2026
+
+Sean asked for the next design pass, to cut text on Home and Play. On the live app Home (139 words) and the Play
+landing (59) were already lean. Your guesses was the long screen: 15 stacked 525px cards, 9,043px, 1,317 words
+and 252 buttons on the open Total ballot. From five options on the
+[comparison canvas](https://claude.ai/artifact/5Kj42mrQJZ2UJGqsxm4nSn) he chose **1 · Nesting cards** and approved the
+[design spec](superpowers/specs/2026-11-02-play-picks-nesting-cards-design.md).
+
+- **Built, on branch `claude/home-play-design`.**
+  - **The week:** one card, with one tile per game showing your own guess only.
+  - **One game:** a tile opens that game's card, with a lip back to the week. It holds the picker and Lock in, or the
+    receipt and the reveal, then Next.
+  - **Navigation:** a game has its own address, and Next replaces the open game in both the trail and the browser
+    history. Moving between the week and its games never asks to leave an unsaved draft; leaving Your guesses still
+    does.
+  - **Recovery:** checking and retrying an unconfirmed save is reachable from either card.
+- **Evidence (local).**
+  - **Unit and navigation:** 12 component tests and 17 router tests.
+  - **Cloud browser:** the per-game scoring, moments, Lines game actions and new `next-play-nest` cases pass against
+    the real handler on PGlite. They cover 390px and 320px, Dark and Light, axe, 44px targets and no sideways scroll.
+- **Not done:** no release or real-phone check yet. The other Play screens (League, Your weekly score, Badges, Guess
+  the Points) are not in this pass.
+
 ## Pick reminders follow-ups from the #411 review — November 2, 2026
 
 Menu › Pick reminders now shows in EPL as well as NFL: the EPL frame takes the
@@ -61,7 +94,8 @@ missing and look-alike tags; payload `url`/`data` ignored; focus an open
 window, else open one); a 390 px browser check covers the EPL Menu row. Phone
 captures of the Menu in EPL and NFL, Light and Dark, are in
 [design/qa/reminder-followups-2026-11-02](../design/qa/reminder-followups-2026-11-02/).
-Frontend only; it ships with the next Pages release. A tap on a real phone is not verified.
+Frontend only; released November 2 in Pages `8c9b193e` from `82f1c2b`
+([release record](RELEASE_2026_11_02_POINTS_CONTEXT.md), card #422). A tap on a real phone is not verified.
 
 ## Player context on the Points ballot (Board i63) — November 2, 2026
 
@@ -78,7 +112,8 @@ it (and the rest-of-season estimate) behind a lock line until the read carries
 the House (lock-in or kickoff, D-56). No implied team totals (D-57). The ballot
 is keyed by account. Also fixed: the slot sheet's glow card shrank under later
 cards once the sheet overflowed, and the profile's sideways-scrolling tables are
-now focusable regions. Frontend only; ships with the next Pages release.
+now focusable regions. Frontend only; released November 2 in Pages `8c9b193e` from
+`82f1c2b` ([release record](RELEASE_2026_11_02_POINTS_CONTEXT.md), card #422) after Sean OK'd the mockups.
 
 ## Pick reminders opt-in in the new app (Board i39) — November 2, 2026
 

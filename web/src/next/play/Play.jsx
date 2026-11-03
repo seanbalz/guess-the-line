@@ -150,12 +150,18 @@ function SelectedPlay({ app, shell, current, mode, onMode }) {
   const season = Number.isInteger(view.season) ? view.season : current.season;
   const week = Number.isInteger(view.week) ? view.week : current.week;
   const read = useLeagueRead(`${app.accountId}:play:${season}:${week}:${mode}`, signal => cloudApi('personal/read', { season, week }, { signal }), error => { if (error.status === 401) app.requestSignIn(); });
+  // D-69: the week and its games are nesting cards on one address key (`pickGame`); the editor and its drafts stay
+  // mounted between them, so moving there never asks to leave unsaved guesses.
+  const { setView } = shell, { market: viewMarket, season: viewSeason, week: viewWeek } = view;
+  const keeps = useCallback(next => next.tab === 'play' && next.views.play.section === 'picks'
+    && next.views.play.market === viewMarket && next.views.play.season === viewSeason && next.views.play.week === viewWeek, [viewMarket, viewSeason, viewWeek]);
+  const nest = useMemo(() => ({ game: view.pickGame, keeps, onOpen: id => setView('play', { pickGame: id }), onWeek: () => setView('play', { pickGame: undefined }) }), [view.pickGame, keeps, setView]);
   if (read.loading) return <PlayLoading>Loading your picks…</PlayLoading>;
   if (read.error) return <PlayFailure what="Your picks" error={read.error} onRetry={read.retry}/>;
   if (!perGameReady(read.data?.rules)) return <PlayEmpty role="alert" action="Check again" onAction={read.retry}>Scoring rules changed. Refresh the app before making a pick.</PlayEmpty>;
   // The reveal names other players from the shared Community read, and only when it is this account's read.
   const community = app.community.data, members = community?.viewer?.toLowerCase() === app.accountId.toLowerCase() ? community.members ?? [] : [];
-  return <PerGameEditor key={`${app.accountId}:${season}:${week}:${mode}`} accountId={app.accountId} initialData={read.data} mode={mode} focusGame={view.pickGame} optOuts={app.community.data?.optOuts || []} reveal={{ members }}
+  return <PerGameEditor key={`${app.accountId}:${season}:${week}:${mode}`} accountId={app.accountId} initialData={read.data} mode={mode} nest={nest} optOuts={app.community.data?.optOuts || []} reveal={{ members }}
     onMode={onMode} setDirty={shell.setDirty} onSignInAgain={app.requestSignIn} onSaved={() => app.refresh({ only: ['community', 'personal'] })}
     onScore={patch => shell.setView('play', { ...patch, section: 'score' })}/>;
 }

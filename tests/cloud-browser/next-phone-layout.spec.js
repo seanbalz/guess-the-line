@@ -116,6 +116,7 @@ test('score buttons keep one-line labels and Pick’em keeps its padding at 320 
       }));
       expect(lines.filter(item => item.lines > 1), `${width}px`).toEqual([]);
       await open(page, '#play/picks');
+      await page.locator('.gx-per-game [data-tile]').first().click(); // D-69: the picker is on a game's own card
       const pickem = page.locator('button[data-side="pickem"]').first();
       await expect(pickem).toBeVisible();
       const gap = await pickem.evaluate(button => {

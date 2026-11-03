@@ -96,13 +96,21 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
   const reduceMotion = preferences.motion === 'reduced';
   const [dockHost, setDockHost] = useState(null);
   const dockHeight = useHeight(dockHost);
-  const dirty = useRef(new Set());
-  const setDirty = useCallback((key, value) => {
-    if (value) dirty.current.add(key);
+  // The address and Back follow the state (router.js).
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  // Unsaved work by key. `keeps(next)` (optional) says a destination keeps that work on screen, so moving there does not
+  // ask (D-69: Your guesses' week and one game are one editor). Without it every navigation asks, as before.
+  const dirty = useRef(new Map());
+  const setDirty = useCallback((key, value, keeps) => {
+    if (value) dirty.current.set(key, keeps);
     else dirty.current.delete(key);
   }, []);
-  const confirmLeave = useCallback(() => {
-    if (!dirty.current.size) return true;
+  /** `action` is the navigation about to run, when the caller knows it. */
+  const confirmLeave = useCallback(action => {
+    const next = action ? reduce(stateRef.current, action) : null;
+    const asks = [...dirty.current.values()].some(keeps => !(next && typeof keeps === 'function' && keeps(next)));
+    if (!asks) return true;
     if (!window.confirm('Leave without saving your changes?')) return false;
     return true;
   }, []);
@@ -121,9 +129,6 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
     return () => window.removeEventListener('beforeunload', warn);
   }, []);
 
-  // The address and Back follow the state (router.js).
-  const stateRef = useRef(state);
-  stateRef.current = state;
   const history = useRef(null);
   const synced = useRef(null);
   useEffect(() => {
@@ -222,10 +227,10 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
       confirmLeave,
       tab: tab => { if (confirmLeave()) { rememberPosition(); navigated(); dispatch({ type: 'tab', tab }); } },
       go: (tab, view) => { if (confirmLeave()) { rememberPosition(); navigated(); dispatch({ type: 'go', tab, view }); } },
-      back: () => { if (confirmLeave()) { rememberPosition(); navigated(); dispatch({ type: 'back' }); } },
+      back: () => { if (confirmLeave({ type: 'back' })) { rememberPosition(); navigated(); dispatch({ type: 'back' }); } },
       setView: (tab, patch) => {
         if (navigationPatch(stateRef.current, tab, patch)) {
-          if (!confirmLeave()) return;
+          if (!confirmLeave({ type: 'view', tab, patch })) return;
           rememberPosition();
           navigated();
         }
