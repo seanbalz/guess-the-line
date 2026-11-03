@@ -10,13 +10,18 @@ refresh completes on main. A failure opens one issue per workflow, labelled
 failures only update that issue, and the next run that publishes comments and
 closes it. A dry run or a skipped publish never closes an alert. The repository
 is public, so an alert holds only the workflow name, run link, event, failed
-step and times, never log text. A manual run replays one past run by id.
-Local checks: 15 Node tests (alert decisions, GitHub calls, the workflow's
+step and times, never log text.
+Local checks: 17 Node tests (alert decisions, GitHub calls, the workflow's
 triggers, permissions and step names), each mutation of the publish, staleness
 and count rules failing its test, and read-only dry runs against today's real
-runs (a failed Fantasy run plans `open`, the recovering run and a CI run plan
-nothing). Supabase cron jobs are not covered yet: their failures and missed
-outcomes need a server-side check.
+runs. PR #433 merged as `ed92ec9e`. Live check on November 3: replaying the
+10:14 UTC failed run opened issue #435 (assigned to Sean, labelled), and a real
+delayed scheduled refresh, run 41672840130, published at 16:19 UTC; its own
+workflow_run alert closed #435. A manual replay of the 11:02 UTC recovery ran at
+the same moment in a different concurrency group and also closed it, leaving two
+"Recovered" comments, so the follow-up removes the manual trigger: every alert
+run for a workflow now shares one group. Supabase cron jobs are not covered
+yet: their failures and missed outcomes need a server-side check.
 
 ## Tracked bets Overview — November 2, 2026
 
