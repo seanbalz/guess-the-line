@@ -106,7 +106,7 @@ test('grants: anon and authenticated cannot execute any M-38 function; the worke
     assert.equal((await db.query('select has_table_privilege($1,$2,$3) ok', ['service_role', `public.${table}`, 'INSERT'])).rows[0].ok, false, `only the dispatcher writes ${table}`);
 });
 
-test('failed:<family> fires when the latest finished run is failed, from its finish time and not a minute before; partial and skipped are not failures; a later finished run clears it', { skip }, async t => {
+test('failed:<family> fires when an enabled family\'s latest finished run is failed, from its finish time and not a minute before; partial and skipped are not failures; a later finished run or disabling the family clears it', { skip }, async t => {
   const f = await fixture(t);
   const T = Date.parse('2026-11-02T20:00:00Z');
   const families = [...Object.keys(RUNS), 'epl:moneyline', 'epl:dnb-check'];
@@ -126,6 +126,12 @@ test('failed:<family> fires when the latest finished run is failed, from its fin
   await f.run('epl:moneyline', { slot: T + HOUR, status: 'succeeded' });
   assert.deepEqual((await f.findings(T + HOUR, 'failed')).map(row => row.key),
     expected.map(row => row.key).filter(key => !['failed:odds', 'failed:points', 'failed:epl:moneyline'].includes(key)));
+  // A disabled family is never failed: it cannot run again to clear the alert.
+  await f.db.query("update public.gtl_results_refresh_schedule set enabled=false");
+  await f.db.query("update public.gtl_week_open_schedule set enabled=false");
+  await f.db.query("update public.gtl_epl_jobs_schedule set enabled=false where job='dnb-check'");
+  assert.deepEqual((await f.findings(T + HOUR, 'failed')).map(row => row.key),
+    expected.map(row => row.key).filter(key => !['failed:odds', 'failed:points', 'failed:epl:moneyline', 'failed:results', 'failed:week_open', 'failed:epl:dnb-check'].includes(key)));
 });
 
 test('quiet:<family> fires when an enabled family\'s newest run is its limit old and not a minute before; disabled families and the unchecked ones are never quiet; a new run clears it', { skip }, async t => {

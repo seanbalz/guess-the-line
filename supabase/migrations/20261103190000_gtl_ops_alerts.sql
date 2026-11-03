@@ -4,7 +4,8 @@
 --
 -- * gtl_ops_findings(p_now): the current problems as rows, read as of p_now (failed and quiet look only at runs finished or
 --   slotted by then). Cron and SQL editor only.
---   - failed:<family>: the family's latest finished run is `failed` (`partial` and `skipped` are not failures).
+--   - failed:<family>: an enabled family's latest finished run is `failed` (`partial` and `skipped` are not failures). A
+--     disabled family is never checked: it cannot run again to clear the alert.
 --   - quiet:<family>: an enabled family's newest run row is at least its limit old (results 2 h; EPL moneyline, snapshot,
 --     resolve and nudge 1 h; Points and odds 26 h). Push reminders, week open, features and the other EPL jobs run only when
 --     something is due, so their silence is normal and never checked. A family with no run row yet names no time: no finding.
@@ -81,13 +82,17 @@ language sql stable security invoker set search_path='' as $$
     union all select 'week_open',r.status,r.slot_start,r.finished_at from public.gtl_week_open_runs r
     union all select 'features',r.status,r.slot_start,r.finished_at from public.gtl_features_schedule_runs r
     union all select 'epl:'||r.job,r.status,r.slot_start,r.finished_at from public.gtl_epl_job_runs r),
-  -- Quiet limits, only for a family whose schedule row exists and is enabled.
-  limits(family,quiet) as (
+  -- The families whose schedule row exists and is enabled, with a quiet limit where silence is abnormal. A disabled family
+  -- is never checked: it cannot run again to clear a failure, and silence is expected.
+  active(family,quiet) as (
     select 'results'::text,interval '2 hours' from public.gtl_results_refresh_schedule s where s.id='nfl-results' and s.enabled
     union all select 'odds',interval '26 hours' from public.gtl_odds_schedule s where s.id='nfl-12h' and s.enabled
     union all select 'points',interval '26 hours' from public.gtl_points_job_schedule s where s.id='nfl-points' and s.enabled
-    union all select 'epl:'||s.job,interval '1 hour' from public.gtl_epl_jobs_schedule s
-      where s.job in ('moneyline','snapshot','resolve','nudge') and s.enabled),
+    union all select 'push',null::interval from public.gtl_push_reminder_schedule s where s.id='deadline-2h' and s.enabled
+    union all select 'week_open',null from public.gtl_week_open_schedule s where s.id='nfl-weekly' and s.enabled
+    union all select 'features',null from public.gtl_features_schedule s where s.id='league-features' and s.enabled
+    union all select 'epl:'||s.job,case when s.job in ('moneyline','snapshot','resolve','nudge') then interval '1 hour' end
+      from public.gtl_epl_jobs_schedule s where s.enabled),
   points_last as (select s.season,s.week,((s.opens_at at time zone 'America/Los_Angeles')+interval '7 days') at time zone 'America/Los_Angeles' due
     from public.gtl_points_slates s where s.status='published' order by s.season desc,s.week desc limit 1),
   weekly_last as (select w.season,w.week,((public.gtl_week_open_at(w.season,w.week) at time zone 'America/Los_Angeles')+interval '7 days') at time zone 'America/Los_Angeles' due
@@ -95,11 +100,11 @@ language sql stable security invoker set search_path='' as $$
   select 'failed:'||f.family,'failed',f.family,null::integer,null::integer,f.finished_at
     from (select distinct on (r.family) r.family,r.status,r.finished_at from runs r where r.finished_at<=p_now
       order by r.family,r.finished_at desc,r.slot_start desc) f
-    where f.status='failed'
+    where f.status='failed' and f.family in (select a.family from active a)
   union all
   select 'quiet:'||l.family,'quiet',l.family,null,null,n.newest
-    from limits l cross join lateral (select max(r.slot_start) newest from runs r where r.family=l.family and r.slot_start<=p_now) n
-    where n.newest<=p_now-l.quiet
+    from active l cross join lateral (select max(r.slot_start) newest from runs r where r.family=l.family and r.slot_start<=p_now) n
+    where l.quiet is not null and n.newest<=p_now-l.quiet
   union all
   select format('points-open:%s-%s',p.season,p.week+1),'points-open',null,p.season,p.week+1,p.due
     from points_last p
