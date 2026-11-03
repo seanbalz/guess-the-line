@@ -4,16 +4,19 @@ import assert from 'node:assert/strict';
 import { armLaunch, hasNavigated, isSettled, markNavigated, markSettled, onLaunchScreen, onSettled, resetLaunch } from '../web/src/next/moments/launch.js';
 import { createMomentsEngine } from '../web/src/next/moments/engine.js';
 import { SCOPES } from '../web/src/next/moments/catalog.js';
+import { SEEN_CAP, momentsKey } from '../web/src/next/moments/seen.js';
 
 const memory = () => { const map = new Map(); return { getItem: k => (map.has(k) ? map.get(k) : null), setItem: (k, v) => map.set(k, String(v)), removeItem: k => map.delete(k), key: i => [...map.keys()][i] ?? null, get length() { return map.size; } }; };
 const badge = id => ({ id, kind: 'badge', scopes: [SCOPES.features, SCOPES.home], title: id });
 const streak = id => ({ id, kind: 'streak', scopes: [SCOPES.home], title: id });
-function rig({ storage = memory(), settled = { value: false }, clock = { t: 1000 } } = {}) {
+// `navigated` (the launch screen is over) mirrors `settled` unless a test sets it apart, as the review's race does.
+function rig({ storage = memory(), settled = { value: false }, navigated = settled, clock = { t: 1000 } } = {}) {
   const big = [], small = [], timers = [];
-  const engine = createMomentsEngine({ account: 'acct', storage, isSettled: () => settled.value, onBig: ms => big.push(ms.map(x => x.id)), onSmall: x => small.push(x.id),
+  const engine = createMomentsEngine({ account: 'acct', storage, isSettled: () => settled.value, hasNavigated: () => navigated.value, onBig: ms => big.push(ms.map(x => x.id)), onSmall: x => small.push(x.id),
     setTimer: (fn, ms) => { timers.push(ms); fn(); }, now: () => clock.t });
-  return { engine, big, small, timers, settled, storage, clock };
+  return { engine, big, small, timers, settled, navigated, storage, clock };
 }
+const record = storage => JSON.parse(storage.getItem(momentsKey('acct')));
 
 test('launch guard: settled only by a trusted press or key; a reset makes it a launch again and the listeners stay until disarmed', () => {
   resetLaunch();
@@ -166,4 +169,80 @@ test('engine: a closer is safe to call twice; dispose cancels small moments stil
   e.report([streak('s1')]);
   e.dispose();
   for (const fn of queued) fn?.();
+});
+
+test('engine (the review race): a scroll press is not a navigation; the session\'s first read waits as NEW and plays when its card opens after one', () => {
+  const storage = memory();
+  // Yesterday's session on this device read this source and saw b1.
+  storage.setItem(momentsKey('acct'), JSON.stringify(['source:features:community', 'badge:b1']));
+  const held = id => ({ id, kind: 'badge', scopes: [SCOPES.features, SCOPES.home, SCOPES.league], title: id });
+  const r = rig({ storage, settled: { value: false }, navigated: { value: false } });
+  r.engine.open(SCOPES.home); // Home mounts on page load, before any press
+  r.settled.value = true; // the member scrolls: a trusted press, still on the launch screen
+  r.engine.open(SCOPES.league); // a card that mounts on the launch screen after that press is still a launch card
+  r.engine.report([held('badge:b1'), held('badge:b2')], { source: 'features:community' }); // the session's first read
+  assert.deepEqual(r.big, [], 'nothing plays on the launch screen, even after a press');
+  assert.equal(r.engine.newCount(SCOPES.features), 1, 'the badge earned while away waits as NEW');
+  r.navigated.value = true;
+  r.engine.open(SCOPES.features);
+  assert.deepEqual(r.big, [['badge:b2']], 'it plays when its card opens after a navigation');
+});
+
+test('engine: a device with a record but no marker for a source seeds that source silently; its next read plays what is new', () => {
+  const storage = memory();
+  storage.setItem(momentsKey('acct'), JSON.stringify(['source:features:community', 'c1']));
+  const r = rig({ storage, settled: { value: true } });
+  r.engine.open(SCOPES.features);
+  r.engine.report([badge('p1'), badge('p2')], { source: 'features:L2' });
+  assert.deepEqual(r.big, [], 'the first read of a private league on this device is silent: no flood');
+  assert.equal(r.engine.newCount(SCOPES.features), 0);
+  assert.ok(record(storage).includes('source:features:L2'), 'the source is marked as seeded');
+  assert.ok(record(storage).includes('c1'), 'the other source\'s record stays');
+  r.engine.report([badge('p1'), badge('p2'), badge('p3')], { source: 'features:L2' });
+  assert.deepEqual(r.big, [['p3']], 'a later read of that source plays what is new, in place');
+  // A record written before sources had markers seeds too, rather than flooding every badge it never held.
+  const legacy = memory();
+  legacy.setItem(momentsKey('acct'), JSON.stringify(['badge:b1']));
+  const old = rig({ storage: legacy, settled: { value: true } });
+  old.engine.open(SCOPES.features);
+  old.engine.report([badge('badge:b1'), badge('badge:b2')]);
+  assert.deepEqual(old.big, []);
+  assert.deepEqual(record(legacy), ['badge:b1', 'badge:b2', 'source:default']);
+});
+
+test('engine: a waiting moment missing from the next read of its source is dropped (a revoked badge never plays); other sources keep theirs', () => {
+  const storage = memory();
+  storage.setItem(momentsKey('acct'), JSON.stringify(['source:features:community', 'source:features:L2']));
+  const r = rig({ storage });
+  r.engine.report([badge('b1'), badge('b2')], { source: 'features:community' });
+  r.engine.report([badge('x1')], { source: 'features:L2' });
+  assert.equal(r.engine.newCount(SCOPES.features), 3);
+  r.engine.report([badge('b1')], { source: 'features:community' });
+  assert.equal(r.engine.newCount(SCOPES.features), 2, 'b2 was revoked; L2\'s x1 still waits');
+  r.settled.value = true;
+  r.engine.open(SCOPES.features);
+  assert.deepEqual(r.big, [['b1', 'x1']]);
+});
+
+test('engine: after dispose, report and open play nothing', () => {
+  const r = rig({ settled: { value: true } });
+  r.engine.report([]);
+  r.engine.report([badge('b1')]); // no card holding it is open: it waits
+  assert.equal(r.engine.newCount(SCOPES.features), 1);
+  r.engine.dispose();
+  const close = r.engine.open(SCOPES.features);
+  r.engine.report([badge('b1'), badge('b2')]);
+  assert.deepEqual(r.big, [], 'a disposed engine (an account switch) never plays');
+  assert.doesNotThrow(close);
+});
+
+test('engine: source markers outlive the record cap, so a long-used device never seeds a source again', () => {
+  const storage = memory();
+  const r = rig({ storage, settled: { value: true } });
+  r.engine.report([], { source: 'features:community' });
+  // Quiet moments are remembered at once; more of them than the cap holds.
+  r.engine.report(Array.from({ length: SEEN_CAP + 5 }, (_, i) => ({ id: `l${i}`, kind: 'loss', scopes: [SCOPES.features], title: 'loss' })), { source: 'features:community' });
+  const kept = record(storage);
+  assert.equal(kept.length, SEEN_CAP);
+  assert.ok(kept.includes('source:features:community'));
 });

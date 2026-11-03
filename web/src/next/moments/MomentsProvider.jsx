@@ -26,13 +26,13 @@ export function MomentsProvider({ account, showOverlay, children }) {
   // An account switch or unmount never lets an old engine pop a moment.
   useEffect(() => () => engine.dispose(), [engine]);
   // One `report` per engine, so a caller's effect that depends on it runs only when its read changes.
-  const report = useMemo(() => candidates => engine.report(candidates), [engine]);
+  const report = useMemo(() => (candidates, options) => engine.report(candidates, options), [engine]);
   const api = useMemo(() => ({ report }), [report]);
   const value = useMemo(() => ({ engine, popped, report, api }), [engine, popped, report, api]);
   return <MomentsContext.Provider value={value}>{children}</MomentsContext.Provider>;
 }
 
-/** `{ report(candidates) }`, or null outside the app (tests, the old app). */
+/** `{ report(candidates, { source }) }`, or null outside the app (tests, the old app). */
 export function useMoments() {
   const ctx = useContext(MomentsContext);
   return ctx ? ctx.api : null;
