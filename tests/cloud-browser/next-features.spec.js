@@ -74,11 +74,14 @@ test('before the job has run: an empty recap with no sample, streaks at 0 and th
   await row.click();
   await expect(page).toHaveURL(/#play\/features/);
   const screen = page.locator('[data-landing="features"]');
-  await expect(screen.getByRole('heading', { name: 'Badges and awards', level: 1 })).toBeVisible();
-  await expect(screen.locator('[data-features="recap"]')).toHaveCount(0, { timeout: 2000 });
-  await expect(screen).toContainText('Weekly awards post here once every game of the week is final.');
-  await expect(screen.locator('[data-features="streaks"]')).toContainText('Pick streak');
-  await expect(screen.locator('[data-features="shelf"]')).toContainText('Badges · 0 of 9');
+  // D-69 (Sean's P5A): the page is a nesting layer under the Play lip.
+  await expect(screen.getByRole('heading', { name: 'Badges and awards', level: 2 })).toBeVisible();
+  await expect(screen.getByRole('button', { name: 'Back to Play' })).toBeVisible();
+  const streaksTile = screen.locator('[data-features="streaks-tile"]'), awardsTile = screen.locator('[data-features="awards-tile"]');
+  await expect(awardsTile).toContainText('Posts once the week is final', { timeout: 2000 });
+  await expect(awardsTile).not.toContainText(/\d/);
+  await expect(streaksTile).toContainText('Pick streak');
+  await expect(screen.locator('[data-features="shelf"]')).toContainText('0 of 9 earned');
   await expect(screen).not.toContainText(SAMPLE);
   await phoneChecks(page, info, 'features-empty');
 
@@ -99,29 +102,45 @@ test('before the job has run: an empty recap with no sample, streaks at 0 and th
   await flash.getByRole('button', { name: 'Nice', exact: true }).click();
   await expect(flash).toHaveCount(0);
 
-  const recap = screen.locator('[data-features="recap"]');
-  await expect(recap.getByRole('heading', { name: 'Week 4 awards' })).toBeVisible();
-  await expect(recap).toContainText('You won Spread winner');
-  await expect(recap).toContainText('Worst beat');
-  await expect(recap).toContainText('Lost by 12.5');
-  await expect(screen.locator('[data-features="shelf"]')).toContainText('Badges · 4 of 9'); // Bullseye, Double Bullseye, Dialed In, Dog Day
-  await expect(screen.locator('[data-features="streaks"]')).toContainText('week · Best 1');
-  await expect(screen.locator('[data-features="streaks"]')).not.toContainText('weeks · Best 1', { timeout: 1000 });
-  await phoneChecks(page, info, 'features-recap');
+  await expect(awardsTile).toContainText('You won Spread winner');
+  await expect(screen.locator('[data-features="shelf"]')).toContainText('4 of 9 earned'); // Bullseye, Double Bullseye, Dialed In, Dog Day
+  await expect(streaksTile.getByRole('button')).toHaveAttribute('aria-label', 'Your streaks: Pick streak, 1 week');
+  await phoneChecks(page, info, 'features-top');
   await targets44(screen);
 
-  // A badge's detail: the 96 tile, rarity in words, the rule, how often and when.
-  await screen.getByRole('button', { name: /^Bullseye, Uncommon, earned 3 times$/ }).click();
-  const sheet = page.getByRole('dialog', { name: 'Bullseye' });
-  await expect(sheet).toBeVisible();
-  await expect(sheet).toContainText('Guess a line exactly (10 points).');
-  await expect(sheet).toContainText('Earned 3 times');
+  // The awards layer: its own address, its heading focused, the week's awards; Back closes one layer.
+  await awardsTile.getByRole('button').click();
+  await expect(page).toHaveURL(/#play\/features\?layer=awards$/);
+  await expect(screen.getByRole('heading', { name: 'Week 4 awards', level: 2 })).toBeFocused();
+  await expect(screen.locator('[data-features="awards"]')).toContainText('Worst beat');
+  await expect(screen.locator('[data-features="awards"]')).toContainText('Lost by 12.5');
+  await phoneChecks(page, info, 'features-awards');
+  await page.goBack();
+  await expect(screen.getByRole('heading', { name: 'Badges and awards', level: 2 })).toBeVisible();
+
+  // The streaks layer: both streaks with their meter and best; its lip returns to the first card.
+  await streaksTile.getByRole('button').click();
+  await expect(page).toHaveURL(/#play\/features\?layer=streaks$/);
+  await expect(screen.getByRole('img', { name: 'Pick streak, 1 week' })).toBeVisible();
+  await expect(screen.locator('[data-features="streaks"]')).toContainText('Weeks you sent both ballots · Best 1');
+  await phoneChecks(page, info, 'features-streaks');
+  await screen.getByRole('button', { name: 'Back to Badges and awards' }).click();
+  await expect(page).toHaveURL(/#play\/features$/);
+
+  // A badge's layer: the 96 tile, rarity in words, the rule, how often and when; a reload reopens it.
+  await screen.getByRole('button', { name: /^Bullseye, Uncommon, earned 3 times/ }).click();
+  await expect(page).toHaveURL(/#play\/features\?layer=badge&item=bullseye$/);
+  await expect(screen.getByRole('heading', { name: 'Bullseye', level: 2 })).toBeFocused();
+  await expect(screen).toContainText('Guess a line exactly (10 points).');
+  await expect(screen).toContainText('Earned 3 times');
   // D-62: the game is drawn as marks (read as one sentence); the codes beside the marks sit between in textContent.
-  await expect(sheet).toContainText(/Week 4 · Seattle Seahawks at Denver Broncos[A-Z@]* · Spread DEN −8\.5 exact/);
+  await expect(screen).toContainText(/Week 4 · Seattle Seahawks at Denver Broncos[A-Z@]* · Spread DEN −8\.5 exact/);
   await phoneChecks(page, info, 'features-badge');
-  await sheet.getByRole('button', { name: 'Close' }).click();
+  await page.reload();
+  await expect(screen.getByRole('heading', { name: 'Bullseye', level: 2 })).toBeVisible();
+  await screen.getByRole('button', { name: 'Back to Badges and awards' }).click();
   await screen.getByRole('button', { name: /^Hot Hand, Rare, not earned yet\./ }).click();
-  await expect(page.getByRole('dialog', { name: 'Hot Hand' })).toContainText('Not earned yet');
+  await expect(screen).toContainText('Not earned yet');
   expect(world.errors).toEqual([]);
 });
 
@@ -130,7 +149,7 @@ test('reduced motion: the celebration still says what happened, with no animatio
   await seedFinishedWeek(world);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await openNewApp(page, '#play/features');
-  await expect(page.locator('[data-landing="features"]')).toContainText('Badges · 0 of 9');
+  await expect(page.locator('[data-landing="features"]')).toContainText('0 of 9 earned');
   expect((await world.api('sean', 'league/features/run', {})).status).toBe(200);
   await page.getByRole('button', { name: 'Refresh', exact: true }).click();
   const flash = page.getByRole('dialog', { name: 'New results' });

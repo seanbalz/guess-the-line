@@ -1,15 +1,22 @@
-/* Badges and awards (redesign stage 71): the recap, streaks, the badge shelf, a badge's detail and the celebration.
+/* Badges and awards (redesign stage 71; D-69 step 1): the two tiles, the badge grid, the streaks, the awards, a badge's detail and the celebration.
    Tokens only (BRAND_GUIDE D-38, D-55); motion is the one burst, transform and opacity, stopped by reduced motion. */
 .gx .gx-fx-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--gx-space-2); padding: var(--gx-space-4) var(--gx-space-4) var(--gx-space-2); }
 .gx .gx-fx-who { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--gx-space-1); min-width: 0; }
 .gx .gx-fx-who > span:last-child { margin-left: var(--gx-space-1); overflow-wrap: anywhere; }
-.gx .gx-fx-streaks { display: flex; flex-direction: column; gap: var(--gx-space-3); margin: var(--gx-space-3) 0 0; padding: 0; list-style: none; }
-.gx .gx-fx-streak { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gx-space-2); min-height: var(--gx-size-touch); }
-.gx .gx-fx-shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: var(--gx-space-3); margin: var(--gx-space-3) 0 var(--gx-space-4); padding: 0; list-style: none; }
+/* The first card: two tiles in two columns, then the badges in three. */
+.gx .gx-fx-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-3); }
+.gx .gx-fx-slot { display: flex; min-width: 0; }
+.gx .gx-fx-slot > * { flex: 1 1 auto; min-width: 0; }
+.gx .gx-fx-badges { display: flex; flex-direction: column; gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-fx-badges > .gx-fx-head { padding: 0; }
+.gx .gx-fx-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gx-space-2); margin: 0; padding: 0; list-style: none; }
+.gx .gx-fx-streaks { display: flex; flex-direction: column; gap: var(--gx-space-4); margin: 0; padding: 0; list-style: none; }
+.gx .gx-fx-streak { display: flex; flex-direction: column; gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-fx-streak-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--gx-space-2); }
 .gx .gx-fx-tile { display: flex; flex-direction: column; align-items: center; gap: var(--gx-space-1); width: 100%; min-height: var(--gx-size-touch); padding: var(--gx-space-3) var(--gx-space-1); border: 0; border-radius: var(--gx-radius-md); background: var(--gx-surface-2); color: var(--gx-text-1); text-align: center; cursor: pointer; }
 .gx .gx-fx-tile-name { overflow-wrap: anywhere; }
 .gx .gx-fx-tile:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
-.gx .gx-fx-more > summary { display: flex; align-items: center; min-height: var(--gx-size-touch); cursor: pointer; }
+.gx .gx-fx-more > summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--gx-space-2); min-height: var(--gx-size-touch); cursor: pointer; }
 .gx .gx-fx-week { margin-top: var(--gx-space-3); }
 .gx .gx-fx-detail { display: flex; flex-direction: column; align-items: center; gap: var(--gx-space-2); padding: var(--gx-space-3) 0; text-align: center; }
 .gx .gx-fx-lines { display: flex; flex-direction: column; gap: var(--gx-space-2); margin: 0; padding: 0 0 0 var(--gx-space-5); }
