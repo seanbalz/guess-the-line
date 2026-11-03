@@ -647,7 +647,7 @@ test('a selected book missing from the newest snapshot for every game a lock-in 
   const [a, b, c] = f.week.next.games.slice(1, 4).map(g => g.id);
   const reference = async gameId => (await f.q("select ballot->'scoringReferences'->$2 ref from public.gtl_weekly_ballots where user_id=$1 and season=2026 and week=7 and mode='guess_spread'", [id(TWO), gameId]))[0]?.ref;
   const begins = () => f.results('gtl_begin_submission_odds_collection').length;
-  // The backup book (D-74 proposal) is missing too, so nothing can stand in.
+  // The backup book (D-74) is missing too, so nothing can stand in.
   f.api.missing.add('fanduel'); f.api.missing.add('betrivers');
 
   // No week 7 snapshot yet, so nothing shows the gap: the first lock-in collects once, and that reply has no FanDuel.
@@ -681,7 +681,7 @@ test('a selected book missing from the newest snapshot for every game a lock-in 
   assert.equal(f.api.of('odds').length, paid);
 });
 
-// D-74 proposal (November 3, 2026, a draft; needs M-39): with FanDuel missing from every reply, BetRivers stands in, so a
+// D-74 (November 3, 2026; needs M-39): with FanDuel missing from every reply, BetRivers stands in, so a
 // lock-in's refresh makes a three-book line again instead of saving the morning's line. The deployed handler, the
 // provider adapter and every migration (with M-39) run here.
 test('D-74 draft: FanDuel missing, BetRivers stands in: the lock-in collects once and saves a fresh three-book line naming BetRivers', { skip }, async t => {

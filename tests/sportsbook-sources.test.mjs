@@ -93,7 +93,7 @@ test('a first line after submission shows when collected after the save, also wi
   assert(pending.quotes.slice(0, 3).every(q => q.reason === 'Waiting for the first line collected after this guess.'));
 });
 
-// D-74 proposal (November 3, 2026, a draft): BetRivers stands in for a required book the provider could not quote.
+// D-74 (November 3, 2026): BetRivers stands in for a required book the provider could not quote.
 test('a BetRivers stand-in shows as an included book, the book it replaced stays listed as missing, and the median uses the three included', () => {
   const standIn = (id, stamp) => {
     const s = snapshot(id, stamp, 'spread', [-3, -3.5, -4]), m = s.payload.games[0].markets.spread;

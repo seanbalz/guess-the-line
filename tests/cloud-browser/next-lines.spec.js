@@ -1163,7 +1163,7 @@ test('game market details preserve saved references, gate quotes and show record
   } finally { await world.db.close(); }
 });
 
-// D-74 proposal (November 3, 2026, a draft; needs M-39): FanDuel missing from the reply and BetRivers standing in. The
+// D-74 (November 3, 2026; needs M-39): FanDuel missing from the reply and BetRivers standing in. The
 // game's book lines name BetRivers, the line still says three books, and the phone rules and axe hold in both themes.
 // The screenshots are the mockups Sean reviews before any release.
 test('D-74 draft: a BetRivers stand-in shows by name and says "Standing in for FanDuel" in the game book lines, with three books', async ({ page, baseURL }, testInfo) => {

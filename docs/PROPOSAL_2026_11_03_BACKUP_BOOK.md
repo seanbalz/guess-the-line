@@ -1,7 +1,8 @@
-# Proposal card: BetRivers as a backup book (D-74, M-39) — November 3, 2026
+# Release card: BetRivers as a backup book (D-74, M-39) — November 3, 2026
 
-**Status: draft.** Sean, November 3, 2026: "Draft it, don't ship". Nothing here is approved, merged, applied or deployed.
-[D-74](DECISIONS.md) records the proposal; it is not a decision yet.
+**Status: approved, rolling out.** Sean, November 3, 2026: "Draft it, don't ship", then "Add the label", then "Ship D-74
+now". [D-74](DECISIONS.md) is the decision. The order is M-39 by Gate M, then `api`, then `odds-refresh`; each step is
+recorded below as it lands.
 
 ## Why
 
@@ -13,7 +14,7 @@ stops saves spending credits in that state.
 The provider still lists FanDuel as a US book. Its docs say a bookmaker "might disappear from the API response"
 occasionally, so the gap may close by itself; the November 4 06:15 UTC run will show.
 
-## The proposal
+## The change
 
 - **One request, same cost:**
   - The provider adapter (`cloud/odds-provider.mjs`) asks for `draftkings,fanduel,betmgm,betrivers`. The provider counts
@@ -44,13 +45,13 @@ occasionally, so the gap may close by itself; the November 4 06:15 UTC run will 
   - Challenge selections, Virtual Units and the frozen spread benchmark keep the three books.
   - EPL keeps its own three books.
 
-## Open questions for Sean
+## Questions Sean settled
 
-1. **Rule:** may a backup book stand in for a missing one? That is D-74 itself.
-2. **Which backup:** BetRivers is the one free US book already allowed in the adapter. Caesars (`williamhill_us`) and
+1. **Rule:** may a backup book stand in for a missing one? Yes ("Ship D-74 now").
+2. **Which backup:** BetRivers, the one free US book already allowed in the adapter. Caesars (`williamhill_us`) and
    Fanatics are listed by the provider but not allowed by the adapter, and Caesars is marked unavailable on the current plan.
-3. **Mockups:** phone mockups of the Lines sheet are in `design/backup-book-2026-11-03/`, with the label Sean asked for.
-   They wait for his OK, like every visible change.
+3. **Mockups:** phone mockups of the Lines sheet are in `design/backup-book-2026-11-03/`. Sean asked for the label after
+   seeing them, then said "Ship D-74 now".
 
 ## Not verified (needs a real collection)
 
@@ -58,7 +59,7 @@ occasionally, so the gap may close by itself; the November 4 06:15 UTC run will 
   stand in often. The first collection after release will show, at no extra credits.
 - **Cost:** that four named books bill two credits. It is the provider's documented rule, not yet seen in a reply.
 
-## Release, if approved
+## Release
 
 1. **M-39 by Gate M** (Sean's SQL editor). Pre-check md5s:
    - `gtl_line_from_snapshot` `a4c48626930c05b9d0a8ec2f70be0197`

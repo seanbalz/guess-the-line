@@ -1,6 +1,6 @@
-# BetRivers stand-in — phone mockups (D-74 proposal)
+# BetRivers stand-in — phone mockups (D-74)
 
-Owner: Sean Balsiger · November 3, 2026 · **Draft for review; nothing released.**
+Owner: Sean Balsiger · November 3, 2026 · **Approved with D-74 ("Add the label", then "Ship D-74 now").**
 
 These are screenshots of the real app (the Lines tab's game sheet, Total › Book lines) at 390 × 844. They were taken by
 the browser test `tests/cloud-browser/next-lines.spec.js` ("D-74 draft: a BetRivers stand-in shows by name…") against

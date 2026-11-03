@@ -15,7 +15,7 @@ const FREE_US_BOOKS = Object.freeze({
   betonlineag: 'BetOnline.ag', betus: 'BetUS', bovada: 'Bovada', lowvig: 'LowVig.ag', mybookieag: 'MyBookie.ag',
 });
 export const DEFAULT_ODDS_BOOKS = Object.freeze(['draftkings', 'fanduel', 'betmgm']);
-// D-74 proposal (November 3, 2026; a draft, not approved): asked for in the same request, which costs the same up to 10
+// D-74 (Sean, November 3, 2026: "Ship D-74 now"): asked for in the same request, which costs the same up to 10
 // named books, and used only in place of a selected book this reply could not quote for that game and market.
 export const DEFAULT_BACKUP_BOOKS = Object.freeze(['betrivers']);
 const ERRORS = {
@@ -131,7 +131,7 @@ function normalize(matches, books, backups, now) {
         const outcome = quoteFor(bookKey);
         if (outcome.quote) quotes.push(outcome.quote); else unavailable.push({ book: bookKey, reason: outcome.reason });
       }
-      // A backup book stands in, in order, for the selected books this reply could not quote (D-74 proposal). The missing
+      // A backup book stands in, in order, for the selected books this reply could not quote (D-74). The missing
       // book stays in `unavailable`; `standIns` says which book took its place.
       for (const bookKey of backups) {
         if (reason || quotes.length >= books.length) break;

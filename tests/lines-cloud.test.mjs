@@ -165,7 +165,7 @@ test('/lines/game projection: books, prices, movement and the kickoff line only 
   assert.throws(() => projectGameLines({ game: null }), /Invalid game lines reply/);
 });
 
-// D-74 proposal (November 3, 2026, a draft; Sean: "Add the label"): BetRivers standing in for a selected book carries
+// D-74 (November 3, 2026; Sean: "Add the label"): BetRivers standing in for a selected book carries
 // that book's name; nothing else can claim a stand-in.
 test('/lines/game projection: a BetRivers stand-in names the book it replaced; no other book or unknown book can', () => {
   const book = (key, standInFor) => ({ book: key, line: -3.5, prices: { home: -110, away: -110 }, observedAt: T, ...(standInFor === undefined ? {} : { standInFor }) });

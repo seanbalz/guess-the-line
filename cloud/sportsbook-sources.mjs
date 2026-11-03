@@ -2,7 +2,7 @@
 // recomputed by the browser, and later observations never replace a saved receipt.
 const BOOKS = { draftkings: 'DraftKings', fanduel: 'FanDuel', betmgm: 'BetMGM', betrivers: 'BetRivers' };
 const REQUIRED = ['draftkings', 'fanduel', 'betmgm'];
-// D-74 proposal (a draft, not approved): a backup book may stand in for one required book the provider could not quote.
+// D-74 (November 3, 2026): a backup book may stand in for one required book the provider could not quote.
 const BACKUPS = ['betrivers'];
 const FRESH_MS = 5 * 60_000;
 const time = value => typeof value === 'string' ? Date.parse(value) : NaN;

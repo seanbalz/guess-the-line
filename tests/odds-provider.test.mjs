@@ -37,7 +37,7 @@ test('one free preflight then one bounded NFL spreads+totals US request for all 
   assert.equal(odds.url.pathname,'/v4/sports/americanfootball_nfl/odds');
   assert.equal(odds.url.searchParams.get('regions'),'us');
   assert.equal(odds.url.searchParams.get('markets'),'spreads,totals');
-  // D-74 proposal: the backup book rides in the same request; up to 10 named books cost one region (still 2 credits).
+  // D-74: the backup book rides in the same request; up to 10 named books cost one region (still 2 credits).
   assert.equal(odds.url.searchParams.get('bookmakers'),'draftkings,fanduel,betmgm,betrivers');
   assert.equal(odds.url.searchParams.get('oddsFormat'),'american');
   assert.equal(odds.url.searchParams.get('dateFormat'),'iso');
@@ -288,7 +288,7 @@ test('stage 22 (M-05): a team may appear twice only in games two days apart; a r
   assert.equal(calls,1);
 });
 
-// D-74 proposal (November 3, 2026, a draft): at 18:15 UTC the reply had no FanDuel prices for any game, so no three-book
+// D-74 (November 3, 2026): at 18:15 UTC the reply had no FanDuel prices for any game, so no three-book
 // line could be made. BetRivers, asked for in the same request, stands in only for a selected book this reply could not
 // quote, game by game and market by market.
 test('a backup book stands in only for a selected book the reply could not quote, and is recorded as a stand-in',async()=>{

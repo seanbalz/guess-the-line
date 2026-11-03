@@ -217,7 +217,7 @@ export async function createCommunityWorld({ deadline = openDeadline(), games = 
  * /virtual-units has named-book quotes. lines: { spread: { gameId: line }, total: { gameId: line } }, home spread and total.
  * Returns the quotes' observation time, which a /virtual-pick body sends back as quotedAt.
  */
-// standIn (D-74 proposal, a draft): FanDuel absent and BetRivers standing in for it, as the provider adapter records it.
+// standIn (D-74): FanDuel absent and BetRivers standing in for it, as the provider adapter records it.
 export async function storeBookLines(world, lines, { capturedAt = Date.now() - 60_000, standIn = false } = {}) {
   const { db, state } = world, { season, week } = state.league;
   const at = new Date(capturedAt).toISOString(), observed = new Date(capturedAt - 1000).toISOString();

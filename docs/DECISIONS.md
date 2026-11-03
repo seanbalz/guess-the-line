@@ -1,29 +1,25 @@
 # Decision log
 
-## D-74 — PROPOSAL, not decided: BetRivers stands in when a selected book is missing (November 3, 2026)
+## D-74 — BetRivers stands in when a selected book is missing (November 3, 2026)
 
-**Status:** a draft Sean asked for ("Draft it, don't ship"). Nothing here is approved, merged, applied or deployed.
-See the [proposal card](PROPOSAL_2026_11_03_BACKUP_BOOK.md).
+Sean, November 3, 2026: "Draft it, don't ship", then "Add the label" after seeing the phone mockups, then "Ship D-74 now".
+See the [card](PROPOSAL_2026_11_03_BACKUP_BOOK.md) and the [mockups](../design/backup-book-2026-11-03/README.md).
 
 At 18:15 UTC on November 3 the provider sent no FanDuel prices for any of the 15 games. A saved line needs three books, so
-no new line can be made while FanDuel is missing.
+no new line could be made while FanDuel was missing.
 
-- **Proposed rule:** the line stays a three-book median.
-  - BetRivers can stand in for one selected book (DraftKings, FanDuel or BetMGM) that the provider's reply could not
-    quote. This is game by game and market by market, with the same checks as the other books.
+- **Rule:** the line stays a three-book median.
+  - BetRivers stands in for one selected book (DraftKings, FanDuel or BetMGM) that the provider's reply could not quote.
+    This is game by game and market by market, with the same checks as the other books.
   - It never replaces a book that was quoted. BetRivers is asked for in the same request, at no extra credits.
-- **Shown:** BetRivers is named wherever it stood in. In the game sheet it says "Standing in for FanDuel" (Sean: "Add
-  the label"), and the revealed sources table lists the missing book as missing.
+- **Shown:** BetRivers is named wherever it stood in. In the game sheet it says "Standing in for FanDuel", and the revealed
+  sources table lists the missing book as missing.
 - **Unchanged:**
   - lines already saved (D-16, D-23);
   - Challenge selections, Virtual Units and the frozen spread benchmark;
   - every free limit.
-- **Needs:**
-  - Sean's decision on the rule and on BetRivers as the backup;
-  - Sean's OK on the phone mockups ([design/backup-book-2026-11-03](../design/backup-book-2026-11-03/README.md));
-  - M-39 by Gate M;
-  - the `api` release;
-  - an `odds-refresh` release (the shared workflow target since November 3, `gtl-odds-refresh` v7).
+- **Release:** M-39 by Gate M (Sean's Chrome SQL editor), then the `api` release, then an `odds-refresh` release. Each
+  release is approved by Sean in GitHub.
 
 ## Pick a Team backups at the turn — November 3, 2026
 

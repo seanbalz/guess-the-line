@@ -1,6 +1,6 @@
--- M-39 DRAFT (board item 40, D-74 proposal; not approved, not applied). BetRivers as a backup book.
+-- M-39 (board item 40, D-74). BetRivers as a backup book.
 --
--- Sean, November 3, 2026: "Draft it, don't ship". At 18:15 UTC that day the provider sent no FanDuel prices for any of
+-- Sean, November 3, 2026: "Draft it, don't ship", "Add the label", then "Ship D-74 now". At 18:15 UTC that day the provider sent no FanDuel prices for any of
 -- the 15 games, and a saved line needs three books, so no new line could be made. The provider adapter now also asks
 -- for BetRivers (`betrivers`) in the same request (up to 10 named books cost one region, so still two credits) and,
 -- per game and market, puts BetRivers in only for a selected book (DraftKings, FanDuel, BetMGM) it could not quote.
