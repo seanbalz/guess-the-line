@@ -45,9 +45,8 @@ entrances (`ui/Nest.jsx`) and the 160 ms tab fade, with the bars never moving;
 `tap` and `win` vibration that reduced motion stops; `ui/Skeleton.jsx`
 placeholders in place of the "Loading" text; and the brand guide's moments
 and nesting rules. Follow-ups: reset `usePopped` before step 1; the tab fade
-stays on once it starts; a tab change into a Nest moves twice; the old app's
-AuthGate spinner; and calling the account-boundary forget from AuthGate, which
-needs an import the app-boundary test does not allow yet.
+stays on once it starts; a tab change into a Nest moves twice; and the old app's
+AuthGate spinner.
 
 ## Pick reminders follow-ups from the #411 review — November 2, 2026
 
