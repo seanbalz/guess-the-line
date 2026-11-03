@@ -23,7 +23,7 @@ between 18:16 UTC and the deploy of D-71. Local checks pass:
 - a PGlite run of the deployed handler;
 - two mutation checks.
 
-**Not deployed** (`api` target, Sean's approval). See the [release card](RELEASE_2026_11_03_BOOK_OUTAGE.md).
+**Deployed** November 3, 19:36 UTC as `gtl-api` v47 from `2c0c18b7` (release run 41704220392). See the [release card](RELEASE_2026_11_03_BOOK_OUTAGE.md).
 
 ## Lock-in refresh, D-71 — November 3, 2026
 

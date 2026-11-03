@@ -55,6 +55,21 @@ changes the three books.
   - no `gtl_submission_odds_intents` collection while the newest Week 9 snapshot lacks FanDuel;
   - the next scheduled run (November 4, 06:15 UTC) shows whether FanDuel is back.
 
+## Deployed
+
+- **Run:** [release run 41704220392](https://github.com/seanbalz/guess-the-line/actions/runs/41704220392), `deploy` · `api`
+  from `2c0c18b71fae57c5a425ad5c867e77d4a312f647`, with Sean's approval. Card:
+  [#447](https://github.com/seanbalz/guess-the-line/issues/447). Both jobs succeeded; the deploy finished at 19:36:41 UTC
+  on November 3.
+- **Why that commit:** #444 merged as `cce79f2a`, but its main Tests run was cancelled when #445 merged after it, and the
+  workflow needs green CI on the exact commit. #445 changes only docs and planning files, so `gtl-api` is the same.
+- **Hosted:** `gtl-api` v47, bundle `e45076a2d22cf9d9674ff6be31fc644555a52f659ba3d267cff87590c3acf472`, JWT verification
+  on.
+  - Migration history is unchanged at 74 rows, digest `4345486d…` (latest `20261103184656`, M-38).
+  - Signed-out calls to v47 got 401, as expected.
+- **Readback (read-only, 19:37 UTC):** no odds collection of any kind since the 18:15 scheduled run. The November 4
+  06:15 UTC run shows whether FanDuel is back.
+
 ## Evidence (local, executed)
 
 - `tests/odds-open-weeks-sql.test.mjs`, on PGlite with the deployed `gtl-api` handler, provider adapter and every
