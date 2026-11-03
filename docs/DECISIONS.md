@@ -250,6 +250,11 @@ is deployed: M-30 (`20261028190000_gtl_epl_pick_a_team.sql`) is written and **no
    Sean has added there. A tie goes to the lower Sleeper season total. MW9 is seeded by hand: order Nemo, Cullen, Adam, Sean, Evan, Mark,
    Steven, Darin; chat picks Man City, Aston Villa, Liverpool, Tottenham, Arsenal, Brentford, Newcastle (stored as
    source `seeded`), Darin to pick. From MW10 the order is automatic.
+   **November 2 correction:** Sean confirmed MW9's supplied Sleeper scores already
+   contain the bonus. Use those scores as shown, with no second bonus addition,
+   and raw Sleeper season totals for the tie-break. The erroneous extra GTL points
+   and MW10 order were corrected before any MW10 pick. This overrides the additive
+   assumption for MW9; future automated bonus-inclusion handling is not yet delivered.
 5. **Picking.** One club per manager per matchweek, on the manager's own turn. A club can be taken once. Any club with
    a match that matchweek can be picked. A pick can be changed until the next manager picks, then it is final. The last
    pick is final at the deadline. The board (who picked what, who is on the clock) is visible to the linked managers as

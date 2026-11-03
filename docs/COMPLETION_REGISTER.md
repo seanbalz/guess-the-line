@@ -159,6 +159,65 @@ passed, including 320/390/1440px and both themes. Release status and real-phone
 limits are recorded in [the delivery card](EPL_BONUS_ACCOUNTING_2026_11_02.md).
 API, frontend and EPL worker publication remains with the release captain.
 
+## EPL Week 9 results and weekly automation — November 2, 2026
+
+Owner: Sean Balsiger · Verified hosted data maintenance; no source deployment.
+Sean subsequently confirmed that the supplied Sleeper scores already include
+the bonuses. The initial settlement added them a second time; the live correction
+at `2026-11-02T23:48:45Z` is authoritative. MW10 was still open with zero picks
+and queues. Under the week-row lock, its order was recomputed from the saved
+weekly deltas alone, with raw Sleeper season totals breaking ties. The three
+duplicate GTL additions are now zero; the bonus rows/margins remain, and their
+previous values and both orders are retained in the original settlement run's
+private `detail.commissionerBonusCorrection` audit. All picks and snapshots were
+hash-verified unchanged. The first-kickoff deadline is unchanged.
+
+The existing automation assumes bonuses are absent from Sleeper and adds them
+in GTL. That assumption is wrong for MW9; automatic bonus-accounting support
+needs its own source fix and release before it can be claimed correct for
+future commissioner-adjusted weeks. No bonus-inclusion detection is connected.
+
+The supplied FEPL screenshot agrees with all eight weekly points-for and
+points-against deltas from the stored `after-mw08` baseline to a fresh public
+Sleeper capture at `2026-11-02T23:28:21Z` (season 2026, state week 10). The six
+responses retain their raw-body SHA-256 provenance; only the existing trimmed
+form was saved through `gtl_epl_save_snapshot` as `after-mw9`. Raw captures and
+individual player data remain outside this public repository.
+
+An ordinary `gtl_epl_dispatch_jobs('settle')` run
+`13cbd5e0-7c97-4709-93a9-080c8a64ab16` collected the tenth final fixture and
+correctly stopped at `snapshot_pending` before the import. All ten fixtures are
+now final. The existing eight picks retain digest
+`f6d56eb4181d8d0430b7b4f4af97335e`; all seven earlier snapshots retain digest
+`0deee1439cb6851753964334187bb079` (MD5 of ordered complete row JSON).
+
+Live schedule/cron readback confirms seven enabled jobs. Snapshots run every
+15 minutes; settlement runs at 09:41 and 21:41 UTC; fixture collection at
+05:47 and 17:47 UTC; draft deadline resolution every five minutes. Reuse these
+jobs rather than adding a duplicate ChatGPT automation. M-33/M-35 correction
+and verified capture-interval RPCs are still absent: the current worker reports
+those optional capabilities unavailable and uses its legacy window-end path.
+This maintenance does not apply migrations, change cron, or establish future
+Tuesday correction/full-cycle acceptance.
+
+Settlement run `8b87b1b7-0ff9-4700-8427-fd3e08d432ed` succeeded after the import:
+three tied winning-margin additions were initially written and MW10 opened
+using the existing scoring/order functions. Those additions duplicated points
+already in Sleeper and were corrected as described above. MW9 is settled; its
+eight picks retain the same digest. The final draft order uses the supplied
+scores as shown and the season-total tie-break. Individual scores/picks were
+verified privately, not committed here.
+
+Fixture run `36d05e98-a65c-42eb-a07c-2b004d270a7d` then succeeded: ten MW10
+fixtures and twenty median h2h prices were stored, no unknown clubs, 485 free
+credits remaining. The real first kickoff moved the draft deadline to
+`2026-11-06T20:00:00Z` (November 6, noon Pacific). All earlier snapshots still
+match their preservation digest. MW10 is open with a usable fixture slate.
+
+Local verification: all 53 existing Sleeper math/job tests and the document
+brand check passed. Hosted readback confirmed the imported label/state and
+unchanged preservation digests; browser/phone acceptance remains separate.
+
 ## My bets spacing and entry follow-up — November 2, 2026
 
 Sean's screenshot reproduced a legacy CSS override that removed the card gap.
