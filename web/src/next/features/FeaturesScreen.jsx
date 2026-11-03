@@ -13,6 +13,7 @@ import { earnedText } from './model.js';
 import { AwardRows } from './AwardRows.jsx';
 import { useFeatures } from './useFeatures.js';
 import './features.css';
+import { useMomentScope } from '../moments/MomentsProvider.jsx';
 
 export const FEATURES_COPY = Object.freeze({
   title: 'Badges and awards',
@@ -85,6 +86,7 @@ function Shelf({ shelf, onOpen }) {
 }
 
 export function FeaturesScreen() {
+  useMomentScope('features');
   const app = useAppData(), shell = useShell();
   const features = useFeatures(app, shell);
   const { model } = features;

@@ -22,6 +22,7 @@ import { CountUp } from './CountUp.jsx';
 import { HERO_COPY, heroHeadline } from './homeModel.js';
 import { useSavedTrends } from '../trends/builderData.js';
 import './home.css';
+import { useMomentScope } from '../moments/MomentsProvider.jsx';
 
 // Loaded only when this device has saved trends, so Home never pulls in the week reads otherwise.
 const SavedTrendsHomeRow = lazy(() => import('../trends/SavedTrendsSummary.jsx').then(m => ({ default: m.SavedTrendsHomeRow })));
@@ -155,6 +156,7 @@ function WhosIn({ who, league, onBoard, onInvite }) {
 }
 
 export function Home() {
+  useMomentScope('home');
   const shell = useShell();
   const { app, community } = useHomeData();
   const data = community.data ?? null;

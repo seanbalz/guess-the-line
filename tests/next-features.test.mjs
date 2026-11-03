@@ -73,14 +73,18 @@ test('the shelf: earned badges rarest first with counts and dated lines; the res
   assert.equal(M.earnedText(1), 'Earned once'); assert.equal(M.earnedText(3), 'Earned 3 times'); assert.equal(M.earnedText(0), 'Not earned yet');
 });
 
-test('celebrations: only what is new since the session\'s last read, only the viewer\'s, never on the first read', () => {
-  const before = { ...REPLY, badges: REPLY.badges.slice(0, 1), awards: REPLY.awards.slice(0, 1) };
-  const items = M.newCelebrations(before, REPLY, YOU);
-  assert.deepEqual(items.map(i => [i.kind, i.title]), [['badge', 'Double Bullseye'], ['badge', 'Bullseye'], ['award', 'Spread winner'], ['award', 'Best guess']], 'badges oldest first, then awards');
-  assert.ok(items.every(i => typeof i.icon === 'string' && i.icon.length > 10));
+test('celebrations: every badge and award of the viewer is a moment candidate, oldest badge first; never another player\'s', () => {
+  const items = M.featureMoments(REPLY, YOU);
+  const mine = items.map(i => [i.kind, i.title]);
+  assert.deepEqual(mine.filter(([k]) => k === 'award').map(([, t]) => t), ['Spread winner', 'Best guess'], 'the viewer\'s awards only');
+  assert.ok(mine.some(([k, t]) => k === 'badge' && t === 'Double Bullseye'));
   assert.ok(!items.some(i => i.title === 'Sharp'), 'another player\'s badge is not your celebration');
-  assert.deepEqual(M.newCelebrations(REPLY, REPLY, YOU), [], 'nothing new');
-  assert.deepEqual(M.newCelebrations(null, REPLY, YOU), [], 'the first read sets the baseline');
+  assert.ok(items.every(i => typeof i.icon === 'string' && i.icon.length > 10));
+  assert.ok(items.every(i => /^(badge|award):/.test(i.id)), 'stable ids: the seen record matches them across reads');
+  assert.deepEqual(items[0].scopes, M.FEATURE_SCOPES);
+  assert.deepEqual(M.FEATURE_SCOPES, ['features', 'home', 'league', 'play']);
+  assert.deepEqual(M.featureMoments(null, YOU), []);
+  assert.equal(M.newCelebrations, undefined, 'the per-session baseline is gone (D-69: results from while you were away are not lost)');
 });
 
 test('every badge and award has an original one-path icon; no emoji, logos or sample names in the feature screens', () => {
