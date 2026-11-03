@@ -58,9 +58,10 @@ function slates(now, monday) {
 
 // The Odds API V4 as cloud/odds-provider.mjs calls it, answering from the games it is given: /events is free and lists
 // every game in the requested window; /odds reports two credits (two markets, one region) however many event ids it
-// names. `priced` decides which games have three books posted. Synthetic lines only.
+// names. `priced` decides which games have three books posted; a book in `missing` is left out of every reply (FanDuel,
+// November 3, 2026). Synthetic lines only.
 function oddsApi(games, { priced = () => true } = {}) {
-  const requests = []; let remaining = 480, used = 20;
+  const requests = [], missing = new Set(); let remaining = 480, used = 20;
   const event = g => ({ id: `evt_${g.id}`, sport_key: 'americanfootball_nfl', sport_title: 'NFL', home_team: g.home, away_team: g.away, commence_time: iso(Date.parse(g.kickoff)) });
   const reply = (data, last) => { remaining -= last; used += last; return Response.json(data, { headers: { 'x-requests-remaining': String(remaining), 'x-requests-used': String(used), 'x-requests-last': String(last) } }); };
   const fetchImpl = async url => {
@@ -73,13 +74,13 @@ function oddsApi(games, { priced = () => true } = {}) {
     const ids = u.searchParams.get('eventIds').split(','), stamp = iso(Date.now() - 30_000);
     return reply(all.filter(g => ids.includes(`evt_${g.id}`)).map(g => {
       const e = event(g), { spread, total } = g.line || OTHER_LINE;
-      return { ...e, bookmakers: !priced(g) ? [] : BOOKS.map(key => ({ key, title: key, last_update: stamp, markets: [
+      return { ...e, bookmakers: !priced(g) ? [] : BOOKS.filter(key => !missing.has(key)).map(key => ({ key, title: key, last_update: stamp, markets: [
         { key: 'spreads', last_update: stamp, outcomes: [{ name: g.home, price: -110, point: spread }, { name: g.away, price: -110, point: -spread }] },
         { key: 'totals', last_update: stamp, outcomes: [{ name: 'Over', price: -110, point: total }, { name: 'Under', price: -110, point: total }] }] })) };
     }), 2);
   };
   const of = name => requests.filter(u => u.pathname.endsWith(`/${name}`));
-  return { requests, fetchImpl, of, provider: () => createOddsProvider({ apiKey: 'fixture-key-not-a-real-key', fetchImpl }) };
+  return { requests, missing, fetchImpl, of, provider: () => createOddsProvider({ apiKey: 'fixture-key-not-a-real-key', fetchImpl }) };
 }
 
 async function fixture(t, { files = ALL, monday = 2 * HOUR, now, priced } = {}) {
@@ -121,8 +122,17 @@ async function fixture(t, { files = ALL, monday = 2 * HOUR, now, priced } = {}) 
   const signature = async n => (await q('select signature from public.gtl_weekly_slates where season=2026 and week=$1', [n]))[0].signature;
   const api = oddsApi(() => [...week.last.games, ...week.next.games], { priced });
   // gtl-odds-refresh exactly as deployed: the scheduled adapter's REST calls are answered by this database.
+  const tableReads = [];
   const rest = async (url, options = {}) => {
-    const name = /^\/rest\/v1\/rpc\/(gtl_[a-z_]+)$/.exec(new URL(url).pathname)?.[1];
+    const u = new URL(url);
+    if (u.pathname === '/rest/v1/gtl_market_snapshots') {
+      // gtl-api's one table read (latestSnapshot): what PostgREST answers for exactly this query, from this database.
+      const p = u.searchParams; tableReads.push(u);
+      assert.deepEqual([p.get('select'), p.get('order'), p.get('limit')], ['games:payload->games,books:payload->selectedBooks', 'created_at.desc,id.desc', '1']);
+      const [season, week] = ['season', 'week'].map(key => Number(/^eq\.(\d+)$/.exec(p.get(key))[1]));
+      return Response.json((await as('service_role', "select payload->'games' games,payload->'selectedBooks' books from public.gtl_market_snapshots where season=$1 and week=$2 order by created_at desc,id desc limit 1", [season, week])).rows);
+    }
+    const name = /^\/rest\/v1\/rpc\/(gtl_[a-z_]+)$/.exec(u.pathname)?.[1];
     if (!name) return Response.json({ message: 'unexpected request' }, { status: 404 });
     try { return Response.json(await rpc(name, JSON.parse(options.body))); }
     catch (error) { return Response.json({ message: error.message }, { status: 400 }); }
@@ -166,7 +176,7 @@ async function fixture(t, { files = ALL, monday = 2 * HOUR, now, priced } = {}) 
     return call(who, '/personal/ballot', { season: 2026, week: n, mode: 'guess_spread', weeklyRevision: view.weeklyRevision, picks, submit, requestId: crypto.randomUUID(), revision: view.revision,
       ...(lockIn === undefined ? {} : { lockIn }) });
   };
-  return { db, as, rpc, q, log, results, week, signature, api, run, claim, resetRuns, cooldownPassed, budget, collections, snapshots, call, save };
+  return { db, as, rpc, q, log, results, week, signature, api, run, claim, resetRuns, cooldownPassed, budget, collections, snapshots, call, save, tableReads };
 }
 
 const ids = games => games.map(g => g.gameId ?? g.id);
@@ -625,4 +635,47 @@ test('D-71: a lock-in refreshes a missing or stale line first and saves the fres
   assert.equal(res.status, 200, JSON.stringify(res.body));
   assert.equal(f.results('gtl_preflight_submission').at(-1).result.requiresReferences, false);
   assert.equal(f.api.of('odds').length, 1);
+});
+
+// Sean, November 3, 2026: "do not waste credits". At 18:15 UTC that day the provider's reply had no FanDuel prices for any
+// of the 15 games, and a saved line needs all three books, so every D-71 refresh after it would have spent two credits for
+// nothing. Once the newest stored snapshot of the week has a selected book missing for every game a lock-in needs, the
+// lock-in skips the collection and still saves; the scheduled run keeps collecting, and once it sees the book again the
+// saves get its line.
+test('a selected book missing from the newest snapshot for every game a lock-in needs: the lock-in spends nothing and still saves', { skip }, async t => {
+  const f = await fixture(t);
+  const [a, b, c] = f.week.next.games.slice(1, 4).map(g => g.id);
+  const reference = async gameId => (await f.q("select ballot->'scoringReferences'->$2 ref from public.gtl_weekly_ballots where user_id=$1 and season=2026 and week=7 and mode='guess_spread'", [id(TWO), gameId]))[0]?.ref;
+  const begins = () => f.results('gtl_begin_submission_odds_collection').length;
+  f.api.missing.add('fanduel');
+
+  // No week 7 snapshot yet, so nothing shows the gap: the first lock-in collects once, and that reply has no FanDuel.
+  let res = await f.save(TWO, 7, { [a]: -3 }, false, [a]);
+  assert.equal(res.status, 200, JSON.stringify(res.body));
+  assert.equal(f.api.of('odds').length, 1);
+  const [stored] = (await f.snapshots()).filter(s => s.week === 7);
+  assert.deepEqual(stored.payload.games.find(g => g.gameId === b).markets.spread.unavailable, [{ book: 'fanduel', reason: 'book_missing' }]);
+  assert.notEqual((await reference(a))?.status, 'available', 'two books are not a saved line');
+
+  // Past the cooldown the next lock-in still finds no line under five minutes old, but the newest snapshot shows FanDuel
+  // missing for its game: no collection is begun, no credit is spent, and the save goes through (D-27).
+  await f.cooldownPassed();
+  const [before, events] = [begins(), f.api.of('events').length];
+  res = await f.save(TWO, 7, { [a]: -3, [b]: -2.5 }, false, [b]);
+  assert.equal(res.status, 200, JSON.stringify(res.body));
+  assert.deepEqual([f.results('gtl_preflight_submission').at(-1).result.requiresReferences, f.results('gtl_preflight_submission').at(-1).result.ready], [true, false]);
+  assert.equal(f.tableReads.length, 2, 'one snapshot read per lock-in that needed a refresh');
+  assert.equal(begins(), before, 'no collection begun');
+  assert.equal(f.api.of('odds').length, 1, 'no second provider request');
+  assert.equal(f.api.of('events').length, events, 'not even the free event check');
+
+  // FanDuel is back and the scheduled run collects all three books: the next lock-in saves that line and spends nothing.
+  f.api.missing.clear();
+  await f.cooldownPassed();
+  assert.equal((await f.run()).status, 200);
+  const paid = f.api.of('odds').length;
+  res = await f.save(TWO, 7, { [a]: -3, [b]: -2.5, [c]: -1 }, false, [c]);
+  assert.equal(res.status, 200, JSON.stringify(res.body));
+  assert.equal((await reference(c)).status, 'available');
+  assert.equal(f.api.of('odds').length, paid);
 });

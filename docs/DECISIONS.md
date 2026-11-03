@@ -21,6 +21,14 @@ other was to keep lock-ins as they were and add scheduled runs before deadlines.
 - **Scope:** `gtl-api` only. The intent check `gtl_submission_intent_context` has counted newly locked games as changed
   guesses since M-07 (October 15), so no migration is needed. Lines already saved keep their recorded age; nothing is
   backfilled (D-16, D-23).
+- **Addendum, November 3, 2026 (Sean: "do not waste credits. correct this asap"):**
+  - The 18:15 UTC scheduled run's reply had no FanDuel prices for any of the 15 games. A saved line needs all three
+    selected books, so each refresh after it would have spent two credits for nothing.
+  - So a save (lock-in or send) first reads the newest stored snapshot of its week. If a selected book was missing from
+    the provider's reply (`book_missing`) for every game it needs that has not kicked off, it skips the collection.
+  - It still saves the newest qualifying stored line or the D-27 pending reference.
+  - The scheduled runs still collect twice a day. Once one sees the book again, saves refresh as before.
+  - A game missing only a stale market, or any snapshot that cannot be read, keeps the refresh. `gtl-api` only.
 
 ## D-70 — Play › Your guesses becomes nesting cards: the week, then one game (November 2, 2026)
 

@@ -51,6 +51,16 @@ fresh. Nothing on screen changes, so there are no mockups.
   - the next lock-in with a stale line writes a `gtl_submission_odds_intents` row and a two-credit collection;
   - lines saved afterwards have a median age under five minutes while the cap allows.
 
+## Deployed
+
+- **Run:** [release run 41696516851](https://github.com/seanbalz/guess-the-line/actions/runs/41696516851), `deploy` · `api`
+  from `ff7b27f5b7e727db6012dd5198dec8bc8b37e970` (#439's merge commit), card
+  [#442](https://github.com/seanbalz/guess-the-line/issues/442). Both jobs succeeded at 18:47 UTC on November 3.
+- **Hosted:** `gtl-api` v46, bundle `de7d9ca5ddec66164f530825e81cad5b83e27f5bb25ab4e471302e5b6550e050`, JWT verification on.
+  Migration history unchanged at deploy (73 rows, `e3f8d255…`).
+- **Readback (read-only):** no collection ran between 18:16 UTC and the deploy. The 18:15 run's reply had no FanDuel
+  prices, which [the November 3 addendum](RELEASE_2026_11_03_BOOK_OUTAGE.md) answers.
+
 ## Evidence (local, executed)
 
 - `tests/odds-open-weeks-sql.test.mjs`, D-71. This runs on PGlite with the deployed `gtl-api` handler, provider adapter

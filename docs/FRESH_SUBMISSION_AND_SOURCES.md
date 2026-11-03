@@ -27,6 +27,12 @@ D-71 (November 3, 2026): a per-game lock-in, the new app's save, gets the same r
 (October 14) until D-71 a lock-in skipped it and saved the newest scheduled line, often hours old; those references
 keep their recorded age.
 
+November 3, 2026 (D-71 addendum, "do not waste credits"): a save skips the collection when the newest stored snapshot of
+its week has a selected book missing from the provider's reply (`book_missing`) for every game it needs that has not
+kicked off. A collection then could not make a three-book line. The save still keeps the newest qualifying stored line or
+the pending reference. The twice-daily scheduled runs keep collecting, and once one sees the book again saves refresh as
+before (`selectedBookMissing` in `cloud/submission-odds.mjs`).
+
 The database repeats the checks atomically when saving. Access, the exact slate,
 deadline, kickoff locks, current revision and complete valid ballot must qualify
 before collection can reserve quota and again at the save. Membership or revision changes during collection prevent that

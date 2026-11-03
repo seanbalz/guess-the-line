@@ -12,13 +12,26 @@ worker suite with an end-to-end run, the release-target contract and migration/r
 `# skipped 0`. M-38 is **applied and verified** as hosted `20261103184656` (Sean's "apply M-38", SQL editor, November 3): 7 functions with the reviewed grants, 3 empty RLS tables, history unchanged before it. `gtl-ops-alerts` is **not deployed**, no schedule
 row or cron exists. See the [release card](RELEASE_2026_11_03_OPS_ALERTS_M38.md).
 
+## No refresh while a selected book is missing — November 3, 2026
+
+Sean: "do not waste credits. correct this asap". The 18:15 UTC scheduled run's reply had no FanDuel prices for any of the
+15 games. A saved line needs all three books, so after D-71 each lock-in refresh would have spent two credits for
+nothing. `gtl-api` now skips the collection when the newest stored snapshot of the week has a selected book missing for
+every game the save needs. The save still goes through (D-27), and the scheduled runs keep checking. No collection ran
+between 18:16 UTC and the deploy of D-71. Local checks pass:
+- all 2,751 node tests, apart from one research-intake check that is Windows-only (POSIX file modes);
+- a PGlite run of the deployed handler;
+- two mutation checks.
+
+**Not deployed** (`api` target, Sean's approval). See the [release card](RELEASE_2026_11_03_BOOK_OUTAGE.md).
+
 ## Lock-in refresh, D-71 — November 3, 2026
 
 Sean chose "Refresh on lock-in" ([D-71](DECISIONS.md)). Since redesign stage 18 a per-game lock-in skipped the D-17
 refresh. The new app saves by lock-in, so lines saved with guesses had a median age of 6.9 hours in Week 8, against 68
 seconds in Week 7. `gtl-api` now sends lock-ins through the same refresh; the hosted SQL already accepted them (M-07).
-Local checks pass, including a PGlite run of the deployed handler and mutation checks. **Not deployed** (`api` target,
-Sean's approval); see the [release card](RELEASE_2026_11_03_LOCKIN_REFRESH.md).
+Local checks pass, including a PGlite run of the deployed handler and mutation checks. **Deployed** November 3, 18:47 UTC:
+`gtl-api` v46 from `ff7b27f5` (release run 41696516851); see the [release card](RELEASE_2026_11_03_LOCKIN_REFRESH.md).
 
 ## Odds refresh fixes, M-37 — November 3, 2026
 
