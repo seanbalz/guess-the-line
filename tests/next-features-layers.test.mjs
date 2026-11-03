@@ -4,6 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fragmentFor, placeFromFragment } from '../web/src/next/shell/router.js';
 import { initialState, reduce } from '../web/src/next/shell/state.js';
+import { BADGE_BY_ID } from '../shared/game-features/catalog.mjs';
 import * as L from '../web/src/next/features/layers.js';
 
 const MEMBER = '7f1c2d3e-0000-4000-8000-0123456789ab';
@@ -45,6 +46,19 @@ test('steps: opening a layer is one step; its lip and Back return to the first c
   assert.equal(reduce(state, { type: 'restore', place: { tab: 'play', view: { section: 'features' } } }).views.play.layer, undefined, 'a restored place names its own layer');
 });
 
+test('addresses: a member id the router cannot keep never makes an address; 80 characters round-trip within the 100-character limit', () => {
+  const longest = Object.keys(BADGE_BY_ID).reduce((a, b) => (b.length > a.length ? b : a));
+  const ok = 'm'.repeat(80), tooLong = 'm'.repeat(81);
+  const view = L.featuresView('badge', { badge: longest, member: ok });
+  assert.equal(view.item, `${longest}@${ok}`);
+  assert.ok(view.item.length <= 100, 'the item stays inside the router limit of 100 characters');
+  const place = placeFromFragment(fragmentFor('play', view)).view;
+  assert.deepEqual(L.featuresLayer(place), { layer: 'badge', badge: longest, member: ok }, 'the 80-character member reads back');
+  assert.deepEqual(L.featuresView('badge', { badge: longest, member: tooLong }), { section: 'features', layer: undefined, item: undefined }, '81 characters: no address');
+  assert.deepEqual(L.featuresView('badge', { badge: 'sharp', member: 'a b' }), { section: 'features', layer: undefined, item: undefined }, 'a member the router refuses: no address');
+  assert.deepEqual(L.featuresLayer({ layer: 'badge', item: `sharp@${tooLong}` }), { layer: 'top', badge: null, member: null });
+});
+
 const streak = (id, current, best) => ({ id, name: id === 'pick' ? 'Pick streak' : 'Bets streak', unit: id === 'pick' ? 'weeks' : 'wins', current, best });
 const row = (name, you) => ({ id: name, name, you });
 
@@ -53,6 +67,9 @@ test('words: the two tiles, the streak lines, the earlier weeks and the season r
   assert.equal(L.streakTile(streak('pick', 1, 1)).sub, 'Pick streak · week', 'one week is singular');
   assert.equal(L.streakLine(streak('pick', 4, 6)), 'Weeks you sent both ballots · Best 6');
   assert.equal(L.streakLine(streak('bets', 2, 3)), 'Bets won in a row · Best 3');
+  assert.deepEqual(L.streakTile(null), { big: '—', sub: 'Pick streak', ariaLabel: 'Your streaks: no streak yet' }, 'no streak read: a dash, never a throw or a sample');
+  assert.equal(L.streakLine({ id: 'nope', best: 2 }), '', 'an unknown streak id prints nothing');
+  assert.equal(L.streakLine(null), '');
   assert.equal(L.streakMeterLabel(streak('bets', 1, 3)), 'Bets streak, 1 win');
   assert.deepEqual(L.awardsTile({ week: 7, rows: [row('Spread winner', true), row('Bets winner', false), row('Best guess', true)] }),
     { label: 'Week 7 awards', big: '2', sub: 'You won Spread winner', tone: 'good', ariaLabel: 'Week 7 awards: you won Spread winner, Best guess' });

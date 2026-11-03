@@ -40,10 +40,12 @@ export function featuresLayer(view) {
 /**
  * The view that opens a layer: `shell.setView('play', featuresView('streaks'))` inside the page, or
  * `shell.go('play', featuresView('badge', { badge, member }))` from another one. Every key is set, so no older layer
- * address stays behind. Pass `member` only for another member's badge.
+ * address stays behind. Pass `member` only for another member's badge; a member id the router would refuse (MEMBER)
+ * opens the first card, so no address is ever made that a reload cannot read back.
  */
 export function featuresView(layer = null, { badge = null, member = null } = {}) {
-  const known = FEATURES_LAYERS.includes(layer) && (layer !== 'badge' || (typeof badge === 'string' && Object.hasOwn(BADGE_BY_ID, badge)));
+  const known = FEATURES_LAYERS.includes(layer) && (layer !== 'badge'
+    || (typeof badge === 'string' && Object.hasOwn(BADGE_BY_ID, badge) && (!member || (typeof member === 'string' && MEMBER.test(member)))));
   const item = known && layer === 'badge' ? (member ? `${badge}@${member}` : badge) : undefined;
   return { section: 'features', layer: known ? layer : undefined, item };
 }
@@ -52,12 +54,16 @@ const unitOf = (streak, n) => (n === 1 ? streak.unit.replace(/s$/, '') : streak.
 
 /** The "Your streaks" tile: the Pick streak's length, "Pick streak · weeks". */
 export function streakTile(streak) {
-  const n = streak?.current ?? 0;
+  if (!streak) return { big: DASH, sub: 'Pick streak', ariaLabel: `${FEATURES_COPY.streaks}: no streak yet` };
+  const n = streak.current ?? 0;
   return { big: String(n), sub: `${streak.name} · ${unitOf(streak, n)}`, ariaLabel: `${FEATURES_COPY.streaks}: ${streak.name}, ${n} ${unitOf(streak, n)}` };
 }
 
 /** One streak's line in its layer: the rule's first sentence and the best, "Weeks you sent both ballots · Best 6". */
-export const streakLine = streak => `${STREAK_BY_ID[streak.id].rule.split('. ')[0].replace(/\.$/, '')} · Best ${streak.best}`;
+export function streakLine(streak) {
+  const rule = STREAK_BY_ID[streak?.id]?.rule;
+  return rule ? `${rule.split('. ')[0].replace(/\.$/, '')} · Best ${streak.best}` : '';
+}
 
 /** The meter's name: "Pick streak, 4 weeks". */
 export const streakMeterLabel = streak => `${streak.name}, ${streak.current} ${unitOf(streak, streak.current)}`;
