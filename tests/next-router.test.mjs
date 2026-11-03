@@ -5,6 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { connectHistory, fragmentFor, isLegacyFragment, placeFromFragment, startPlace } from '../web/src/next/shell/router.js';
 import { EPL_ROUTER } from '../web/src/next/epl/shellRoute.js';
+import { leagueLayer } from '../web/src/next/league/leagueModel.js';
 import { initialState, layer, reduce } from '../web/src/next/shell/state.js';
 
 const tick = () => new Promise(resolve => setTimeout(resolve, 0));
@@ -384,5 +385,28 @@ test('D-69 Badges and awards: a shared badge link reopens it; each layer is one 
   assert.deepEqual([shell.state.views.play.layer, shell.state.views.play.item], ['badge', 'sharp@u-troy']);
   away.history.back(); await settle();
   assert.equal(shell.state.views.play.section, 'league', 'and then the board the badge was opened from');
+  shell.connection.disconnect();
+});
+
+test('D-69 League layers: board first, #feed opens the feed, and a History week is its own step that browser Back closes', async () => {
+  assert.equal(leagueLayer(placeFromFragment('#play/league').adapters.league).layer, 'board');
+  assert.equal(leagueLayer(placeFromFragment('#feed').adapters.league).layer, 'feed');
+  const fragment = fragmentFor('play', { section: 'league', view: 'history', season: 2026, week: 8 });
+  assert.equal(fragment, '#play/league?season=2026&week=8&view=history');
+  assert.deepEqual(leagueLayer(placeFromFragment(fragment).adapters.league), { layer: 'week', season: 2026, week: 8 }, 'a reload reopens it');
+  let state = initialState(placeFromFragment('#play/league'));
+  state = reduce(state, { type: 'view', tab: 'league', patch: { view: 'history', week: null } });
+  state = reduce(state, { type: 'view', tab: 'league', patch: { week: 8 } });
+  assert.equal(state.trail.length, 2);
+  const lip = reduce(state, { type: 'view', tab: 'league', patch: { week: null } });
+  assert.deepEqual([leagueLayer(lip.views.league).layer, lip.trail.length], ['history', 1], 'the History lip lands on the place under it: Back');
+  assert.equal(reduce(lip, { type: 'view', tab: 'league', patch: { season: 2025 } }).trail.length, 1, 'a season tile is a filter, not a step');
+  const win = fakeWindow('https://gtl.test/#play/league?view=history'), shell = app(win);
+  shell.dispatch({ type: 'view', tab: 'league', patch: { week: 8 } }); await settle();
+  assert.match(win.location.hash, /week=8/);
+  win.history.back(); await settle();
+  assert.equal(leagueLayer(shell.state.views.league).layer, 'history', 'an entry without a week restores History, not the week left');
+  win.history.forward(); await settle();
+  assert.equal(shell.state.views.league.week, 8);
   shell.connection.disconnect();
 });

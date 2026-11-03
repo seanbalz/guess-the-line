@@ -83,7 +83,6 @@ test('without P-01 the routes answer 404 and Play and the League board say "Poin
   await page.goBack();
   await expect(page.locator('[data-landing="play"]')).toBeVisible();
   await page.getByRole('button', { name: 'My league', exact: true }).click();
-  await page.getByRole('group', { name: 'League sections' }).getByRole('button', { name: 'Boards', exact: true }).click();
   await page.getByRole('group', { name: 'Standings market' }).getByRole('button', { name: 'Points', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Points is coming soon' })).toBeVisible();
   expect(world.errors).toEqual([]);

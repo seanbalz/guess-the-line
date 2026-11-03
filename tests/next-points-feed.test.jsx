@@ -7,9 +7,9 @@ import { teamMarks } from '../web/src/teamLogoRegistry.js';
 const A = '00000000-0000-4000-8000-000000000001', B = '00000000-0000-4000-8000-000000000002';
 const state = vi.hoisted(() => ({ app: null }));
 vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: () => state.app }));
-vi.mock('../web/src/next/shell/context.js', () => ({ useShell: () => ({ state: { views: {} }, go: vi.fn(), setView: vi.fn(), openSheet: vi.fn() }) }));
+vi.mock('../web/src/next/shell/context.js', () => ({ useShell: () => ({ state: { views: { league: { view: 'feed' } }, trail: [] }, back: vi.fn(), go: vi.fn(), setView: vi.fn(), openSheet: vi.fn() }) }));
 vi.mock('../web/src/next/league/LeagueHistory.jsx', () => ({ LeagueHistory: () => null }));
-vi.mock('../web/src/next/league/useLeagueRead.jsx', () => ({ useLeagueRead: () => ({ loading: true }), LeagueFailure: () => null }));
+vi.mock('../web/src/next/league/useLeagueRead.jsx', () => ({ useLeagueRead: () => ({ loading: true }), LeagueFailure: () => null, LeagueLoading: () => null, LeagueEmpty: () => null }));
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn(), date: value => String(value) }));
 // Board i63: a Points slot sheet reads the week's Fantasy snapshot; these renders leave it loading.
 vi.mock('../web/src/fantasyData.js', () => ({ fantasyWeekKey: (season, week) => `${season}-${String(week).padStart(2, '0')}`, useFantasySnapshot: () => ({ status: 'loading' }) }));

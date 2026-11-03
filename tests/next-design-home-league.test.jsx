@@ -19,7 +19,7 @@ const { COUNT_UP_TOKENS, bezierEasing, countUpTiming, parseBezier } = await impo
 const { HomeAwards } = await import('../web/src/next/features/HomeAwards.jsx');
 const { HomeStreak } = await import('../web/src/next/features/HomeStreak.jsx');
 const { RecapPost, RECAP_POST_ROWS } = await import('../web/src/next/features/RecapPost.jsx');
-const { CommunityBoard, communityRows, leadLine, raceItems } = await import('../web/src/next/league/LeagueBoard.jsx');
+const { CommunityBoard, communityRows, leadLine } = await import('../web/src/next/league/LeagueBoard.jsx');
 
 const YOU = 'u-casey', BLAKE = 'u-blake', AVERY = 'u-avery', DREW = 'u-drew';
 const NAMES = { [YOU]: 'Casey Moore', [BLAKE]: 'Blake Rivers', [AVERY]: 'Avery Stone', [DREW]: 'Drew Lane' };
@@ -147,7 +147,8 @@ describe('the League board', () => {
     expect(shown(rows[1])).toContain('Casey Moore · You');
     // The season total is the server's number, in the count-up's resting form; no ballot stays "—", never 0.
     expect(nodes(rows[1], hasClass('gx-countup')).map(textOf)).toEqual(['21.5']);
-    expect(shown(rows[3])).toContain('Season: —');
+    expect(nodes(rows[3], attr('data-board', 'total')).map(textOf)).toEqual(['—']);
+    expect(nodes(rows[1], attr('data-board', 'chip')).map(textOf)).toEqual(['2nd']);
     expect(nodes(rows[3], hasClass('gx-countup'))).toHaveLength(0);
   });
 
@@ -183,13 +184,13 @@ describe('the League board', () => {
     expect(textOf(nodes(five, hasClass('gx-sr-only')).at(-1))).toBe('and 1 more');
   });
 
-  it('the race strip pictures every ranked total along the axis and names them in words; fewer than two, no strip', () => {
-    const html = board(feed([row(BLAKE, 'guess_spread', 24), row(YOU, 'guess_spread', 21.5), row(AVERY, 'guess_spread', 12)]));
-    const strip = nodes(html, attr('role', 'img')).find(n => hasClass('gx-strip')(n));
-    expect(strip.attrs['aria-label']).toBe('Spread season points: Blake Rivers 24, You 21.5, Avery Stone 12');
-    const race = raceItems(communityRows(feed([row(BLAKE, 'guess_spread', 24), row(YOU, 'guess_spread', 21.5), row(AVERY, 'guess_spread', 12)]), 'guess_spread'));
-    expect(race.items.map(i => Math.round(i.pct))).toEqual([100, 79, 0]);
-    expect(nodes(board(feed([row(YOU, 'guess_spread', 21.5)])), hasClass('gx-strip'))).toHaveLength(0);
+  it('D-66: no race strip (the rows are the board\'s one picture); past six rows, "N more on the board" keeps the rest in reach', () => {
+    const many = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'].map(id => `u-${id}`);
+    const html = render(<CommunityBoard feed={{ viewer: YOU, week: null, members: [...many, YOU].map(id => ({ id, displayName: id === YOU ? 'Casey Moore' : id, removed: false })),
+      standings: [...many.map((id, i) => row(id, 'guess_spread', 30 - i)), row(YOU, 'guess_spread', 1)] }} mode="guess_spread" features={null} app={{ accountId: YOU }} shell={shell}/>);
+    expect(nodes(html, hasClass('gx-strip'))).toHaveLength(0);
+    expect(nodes(html, n => n.attrs['data-board-row']).map(r => r.attrs['data-board-row'])).toEqual([...many.slice(0, 6), YOU]);
+    expect(nodes(html, n => n.tag === 'button' && n.attrs['aria-expanded'] === 'false').map(textOf)).toEqual(['2 more on the board']);
   });
 
   it('an empty board is one sentence and one action, not an empty card', () => {

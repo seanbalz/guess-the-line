@@ -77,6 +77,17 @@ describe('reactions (D-35)', () => {
   });
 });
 
+describe('D-69 feed moments', () => {
+  it('NEW marks a post this device had not shown; an arriving post rises in; nothing pops on the first render', () => {
+    const html = render(<PostCard post={post('joined', { reactions: { counts: { fire: 1 }, total: 1, mine: 'fire' } })} names={names} viewer={ME} now="2026-10-26T20:00:00Z" leagueId={null} isNew arrived/>);
+    expect(markupProblems(html)).toEqual([]);
+    expect(html).toContain('data-arrived="true"');
+    expect(html).toMatch(/class="gx-pill[^"]*gx-feed-new[^"]*"[^>]*>NEW</);
+    expect(html).not.toContain('data-moment');
+    expect(card(post('joined'))).not.toContain('data-arrived');
+  });
+});
+
 describe('post cards draw only what the server let through', () => {
   it('a ballot post with every game withheld is a lock row and no number', () => {
     const html = card(post('ballot_submitted', { mode: 'guess_spread', embed: { picks: {}, hiddenGames: ['KC-LV', 'SEA-DEN'], late: { minutes: 12, deadline: null } } }));

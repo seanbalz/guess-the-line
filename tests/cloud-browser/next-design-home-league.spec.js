@@ -8,6 +8,7 @@ import { seedFinishedWeek } from '../helpers/features-week.mjs';
 import { ACCOUNTS, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 import { countUpKey } from '../../web/src/next/moments/countUp.js';
 import { rankKey } from '../../web/src/next/league/rankMoment.js';
+import { momentsKey } from '../../web/src/next/moments/seen.js';
 
 // Design lane ("game feel" and the Home and League pass) at 390 x 844 (build plan section 4.1), on the real app and the
 // real handler with every migration (ALL, M-25 included) on local PGlite, with the finished fixture Week 4 of
@@ -15,9 +16,10 @@ import { rankKey } from '../../web/src/next/league/rankMoment.js';
 // only Total total (16); Luke's Pick streak is 1 week; Week 4's awards and badges are in. Checked here:
 // 1. the count-up runs from the value this device saw to the server's, never outside the two, and rests on the server's
 //    value; under reduced motion it shows the final value at once;
-// 2. the rank-change toast shows once per change (up and down) with the arrow beside the rank;
+// 2. the rank moment: nothing on page load, the arrow in your chip, then once when League opens after the launch (1st is big),
+//    a drop quiet;
 // 3. Home's one primary card, the week meter, the Pick streak and the award chips;
-// 4. the League board's faces, leader, week badges and race strip, the recap post, and the shared read states with retry;
+// 4. the League board's faces, leader, week badges (no race strip), the recap post, and the shared read states with retry;
 // and on every screen: no sideways scroll at 390 and 320, 44px targets, no text under 12px, nothing clipped, axe clean in
 // Dark and Light. Fixture accounts, games and numbers only; never contacts hosted data.
 test.use({ viewport: { width: 390, height: 844 } });
@@ -213,45 +215,44 @@ test('reduced motion: a changed total shows its final value at once, with no fra
     for (const who of [LUKE, TROY]) expect((await frames(page, who)).filter(f => f.state === 'run'), who).toEqual([]);
     expect(await page.evaluate(key => localStorage.getItem(key), countUpKey(LUKE, spreadFigure(TROY)))).toBe('4');
     // D-69: a page load remembers nothing; the next opening after the launch moves the record on.
-    // The rank's arrow is drawn (the change is real) but does not pop; the toast's words still say it.
-    const move = board.locator(`[data-board-row="${LUKE}"] .gx-move`);
-    await expect(move).toHaveClass(/gx-l-move--fresh/);
-    expect(await move.evaluate(el => getComputedStyle(el).animationName)).toBe('none');
-    await expect(page.locator('.gx-toast')).toHaveText(/You moved up to 1st/);
+    await expect(board.locator(`[data-board-row="${LUKE}"] .gx-move`)).toHaveText('▲1up 1');
+    await expect(board.locator('[data-moment="pop"]')).toHaveCount(0);
+    await expect(page.locator('.gx-toast')).toHaveCount(0);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
 
-test('League board: faces, the leader, week badges, the race strip and counting totals; one "You moved up to 1st" toast per change', async ({ page, baseURL }, info) => {
+test('League board: faces, the leader, week badges and counting totals; reaching 1st waits on the launch, then plays once', async ({ page, baseURL }, info) => {
   const world = await featuresWorld(page, baseURL);
   try {
     // This device last saw Luke 3rd on the Spread board and Troy's total at 4.
-    await openAs(page, 'luke', '#play/league?view=board', { [rankKey(LUKE, 'community', 'guess_spread')]: JSON.stringify({ rank: 3, from: null }), [countUpKey(LUKE, spreadFigure(TROY))]: '4' });
+    await openAs(page, 'luke', '#play/league?view=board', { [rankKey(LUKE, 'community', 'guess_spread')]: JSON.stringify({ rank: 3, from: null }), [countUpKey(LUKE, spreadFigure(TROY))]: '4',
+      [momentsKey(LUKE)]: JSON.stringify(['source:rank:community:guess_spread']) });
     const board = page.getByRole('list', { name: 'Spread season standings' });
     await expect(board).toBeVisible();
+    const luke = board.locator(`[data-board-row="${LUKE}"]`), flash = page.getByRole('dialog', { name: 'You’re 1st' });
 
-    // 2. The rank-change moment: one toast, and the up arrow beside Luke's rank.
-    const toast = page.locator('.gx-toast');
-    await expect(toast).toHaveText(/You moved up to 1st/);
-    const luke = board.locator(`[data-board-row="${LUKE}"]`);
-    await expect(luke.locator('.gx-move')).toHaveClass(/gx-move--up/);
-    await expect(luke.locator('.gx-move')).toHaveText('▲2up 2');
-    expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)), rankKey(LUKE, 'community', 'guess_spread'))).toEqual({ rank: 1, from: 3 });
+    // 2. The rank moment: the up arrow in Luke's chip; nothing plays on page load.
+    await expect(luke.locator('[data-board="chip"] .gx-move')).toHaveText('▲2up 2');
+    await expect(luke.locator('[data-board="chip"]')).toContainText('1st');
+    expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)), rankKey(LUKE, 'community', 'guess_spread'))).toEqual({ rank: 1, from: 3, n: 1 });
+    await page.waitForTimeout(800); await expect(flash).toHaveCount(0); await expect(page.locator('.gx-toast')).toHaveCount(0);
 
-    // 4. Weight: 40px faces, the leader in words, the week's badges, the race strip; Troy's total counted 4 to 12.
+    // 4. Weight: 40px faces, the leader in words, the week's badges, no race strip; Troy's total counted 4 to 12.
     const rows = board.locator('[data-board-row]');
     await expect(rows).toHaveCount(3);
     for (const row of await rows.all()) await expect(row.locator('.gx-av--40')).toHaveCount(1);
     await expect(luke).toHaveAttribute('data-leader', 'true');
     await expect(luke.locator('.gx-pill')).toHaveText('Leader');
-    await expect(luke.locator('.gx-row-sub')).toContainText('Season: 20 · Won Week 4 · Leads by 8');
+    await expect(luke.locator('.gx-row-sub')).toContainText('· Won Week 4 · Leads by 8');
+    await expect(luke.locator('[data-board="total"]')).toHaveText('20');
     await expect(board.locator('[data-leader]')).toHaveCount(1);
     const lukeBadges = luke.getByRole('group', { name: 'Your Week 4 badges' });
     await expect(lukeBadges).toContainText('Week 4');
     await expect(lukeBadges.getByRole('button')).toHaveCount(4);
     await expect(lukeBadges.getByRole('button', { name: 'Bullseye, 3 times, Week 4' })).toContainText('×3');
     await expect(board.getByRole('group', { name: 'Troy Fixture’s Week 4 badges' }).getByRole('button', { name: 'Sharp, 2 times, Week 4' })).toBeVisible();
-    await expect(page.locator('[data-board="race"]').getByRole('img')).toHaveAttribute('aria-label', 'Spread season points: You 20, Troy Fixture 12');
+    await expect(page.locator('.gx-strip')).toHaveCount(0);
     const troyTotal = board.locator(`[data-board-row="${TROY}"] .gx-countup`);
     await expect(troyTotal).toHaveAttribute('data-count', 'rest');
     await expect(troyTotal).toHaveText('12');
@@ -263,18 +264,16 @@ test('League board: faces, the leader, week badges, the race strip and counting 
     const counted = (await frames(page, TROY)).filter(f => f.state === 'run').map(f => toNumber(f.text));
     expect(counted[0], 'Troy’s total counts from the 4 this device saw, once the card is opened again').toBe(4);
     expect(counted.every(n => n >= 4 && n <= 12), `frames ${counted}`).toBe(true);
+    await expect(flash).toBeVisible(); await expect(flash).toContainText('Spread board · up 2'); await flash.getByRole('button', { name: 'Nice' }).click();
     // No ballot is never 0: Sean has no Spread total.
-    await expect(board.locator(`[data-board-row="${ACCOUNTS.sean.id}"] .gx-row-sub`)).toContainText('Season: —');
+    await expect(board.locator(`[data-board-row="${ACCOUNTS.sean.id}"] [data-board="total"]`)).toHaveText('—');
 
-    // The toast leaves by itself (the kit's 4 seconds); it is never shown twice for one change.
-    await expect(toast).toHaveCount(0, { timeout: 8000 });
     await everyTheme(page, info, 'league-board');
 
-    // Once per change: a reload shows the arrow still, and no second toast.
+    // Once per change: a reload shows the arrow still, and the moment does not play again.
     await page.reload();
     await expect(board.locator(`[data-board-row="${LUKE}"] .gx-move`)).toHaveText('▲2up 2');
-    await page.waitForTimeout(800);
-    await expect(page.locator('.gx-toast')).toHaveCount(0);
+    await page.waitForTimeout(800); await expect(flash).toHaveCount(0);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
@@ -301,22 +300,20 @@ test("League board: a row's badge opens that player's badge layer; Back returns 
   } finally { await world.db.close(); }
 });
 
-test('League board: a drop reads "Down to 2nd" once, with the down arrow', async ({ page, baseURL }) => {
+test('League board: a drop stays quiet', async ({ page, baseURL }) => {
   const world = await featuresWorld(page, baseURL);
   try {
-    await openAs(page, 'troy', '#play/league?view=board', { [rankKey(TROY, 'community', 'guess_spread')]: JSON.stringify({ rank: 1, from: null }) });
-    await expect(page.locator('.gx-toast')).toHaveText(/Down to 2nd/);
+    await openAs(page, 'troy', '#play/league?view=board', { [rankKey(TROY, 'community', 'guess_spread')]: JSON.stringify({ rank: 1, from: null }), [momentsKey(TROY)]: JSON.stringify(['source:rank:community:guess_spread']) });
     const troy = page.getByRole('list', { name: 'Spread season standings' }).locator(`[data-board-row="${TROY}"]`);
     await expect(troy.locator('.gx-move')).toHaveClass(/gx-move--down/);
     await expect(troy.locator('.gx-move')).toHaveText('▼1down 1');
-    // Total: Troy is unranked there ("—"), so switching to it neither toasts nor draws an arrow.
-    await expect(page.locator('.gx-toast')).toHaveCount(0, { timeout: 8000 });
+    await tab(page, 'Home').click(); await page.evaluate(() => { location.hash = '#play/league?view=board'; }); await expect(troy).toBeVisible(); await page.waitForTimeout(800);
+    await expect(page.locator('.gx-toast')).toHaveCount(0); await expect(page.locator('[role="dialog"]')).toHaveCount(0); await expect(troy.locator('[data-moment="pop"]')).toHaveCount(0);
+    // Total: Troy is unranked there ("—"), so switching to it neither plays a moment nor draws an arrow.
     await page.getByRole('group', { name: 'Standings market' }).getByRole('button', { name: 'Total', exact: true }).click();
     const total = page.getByRole('list', { name: 'Total season standings' });
     await expect(total).toBeVisible();
     await expect(total.locator('.gx-move')).toHaveCount(0);
-    await page.waitForTimeout(800);
-    await expect(page.locator('.gx-toast')).toHaveCount(0);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

@@ -33,8 +33,6 @@
 /* ----- design lane: League pass ----- */
 /* One card for every read state (loading, empty, failed): the same place and padding, words first, one action. */
 .gx .gx-l-state { align-items: flex-start; min-height: 88px; justify-content: center; }
-/* The season race: every ranked face along the points axis, above the rows it pictures. */
-.gx .gx-l-race { display: flex; flex-direction: column; gap: var(--gx-space-2); padding: var(--gx-space-4) var(--gx-space-4) var(--gx-space-2); background: var(--gx-surface-1); }
 /* The leader: a Leader pill and the lead in words, and a win-colored edge (your own row keeps its lime edge). */
 .gx .gx-l-row .gx-row-title { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gx-space-2); }
 .gx .gx-l-row--lead:not(.gx-row--you) { background: var(--gx-surface-2); box-shadow: inset 3px 0 0 var(--gx-win); }
@@ -57,18 +55,20 @@
 }
 .gx .gx-l-badge:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
 .gx .gx-l-badge-count { font: 600 13px/18px var(--gx-font-num); font-variant-numeric: tabular-nums; color: var(--gx-text-2); }
-/* Your rank's last move beside it; it pops once when the change is seen now (with the toast), and is still after. */
+/* Your rank's last move beside it. */
 .gx .gx-l-move { width: auto; }
-.gx .gx-l-move--fresh { animation: gx-l-move-pop var(--gx-dur-big) var(--gx-ease-pop) 1 both; }
-@keyframes gx-l-move-pop {
-  from { opacity: 0; transform: scale(0.6); }
-  to { opacity: 1; transform: scale(1); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .gx .gx-l-move--fresh { animation: none !important; }
-}
-.gx[data-motion="reduce"] .gx-l-move--fresh { animation: none !important; }
 @media (forced-colors: active) {
   .gx .gx-l-row--lead:not(.gx-row--you) { border-left: 3px solid CanvasText; }
   .gx .gx-l-badge { border: 1px solid CanvasText; }
 }
+
+/* ----- D-69 step 1 (P6A): board first. A row: rank and face first, the total on the right, your rank chip. ----- */
+.gx .gx-lg-start { display: flex; flex: none; align-items: center; gap: var(--gx-space-2); }
+.gx .gx-lg-chip { display: inline-flex; align-items: center; gap: var(--gx-space-1); min-height: 28px; padding: 0 var(--gx-space-2); border-radius: var(--gx-radius-pill); background: var(--gx-surface-2); color: var(--gx-text-1); font: 600 14px/20px var(--gx-font-num); font-variant-numeric: tabular-nums; }
+.gx .gx-lg-total { min-width: 3ch; text-align: right; }
+/* At 320 the face, the rank chip and the total cannot share a line with a readable name: the end slot drops under it, at the right. */
+.gx .gx-l-row { flex-wrap: wrap; row-gap: var(--gx-space-1); }
+.gx .gx-l-row .gx-row-main { flex: 1 1 7rem; }
+.gx .gx-l-row .gx-row-end { margin-inline-start: auto; }
+.gx .gx-lg-more { align-self: flex-start; }
+@media (forced-colors: active) { .gx .gx-lg-chip { border: 1px solid CanvasText; } }

@@ -86,7 +86,7 @@ test('Play saves drafts, restores tab edits, submits a whole market and still ed
     await page.getByRole('button', { name: 'League: Community. Switch league', exact: true }).click();
     await page.getByRole('dialog', { name: 'Your leagues' }).getByRole('list', { name: 'Leagues' }).getByRole('button', { name: /^Play fixture group/ }).click();
     await editor(page).getByRole('button', { name: "See everyone's Spread picks", exact: true }).click();
-    await expect(page.getByRole('group', { name: 'League sections' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Feed', level: 2 })).toBeVisible();
     await expect(page.locator('.gx-league-post').filter({ hasText: 'submitted Week 5 Spread picks.' }).first()).toBeVisible();
     await expect(page.getByRole('list', { name: 'Private group members' })).toHaveCount(0);
     await enterSpread(page);

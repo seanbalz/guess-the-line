@@ -29,6 +29,8 @@ export const isDetail = state => !!state.views[state.tab]?.section || (state.tab
 export const navigationPatch = (state, tab, patch) => !!patch && (
   (Object.hasOwn(patch, 'section') && patch.section !== state.views[tab]?.section)
   || (['bets', 'league'].includes(tab) && Object.hasOwn(patch, 'view') && patch.view !== state.views[tab]?.view)
+  // D-69: League › History › one week is a layer, so Back closes the week. A season tile is a filter inside History.
+  || (tab === 'league' && (Object.hasOwn(patch, 'view') ? patch.view : state.views.league?.view) === 'history' && Object.hasOwn(patch, 'week') && (patch.week ?? null) !== (state.views.league?.week ?? null))
   || (tab === 'bets' && Object.hasOwn(patch, 'assessment') && (patch.assessment ?? null) !== (state.views.bets.assessment ?? null))
   || (tab === 'play' && state.views.play.section === 'picks' && ['market', 'season', 'week'].some(key => Object.hasOwn(patch, key) && patch[key] !== state.views.play[key]))
   // D-70: opening or closing one game's card in Your guesses is a step, so back returns to the week.
@@ -116,7 +118,8 @@ function returnsToPrior(state, tab, patch) {
 /** D-70: one game's card opening in place of another (Next) while the week is the place under it. */
 const swapsGame = (state, tab, patch) => tab === 'play' && !!state.views.play.pickGame && !!patch.pickGame
   && patch.pickGame !== state.views.play.pickGame && returnsToPrior(state, tab, { pickGame: undefined });
-const mergeAdapters =(views, adapters) => Object.fromEntries(Object.entries(adapters ?? {}).map(([tab, view]) => [tab, { ...views[tab], ...view }]));
+// A restored place brings its own League week (D-69): an entry without one is History or the board, never the week left.
+const mergeAdapters = (views, adapters) => Object.fromEntries(Object.entries(adapters ?? {}).map(([tab, view]) => [tab, { ...views[tab], ...(tab === 'league' ? { week: undefined } : {}), ...view }]));
 
 /** Every layer that is open, overlays queued behind the first one included. */
 export function layerCount(state) {

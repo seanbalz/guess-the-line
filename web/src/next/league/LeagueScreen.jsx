@@ -1,14 +1,16 @@
-// League uses the existing hosted readers. Community is global; a private group's
-// roster and standings always come from that group's authenticated /state reply.
+// League, a Play layer, board first (D-69 step 1, Sean's P6A). The landing is the board for the market showing, the recap, the
+// two newest posts and "Open the feed", then History. The feed and History are layers with their own addresses (leagueModel
+// `leagueLayer`). League uses the existing hosted readers: Community is global; a private group's roster and standings
+// always come from that group's authenticated /state reply.
 import { useEffect, useRef, useState } from 'react';
 import { cloudApi, communityApi, date } from '../../api.js';
 import { MODE, lateText, pickText, pointsPostText } from '../../communityFormat.js';
 import { postPicksView } from '../../communityBoard.js';
 import { nextDraftKey } from '../../nextDrafts.js';
 import { useAppData } from '../data/AppData.jsx';
-import { COMMUNITY } from '../data/league.js';
+import { COMMUNITY, communityPlayers } from '../data/league.js';
 import { useShell } from '../shell/context.js';
-import { Avatar, Button, Card, Matchup, Segmented } from '../ui/index.js';
+import { Avatar, Button, Card, InfoButton, LinkRow, Matchup, Segmented } from '../ui/index.js';
 import { LeagueHistory } from './LeagueHistory.jsx';
 import { PointsBoard } from '../play/points/PointsBoard.jsx';
 import { LeagueEmpty, LeagueFailure, LeagueLoading, useLeagueRead } from './useLeagueRead.jsx';
@@ -16,9 +18,13 @@ import { LeagueEmpty, LeagueFailure, LeagueLoading, useLeagueRead } from './useL
 // its recap post.
 import { useFeatures } from '../features/useFeatures.js';
 import { RecapPost } from '../features/RecapPost.jsx';
-import { BoardCard, CommunityBoard } from './LeagueBoard.jsx';
+import { BOARD_NOTES, BoardCard, CommunityBoard } from './LeagueBoard.jsx';
 // The new feed (stages 64 and 65) draws CommunityFeed below, unchanged, while the server has no feed reader (M-22).
-import { Feed, useNewPostsDot } from '../feed/Feed.jsx';
+import { PlayLayer } from '../play/PlayLayer.jsx';
+import { FeedPreview, FeedView, useFeedSeen, usePostArrivals, useSeenSince } from '../feed/Feed.jsx';
+import { useLeagueFeed } from '../feed/useLeagueFeed.js';
+import { leagueLayer, leagueMode, lipIsBack, newPostIds } from './leagueModel.js';
+import { SCOPES } from '../moments/catalog.js';
 import './league.css';
 import { useMomentScope } from '../moments/MomentsProvider.jsx';
 
@@ -148,42 +154,66 @@ function PrivateLeague({ app, shell, mode, features }) {
     tied: hasScore(row) && scored.filter(other => other.points === row.points).length > 1 }))
     .sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity));
   return <section className="gx-vstack gx-gap-12" aria-label="Private league standings">
-    <h2 className="gx-t-section">{MODE[mode]} standings</h2>
-    <p className="gx-t-body gx-c-2">Week {data.league.week} · {data.league.name}. Only this group's members appear here.</p>
-    <BoardCard app={app} shell={shell} league={id} mode={mode} rows={rows} label="Private group members" features={features}
-      rowProps={row => ({ figure: `${id}.${mode}.points.${row.id}`, before: `${row.source.satOut ? 'Sat out' : row.source.submitted ? 'Submitted' : 'Not submitted'} · `, after: row.points === null ? '' : ' pts', missing: 'Not scored yet' })}/>
-    <p className="gx-t-meta gx-c-2">{data.league.practice ? 'Practice results · unofficial. ' : ''}— means no scored result. Weekly guesses are reused across groups; each group keeps its own roster.</p>
-    <Button onClick={read.retry}>Refresh group</Button>
-    <RecapPost model={features}/>
-    <Feed key={`${app.accountId}:${id}`} app={app} leagueId={id} leagueName={data.league.name} legacy={null}/>
-    <Button variant="ghost" onClick={() => app.chooseLeague(COMMUNITY)}>Open Community feed and history</Button>
+    <p className="gx-t-meta gx-c-2">Week {data.league.week}{data.league.practice ? ' · Practice results · unofficial' : ''}</p>
+    <BoardCard app={app} shell={shell} league={id} mode={mode} rows={rows} label="Private group members" features={features} read={data} fresh
+      rowProps={row => ({ figure: `${id}.${mode}.points.${row.id}`, sub: `${row.source.satOut ? 'Sat out' : row.source.submitted ? 'Submitted' : 'Not submitted'}${row.points === null ? ' · Not scored yet' : ''}` })}/>
   </section>;
 }
 
+export const LEAGUE_COPY = Object.freeze({
+  heading: 'League', switcher: 'Your leagues', feed: 'Feed', history: 'History', seasons: 'Seasons and weeks',
+  communityHistory: 'Community history', about: 'About the board', loading: 'Loading the Community…', members: n => `${n} member${n === 1 ? '' : 's'}`,
+});
+
+/** The landing (P6A): the board for the market showing, the recap, the two newest posts, then History. */
+function BoardLanding({ app, shell, mode, features, feed, fresh, arrived, waiting, set }) {
+  const community = app.league.community === true, data = app.community.data;
+  const players = community ? communityPlayers(data) : app.leagues?.find(row => row.on)?.players ?? null;
+  const meta = [Number.isInteger(players) ? LEAGUE_COPY.members(players) : null, community && data?.week ? `Week ${data.week.week}` : null].filter(Boolean).join(' · ');
+  const board = waiting ?? (mode === 'guess_points' ? <PointsBoard key={`${app.accountId}:${app.league.id}`} app={app} groupId={community ? null : app.league.id}/>
+    : community ? <CommunityBoard feed={data} mode={mode} features={features} app={app} shell={shell} fresh={app.community.status === 'ready' && !app.community.error}/>
+    : <PrivateLeague key={`${app.accountId}:${app.league.id}`} app={app} shell={shell} mode={mode} features={features}/>);
+  // History is Community-wide: from a group it switches to the Community, as today's "Open Community feed and history" did.
+  const history = () => { if (!community) app.chooseLeague(COMMUNITY); set({ view: 'history', week: null }); };
+  return <PlayLayer label="League board" layer="league" title={app.league.name} info={<InfoButton title={LEAGUE_COPY.about} body={community ? BOARD_NOTES.community : BOARD_NOTES.group}/>}>
+    {meta ? <p className="gx-t-meta gx-c-2">{meta}</p> : null}
+    <Segmented label="Standings market" options={MARKETS} value={mode} onChange={value => set({ market: value })}/>
+    {board}
+    <RecapPost model={features}/>
+    <FeedPreview feed={feed} app={app} leagueId={community ? null : app.league.id} fresh={fresh} arrived={arrived} onOpen={() => set({ view: 'feed' })}/>
+    <LinkRow icon="clock" onClick={history}>{community ? <>{LEAGUE_COPY.history}<span className="gx-t-meta gx-c-2"> · {LEAGUE_COPY.seasons}</span></> : LEAGUE_COPY.communityHistory}</LinkRow>
+  </PlayLayer>;
+}
+
 export function LeagueScreen() {
-  useMomentScope('league');
+  useMomentScope(SCOPES.league);
   const app = useAppData(), shell = useShell(), view = shell.state.views.league || {};
-  const mode = view.market === 'total' || view.market === 'guess_total' ? 'guess_total' : view.market === 'points' || view.market === 'guess_points' ? 'guess_points' : 'guess_spread';
-  const section = ['board', 'history', 'feed'].includes(view.view) ? view.view : 'feed';
-  const community = app.league.community === true, feed = app.community.data;
+  const place = leagueLayer(view), mode = leagueMode(view.market);
+  const community = app.league.community === true, leagueId = community ? null : app.league.id;
   const features = useFeatures(app, shell);
-  const dot = useNewPostsDot(app) && section !== 'feed';
-  const feedLabel = dot ? <>Feed<span className="gx-feed-dot" aria-hidden="true"></span><span className="gx-sr-only">, new posts</span></> : 'Feed';
+  const feed = useLeagueFeed({ accountId: app.accountId, leagueId, onRefused: error => { if (error.status === 401) app.requestSignIn?.(); else if (community) app.refresh({ only: ['community'] }); } });
+  useFeedSeen(app.accountId, leagueId, feed);
+  const since = useSeenSince(app.accountId, leagueId), arrived = usePostArrivals(feed.page, `${app.accountId}:${leagueId ?? 'community'}`);
+  const fresh = newPostIds(feed.posts, app.accountId, since);
+  const set = patch => shell.setView('league', patch);
+  // A lip is Back when its layer is the place underneath (D-66), else a step to it.
+  const lip = (key, label, layer, patch) => ({ key, label, open: () => (lipIsBack(shell.state.trail, layer) ? shell.back() : set(patch)) });
+  const toBoard = lip('league', LEAGUE_COPY.heading, 'board', { view: 'board', week: null });
+  const waiting = community && !app.community.data ? app.community.error ? <LeagueFailure error={app.community.error} onRetry={() => app.refresh({ only: ['community'] })}/> : <LeagueLoading label={LEAGUE_COPY.loading}/> : null;
+  let body;
+  if (place.layer === 'feed') {
+    body = <PlayLayer label="League feed" parents={[toBoard]} layer="league:feed" title={LEAGUE_COPY.feed}>
+      {waiting ?? <FeedView feed={feed} app={app} leagueId={leagueId} leagueName={app.league.name} fresh={fresh} arrived={arrived}
+        legacy={community ? <CommunityFeed key={app.accountId} feed={app.community.data} app={app}/> : null}/>}
+    </PlayLayer>;
+  } else if (community && place.layer !== 'board') {
+    // Task 6b replaces this with the rebuilt History (season tiles › week tiles › a week layer).
+    body = <PlayLayer label="League history" parents={[toBoard]} layer="league:history" title={LEAGUE_COPY.history}><LeagueHistory key={app.accountId} app={app}/></PlayLayer>;
+  } else {
+    body = <BoardLanding app={app} shell={shell} mode={mode} features={features.model} feed={feed} fresh={fresh} arrived={arrived} waiting={waiting} set={set}/>;
+  }
   return <div className="gx-screen gx-league">
-    <div className="gx-league-heading"><div className="gx-hstack gx-between gx-wrap gx-gap-8"><h1 className="gx-t-title">League</h1><Button variant="ghost" onClick={() => shell.openSheet('sh.switcher')}>Your leagues</Button></div>
-      <p className="gx-t-body gx-c-2">{app.league.name}</p></div>
-    <Button onClick={() => shell.go('play', { section: 'compare', season: feed?.week?.season ?? null, week: feed?.week?.week ?? null, period: 'week', comparisonKind: 'all', players: [], team: '', matchup: '' })}>Compare players in {app.league.name}</Button>
-    {community && <Segmented label="League sections" options={[{ value: 'feed', label: feedLabel }, { value: 'board', label: 'Boards' }, { value: 'history', label: 'History' }]} value={section} onChange={value => shell.setView('league', { view: value })}/>}
-    {(!community || section === 'board') && <Segmented label="Standings market" options={MARKETS} value={mode} onChange={value => shell.setView('league', { market: value })}/>}
-    {!community ? mode === 'guess_points' ? <PointsBoard key={`${app.accountId}:${app.league.id}`} app={app} groupId={app.league.id}/> : <PrivateLeague key={`${app.accountId}:${app.league.id}`} app={app} shell={shell} mode={mode} features={features.model}/>
-      : !feed ? app.community.error ? <LeagueFailure error={app.community.error} onRetry={() => app.refresh({ only: ['community'] })}/> : <LeagueLoading label="Loading the Community…"/>
-      : section === 'board' ? mode === 'guess_points' ? <PointsBoard key={app.accountId} app={app}/> : <CommunityBoard feed={feed} mode={mode} features={features.model} app={app} shell={shell}/>
-      : section === 'history' ? <LeagueHistory key={app.accountId} app={app}/>
-      : <>
-        <RecapPost model={features.model}/>
-        <Feed key={app.accountId} app={app} leagueName={app.league.name} legacy={<CommunityFeed key={app.accountId} feed={feed} app={app}/>}
-          onRefused={error => { if (error.status === 401) app.requestSignIn?.(); else app.refresh({ only: ['community'] }); }}/>
-      </>}
-    {community && <Button variant="ghost" onClick={() => app.refresh({ only: ['community'] })}>Refresh Community</Button>}
+    <div className="gx-league-heading"><div className="gx-hstack gx-between gx-wrap gx-gap-8"><h1 className="gx-t-title">{LEAGUE_COPY.heading}</h1><Button variant="ghost" onClick={() => shell.openSheet('sh.switcher')}>{LEAGUE_COPY.switcher}</Button></div></div>
+    {body}
   </div>;
 }

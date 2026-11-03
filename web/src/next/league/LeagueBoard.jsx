@@ -1,15 +1,20 @@
-// The League boards with visual weight (design lane, League pass): a season race strip (every ranked face along the
-// points axis), then one row per member with a 40px face, the leader highlighted (a "Leader" pill, the lead in words
-// and a win-colored edge, never color alone), the season total counting up from what this device last saw, the badges
-// they earned in the newest badge week, and on your own row the last move of your rank beside it. When your rank
-// differs from the one this device last saw, one toast says so (useRankMoment). Ranks and points come only from the
-// server's standings (shared/guess-board.mjs for the Community, the group's /state reply for a private league).
+// The League boards (design lane, League pass; D-69 step 1, P6A): one row per member with the rank and a 40px face first, the
+// leader highlighted (a "Leader" pill, the lead in words and a win-colored edge, never color alone), the season total on
+// the right counting up from what this device last saw, the badges they earned in the newest badge week, and on your own
+// row a rank chip with the last move, which pops when its engine moment plays (useRankMoment). The board shows 6 rows with
+// your row in view, then "N more on the board". Under D-66 the old race strip is gone: the rows are the one picture. Ranks
+// and points come only from the server's standings (shared/guess-board.mjs for the Community, the group's /state reply
+// for a private league).
+import { useState } from 'react';
 import { MODE, show } from '../../communityFormat.js';
 import { boardFor } from '../../../../shared/guess-board.mjs';
-import { Avatar, Badge, Card, List, Move, Pill, Rank, Row, Strip } from '../ui/index.js';
+import { Avatar, Badge, Button, Card, List, Move, Pill, Rank, Row } from '../ui/index.js';
 import { CountUp } from '../ui/CountUp.jsx';
 import { boardFact } from '../features/model.js';
 import { featuresView } from '../features/layers.js';
+import { usePopped } from '../moments/MomentsProvider.jsx';
+import { boardSlice } from './leagueModel.js';
+import { ordinal } from './rankMoment.js';
 import { useRankMoment } from './useRankMoment.js';
 import { LeagueEmpty } from './useLeagueRead.jsx';
 
@@ -17,14 +22,19 @@ export const BOARD_COPY = Object.freeze({
   leader: 'Leader',
   leadsBy: gap => `Leads by ${show(gap)}`,
   tiedLead: 'Tied for the lead',
-  race: 'Season race',
-  raceLabel: (market, rows) => `${market} season points: ${rows.map(row => `${row.you ? 'You' : row.name} ${show(row.points)}`).join(', ')}`,
+  more: n => `${n} more on the board`,
+  fewer: 'Show fewer',
   badgesWeek: week => `Week ${week}`,
   badgesGroup: (week, name, you) => (you ? `Your Week ${week} badges` : `${name}’s Week ${week} badges`),
   badge: (badge, week) => `${badge.name}${badge.count > 1 ? `, ${badge.count} times` : ''}, Week ${week}`,
   moreBadges: n => `and ${n} more`,
   noMembers: 'No members yet.',
   invite: 'Invite friends',
+});
+/** The board's fine print, behind the landing's ⓘ (D-38). */
+export const BOARD_NOTES = Object.freeze({
+  community: Object.freeze(['Season ranking. Spread and Total score separately.', '— means no scored result. Tied scores share their rank. Removed members keep their records.']),
+  group: Object.freeze(['Only this group’s members appear here.', '— means no scored result. Tied scores share their rank.', 'Weekly guesses are reused across groups; each group keeps its own roster.']),
 });
 // Four 44px badge buttons fit beside a face at 320; more is "+N" (the badges screen has them all).
 const BADGES_SHOWN = 4;
@@ -36,25 +46,6 @@ export function leadLine(rows, row) {
   if (leaders.length > 1) return BOARD_COPY.tiedLead;
   const second = rows.find(r => r.rank !== null && r.rank > 1 && Number.isFinite(r.points));
   return second && Number.isFinite(row.points) ? BOARD_COPY.leadsBy(row.points - second.points) : null;
-}
-
-/** Strip positions for the ranked rows: lowest season total at the left, highest at the right (all at the middle when equal). */
-export function raceItems(rows) {
-  const ranked = rows.filter(r => r.rank !== null && Number.isFinite(r.points));
-  if (ranked.length < 2) return null;
-  const lo = Math.min(...ranked.map(r => r.points)), hi = Math.max(...ranked.map(r => r.points));
-  return { lo, hi, ranked, items: ranked.map(r => ({ id: r.id, name: r.name, you: r.you, pct: hi === lo ? 50 : (100 * (r.points - lo)) / (hi - lo) })) };
-}
-
-function RaceStrip({ rows, market }) {
-  const race = raceItems(rows);
-  if (!race) return null;
-  return (
-    <div className="gx-l-race" data-board="race">
-      <p className="gx-t-label gx-c-2">{BOARD_COPY.race}</p>
-      <Strip items={race.items} lowLabel={`${show(race.lo)} pts`} highLabel={`${show(race.hi)} pts`} label={BOARD_COPY.raceLabel(market, race.ranked)}/>
-    </div>
-  );
 }
 
 /**
@@ -78,50 +69,39 @@ function RowBadges({ week, badges, name, you, onBadge }) {
   );
 }
 
-/**
- * One board row: `row` is `{ id, name, rank, tied, points, you }`; `figure` names its total for the count-up; `before` is
- * the row's words before the total ("Week: 12 · Season: "), `after` follows it (" · Won Week 4"), and `missing` stands in
- * for a total the server did not send ("—", or the group board's "Not scored yet"), never 0.
- */
-export function BoardRow({ row, rows, account, figure, before, after, missing = '—', badges, badgeWeek, onBadge, move = null, fresh = false }) {
-  const lead = leadLine(rows, row);
+/** One row: `sub` is its words ("Week: 12 · Won Week 4"); `missing` stands in for a total the server did not send ("—"). */
+export function BoardRow({ row, rows, account, figure, sub = '', missing = '—', badges, badgeWeek, onBadge, move = null, momentId = null }) {
+  const lead = leadLine(rows, row), popped = usePopped(momentId ?? '');
   return (
     <Row you={row.you} className={lead ? 'gx-l-row gx-l-row--lead' : 'gx-l-row'} data-board-row={row.id} data-leader={lead ? 'true' : undefined}
-      start={<Avatar id={row.id} name={row.name} size={40} you={row.you}/>}
+      start={<span className="gx-lg-start"><Rank rank={row.rank} tied={row.tied}/><Avatar id={row.id} name={row.name} size={40} you={row.you}/></span>}
       title={<><span>{row.name}{row.you ? ' · You' : ''}</span>{lead ? <Pill tone="win" className="gx-l-lead-pill">{BOARD_COPY.leader}</Pill> : null}</>}
-      sub={<>{before}{Number.isFinite(row.points) ? <CountUp value={row.points} account={account} figure={figure}/> : missing}{after}{lead ? ` · ${lead}` : ''}</>}
-      end={<>{row.you && move ? <Move by={move} className={fresh ? 'gx-l-move gx-l-move--fresh' : 'gx-l-move'}/> : null}<Rank rank={row.rank} tied={row.tied}/></>}>
+      sub={[sub, lead].filter(Boolean).join(' · ') || null}
+      end={<>
+        {row.you && row.rank ? <span className="gx-lg-chip" data-board="chip" data-moment={popped ? 'pop' : undefined}>{ordinal(row.rank)}{move ? <Move by={move} className="gx-l-move"/> : null}</span> : null}
+        <span className="gx-n-m gx-lg-total" data-board="total">{Number.isFinite(row.points) ? <CountUp value={row.points} account={account} figure={figure}/> : missing}</span>
+      </>}>
       <RowBadges week={badgeWeek} badges={badges} name={row.name} you={row.you} onBadge={badge => onBadge?.(badge, row.id)}/>
     </Row>
   );
 }
 
-/** The viewer's rank-change moment for one board: the toast once per change and the arrow on their row. */
-export function useBoardMoment({ app, shell, league, mode, rows }) {
-  const mine = rows.find(row => row.you) ?? null;
-  return useRankMoment({ account: app?.accountId ?? null, league, mode, rank: mine?.rank ?? null, tied: mine?.tied === true, toast: shell?.toast });
-}
-
-/**
- * A board in its card: the race strip, then the rows. `rows` are in rank order (unranked last); `rowProps(row)` gives
- * each row's figure and words. Empty, it is one sentence and "Invite friends".
- */
-export function BoardCard({ app, shell, league, mode, rows, label, features, rowProps }) {
-  const moment = useBoardMoment({ app, shell, league, mode, rows });
+/** A board: the first rows (yours in view), "N more on the board", and your rank's moment from `read` when it is `fresh`. */
+export function BoardCard({ app, shell, league, mode, rows, label, features, rowProps, read = null, fresh = false }) {
+  const [all, setAll] = useState(false), mine = rows.find(row => row.you) ?? null;
+  const moment = useRankMoment({ account: app?.accountId ?? null, league, mode, rank: mine?.rank ?? null, tied: mine?.tied === true, read, fresh, market: MODE[mode] });
   if (!rows.length) return <LeagueEmpty text={BOARD_COPY.noMembers} actionLabel={BOARD_COPY.invite} onAction={() => shell?.openSheet?.('sh.switcher')}/>;
-  const badgeWeek = features?.badgeWeek ?? null;
-  return (
+  const { shown, more } = boardSlice(rows, all), badgeWeek = features?.badgeWeek ?? null;
+  return <>
     <Card variant="flush" className="gx-l-board" data-board={mode}>
-      <RaceStrip rows={rows} market={MODE[mode]}/>
       <List label={label}>
-        {rows.map(row => (
-          <BoardRow key={row.id} row={row} rows={rows} account={app?.accountId ?? null} badgeWeek={badgeWeek}
-            badges={features?.weekBadgesOf?.(row.id) ?? []} onBadge={(badge, userId) => shell?.go?.('play', featuresView('badge', { badge, member: userId === app?.accountId ? null : userId }))}
-            move={row.you ? moment.move : null} fresh={row.you && moment.fresh} {...rowProps(row)}/>
-        ))}
+        {shown.map(row => <BoardRow key={row.id} row={row} rows={rows} account={app?.accountId ?? null} badgeWeek={badgeWeek}
+          badges={features?.weekBadgesOf?.(row.id) ?? []} onBadge={(badge, userId) => shell?.go?.('play', featuresView('badge', { badge, member: userId === app?.accountId ? null : userId }))}
+          move={row.you ? moment.move : null} momentId={row.you ? moment.id : null} {...rowProps(row)}/>)}
       </List>
     </Card>
-  );
+    {more > 0 || all ? <Button variant="ghost" className="gx-lg-more" aria-expanded={all} onClick={() => setAll(open => !open)}>{all ? BOARD_COPY.fewer : BOARD_COPY.more(more)}</Button> : null}
+  </>;
 }
 
 /** The Community's rows for one market: the ranked rows in rank order, then every member without a ranked total. */
@@ -131,26 +111,15 @@ export function communityRows(feed, mode) {
     .map(member => ({ id: member.id, name: member.displayName, rank: null, tied: false, points: null, you: member.id === feed.viewer }))];
 }
 
-/** The Community board for one market (Spread or Total), as LeagueScreen drew it, with the design lane's weight. */
-export function CommunityBoard({ feed, mode, features = null, app, shell }) {
+/** The Community board for one market (Spread or Total); its fine print is BOARD_NOTES.community. */
+export function CommunityBoard({ feed, mode, features = null, app, shell, fresh = false }) {
   const standings = feed.standings || [];
-  const rows = communityRows(feed, mode);
-  return (
-    <section className="gx-vstack gx-gap-12" aria-label={`${MODE[mode]} leaderboard`}>
-      <h2 className="gx-t-section">{MODE[mode]} standings</h2>
-      <p className="gx-t-meta gx-c-2">Season ranking · {feed.week ? `Week ${feed.week.week} alongside` : 'No week published'}. Spread and Total score separately.</p>
-      <BoardCard app={app} shell={shell} league="community" mode={mode} rows={rows} label={`${MODE[mode]} season standings`} features={features}
-        rowProps={row => {
-          const standing = standings.find(item => item.userId === row.id && item.mode === mode);
-          const removed = feed.members?.find(member => member.id === row.id)?.removed;
-          const fact = boardFact(features, row.id, mode);
-          return {
-            figure: `community.${mode}.season.${row.id}`,
-            before: `${removed ? 'Removed · ' : ''}Week: ${standing?.satOut ? 'Sat out' : standing?.weekScored > 0 ? show(standing.weekPoints) : '—'} · Season: `,
-            after: fact ? ` · ${fact}` : '',
-          };
-        }}/>
-      <p className="gx-t-meta gx-c-2">— means no scored result. Tied scores share their rank. Removed members keep their records.</p>
-    </section>
-  );
+  return <section className="gx-vstack gx-gap-12" aria-label={`${MODE[mode]} leaderboard`}>
+    <BoardCard app={app} shell={shell} league="community" mode={mode} rows={communityRows(feed, mode)} label={`${MODE[mode]} season standings`} features={features} read={feed} fresh={fresh}
+      rowProps={row => {
+        const standing = standings.find(item => item.userId === row.id && item.mode === mode);
+        const removed = feed.members?.find(member => member.id === row.id)?.removed, fact = boardFact(features, row.id, mode);
+        return { figure: `community.${mode}.season.${row.id}`, sub: `${removed ? 'Removed · ' : ''}Week: ${standing?.satOut ? 'Sat out' : standing?.weekScored > 0 ? show(standing.weekPoints) : '—'}${fact ? ` · ${fact}` : ''}` };
+      }}/>
+  </section>;
 }

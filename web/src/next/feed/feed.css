@@ -90,10 +90,14 @@
 }
 .gx .gx-feed-emo--on { background: var(--gx-accent-tint); box-shadow: inset 0 0 0 1px var(--gx-accent-ink); }
 .gx .gx-feed-pop-who { align-self: center; }
-/* The new-posts dot on the Feed segment: a dot and, for screen readers, the words beside it. */
-.gx .gx-feed-dot { display: inline-block; width: 8px; height: 8px; margin-inline-start: var(--gx-space-1); border-radius: var(--gx-radius-pill); background: var(--gx-data); vertical-align: middle; }
 @media (forced-colors: active) {
   .gx .gx-feed-chip--mine,
   .gx .gx-feed-emo--on { outline: 2px solid Highlight; }
-  .gx .gx-feed-dot { background: CanvasText; }
 }
+
+/* D-69: NEW marks a post newer than this device had shown; a post a refresh brings rises in (transform only, once). */
+.gx .gx-feed-new { flex: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .gx .gx-feed-post[data-arrived="true"] { animation: gx-feed-rise var(--gx-dur-quick) var(--gx-ease-enter); }
+}
+@keyframes gx-feed-rise { from { transform: translateY(8px); } to { transform: none; } }

@@ -11,7 +11,7 @@ const BEFORE_FEED = HOSTED.filter(file => file < '20261026131000_gtl_feed_reacti
 // The fixtures never contact hosted data. These checks cover privacy, actual writes and mobile access.
 test.use({ viewport: { width: 390, height: 844 } });
 test.setTimeout(60_000);
-const section = (page, name) => page.getByRole('group', { name: 'League sections' }).getByRole('button', { name, exact: true });
+const toBoard = page => page.getByRole('button', { name: 'Back to League', exact: true });
 const spreadPost = page => page.locator('.gx-league-post').filter({ hasText: 'submitted Week 5 Spread picks.' });
 const region = page => page.locator('.gx-league');
 const apiPath = name => url => url.origin === SUPABASE && url.pathname === `/functions/v1/gtl-api/${name}`;
@@ -67,7 +67,7 @@ test('Community feed hides unrevealed guesses, saves likes and comments, and boa
         await page.setViewportSize({ width, height: 844 });
         await phone(page);
         if (width === 390) await page.screenshot({ path: testInfo.outputPath(`league-feed-${theme}.png`), fullPage: true });
-        await section(page, 'Boards').click();
+        await toBoard(page).click();
         await page.getByRole('group', { name: 'Standings market' }).getByRole('button', { name: 'Spread', exact: true }).click();
         await expect(page.getByRole('list', { name: 'Spread season standings' })).toContainText('Troy Fixture');
         await expect(region(page).getByText('Not ranked', { exact: true })).toHaveCount(3);
@@ -75,7 +75,7 @@ test('Community feed hides unrevealed guesses, saves likes and comments, and boa
         await expect(page.getByRole('list', { name: 'Total season standings' })).toBeVisible();
         await phone(page);
         if (width === 390) await page.screenshot({ path: testInfo.outputPath(`league-board-${theme}.png`), fullPage: true });
-        await section(page, 'Feed').click();
+        await page.getByRole('button', { name: 'Open the feed', exact: true }).click();
       }
     }
     expect(world.errors).toEqual([]);
@@ -125,7 +125,7 @@ test('history obeys each market reveal and refreshes when the browser comes back
   const world = await communityWorld(page, baseURL, { migrations: BEFORE_FEED, optionalRpc: true });
   try {
     await open(page);
-    await section(page, 'History').click();
+    await toBoard(page).click(); await page.getByRole('button', { name: /^History/ }).click();
     await page.getByRole('combobox', { name: 'Player', exact: true }).selectOption(ACCOUNTS.troy.id);
     await expect(region(page)).not.toContainText('2.5');
     await expect(region(page)).not.toContainText('47.5');
@@ -166,6 +166,7 @@ test('private standings stay membership-scoped on rapid switching and discard da
   try {
     const alpha = await group(world, 'Fixture Alpha'), beta = await group(world, 'Fixture Beta');
     await open(page);
+    await toBoard(page).click(); // #feed opens the feed layer; a group's standings are the board (the landing)
     const released = new Promise(resolve => { release = resolve; });
     let reached;
     const reaching = new Promise(resolve => { reached = resolve; });
@@ -183,7 +184,7 @@ test('private standings stay membership-scoped on rapid switching and discard da
     await expect(region(page).getByText('Not ranked', { exact: true })).toHaveCount(1);
     await phone(page);
     await page.route(url => apiPath('state')(url) && url.searchParams.get('league') === beta, route => route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ error: 'This group is no longer available.' }) }));
-    await page.getByRole('button', { name: 'Refresh group' }).click();
+    await page.evaluate(() => window.dispatchEvent(new Event('online')));
     await expect(region(page).getByRole('alert')).toContainText('This group is no longer available.');
     await expect(page.getByRole('list', { name: 'Private group members' })).toHaveCount(0);
     await expect(region(page)).not.toContainText('Luke Fixture');

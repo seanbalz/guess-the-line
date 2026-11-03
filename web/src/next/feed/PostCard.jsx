@@ -2,6 +2,7 @@
 // name and what happened, the post's details as the server gated them for this viewer, the reactions row and the newest
 // two comments. A hidden market is a lock row with a sentence, never "—" (rule 8); the picks themselves open in sh.picks.
 // The server and cloud/feed.mjs decide every number shown here; this component only draws it.
+import { useEffect, useRef, useState } from 'react';
 import { useShell } from '../shell/context.js';
 import { Avatar, AvatarStack, Button, Card, FieldMark, Icon, IconButton, LockLine, Matchup, Pill } from '../ui/index.js';
 import { fmtNum, fmtPostTime, plural } from '../format.js';
@@ -63,8 +64,11 @@ export function ReactionRow({ post, leagueId }) {
   const shell = useShell();
   const chips = reactionChips(post.reactions);
   const comments = commentButton(post);
+  // D-69: your reaction pops once when you set it (a small moment), never on the first render; reduced motion stops it.
+  const mine = post.reactions?.mine ?? null, last = useRef(mine), [pop, setPop] = useState(null);
+  useEffect(() => { if (mine && mine !== last.current) setPop(mine); last.current = mine; }, [mine]);
   return <div className="gx-feed-rx" data-emoji-ok="true">
-    {chips.map(chip => <button key={chip.key} type="button" className={chip.mine ? 'gx-feed-chip gx-feed-chip--mine' : 'gx-feed-chip'} aria-pressed={chip.mine ? 'true' : 'false'} aria-label={chip.label}
+    {chips.map(chip => <button key={chip.key} type="button" className={chip.mine ? 'gx-feed-chip gx-feed-chip--mine' : 'gx-feed-chip'} aria-pressed={chip.mine ? 'true' : 'false'} aria-label={chip.label} data-moment={pop === chip.key ? 'pop' : undefined} onAnimationEnd={() => setPop(null)}
       onClick={() => react({ postId: post.id, current: post.reactions, next: chip.mine ? null : chip.key, toast: shell.toast })}>
       <span className="gx-feed-emoji" aria-hidden="true">{chip.emoji}</span><span className="gx-n-xs" aria-hidden="true">{chip.count}</span>
     </button>)}
@@ -76,18 +80,19 @@ export function ReactionRow({ post, leagueId }) {
   </div>;
 }
 
-export function PostCard({ post, names, viewer, now, leagueId }) {
+export function PostCard({ post, names, viewer, now, leagueId, isNew = false, arrived = false }) {
   const shell = useShell();
   const system = systemPost(post), actor = names.get(post.actorId)?.displayName || 'Former member';
   const line = postLine(post), meta = postMeta(post), late = lateWords(post), link = postLink(post);
   const preview = post.comments ?? [];
-  return <Card as="article" className="gx-feed-post" data-post={post.id} data-kind={post.kind} aria-label={`${system ? line : `${actor} ${line}`}, ${fmtPostTime(post.createdAt, now)}`}>
+  return <Card as="article" className="gx-feed-post" data-post={post.id} data-kind={post.kind} data-arrived={arrived ? 'true' : undefined} aria-label={`${system ? line : `${actor} ${line}`}, ${fmtPostTime(post.createdAt, now)}${isNew ? ', new' : ''}`}>
     <div className="gx-feed-head">
       {system ? <FieldMark size={40} className="gx-feed-sys"/> : <Avatar id={post.actorId} name={actor} size={40}/>}
       <div className="gx-grow gx-vstack gx-gap-2">
         <p className="gx-t-body">{system ? <span className="gx-t-strong">{line}</span> : <><span className="gx-t-strong">{actor}{post.actorId === viewer ? ' (you)' : ''}</span> <span className="gx-c-2">{line}</span></>}</p>
         {(realSlipPost(post) || late) ? <span className="gx-hstack gx-gap-8 gx-wrap">{realSlipPost(post) ? <Pill tone="real">Real slip</Pill> : null}{late ? <Pill tone="pending">{late}</Pill> : null}</span> : null}
       </div>
+      {isNew ? <Pill tone="data" className="gx-feed-new">NEW</Pill> : null}
       <time className="gx-t-meta gx-c-2 gx-none" dateTime={post.createdAt}>{fmtPostTime(post.createdAt, now)}</time>
     </div>
     {meta ? <p className="gx-t-meta gx-c-2">{meta}</p> : null}
