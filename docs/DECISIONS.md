@@ -20,10 +20,23 @@ no new line can be made while FanDuel is missing.
   - every free limit.
 - **Needs:**
   - Sean's decision on the rule and on BetRivers as the backup;
-  - phone mockups of the BetRivers rows (Sean's standing rule);
+  - Sean's OK on the phone mockups ([design/backup-book-2026-11-03](../design/backup-book-2026-11-03/README.md));
   - M-39 by Gate M;
   - the `api` release;
   - the `gtl-odds-refresh` Mac mini deploy.
+
+## Pick a Team backups at the turn — November 3, 2026
+
+Sean requested that a saved backup ranking assign a team as soon as the manager's
+turn begins, with a confirmation naming the assigned team. He confirmed that an
+exhausted ranking leaves the turn open for a manual pick. This changes the
+pre-kickoff queue behavior in the original EPL draft decision: use the first
+available ranked club, advance consecutive queued managers in draft order, and
+stop at the first manager without an available ranked club. Existing kickoff
+resolution and the latest picker's change window are preserved. The server owns
+the assignment; confirmation requires a recorded pick. Implementation and the
+separate M-40 apply/release boundary are in
+[the turn-queue record](EPL_TURN_QUEUES_2026_11_03.md).
 
 ## D-73 — Bets › Research recommendations, stage one: independent research beside Guess the Line (October 30–31, 2026)
 

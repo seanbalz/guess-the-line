@@ -161,7 +161,7 @@ export function createPushReminderHandler({ service, vapid, clock = Date.now, fe
       const now = clock(), plan = planReminders(job, now);
       let sent = 0, failed = 0, keys;
       if (!plan.reason) {
-        try { keys = await importVapid(vapid || {}); } catch { return finish('vapid_unavailable'); }
+        try { keys = await importVapid(vapid || {}); } catch { return await finish('vapid_unavailable'); }
         for (const player of plan.due) {
           const marked = await service.rpc('gtl_mark_push_reminder', { p_run: runId, p_claim: job.claim, p_user: player.userId, p_season: plan.season, p_week: plan.week, p_modes: player.modes });
           const modes = list(marked?.modes).filter(mode => player.modes.includes(mode));
@@ -183,7 +183,7 @@ export function createPushReminderHandler({ service, vapid, clock = Date.now, fe
       const points = await runPointsPass({ service, runId, claim: job.claim, vapid, keys, now, fetchImpl });
       console.info(`Points reminders: ${points.sent} sent, ${points.failed} failed.`);
       const reason = passFailure({ sent, failed }) ?? passFailure(points) ?? (!plan.reason || points.sent ? null : plan.reason);
-      return finish(reason, sent + points.sent, failed + points.failed);
+      return await finish(reason, sent + points.sent, failed + points.failed);
     } catch (error) {
       if (error?.code === 'GTL_SCHEDULE_AUTH') return json({ error: 'Unauthorized.' }, 401);
       if (['INPUT', 'GTL_SCHEDULE_RUN'].includes(error?.code)) return json({ error: 'Invalid reminder request.' }, 400);
