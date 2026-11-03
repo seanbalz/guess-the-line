@@ -68,9 +68,15 @@ export function createMomentsEngine({
       // A waiting moment waits for every source whose read has it (a badge reaches every league). Gone from one read,
       // it leaves that source; gone from all of them (a revoked badge), it never plays.
       const ids = new Set((candidates ?? []).map(c => c?.id));
+      // A moment two cards report (a shared Bullseye: the features read and a score read) waits on both: the scopes of
+      // every report join, so it counts NEW on each card and plays once, on whichever opens first.
+      const reportedScopes = new Map((candidates ?? []).map(c => [c?.id, c?.scopes]));
       for (const [id, m] of pending) {
-        if (ids.has(id)) m.sources.add(source);
-        else if (m.sources.delete(source) && m.sources.size === 0) pending.delete(id);
+        if (ids.has(id)) {
+          m.sources.add(source);
+          const more = (reportedScopes.get(id) ?? []).filter(scope => !m.scopes.includes(scope));
+          if (more.length) m.scopes = [...m.scopes, ...more];
+        } else if (m.sources.delete(source) && m.sources.size === 0) pending.delete(id);
       }
       if (seen === null || !seen.has(marker)) {
         // This device's first read of the source seeds it, even when empty, so a reload still knows it: nothing waits,

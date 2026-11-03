@@ -274,3 +274,59 @@ test('engine: a moment waiting from two sources survives one dropping it, and go
   r.engine.report([], { source: 'features:L2' });
   assert.equal(r.engine.newCount(SCOPES.features), 0, 'no read has it any more: it never plays');
 });
+
+// A moment two cards report (the shared Bullseye: the features read and a score read) waits on both and plays once.
+test('engine: a moment reported by two sources with different scopes counts NEW on both scopes, plays once when either opens, and never replays', () => {
+  const r = rig({ settled: { value: true } });
+  const asFeatures = { id: 'bull', kind: 'badge', scopes: [SCOPES.features], title: 'Bullseye' };
+  const asScore = { id: 'bull', kind: 'badge', scopes: [SCOPES.score], title: 'Bullseye' };
+  r.engine.report([], { source: 'features:community' });
+  r.engine.report([], { source: 'score:community' });
+  r.engine.report([asFeatures], { source: 'features:community' });
+  assert.equal(r.engine.newCount(SCOPES.features), 1);
+  assert.equal(r.engine.newCount(SCOPES.score), 0, 'the features read alone does not make it NEW on the score card');
+  r.engine.report([asScore], { source: 'score:community' });
+  assert.equal(r.engine.newCount(SCOPES.features), 1, 'still NEW on the first scope');
+  assert.equal(r.engine.newCount(SCOPES.score), 1, 'now NEW on the second scope too');
+  assert.deepEqual(r.engine.newMoments(SCOPES.score).map(m => m.id), ['bull']);
+  r.engine.open(SCOPES.score);
+  assert.deepEqual(r.big, [['bull']], 'it plays when the score card opens');
+  assert.equal(r.engine.newCount(SCOPES.features), 0, 'played, so no longer NEW anywhere');
+  assert.equal(r.engine.newCount(SCOPES.score), 0);
+  r.engine.open(SCOPES.features);
+  r.engine.report([asFeatures], { source: 'features:community' });
+  r.engine.report([asScore], { source: 'score:community' });
+  assert.deepEqual(r.big, [['bull']], 'never replays on the other card or on a later read');
+});
+
+test('engine: the other order (the score read first) also waits on both scopes', () => {
+  const r = rig({ settled: { value: true } });
+  r.engine.report([], { source: 'features:community' });
+  r.engine.report([], { source: 'score:community' });
+  r.engine.report([{ id: 'bull', kind: 'badge', scopes: [SCOPES.score], title: 'Bullseye' }], { source: 'score:community' });
+  r.engine.report([{ id: 'bull', kind: 'badge', scopes: [SCOPES.features], title: 'Bullseye' }], { source: 'features:community' });
+  assert.deepEqual([r.engine.newCount(SCOPES.score), r.engine.newCount(SCOPES.features)], [1, 1]);
+  r.engine.open(SCOPES.features);
+  assert.deepEqual(r.big, [['bull']]);
+  assert.equal(r.engine.newCount(SCOPES.score), 0);
+});
+
+test('engine: newMoments(scope) lists only that scope\'s waiting moments without the engine\'s own fields, and follows arrivals and plays', () => {
+  const r = rig({ settled: { value: true } });
+  const seen = [];
+  r.engine.subscribe(() => seen.push(r.engine.newMoments(SCOPES.features).map(m => m.id).join('|')));
+  r.engine.report([], { source: 'features:community' });
+  assert.deepEqual(r.engine.newMoments(SCOPES.features), [], 'nothing waits on a seeding read');
+  const other = { id: 'elsewhere', kind: 'badge', scopes: [SCOPES.league], title: 'Elsewhere' };
+  r.engine.report([badge('b1'), other], { source: 'features:community' });
+  const waiting = r.engine.newMoments(SCOPES.features);
+  assert.deepEqual(waiting, [badge('b1')], 'the moment as its reader reported it: no late, no sources');
+  assert.equal('late' in waiting[0] || 'sources' in waiting[0], false);
+  assert.deepEqual(r.engine.newMoments(SCOPES.league).map(m => m.id), ['elsewhere'], 'each scope sees its own');
+  r.engine.report([badge('b1'), badge('b2'), other], { source: 'features:community' });
+  assert.deepEqual(r.engine.newMoments(SCOPES.features).map(m => m.id), ['b1', 'b2'], 'a new arrival joins, in arrival order');
+  assert.ok(seen.includes('b1|b2'), 'subscribers are told when the list changes');
+  r.engine.open(SCOPES.features);
+  assert.deepEqual(r.engine.newMoments(SCOPES.features), [], 'a moment that plays leaves the list');
+  assert.deepEqual(r.engine.newMoments(SCOPES.league).map(m => m.id), ['elsewhere'], 'other scopes keep waiting');
+});
