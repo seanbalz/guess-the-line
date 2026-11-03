@@ -1,5 +1,13 @@
 # Guess The Line — sequential platform work
 
+## Pick a Team turn queues — November 3, 2026
+
+Implement the confirmed [turn-queue rule](../docs/EPL_TURN_QUEUES_2026_11_03.md):
+automatic highest-ranked available pick when on the clock; manual wait if all
+ranked teams are unavailable; recorded-team confirmation. M-40 and its rollback
+are prepared and local checks pass; source merge, compatible
+API/frontend deployment and the separately authorized database apply are distinct.
+
 ## Where things stand — November 3, 2026 (truth pass)
 
 Checked against the protected release runs on November 3. The sections below keep their dated wording; where they

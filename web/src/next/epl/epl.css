@@ -76,6 +76,7 @@
 
 /* The clubs still available: six crests to a row; the chosen one carries the lime ring. */
 .gx .gx-epl-avail { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--gx-space-2) var(--gx-space-1); margin: var(--gx-space-2) 0 0; padding: 0; list-style: none; }
+@media (max-width: 359px) { .gx .gx-epl-avail { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
 .gx .gx-epl-club {
   display: flex;
   flex-direction: column;

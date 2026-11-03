@@ -1,5 +1,5 @@
-// The backup ranking (queue) sheet (spec 6.3): your private, ranked list of clubs. At the deadline the draft takes your
-// highest-ranked club still available; with no queue, the manager on the clock gets no pick and 0 bonus. The list
+// The private backup ranking. M-40 takes the highest available club when the turn starts; older databases retain
+// kickoff resolution. The reader's capability flag decides the explanation. The list
 // reorders with 44px move buttons (no drag needed), and every club playing this matchweek can be added. Saving sends
 // the whole list through `queue/save`; the server checks it (at most 20 different clubs that play this matchweek).
 import { ArrowDown, ArrowUp, Plus, X } from 'lucide-react';
@@ -10,7 +10,8 @@ import { moveClub, saveQueue } from './draftModel.js';
 
 export const QUEUE_COPY = Object.freeze({
   title: 'Backup ranking',
-  intro: 'If you haven’t picked by first kickoff, you get your highest-ranked club that’s still available.',
+  intro: 'When your turn starts, your highest-ranked available club is picked automatically. If none of your ranked clubs are available, your turn stays open for a manual pick.',
+  legacyIntro: 'If you haven’t picked by first kickoff, you get your highest-ranked club that’s still available.',
   empty: 'No clubs ranked yet. Add clubs below.',
   ranked: 'Your ranking',
   add: 'Add clubs',
@@ -18,13 +19,13 @@ export const QUEUE_COPY = Object.freeze({
   saving: 'Saving…',
 });
 
-export function QueueSheetView({ clubs, queue, onChange, onSave, onClose, busy }) {
+export function QueueSheetView({ clubs, queue, onChange, onSave, onClose, busy, onTurn = false }) {
   const byCode = new Map(clubs.map(c => [c.code, c]));
   const name = code => byCode.get(code)?.name ?? code;
   const rest = clubs.filter(c => !queue.includes(c.code));
   return <Sheet title={QUEUE_COPY.title} onClose={onClose} tall
     footer={<Button variant="primary" block disabled={busy} onClick={onSave}>{busy ? QUEUE_COPY.saving : QUEUE_COPY.save}</Button>}>
-    <p className="gx-t-body gx-c-2">{QUEUE_COPY.intro}</p>
+    <p className="gx-t-body gx-c-2">{onTurn ? QUEUE_COPY.intro : QUEUE_COPY.legacyIntro}</p>
     <h3 className="gx-t-label gx-epl-queue-head">{QUEUE_COPY.ranked}</h3>
     {queue.length ? <ol className="gx-epl-queue">
       {queue.map((code, i) => (
@@ -63,5 +64,5 @@ export function QueueSheet({ model, api, onClose, onDone }) {
     setBusy(false);
     onDone(result);
   }
-  return <QueueSheetView clubs={model.clubs} queue={queue} onChange={setQueue} onSave={save} onClose={onClose} busy={busy}/>;
+  return <QueueSheetView clubs={model.clubs} queue={queue} onTurn={model.queueOnTurn} onChange={setQueue} onSave={save} onClose={onClose} busy={busy}/>;
 }

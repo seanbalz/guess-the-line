@@ -4,9 +4,9 @@
 // bars. gtl-api decides every pick (cloud/epl.mjs, M-30); a refusal re-reads the board. A refused read (the feature
 // off, a 401) shows its sentence and never the board. Every signed-in account reads the board (EPL open access); one not
 // linked to a manager sees it read-only, under the claim card (ClaimCard.jsx).
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Button, Card, Skeleton, Toast, InfoButton } from '../ui/index.js';
-import { CrestGrid, DraftBoard } from './DraftBoard.jsx';
+import { Crest, CrestGrid, DraftBoard } from './DraftBoard.jsx';
 import { MarginChart } from './MarginChart.jsx';
 import { QueueSheet } from './QueueSheet.jsx';
 import { ClaimCard } from './ClaimCard.jsx';
@@ -60,6 +60,11 @@ export function PickATeamView({ model, state, selected, busy, notice, onSelect, 
         <StandingsSource source={model.standingsSource}/>
       </div>
     </Card>
+    {model.backupPick ? <Card as="section" aria-label={PICK_COPY.backupConfirmed}>
+      <Crest code={model.backupPick.club}/>
+      <h2 className="gx-t-section">{PICK_COPY.backupConfirmed}</h2>
+      <p className="gx-t-body">{PICK_COPY.backupAssigned(model.backupPick.name)}</p>
+    </Card> : null}
     {notice ? <Toast text={notice.text} tone={notice.tone} onDismiss={onDismissNotice} className="gx-epl-toast"/> : null}
     {model.available.length && !model.locked ? <Card as="section" aria-labelledby={availId}>
       <h2 className="gx-t-micro gx-c-2" id={availId}>{PICK_COPY.available}</h2>
@@ -95,6 +100,16 @@ export function PickATeam({ api = eplApi }) {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState(null);
   const [queueOpen, setQueueOpen] = useState(false);
+  const confirmed = useRef(new Set());
+  useEffect(() => {
+    const pick = model?.backupPick;
+    if (!pick || state.stale || document.visibilityState === 'hidden') return;
+    const key = `gtl.epl.backup-confirmed.${pick.key}`;
+    if (confirmed.current.has(key)) return;
+    confirmed.current.add(key);
+    try { if (localStorage.getItem(key) === 'seen') return; localStorage.setItem(key, 'seen'); } catch { /* Keep the confirmation on the board when storage is unavailable. */ }
+    setNotice({ text: PICK_COPY.backupAssigned(pick.name), tone: 'done' });
+  }, [state.data, state.stale, model?.backupPick?.key]);
   const base = useId();
   const ids = { hero: `${base}-hero`, avail: `${base}-avail`, bonus: `${base}-bonus` };
   // A selection that is no longer available (someone else took it, or the board moved on) is dropped.
