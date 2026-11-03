@@ -1,5 +1,15 @@
 # Guess The Line — current completion register
 
+## Odds refresh fixes, M-37 — November 3, 2026
+
+Board item 40. A read-only hosted readback found most "partial" odds runs were only the label: the provider stops
+listing a game once it kicks off. Two real faults remain. A preflight race skipped October 29's 06:15 UTC run as
+`budget_guard` with 400 credits left. Week 8 CHI-SEA never matched at any book, and nothing recorded why. M-37
+(`20261103170000`) preflights after 23 hours instead of 24 and counts partial only against unstarted games. The provider now
+records what it listed for a mismatched game. Local checks pass, including PGlite runs of the deployed worker and
+mutation checks. M-37 is **not applied** (Gate M, Sean's "apply M-37"). The provider change is **not deployed**
+(next `gtl-api` release and a Mac mini `gtl-odds-refresh` deploy). See the [release card](RELEASE_2026_11_03_ODDS_REFRESH_M37.md).
+
 ## Tracked bets Overview — November 2, 2026
 
 The [Overview follow-up](TRACKED_BETS_OVERVIEW_2026_11_02.md) restores a first-class

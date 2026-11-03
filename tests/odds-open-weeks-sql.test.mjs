@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { ALL, HOSTED, PRELUDE, migrationSql } from './migrations.mjs';
+import { ALL, HOSTED, NOT_HOSTED, PRELUDE, migrationSql } from './migrations.mjs';
 import { catalog, readMigrations } from '../scripts/migration-functions.mjs';
 import { seed } from '../server/store.mjs';
 import { createOddsProvider } from '../cloud/odds-provider.mjs';
@@ -509,4 +509,84 @@ test('M-05 is idempotent, adds one function, and every function it writes is ser
   assert.doesNotMatch(sql, /\b(?:drop|alter|truncate|delete|update|insert|create\s+(?:table|index|trigger|policy))\b/i);
   const own = catalog(readMigrations(ALL)).files.find(entry => entry.file === M05).functions;
   assert.deepEqual(own.map(fn => [fn.name, Boolean(fn.previous)]).sort(), [['gtl_begin_odds_collection', true], ['gtl_begin_submission_odds_collection', true], ['gtl_finish_odds_collection', true], ['gtl_odds_carryover_slate', false]]);
+});
+
+// M-37 (20261103170000_gtl_odds_refresh_fixes.sql, board item 40). The claim asks for a preflight once the last one is
+// over 23 hours old, so the collection's 24-hour check moments later always passes (the October 29 06:15 UTC run was
+// skipped as budget_guard with 400 credits left); and a run is partial only against the games still to be played when
+// its collection began (every run after Thursday's kickoff was partial). HOSTED is the schema before M-37.
+const M37 = '20261103170000_gtl_odds_refresh_fixes.sql';
+
+test('M-37 static: each body is the one it replaces with only its own change; no table, grant or schedule change', () => {
+  assert(NOT_HOSTED.includes(20261103170000), 'not applied until Gate M');
+  const read = file => fs.readFileSync(path.join('supabase/migrations', file), 'utf8');
+  const code = (sql, name) => {
+    const start = [...sql.matchAll(new RegExp(`create (?:or replace )?function public\\.${name}\\(`, 'g'))].at(-1).index;
+    return sql.slice(start, sql.indexOf('end $$;', start) + 'end $$;'.length).replace(/^create function/, 'create or replace function').replace(/^\s*--.*\n/gm, '');
+  };
+  const next = read(M37);
+  assert.equal(code(next, 'gtl_claim_odds_refresh'), code(read('20261027160000_gtl_odds_slots_before_points_open.sql'), 'gtl_claim_odds_refresh')
+    .replace("last_successful_preflight_at<stamp-interval '24 hours'", "last_successful_preflight_at<stamp-interval '23 hours'"));
+  assert.equal(code(next, 'gtl_complete_odds_refresh'), code(read('20261012213000_gtl_submission_odds_window.sql'), 'gtl_complete_odds_refresh')
+    .replace("    n:=coalesce(jsonb_array_length(collection.slate_signature->'games'),0);\n",
+      "    select count(*) into n from jsonb_array_elements(coalesce(collection.slate_signature->'games','[]'::jsonb)) g\n      where to_timestamp((g->>'kickoff')::double precision)>collection.started_at;\n"));
+  const outside = next.replace(/\$\$[\s\S]*?\$\$/g, '').replace(/--.*$/gm, '');
+  assert.doesNotMatch(outside, /\b(?:drop|alter|truncate|delete|update|insert|grant|revoke|create\s+(?:table|index|trigger|policy))\b/i);
+});
+
+test('M-37: the scheduled run keeps its preflight valid to the end, and partial means a game still to play has no line', { skip }, async t => {
+  const now = Date.now();
+  const before = await fixture(t, { files: HOSTED, now }), f = await fixture(t, { now });
+  const age = (fx, interval) => fx.db.query(`update public.gtl_odds_budget set last_successful_preflight_at=clock_timestamp()-interval '${interval}'`);
+  const begin = (fx, job) => fx.rpc('gtl_begin_odds_collection', { p_user: id(COMMISSIONER), p_request: job.collectionRequestId, p_operation: 'collect' });
+
+  await t.test('a preflight 23 to 24 hours old is redone first, so the collection never refuses it', async () => {
+    // A full run at 23h30m: the worker preflights (no credits), then collects; the run succeeds.
+    await age(f, '23 hours 30 minutes');
+    const result = await f.run();
+    assert.deepEqual([result.status, result.data.status, result.data.reason], [200, 'succeeded', null]);
+    assert.deepEqual((await f.collections()).filter(c => c.operation === 'preflight').map(c => [c.status, c.credits]), [['succeeded', 0]]);
+    assert((await f.budget()).last_successful_preflight_at > new Date(now), 'the preflight is renewed');
+    // The October 29 case on the hosted body: at 23h59m58s the claim skips the preflight, and two seconds later the
+    // collection finds it over 24 hours old and refuses (the worker's budget_guard skip).
+    await age(before, '23 hours 59 minutes 58 seconds');
+    const stale = await before.claim();
+    assert.equal(stale.needsPreflight, false);
+    await age(before, '24 hours 1 second');
+    await assert.rejects(() => begin(before, stale), /GTL_ODDS_PREFLIGHT_REQUIRED/);
+    // With M-37 the same claim asks for the preflight.
+    await f.resetRuns(); await age(f, '23 hours 59 minutes 58 seconds');
+    assert.equal((await f.claim()).needsPreflight, true);
+    // Under 23 hours it still skips it (a preflight every other run), and the collection accepts it even ten minutes
+    // later, the longest a claimed run lives.
+    await f.resetRuns(); await age(f, '22 hours 59 minutes');
+    const fresh = await f.claim();
+    assert.equal(fresh.needsPreflight, false);
+    await age(f, '23 hours 9 minutes'); await f.cooldownPassed();
+    assert.ok((await begin(f, fresh)).lease);
+  });
+
+  await t.test('partial counts only the games not yet started when the collection began', async () => {
+    // A finished collection as the worker leaves it: the first `started` games of this week had kicked off when it began,
+    // and `matched` upcoming games each had three books for spread and total.
+    const complete = async (fx, started, matched) => {
+      await fx.resetRuns();
+      const job = await fx.claim(), signature = structuredClone(await fx.signature(7));
+      for (const g of [...signature.games].sort((a, b) => a.kickoff - b.kickoff).slice(0, started)) g.kickoff = Math.floor(Date.now() / 1000) - 3600;
+      await fx.db.query(`insert into public.gtl_odds_collections(id,actor_id,operation,status,lease_token,started_at,expires_at,finished_at,reserved_credits,season,week,slate_signature,diagnostics)
+        values($1,$2,'collect','succeeded',gen_random_uuid(),clock_timestamp(),clock_timestamp()+interval '90 seconds',clock_timestamp(),2,2026,7,$3,$4)`,
+      [job.collectionRequestId, id(COMMISSIONER), JSON.stringify(signature), JSON.stringify({ matchedEvents: matched, availableQuotes: 6 * matched })]);
+      return (await fx.rpc('gtl_complete_odds_refresh', { p_run: job.runId, p_claim: job.claim, p_reason: null })).status;
+    };
+    // [games started, upcoming games matched] -> [hosted today, with M-37]
+    const cases = [
+      [[0, 14], ['succeeded', 'succeeded']],
+      [[0, 13], ['partial', 'partial']], // Week 8 CHI-SEA: a game still to play never matched.
+      [[1, 13], ['partial', 'succeeded']], // Friday to Monday: Thursday's game has started, every other game has lines.
+      [[1, 12], ['partial', 'partial']],
+      [[13, 1], ['partial', 'succeeded']], // Monday night alone.
+    ];
+    for (const [[started, matched], expected] of cases)
+      assert.deepEqual([await complete(before, started, matched), await complete(f, started, matched)], expected, `${started} started, ${matched} matched`);
+  });
 });
