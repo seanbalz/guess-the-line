@@ -275,6 +275,29 @@ test('reminder worker: skips outside the window and fails closed without VAPID s
   assert.deepEqual(await replay.json(), { runId: id(900), status: 'succeeded', reason: null, sent: 3, failed: 0 });
 });
 
+test('reminder worker: a refused completion is answered with the mapped error, never a rejected request (both finish paths)', async t => {
+  t.mock.method(console, 'info', () => {});
+  // The completion RPC refuses (a finished or reclaimed run: GTL_SCHEDULE_RUN; a database outage: anything else). Before the
+  // fix, `return finish(...)` inside `try` handed back a rejected promise the catch never saw, so the function answered 500.
+  const refusing = code => ({ rpc: async name => {
+    if (name === 'gtl_claim_push_reminders') return { replay: false, runId: id(900), claim: id(901), week, players: [player(1)] };
+    if (name === 'gtl_points_reminder_candidates') return { players: [] };
+    if (name === 'gtl_complete_push_reminders') throw Object.assign(new Error('refused'), { code });
+    throw new Error(`unexpected ${name}`);
+  } });
+  const request = () => new Request('https://x.supabase.co/functions/v1/gtl-push-reminders', { method: 'POST',
+    headers: { authorization: `Bearer ${'a'.repeat(64)}`, 'content-type': 'application/json' }, body: JSON.stringify({ runId: id(900) }) });
+  const goodKeys = await vapidPair();
+  for (const [code, status] of [['GTL_SCHEDULE_RUN', 400], ['GTL_SCHEDULE_AUTH', 401], ['UNAVAILABLE', 503]]) {
+    // The skip path (outside the window) and the VAPID failure path both end in finish(...).
+    for (const [clock, vapid] of [[Date.parse(DEADLINE) - 3 * HOUR, goodKeys], [inWindow, { publicKey: '', privateKey: '', subject: '' }]]) {
+      const handler = createPushReminderHandler({ service: refusing(code), vapid, clock: () => clock, fetchImpl: async () => { throw new Error('no send'); } });
+      const response = await handler(request());
+      assert.equal(response.status, status, `${code} at ${clock === inWindow ? 'vapid_unavailable' : 'not_due_yet'}`);
+    }
+  }
+});
+
 test('service worker handles push and notification clicks only; CSP names worker-src self', async () => {
   const sw = fs.readFileSync('web/public/sw.js', 'utf8');
   const listeners = [...sw.matchAll(/addEventListener\('([a-z]+)'/g)].map(m => m[1]).sort();
