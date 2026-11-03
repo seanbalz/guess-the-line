@@ -146,6 +146,12 @@ test('draft/read gives a member the board, the clubs playing, their own queue an
   assert.deepEqual(service.calls.find(c => c[0] === 'gtl_epl_week_state'), ['gtl_epl_week_state', { p_season: 2026, p_week: 9 }]);
 });
 
+test('draft/read retains the earned bonus when no additional GTL points were needed', async () => {
+  const state = weekState({ bonus: [{ ownerId: EVAN, points: 0, margin: 3, club: 'ARS' }] });
+  const view = await call('/epl/draft/read', {}, fakeService({ state }));
+  assert.deepEqual(view.bonusLastWeek, [{ ownerId: EVAN, name: 'Evan', points: 15, margin: 3, club: 'ARS' }]);
+});
+
 test('draft/read reads the requested week, and the unlinked commissioner sees the board with no queue', async () => {
   const service = fakeService({ member: 'commissioner' });
   const view = await call('/epl/draft/read', { season: 2026, week: 9 }, service);

@@ -38,8 +38,11 @@ PR #434 merged at 16:35:07 UTC as `5e89a2b21c424b156468ce8b4d7f1e5986b2561c`; th
   - 19 are awaiting deploy, all for the unapplied M-33/M-34/M-35, so `--strict` was not run. Those failures are not
     M-37's.
 - **Still to read back:** the first scheduled run after the apply (18:15 UTC, November 3).
-- **Not deployed:** the provider change (`providerSchedule`). It ships with the next `gtl-api` release and a
-  `gtl-odds-refresh` deploy from the Mac mini.
+- **Deployed November 3:** the provider change (`providerSchedule`) reached `gtl-api` with v48 (deploy run 41726861800).
+  `gtl-odds-refresh` reached it through the new `odds-refresh` release target, without the Mac mini: v6 to v7, deploy run
+  41735886452 from `4cf149e7`. Sean said "Yes, release it" and "Go ahead", and the session approved both gates after
+  checking each run title. The history digest was unchanged (`4345486d…4066`), and a signed-out call with no token or a
+  wrong one is refused (401). The first scheduled run on v7 (06:15 UTC, November 4) is still to be read back.
 
 ## What the hosted runs showed (read-only, November 3)
 

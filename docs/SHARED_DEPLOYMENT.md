@@ -144,7 +144,8 @@ change cron schedules or data budgets, or flip the default app. Existing
 replaces the requirement to hold CLI logins on the Mac mini for the API, frontend
 and worker targets: protected API and frontend runs are verified; the
 `push-reminders` and `points-jobs` targets have run (October 26) and `league-features` (October 27);
-`fantasy-ingest`, `epl-jobs`, `ops-alerts` and `odds-refresh` are covered by local tests only until their first runs. Existing dated release records remain historical evidence of the
+`ops-alerts` (November 3, created v1), `push-reminders` again (v6) and `odds-refresh` (November 3, v6 to v7) have run;
+`fantasy-ingest` and `epl-jobs` are covered by local tests only until their first runs. Existing dated release records remain historical evidence of the
 Mac mini releases.
 
 ## One-time configuration

@@ -89,8 +89,9 @@ listing a game once it kicks off. Two real faults remain. A preflight race skipp
 records what it listed for a mismatched game. Local checks pass, including PGlite runs of the deployed worker and
 mutation checks. M-37 is **applied and verified** as hosted `20261103164210`. On Sean's "merge and apply" it went in
 through his SQL editor; both bodies, permissions and the earlier history rows were checked, and the score hash is unchanged.
-The provider change is **not deployed** (next `gtl-api` release and a Mac mini `gtl-odds-refresh` deploy). The first
-scheduled run after the apply is still to be read back. See the [release card](RELEASE_2026_11_03_ODDS_REFRESH_M37.md).
+The provider change is **deployed**: `gtl-api` v48 (run 41726861800), then `gtl-odds-refresh` v7 through the new
+`odds-refresh` release target (run 41735886452 from `4cf149e7`, Sean's "Yes, release it"; no Mac mini). The first
+scheduled run on v7 (06:15 UTC, November 4) is still to be read back. See the [release card](RELEASE_2026_11_03_ODDS_REFRESH_M37.md).
 
 ## Ops alerts for the data refreshes (item 22) — November 3, 2026
 
@@ -128,6 +129,27 @@ from `c6d6434` in protected run 41596638055. Independent readback matched all 12
 served files and found Overview in the live bundle. API v45, all hosted function
 summaries and migration history stayed unchanged. Signed-in production and
 physical-phone acceptance remain separate evidence states.
+
+## Sleeper owns FEPL bonus accounting — November 2, 2026
+
+Sean confirmed he adds the bonuses in Sleeper. The source fix uses finalized
+Sleeper weekly/season totals directly for draft order, standings and season
+tie-breaks; no second GTL bonus is added. Settlement retains earned margins
+with zero additional GTL points, and the API still shows the earned bonus from
+that margin. Updated screen copy explains where bonuses are applied. The
+pending M-35 correction function follows the same rule; fresh read-only hosted
+evidence confirms M-35 and its correction function are still absent, so its
+existing unapplied source was updated without applying SQL.
+
+The earlier MW10 data repair remains intact; this change does not rewrite
+picks, snapshots, cron or Sleeper data. Add bonuses before the final weekly
+capture. Later manual adjustments require order review with pick preservation;
+automatic recognition of commissioner completion is unavailable. Source checks
+passed: 405 EPL Node/SQL tests (no skips), 89 EPL component tests, typecheck,
+cloud build, bundle privacy scan and Brand QA. All four browser scenarios
+passed, including 320/390/1440px and both themes. Release status and real-phone
+limits are recorded in [the delivery card](EPL_BONUS_ACCOUNTING_2026_11_02.md).
+API, frontend and EPL worker publication remains with the release captain.
 
 ## EPL Week 9 results and weekly automation — November 2, 2026
 
