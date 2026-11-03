@@ -140,7 +140,7 @@ test('native sit-out keeps an existing lock and unsaved draft, confirms through 
     await page.getByRole('button', { name: 'Confirm lock-in' }).click();
     await expect(card.getByRole('region', { name: /Spread receipt/ })).toBeVisible();
     await choose(page, second.id, 4);
-    await openWeek(page); // D-69: back to the week with an unsaved draft never asks to leave it
+    await openWeek(page); // D-70: back to the week with an unsaved draft never asks to leave it
     await page.getByRole('button', { name: 'Sit out remaining Spread games' }).click();
     const dialog = page.getByRole('alertdialog', { name: /Sit out Week/ });
     await expect(dialog).toContainText('Your locked guesses keep their points');

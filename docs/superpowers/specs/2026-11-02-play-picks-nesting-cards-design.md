@@ -1,4 +1,4 @@
-# Play › Your guesses as nesting cards — design (D-69)
+# Play › Your guesses as nesting cards — design (D-70)
 
 Sean, November 2, 2026, asked for the next design pass: less text on Home and Play, the way Research was done (D-66).
 On the live app, Home and the Play landing were already lean. The weight was in Play › Your guesses, so the pass

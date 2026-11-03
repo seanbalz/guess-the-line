@@ -1668,7 +1668,7 @@ test('game action bar opens the selected matchup and market without writing or d
     await expect(note).toHaveValue('A private unsaved note');
     await note.fill('');
     await actions.getByRole('button', { name: 'Open Spread for HOU at JAX' }).click();
-    // D-69: the game action opens that game's own card in Your guesses, its heading focused; the week is one lip back.
+    // D-70: the game action opens that game's own card in Your guesses, its heading focused; the week is one lip back.
     const spread = page.getByRole('article', { name: 'HOU at JAX Spread', exact: true });
     const heading = page.getByRole('heading', { name: 'HOU @ JAX', exact: true });
     await expect(heading).toBeFocused();
@@ -1694,7 +1694,7 @@ test('an unknown game focus keeps the complete ballot usable', async ({ page, ba
   try {
     await openLines(page);
     await page.goto('/#play/picks?market=spread&season=2026&week=6&pickGame=UNKNOWN');
-    // D-69: an address for a game not in this week shows the week's tiles, and each game still opens.
+    // D-70: an address for a game not in this week shows the week's tiles, and each game still opens.
     await expect(page.locator('[data-tile]')).toHaveCount(4);
     await expect(page.locator('.gx-nest-lip')).toHaveCount(0);
     await page.locator('[data-tile="HOU-JAX"]').click();
@@ -1748,9 +1748,9 @@ test('your pick sheet separates draft and locked references and returns focus to
       }, { once: true, capture: true });
     });
     await total.getByRole('button', { name: 'Open Total in Play', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'SEA @ DEN', exact: true })).toBeFocused(); // D-69: the game card's heading
+    await expect(page.getByRole('heading', { name: 'SEA @ DEN', exact: true })).toBeFocused(); // D-70: the game card's heading
     await page.evaluate(() => window.resumeRouteFrames());
-    await expect(page.getByRole('heading', { name: 'SEA @ DEN', exact: true })).toBeFocused(); // D-69: the game card's heading
+    await expect(page.getByRole('heading', { name: 'SEA @ DEN', exact: true })).toBeFocused(); // D-70: the game card's heading
     expect(calls.filter(call => !READS.includes(call))).toEqual([]); expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
@@ -1830,7 +1830,7 @@ test('League bets loads one game on demand with protected terms, phone layout an
     await expect(action).toBeFocused(); await phoneChecks(page); expect(await axe(page)).toEqual([]);
     await action.click(); await bets.getByRole('button', { name: 'Open Spread in Play', exact: true }).click();
     await expect(page.getByRole('article', { name: 'SEA at DEN Spread', exact: true })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'SEA @ DEN', exact: true })).toBeFocused(); // D-69: the game card's heading
+    await expect(page.getByRole('heading', { name: 'SEA @ DEN', exact: true })).toBeFocused(); // D-70: the game card's heading
     expect(calls.filter(call => ![...READS, 'POST /bets/read'].includes(call))).toEqual([]);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }

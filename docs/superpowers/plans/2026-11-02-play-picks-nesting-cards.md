@@ -1,4 +1,4 @@
-# Play › Your guesses nesting cards (D-69) Implementation Plan
+# Play › Your guesses nesting cards (D-70) Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or
 > superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -98,7 +98,7 @@ Built as planned, plus five findings from running the cloud-browser specs:
 ### Task 4: Records, PR and merge
 
 **Files:**
-- Modify: `docs/COMPLETION_REGISTER.md` (D-69 entry: built, not released)
+- Modify: `docs/COMPLETION_REGISTER.md` (D-70 entry: built, not released)
 - Modify: `docs/ALL_TABS_LIVE_WORKFLOWS.md` (Play section note)
 
 - [ ] `PYTHONUTF8=1 python scripts/check-brand-docs.py`, `npm run typecheck` and `git diff --check`.

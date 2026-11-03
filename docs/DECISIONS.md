@@ -1,6 +1,28 @@
 # Decision log
 
-## D-69 — Play › Your guesses becomes nesting cards: the week, then one game (November 2, 2026)
+## D-71 — A lock-in refreshes a stale line first, as a send does (November 3, 2026)
+
+A read-only readback found that the line saved with each guess had a median age of 68 seconds in Week 7, 6.9 hours in
+Week 8 and 7.8 hours so far in Week 9. The last save-triggered collection ran October 19. Cause: redesign stage 18
+(October 14) skipped the D-17 refresh for any save carrying `lockIn`, and the new app saves one game at a time by
+lock-in, so guesses took the newest twelve-hour scheduled line. Of two options, Sean chose "Refresh on lock-in". The
+other was to keep lock-ins as they were and add scheduled runs before deadlines.
+
+- **Rule:** a per-game lock-in follows D-17 exactly as a send does.
+  - If a newly locked game's newest stored line is missing or over five minutes old, the save first tries one shared
+    collection.
+  - It then saves the newest stored line at that instant, with its observation time and age, or the D-27 pending
+    reference.
+- **Limits unchanged:**
+  - The six collection attempts a UTC day, the 5-minute cooldown, the 50-credit reserve and the two-credit cap still
+    apply, shared with the scheduled runs.
+  - A refused or failed refresh never refuses the save (D-27).
+  - A draft save that locks nothing still starts no collection.
+- **Scope:** `gtl-api` only. The intent check `gtl_submission_intent_context` has counted newly locked games as changed
+  guesses since M-07 (October 15), so no migration is needed. Lines already saved keep their recorded age; nothing is
+  backfilled (D-16, D-23).
+
+## D-70 — Play › Your guesses becomes nesting cards: the week, then one game (November 2, 2026)
 
 Sean asked for the next design pass, "cut text on Home and Play the way Research was done". On the live app Home
 (139 words) and the Play landing (59 words) were already lean. Play › Your guesses was the long screen: 15 stacked
@@ -18,6 +40,10 @@ Sean asked for the next design pass, "cut text on Home and Play the way Research
 
 Details and tests are in [the design spec](superpowers/specs/2026-11-02-play-picks-nesting-cards-design.md). This
 extends D-66's layout to Play's guesses only; the four tabs and D-58's type, palette, icons and motion stay.
+
+**Number.** This was first recorded as D-69. The design overhaul below was recorded as D-69 the same day, so on
+November 3 this entry became D-70 and the overhaul kept D-69. The release card (issue #426) and Board release r60
+still say D-69 for this work.
 
 ## Shared NFL/EPL interface — October 29, 2026
 

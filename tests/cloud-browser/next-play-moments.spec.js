@@ -87,7 +87,7 @@ async function fixture(page, baseURL, { open = true, beforeOpen } = {}) {
 }
 
 const card = (page, gameId) => page.locator(`.gx-per-game [data-game="${gameId}"]`);
-/** D-69: the week card's "N of M locked" line (the week's game tiles are one tap back from a game). */
+/** D-70: the week card's "N of M locked" line (the week's game tiles are one tap back from a game). */
 const count = page => page.locator('[data-play="count"]');
 
 test('Monday pending answers refresh from saved references without changing drafts or revealing unlocked games',async({page,baseURL})=>{
@@ -99,7 +99,7 @@ test('Monday pending answers refresh from saved references without changing draf
   const open=world.personal.games[1];await choose(page,open.id,3);
   const receipt=world.personal.scoring.guess_spread.games[0];receipt.points=10;receipt.reference={value:-3,status:'available',rule:'first_line_after_submission',source:'Synthetic three-book median',observedAt:world.personal.now};
   const writes=world.writes.length;
-  await openWeek(page); // D-69: the check sits on the week card, under the waiting line
+  await openWeek(page); // D-70: the check sits on the week card, under the waiting line
   await page.getByRole('button',{name:'Check for answers',exact:true}).click();
   const kicked=await openGame(page,world.kicked.id);
   await expect(kicked.locator('.gx-lock-receipt')).toContainText('10 / 10');
@@ -276,7 +276,7 @@ test('week progress: one tile per game shows locked, draft, open and kicked off 
     const [kicked, draft, open, late] = world.personal.games;
     await choose(page, draft.id, 4);
     await openWeek(page);
-    // D-69: the week's game tiles are the strip now: one per game, each with its state tag and icon.
+    // D-70: the week's game tiles are the strip now: one per game, each with its state tag and icon.
     const tiles = page.locator('.gx-per-game [data-tile]');
     expect(await tiles.evaluateAll(nodes => nodes.map(node => node.dataset.state))).toEqual(['locked', 'draft', 'open', 'kicked']);
     await expect(tiles.locator('.gx-picks-tag')).toHaveText(['Locked', 'Draft', /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)$/, 'Closed']);

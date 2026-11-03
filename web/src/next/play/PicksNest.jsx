@@ -1,4 +1,4 @@
-// D-69 Play › Your guesses as nesting cards (docs/superpowers/specs/2026-11-02-play-picks-nesting-cards-design.md).
+// D-70 Play › Your guesses as nesting cards (docs/superpowers/specs/2026-11-02-play-picks-nesting-cards-design.md).
 // The week is one tile per game: a state tag, the matchup as marks and your own guess as one big number. The line,
 // points and other players' guesses never sit on a tile; they stay on the game's card, behind your lock (D-31, D-36).
 import { show, team } from '../../communityFormat.js';
