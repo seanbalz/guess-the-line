@@ -19,9 +19,9 @@ export function onSettled(fn) {
   return () => listeners.delete(fn);
 }
 
-/** Listens on `target` (the window) for the member's first trusted press or key. Returns a disarm. */
+/** Listens on `target` (the window) for the member's trusted presses or keys. Listeners stay until the returned disarm. */
 export function armLaunch(target) {
-  const fire = event => { if (event?.isTrusted !== false) { markSettled(); disarm(); } };
+  const fire = event => { if (event?.isTrusted !== false) markSettled(); };
   const options = { capture: true };
   function disarm() { target.removeEventListener('pointerdown', fire, options); target.removeEventListener('keydown', fire, options); }
   target.addEventListener('pointerdown', fire, options);
