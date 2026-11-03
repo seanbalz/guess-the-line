@@ -12,7 +12,6 @@ vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: () => state.app
 vi.mock('../web/src/next/features/useFeatures.js', () => ({ useFeatures: () => ({ model: null }) }));
 vi.mock('../web/src/next/feed/useLeagueFeed.js', () => ({ useLeagueFeed: () => state.feed, feedReaderKnown: () => true }));
 vi.mock('../web/src/next/league/useLeagueRead.jsx', () => ({ useLeagueRead: () => state.read, LeagueFailure: () => null, LeagueLoading: () => null, LeagueEmpty: () => null }));
-vi.mock('../web/src/next/league/LeagueHistory.jsx', () => ({ LeagueHistory: () => null }));
 vi.mock('../web/src/fantasyData.js', () => ({ fantasyWeekKey: (season, week) => `${season}-${String(week).padStart(2, '0')}`, useFantasySnapshot: () => ({ status: 'loading' }) }));
 vi.mock('../web/src/next/moments/MomentsProvider.jsx', () => ({ useMoments: () => null, useMomentScope: () => {}, usePopped: () => false, useNewCount: () => state.waiting }));
 vi.mock('../web/src/next/play/PlayTile.jsx', () => ({ PlayTile: ({ label, big, sub, tone, isNew, ariaLabel }) => <output data-label={label} data-big={big} data-sub={sub} data-tone={tone} data-new={String(isNew)} aria-label={ariaLabel}/> }));
@@ -74,5 +73,36 @@ describe('League, board first (P6A)', () => {
       'data-sub': '▲ 1 · New posts', 'data-tone': 'good', 'data-new': 'true', 'aria-label': 'League, 2nd on the Spread board, up 1, new posts' });
     state.waiting = 0;
     expect(find(parseMarkup(render(<LeagueTile onOpen={vi.fn()}/>)), n => n.tag === 'output')[0].attrs['data-new']).toBe('false');
+  });
+});
+
+describe('League › History (P6A)', () => {
+  const SEA = { id: 'SEA-DEN', awayCode: 'SEA', homeCode: 'DEN', kickoff: '2026-10-09T00:15:00Z' }, BUF = { id: 'BUF-KC', awayCode: 'BUF', homeCode: 'KC', kickoff: '2026-10-12T20:25:00Z' };
+  const HISTORY = { viewer: YOU, season: 2026, seasons: [2026], members, weeks: [{ season: 2026, week: 5, games: [SEA, BUF],
+    results: { 'SEA-DEN': { status: 'final', away: 20, home: 17, source: 'Fixture final', origin: 'settlement' } }, entries: [
+      { userId: YOU, mode: 'guess_spread', status: 'submitted', submittedAt: '2026-10-08T18:00:00Z', eligible: true, weekPoints: 15, weekScored: 2, games: 2, picks: [
+        { gameId: 'SEA-DEN', guess: -3, points: 10, reference: { basis: 'saved', status: 'available', value: -3, source: 'Fixture median' } },
+        { gameId: 'BUF-KC', guess: 2.5, points: 5, reference: { basis: 'commissioner-ruled', value: 0, decision: 'D-25' } }] },
+      { userId: BLAKE, mode: 'guess_spread', status: 'submitted', eligible: true, weekPoints: 12, weekScored: 2, games: 2, picksHidden: true, picks: null }] }] };
+  it('History: you first among the player chips, and week tiles with the week\'s points and shared rank', () => {
+    state.read = { loading: false, error: null, data: HISTORY, retry: vi.fn() };
+    const html = render(<LeagueScreen/>, { view: 'history' });
+    expect(markupProblems(html)).toEqual([]);
+    const root = parseMarkup(html);
+    expect(find(root, n => n.tag === 'h2').map(readText)).toEqual(['History · Spread']);
+    expect(find(find(root, n => n.attrs['aria-label'] === 'Player')[0], n => n.tag === 'button').map(readText)).toEqual(['You', 'Blake Rivers']); // faces are aria-hidden
+    expect(find(root, n => n.tag === 'button' && n.attrs['aria-label']?.startsWith('Week ')).map(n => n.attrs['aria-label'])).toEqual(['Week 5, 15 points, 1st of 2']);
+  });
+  it('a week layer: each game a disclosure with the line\'s fine print, and Your score for your own week', () => {
+    state.read = { loading: false, error: null, data: HISTORY, retry: vi.fn() };
+    const html = render(<LeagueScreen/>, { view: 'history', week: 5 });
+    expect(markupProblems(html)).toEqual([]);
+    const root = parseMarkup(html), games = find(root, n => n.tag === 'details');
+    expect(readText(find(root, n => n.tag === 'h2')[0])).toBe('Week 5 · 2026');
+    expect(find(root, cls('gx-nest-lip')).map(nameFrom)).toEqual(['Back to Play', 'Back to League', 'Back to History']);
+    expect(games.map(g => nameFrom(find(g, n => n.tag === 'summary')[0]))).toEqual([
+      'Seattle Seahawks at Denver Broncos · Line Broncos −3 · You Broncos −3 · 10 / 10', 'Buffalo Bills at Kansas City Chiefs · Line Even · You Bills −2.5 · 5 / 10']);
+    expect([readText(games[0]), readText(games[1])]).toEqual([expect.stringContaining('Final · SEA 20, DEN 17 · Fixture final'), expect.stringContaining('Commissioner-ruled line (D-25)')]);
+    expect(find(root, n => n.tag === 'button').map(nameFrom)).toContain('Every game in Your score');
   });
 });

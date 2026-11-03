@@ -340,7 +340,7 @@ test('League feed: the weekly recap post as a card above the feed; History share
     await phoneRules(page, 'league history error');
     await page.unroute(history);
     await failed.getByRole('button', { name: 'Try again' }).click();
-    await expect(page.getByRole('heading', { name: 'Community history' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'History · Spread', level: 2 })).toBeVisible();
     await expect(page.locator('[data-league-state]')).toHaveCount(0);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }

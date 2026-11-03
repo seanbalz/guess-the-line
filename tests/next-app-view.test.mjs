@@ -164,7 +164,7 @@ test('the apps keep separate shells and allow only documented workflow and pick-
   // The retained Fantasy adapter also reuses the week-key formatter for reloadable Research addresses.
   // The NBA section (docs/superpowers/plans/2026-10-21-nba-section.md) shares only the sport-switch draft guard, the
   // accepted-route signal and the old app's selector slot, so unsaved work in either app is confirmed before the sport changes.
-  const namedOnly = { 'trendsWeekHook.js': ['useTrendWeek'], 'Theme.jsx': ['useThemePreference'], 'dashboardPreferences.js': ['useDashboardPreferences'], 'CommunityHome.jsx': ['WeekPicks'], 'CommunityHistory.jsx': ['HistoryLine'], 'fantasyData.js': ['FANTASY_INITIAL', 'useFantasySnapshot', 'fantasyWeekKey'], 'sportNavigation.js': ['noteSportRoute', 'SportSlotContext', 'useSportGuard'] };
+  const namedOnly = { 'trendsWeekHook.js': ['useTrendWeek'], 'Theme.jsx': ['useThemePreference'], 'dashboardPreferences.js': ['useDashboardPreferences'], 'CommunityHome.jsx': ['WeekPicks'], 'fantasyData.js': ['FANTASY_INITIAL', 'useFantasySnapshot', 'fantasyWeekKey'], 'sportNavigation.js': ['noteSportRoute', 'SportSlotContext', 'useSportGuard'] };
   // Sean's all-tabs request uses today's hosted editors until the later redesign migrations can ship. These exact
   // adapters are documented in ALL_TABS_LIVE_WORKFLOWS.md; GameHub/App/CommunityHome's default shell stays forbidden.
   const adapters = {
@@ -186,7 +186,6 @@ test('the apps keep separate shells and allow only documented workflow and pick-
       if (adapters[file]?.includes(target)) continue;
       if (namedOnly[target]) {
         if (target === 'CommunityHome.jsx') assert.equal(file, 'web/src/next/play/Play.jsx');
-        if (target === 'CommunityHistory.jsx') assert.equal(file, 'web/src/next/league/LeagueHistory.jsx');
         assertNamedAccess(text, spec, namedOnly[target], file);
         continue;
       }

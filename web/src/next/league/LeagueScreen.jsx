@@ -207,8 +207,9 @@ export function LeagueScreen() {
         legacy={community ? <CommunityFeed key={app.accountId} feed={app.community.data} app={app}/> : null}/>}
     </PlayLayer>;
   } else if (community && place.layer !== 'board') {
-    // Task 6b replaces this with the rebuilt History (season tiles › week tiles › a week layer).
-    body = <PlayLayer label="League history" parents={[toBoard]} layer="league:history" title={LEAGUE_COPY.history}><LeagueHistory key={app.accountId} app={app}/></PlayLayer>;
+    body = <LeagueHistory key={app.accountId} app={app} place={place} mode={mode} parents={[toBoard]} onPlace={set}
+      historyLip={lip('history', LEAGUE_COPY.history, 'history', { week: null })}
+      onScore={(season, week, market) => shell.go('play', { section: 'score', season, week, market: market === 'guess_total' ? 'total' : 'spread' })}/>;
   } else {
     body = <BoardLanding app={app} shell={shell} mode={mode} features={features.model} feed={feed} fresh={fresh} arrived={arrived} waiting={waiting} set={set}/>;
   }

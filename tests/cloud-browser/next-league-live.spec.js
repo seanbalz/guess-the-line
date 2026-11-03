@@ -126,10 +126,13 @@ test('history obeys each market reveal and refreshes when the browser comes back
   try {
     await open(page);
     await toBoard(page).click(); await page.getByRole('button', { name: /^History/ }).click();
-    await page.getByRole('combobox', { name: 'Player', exact: true }).selectOption(ACCOUNTS.troy.id);
+    await page.getByRole('group', { name: 'Player' }).getByRole('button', { name: /Troy Fixture/ }).click();
     await expect(region(page)).not.toContainText('2.5');
     await expect(region(page)).not.toContainText('47.5');
     const { season, week } = world.state.league;
+    await page.getByRole('button', { name: new RegExp(`^Week ${week},`) }).click();
+    await expect(page.getByRole('heading', { name: `Week ${week} · ${season}`, level: 2 })).toBeVisible();
+    await expect(region(page)).not.toContainText('2.5');
     expect((await world.api('luke', 'community/sit-out', { season, week, mode: 'guess_spread' })).status).toBe(200);
     const refreshed = page.waitForResponse(response => new URL(response.url()).pathname.endsWith('/community/history'));
     await page.evaluate(() => window.dispatchEvent(new Event('online')));

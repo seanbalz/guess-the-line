@@ -75,9 +75,9 @@ describe('history and feed games', () => {
     read.value = { loading: false, data: { viewer: YOU, season: 2026, seasons: [2026], members: [{ id: YOU, displayName: 'Avery Fixture' }],
       weeks: [{ season: 2026, week: 6, results: {}, games: [{ id: 'SEA-DEN', awayCode: 'SEA', homeCode: 'DEN', kickoff: '2026-10-18T20:05:00Z' }],
         entries: [{ userId: YOU, mode: 'guess_spread', status: 'submitted', eligible: true, weekScored: 1, weekPoints: 8, picks: [{ gameId: 'SEA-DEN', guess: -3, points: 8, reference: null }] }] }] } };
-    const out = html(<LeagueHistory app={{ accountId: YOU, refresh: vi.fn() }}/>);
+    const out = html(<LeagueHistory app={{ accountId: YOU, refresh: vi.fn() }} place={{ layer: 'week', season: null, week: 6 }} mode="guess_spread" parents={[]} onPlace={vi.fn()} onScore={vi.fn()}/>);
     const summary = [...walk(parseMarkup(out))].find(n => n.tag === 'summary');
     expect(matchups(summary)).toEqual([SEA_DEN]);
-    expect(nameFrom(summary)).toBe('Seattle Seahawks at Denver Broncos · Broncos −3');
+    expect(nameFrom(summary)).toBe('Seattle Seahawks at Denver Broncos · Line — · You Broncos −3 · 8 / 10');
   });
 });
