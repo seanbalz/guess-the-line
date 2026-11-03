@@ -9,7 +9,7 @@ vi.mock('../web/src/auth', () => ({ cloudEnabled: false, supabase: null }));
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn(), leagueApi: vi.fn(), linesApi: vi.fn(), readTeams: vi.fn(), trendsApi: vi.fn() }));
 // The saved-trends tile reads the shared lines data; these layers get theirs as props.
 vi.mock('../web/src/next/lines/linesData.js', () => ({ useLinesData: () => null }));
-const { nestTeams, nestTeamTrends, trendShare } = await import('../web/src/next/trends/teamNest.js');
+const { nestTeams, nestTeamTrends, trendShare, winRateText } = await import('../web/src/next/trends/teamNest.js');
 const { TeamsNest, trendSlug } = await import('../web/src/next/trends/TeamsNest.jsx');
 const { ShellContext } = await import('../web/src/next/shell/context.js');
 const { fragmentFor, placeFromFragment } = await import('../web/src/next/shell/router.js');
@@ -65,6 +65,13 @@ describe('teamNest: what the layers are built from', () => {
     expect(locks).toEqual(['spread']);
     expect(cards.map(c => c.id)).toContain(GB_ATS);
     expect(nestTeamTrends(week, gb, 'total').locks).toEqual([]);
+  });
+  it('a card’s share is exact from its record, and the win rate reads to one decimal (D-75)', () => {
+    const card = { kind: 'card', locked: false, pct: 56, chart: { record: { W: 388, L: 310, P: 14 } } };
+    expect(trendShare(weekOf(), card)).toBeCloseTo(388 / 698, 10);
+    expect(winRateText(trendShare(weekOf(), card))).toBe('55.6%');
+    expect(winRateText(trendShare(weekOf(), { kind: 'card', chart: { record: { W: 0, L: 0, P: 3 } } }))).toBe('—');
+    expect(winRateText(null)).toBe('—');
   });
   it('a missing share is null, never zero', () => {
     expect(trendShare(weekOf(), null)).toBeNull();
