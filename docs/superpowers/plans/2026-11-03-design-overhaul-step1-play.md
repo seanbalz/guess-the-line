@@ -30,7 +30,10 @@ for `tests/*.test.jsx` (static-markup renders), Playwright for `tests/cloud-brow
 6 "Step 1 · Play", 7, 8 and 9. Mockups: the private canvas
 [GTL Design Overhaul Mockups](https://claude.ai/artifact/YBJmR5XUV59juyGKPGphJ7), rows P1 to P6 (sample data).
 
-**Before you start:** this builds on step 0 (PR #428, merged) and waits for Sean's word to build. Start from a freshly
+**Status:** approved by Sean on November 3, 2026 ("Approve plan"), with its "Decisions for Sean" list. Not built.
+
+**Before you start:** this builds on step 0 (PR #428, merged). Building starts after the step 0 release and Sean's
+iPhone check of it (spec section 10), and on his word. Start from a freshly
 fetched `origin/main` in its own worktree (`docs/REPOSITORY_SYNC.md`). In a new worktree, link `node_modules` and make
 local PGlite available in `.local/sql-check`, or the PGlite browser specs skip silently; every browser report must say
 `skipped 0`.
@@ -82,8 +85,9 @@ Copied from the spec. Each task's requirements include these.
 
 ## Decisions for Sean
 
-Approving this plan approves these. Each one follows from the spec or his six choices, but it changes or removes
-something a player sees today, so it is listed here. Task 8 records the approved ones as a D-69 addendum.
+Sean approved these with the plan on November 3, 2026 ("Approve plan"). Each one follows from the spec or his six
+choices, but it changes or removes something a player sees today, so it is listed here. Task 8 records them as a D-69
+addendum.
 
 - **Compare (task 3, narrows D-53's "one, several or all players"):** one other member at a time, chosen by face, or a
   last "Everyone" chip that keeps today's league average. Choosing several players at once and the per-player sample

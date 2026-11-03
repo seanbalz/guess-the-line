@@ -4,8 +4,8 @@ Owner: Sean Balsiger · Designed with Sean in chat October 26 and November 2, 20
 (D-69).** Sean answered five questions one at a time on a mockup canvas, approved the three design parts in chat
 ("Looks right", "Looks right", "Looks right, write spec"), then reviewed this written spec: "Spec approved". Step 0
 (`docs/superpowers/plans/2026-11-02-design-overhaul-step0-kit.md`) is merged (PR #428) and not released. On November 3
-he answered the six Play questions (section 2); the step 1 plan is
-`docs/superpowers/plans/2026-11-03-design-overhaul-step1-play.md`.
+he answered the six Play questions (section 2) and approved the step 1 plan ("Approve plan"),
+`docs/superpowers/plans/2026-11-03-design-overhaul-step1-play.md`. Step 1 is not built.
 
 Mockups: [GTL Design Overhaul Mockups](https://claude.ai/artifact/YBJmR5XUV59juyGKPGphJ7), a private canvas with
 rows Q1 to Q5 and P1 to P6. The mockups use sample numbers and colored circles in place of team marks.

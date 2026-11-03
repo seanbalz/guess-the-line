@@ -112,8 +112,9 @@ each time ("Use P1B" through "Use P6A"):
 - **P5A, Badges and awards:** streaks and awards tiles, then the badge grid and Season winners; each opens a layer.
 - **P6A, League:** the board first, the two newest posts under it, then the feed and History as layers.
 These choose layouts only; no game rule changes. The spec's step 1 section records them, and the plan is
-[2026-11-03-design-overhaul-step1-play.md](superpowers/plans/2026-11-03-design-overhaul-step1-play.md). Building
-step 1 waits for Sean's word, after the step 0 release and his iPhone check.
+[2026-11-03-design-overhaul-step1-play.md](superpowers/plans/2026-11-03-design-overhaul-step1-play.md). Sean
+approved the plan and its "Decisions for Sean" list the same day ("Approve plan"). Building step 1 waits for the
+step 0 release and his iPhone check.
 
 ## D-68 — Premier League: Sleeper FEPL, Pick a Team and EPL moneyline (October 28, 2026)
 
