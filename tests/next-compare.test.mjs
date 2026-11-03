@@ -1,6 +1,7 @@
 // D-69 step 1 Compare (Sean's P3B): the pure rules in web/src/next/play/compare.js. Each test names the contract it guards.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import { EVERYONE, chooseOpponent, compareRows, compareTile, defaultOpponent, fieldRows, firstName, headToHead, leadLine, opponents, rowLine, rowTag, statLine } from '../web/src/next/play/compare.js';
 
 const SEA = { id: 'SEA-DEN', awayCode: 'SEA', homeCode: 'DEN', kickoff: '2026-10-25T20:05:00Z' };
@@ -149,4 +150,10 @@ test('without a usable server clock nothing is known to have kicked off: an unlo
   assert.deepEqual(rows(history([w], '2026-10-25T00:00:00Z')).map(r => r.state), ['noGuess', 'waiting', 'waiting'], 'with a clock a past kickoff reads NO GUESS; an unknown one still waits');
   const sat = { ...w, entries: [entry(ME, mine), { userId: TROY, mode: 'guess_spread', status: 'sat_out', picks: null, hiddenGames: [] }] };
   assert.deepEqual(rows({ viewer: ME, season: 2026, members, weeks: [sat] }).map(r => r.state), ['noGuess', 'noGuess', 'noGuess']);
+});
+
+test('Compare has no moments (the catalog has none): its page, rules and tile never use the moments engine', () => {
+  for (const file of ['ScoreComparison.jsx', 'CompareTile.jsx', 'compare.js']) {
+    assert.doesNotMatch(fs.readFileSync(new URL(`../web/src/next/play/${file}`, import.meta.url), 'utf8'), /moments\/|useMoments|useNewCount/, file);
+  }
 });
