@@ -16,6 +16,7 @@ vi.mock('../web/src/next/moments/MomentsProvider.jsx', () => ({
 
 const { ShellContext } = await import('../web/src/next/shell/context.js');
 const { FeaturesScreen } = await import('../web/src/next/features/FeaturesScreen.jsx');
+const { BadgesTile } = await import('../web/src/next/features/BadgesTile.jsx');
 
 const YOU = 'u-casey', BLAKE = 'u-blake';
 const NAMES = { [YOU]: 'Casey Moore', [BLAKE]: 'Blake Rivers' };
@@ -146,5 +147,22 @@ describe('Badges and awards: the layers', () => {
     expect(spoken).not.toMatch(/\d[A-Za-z]|\u00a0/);
     expect(spoken).toContain('Pick streak, 4 weeks');
     expect(spoken).toContain('earned 2 times');
+  });
+});
+
+describe('the Play landing Badges tile', () => {
+  it('the earned count; "New: <name>" and NEW while a badge waits; NEW alone for a streak; a dash before the read answers', () => {
+    setup();
+    expect(render(<BadgesTile/>)).toContain('aria-label="Badges, 1 earned"');
+    state.waiting = [{ id: 'badge:x', kind: 'badge', badge: 'bullseye', title: 'Bullseye' }];
+    const fresh = render(<BadgesTile/>);
+    expect(fresh).toContain('aria-label="Badges, 1 earned, new: Bullseye"');
+    expect(words(fresh)).toContain('New: Bullseye');
+    state.waiting = [{ id: 'streak:pick:2026:4:6', kind: 'streak', title: 'Pick streak' }];
+    expect(render(<BadgesTile/>)).toContain('aria-label="Badges, 1 earned"');
+    setup(read(null, { loading: true }));
+    expect(words(render(<BadgesTile/>))).toContain('—');
+    setup(read(null, { off: true }));
+    expect(render(<BadgesTile/>)).toContain('aria-label="Badges, coming soon"');
   });
 });
