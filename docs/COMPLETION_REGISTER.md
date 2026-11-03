@@ -62,8 +62,12 @@ and 252 buttons on the open Total ballot. From five options on the
   - **Unit and navigation:** 12 component tests and 17 router tests.
   - **Cloud browser:** the per-game scoring, moments, Lines game actions and new `next-play-nest` cases pass against
     the real handler on PGlite. They cover 390px and 320px, Dark and Light, axe, 44px targets and no sideways scroll.
-- **Not done:** no release or real-phone check yet. The other Play screens (League, Your weekly score, Badges, Guess
-  the Points) are not in this pass.
+- **Released.** PR #418 merged as `ffaefd64`, released November 3 at 00:47 UTC from that commit as Pages `53d2991a`
+  ([release record](RELEASE_2026_11_02_PLAY_NEST.md), card #426).
+  - **Signed-in readback:** Total Week 9 is 15 tiles in 68 words on 1,338 px, down from 1,317 words on 9,043 px. A
+    game card and browser Back work. Preservation matched before and after the deploy.
+- **Not done:** no real-iPhone check yet. The other Play screens (League, Your weekly score, Badges, Guess the Points)
+  are not in this pass.
 
 ## Pick reminders follow-ups from the #411 review — November 2, 2026
 
