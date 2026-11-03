@@ -170,7 +170,7 @@ async function still(page, locator, info, file, at = 150) {
   await page.evaluate(`${finite}.forEach(a => a.finish())`);
 }
 
-test('lock-in moment: the stamp, the "Locked in" line and a 20ms buzz come only after the server confirms; the write is unchanged', async ({ page, baseURL }, info) => {
+test('lock-in moment: the stamp, the "Locked in" line and a 10ms tick come only after the server confirms; the write is unchanged', async ({ page, baseURL }, info) => {
   const world = await fixture(page, baseURL);
   try {
     const [, target] = world.personal.games;
@@ -190,7 +190,8 @@ test('lock-in moment: the stamp, the "Locked in" line and a 20ms buzz come only 
     await still(page, game, info, 'lockin-moment-390-dark.png');
     const notice = page.getByRole('status').filter({ hasText: 'Locked in ·' });
     await expect(notice).toHaveText(new RegExp(`^Locked in · ${target.awayCode} at ${target.homeCode} · \\w+ −3\\. Your saved receipt is below\\.$`));
-    expect(await page.evaluate(() => window.__vibrations)).toEqual([20]);
+    // D-69 4.6: a confirmed lock-in is a small moment, the 10 ms tap tick.
+    expect(await page.evaluate(() => window.__vibrations)).toEqual([10]);
     await expect(game).toHaveAttribute('data-state', 'locked');
     await expect(game.locator('.gx-play-card-pill')).toHaveText('Locked in');
     // Tokens only: the card settles in base with the pop easing, its edge flashes once over "big", the pill stamps in.
@@ -235,7 +236,7 @@ test('lock-in moment: the stamp, the "Locked in" line and a 20ms buzz come only 
     await still(page, third, info, 'lockin-moment-390-light.png');
     await openWeek(page);
     await expect(count(page)).toHaveText('3 of 4 locked');
-    expect(await page.evaluate(() => window.__vibrations)).toEqual([20, 20]);
+    expect(await page.evaluate(() => window.__vibrations)).toEqual([10, 10]);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
@@ -260,7 +261,8 @@ test('lock-in under reduced motion: no movement, the words still change; a refus
     await expect(page.getByRole('alert').filter({ hasText: 'This game is closed.' })).toBeVisible();
     await expect(game).not.toHaveClass(/gx-play-stamp/);
     await expect(game).toHaveAttribute('data-state', 'draft');
-    expect(await page.evaluate(() => window.__vibrations)).toEqual([20]);
+    // D-69 4.6: reduced motion stops every buzz, the confirmed lock-in's too; the words still change.
+    expect(await page.evaluate(() => window.__vibrations)).toEqual([]);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
@@ -415,7 +417,8 @@ test('quiet states: loading is one line, a failed read is one line with Try agai
   try {
     const loading = page.locator('[data-play-state="loading"]');
     await expect(loading).toHaveText('Loading your picks…');
-    await expect(loading).toHaveAttribute('role', 'status');
+    // D-69 4.5: the placeholder carries the one status (its words are for screen readers).
+    await expect(loading.locator('[role="status"]')).toHaveCount(1);
     await matrix(page, 'loading', theme => shot(loading, info, `state-loading-390-${theme}.png`));
     world.control.personalRead.open(); world.control.personalRead = null;
     const failed = page.getByRole('alert').filter({ hasText: 'could not be loaded' });
