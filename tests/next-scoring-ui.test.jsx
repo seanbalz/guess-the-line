@@ -130,16 +130,14 @@ describe('matchups as marks (D-62)', () => {
     const filters = renderToStaticMarkup(<div className="gx"><ScoreFilters week={data.weeks[0]} filters={{ team: '', matchup: '' }} onChange={() => {}}/></div>);
     expect(filters).toContain('<option value="SEA-DEN">SEA at DEN</option>');
   });
-  it('each comparison card’s heading is the week and the matchup as 32px marks', () => {
+  it('each comparison row leads with its matchup as marks, away first', () => {
     const pick = { gameId: game.id, guess: -3, lockedIn: true, points: 8, reference: { value: -5, source: 'Fixture', observedAt: '2026-10-15T17:59:00Z' } };
     const other = { ...pick, guess: -6, points: 9 };
     const history = { viewer: 'owner', season: 2026, seasons: [2026], members: [{ id: 'owner', displayName: 'You' }, { id: 'friend', displayName: 'Friend' }],
       weeks: [{ season: 2026, week: 6, revealed: { guess_spread: true }, games: [game], entries: [{ userId: 'owner', mode: 'guess_spread', status: 'submitted', picks: [pick] }, { userId: 'friend', mode: 'guess_spread', status: 'submitted', picks: [other] }] }] };
-    const html = renderToStaticMarkup(<div className="gx"><ComparisonContent data={history} currentWeek={6} scopeName="Community" view={{}} onChange={() => {}} onRefresh={() => {}}/></div>);
+    const html = renderToStaticMarkup(<div className="gx"><ComparisonContent data={history} currentWeek={6} scopeName="Community" view={{}} onChange={() => {}}/></div>);
     expect(markupProblems(html)).toEqual([]);
-    const heading = [...walk(parseMarkup(html))].find(n => n.tag === 'h2' && nameFrom(n).startsWith('Week 6 · '));
-    expect(nameFrom(heading)).toBe('Week 6 · Seattle Seahawks at Denver Broncos');
-    expect(matchups(heading)).toEqual([SEA_DEN]);
-    expect(html).toContain('gx-mu--32');
+    const row = [...walk(parseMarkup(html))].find(n => n.tag === 'li' && (n.attrs.class ?? '').split(/\s+/).includes('gx-cmp-row'));
+    expect(matchups(row)).toEqual([SEA_DEN]);
   });
 });

@@ -1,15 +1,31 @@
+// Compare (D-69 step 1, Sean's P3B): you and one other member at a time. Face chips set the address key `item` (the last,
+// Everyone, keeps D-53's benchmark); week chips choose the week; filters sit behind the filter button. compare.js gates
+// each game a second time (D-31). No moments (the catalog has none); the one motion is the head-to-head bars growing
+// when you change what is compared.
+import { useMemo, useRef } from 'react';
 import { leagueApi } from '../../api.js';
 import { pickText, show } from '../../communityFormat.js';
-import { buildComparison, comparisonRows } from '../../../../shared/score-comparison.mjs';
 import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
 import { useLeagueRead } from '../league/useLeagueRead.jsx';
-import { PlayEmpty, PlayFailure, PlayLoading } from './PlayStates.jsx';
-import { Button, Card, Matchup, Segmented } from '../ui/index.js';
+import { Avatar, Button, Chip, ChipRail, InfoButton, Matchup, Pill, Segmented, cx } from '../ui/index.js';
 import { fmtFull } from '../format.js';
+import { PlayLayer } from './PlayLayer.jsx';
+import { WeekChips } from './WeekChips.jsx';
+import { FilterToggle } from './FilterToggle.jsx';
+import { PlayEmpty, PlayFailure, PlayLoading } from './PlayStates.jsx';
 import { modeOf, SCORE_MARKETS } from './scoring.js';
-import './scores.css';
+import { EVERYONE, chooseOpponent, compareRows, fieldRows, firstName, headToHead, leadLine, opponents, rowLine, rowTag, statLine } from './compare.js';
 import './comparison.css';
+
+const ABOUT = [
+  'You and one other player, game by game. Each guess is scored against its own saved line.',
+  'You see another player’s guess once you lock yours in, or from kickoff.',
+  'Only games scored for both of you count. Hidden, waiting, missed and unscored games never count as zero.',
+  'Everyone compares you with each game’s average of every scored player, you included, each game weighted equally.',
+  'Spread and Total stay separate. Games keep their original week, Monday games included. Compare never changes the standings.',
+];
+const CLEAR = { period: 'week', team: '', matchup: '' };
 
 export function ScoreComparison() {
   const app = useAppData(), shell = useShell(), view = shell.state.views.play;
@@ -17,55 +33,95 @@ export function ScoreComparison() {
   const leagueId = app.league?.community === false ? app.league.id : null;
   const key = `${app.accountId}:comparison:${leagueId ?? 'community'}:${season ?? 'latest'}`;
   const read = useLeagueRead(key, signal => leagueApi('comparison', { ...(season ? { season } : {}), ...(leagueId ? { leagueId } : {}) }, signal), error => { if (error.status === 401) app.requestSignIn(); });
-  if (read.loading) return <PlayLoading>Loading comparisons…</PlayLoading>;
-  if (read.error) return <PlayFailure what="Comparisons" error={read.error} onRetry={read.retry}/>;
-  return <ComparisonContent key={key} data={read.data} currentWeek={season === app.community.data?.week?.season ? app.community.data.week.week : null} scopeName={app.league?.name || 'Community'} view={view}
-    onChange={patch => shell.setView('play', patch)} onRefresh={read.retry}/>;
+  const current = app.community.data?.week;
+  return <PlayLayer label="Compare" layer="compare" title="Compare" info={<InfoButton title="About Compare" body={ABOUT}/>}>
+    {read.loading ? <PlayLoading>Loading comparisons…</PlayLoading>
+      : read.error ? <PlayFailure what="Comparisons" error={read.error} onRetry={read.retry}/>
+      : <ComparisonContent key={key} data={read.data} currentWeek={read.data.season === current?.season ? current.week : null}
+        scopeName={app.league?.name || 'Community'} view={view} onChange={patch => shell.setView('play', patch)}/>}
+  </PlayLayer>;
 }
-export function ComparisonContent({ data, currentWeek, scopeName, view, onChange, onRefresh }) {
-  const weeks = [...new Set((data.weeks || []).map(w => w.week))].sort((a,b) => a-b);
-  const week = view.week ?? currentWeek ?? weeks.at(-1), mode = modeOf(view.market);
-  const period = ['range','season'].includes(view.period) ? view.period : 'week';
-  const from = period === 'season' ? null : period === 'range' ? view.from ?? weeks[0] : week;
-  const to = period === 'season' ? null : period === 'range' ? view.to ?? currentWeek ?? weeks.at(-1) : week;
-  const members = data.members || [], others = members.filter(m => m.id !== data.viewer);
-  // A changed private scope cannot reuse selections from outside that roster.
-  const ids = (view.players || []).filter(id => others.some(m => m.id === id));
-  const all = view.comparisonKind !== 'selected';
-  const rows = comparisonRows(data, mode), filters = { season: data.season, from, to, team: view.team || '', matchup: view.matchup || '' };
-  const result = buildComparison({ rows, selection: { viewer: data.viewer, kind: all ? 'all' : 'selected', players: ids }, filters });
-  const name = id => id === data.viewer ? 'You' : members.find(m => m.id === id)?.displayName || 'Member';
-  const teams = [...new Set(rows.flatMap(row => [row.game.awayCode,row.game.homeCode]))].sort();
-  const games = [...new Map(rows.map(row => [row.game.id,row.game])).values()];
-  const weekOptions = value => [...new Set([...weeks, ...(value ? [value] : [])])].sort((a,b) => a-b).map(w => <option key={w} value={w}>Week {w}</option>);
-  return <section className="gx-score gx-vstack gx-gap-16" aria-label="Score comparisons">
-    <p className="gx-t-body gx-c-2">{scopeName} · Filtered comparisons, separate from official standings. Spread and Total stay separate. Each guess uses its own saved scoring line.</p>
-    <Segmented label="Comparison market" options={SCORE_MARKETS} value={mode} onChange={market => onChange({ market })}/>
-    <div className="gx-score-filters">
-      <label className="gx-t-body">Season<select className="gx-input" value={data.season ?? ''} onChange={e => onChange({ season: Number(e.target.value), week: null, from: null, to: null, matchup: '' })}>{data.seasons.map(s => <option key={s} value={s}>{s}</option>)}</select></label>
-      <label className="gx-t-body">Period<select className="gx-input" value={period} onChange={e => onChange({ period: e.target.value })}><option value="week">Single week</option><option value="range">Week range</option><option value="season">Full season</option></select></label>
-      {period === 'week' && <label className="gx-t-body">Week<select className="gx-input" value={week ?? ''} onChange={e => onChange({ week: Number(e.target.value) })}>{weekOptions(week)}</select></label>}
-      {period === 'range' && <><label className="gx-t-body">From week<select className="gx-input" value={from ?? ''} onChange={e => onChange({ from: Number(e.target.value) })}>{weekOptions(from)}</select></label><label className="gx-t-body">Through week<select className="gx-input" value={to ?? ''} onChange={e => onChange({ to: Number(e.target.value) })}>{weekOptions(to)}</select></label></>}
-      <label className="gx-t-body">Team<select className="gx-input" value={filters.team} onChange={e => onChange({ team: e.target.value })}><option value="">All teams</option>{teams.map(t => <option key={t}>{t}</option>)}</select></label>
-      <label className="gx-t-body">Matchup<select className="gx-input" value={filters.matchup} onChange={e => onChange({ matchup: e.target.value })}><option value="">All matchups</option>{games.map(g => <option key={g.id} value={g.id}>{g.awayCode} at {g.homeCode}</option>)}</select></label>
-    </div>
-    <Segmented label="Compare with" value={all ? 'all' : 'selected'} options={[{ value: 'all', label: 'All players' }, { value: 'selected', label: 'Choose players' }]} onChange={comparisonKind => onChange({ comparisonKind })}/>
-    {!all && <fieldset className="gx-compare-members"><legend className="gx-t-strong">Select one or more players</legend>{others.map(member => <label key={member.id} className="gx-t-body"><input type="checkbox" checked={ids.includes(member.id)} onChange={e => onChange({ players: e.target.checked ? [...ids,member.id] : ids.filter(id => id !== member.id) })}/>{member.displayName}{member.removed ? ' · former member' : ''}</label>)}</fieldset>}
-    <Card className="gx-vstack gx-gap-8"><h2 className="gx-t-section">Common scored games</h2>
-      <p className="gx-t-body">{result.games.length} included · {result.excluded} excluded of {result.considered} games in these filters</p>
-      <p className="gx-t-body gx-c-2">{all ? 'You plus at least one other eligible member per game. Contributors can vary.' : 'Only games scored and revealed for you and every selected player.'} Hidden, pending, missing and ineligible scores never count as zero.</p>
-      <p className="gx-t-body">Benchmark: {show(result.benchmark)} points per game, including you.</p>
-      <p className="gx-t-meta gx-c-2">Each game has equal weight in the benchmark. Games keep their original competition week, including Monday games. These filters never create an official rank. Tables scroll sideways when needed.</p>
-    </Card>
-    {from !== null && to !== null && from > to && <p className="gx-t-body" role="alert">Choose a through week at or after the from week.</p>}
-    {!all && !ids.length ? <PlayEmpty>Select at least one other player.</PlayEmpty> : !result.games.length ? <PlayEmpty>No common scored games yet. Try another week or player.</PlayEmpty> : <>
-      <div className="gx-compare-table" role="region" aria-label="Comparison summaries" tabIndex={0}><table><caption className="gx-t-strong">Selected sample · player totals</caption><thead><tr><th scope="col">Player</th><th scope="col">Points</th><th scope="col">Games</th><th scope="col">Points/game</th></tr></thead><tbody>{result.players.map(p => <tr key={p.userId}><th scope="row">{name(p.userId)}</th><td>{show(p.points)}</td><td>{p.games}</td><td>{show(p.average)}</td></tr>)}</tbody></table></div>
-      {all && <p className="gx-t-meta gx-c-2">Player sample sizes may differ. Use Choose players for the same games across everyone selected.</p>}
-      <Card className="gx-vstack gx-gap-12"><h2 className="gx-t-section">Points per game by week</h2>{result.trend.map(row => <div key={row.week} className="gx-vstack gx-gap-4"><p className="gx-t-body">Week {row.week} · {row.games} common games</p><label className="gx-t-body">You · {show(row.mine)}<meter min="0" max="10" value={row.mine} aria-label={`Week ${row.week}, your average`}/></label><label className="gx-t-body">Benchmark · {show(row.benchmark)}<meter min="0" max="10" value={row.benchmark} aria-label={`Week ${row.week}, benchmark average`}/></label></div>)}</Card>
-      {result.games.map(row => <Card key={row.key} as="section" className="gx-vstack gx-gap-8"><h2 className="gx-t-section">Week {row.week} · <Matchup away={row.game.awayCode} home={row.game.homeCode} size={32}/></h2><p className="gx-t-meta">{row.contributors} contributors including you · benchmark {show(row.benchmark)} points</p>
-        <div className="gx-compare-table" role="region" aria-label={`${row.game.id} comparison`} tabIndex={0}><table><caption className="gx-t-meta">Scored, revealed guesses</caption><thead><tr><th scope="col">Player</th><th scope="col">Guess</th><th scope="col">Saved line</th><th scope="col">Points</th></tr></thead><tbody>{row.players.map(p => <tr key={p.userId}><th scope="row">{name(p.userId)}</th><td>{pickText(mode,row.game.awayCode,row.game.homeCode,p.guess)}</td><td>{pickText(mode,row.game.awayCode,row.game.homeCode,p.reference.value)}</td><td>{show(p.points)}</td></tr>)}</tbody></table></div>
-        <details className="gx-score-detail"><summary className="gx-t-strong">Saved line sources</summary>{row.players.map(p => <p key={p.userId} className="gx-t-meta">{name(p.userId)} · {p.reference.source || 'Source unavailable'} · {fmtFull(p.reference.observedAt)}</p>)}</details></Card>)}
-    </>}
-    <Button onClick={onRefresh}>Refresh comparisons</Button>
-  </section>;
+
+function Bar({ who, points, max, me = false, grow = false }) {
+  const width = `${Math.round(Math.max(0, Math.min(1, points / max)) * 1000) / 10}%`;
+  // Real spaces between the name, the bar and the number (a grid ignores them), so the text reads "You 19", never "You19".
+  return <span className="gx-cmp-bar"><span className="gx-t-meta">{who}</span>{' '}
+    <span className="gx-cmp-track"><span className={cx('gx-cmp-fill', me && 'gx-cmp-fill--me')} data-grow={grow ? '' : undefined} style={{ width }}></span></span>{' '}
+    <span className="gx-n-s gx-cmp-num">{show(points)}</span></span>;
+}
+
+function CompareRow({ row, mode, name, multi }) {
+  const tag = rowTag(row, name), game = row.game, text = value => pickText(mode, game.awayCode, game.homeCode, value);
+  const sides = row.state === 'hidden' ? [] : [['You', row.me, true], [name, row.them, false]];
+  const scored = sides.filter(([, side]) => side.points !== null), lines = sides.filter(([, side]) => side.locked && side.reference);
+  return <li className="gx-cmp-row">
+    <div className="gx-cmp-row-top"><Matchup away={game.awayCode} home={game.homeCode}/>
+      <span className="gx-cmp-row-end"><Pill tone={tag.tone}>{tag.text}</Pill>
+        {lines.length ? <InfoButton title={`Saved lines, Week ${row.week} ${game.awayCode} at ${game.homeCode}`}
+          body={lines.map(([who, side]) => `${who} · line ${text(side.reference.value)} · ${side.reference.source || 'Source unavailable'} · ${fmtFull(side.reference.observedAt)}`)}/> : null}</span></div>
+    <p className="gx-t-meta gx-c-2">{multi ? `Week ${row.week} · ` : ''}{rowLine(row, mode, name)}</p>
+    {scored.length ? <div className="gx-cmp-bars" role="img" aria-label={scored.map(([who, side]) => `${who} ${show(side.points)} points`).join(', ')}>
+      {scored.map(([who, side, me]) => <Bar key={me ? 'me' : 'them'} who={who} points={side.points} max={10} me={me}/>)}</div> : null}
+  </li>;
+}
+
+export function ComparisonContent({ data, currentWeek, scopeName, view, onChange }) {
+  const mode = modeOf(view.market), others = opponents(data);
+  const opponent = useMemo(() => chooseOpponent(data, view.item), [data, view.item]), everyone = opponent === EVERYONE;
+  const weeks = [...new Set((data.weeks || []).map(w => w.week))].sort((a, b) => a - b);
+  const period = ['range', 'season'].includes(view.period) ? view.period : 'week';
+  const week = weeks.includes(view.week) ? view.week : weeks.includes(currentWeek) ? currentWeek : weeks.at(-1) ?? null;
+  const from = period === 'season' ? null : period === 'range' ? (weeks.includes(view.from) ? view.from : weeks[0] ?? null) : week;
+  const to = period === 'season' ? null : period === 'range' ? (weeks.includes(view.to) ? view.to : weeks.at(-1) ?? null) : week;
+  const team = view.team || '', matchup = view.matchup || '', filtered = period !== 'week' || !!team || !!matchup;
+  const rows = useMemo(() => !opponent ? [] : (opponent === EVERYONE ? fieldRows : compareRows)(data, { mode, opponent, from, to, team, matchup }),
+    [data, mode, opponent, from, to, team, matchup]);
+  // The bars grow when you change what is compared, never on the first paint (D-69: nothing moves on a page load).
+  const selection = [opponent, mode, from, to, team, matchup].join(':'), first = useRef(selection), grow = first.current !== selection;
+  if (!others.length) return <PlayEmpty>No one else to compare with yet.</PlayEmpty>;
+  if (!weeks.length) return <PlayEmpty>No weeks to compare yet.</PlayEmpty>;
+  const h = headToHead(rows), member = id => (data.members || []).find(m => m.id === id);
+  const name = everyone ? 'Everyone' : member(opponent)?.displayName || 'Member', short = everyone ? 'Everyone' : firstName(name);
+  const teams = [...new Set((data.weeks || []).flatMap(w => (w.games || []).flatMap(g => [g.awayCode, g.homeCode])))].sort();
+  const games = [...new Map((data.weeks || []).filter(w => from === null || (w.week >= from && w.week <= to)).flatMap(w => w.games || []).map(g => [g.id, g])).values()];
+  const when = period === 'season' ? `${data.season} season` : period === 'range' ? `Weeks ${from}–${to}` : `Week ${week}`;
+  const weekOptions = weeks.map(w => <option key={w} value={w}>Week {w}</option>);
+  const pick = id => () => { if (id !== opponent) onChange({ item: id }); };
+  return <div className="gx-vstack gx-gap-12">
+    <p className="gx-t-meta gx-c-2">{scopeName} · {when} · {mode === 'guess_total' ? 'Total' : 'Spread'}</p>
+    <ChipRail label="Compare with">
+      {others.map(m => <Chip key={m.id} text selected={m.id === opponent} className="gx-cmp-face" onClick={pick(m.id)}><Avatar id={m.id} name={m.displayName} size={32}/>{m.removed ? `${m.displayName} · former` : m.displayName}</Chip>)}
+      <Chip text selected={everyone} className="gx-cmp-face" onClick={pick(EVERYONE)}><Avatar anyone size={32}/>Everyone</Chip>
+    </ChipRail>
+    <Segmented label="Compare market" options={SCORE_MARKETS} value={mode} onChange={value => onChange({ market: value === 'guess_total' ? 'total' : 'spread' })}/>
+    <WeekChips label="Week" weeks={weeks} week={period === 'week' ? week : null} onWeek={value => onChange({ week: value, period: 'week' })}
+      seasons={data.seasons || []} season={data.season} onSeason={year => onChange({ season: year, week: null, period: 'week', matchup: '' })}/>
+    <FilterToggle label="Filter games" active={filtered}>
+      <div className="gx-cmp-filters gx-vstack gx-gap-12">
+        <label className="gx-t-body">Period<select className="gx-input" value={period} onChange={e => onChange({ period: e.target.value })}><option value="week">Single week</option><option value="range">Week range</option><option value="season">Full season</option></select></label>
+        {period === 'range' && <><label className="gx-t-body">From week<select className="gx-input" value={from ?? ''} onChange={e => onChange({ from: Number(e.target.value) })}>{weekOptions}</select></label>
+          <label className="gx-t-body">Through week<select className="gx-input" value={to ?? ''} onChange={e => onChange({ to: Number(e.target.value) })}>{weekOptions}</select></label></>}
+        <label className="gx-t-body">Team<select className="gx-input" value={team} onChange={e => onChange({ team: e.target.value })}><option value="">All teams</option>{team && !teams.includes(team) && <option value={team}>{team}</option>}{teams.map(t => <option key={t} value={t}>{t}</option>)}</select></label>
+        <label className="gx-t-body">Matchup<select className="gx-input" value={matchup} onChange={e => onChange({ matchup: e.target.value })}><option value="">All matchups</option>{games.map(g => <option key={g.id} value={g.id}>{g.awayCode} at {g.homeCode}</option>)}</select></label>
+        <Button disabled={!filtered} onClick={() => onChange(CLEAR)}>Clear filters</Button>
+      </div>
+    </FilterToggle>
+    <section className="gx-cmp-h2h" aria-label="Head to head">
+      <div className="gx-cmp-vs">
+        <span className="gx-cmp-who"><Avatar id={data.viewer} name={member(data.viewer)?.displayName || 'You'} size={40} you/><span className="gx-t-strong">You</span></span>
+        <span className="gx-t-meta gx-c-2" aria-hidden="true">VS</span>
+        <span className="gx-cmp-who"><span className="gx-t-strong">{name}</span>{everyone ? <Avatar anyone size={40}/> : <Avatar id={opponent} name={name} size={40}/>}</span>
+      </div>
+      <p className="gx-t-strong" aria-live="polite">{leadLine(h, short)}</p>
+      {h.shared ? <>
+        <div key={selection} className="gx-cmp-bars" role="img" aria-label={`You ${show(h.me.points)}, ${short} ${show(h.them.points)} points on ${h.shared} shared ${h.shared === 1 ? 'game' : 'games'}`}>
+          <Bar who="You" points={h.me.points} max={h.shared * 10} me grow={grow}/><Bar who={short} points={h.them.points} max={h.shared * 10} grow={grow}/>
+        </div>
+        <p className="gx-t-meta gx-c-2">{statLine(h, everyone)}</p>
+      </> : null}
+    </section>
+    {from !== null && to !== null && from > to ? <p className="gx-t-body" role="alert">Choose a through week at or after the from week.</p>
+      : !rows.length ? <PlayEmpty action={filtered ? 'Clear filters' : undefined} onAction={() => onChange(CLEAR)}>{filtered ? 'No games match these filters.' : everyone ? 'No shared scored games yet.' : 'No games in this week.'}</PlayEmpty>
+      : <ul className="gx-cmp-rows" aria-label="Games">{rows.map(row => <CompareRow key={row.key} row={row} mode={mode} name={short} multi={period !== 'week'}/>)}</ul>}
+  </div>;
 }

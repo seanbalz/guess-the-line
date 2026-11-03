@@ -25,7 +25,7 @@ async function guide(page) {
   await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: /^Play(,|$)/ }).click();
   await page.getByText('How to play', { exact: true }).click();
 }
-test('Home guide and account settings persist; comparisons use revealed common games, markets and mobile accessible tables', async ({ page, baseURL }, testInfo) => {
+test('Home guide and account settings persist; Compare is one head-to-head at a time, gated per game, on accessible phone layouts', async ({ page, baseURL }, testInfo) => {
   const world = await ready(page,baseURL);
   try {
     await guide(page);
@@ -37,23 +37,28 @@ test('Home guide and account settings persist; comparisons use revealed common g
     await page.getByRole('button',{ name: 'Save settings',exact: true }).click();
     await expect(page.getByText('Settings saved.',{ exact: true })).toBeVisible({ timeout: SAVE_ROUND_TRIPS });
     await page.keyboard.press('Escape');
-    await page.getByRole('button',{ name: 'Your results',exact: true }).click();
-    await page.getByRole('button',{ name: 'Compare players',exact: true }).click();
-    await expect(page.getByRole('heading',{ name: 'Compare players',exact: true })).toBeVisible();
-    await expect(page.getByText('2 included · 0 excluded of 2 games in these filters')).toBeVisible();
-    await expect(page.getByText('2 contributors including you',{ exact: false }).first()).toBeVisible();
-    await page.getByRole('button',{ name: 'Choose players',exact: true }).click();
-    await expect(page.getByText('Select at least one other player.',{ exact: true })).toBeVisible();
-    await page.getByRole('checkbox',{ name: ACCOUNTS.troy.name }).check();
-    await expect(page.getByText('2 included · 0 excluded of 2 games in these filters')).toBeVisible();
-    await page.getByRole('checkbox',{ name: ACCOUNTS.sean.name }).check();
-    await expect(page.getByText('No common scored games yet.',{ exact: false })).toBeVisible();
-    await page.getByRole('checkbox',{ name: ACCOUNTS.sean.name }).uncheck();
-    await page.getByRole('combobox',{ name: 'Period',exact: true }).selectOption('season');
-    await expect(page.getByText('2 included · 0 excluded of 2 games in these filters')).toBeVisible();
-    await page.getByRole('button',{ name: 'Total',exact: true }).click();
-    await expect(page.getByText('No common scored games yet.',{ exact: false })).toBeVisible();
-    await page.getByRole('button',{ name: 'Spread',exact: true }).click();
+    // D-69 step 1 Compare (P3B). Troy also sends a Total ballot Luke has not matched: it must stay hidden (D-31).
+    await sendBallot(world,'troy','guess_total',Object.fromEntries(world.state.games.map((g,i) => [g.id,[41.5,52.5][i]])));
+    await page.evaluate(() => { location.hash = '#play/compare'; });
+    const layer = page.getByRole('region',{ name: 'Compare',exact: true });
+    await expect(layer.getByRole('heading',{ name: 'Compare',exact: true })).toBeVisible();
+    const faces = layer.getByRole('group',{ name: 'Compare with' });
+    await expect(faces.getByRole('button',{ name: ACCOUNTS.troy.name })).toHaveAttribute('aria-pressed','true');
+    await expect(layer.getByText('Troy leads by 1',{ exact: true })).toBeVisible();
+    await expect(layer.getByText('Bullseyes 0–1 · Avg miss 0.5–0.3 · 2 shared games',{ exact: true })).toBeVisible();
+    await expect(layer.getByText('EVEN',{ exact: true })).toBeVisible();
+    await expect(layer.getByText('TROY +1',{ exact: true })).toBeVisible();
+    await layer.getByRole('button',{ name: 'Total',exact: true }).click();
+    await expect(layer.getByText('HIDDEN',{ exact: true })).toHaveCount(2);
+    await expect(layer.getByText('Lock yours to see Troy’s guess',{ exact: true })).toHaveCount(2);
+    for (const value of ['41.5','52.5']) await expect(layer).not.toContainText(value);
+    await layer.getByRole('button',{ name: 'Spread',exact: true }).click();
+    await faces.getByRole('button',{ name: 'Everyone',exact: true }).click();
+    await expect(layer.getByText('Everyone leads by 0.5',{ exact: true })).toBeVisible();
+    await faces.getByRole('button',{ name: ACCOUNTS.sean.name }).click();
+    await expect(page).toHaveURL(new RegExp(`#play/compare\\?.*item=${ACCOUNTS.sean.id}`));
+    await expect(layer.getByText('No shared games yet',{ exact: true })).toBeVisible();
+    await expect(layer.getByText('Sean hasn’t locked in',{ exact: false }).first()).toBeVisible();
     for (const theme of ['dark','light']) {
       await page.evaluate(theme => document.documentElement.setAttribute('data-theme',theme),theme);
       await page.setViewportSize({ width: 320,height: 844 });

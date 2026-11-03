@@ -313,3 +313,19 @@ test('D-69: any nested Play layer (layer, item) is a step Back closes and never 
   const compare = initialState({ tab: 'play', view: { section: 'compare' } });
   assert.equal(reduce(compare, { type: 'view', tab: 'play', patch: { item: 'u-2' } }).trail.length, 0, 'choosing the other player is not a step');
 });
+
+test('D-69 Compare: the opponent is the item on section compare; a face is not a step, a reload reopens it, Back leaves', async () => {
+  const troy = '00000000-0000-4000-8000-000000000002', sean = '00000000-0000-4000-8000-000000000003';
+  assert.deepEqual(placeFromFragment(`#play/compare?market=total&season=2026&week=8&item=${troy}`).view, { section: 'compare', market: 'total', season: 2026, week: 8, item: troy });
+  const win = fakeWindow('https://gtl.test/#home');
+  let shell = app(win);
+  shell.dispatch({ type: 'go', tab: 'play', view: { section: 'compare', item: troy, week: 8 } });
+  shell.dispatch({ type: 'view', tab: 'play', patch: { item: sean } });
+  assert.match(win.location.hash, new RegExp(`^#play/compare\\?.*item=${sean}$`));
+  assert.equal(win.history.length, 2, 'choosing a face rewrites the entry; it adds no Back step');
+  shell.connection.disconnect();
+  shell = app(win);
+  assert.equal(shell.state.views.play.item, sean, 'a reload reopens the same head-to-head');
+  win.history.back(); await settle();
+  assert.equal(shell.state.tab, 'home', 'Back closes Compare');
+});
