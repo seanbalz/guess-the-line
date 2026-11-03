@@ -189,3 +189,15 @@ test('EPL uses the shared sheet/history loop and restores only its own route sta
   assert.equal(win.location.hash, '#epl/play/guess');
   a.connection.disconnect();
 });
+
+test('D-69 layer addresses: every section keeps a layer and an item, so a reload or a shared link reopens a card', () => {
+  for (const [tab, view] of [['play', { section: 'score' }], ['research', { section: 'games' }], ['bets', { view: 'tracked' }], ['home', {}]]) {
+    const fragment = fragmentFor(tab, { ...view, layer: 'game', item: '2026_08_SEA_DEN' });
+    assert.match(fragment, /layer=game/, tab);
+    assert.match(fragment, /item=2026_08_SEA_DEN/, tab);
+    const place = placeFromFragment(fragment);
+    assert.equal(place.view.layer, 'game', tab);
+    assert.equal(place.view.item, '2026_08_SEA_DEN', tab);
+  }
+  assert.equal(placeFromFragment('#play/score?layer=%3Cscript%3E').view?.layer, undefined, 'only safe characters');
+});

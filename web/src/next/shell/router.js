@@ -1,7 +1,7 @@
 // Four roots and allowlisted detail addresses. History contains navigation metadata only.
 import { DEFAULT_TAB, LEGACY_TABS, destination, hasLayers, isTab } from './state.js';
 const LEFT_ALONE = new Set(['main', 'picks-due']);
-const KEYS = new Set(['market','season','week','weekId','leagueId','accountId','period','team','matchup','scoreGame','comparisonKind']);
+const KEYS = new Set(['market','season','week','weekId','leagueId','accountId','period','team','matchup','scoreGame','comparisonKind','layer','item']);
 const SECTIONS = { play: ['picks','score','compare','league','points','features'], research: ['games','fantasy','trends'], bets: ['active','settled','tracked','recommended','research','virtual','everyone','add'] };
 export function safeView(tab, view = {}) {
   const result = {};
