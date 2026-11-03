@@ -14,7 +14,7 @@ const W = 320;
  * Pass `selectedIndex` and `onSelect` together to retain selection outside a swapped view.
  * `contextLabel` adds the visible trend title to the slider's accessible name.
  */
-export function TrendLine({ values, tip, start, end, label, height = 160, selectedIndex, onSelect, id: chartId, contextLabel }) {
+export function TrendLine({ values, tip, start, end, label, height = 160, selectedIndex, onSelect, id: chartId, contextLabel, formatValue }) {
   const count = values.length;
   const [index, setIndex] = useState(count - 1);
   const at = Math.max(0, Math.min(selectedIndex ?? index, count - 1));
@@ -32,7 +32,7 @@ export function TrendLine({ values, tip, start, end, label, height = 160, select
   return (
     <div className="gx-tc-line" id={chartId}>
       <ChartTooltip readouts={readouts} index={at} x={x}/>
-      <ChartScale extent={geo.extent} id={`${id}scale`}/>
+      <ChartScale extent={geo.extent} id={`${id}scale`} formatValue={formatValue}/>
       <div className="gx-tc-plot" onPointerDown={event => {
         if (!event.isPrimary || event.button !== 0) return;
         event.currentTarget.setPointerCapture(event.pointerId); follow(event);
@@ -53,7 +53,7 @@ export function TrendLine({ values, tip, start, end, label, height = 160, select
           <line className="gx-tc-zero" x1="0" x2={W} y1={geo.zeroY} y2={geo.zeroY} data-zero-baseline="true"/>
           <path className="gx-tc-path" d={geo.line}/>
         </svg>
-        <span className="gx-tc-zero-label" aria-hidden="true" style={{ top: `${(geo.zeroY / height) * 100}%` }}>0 U</span>
+        <span className="gx-tc-zero-label" aria-hidden="true" style={{ top: `${(geo.zeroY / height) * 100}%` }}>{formatValue?formatValue(0):'0 U'}</span>
         <span className="gx-tc-cross" aria-hidden="true" style={{ left: `${x}%` }}></span>
         <span className="gx-tc-dot" aria-hidden="true" style={{ left: `${x}%`, top: `${y}%` }}></span>
       </div>
