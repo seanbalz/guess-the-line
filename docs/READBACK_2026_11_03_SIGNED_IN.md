@@ -44,7 +44,14 @@ On a fresh page load of `#bets/research`, `POST /lines/assessments` failed twice
   signed-out boundary probes).
 
 It is the same failure class as the October 22 `/trends/week` release: an Edge Function is capped at about 2 seconds
-of CPU per request. The route is in `cloud/lines.mjs`. The cause has not been looked into yet.
+of CPU per request.
+
+**Fix, not deployed:** [PR #453](https://github.com/seanbalz/guess-the-line/pull/453).
+- **Cause:** `readAssessments` rebuilt each game-market's historical evidence for every book and side.
+- **Change:** that work now runs once per game-market, and the reply is byte-identical.
+- **Local CPU,** median of 5 cold processes: cold 282 → 218 ms, warm 110 → 47 ms.
+- **Release:** it ships with the next `api` release on Sean's approval. Only a signed-in readback afterwards proves the
+  546 is gone.
 
 ## Wording note: Trends › This Week top-trend tiles
 

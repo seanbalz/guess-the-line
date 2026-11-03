@@ -12,7 +12,8 @@ frontend at `134f17c8`. Passed:
 - the step 0 tab fade.
 
 **Defect:** a cold load of Bets › Research recommendations (D-73) can fail with "Research is unavailable right
-now". `POST /lines/assessments` logged 546 "CPU Time exceeded" at 20:53:58 UTC. Warm loads return 200.
+now". `POST /lines/assessments` logged 546 "CPU Time exceeded" at 20:53:58 UTC. Warm loads return 200. The fix is
+PR #453, not deployed.
 
 Not checked: the 320/390px phone widths and a real iPhone. See the
 [readback record](READBACK_2026_11_03_SIGNED_IN.md).
