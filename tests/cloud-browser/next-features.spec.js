@@ -150,7 +150,7 @@ test('Home\'s recap card and the League board\'s "Won Week 4" show once the job 
   const recap = page.locator('[data-home="awards"]');
   await expect(recap.getByRole('heading', { name: 'Week 4 awards' })).toBeVisible();
   await expect(recap).toContainText('You won Spread winner');
-  // The first read this session sets what Luke has seen: no celebration on page load.
+  // The first read on this device seeds what Luke has seen: no celebration on page load.
   await expect(page.getByRole('dialog', { name: 'New results' })).toHaveCount(0);
   await recap.getByRole('button', { name: 'All badges and awards' }).click();
   await expect(page).toHaveURL(/#play\/features/);

@@ -271,7 +271,7 @@ instead of a hairline border. Dark's page wash is a deeper blue at the top.
 
 ### Where glow and glass may appear
 
-- Any number of glow cards may be in view (D-56 addendum, October 23, 2026, which replaced D-55's two-card limit): the screen's one action card (each root's hero, the kit's
+- Any number of glow cards may be in view (D-56 addendum, October 23, 2026, which replaced D-55's two-card limit), for example the screen's one action card (each root's hero, the kit's
   `gx-card--hero`) and one opened trend.
 - Glass only on a glow card: its pills, tooltips, segmented control and tiles.
 - **Lime exception:** in Dark, lime is the decorative last stop of the chart

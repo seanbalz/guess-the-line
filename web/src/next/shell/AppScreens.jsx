@@ -1,6 +1,7 @@
 // The new app's app-wide states (redesign build plan stage 11; inventory row 80; prototype spec section 5 and the
 // League and Home access states): what shows before the account is loaded, when it cannot load, and in place of a
-// tab when the league showing is not open to this account. No spinners: a sentence says what is happening.
+// tab when the league showing is not open to this account. No spinners: the start screen shows placeholders
+// (ui/Skeleton.jsx) and its words are for screen readers; the other screens say what is happening in a sentence.
 //
 // - StartScreen and LoadFailed have no frame yet (the account decides which frame), like the name step.
 // - RemovedScreen and AccessPending show inside the frame, in place of the tab: the league pill, the menu and the

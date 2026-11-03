@@ -1,7 +1,8 @@
 // `ov.flash`: the celebration for a new badge or award of your own (design system 7.16, "stadium flash"; the prototype's
 // Bullseye flash and New results). Brand Motion: verified outcomes only, one big moment at a time (one overlay however
-// many arrived) and never on page load (useFeatures queues it only on a later read). Only transform and opacity move,
-// for at most 600 ms, once; reduced motion (the device or the app's setting) stops it and the words stay.
+// many arrived) and never on page load. Celebrations come from the D-69 moments engine (moments/), which shows this card
+// for big moments on a fresh read, where their card is open. Only transform and opacity move, for at most 600 ms, once;
+// reduced motion (the device or the app's setting) stops it and the words stay.
 import { useId } from 'react';
 import { useShell } from '../shell/context.js';
 import { Badge, Button, Overlay } from '../ui/index.js';
