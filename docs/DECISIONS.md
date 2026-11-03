@@ -23,7 +23,7 @@ no new line can be made while FanDuel is missing.
   - Sean's OK on the phone mockups ([design/backup-book-2026-11-03](../design/backup-book-2026-11-03/README.md));
   - M-39 by Gate M;
   - the `api` release;
-  - the `gtl-odds-refresh` Mac mini deploy.
+  - an `odds-refresh` release (the shared workflow target since November 3, `gtl-odds-refresh` v7).
 
 ## Pick a Team backups at the turn — November 3, 2026
 

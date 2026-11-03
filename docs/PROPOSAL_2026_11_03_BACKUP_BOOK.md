@@ -68,7 +68,7 @@ occasionally, so the gap may close by itself; the November 4 06:15 UTC run will 
    makes no line (as today), so the order is safe either way. Applying M-39 first means the first collection after the
    code deploy counts.
 2. **`api` release** (shared workflow, Sean's approval). Save-triggered collections then ask for BetRivers.
-3. **`gtl-odds-refresh` Mac mini deploy**, so the scheduled runs, the main collectors, ask for it too.
+3. **`odds-refresh` release** (shared workflow target; `gtl-odds-refresh` is v7 from `4cf149e7`), so the scheduled runs, the main collectors, ask for it too.
 4. **Readback:** the next collection's `availableQuotes`, its `standIns`, and the age of new saved lines.
 
 ## Evidence (local, executed)
