@@ -5,7 +5,7 @@ Sean wants to know when a scheduled job fails or a weekly outcome is missed, wit
 | Half | Watches | Channel | Status |
 |---|---|---|---|
 | GitHub data refreshes | Fantasy refresh, Research data refresh | GitHub issue assigned to Sean (`ops-alert` label) | Live: PR #433, #436 |
-| Supabase jobs | The 22 pg_cron jobs and the outcomes they own | Web push to the commissioner's phone (Sean's choice, November 3) | M-38 applied (hosted `20261103184656`); function not deployed ([release card](RELEASE_2026_11_03_OPS_ALERTS_M38.md)) |
+| Supabase jobs | The 22 pg_cron jobs and the outcomes they own | Web push to the commissioner's phone (Sean's choice, November 3) | Live since November 3, 20:20 UTC (M-38 hosted `20261103184656`, `gtl-ops-alerts` v1, test alert and clear delivered) ([release card](RELEASE_2026_11_03_OPS_ALERTS_M38.md)) |
 
 ## Why the Supabase half needs its own check
 
