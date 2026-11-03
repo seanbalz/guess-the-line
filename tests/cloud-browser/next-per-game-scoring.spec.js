@@ -69,17 +69,7 @@ test('one guess locks after confirmation, keeps the other market open, and links
   try {
     const game = world.personal.games[0];
     const card = await choose(page, game.id);
-    for (const theme of ['dark', 'light']) {
-      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
-      for (const width of [390, 320]) {
-        await page.setViewportSize({ width, height: 844 });
-        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-        const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
-        expect(axe.violations.map(item => item.id)).toEqual([]);
-        await page.screenshot({ path: info.outputPath(`per-game-picks-${width}-${theme}.png`), fullPage: true });
-      }
-    }
-    await page.setViewportSize({ width: 390, height: 844 });
+    await shots(page, info, 'per-game-picks');
 
     await card.getByRole('button', { name: 'Lock in Spread', exact: true }).click();
     const dialog = page.getByRole('alertdialog', { name: 'Lock in Spread?' });
@@ -106,7 +96,7 @@ test('one guess locks after confirmation, keeps the other market open, and links
     await expect(page.locator('.gx-nest-card')).toContainText('/ 10 points'); // a reload reopens the layer
     await shots(page, info, 'score-game');
     await page.getByRole('button', { name: 'Back to Your score', exact: true }).click();
-    await expect(page.getByRole('region', { name: 'Personal score summary' })).toContainText(/8\s*points/);
+    await expect(page.getByRole('region', { name: 'Personal score summary' })).toContainText('8 points');
     await page.getByRole('button', { name: 'About your scores', exact: true }).click();
     await expect(page.getByRole('dialog', { name: 'About your scores' })).toContainText('8 personal points waiting for kickoff');
     await page.keyboard.press('Escape');
@@ -119,7 +109,7 @@ test('one guess locks after confirmation, keeps the other market open, and links
     await page.getByRole('button', { name: `Week ${world.personal.week - 1}`, exact: true }).click();
     await expect(page.getByText('No saved Spread guesses for this week.')).toBeVisible();
     await page.getByRole('button', { name: `Week ${world.personal.week}`, exact: true }).click();
-    await expect(page.getByRole('region', { name: 'Personal score summary' })).toContainText(/8\s*points/);
+    await expect(page.getByRole('region', { name: 'Personal score summary' })).toContainText('8 points');
     await shots(page, info, 'weekly-score');
     // Back closes one layer: a row opens its game and the browser Back button returns to the list.
     await page.locator('.gx-ys-row').first().click();

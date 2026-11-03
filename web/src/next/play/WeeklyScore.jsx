@@ -116,7 +116,7 @@ function ScoreHero({ hero, rank, account, figure }) {
         <p className="gx-ys-total">
           {hero.points === null ? <span className="gx-n-xl gx-c-3">—</span>
             : hero.count ? <CountUp className="gx-n-xl" value={hero.points} account={account} figure={figure}/> : <span className="gx-n-xl">{show(hero.points)}</span>}
-          <span className="gx-t-body gx-c-2">points</span>
+          {' '}<span className="gx-t-body gx-c-2">points</span>
         </p>
       </div>
       {rank ? <p className="gx-ys-rank"><span className="gx-t-micro gx-c-2">Season</span> <span className="gx-n-s">{rank.label}</span>{rank.move ? <> <Move by={rank.move}/></> : null}</p> : null}
@@ -160,7 +160,7 @@ function GameBody({ row, mode, week }) {
   return <>
     <p className="gx-t-meta gx-c-2 gx-ys-meta">{v.meta}</p>
     {v.scored || v.late ? <div className="gx-ys-game-top">
-      {v.scored ? <p className="gx-ys-points"><span className="gx-n-xl">{show(v.points)}</span><span className="gx-t-body gx-c-2">/ 10 points</span></p> : null}
+      {v.scored ? <p className="gx-ys-points"><span className="gx-n-xl">{show(v.points)}</span>{' '}<span className="gx-t-body gx-c-2">/ 10 points</span></p> : null}
       {v.bullseye ? <span className="gx-t-micro gx-ys-bull">Bullseye</span> : null}
       {v.late ? <Pill tone="pending">{v.late}</Pill> : null}
     </div> : null}

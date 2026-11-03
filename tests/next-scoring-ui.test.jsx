@@ -32,6 +32,19 @@ describe('Your score (D-69, mockup Q1-B)', () => {
     expect(html).not.toContain('Standings · games started');
     expect(text).toContain('Refresh scores'); expect(text).toContain('View this week’s picks'); expect(text).toContain('Compare players');
   });
+  it('the hero and the game layer put a real space between the number and the word "points" (copy-paste and screen readers read "8 points")', () => {
+    const hero = render();
+    expect(hero).toMatch(/>8<\/span>\s+<span class="gx-t-body gx-c-2">points<\/span>/);
+    const layer = render({ scoreGame: game.id });
+    expect(layer).toMatch(/>8<\/span>\s+<span class="gx-t-body gx-c-2">\/ 10 points<\/span>/);
+  });
+  it('an unplayed week is never final: before the last kickoff, or with no clock, the list shows progress and not "all games scored"', () => {
+    for (const now of ['2026-10-18T19:00:00Z', undefined]) {
+      const text = words(render({}, { data: { ...data, now } }));
+      expect(text).toContain('Week 6 \u00b7 1 of 1 scored');
+      expect(text).not.toContain('all games scored');
+    }
+  });
   it('AND filters say "Selected games", have an explicit empty state and never draw a rank', () => {
     const rank = { rank: 1, label: '1st', move: 2, said: 'season rank 1st, up 2' };
     const html = render({ team: 'HOU', matchup: game.id }, { rank });
