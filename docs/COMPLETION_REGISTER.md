@@ -1,5 +1,13 @@
 # Guess The Line — current completion register
 
+## BetRivers backup book, D-74 — November 3, 2026
+
+Sean: "Ship D-74 now". From 18:15 UTC the provider sent no FanDuel prices, so no three-book line could be made. BetRivers
+now stands in for a selected book the reply could not quote, in the same two-credit request, and the game sheet says
+"Standing in for FanDuel". Local checks pass: a PGlite run of the deployed handler, unit and browser tests (phone rules and
+axe in both themes), and six mutation checks. **Merged; M-39 not applied, nothing deployed yet.** See the
+[card](PROPOSAL_2026_11_03_BACKUP_BOOK.md).
+
 ## Pick a Team turn queues — November 3, 2026
 
 Sean requested immediate assignment from the highest available saved backup when

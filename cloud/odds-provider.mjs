@@ -15,6 +15,9 @@ const FREE_US_BOOKS = Object.freeze({
   betonlineag: 'BetOnline.ag', betus: 'BetUS', bovada: 'Bovada', lowvig: 'LowVig.ag', mybookieag: 'MyBookie.ag',
 });
 export const DEFAULT_ODDS_BOOKS = Object.freeze(['draftkings', 'fanduel', 'betmgm']);
+// D-74 (Sean, November 3, 2026: "Ship D-74 now"): asked for in the same request, which costs the same up to 10
+// named books, and used only in place of a selected book this reply could not quote for that game and market.
+export const DEFAULT_BACKUP_BOOKS = Object.freeze(['betrivers']);
 const ERRORS = {
   ODDS_CONFIG: 'The odds provider configuration is invalid.',
   ODDS_SLATE: 'The saved schedule is invalid. Review it before collecting quotes.',
@@ -112,20 +115,31 @@ function marketQuote(event, game, book, marketKey, now) {
     collectedAt: iso(now), tradability: 'not_confirmed',
   } };
 }
-function normalize(matches, books, now) {
+function normalize(matches, books, backups, now) {
   return matches.map(({ game, event, reason, providerSchedule }) => ({
     gameId: game.id, home: game.home, away: game.away, kickoff: game.kickoff,
     providerEventId: event?.id ?? null, matchStatus: reason || 'matched', ...(providerSchedule ? { providerSchedule } : {}),
     markets: Object.fromEntries([['spread', 'spreads'], ['total', 'totals']].map(([key, providerKey]) => {
-      const quotes = [], unavailable = [];
+      const quotes = [], unavailable = [], standIns = [];
+      const quoteFor = bookKey => {
+        const candidates = Array.isArray(event.bookmakers) ? event.bookmakers.filter(b => record(b) && b.key === bookKey) : [];
+        if (candidates.length !== 1) return { reason: candidates.length ? 'ambiguous_book' : 'book_missing' };
+        return marketQuote(event, game, candidates[0], providerKey, now);
+      };
       for (const bookKey of books) {
         if (reason) { unavailable.push({ book: bookKey, reason }); continue; }
-        const candidates = Array.isArray(event.bookmakers) ? event.bookmakers.filter(b => record(b) && b.key === bookKey) : [];
-        if (candidates.length !== 1) { unavailable.push({ book: bookKey, reason: candidates.length ? 'ambiguous_book' : 'book_missing' }); continue; }
-        const outcome = marketQuote(event, game, candidates[0], providerKey, now);
+        const outcome = quoteFor(bookKey);
         if (outcome.quote) quotes.push(outcome.quote); else unavailable.push({ book: bookKey, reason: outcome.reason });
       }
-      return [key, { status: quotes.length ? (unavailable.length ? 'partial' : 'available') : (unavailable.some(b => b.reason === 'stale_market') ? 'stale' : 'unavailable'), quotes, unavailable }];
+      // A backup book stands in, in order, for the selected books this reply could not quote (D-74). The missing
+      // book stays in `unavailable`; `standIns` says which book took its place.
+      for (const bookKey of backups) {
+        if (reason || quotes.length >= books.length) break;
+        const outcome = quoteFor(bookKey);
+        if (outcome.quote) { standIns.push({ book: bookKey, for: unavailable[standIns.length].book }); quotes.push(outcome.quote); }
+      }
+      return [key, { status: quotes.length >= books.length ? 'available' : quotes.length ? 'partial' : (unavailable.some(b => b.reason === 'stale_market') ? 'stale' : 'unavailable'),
+        quotes, unavailable, ...(standIns.length ? { standIns } : {}) }];
     })),
   }));
 }
@@ -162,11 +176,13 @@ async function boundedJson(response, { maxBytes = MAX_BODY, expectArray = true }
  * A future collector must add a shared database lease and quota reservation across
  * server instances; this instance's busy/budget guard is only a second defense.
  */
-export function createOddsProvider({ apiKey, fetchImpl = fetch, clock = Date.now, bookmakers = DEFAULT_ODDS_BOOKS, timeoutMs = 10000 } = {}) {
+export function createOddsProvider({ apiKey, fetchImpl = fetch, clock = Date.now, bookmakers = DEFAULT_ODDS_BOOKS, backupBooks = DEFAULT_BACKUP_BOOKS, timeoutMs = 10000 } = {}) {
   if (typeof apiKey !== 'string' || apiKey.length < 8 || apiKey.length > 256 || /\s/.test(apiKey) ||
     !Array.isArray(bookmakers) || !bookmakers.length || bookmakers.length > 10 || new Set(bookmakers).size !== bookmakers.length || bookmakers.some(b => !Object.hasOwn(FREE_US_BOOKS, b)) ||
+    !Array.isArray(backupBooks) || bookmakers.length + backupBooks.length > 10 || new Set([...bookmakers, ...backupBooks]).size !== bookmakers.length + backupBooks.length ||
+    backupBooks.some(b => !Object.hasOwn(FREE_US_BOOKS, b)) ||
     !Number.isInteger(timeoutMs) || timeoutMs < 10 || timeoutMs > 10000) fail('ODDS_CONFIG');
-  const books = [...bookmakers];
+  const books = [...bookmakers], backups = [...backupBooks];
   let busy = false, knownRemaining = null, stopped = false;
   async function request(endpoint, params = {}) {
     const url = new URL(`/v4/sports/${SPORT}/${endpoint}`, ORIGIN);
@@ -245,7 +261,8 @@ export function createOddsProvider({ apiKey, fetchImpl = fetch, clock = Date.now
           if (budget() - MAX_COST < reserveCredits) fail('ODDS_BUDGET');
           knownRemaining = budget() - MAX_COST; // Reserve even if the network result is unknown.
           attemptedOdds = true;
-          const odds = await request('odds', { regions: 'us', bookmakers: books.join(','), markets: 'spreads,totals', oddsFormat: 'american', eventIds: ids.join(',') });
+          // Up to 10 named books count as one region, so the backups cost nothing extra (MAX_COST still stops anything more).
+          const odds = await request('odds', { regions: 'us', bookmakers: [...books, ...backups].join(','), markets: 'spreads,totals', oddsFormat: 'american', eventIds: ids.join(',') });
           quota = odds.quota; noteQuota(quota);
           if (quota.last !== null && quota.last > MAX_COST) { stopped = true; throw new OddsProviderError('ODDS_QUOTA_COST', quota); }
           const actual = matchEvents(odds.data, games, clock());
@@ -255,10 +272,10 @@ export function createOddsProvider({ apiKey, fetchImpl = fetch, clock = Date.now
             return actual[i];
           });
         }
-        const fetchedAt = clock(), normalized = normalize(matches, books, fetchedAt);
+        const fetchedAt = clock(), normalized = normalize(matches, books, backups, fetchedAt);
         const markets = normalized.flatMap(g => Object.values(g.markets));
         return {
-          provider: 'the-odds-api', sport: SPORT, fetchedAt: iso(fetchedAt), selectedBooks: books.slice(),
+          provider: 'the-odds-api', sport: SPORT, fetchedAt: iso(fetchedAt), selectedBooks: books.slice(), ...(backups.length ? { backupBooks: backups.slice() } : {}),
           status: markets.every(m => m.status === 'available') ? 'available' : markets.some(m => m.quotes.length) ? 'partial' : 'unavailable',
           games: normalized, quota: { ...quota, estimatedMaxCost: attemptedOdds ? MAX_COST : 0, conservativeRemaining: knownRemaining },
           officialVerified: false,

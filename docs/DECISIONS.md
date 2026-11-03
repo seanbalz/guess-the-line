@@ -1,5 +1,26 @@
 # Decision log
 
+## D-74 — BetRivers stands in when a selected book is missing (November 3, 2026)
+
+Sean, November 3, 2026: "Draft it, don't ship", then "Add the label" after seeing the phone mockups, then "Ship D-74 now".
+See the [card](PROPOSAL_2026_11_03_BACKUP_BOOK.md) and the [mockups](../design/backup-book-2026-11-03/README.md).
+
+At 18:15 UTC on November 3 the provider sent no FanDuel prices for any of the 15 games. A saved line needs three books, so
+no new line could be made while FanDuel was missing.
+
+- **Rule:** the line stays a three-book median.
+  - BetRivers stands in for one selected book (DraftKings, FanDuel or BetMGM) that the provider's reply could not quote.
+    This is game by game and market by market, with the same checks as the other books.
+  - It never replaces a book that was quoted. BetRivers is asked for in the same request, at no extra credits.
+- **Shown:** BetRivers is named wherever it stood in. In the game sheet it says "Standing in for FanDuel", and the revealed
+  sources table lists the missing book as missing.
+- **Unchanged:**
+  - lines already saved (D-16, D-23);
+  - Challenge selections, Virtual Units and the frozen spread benchmark;
+  - every free limit.
+- **Release:** M-39 by Gate M (Sean's Chrome SQL editor), then the `api` release, then an `odds-refresh` release. Each
+  release is approved by Sean in GitHub.
+
 ## Pick a Team backups at the turn — November 3, 2026
 
 Sean requested that a saved backup ranking assign a team as soon as the manager's
