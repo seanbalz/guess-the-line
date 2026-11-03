@@ -105,7 +105,7 @@ describe('TeamsNest: one smaller layer per tap', () => {
     expect(html).not.toContain('CAR on the road: ATS');
     expect(html).toContain('Game details · CAR @ GB');
   });
-  it('one trend: two lips, the big record, the sample and tier as tags, windows behind a disclosure; the address hides the key', () => {
+  it('one trend: two lips, one glass chart card with the win rate and record, the tier behind ⓘ (D-75)', () => {
     const key = `${GB_ATS}@GB`, slug = trendSlug(key);
     expect(slug).toMatch(/^t[0-9a-z]+$/);
     expect(slug).not.toContain('GB');
@@ -114,10 +114,23 @@ describe('TeamsNest: one smaller layer per tap', () => {
     const lips = nodes(html).filter(n => n.tag === 'button' && n.attrs?.class?.includes('gx-nest-lip'));
     expect(lips.map(nameFrom)).toEqual(['Back to Teams', 'Back to Green Bay Packers']);
     expect(nodes(html).find(n => n.tag === 'h2').children.map(textOf).join('')).toBe('GB at home: ATS');
-    expect(html).toContain('7 games');
-    expect(html).toContain('No proven edge');
+    const chart = nodes(html).find(n => n.attrs?.['data-trend-chart'] !== undefined);
+    expect(textOf(chart)).toContain('71.4%'); // 5 of 7 decided
+    expect(textOf(chart)).toContain('5–2');
+    expect(html).not.toContain('gx-pill'); // tags left the surface
+    expect(html).not.toContain('No proven edge'); // the tier is behind ⓘ, rendered only when it opens
     expect(html).not.toContain('since 2002.'); // the sentence is in the ⓘ, not on the card
     expect(html).not.toContain(GB_ATS);
+  });
+  it('a trend tile is glass with one win rate and no meter (D-75)', () => {
+    const html = render({ teamsTeam: 'GB' });
+    const tiles = nodes(html).filter(n => n.tag === 'button' && n.attrs?.['data-trend'] && n.attrs['data-trend'] !== 'locked');
+    expect(tiles.length).toBeGreaterThan(0);
+    for (const tile of tiles) {
+      expect(tile.attrs.class).toContain('gx-nest-tile--glass');
+      expect(textOf(tile)).toMatch(/\d+\.\d%|—/);
+    }
+    expect(html).not.toContain('gx-nest-meter');
   });
   it('a stale address falls back to the nearest layer that exists', () => {
     const lipsOf = html => nodes(html).filter(n => n.tag === 'button' && n.attrs?.class?.includes('gx-nest-lip')).map(nameFrom);
