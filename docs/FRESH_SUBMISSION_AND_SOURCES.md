@@ -23,6 +23,10 @@ transaction. Age is shown, never used to unscore. A client cannot supply a
 reference or a line value.
 References stored before D-27 stay exactly as stored.
 
+D-71 (November 3, 2026): a per-game lock-in, the new app's save, gets the same refresh first. From redesign stage 18
+(October 14) until D-71 a lock-in skipped it and saved the newest scheduled line, often hours old; those references
+keep their recorded age.
+
 The database repeats the checks atomically when saving. Access, the exact slate,
 deadline, kickoff locks, current revision and complete valid ballot must qualify
 before collection can reserve quota and again at the save. Membership or revision changes during collection prevent that
