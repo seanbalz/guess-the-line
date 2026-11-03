@@ -154,6 +154,17 @@ describe('addresses: each layer reloads, and back closes one layer', () => {
     expect(fragment).not.toContain('guess');
     expect(placeFromFragment(fragment).adapters.trends).toMatchObject({ trendSection: 'teams', teamsTeam: 'GB', teamsTrend: slug });
   });
+  it('the router keeps weekList and opening All trends is a step back closes (D-75)', () => {
+    const fragment = fragmentFor('research', { section: 'trends' }, { trends: { trendSection: 'week', weekList: 'all' } });
+    expect(fragment).toContain('weekList=all');
+    expect(placeFromFragment(fragment).adapters.trends).toMatchObject({ weekList: 'all' });
+    let state = reduce(initialState(), { type: 'go', tab: 'research', view: { section: 'trends' } });
+    const trail = state.trail.length;
+    state = reduce(state, { type: 'view', tab: 'trends', patch: { weekList: 'all' } });
+    expect(state.trail.length).toBe(trail + 1);
+    state = reduce(state, { type: 'back' });
+    expect(state.views.trends.weekList ?? null).toBeNull();
+  });
   it('opening a team and a trend are steps; back returns to the team, then to Teams', () => {
     let state = reduce(initialState(), { type: 'go', tab: 'research', view: { section: 'trends' } });
     state = reduce(state, { type: 'view', tab: 'trends', patch: { trendSection: 'teams' } });
