@@ -31,9 +31,10 @@ pick. The previous implementation waited until first kickoff to use rankings.
 
 ## M-40 and compatible rollout
 
-Prepared migration:
+Applied migration (hosted version `20261103232119`, November 3, 2026):
 `supabase/migrations/20261103212932_gtl_epl_turn_queue.sql`.
-M-39 is reserved by the separate, unmerged selected-book proposal #452.
+M-39 belongs to the separate selected-book change #452, which merged after
+this release was selected and is outside this rollout.
 
 M-40 adds a service-only, security-invoker `gtl_epl_advance_queues` helper,
 replaces the existing pick/queue writers to call it under the same week lock,
@@ -49,8 +50,8 @@ depends on hosted M-30 and does not require pending M-33/M-34/M-35 or M-39.
 
 Applying the migration performs no pick, queue or history backfill. Only future
 pick/queue saves advance rankings. Existing user records, standings, guesses,
-results and queues remain in place. Hosted apply requires the separate Gate M
-instruction; this source change does not apply it or deploy anything.
+results and queues remain in place. Sean separately authorized Gate M with
+"Apply m-40"; the verified deployment and apply are recorded below.
 
 The reviewed rollback restores the three prior function bodies. It preserves all
 records and leaves the unused service-only helper in place. It removes the
@@ -73,6 +74,14 @@ confirmed that all three existing functions match the bodies being replaced:
 All are security invoker, executable by service_role only. This is a preliminary
 compatibility check; Gate M repeats it with preservation evidence before apply.
 
-M-40 is **not applied**. API/frontend changes are **not deployed**. Merge and
-release evidence will be recorded separately from local results. No hosted
-player records have been changed by this work.
+M-40 is **applied and verified** as hosted `20261103232119` at 23:21 UTC.
+The compatible API v49 and Pages `06129739-8c5c-4186-b270-bc739637c9d4`
+deployed first from `4cf149e7c4361547647db3573651fcd57204e36d` in
+[run 41734832322](https://github.com/seanbalz/guess-the-line/actions/runs/41734832322).
+All four function bodies and service-only invoker grants match; the latest
+week reader reports `queueOnTurn=true`. Before/after hashes match for all
+existing EPL records, finished Guess scores and settled Virtual Units results.
+The apply made no picks or backfill. All 129 canonical served frontend assets
+match the release manifest; retrieved EPL API and entrypoint modules match the
+selected source. Live signed-in/phone confirmation acceptance remains separate
+from these checks. See the [release evidence](RELEASE_2026_11_03_EPL_TURN_QUEUE_M40.md).
