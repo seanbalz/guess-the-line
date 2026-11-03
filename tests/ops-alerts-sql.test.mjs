@@ -14,7 +14,7 @@ const skip = pgliteAvailable ? false : 'Optional local PGlite runtime is not ins
 const SEAN = ACCOUNTS.sean.id, LUKE = ACCOUNTS.luke.id, TROY = ACCOUNTS.troy.id;
 const ENDPOINT = 'https://onmrgvcehkflfaizvedl.supabase.co/functions/v1/gtl-ops-alerts';
 const FUNCTION = name => `https://abc.supabase.co/functions/v1/${name}`;
-const MINUTE = 60_000, HOUR = 60 * MINUTE;
+const MINUTE = 60_000, HOUR = 60 * MINUTE, SLOT = 15 * MINUTE;
 const iso = ms => new Date(ms).toISOString();
 const RUNS = { results: ['gtl_results_refresh_runs', 'nfl-results'], odds: ['gtl_odds_refresh_runs', 'nfl-12h'], points: ['gtl_points_job_runs', 'nfl-points'],
   push: ['gtl_push_reminder_runs', 'deadline-2h'], week_open: ['gtl_week_open_runs', 'nfl-weekly'], features: ['gtl_features_schedule_runs', 'league-features'] };
@@ -58,7 +58,13 @@ async function fixture(t) {
     ops: enabled => db.query("insert into public.gtl_ops_alert_schedule(id,enabled,endpoint) values('ops',$1,$2) on conflict(id) do update set enabled=excluded.enabled", [enabled, ENDPOINT]),
     subscribe: (user, n, disabled = false) => db.query('insert into public.gtl_push_subscriptions(endpoint,user_id,p256dh,auth,disabled_at) values($1,$2,$3,$4,$5)',
       [device(n).endpoint, user, device(n).p256dh, device(n).auth, disabled ? new Date().toISOString() : null]),
-    dispatch: async () => (await one('select public.gtl_dispatch_ops_alerts() value')).value,
+    // A dispatch and the claim after it must share one 15-minute slot (the claim refuses another slot's run). Near a slot edge,
+    // wait for the next slot first (at most 3 s) so the pair cannot straddle it.
+    dispatch: async () => {
+      const edge = Date.now() % SLOT;
+      if (edge > SLOT - 3000) await new Promise(resolve => setTimeout(resolve, SLOT - edge + 50));
+      return (await one('select public.gtl_dispatch_ops_alerts() value')).value;
+    },
     outbox: async () => rows('select url,body,headers from net.outbox order by id'),
     lastToken: async () => (await one("select headers->>'Authorization' auth from net.outbox order by id desc limit 1")).auth.slice(7),
     incidents: async () => rows('select id,key,kind,family,season,week,at,opened_at,notified_at,cleared_at,cleared_notified_at from public.gtl_ops_incidents order by id'),
@@ -162,11 +168,11 @@ test('quiet:<family> fires when an enabled family\'s newest run is its limit old
   assert.deepEqual((await f.findings(month, 'quiet')).map(row => row.family), ['epl:snapshot']);
 });
 
-test('points-open fires 2 hours after the next week\'s expected open and not a minute before, DST-safe: a PDT Week 8 open expects Week 9 at 08:00 UTC; publishing clears it', { skip }, async t => {
+test('points-open fires 2 hours after the next week\'s expected Tuesday open and not a minute before, DST-safe: a PDT Week 8 open expects Week 9 at 08:00 UTC; publishing clears it', { skip }, async t => {
   const f = await fixture(t);
-  // Week 8 opens Monday October 26, 12:00 AM PDT (07:00 UTC). Week 9 is due Monday November 2, 12:00 AM PST: 08:00 UTC.
-  await f.pointsSlate(8, { opensAt: Date.parse('2026-10-26T07:00:00Z'), finalizeAt: Date.parse('2026-11-03T20:00:00Z') });
-  const due = Date.parse('2026-11-02T08:00:00Z');
+  // Week 8 opens Tuesday October 27, 12:00 AM PDT (07:00 UTC). Week 9 is due Tuesday November 3, 12:00 AM PST: 08:00 UTC.
+  await f.pointsSlate(8, { opensAt: Date.parse('2026-10-27T07:00:00Z'), finalizeAt: Date.parse('2026-11-03T20:00:00Z') });
+  const due = Date.parse('2026-11-03T08:00:00Z');
   assert.deepEqual(await f.findings(due + 2 * HOUR - MINUTE, 'points-open'), []);
   const week9 = [{ key: 'points-open:2026-9', kind: 'points-open', family: null, season: 2026, week: 9, at: iso(due) }];
   assert.deepEqual(await f.findings(due + 2 * HOUR, 'points-open'), week9);
@@ -176,8 +182,22 @@ test('points-open fires 2 hours after the next week\'s expected open and not a m
   await f.db.query("update public.gtl_points_slates set status='published',published_at=$1 where season=2026 and week=9", [iso(due)]);
   assert.deepEqual(await f.findings(due + 2 * HOUR, 'points-open'), [], 'published clears it');
   // Week 10 is then expected a week after Week 9's open.
-  assert.deepEqual(await f.findings(Date.parse('2026-11-09T10:00:00Z'), 'points-open'),
-    [{ key: 'points-open:2026-10', kind: 'points-open', family: null, season: 2026, week: 10, at: '2026-11-09T08:00:00.000Z' }]);
+  assert.deepEqual(await f.findings(Date.parse('2026-11-10T10:00:00Z'), 'points-open'),
+    [{ key: 'points-open:2026-10', kind: 'points-open', family: null, season: 2026, week: 10, at: '2026-11-10T08:00:00.000Z' }]);
+});
+
+test('points-open is anchored on the scheduled Tuesday, not the publish time: Week 8 published early on Monday 10:00 PM PT still expects Week 9 at Tuesday 00:00 PT a week later', { skip }, async t => {
+  const f = await fixture(t);
+  // A manual early publish stores opens_at = publish time: Monday October 26, 10:00 PM PDT = October 27, 05:00 UTC.
+  await f.pointsSlate(8, { opensAt: Date.parse('2026-10-27T05:00:00Z'), finalizeAt: Date.parse('2026-11-03T20:00:00Z') });
+  const due = Date.parse('2026-11-03T08:00:00Z');
+  assert.deepEqual(await f.findings(due + 2 * HOUR - MINUTE, 'points-open'), [], 'not expected a week after the early publish');
+  assert.deepEqual(await f.findings(due + 2 * HOUR, 'points-open'), [{ key: 'points-open:2026-9', kind: 'points-open', family: null, season: 2026, week: 9, at: iso(due) }]);
+  // A Sunday open (November 1, 11:59 PM PST, published early the same way) is in the same ISO week: the same Tuesday.
+  const sunday = await fixture(t);
+  await sunday.pointsSlate(8, { opensAt: Date.parse('2026-11-02T07:59:00Z'), finalizeAt: Date.parse('2026-11-03T20:00:00Z') });
+  assert.deepEqual(await sunday.findings(due + 2 * HOUR - MINUTE, 'points-open'), []);
+  assert.deepEqual((await sunday.findings(due + 2 * HOUR, 'points-open')).map(row => row.at), [iso(due)]);
 });
 
 test('points-final fires an hour after a published slate\'s finalize_at and not a minute before; the FINAL row clears it; a draft is never due', { skip }, async t => {
@@ -390,9 +410,9 @@ test('only the commissioner\'s active subscriptions are returned, and deliveries
   assert.deepEqual(await record(1, 'gone'), { outcome: 'gone' });
   assert.ok(await sub(1), 'a player\'s device is never touched');
   assert.deepEqual(await record(3, 'failed'), { outcome: 'failed' });
-  assert.equal((await sub(3)).failure_count, 1);
+  assert.equal((await sub(3)).failure_count, 0, 'a failed push is not counted against the device');
   await record(3, 'ok');
-  assert.deepEqual([(await sub(3)).failure_count, (await sub(3)).last_success_at instanceof Date], [0, true]);
+  assert.equal((await sub(3)).last_success_at instanceof Date, true);
   await record(5, 'gone');
   assert.equal(await sub(5), undefined, 'an expired device is removed (D-28: a device setting, not a player entry)');
   // An inactive commissioner seat has no devices to alert.
@@ -400,6 +420,69 @@ test('only the commissioner\'s active subscriptions are returned, and deliveries
   await f.call('gtl_complete_ops_alerts', { p_run: runId, p_claim: claim.claim, p_reason: 'send_failed', p_sent: 0, p_failed: 1 });
   await f.nextSlot();
   assert.equal((await f.dispatch()).status, 'no_subscriptions');
+});
+
+test('a failed ops push never counts against the commissioner\'s device: 20 failed outcomes in one run leave failure_count and disabled_at unchanged, and only gone removes it', { skip }, async t => {
+  const f = await fixture(t);
+  await f.run('results', { slot: Date.now() - 40 * MINUTE, status: 'failed', finished: Date.now() - 35 * MINUTE });
+  await f.ops(true);
+  await f.subscribe(SEAN, 1);
+  await f.db.query('update public.gtl_push_subscriptions set failure_count=2 where endpoint=$1', [device(1).endpoint]);
+  const { runId } = await f.dispatch();
+  const claim = await f.call('gtl_claim_ops_alerts', { p_token: await f.lastToken(), p_run: runId });
+  const sub = () => f.one('select failure_count,disabled_at from public.gtl_push_subscriptions where endpoint=$1', [device(1).endpoint]);
+  for (let n = 0; n < 20; n++) await f.call('gtl_record_ops_delivery', { p_run: runId, p_claim: claim.claim, p_endpoint: device(1).endpoint, p_outcome: 'failed' });
+  assert.deepEqual(await sub(), { failure_count: 2, disabled_at: null }, 'one bad run cannot disable the phone that also gets deadline reminders');
+  assert.deepEqual(await f.call('gtl_record_ops_delivery', { p_run: runId, p_claim: claim.claim, p_endpoint: device(1).endpoint, p_outcome: 'gone' }), { outcome: 'gone' });
+  assert.equal(await sub(), undefined, 'gone (404/410) removes the device, as gtl_record_push_delivery');
+});
+
+test('a key can fire again after it clears: fail, alert, recover, recovery pushed, fail again opens a new incident and queues a run', { skip }, async t => {
+  const f = await fixture(t);
+  const now = Date.now();
+  await f.run('results', { slot: now - 40 * MINUTE, status: 'failed', finished: now - 35 * MINUTE });
+  await f.ops(true);
+  await f.subscribe(SEAN, 1);
+  assert.deepEqual(await f.dispatch().then(r => [r.status, r.opened]), ['queued', 1]);
+  await f.work();
+  await f.run('results', { slot: now - 20 * MINUTE, finished: now - 15 * MINUTE });
+  await f.nextSlot();
+  assert.deepEqual(await f.dispatch().then(r => [r.status, r.cleared]), ['queued', 1]);
+  const recovery = await f.work();
+  assert.deepEqual(recovery.claim.notifications.map(n => [n.key, n.phase]), [['failed:results', 'cleared']]);
+  await f.nextSlot();
+  assert.equal((await f.dispatch()).status, 'nothing_owed');
+  // It fails again: the old incident is cleared and kept, so the key is free for a new one.
+  await f.run('results', { slot: now - 10 * MINUTE, status: 'failed', finished: now - 5 * MINUTE });
+  await f.nextSlot();
+  const again = await f.dispatch();
+  assert.deepEqual([again.status, again.opened, again.cleared, again.owed], ['queued', 1, 0, 1]);
+  const incidents = await f.incidents();
+  assert.equal(incidents.length, 2);
+  assert.ok(incidents[0].id !== incidents[1].id && incidents[0].cleared_at instanceof Date && incidents[1].cleared_at === null, 'a new open incident beside the cleared one');
+  const second = await f.work();
+  assert.deepEqual(second.claim.notifications.map(n => [n.incidentId, n.key, n.phase]), [[incidents[1].id, 'failed:results', 'opened']]);
+});
+
+test('the claim returns the 20 oldest owed alerts in order; the 21st follows on the next dispatch', { skip }, async t => {
+  const f = await fixture(t);
+  await f.ops(true);
+  await f.subscribe(SEAN, 1);
+  const base = Date.now() - 3 * HOUR;
+  // Inserted newest first, so id order is the reverse of age: the claim must order by age.
+  const keys = Array.from({ length: 21 }, (_, n) => `test:${1700000000 + n}`);
+  for (let n = 20; n >= 0; n--)
+    await f.db.query("insert into public.gtl_ops_incidents(key,kind,at,opened_at) values($1,'test',$2,$3)", [keys[n], iso(base), iso(base + n * MINUTE)]);
+  assert.equal((await f.dispatch()).status, 'queued');
+  const first = await f.work();
+  assert.deepEqual(first.claim.notifications.map(n => n.key), keys.slice(0, 20), 'oldest first, at most 20');
+  assert.equal(first.marks.length, 20);
+  await f.nextSlot();
+  const next = await f.dispatch();
+  assert.equal(next.status, 'queued');
+  const second = await f.work();
+  assert.equal(second.claim.notifications.length, 20);
+  assert.deepEqual([second.claim.notifications[0].key, second.claim.notifications[0].phase], [keys[20], 'opened'], 'the 21st is next, oldest owed first');
 });
 
 test('no row is ever deleted: every incident and run stays through open, push, clear, recovery, timeout and a cleared-before-pushed incident', { skip }, async t => {

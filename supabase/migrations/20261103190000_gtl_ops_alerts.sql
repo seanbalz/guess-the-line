@@ -10,7 +10,9 @@
 --     resolve and nudge 1 h; Points and odds 26 h). Push reminders, week open, features and the other EPL jobs run only when
 --     something is due, so their silence is normal and never checked. A family with no run row yet names no time: no finding.
 --   - points-open:<season>-<week>: the latest published Points slate's next week is not published 2 h after its expected
---     open: that slate's opens_at in Pacific wall time plus 7 days, so a PDT open at 07:00 UTC expects a PST one at 08:00 UTC.
+--     open: the Tuesday 00:00 PT a week after that slate's SCHEDULED Tuesday, found from the Pacific ISO week its opens_at
+--     falls in (Monday through Sunday), not from opens_at itself. A manual early publish stores opens_at = publish time
+--     (least(opens_at, now)), which would otherwise expect the next week early. A PDT open expects a PST one at 08:00 UTC.
 --   - points-final:<season>-<week>: a published slate whose finalize_at passed an hour ago has no gtl_points_week_final row.
 --   - week-open:<season>-<week>: the same rule for the weekly Spread and Total week. Its proof of opening is the
 --     gtl_weekly_slates row and its open instant gtl_week_open_at() (20261009150000): gtl_publish_week inserts that row when
@@ -93,7 +95,7 @@ language sql stable security invoker set search_path='' as $$
     union all select 'features',null from public.gtl_features_schedule s where s.id='league-features' and s.enabled
     union all select 'epl:'||s.job,case when s.job in ('moneyline','snapshot','resolve','nudge') then interval '1 hour' end
       from public.gtl_epl_jobs_schedule s where s.enabled),
-  points_last as (select s.season,s.week,((s.opens_at at time zone 'America/Los_Angeles')+interval '7 days') at time zone 'America/Los_Angeles' due
+  points_last as (select s.season,s.week,((date_trunc('week',s.opens_at at time zone 'America/Los_Angeles')+interval '8 days') at time zone 'America/Los_Angeles') due
     from public.gtl_points_slates s where s.status='published' order by s.season desc,s.week desc limit 1),
   weekly_last as (select w.season,w.week,((public.gtl_week_open_at(w.season,w.week) at time zone 'America/Los_Angeles')+interval '7 days') at time zone 'America/Los_Angeles' due
     from public.gtl_weekly_slates w order by w.season desc,w.week desc limit 1)
@@ -220,8 +222,10 @@ begin
   return jsonb_build_object('recorded',marked>0);
 end $$;
 
--- One delivery outcome per endpoint, as gtl_record_push_delivery: ok resets the failure count; gone (404/410) deletes the
--- subscription (a device setting, D-28); failed counts, and five in a row disable it. Only the commissioner's endpoints.
+-- One delivery outcome per endpoint. Only the commissioner's endpoints. ok resets the failure count (it can only heal); gone
+-- (404/410) deletes the subscription (a device setting, D-28), exactly as gtl_record_push_delivery. failed changes nothing:
+-- one run carries up to 20 alerts, so counting each failure would disable the commissioner's phone within one bad run, and
+-- with it his deadline reminders. A failed push stays owed and the run records it (failed count, send_failed).
 create or replace function public.gtl_record_ops_delivery(p_run uuid,p_claim uuid,p_endpoint text,p_outcome text) returns jsonb
 language plpgsql security invoker set search_path='' as $$
 declare run public.gtl_ops_alert_runs; commissioner uuid;
@@ -234,10 +238,7 @@ begin
     update public.gtl_push_subscriptions set last_success_at=clock_timestamp(),failure_count=0 where endpoint=p_endpoint and user_id=commissioner;
   elsif p_outcome='gone' then
     delete from public.gtl_push_subscriptions where endpoint=p_endpoint and user_id=commissioner;
-  elsif p_outcome='failed' then
-    update public.gtl_push_subscriptions set failure_count=failure_count+1,
-      disabled_at=case when failure_count+1>=5 then coalesce(disabled_at,clock_timestamp()) else disabled_at end where endpoint=p_endpoint and user_id=commissioner;
-  else raise exception 'GTL_SCHEDULE_RUN';
+  elsif p_outcome<>'failed' or p_outcome is null then raise exception 'GTL_SCHEDULE_RUN';
   end if;
   return jsonb_build_object('outcome',p_outcome);
 end $$;
