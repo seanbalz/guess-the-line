@@ -28,8 +28,11 @@ export function nestEnter({ settled, mounted, prevDepth = 0, depth = 0, prevLaye
  * when it changes). `info` is the layer's ⓘ (fine print lives there, D-55 rule 10).
  */
 export function Nest({ label, lips = [], layer, title, info, children, className }) {
-  const heading = useRef(null), shown = useRef(layer), last = useRef(null);
-  const enter = nestEnter({ settled: isSettled(), mounted: last.current !== null, prevDepth: last.current?.depth, depth: lips.length, prevLayer: last.current?.layer, layer });
+  const heading = useRef(null), shown = useRef(layer), last = useRef(null), latch = useRef({ layer: undefined, enter: undefined });
+  // The entrance is decided once per layer (a re-render of the same layer, such as a data load, keeps it, so the
+  // animation is never cut short); under StrictMode's double render both passes read the same latch.
+  if (latch.current.layer !== layer) latch.current = { layer, enter: nestEnter({ settled: isSettled(), mounted: last.current !== null, prevDepth: last.current?.depth, depth: lips.length, prevLayer: last.current?.layer, layer }) };
+  const enter = latch.current.enter;
   useLayoutEffect(() => { last.current = { depth: lips.length, layer }; });
   useLayoutEffect(() => {
     if (shown.current === layer) return;
