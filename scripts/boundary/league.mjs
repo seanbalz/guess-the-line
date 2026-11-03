@@ -123,5 +123,4 @@ export const awaitingDeploy = Object.freeze({
   'rpc/gtl_epl_save_standings': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
   'rpc/gtl_epl_resolve_with_standings': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
   'rpc/gtl_epl_standings_provenance': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
-  'rpc/gtl_epl_advance_queues': '20261103212932 (M-40 turn queues apply)',
 });

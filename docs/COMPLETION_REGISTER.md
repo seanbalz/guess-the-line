@@ -6,10 +6,15 @@ Sean requested immediate assignment from the highest available saved backup when
 the turn begins, confirmed an exhausted ranking waits for a manual pick, and
 requested a visible team confirmation. The
 [implementation record](EPL_TURN_QUEUES_2026_11_03.md) covers transactional server
-advancement, a persistent note and a one-time popup. M-40 is prepared, not
-applied. Local checks pass: 74 focused Node, 87 boundary/migration, 670 component
+advancement, a persistent note and a one-time popup. **Live:** compatible API v49
+and Pages `06129739` deployed from `4cf149e7c4361547647db3573651fcd57204e36d`
+before M-40 applied as hosted `20261103232119`. The
+[release record](RELEASE_2026_11_03_EPL_TURN_QUEUE_M40.md) verifies four function
+bodies/grants, active reader capability, 129 served assets and unchanged data
+hashes. Local checks pass: 74 focused Node, 87 boundary/migration, 670 component
 checks, the M-40 rollback harness and four EPL browser scenarios, plus typecheck,
-build/privacy and Brand QA. No hosted records are changed by this work.
+build/privacy and Brand QA. The apply performed no pick/queue backfill; live
+signed-in/phone confirmation acceptance remains separate.
 
 ## Reminder worker error answer, gtl-push-reminders v6 — November 3, 2026
 

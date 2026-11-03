@@ -34,7 +34,6 @@ export const PRELUDE = "set timezone to 'UTC';create role anon;create role authe
 
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
 export const NOT_HOSTED = [
-  20261103212932, // M-40 EPL turn queues: prepared only; separate Gate M apply required.
   20261029151727, // M-33 gtl_epl_stat_rechecks: local source only; Gate M apply is separate.
   20261029161613, // M-34 gtl_epl_standings: private dated source persistence/usage; collection absent/disabled until separately authorized.
   20261029162144, // M-35 gtl_epl_corrected_draft_order: local source only; requires pending M-33.
@@ -185,4 +184,5 @@ export const APPLIED = [
   20261030204548, // Research assessments: hosted as 20261031131929 on October 31, 2026 (Supabase MCP); see RELEASE_2026_10_31_RESEARCH_ASSESSMENTS.md.
   20261103170000, // M-37 gtl_odds_refresh_fixes: hosted as 20261103164210 on November 3, 2026 (SQL editor, Gate M); see RELEASE_2026_11_03_ODDS_REFRESH_M37.md.
   20261103190000, // M-38 gtl_ops_alerts: hosted as 20261103184656 on November 3, 2026 (SQL editor, Gate M); see RELEASE_2026_11_03_OPS_ALERTS_M38.md.
+  20261103212932, // M-40 gtl_epl_turn_queue: hosted as 20261103232119 on November 3, 2026 (Supabase MCP, Gate M); see RELEASE_2026_11_03_EPL_TURN_QUEUE_M40.md.
 ];
