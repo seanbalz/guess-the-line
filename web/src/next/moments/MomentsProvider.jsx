@@ -60,6 +60,15 @@ export function useNewCount(scope) {
   return useSyncExternalStore(engine ? engine.subscribe : none, () => (engine ? engine.newCount(scope) : 0), () => 0);
 }
 
+/** The moments waiting (NEW) for `scope`, in the order they arrived (a tile names the newest: "New: Bullseye"). */
+export function useNewMoments(scope) {
+  const ctx = useContext(MomentsContext);
+  const engine = ctx?.engine ?? null;
+  // The snapshot is the waiting ids as one string, so it only changes when the moments do.
+  const ids = useSyncExternalStore(engine ? engine.subscribe : none, () => (engine ? engine.newMoments(scope).map(m => m.id).join('|') : ''), () => '');
+  return useMemo(() => (engine && ids ? engine.newMoments(scope) : []), [engine, scope, ids]);
+}
+
 /**
  * True once the small moment `id` has played while the calling element was on screen: render `data-moment="pop"` on
  * it. An element that mounts after the pop stays still, so going back to a card never replays it (spec 4.2 rule 2).

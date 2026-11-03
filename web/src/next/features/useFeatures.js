@@ -9,6 +9,7 @@ import { cloudApi } from '../../api.js';
 import { useLeagueRead } from '../league/useLeagueRead.jsx';
 import { useMoments } from '../moments/MomentsProvider.jsx';
 import { featuresModel, featureMoments } from './model.js';
+import { streakMoments } from './streakMoment.js';
 
 export function useFeatures(app, shell, { celebrate = true } = {}) {
   const leagueId = app?.league && app.league.community !== true && typeof app.league.id === 'string' ? app.league.id : null;
@@ -22,11 +23,12 @@ export function useFeatures(app, shell, { celebrate = true } = {}) {
   }, [read.data, viewer, members]);
   const moments = useMoments();
   // D-69: every fresh features read reports the viewer's badges and awards; the engine plays the new ones only where
-  // their card opens after the launch, and keeps the rest as NEW. `celebrate: false` (a badge's own sheet) reports nothing.
+  // their card opens after the launch, and keeps the rest as NEW. The Pick streak's small moment rides in the same report
+  // (one report per source). `celebrate: false` reports nothing.
   // Each league's read is its own source: the first read of a league on this device seeds it silently.
   useEffect(() => {
     if (!read.data || !viewer || !celebrate || !moments) return;
-    moments.report(featureMoments(read.data, viewer), { source: `features:${leagueId ?? 'community'}` });
+    moments.report([...featureMoments(read.data, viewer), ...streakMoments(read.data, viewer)], { source: `features:${leagueId ?? 'community'}` });
   }, [read.data, viewer, celebrate, moments?.report, leagueId]);
   // 404: M-25 is not on the server yet (or this gtl-api has no route): the features are simply not shown.
   const off = read.error?.status === 404;

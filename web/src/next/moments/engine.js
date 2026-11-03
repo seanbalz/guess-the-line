@@ -109,6 +109,10 @@ export function createMomentsEngine({
     },
     /** How many moments wait (NEW) for `scope`. */
     newCount(scope) { return [...pending.values()].filter(m => m.scopes.includes(scope)).length; },
+    /** The moments waiting (NEW) for `scope`, in the order they arrived, as their reader reported them. */
+    newMoments(scope) {
+      return [...pending.values()].filter(m => m.scopes.includes(scope)).map(({ late, sources, ...moment }) => moment);
+    },
     subscribe(fn) { subscribers.add(fn); return () => subscribers.delete(fn); },
     /** Cancels small moments still waiting and drops every listener; later reports and openings do nothing. */
     dispose() {
