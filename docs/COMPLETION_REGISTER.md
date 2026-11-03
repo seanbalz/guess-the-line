@@ -42,6 +42,22 @@ first,” with D-55 Round 3 charts. No new design selection is required for this
 The frozen v62 tracker is unchanged. The previous, cumulative register is retained
 as a [dated archive](COMPLETION_REGISTER_ARCHIVE_2026_10_26.md).
 
+## D-69 design overhaul, step 0: the shared kit — November 2, 2026
+
+Built on `claude/overhaul-step0-kit`; not merged or released. Step 0 adds the
+kit the page-by-page steps build on: the moments engine (`web/src/next/moments`:
+the Q3 sizes, a per-account seen record of ids only, nothing played on page
+load or on the launch screen, results from while you were away marked NEW and
+played when their card opens, several big moments as one `ov.flash` card,
+small ones 240 ms apart), with badges and awards moved onto it (awards per league
+and season); `ui/CountUp.jsx`, counting from the last value shown; nesting-card
+entrances (`ui/Nest.jsx`) and the 160 ms tab fade, with the bars never moving;
+`tap` and `win` vibration that reduced motion stops; `ui/Skeleton.jsx`
+placeholders in place of the "Loading" text; and the brand guide's moments
+and nesting rules. Follow-ups: reset `usePopped` before step 1; the tab fade
+stays on once it starts; a tab change into a Nest moves twice; and the old app's
+AuthGate spinner.
+
 ## Play › Your guesses nesting cards (D-69) — November 2, 2026
 
 Sean asked for the next design pass, to cut text on Home and Play. On the live app Home (139 words) and the Play

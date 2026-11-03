@@ -6,7 +6,7 @@ import { betsApi } from '../../api.js';
 import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
 import { LeagueFailure, useLeagueRead } from '../league/useLeagueRead.jsx';
-import { Avatar, AvatarStack, Button, Card, GateBanner, LockLine, Matchup, Pill, cx } from '../ui/index.js';
+import { Avatar, AvatarStack, Button, Card, GateBanner, LockLine, Matchup, Pill, cx, Skeleton } from '../ui/index.js';
 import { fmtWhen } from '../format.js';
 import { EVERYONE_COPY, everyoneBoard } from './everyone.js';
 import './everyone.css';
@@ -16,7 +16,7 @@ export function EveryoneBets({ onPlace }) {
   const leagueId = app.league?.community === false && !app.league.pending ? app.league.id : null;
   const key = `${app.accountId}:everyone:${leagueId ?? 'community'}`;
   const read = useLeagueRead(key, signal => betsApi('read', leagueId ? { leagueId } : {}, signal), error => { if (error.status === 401) app.requestSignIn(); });
-  if (read.loading) return <p className="gx-t-body" role="status">Loading everyone’s picks…</p>;
+  if (read.loading) return <Skeleton label="Loading everyone’s picks…" shape="rows" count={4}/>;
   if (read.error) return <LeagueFailure error={read.error} onRetry={read.retry}/>;
   return <EveryoneBoard data={read.data} viewer={app.accountId} scopeName={leagueId ? app.league.name : 'Community'}
     onLockIn={() => shell.go('play', { section: 'picks' })} onPlace={onPlace} onRefresh={read.retry}/>;

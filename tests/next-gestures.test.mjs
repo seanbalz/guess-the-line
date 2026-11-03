@@ -14,7 +14,7 @@ import path from 'node:path';
 import {
   GESTURE, closeThreshold, lockAxis, pageOffset, pagerPlace, pageStep, pageThreshold, rubberBand, scrimOpacity, sheetOffset, shouldClose, velocityOf,
 } from '../web/src/next/ui/gesture.js';
-import { HAPTIC_MS, lightHaptic } from '../web/src/next/ui/haptics.js';
+import { HAPTIC_MS, WIN_MS, lightHaptic, winHaptic } from '../web/src/next/ui/haptics.js';
 import { boardOrder, openedBoardOrder, openedBoardResult, gamePager } from '../web/src/next/lines/gameOrder.js';
 
 const root = path.resolve(import.meta.dirname, '..');
@@ -139,20 +139,24 @@ test('the game sheet pages in the board\'s order: games to come by kickoff, then
   assert.equal(gamePager(order.slice(0, 1), 'HOU-JAX'), null, 'a one-game week has no pager');
 });
 
-test('haptics: one 10ms tick where the device vibrates; nothing, and no error, where it cannot', () => {
+test('haptics: a 10ms tap and a 20ms win where the device vibrates; nothing under reduced motion or where it cannot', () => {
   assert.equal(HAPTIC_MS, 10);
+  assert.equal(WIN_MS, 20);
   const calls = [];
-  const phone = { vibrate(pattern) { calls.push([this, pattern]); return true; } };
+  const phone = { vibrate(pattern) { calls.push(pattern); return true; } };
   assert.equal(lightHaptic(phone), true);
-  assert.deepEqual(calls, [[phone, 10]], 'called once, on the navigator, with 10ms');
+  assert.equal(winHaptic(phone), true);
+  assert.deepEqual(calls, [10, 20]);
+  assert.equal(lightHaptic(phone, true), false, 'reduced motion stops every buzz');
+  assert.equal(winHaptic(phone, true), false);
+  assert.deepEqual(calls, [10, 20]);
   assert.equal(lightHaptic({ vibrate: () => false }), false, 'a refusal (no user gesture yet) is not an error');
   assert.equal(lightHaptic({}), false, 'iPhone Safari has no vibrate');
   assert.equal(lightHaptic(undefined), false);
-  assert.equal(lightHaptic({ vibrate() { throw new Error('blocked'); } }), false);
-  // Primary buttons tick; nothing else does unless asked.
+  assert.equal(winHaptic({ vibrate() { throw new Error('blocked'); } }), false);
   const button = read('web/src/next/ui/Button.jsx');
   assert.match(button, /const tick = haptic \?\? kind === 'primary';/);
-  assert.match(button, /lightHaptic\(\); onClick\?\.\(event\);/);
+  assert.match(button, /lightHaptic\(undefined, motionReduced\(event\.currentTarget\)\); onClick\?\.\(event\);/);
 });
 
 // ---------- the styles ----------

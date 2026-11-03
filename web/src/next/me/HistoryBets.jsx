@@ -4,7 +4,7 @@
 // only where the server marks that game's market open for you (D-36, D-39); otherwise side and units with a lock line.
 import { useId } from 'react';
 import { betsApi, communityApi } from '../../api.js';
-import { Avatar, Card, Icon, List, Pill, Row } from '../ui/index.js';
+import { Avatar, Card, Icon, List, Pill, Row, Skeleton } from '../ui/index.js';
 import { useShell } from '../shell/context.js';
 import { useAppData } from '../data/AppData.jsx';
 import { LeagueFailure, useLeagueRead } from '../league/useLeagueRead.jsx';
@@ -26,7 +26,7 @@ export function HistoryBets({ args }) {
   const weeks = useLeagueRead(`${app.accountId}:history:${season || 'latest'}`, signal => communityApi('history', season ? { season } : {}, signal), error => {
     if (error.status === 401) app.requestSignIn?.();
   });
-  if (weeks.loading) return <p className="gx-t-body gx-c-2" role="status">{BETS_COPY.loading}</p>;
+  if (weeks.loading) return <Skeleton label={BETS_COPY.loading} shape="rows" count={4}/>;
   if (weeks.error) return <LeagueFailure error={weeks.error} onRetry={weeks.retry}/>;
   const list = weeks.data.weeks || [];
   if (!list.length) return <p className="gx-empty gx-t-body gx-c-2">{BETS_COPY.noWeeks}</p>;
@@ -47,7 +47,7 @@ export function HistoryBets({ args }) {
 function BetsWeek({ season, week }) {
   const app = useAppData();
   const read = useLeagueRead(`${app.accountId}:history-bets:${season}:${week}`, signal => betsApi('read', { season, week }, signal), error => { if (error.status === 401) app.requestSignIn?.(); });
-  if (read.loading) return <p className="gx-t-body gx-c-2" role="status">{BETS_COPY.loading}</p>;
+  if (read.loading) return <Skeleton label={BETS_COPY.loading} shape="rows" count={4}/>;
   if (read.error) return read.error.status === 503 ? <p className="gx-t-body gx-c-2">{BETS_COPY.off}</p> : <LeagueFailure error={read.error} onRetry={read.retry}/>;
   const data = read.data, viewer = app.accountId;
   const games = new Map((data.games || []).map(game => [game.id, game]));

@@ -14,8 +14,8 @@ vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn(), 
 vi.mock('../web/src/next/features/useFeatures.js', () => ({ useFeatures: () => state.features }));
 
 const { ShellContext } = await import('../web/src/next/shell/context.js');
-const { CountUp } = await import('../web/src/next/home/CountUp.jsx');
-const { COUNT_UP_TOKENS, bezierEasing, countUpTiming, parseBezier } = await import('../web/src/next/home/countUp.js');
+const { CountUp } = await import('../web/src/next/ui/CountUp.jsx');
+const { COUNT_UP_TOKENS, bezierEasing, countUpTiming, parseBezier } = await import('../web/src/next/moments/countUp.js');
 const { HomeAwards } = await import('../web/src/next/features/HomeAwards.jsx');
 const { HomeStreak } = await import('../web/src/next/features/HomeStreak.jsx');
 const { RecapPost, RECAP_POST_ROWS } = await import('../web/src/next/features/RecapPost.jsx');
@@ -76,6 +76,7 @@ describe('CountUp', () => {
       expect(markupProblems(html)).toEqual([]);
       const el = nodes(html, hasClass('gx-countup'))[0];
       expect(el.attrs['data-count']).toBe('rest');
+      expect(el.attrs['aria-live'], 'screen readers hear the settled number only (spec 4.4)').toBe('polite');
       expect(el.children).toEqual([expect.objectContaining({ text })]);
     }
   });

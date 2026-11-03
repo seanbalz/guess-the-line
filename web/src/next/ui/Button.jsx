@@ -5,6 +5,7 @@
 import { Icon } from './Icon.jsx';
 import { cx, oneOf } from './cx.js';
 import { lightHaptic } from './haptics.js';
+import { motionReduced } from './motion.js';
 import './press.css';
 
 export const BUTTON_VARIANTS = Object.freeze(['primary', 'secondary', 'danger', 'ghost', 'ghost-2']);
@@ -17,7 +18,7 @@ export const BUTTON_VARIANTS = Object.freeze(['primary', 'secondary', 'danger', 
 export function Button({ ref, variant = 'secondary', block = false, icon, iconEnd, type = 'button', haptic, onClick, className, children, ...rest }) {
   const kind = oneOf(variant, BUTTON_VARIANTS, 'secondary');
   const tick = haptic ?? kind === 'primary';
-  const press = tick ? event => { lightHaptic(); onClick?.(event); } : onClick;
+  const press = tick ? event => { lightHaptic(undefined, motionReduced(event.currentTarget)); onClick?.(event); } : onClick;
   return (
     <button ref={ref} type={type} className={cx('gx-btn', `gx-btn--${kind}`, block && 'gx-btn--block', className)} onClick={press} {...rest}>
       {icon ? <Icon icon={icon} size={20}/> : null}

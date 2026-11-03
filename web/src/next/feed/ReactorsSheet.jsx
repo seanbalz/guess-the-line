@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { leagueApi } from '../../api.js';
 import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
-import { Avatar, Card, List, Sheet } from '../ui/index.js';
+import { Avatar, Card, List, Sheet, Skeleton } from '../ui/index.js';
 import { reactionOf } from './feedModel.js';
 
 export function ReactorsSheet({ args }) {
@@ -19,7 +19,7 @@ export function ReactorsSheet({ args }) {
     return () => controller.abort();
   }, [args?.postId]);
   return <Sheet title={state.loading ? 'Reactions' : `Reactions · ${state.reactors.length}`} onClose={shell.closeSheet}>
-    {state.loading ? <p className="gx-t-body gx-c-2" role="status">Loading reactions…</p> : null}
+    {state.loading ? <Skeleton label="Loading reactions…" shape="rows" count={4}/> : null}
     {state.error ? <p className="gx-t-body gx-c-loss" role="alert">{state.error.status ? state.error.message : 'No connection. Reconnect and try again.'}</p> : null}
     {!state.loading && !state.error && !state.reactors.length ? <p className="gx-t-body gx-c-2">No reactions yet.</p> : null}
     {state.reactors.length ? <Card variant="flush"><List label="Who reacted" data-emoji-ok="true">{state.reactors.map(row => {

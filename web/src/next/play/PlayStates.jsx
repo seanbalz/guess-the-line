@@ -2,7 +2,7 @@
 // "Try again" wherever a read failed. Loading is a status, a failure is an alert, empty is plain text with at most
 // one action (rule of restraint 5). `error` is an ApiError-like value: the server's own message when it sent one,
 // the no-connection line when the request never got an answer.
-import { Button, Card } from '../ui/index.js';
+import { Button, Card, Skeleton } from '../ui/index.js';
 import './moments.css';
 
 export const PLAY_OFFLINE = 'No connection. Reconnect and try again.';
@@ -16,7 +16,7 @@ export function failureLine(what, error) {
 }
 
 export function PlayLoading({ children }) {
-  return <Card variant="s2" className="gx-play-state-card" role="status" data-play-state="loading"><p className="gx-t-body gx-c-2">{children}</p></Card>;
+  return <Card variant="s2" className="gx-play-state-card" data-play-state="loading"><Skeleton label={[].concat(children).join("") || "Loading…"} shape="lines" count={3}/></Card>;
 }
 
 export function PlayFailure({ what, error, onRetry, retryLabel = 'Try again' }) {

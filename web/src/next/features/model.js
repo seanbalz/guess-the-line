@@ -4,6 +4,7 @@
 import { AWARD_BY_ID, BADGES, BADGE_BY_ID, RARITY_LABEL, STREAK_BY_ID } from '../../../../shared/game-features/catalog.mjs';
 import { DASH, SEP, fmtAmt, fmtNum, fmtPct, fmtRecord, fmtSide, fmtSpreadPick, plural } from '../format.js';
 import { AWARD_ICONS, BADGE_ICONS } from './icons.js';
+import { SCOPES } from '../moments/catalog.js';
 
 const RANK = { epic: 0, rare: 1, uncommon: 2, common: 3 };
 const LIVE = BADGES.filter(b => b.status === 'live');
@@ -131,21 +132,26 @@ export function boardFact(model, userId, mode) {
   return row?.winners.includes(userId) ? `Won Week ${model.recap.week}` : null;
 }
 
+/** The cards that hold badge and award moments (D-69): they play when one of these opens after the launch. */
+export const FEATURE_SCOPES = Object.freeze([SCOPES.features, SCOPES.home, SCOPES.league, SCOPES.play]);
+
 /**
- * New things to celebrate between two reads in one session (never on page load): the viewer's badges and awards in
- * `next` that `previous` did not have. Each `{ key, kind: 'badge' | 'award', title, meta, icon, rarity }`, oldest first;
- * a badge also carries `parts` (badgeParts), so the overlay can draw its game as marks.
+ * Every badge and award of the viewer in a features reply, as moments (moments/detect.js decides which are new):
+ * `{ id, kind: 'badge' | 'award', scopes, title, meta, icon, rarity }`; a badge also carries `parts` (badgeParts) so the
+ * overlay draws its game as marks. Badges oldest first, then awards. Ids are stable across reads. A badge's id is its
+ * award key (badge, player, season and week; badge events have no league), so a badge is one moment in every league
+ * and never plays twice. An award's id names the league ("community" for the community) and the season, so another
+ * league's Week 7 award is another moment.
  */
-export function newCelebrations(previous, next, viewer) {
-  if (!record(previous) || !record(next)) return [];
-  const seen = new Set((previous.badges ?? []).map(b => b.key));
-  const out = (next.badges ?? []).filter(b => b.userId === viewer && !seen.has(b.key) && BADGE_BY_ID[b.badge])
+export function featureMoments(reply, viewer) {
+  if (!record(reply) || typeof viewer !== 'string' || !viewer) return [];
+  const league = reply.leagueId ?? 'community', season = reply.season;
+  const out = (reply.badges ?? []).filter(b => b.userId === viewer && BADGE_BY_ID[b.badge])
     .sort((a, b) => Date.parse(a.visibleAt) - Date.parse(b.visibleAt))
-    .map(b => ({ key: `badge:${b.key}`, kind: 'badge', title: BADGE_BY_ID[b.badge].name, meta: badgeLine(b), parts: badgeParts(b), icon: BADGE_ICONS[b.badge], rarity: BADGE_BY_ID[b.badge].rarity }));
-  const had = new Set((previous.awards ?? []).flatMap(w => w.awards.filter(a => a.winners.includes(viewer)).map(a => `${w.week}:${a.id}`)));
-  for (const w of next.awards ?? []) for (const a of w.awards) {
-    if (!a.winners.includes(viewer) || had.has(`${w.week}:${a.id}`)) continue;
-    out.push({ key: `award:${w.week}:${a.id}`, kind: 'award', title: AWARD_BY_ID[a.id]?.name ?? a.id, meta: `Week ${w.week}${SEP}${awardValue(a)}`, icon: AWARD_ICONS[a.id], rarity: 'rare' });
+    .map(b => ({ id: `badge:${b.key}`, kind: 'badge', scopes: [...FEATURE_SCOPES], title: BADGE_BY_ID[b.badge].name, meta: badgeLine(b), parts: badgeParts(b), icon: BADGE_ICONS[b.badge], rarity: BADGE_BY_ID[b.badge].rarity }));
+  for (const w of reply.awards ?? []) for (const a of w.awards) {
+    if (!a.winners.includes(viewer)) continue;
+    out.push({ id: `award:${league}:${season}:${w.week}:${a.id}`, kind: 'award', scopes: [...FEATURE_SCOPES], title: AWARD_BY_ID[a.id]?.name ?? a.id, meta: `Week ${w.week}${SEP}${awardValue(a)}`, icon: AWARD_ICONS[a.id], rarity: 'rare' });
   }
   return out;
 }

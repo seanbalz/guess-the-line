@@ -7,6 +7,8 @@ import { readSoloDraft, soloDraftScope } from '../../soloDraft.js';
 import { DRAFT_PREFIX, draftHasChanges, readDraft as readGroupDraft } from '../../predictionDraft.js';
 import { weekOpenAt } from '../../../../shared/nfl-schedule.mjs';
 import { Button, Card, Dialog, Icon, InfoButton, Matchup, Nest, Pill, Segmented, cx, teamCode } from '../ui/index.js';
+import { lightHaptic } from '../ui/haptics.js';
+import { motionReduced } from '../ui/motion.js';
 import { ShellContext } from '../shell/context.js';
 import { TeamMatchup } from '../teams/TeamMatchup.jsx';
 import { fmtFull } from '../format.js';
@@ -35,7 +37,7 @@ const matchesSave = (data, request) => request.lockIn?.length ? lockConfirmed(da
 
 /** Each card's state word (unchanged from before the design upgrade) and its pill tone. */
 const CARD_STATE = Object.freeze({ locked: ['Locked in', 'accent'], kicked: ['Closed at kickoff', 'neutral'], skipped: ['Skipped', 'neutral'], notopen: ['Not open', 'neutral'], draft: ['Draft', 'pending'], open: ['To pick', 'neutral'] });
-const vibrate = () => { try { globalThis.navigator?.vibrate?.(20); } catch { /* Haptics are optional. */ } };
+const vibrate = () => lightHaptic(undefined, motionReduced());
 
 /**
  * Shared by both apps once the server reports M-07. No speculative local success and no silent write retry.

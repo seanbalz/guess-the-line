@@ -3,7 +3,7 @@ import { ASSESSMENT_LABELS, submittedResearchLink } from '../../../../shared/res
 import { linesApi } from '../../api.js';
 import { useLinesData } from '../lines/linesData.js';
 import { useShell } from '../shell/context.js';
-import { Button, InfoButton } from '../ui/index.js';
+import { Button, InfoButton, Skeleton } from '../ui/index.js';
 import { Nest } from '../ui/Nest.jsx';
 import { useAssessments } from './useAssessments.js';
 import './assessments.css';
@@ -143,7 +143,7 @@ export default function ResearchAssessments({ onDirty, onTrack }) {
     {gameId ? <Button variant="secondary" onClick={() => chooseGame('')}>All games research</Button> : null}
     {!a ? <div className="gx-ra-filters"><Select label="Market" value={market} onChange={v => { setMarket(v); setLimit(20); }} options={[[ '', 'All markets'], ['spread', 'Spreads'], ['total', 'Totals'], ['moneyline', 'Moneylines'], ['prop', 'Player props']]}/>
       <Select label="Assessment" value={color} onChange={v => { setColor(v); setLimit(20); }} options={[[ '', 'All assessments'], ...Object.entries(ASSESSMENT_LABELS)]}/></div> : null}
-    {read.status === 'loading' ? <p role="status" className="gx-t-body">Loading research assessments…</p> : read.status === 'error' ? <div><p role="status" className="gx-t-body">Research is unavailable right now.</p><Button variant="secondary" onClick={read.reload}>Retry research</Button></div> : null}
+    {read.status === 'loading' ? <Skeleton label="Loading research assessments…" shape="panels" count={2}/> : read.status === 'error' ? <div><p role="status" className="gx-t-body">Research is unavailable right now.</p><Button variant="secondary" onClick={read.reload}>Retry research</Button></div> : null}
     {data ? <Nest label="Research assessments" title={a ? a.title : gameId ? gameId.replace('-', ' at ') : 'Assessed bets'} layer={a?.id ?? 'list'}
       lips={a ? [{ key: 'list', label: 'Assessed bets', onOpen: () => select(null) }] : []}>
       {a ? <AssessmentDetail assessment={a} onTrack={onTrack ? track : null}/> : <>

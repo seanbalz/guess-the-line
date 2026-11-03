@@ -20,6 +20,7 @@ import { BoardCard, CommunityBoard } from './LeagueBoard.jsx';
 // The new feed (stages 64 and 65) draws CommunityFeed below, unchanged, while the server has no feed reader (M-22).
 import { Feed, useNewPostsDot } from '../feed/Feed.jsx';
 import './league.css';
+import { useMomentScope } from '../moments/MomentsProvider.jsx';
 
 // D-56: the board switcher is Spread / Total / Points. Points is its own board and never adds to Spread or Total.
 const MARKETS = [...Object.entries(MODE).map(([value, label]) => ({ value, label })), { value: 'guess_points', label: 'Points' }];
@@ -160,6 +161,7 @@ function PrivateLeague({ app, shell, mode, features }) {
 }
 
 export function LeagueScreen() {
+  useMomentScope('league');
   const app = useAppData(), shell = useShell(), view = shell.state.views.league || {};
   const mode = view.market === 'total' || view.market === 'guess_total' ? 'guess_total' : view.market === 'points' || view.market === 'guess_points' ? 'guess_points' : 'guess_spread';
   const section = ['board', 'history', 'feed'].includes(view.view) ? view.view : 'feed';
