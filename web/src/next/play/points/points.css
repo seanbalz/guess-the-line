@@ -1,9 +1,25 @@
-/* Guess the Points (D-56; ballot card option D, "Glow card", D-56 addendum). Tokens only (D-38, D-55): every slot card is the
-   kit's gx-card--hero (any number may be on screen, D-56 addendum of October 23), and glass pills and tiles appear only on a
-   glow card. Outside one, the same pills fall back to surface-2. */
-.gx .gx-pt-slots { display: flex; flex-direction: column; gap: var(--gx-space-3); margin: 0; padding: 0; list-style: none; }
-.gx .gx-pt-card { width: 100%; min-height: var(--gx-size-touch); align-items: stretch; text-align: left; color: var(--gx-text-1); }
-.gx .gx-pt-head { display: flex; align-items: center; justify-content: space-between; gap: var(--gx-space-2); min-width: 0; }
+/* Guess the Points (D-56; ballot card option D, "Glow card", D-56 addendum; D-69 P4A). Tokens only (D-38, D-55): every slot
+   tile and the open slot's card are the kit's gx-card--hero (any number may be on screen, D-56 addendum of October 23), and
+   glass pills and tiles appear only on a glow card. Outside one, the same pills fall back to surface-2. */
+.gx .gx-pt-card { width: 100%; min-height: var(--gx-size-touch); align-items: stretch; padding: var(--gx-space-3); text-align: left; color: var(--gx-text-1); }
+/* P4A, the week card: a five-part bar (one part per slot; its name and the meta line say each state in words, so no state
+   is color alone), then five slot tiles and the board tile in two columns, one column under 360px so "PROVISIONAL" and a
+   long name keep to their tile at 320. */
+.gx .gx-pt-bar { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--gx-space-1); }
+.gx .gx-pt-bar-part { height: 8px; border-radius: var(--gx-radius-pill); background: var(--gx-track); }
+.gx .gx-pt-bar-part--locked { background: var(--gx-accent-ink); }
+.gx .gx-pt-bar-part--draft { background: var(--gx-pending); }
+.gx .gx-pt-bar-part--closed { background: transparent; box-shadow: inset 0 0 0 1px var(--gx-border-strong); }
+.gx .gx-pt-slot { width: 100%; min-height: 120px; align-items: stretch; justify-content: space-between; padding: var(--gx-space-3); text-align: left; color: var(--gx-text-1); }
+.gx .gx-pt-slot-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--gx-space-1) var(--gx-space-2); min-width: 0; }
+.gx .gx-pt-slot-name { min-width: 0; overflow-wrap: anywhere; }
+.gx .gx-pt-exact { align-self: flex-start; }
+/* Each tile fills its grid cell, so a row of tiles keeps one height. */
+.gx .gx-pt-grid > li { display: flex; min-width: 0; }
+.gx .gx-pt-grid > li > * { flex: 1 1 auto; }
+@media (max-width: 359px) {
+  .gx .gx-nest-grid.gx-pt-grid { grid-template-columns: minmax(0, 1fr); }
+}
 .gx .gx-pt-pill {
   display: inline-flex;
   align-items: center;
@@ -29,7 +45,7 @@
   flex-direction: column;
   gap: 2px;
   min-width: 0;
-  padding: var(--gx-space-2) var(--gx-space-3);
+  padding: var(--gx-space-2);
   border-radius: var(--gx-radius-sm);
   background: var(--gx-surface-2);
   box-shadow: inset 0 0 0 1px var(--gx-border);
@@ -135,10 +151,7 @@
 .gx .gx-pt-preview { display: flex; flex-direction: column; gap: var(--gx-space-2); margin: 0; padding: 0; list-style: none; }
 .gx .gx-pt-preview-row { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
 .gx .gx-pt-preview-row .gx-pt-pill { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
-/* The slot sheet's body is a scrolling flex column: its cards keep their full height and the body scrolls, instead of the
-   glow card (min-height 44) shrinking under the cards after it once the sheet holds more than fits. */
-.gx .gx-pt-sheet .gx-sheet-body > * { flex-shrink: 0; }
-/* Board i63: the player context strip in a slot's sheet, three tiles (Last 3, Season, what the opponent allows) on a plain
+/* Board i63: the player context strip in a slot's layer, three tiles (Last 3, Season, what the opponent allows) on a plain
    card, each value over its game count; "—" for missing. */
 .gx .gx-pt-context-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gx-space-2); margin: 0; }
 .gx .gx-pt-context-tile {
@@ -153,11 +166,17 @@
 }
 .gx .gx-pt-context-tile dt,
 .gx .gx-pt-context-tile dd { margin: 0; overflow-wrap: anywhere; }
+/* Nested in the slot's layer the strip is narrower: under 360px its three tiles stack, so no label breaks mid-word. */
+@media (max-width: 359px) {
+  .gx .gx-pt-context-tiles { grid-template-columns: minmax(0, 1fr); }
+}
 @media (forced-colors: active) {
   .gx .gx-pt-context-tile,
   .gx .gx-pt-pill,
   .gx .gx-pt-tile,
+  .gx .gx-pt-bar-part,
   .gx .gx-pt-step { border: 1px solid CanvasText; }
   .gx .gx-pt-line-track,
-  .gx .gx-pt-line-tick { background: CanvasText; }
+  .gx .gx-pt-line-tick,
+  .gx .gx-pt-bar-part--locked { background: CanvasText; }
 }

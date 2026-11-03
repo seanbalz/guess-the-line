@@ -329,3 +329,39 @@ test('D-69 Compare: the opponent is the item on section compare; a face is not a
   win.history.back(); await settle();
   assert.equal(shell.state.tab, 'home', 'Back closes Compare');
 });
+
+test('D-69 Guess the Points: a slot and its profile are steps with their own address; Back and a lip close one layer', () => {
+  const list = initialState({ tab: 'play', view: { section: 'points' } });
+  const slot = reduce(list, { type: 'view', tab: 'play', patch: { item: 'QB' } });
+  assert.deepEqual([slot.views.play.section, slot.views.play.item, slot.trail.length], ['points', 'QB', 1]);
+  assert.equal(fragmentFor('play', slot.views.play), '#play/points?item=QB');
+  assert.deepEqual(placeFromFragment('#play/points?item=QB'), { tab: 'play', view: { section: 'points', item: 'QB' } }); // a reload or a shared link reopens it
+  // PointsBallot.jsx sends these exact patches (the profile names its slot, since a go drops `item`).
+  const profile = reduce(slot, { type: 'view', tab: 'play', patch: { item: 'QB', layer: 'profile' } });
+  assert.deepEqual([profile.views.play.item, profile.views.play.layer, profile.trail.length], ['QB', 'profile', 2]);
+  assert.equal(fragmentFor('play', profile.views.play), '#play/points?layer=profile&item=QB');
+  for (const back of [reduce(profile, { type: 'back' }), reduce(profile, { type: 'view', tab: 'play', patch: { item: 'QB', layer: undefined } })]) {
+    assert.deepEqual([back.views.play.item, back.views.play.layer ?? null, back.trail.length], ['QB', null, 1]);
+  }
+  for (const back of [reduce(slot, { type: 'back' }), reduce(slot, { type: 'view', tab: 'play', patch: { item: undefined, layer: undefined } })]) {
+    assert.deepEqual([back.views.play.section, back.views.play.item ?? null, back.trail], ['points', null, []]);
+  }
+  // A fresh Play destination never reopens the slot or profile it last showed.
+  assert.equal(reduce(slot, { type: 'tab', tab: 'play' }).views.play.item, undefined);
+  assert.equal(reduce(reduce(slot, { type: 'tab', tab: 'home' }), { type: 'go', tab: 'play', view: { section: 'points' } }).views.play.item, undefined);
+  const restored = reduce(profile, { type: 'restore', place: { tab: 'play', view: { section: 'points' } } }).views.play;
+  assert.deepEqual([restored.item ?? null, restored.layer ?? null], [null, null]);
+  assert.equal(placeFromFragment('#play/points?item=%3Cscript%3E').view.item, undefined);
+});
+
+test('D-69 Guess the Points: browser Back closes the slot layer, then leaves Points', async () => {
+  const win = fakeWindow('https://gtl.test/#play/points');
+  const shell = app(win);
+  shell.dispatch({ type: 'view', tab: 'play', patch: { item: 'RB' } });
+  await settle();
+  assert.equal(win.location.hash, '#play/points?item=RB');
+  win.history.back();
+  await settle();
+  assert.equal(shell.state.views.play.section, 'points');
+  assert.equal(shell.state.views.play.item, undefined);
+});

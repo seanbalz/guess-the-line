@@ -7,7 +7,8 @@ import { ACCOUNTS, communityWorld, pgliteAvailable, signIn } from './community-w
 import { FANTASY_REPOSITORY, snapshotFileName, updateFantasyIndex } from '../../shared/fantasy-index.mjs';
 import { CONTEXT_HOUSE, CONTEXT_SNAPSHOT_TIMES, pointsContextSnapshot } from '../fixtures/points-context-snapshot.mjs';
 
-// Guess the Points in the new app (D-56 spec section 5; ballot card option D, the D-56 addendum) on local PGlite through the
+// Guess the Points in the new app (D-56 spec section 5; ballot card option D, the D-56 addendum; D-69 P4A: the week card and a
+// slot layer) on local PGlite through the
 // real gtl-api handler: the schema before P-01 shows "Points is coming soon" (what any project without P-01 serves);
 // ALL (P-01 and P-02, hosted since October 23, 2026) plays a fixture week.
 // Fixture accounts, players and guesses only; never a hosted project or a real pick.
@@ -42,6 +43,33 @@ async function openNewApp(page) {
 const BEFORE_POINTS = ALL.filter(file => file < '20261023180000');
 const guessRow = (world, slot) => world.db.query('select guess,locked_at from public.gtl_points_guesses where user_id=$1 and season=2026 and week=7 and slot=$2', [ACCOUNTS.luke.id, slot]).then(r => r.rows[0] ?? null);
 
+/** A week under way: the QB kicked off a day ago with Luke's 21 locked in before it (written with triggers off, as
+ * tests/points-sql.test.mjs writes played weeks); the other four slots are still open. */
+async function seedPlayedWeek(world) {
+  const now = Date.now(), hour = Math.ceil(now / 3_600_000) * 3_600_000;
+  const kick = [hour - DAY, hour + 2 * DAY, hour + 3 * DAY, hour + 3 * DAY + 3 * 3_600_000, hour + 4 * DAY].map(iso);
+  const games = ['PIT_CLE', 'KC_LV', 'SEA_DEN', 'NYJ_BUF', 'MIA_NE'];
+  const slots = ['QB', 'RB', 'WR', 'TE', 'FLEX'].map((slot, i) => ({ slot, playerId: `00-fixture-${i}`, name: `Fixture ${slot} Player`, team: games[i].slice(0, games[i].indexOf('_')),
+    position: slot === 'FLEX' ? 'WR' : slot, gameKey: `2026_07_${games[i]}`, kickoff: kick[i] }));
+  await world.db.query(`insert into public.gtl_points_slates(season,week,status,opens_at,finalize_at,scoring_rules,slots,house,provenance,published_at)
+    values(2026,7,'published',$1,$2,$3,$4,$5,$6,$1)`, [iso(now - 3 * DAY), iso(now + 8 * DAY), { format: 'ppr', passingTds: 4, version: 'ppr4-v1' }, JSON.stringify(slots),
+    { QB: 19.4, RB: 13.2, WR: 15.8, TE: 9.1, FLEX: 12.6 }, { snapshotSeason: 2026, snapshotWeek: 7, checksum: 'f'.repeat(64), selectionVersion: 'points-slate-v1', seed: 'fixture' }]);
+  await world.db.transaction(async tx => {
+    await tx.exec('set local session_replication_role = replica');
+    await tx.query("insert into public.gtl_points_guesses(user_id,season,week,slot,guess,locked_at) values($1,2026,7,'QB',21,$2)", [ACCOUNTS.luke.id, iso(now - 2 * DAY)]);
+  });
+}
+/** The QB's stats land (one nflverse-shaped load through the real loader): `points` Full PPR. */
+async function loadQbActual(world, points) {
+  const now = Date.now();
+  await world.db.query('select public.gtl_points_load_actuals($1::jsonb)', [{ season: 2026, week: 7,
+    source: { url: 'https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_2026.csv', release: 'stats_player', publishedAt: iso(now - 3_600_000), retrievedAt: iso(now - 1_800_000), sha256: 'a'.repeat(64) },
+    coverage: { expected: 1, received: 1, partial: false },
+    players: [{ playerId: '00-fixture-0', name: 'Fixture QB Player', team: 'PIT', position: 'QB', gameKey: '2026_07_PIT_CLE', stats: { receptions: 0 }, points: { 'ppr4-v1': points }, played: true, playedBasis: 'snaps' }] }]);
+}
+/** The one Play layer the ballot draws its week card, a slot and a profile in (D-66 nesting cards). */
+const pointsLayer = page => page.getByRole('region', { name: 'Guess the Points', exact: true });
+
 test('without P-01 the routes answer 404 and Play and the League board say "Points is coming soon"', async ({ page, baseURL }) => {
   const world = await communityWorld(page, baseURL, { migrations: BEFORE_POINTS });
   expect((await world.api('luke', 'points/read', {})).status).toBe(404);
@@ -71,7 +99,9 @@ test('a fixture week: draft, lock in with a confirm, then Everyone and the House
   await expect(landing).toHaveClass(/gx-card--hero/);
   await expect(landing).toContainText('0/5');
   await landing.click();
-  await expect(page.getByRole('heading', { name: 'WEEK 7 POINTS' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Week 7 Points', exact: true })).toBeVisible();
+  const layer = pointsLayer(page);
+  await expect(layer.locator('[data-points-bar]')).toHaveAccessibleName('0 of 5 slots locked');
   const cards = page.locator('[data-slot]');
   await expect(cards).toHaveCount(5);
   await expect(page.locator('[data-slot].gx-card--hero')).toHaveCount(5);
@@ -94,8 +124,11 @@ test('a fixture week: draft, lock in with a confirm, then Everyone and the House
   await page.setViewportSize({ width: 390, height: 844 });
 
   await qb.click();
-  const sheet = page.getByRole('dialog', { name: 'QB · Fixture QB Player' });
-  await expect(sheet).toBeVisible();
+  // P4A: the slot opens as the next layer with its own address; its heading takes focus, the week stays as a lip.
+  await expect(page).toHaveURL(/#play\/points\?item=QB$/);
+  const sheet = layer;
+  await expect(sheet.getByRole('heading', { name: 'QB · Fixture QB Player', exact: true })).toBeFocused();
+  await expect(sheet.getByRole('button', { name: 'Back to Week 7 Points', exact: true })).toBeVisible();
   // Decision 3B: the big stepper. A tap moves by 1; holding moves by 5 and the release does not add another 1.
   const plus = sheet.getByRole('button', { name: 'One point more, hold for 5' });
   const spin = sheet.getByRole('spinbutton', { name: 'Your guess' });
@@ -124,11 +157,22 @@ test('a fixture week: draft, lock in with a confirm, then Everyone and the House
     expect(Math.min(box.width, box.height), await target.innerText()).toBeGreaterThanOrEqual(MIN_TARGET);
   }
   expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations.map(v => v.id)).toEqual([]);
-  await page.screenshot({ path: info.outputPath('points-sheet-editor-390.png') });
+  await page.screenshot({ path: info.outputPath('points-slot-editor-390.png') });
   await sheet.getByRole('button', { name: 'Save draft', exact: true }).click();
   await expect(sheet.getByText('Draft saved: 21.')).toBeVisible();
   expect(await guessRow(world, 'QB')).toMatchObject({ guess: 21, locked_at: null });
   await expect(sheet).not.toContainText(String(SENTINEL));
+  // An unsaved guess asks before the lip leaves the slot; staying keeps it.
+  await spin.focus();
+  await page.keyboard.press('ArrowUp');
+  let asked = null;
+  page.once('dialog', dialog => { asked = dialog.message(); dialog.dismiss(); });
+  await sheet.getByRole('button', { name: 'Back to Week 7 Points', exact: true }).click();
+  expect(asked).toBe('Leave without saving your changes?');
+  await expect(page).toHaveURL(/#play\/points\?item=QB$/);
+  await expect(spin).toHaveAttribute('aria-valuenow', '22');
+  await spin.focus();
+  await page.keyboard.press('ArrowDown');
 
   await sheet.getByRole('button', { name: 'Lock in 21', exact: true }).click();
   const confirm = page.getByRole('alertdialog', { name: 'Lock in 21?' });
@@ -153,12 +197,16 @@ test('a fixture week: draft, lock in with a confirm, then Everyone and the House
   }
   expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations.map(v => v.id)).toEqual([]);
   await expect(sheet.getByRole('button', { name: /^Lock in/ })).toHaveCount(0);
-  await page.screenshot({ path: info.outputPath('points-sheet-locked-390.png') });
-  await sheet.getByRole('button', { name: 'Close' }).click();
+  await page.screenshot({ path: info.outputPath('points-slot-locked-390.png') });
+  // Browser Back closes one layer and returns focus to the slot's tile, which now says Locked in and never another guess.
+  await page.goBack();
+  await expect(page).toHaveURL(/#play\/points$/);
+  await expect(qb).toBeFocused();
   await expect(qb).toContainText('Locked in');
   await expect(qb).toContainText(/You\s*21/);
   await expect(qb).not.toContainText(String(SENTINEL));
-  await expect(qb).toHaveAccessibleName(new RegExp(`Troy Fixture ${SENTINEL}.*House 19\\.4`));
+  await expect(qb).toHaveAccessibleName(/, Locked in, You 21$/);
+  await expect(layer.locator('[data-points-bar]')).toHaveAccessibleName('1 of 5 slots locked');
   for (const theme of ['dark', 'light']) {
     await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, theme);
     await page.setViewportSize({ width: 320, height: 844 });
@@ -168,10 +216,13 @@ test('a fixture week: draft, lock in with a confirm, then Everyone and the House
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: info.outputPath('points-ballot-locked-390.png'), fullPage: true });
   await expect(page.locator('[data-slot="RB"]')).not.toContainText('13.2');
+  // The sixth tile opens the League board on the Points market.
+  await layer.getByRole('button', { name: /^Points board, / }).click();
+  await expect(page.getByRole('heading', { name: 'Points standings' })).toBeVisible();
   expect(world.errors).toEqual([]);
 });
 
-test('keyboard only, with reduced motion: open a slot, use the stepper, and Escape returns focus to its card', async ({ page, baseURL }) => {
+test('keyboard only, with reduced motion: open a slot, use the stepper, and the week lip returns focus to its tile', async ({ page, baseURL }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const world = await communityWorld(page, baseURL, { migrations: ALL });
   await seedWeek(world);
@@ -180,9 +231,8 @@ test('keyboard only, with reduced motion: open a slot, use the stepper, and Esca
   const wr = page.locator('[data-slot="WR"]');
   await wr.focus();
   await page.keyboard.press('Enter');
-  const sheet = page.getByRole('dialog', { name: 'WR · Fixture WR Player' });
-  await expect(sheet).toBeVisible();
-  await expect(sheet).toBeFocused();
+  const sheet = pointsLayer(page);
+  await expect(sheet.getByRole('heading', { name: 'WR · Fixture WR Player', exact: true })).toBeFocused();
   const spin = sheet.getByRole('spinbutton', { name: 'Your guess' });
   await spin.focus();
   for (let i = 0; i < 4; i++) await page.keyboard.press('PageUp'); // From no guess the first move lands on 0.
@@ -190,10 +240,13 @@ test('keyboard only, with reduced motion: open a slot, use the stepper, and Esca
   await sheet.getByRole('button', { name: 'One point less, hold for 5' }).focus();
   await page.keyboard.press('Enter');
   await expect(sheet.getByRole('button', { name: 'Lock in 14', exact: true })).toBeVisible();
-  // Reduced motion: nothing in the sheet is animating.
+  // Reduced motion: nothing in the layer is animating.
   expect(await page.evaluate(() => document.getAnimations().filter(a => a.playState === 'running').length)).toBe(0);
-  await page.keyboard.press('Escape');
-  await expect(sheet).toHaveCount(0);
+  // The unsaved 14 asks first; leaving discards it and lands on the WR tile.
+  page.once('dialog', dialog => dialog.accept());
+  await sheet.getByRole('button', { name: 'Back to Week 7 Points', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/#play\/points$/);
   await expect(wr).toBeFocused();
   expect(await world.db.query("select count(*)::int n from public.gtl_points_guesses where user_id=$1", [ACCOUNTS.luke.id]).then(r => r.rows[0].n)).toBe(0);
   expect(world.errors).toEqual([]);
@@ -345,6 +398,8 @@ async function contextChecks(page, scope, info, name, extra = async () => {}) {
     await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, theme);
     for (const width of [320, 390, 1280]) {
       await page.setViewportSize({ width, height: width === 1280 ? 900 : 844 });
+      // The layer is part of the page now (no sheet over it): check from the top, where nothing sits under the sticky bar.
+      await page.evaluate(() => window.scrollTo(0, 0));
       expect(await page.evaluate(layoutProblems), `${name} ${theme} ${width}`).toEqual([]);
       await targets(scope);
       await extra(`${theme} ${width}`);
@@ -363,7 +418,8 @@ test('Player context: averages with game counts, the opponent, the report and it
   await openNewApp(page);
   await page.locator('[data-points-landing]').click();
   await page.locator('[data-slot="QB"]').click();
-  const sheet = page.getByRole('dialog', { name: 'QB · Fixture QB Player' });
+  const sheet = pointsLayer(page);
+  await expect(sheet.getByRole('heading', { name: 'QB · Fixture QB Player', exact: true })).toBeVisible();
   const strip = sheet.getByRole('region', { name: 'Player context' });
   await expect(strip.getByText('15.3', { exact: true })).toBeVisible();
   await expect(strip).toContainText(/Last 3\s*15\.3\s*3 games/);
@@ -372,7 +428,7 @@ test('Player context: averages with game counts, the opponent, the report and it
   await expect(strip).toContainText(`Limited Participation in Practice · as of ${CONTEXT_SNAPSHOT_TIMES.asOfText}`);
   await expect(sheet).not.toContainText(String(CONTEXT_HOUSE.QB));
   await expect(sheet).not.toContainText(/implied/i);
-  // The glow card keeps its full height above the strip (the sheet body scrolls): nothing in it is covered.
+  // The glow card keeps its full height above the strip : nothing in it is covered.
   const uncovered = async where => {
     for (const control of [sheet.getByRole('button', { name: 'Save draft', exact: true }), strip.getByRole('button', { name: 'Open profile: Fixture QB Player' })]) {
       await control.scrollIntoViewIfNeeded();
@@ -389,13 +445,18 @@ test('Player context: averages with game counts, the opponent, the report and it
   await page.keyboard.press('ArrowUp');
   await expect(spin).toHaveAttribute('aria-valuenow', '21');
   await strip.getByRole('button', { name: 'Open profile: Fixture QB Player' }).click();
-  const profile = page.getByRole('dialog', { name: 'Fixture QB Player' });
+  // The profile is the slot's next layer, with its own address; the unsaved 21 goes with it, so nothing asks.
+  await expect(page).toHaveURL(/#play\/points\?layer=profile&item=QB$/);
+  const profile = sheet;
+  await expect(profile.getByRole('heading', { name: 'Fixture QB Player', exact: true })).toBeVisible();
+  await expect(profile.getByRole('group', { name: 'Player profile' })).toBeFocused();
   await expect(profile.getByRole('heading', { name: 'Observed production' })).toBeVisible();
   await expect(profile).toContainText('GTL’s estimate for this week is the House. It opens once you lock in this player, or at his kickoff.');
   await expect(profile).not.toContainText(String(CONTEXT_HOUSE.QB));
   await expect(profile).not.toContainText('Rest of season');
   await contextChecks(page, profile, info, 'points-context-profile-locked');
-  await profile.getByRole('button', { name: 'QB · Fixture QB Player' }).click();
+  await profile.getByRole('button', { name: 'Back to QB · Fixture QB Player', exact: true }).click();
+  await expect(page).toHaveURL(/#play\/points\?item=QB$/);
   await expect(sheet.getByRole('spinbutton', { name: 'Your guess' })).toHaveAttribute('aria-valuenow', '21');
 
   // Lock in: the read now carries the House for Luke, so the profile shows the estimate.
@@ -407,20 +468,24 @@ test('Player context: averages with game counts, the opponent, the report and it
   await expect(profile).toContainText(String(CONTEXT_HOUSE.QB));
   await expect(profile).not.toContainText('GTL’s estimate for this week is the House');
 
-  // Missing values read "—", never 0: the WR has no recorded games, the FLEX is not in the snapshot.
-  await page.keyboard.press('Escape');
-  await expect(profile).toHaveCount(0);
+  // Missing values read "—", never 0: the WR has no recorded games, the FLEX is not in the snapshot. Back closes one
+  // layer at a time: the profile, then the slot.
+  await page.goBack();
+  await page.goBack();
+  await expect(page).toHaveURL(/#play\/points$/);
   await page.locator('[data-slot="WR"]').click();
-  const wr = page.getByRole('dialog', { name: 'WR · Fixture WR Player' }).getByRole('region', { name: 'Player context' });
+  await expect(sheet.getByRole('heading', { name: 'WR · Fixture WR Player', exact: true })).toBeVisible();
+  const wr = sheet.getByRole('region', { name: 'Player context' });
   await expect(wr).toContainText(/Last 3\s*—\s*no recorded games\s*no games/);
   await expect(wr).toContainText(/@ DEN allows\s*15\.0\s*to WRs · 2 games/);
-  await page.keyboard.press('Escape');
+  await page.goBack();
   await page.locator('[data-slot="FLEX"]').click();
-  const flex = page.getByRole('dialog', { name: 'FLEX · Fixture FLEX Player' }).getByRole('region', { name: 'Player context' });
+  await expect(sheet.getByRole('heading', { name: 'FLEX · Fixture FLEX Player', exact: true })).toBeVisible();
+  const flex = sheet.getByRole('region', { name: 'Player context' });
   await expect(flex).toContainText('Not in this week’s player data');
   await expect(flex.getByRole('button', { name: /Open profile/ })).toHaveCount(0);
   expect(await flex.innerText()).not.toMatch(/(^|\s)0(\.0)?(\s|$)/);
-  await page.keyboard.press('Escape');
+  await page.goBack();
 
   // An account switch starts clean: Sean has locked nothing, so his QB profile is locked again.
   await page.getByRole('button', { name: 'Your menu' }).click();
@@ -430,11 +495,42 @@ test('Player context: averages with game counts, the opponent, the report and it
   await page.locator('[data-points-landing]').click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.locator('[data-slot="QB"]').click();
-  const seanSheet = page.getByRole('dialog', { name: 'QB · Fixture QB Player' });
+  const seanSheet = pointsLayer(page);
   await expect(seanSheet.getByRole('spinbutton', { name: 'Your guess' })).toHaveAttribute('aria-valuetext', 'No guess yet');
   await seanSheet.getByRole('region', { name: 'Player context' }).getByRole('button', { name: 'Open profile: Fixture QB Player' }).click();
-  await expect(page.getByRole('dialog', { name: 'Fixture QB Player' })).toContainText('GTL’s estimate for this week is the House');
-  await expect(page.getByRole('dialog', { name: 'Fixture QB Player' })).not.toContainText(String(CONTEXT_HOUSE.QB));
+  await expect(seanSheet).toContainText('GTL’s estimate for this week is the House');
+  await expect(seanSheet).not.toContainText(String(CONTEXT_HOUSE.QB));
   logs.check();
+  expect(world.errors).toEqual([]);
+});
+
+// D-69 "Guess the Points exact" (big): stats that land while the member is away wait (NEW), never play on a page load,
+// and play once, through the moments engine's one celebration card, when the ballot is next opened.
+test('an exact guess plays once when the ballot is opened after the launch, never on a page load, and never again', async ({ page, baseURL }) => {
+  const world = await communityWorld(page, baseURL, { migrations: ALL });
+  await seedPlayedWeek(world);
+  await openNewApp(page);
+  await page.locator('[data-points-landing]').click();
+  const qb = page.locator('[data-slot="QB"]');
+  await expect(qb).toContainText('Pending stats');
+  // This device's first Points read seeded the moments record; now the QB's 21 lands while Luke is away.
+  await loadQbActual(world, 21);
+  await page.reload();
+  await expect(qb).toContainText('10 / 10');
+  const flash = page.getByRole('dialog', { name: 'Exact guess' });
+  await expect(flash).toHaveCount(0);
+  await tabs(page).getByRole('button', { name: /^Play(,|$)/ }).click();
+  await page.locator('[data-points-landing]').click();
+  await expect(flash).toBeVisible();
+  await expect(flash).toContainText('Week 7 · QB · Fixture QB Player · 21 points');
+  await flash.getByRole('button', { name: 'Nice', exact: true }).click();
+  await expect(flash).toHaveCount(0);
+  await qb.click();
+  await expect(pointsLayer(page)).toContainText('Exact · 10 points');
+  await page.goBack();
+  await page.goBack();
+  await page.locator('[data-points-landing]').click();
+  await expect(qb).toBeVisible();
+  await expect(flash).toHaveCount(0);
   expect(world.errors).toEqual([]);
 });
