@@ -15,7 +15,7 @@ vi.mock('../web/src/next/features/useFeatures.js', () => ({ useFeatures: () => s
 
 const { ShellContext } = await import('../web/src/next/shell/context.js');
 const { CountUp } = await import('../web/src/next/ui/CountUp.jsx');
-const { COUNT_UP_TOKENS, bezierEasing, countUpTiming, parseBezier } = await import('../web/src/next/ui/countUp.js');
+const { COUNT_UP_TOKENS, bezierEasing, countUpTiming, parseBezier } = await import('../web/src/next/moments/countUp.js');
 const { HomeAwards } = await import('../web/src/next/features/HomeAwards.jsx');
 const { HomeStreak } = await import('../web/src/next/features/HomeStreak.jsx');
 const { RecapPost, RECAP_POST_ROWS } = await import('../web/src/next/features/RecapPost.jsx');

@@ -6,7 +6,7 @@ import { ALL } from '../migrations.mjs';
 import { layoutProblems } from '../helpers/phone-layout.mjs';
 import { seedFinishedWeek } from '../helpers/features-week.mjs';
 import { ACCOUNTS, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
-import { countUpKey } from '../../web/src/next/ui/countUp.js';
+import { countUpKey } from '../../web/src/next/moments/countUp.js';
 import { rankKey } from '../../web/src/next/league/rankMoment.js';
 
 // Design lane ("game feel" and the Home and League pass) at 390 x 844 (build plan section 4.1), on the real app and the

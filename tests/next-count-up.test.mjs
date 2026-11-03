@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import * as C from '../web/src/next/ui/countUp.js';
+import * as C from '../web/src/next/moments/countUp.js';
 
-// Design lane, item 1: the score count-up's rules (web/src/next/ui/countUp.js). Each test names the contract it guards.
+// Design lane, item 1: the score count-up's rules (web/src/next/moments/countUp.js). Each test names the contract it guards.
 // The component's timing (600 ms, the `enter` easing) is checked against the tokens in tests/next-count-up.test.jsx, and
 // the counting itself in a real browser in tests/cloud-browser/next-design-home-league.spec.js.
 const tokens = JSON.parse(fs.readFileSync(new URL('../design/tokens-next.json', import.meta.url), 'utf8'));

@@ -1,10 +1,10 @@
 // <CountUp>: a server number that counts from the last value this device saw to the new one (design lane, "game feel";
 // BRAND_GUIDE D-38 Motion, "count-ups"). Home's season points and the League board's totals use it. The plain rules
-// live in countUp.js; this file only times the frames:
+// live in moments/countUp.js; this file only times the frames:
 // - The `big` duration (600 ms, the brand's cap for count-ups) with the `enter` easing, read from the element's
 //   --gx-dur-big and --gx-ease-enter, which tokens.css defines from design/tokens-next.json (tests/next-tokens.test.mjs
 //   keeps the two equal). Enter never overshoots, and frameAt keeps every frame between the two values anyway.
-// - The remembered value is per account and figure in localStorage (`gtl.next.countUp.v1.…`), written once the launch has
+// - The remembered value is per account and figure in device storage (`gtl.next.countUp.v1.…`), written once the launch has
 //   settled (D-69: a page load shows the final value and remembers nothing), so it counts once per change.
 // - At rest the element holds one text node, the server's value ("—" when it sent none). While counting, the moving
 //   digits are hidden from assistive technology and the final value is in screen-reader text, so nobody is told a
@@ -13,7 +13,7 @@
 //   at once. Only text changes: no layout property animates.
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { cx } from './cx.js';
-import { countUpKey, countUpPlan, countUpTiming, decimalsOf, formatCount, frameAt, readSeen, writeSeen } from './countUp.js';
+import { countUpKey, countUpPlan, countUpTiming, decimalsOf, formatCount, frameAt, readSeen, writeSeen } from '../moments/countUp.js';
 import { motionReduced } from './motion.js';
 import { isSettled } from '../moments/launch.js';
 import './countUp.css';
