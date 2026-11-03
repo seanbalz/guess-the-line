@@ -128,13 +128,15 @@ export function buildFantasySnapshot({ season, week, stats, rosters, injuries, s
   if ([...priorGames.keys()].some(id => seenTeams.get(id)?.size !== 2)) throw new Error('Prior-game statistics coverage is incomplete.');
   const priorRosters = rosters.filter(row => Number(row.season) === season && Number(row.week) <= week && row.game_type === 'REG');
   const plays = team => teamGames.get(team).some(row => Number(row.week) === week);
-  // Byes keep their most recent roster. A playing team may use last week's roster until nflverse publishes this week's;
-  // it is counted in rosterFallbackTeams and each player's status names the roster week. Anything older fails closed.
+  // nflverse publishes no roster for a team's bye week, so a team on bye last week has nothing newer than its last game.
+  const lastGameWeek = team => Math.max(0, ...teamGames.get(team).map(row => Number(row.week)).filter(w => w < week));
+  // Byes keep their most recent roster. A playing team may use the roster from its last game until nflverse publishes
+  // this week's; it is counted in rosterFallbackTeams and each player's status names the roster week. Anything older fails closed.
   const rosterWeek = new Map([...teamGames.keys()].map(team => [team,
     Math.max(0, ...priorRosters.filter(row => appCode(row.team) === team).map(row => Number(row.week))),
   ]));
-  if ([...rosterWeek].some(([team, latest]) => latest < 1 || (plays(team) && latest < week - 1))) throw new Error('Selected week roster coverage is incomplete.');
-  const rosterFallbackTeams = [...rosterWeek].filter(([team, latest]) => plays(team) && latest === week - 1).map(([team]) => team).sort();
+  if ([...rosterWeek].some(([team, latest]) => latest < 1 || (plays(team) && latest < lastGameWeek(team)))) throw new Error('Selected week roster coverage is incomplete.');
+  const rosterFallbackTeams = [...rosterWeek].filter(([team, latest]) => plays(team) && latest < week).map(([team]) => team).sort();
   const selectedRosters = priorRosters.filter(row => Number(row.week) === rosterWeek.get(appCode(row.team)));
   if (new Set(selectedRosters.map(row => appCode(row.team))).size !== 32) throw new Error('Selected week roster coverage is incomplete.');
   const rosterById = new Map();
