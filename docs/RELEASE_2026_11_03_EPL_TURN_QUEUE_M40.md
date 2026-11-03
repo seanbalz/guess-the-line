@@ -82,7 +82,8 @@ rejects an anonymous inert request with HTTP 401 / PostgreSQL `42501`. Global
 `--strict` correctly stops at the unapplied M-35 `epl_order_corrections` table
 (404); M-40 has no pending exception. This run used the shared checker with the
 deployed app's public browser key and did not submit a real pick.
-M-33/M-34/M-35 remain unapplied. Reserved M-39 is a separate unmerged proposal.
+M-33/M-34/M-35 remained unapplied. M-39 was a separate unmerged proposal
+at release selection; PR #452 merged afterward and is outside this rollout.
 No worker, cron, odds collection, historical repair or other migration ran in
 this rollout.
 

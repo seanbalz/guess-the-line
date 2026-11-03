@@ -1,5 +1,13 @@
 # Guess The Line — current completion register
 
+## BetRivers backup book, D-74 — November 3, 2026
+
+Sean: "Ship D-74 now". From 18:15 UTC the provider sent no FanDuel prices, so no three-book line could be made. BetRivers
+now stands in for a selected book the reply could not quote, in the same two-credit request, and the game sheet says
+"Standing in for FanDuel". Local checks pass: a PGlite run of the deployed handler, unit and browser tests (phone rules and
+axe in both themes), and six mutation checks. **Merged; M-39 not applied, nothing deployed yet.** See the
+[card](PROPOSAL_2026_11_03_BACKUP_BOOK.md).
+
 ## Pick a Team turn queues — November 3, 2026
 
 Sean requested immediate assignment from the highest available saved backup when
@@ -134,6 +142,27 @@ from `c6d6434` in protected run 41596638055. Independent readback matched all 12
 served files and found Overview in the live bundle. API v45, all hosted function
 summaries and migration history stayed unchanged. Signed-in production and
 physical-phone acceptance remain separate evidence states.
+
+## Sleeper owns FEPL bonus accounting — November 2, 2026
+
+Sean confirmed he adds the bonuses in Sleeper. The source fix uses finalized
+Sleeper weekly/season totals directly for draft order, standings and season
+tie-breaks; no second GTL bonus is added. Settlement retains earned margins
+with zero additional GTL points, and the API still shows the earned bonus from
+that margin. Updated screen copy explains where bonuses are applied. The
+pending M-35 correction function follows the same rule; fresh read-only hosted
+evidence confirms M-35 and its correction function are still absent, so its
+existing unapplied source was updated without applying SQL.
+
+The earlier MW10 data repair remains intact; this change does not rewrite
+picks, snapshots, cron or Sleeper data. Add bonuses before the final weekly
+capture. Later manual adjustments require order review with pick preservation;
+automatic recognition of commissioner completion is unavailable. Source checks
+passed: 405 EPL Node/SQL tests (no skips), 89 EPL component tests, typecheck,
+cloud build, bundle privacy scan and Brand QA. All four browser scenarios
+passed, including 320/390/1440px and both themes. Release status and real-phone
+limits are recorded in [the delivery card](EPL_BONUS_ACCOUNTING_2026_11_02.md).
+API, frontend and EPL worker publication remains with the release captain.
 
 ## My bets spacing and entry follow-up — November 2, 2026
 

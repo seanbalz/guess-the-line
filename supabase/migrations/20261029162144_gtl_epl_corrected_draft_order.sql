@@ -160,15 +160,14 @@ begin
     select jsonb_object_agg(r->>'owner_id',floor(((r->'settings'->>'fpts')::numeric+coalesce((r->'settings'->>'fpts_decimal')::numeric,0)/100)*100+0.5)/100)
       into after_points from jsonb_array_elements(corrected.payload->'rosters') r;
     -- Match the JS engine's whole-cent safe-number domain; corrupt extremes remain pending instead of ordering Infinity.
+    -- November 2 ruling: Sean adds bonuses in Sleeper; no second GTL addition enters the weekly or season tie-break.
     if exists(select 1 from unnest(w.pick_order) as owners(owner) where
-      abs(((after_points->>owner)::numeric-(before_points->>owner)::numeric)*100
-        +coalesce((select b.points from public.gtl_epl_bonus b where b.season=w.season and b.week=w.week and b.owner_id=owner),0)*100)>9007199254740991
-      or abs((after_points->>owner)::numeric*100+coalesce((select sum(b.points) from public.gtl_epl_bonus b where b.season=w.season and b.week<=w.week and b.owner_id=owner),0)*100)>9007199254740991) then
+      abs(((after_points->>owner)::numeric-(before_points->>owner)::numeric)*100)>9007199254740991
+      or abs((after_points->>owner)::numeric*100)>9007199254740991) then
       pending:=pending+1; continue;
     end if;
-    select array_agg(owner order by ((after_points->>owner)::numeric-(before_points->>owner)::numeric)*100
-        +coalesce((select b.points from public.gtl_epl_bonus b where b.season=w.season and b.week=w.week and b.owner_id=owner),0)*100,
-      (after_points->>owner)::numeric*100+coalesce((select sum(b.points) from public.gtl_epl_bonus b where b.season=w.season and b.week<=w.week and b.owner_id=owner),0)*100,
+    select array_agg(owner order by ((after_points->>owner)::numeric-(before_points->>owner)::numeric)*100,
+      (after_points->>owner)::numeric*100,
       owner collate "C") into wanted from unnest(w.pick_order) as owners(owner);
     outcome:=case when wanted is distinct from nxt.pick_order then 'applied' else 'same_order' end;
     insert into public.gtl_epl_order_corrections(recheck_snapshot_id,season,week,outcome,previous_order,candidate_order,baseline_snapshot_id,recorded_at)

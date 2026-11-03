@@ -1,7 +1,7 @@
 import React from 'react';
 import './sportsbookSources.css';
 
-const BOOK_NAMES = { draftkings: 'DraftKings', fanduel: 'FanDuel', betmgm: 'BetMGM', williamhill_us: 'Caesars' };
+const BOOK_NAMES = { draftkings: 'DraftKings', fanduel: 'FanDuel', betmgm: 'BetMGM', betrivers: 'BetRivers', williamhill_us: 'Caesars' };
 const finite = value => typeof value === 'number' && Number.isFinite(value);
 const number = value => Number.isInteger(value) ? String(value) : value.toFixed(1);
 const signed = value => value === 0 ? 'PK' : `${value > 0 ? '+' : '−'}${number(Math.abs(value))}`;

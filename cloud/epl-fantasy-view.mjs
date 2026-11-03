@@ -14,7 +14,8 @@
 //     viewer's partner in the latest scored week this week repeats. Otherwise "Matchup unavailable" with a reason:
 //     no-repeat (no full repeat scored, or no scored round for this week to repeat), ambiguous (a repeat disagrees, or the
 //     viewer is unpaired in the round this week repeats) or no-team (a viewer with no team, such as the commissioner).
-//   * Standings = Sleeper season points + the season's Pick a Team bonus (gtl_epl_bonus), the raw Sleeper total kept.
+//   * Standings = Sleeper season points. Sean adds Pick a Team bonuses in Sleeper (November 2 ruling); the season's
+//     bonus record is shown separately and never added a second time.
 // Managers are keyed by Sleeper owner_id; display names are presentation only (a rename changes nothing).
 import { MANAGER_NAMES, managersFromSnapshot, pairMatchups, playersFromSnapshot, statsById, weeklyScores } from '../shared/epl-sleeper.mjs';
 import { beatProjection, playerPoints, positionOf, seasonHigh, teamProjection, topScorers, winChance } from '../shared/epl-fantasy.mjs';
@@ -171,7 +172,7 @@ export function buildFantasyView({ snapshots, bonus = [], viewerOwnerId = null }
   const standings = managers.map(m => {
     const bonusPts = round2(bonusBy.get(m.ownerId) ?? 0);
     if (!known(m.ownerId)) return { ownerId: m.ownerId, name: nameOf(m.ownerId), wins: null, losses: null, sleeperTotal: null, bonus: bonusPts, total: null };
-    return { ownerId: m.ownerId, name: nameOf(m.ownerId), wins: m.wins, losses: m.losses, sleeperTotal: m.seasonTotal, bonus: bonusPts, total: round2(m.seasonTotal + bonusPts) };
+    return { ownerId: m.ownerId, name: nameOf(m.ownerId), wins: m.wins, losses: m.losses, sleeperTotal: m.seasonTotal, bonus: bonusPts, total: m.seasonTotal };
   }).map((s, i) => ({ s, i }))
     .sort((a, b) => (finite(b.s.total) - finite(a.s.total)) || (b.s.total ?? 0) - (a.s.total ?? 0) || (b.s.wins ?? 0) - (a.s.wins ?? 0) || a.i - b.i).map(({ s }) => s);
 

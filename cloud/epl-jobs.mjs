@@ -17,7 +17,9 @@
 //             without a pick; once the week is resolved a rerun writes nothing.
 //   settle    when every drafted club's match is final or postponed (settleBonus ready; a 2-credit scores read once the
 //             drafted matches can have finished, or earlier for a finished one about to leave the 3-day feed), writes the bonus and opens week N+1 in pickOrder from
-//             weeklyScores(after-mw<N-1>, after-mw<N>) plus the bonus, window [window_end, window_end + 7 days).
+//             weeklyScores(after-mw<N-1>, after-mw<N>), window [window_end, window_end + 7 days). Sean adds bonuses in
+//             Sleeper (November 2 ruling); its weekly and season totals already include them. Keep the earned margin
+//             for the bonus record, with zero additional GTL points, and never add it again when ranking.
 //             A match becomes postponed only on positive evidence (a feed lists it with a kickoff outside the week window) or
 //             the commissioner's epl/admin/fixture; never because a feed stopped listing it. The commissioner can also record
 //             a played match's final score there (status 'final'), so a needs_review week is never zeroed. An empty scores reply changes
@@ -526,10 +528,9 @@ async function settleJob(ctx) {
   const totals = new Map(managersFromSnapshot(snaps[nextLabel]).map(m => [m.ownerId, m.seasonTotal]));
   if (week.pickOrder.some(id => !weekly[id] || !totals.has(id))) stop('scores_incomplete');
   const clubOf = new Map(drafted.map(p => [p.managerId, p.club]));
-  const awards = bonus.winners.map(id => ({ owner_id: id, points: bonus.awards[id], margin: bonus.awards[id] / 5, club: clubOf.get(id) }));
-  const bonusTotals = ctx.state.bonusTotals ?? {};
-  const order = pickOrder(week.pickOrder.map(id => ({ id, weekScore: weekly[id].for, weekBonus: bonus.awards[id] ?? 0,
-    seasonTotal: totals.get(id) + (Number(bonusTotals[id]) || 0) + (bonus.awards[id] ?? 0) })));
+  const awards = bonus.winners.map(id => ({ owner_id: id, points: 0, margin: bonus.awards[id] / 5, club: clubOf.get(id) }));
+  const order = pickOrder(week.pickOrder.map(id => ({ id, weekScore: weekly[id].for, weekBonus: 0,
+    seasonTotal: totals.get(id) })));
   const windowEnd = Date.parse(week.windowEnd);
   // The next week's first kickoff is unknown until its fixtures are read; until then it is the window end (no pick can be
   // saved without fixtures), and the fixtures job moves it earlier to the real first kickoff.

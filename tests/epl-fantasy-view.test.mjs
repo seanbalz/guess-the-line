@@ -180,11 +180,17 @@ test('Review Focus 5: a renamed Sleeper manager is still matched by owner_id', (
   assert.equal(view.rosters.find(r => r.ownerId === SEAN).name, 'Sean');
 });
 
-test('standings total is Sleeper season points plus the Pick a Team bonus, raw Sleeper total kept', () => {
+test('standings use Sleeper totals as shown; bonus records are visible but never added again', () => {
   const view = buildFantasyView({ snapshots: season(), bonus: BONUS, viewerOwnerId: SEAN });
-  assert.deepEqual(view.standings[0], { ownerId: SEAN, name: 'Sean', wins: 7, losses: 4, sleeperTotal: 1060.5, bonus: 20, total: 1080.5 });
+  assert.deepEqual(view.standings[0], { ownerId: SEAN, name: 'Sean', wins: 7, losses: 4, sleeperTotal: 1060.5, bonus: 20, total: 1060.5 });
   assert.deepEqual(view.standings.find(s => s.ownerId === EVAN), { ownerId: EVAN, name: 'Evan', wins: 6, losses: 5, sleeperTotal: 955, bonus: 0, total: 955 });
   assert.deepEqual(view.standings.map(s => s.ownerId), [SEAN, EVAN, NEMO, ADAM]);
+});
+
+test('a bonus record cannot move a manager above a higher Sleeper season total', () => {
+  const view = buildFantasyView({ snapshots: season(), bonus: [{ ownerId: EVAN, week: 11, points: 500 }], viewerOwnerId: SEAN });
+  assert.deepEqual(view.standings.slice(0, 2).map(s => [s.ownerId, s.total]), [[SEAN, 1060.5], [EVAN, 955]]);
+  assert.equal(view.standings[1].bonus, 500, 'the recorded award remains available separately');
 });
 
 test('a missing week is null in the weekly series (never 0), and its beat-projection diff is null', () => {
@@ -328,7 +334,7 @@ test('/epl/fantasy/read is a POST route and answers the caller\'s view from stor
   const view = await handleEpl({ route: '/epl/fantasy/read', body: {}, user: USER, service, clock: () => Date.parse('2026-11-26T00:00:00Z') });
   assert.equal(view.viewer, SEAN);
   assert.equal(view.matchup.me.ownerId, SEAN);
-  assert.equal(view.standings[0].total, 1080.5);
+  assert.equal(view.standings[0].total, 1060.5);
   assert.deepEqual(service.calls.map(c => c[0]), ['gtl_epl_member', 'readSnapshots', 'readBonus']);
   assert.deepEqual(service.calls[2], ['readBonus', 2026]);
 });
@@ -399,7 +405,17 @@ test('createEplService reads snapshots in bounded queries and the season\'s bonu
   assert.deepEqual(buildFantasyView({ snapshots: snaps, bonus: BONUS, viewerOwnerId: SEAN }), buildFantasyView({ snapshots: all, bonus: BONUS, viewerOwnerId: SEAN }),
     'the selected parts build the same view as the full snapshots');
   assert.deepEqual(await service.readBonus(2026), [{ ownerId: SEAN, week: 9, points: 15 }]);
-  assert.deepEqual(queries.at(-1), ['gtl_epl_bonus', { select: 'owner_id,week,points', season: 'eq.2026', limit: '400' }, 400]);
+  assert.deepEqual(queries.at(-1), ['gtl_epl_bonus', { select: 'owner_id,week,points,margin', season: 'eq.2026', limit: '400' }, 400]);
+});
+
+test('zero additional GTL points still expose the earned margin bonus through the service', async () => {
+  const service = createEplService({ rpc: async () => null, rest: async () => null,
+    rows: async () => [{ owner_id: SEAN, week: 9, points: 0, margin: 2 }] });
+  const bonus = await service.readBonus(2026);
+  assert.deepEqual(bonus, [{ ownerId: SEAN, week: 9, points: 10 }]);
+  const row = buildFantasyView({ snapshots: season(), bonus, viewerOwnerId: SEAN }).standings[0];
+  assert.equal(row.total, 1060.5);
+  assert.equal(row.bonus, 10);
 });
 
 test('readSnapshots keeps the newest 200 snapshots (newest first with the limit), then sorts them oldest first', async () => {

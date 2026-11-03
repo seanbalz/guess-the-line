@@ -10,6 +10,13 @@ export function priceStrength(americanOdds) {
 /** Whole cents: scores carry two decimals, and a float sum such as 0.56 + 5 must still tie with 5.56. */
 const cents = v => Math.round(v * 100);
 
+/** Earned bonus for display/audit. `points` is the additional GTL adjustment (zero when Sean adds it in Sleeper). */
+export function earnedEplBonusPoints(row) {
+  if (Number.isSafeInteger(row?.margin) && row.margin >= 0 && Number.isSafeInteger(row.margin * 5)) return row.margin * 5;
+  // Older records can lack a margin; keep their recorded award visible without adding it to Sleeper totals.
+  return typeof row?.points === 'number' && Number.isFinite(row.points) && row.points >= 0 ? row.points : 0;
+}
+
 /** Manager ids, first pick first: ascending weekScore + weekBonus, ties by lower seasonTotal, both compared in whole cents. */
 export function pickOrder(managers) {
   return [...managers]

@@ -33,7 +33,8 @@ pick. The previous implementation waited until first kickoff to use rankings.
 
 Applied migration (hosted version `20261103232119`, November 3, 2026):
 `supabase/migrations/20261103212932_gtl_epl_turn_queue.sql`.
-M-39 is reserved by the separate, unmerged selected-book proposal #452.
+M-39 belongs to the separate selected-book change #452, which merged after
+this release was selected and is outside this rollout.
 
 M-40 adds a service-only, security-invoker `gtl_epl_advance_queues` helper,
 replaces the existing pick/queue writers to call it under the same week lock,

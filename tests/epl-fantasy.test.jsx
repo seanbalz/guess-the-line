@@ -32,7 +32,7 @@ function view(patch = {}) {
       recent: [{ week: 9, projected: 90, actual: 100 }, { week: 10, projected: null, actual: null }, { week: 11, projected: 95, actual: 80.5 }],
     },
     standings: [
-      { ownerId: SEAN, name: 'Sean', wins: 7, losses: 4, sleeperTotal: 1060.5, bonus: 20, total: 1080.5 },
+      { ownerId: SEAN, name: 'Sean', wins: 7, losses: 4, sleeperTotal: 1060.5, bonus: 20, total: 1060.5 },
       { ownerId: EVAN, name: 'Evan', wins: 6, losses: 5, sleeperTotal: 955, bonus: 0, total: 955 },
       { ownerId: NEMO, name: 'Nemo', wins: 6, losses: 5, sleeperTotal: 830, bonus: 0, total: 830 },
     ],
@@ -108,8 +108,8 @@ describe('Standings', () => {
     expect(html.match(/aria-current="true"/g)).toHaveLength(1);
     expect(html).toMatch(/aria-current="true"[^>]*data-owner="473955676301815808"|data-owner="473955676301815808"[^>]*aria-current="true"/);
     const t = text(html);
-    expect(t).toContain('1,080.5'); expect(t).toContain('7–4');
-    expect(t).toContain('Sleeper 1,060.5 + Pick a Team bonus 20');
+    expect(t).toContain('1,060.5'); expect(t).toContain('7–4');
+    expect(t).toContain('Sleeper 1,060.5 · Pick a Team bonus 20 (added in Sleeper)');
     expect(html).toContain('<details');
     expect(markupProblems(html)).toEqual([]);
   });
@@ -119,7 +119,7 @@ describe('Standings', () => {
     const row = html.slice(html.indexOf('>', html.indexOf('data-owner="999"')) + 1);
     const head = text(row.slice(0, row.indexOf('</summary>')));
     expect(head).toBe('4 — — —');
-    expect(text(row.slice(0, row.indexOf('</li>')))).toContain('Sleeper — + Pick a Team bonus 5');
+    expect(text(row.slice(0, row.indexOf('</li>')))).toContain('Sleeper — · Pick a Team bonus 5 (added in Sleeper)');
     expect(markupProblems(html)).toEqual([]);
   });
 });
