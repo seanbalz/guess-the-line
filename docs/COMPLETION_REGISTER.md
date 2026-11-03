@@ -130,6 +130,27 @@ served files and found Overview in the live bundle. API v45, all hosted function
 summaries and migration history stayed unchanged. Signed-in production and
 physical-phone acceptance remain separate evidence states.
 
+## Sleeper owns FEPL bonus accounting — November 2, 2026
+
+Sean confirmed he adds the bonuses in Sleeper. The source fix uses finalized
+Sleeper weekly/season totals directly for draft order, standings and season
+tie-breaks; no second GTL bonus is added. Settlement retains earned margins
+with zero additional GTL points, and the API still shows the earned bonus from
+that margin. Updated screen copy explains where bonuses are applied. The
+pending M-35 correction function follows the same rule; fresh read-only hosted
+evidence confirms M-35 and its correction function are still absent, so its
+existing unapplied source was updated without applying SQL.
+
+The earlier MW10 data repair remains intact; this change does not rewrite
+picks, snapshots, cron or Sleeper data. Add bonuses before the final weekly
+capture. Later manual adjustments require order review with pick preservation;
+automatic recognition of commissioner completion is unavailable. Source checks
+passed: 405 EPL Node/SQL tests (no skips), 89 EPL component tests, typecheck,
+cloud build, bundle privacy scan and Brand QA. All four browser scenarios
+passed, including 320/390/1440px and both themes. Release status and real-phone
+limits are recorded in [the delivery card](EPL_BONUS_ACCOUNTING_2026_11_02.md).
+API, frontend and EPL worker publication remains with the release captain.
+
 ## My bets spacing and entry follow-up — November 2, 2026
 
 Sean's screenshot reproduced a legacy CSS override that removed the card gap.

@@ -79,6 +79,16 @@ references for old submitted records.
 
 Owner: Sean Balsiger; reconciliation: Codex, GOV-03, October 8, 2026.
 
+## EPL fantasy bonuses and draft order — D-68 (November 2, 2026)
+
+Sean adds Pick a Team bonuses in Sleeper. Use the finalized Sleeper weekly
+scores for the next draft order, lowest first, with the lower Sleeper season
+total breaking a tie. Standings use the Sleeper season total as shown. GTL
+records the earned bonus but never adds it to those totals again. Add bonuses
+before the final capture/rollover; a later adjustment requires an order review,
+preserving any entered picks. Automatic detection of manual bonus completion
+is unavailable.
+
 ## EPL Guess the Line — D-68 (October 29, 2026)
 
 EPL moneyline guessing is a separate competition from NFL Guess the Spread,
