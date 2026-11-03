@@ -8,6 +8,8 @@ vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: () => state.app
 vi.mock('../web/src/next/home/homeData.js', () => ({ useHomeData: () => ({ app: state.app, community: state.app.community, viewer: 'fixture', preferences: {} }) }));
 vi.mock('../web/src/next/league/useLeagueRead.jsx', () => ({ useLeagueRead: () => state.read, LeagueFailure: () => <p>Read failed</p> }));
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn(), meApi: vi.fn(), socialApi: vi.fn() }));
+// Board i63: a Points slot sheet reads the week's Fantasy snapshot; these renders leave it loading.
+vi.mock('../web/src/fantasyData.js', () => ({ fantasyWeekKey: (season, week) => `${season}-${String(week).padStart(2, '0')}`, useFantasySnapshot: () => ({ status: 'loading' }) }));
 const { ShellContext } = await import('../web/src/next/shell/context.js');
 const { Home } = await import('../web/src/next/home/Home.jsx');
 const { Play } = await import('../web/src/next/play/Play.jsx');

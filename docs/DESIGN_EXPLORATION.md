@@ -1,5 +1,41 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 1, 2026 — My bets preview and spacing refinement
+
+After the option 04 deployment, Sean requested better spacing and a preview that
+opens the full ticket currently shown on the page when tapped.
+[Five new visual studies](../design/my-bets-previews-2026-11-01/README.md)
+compare spacious previews with the same full selection grid after opening.
+Both themes and a before/after interaction are provided. Sean selected
+**01 — Roomy cards** (“1 is the best”) and confirmed **“Expand in place, as shown.”**
+The [implementation contract](MY_BETS_ROOMY_2026_11_01.md) records the selected
+spacing, compact preview and full inline ticket; its app release is separate.
+This updates the requested preview behavior while retaining every full selection
+on tap. The visual studies use fictional tickets and change no production data.
+
+## November 1, 2026 — My bets option 04 selected
+
+Sean requested easier manual player-bet entry, additional sportsbook choices
+and a cleaner, more visual My bets section. He confirmed every parlay leg
+should be visible immediately and requested five to ten mockups before choosing.
+[Six original layout studies](../design/my-bets-2026-11-01/README.md) retain
+the selected GTL brand and use fictional tickets. Sean selected **04 — Selection
+grid**: “I like the 4th one.” The interactive gallery and Dark/Light comparison
+boards remain design artifacts. [Implementation and release state](MY_BETS_GRID_2026_11_01.md)
+separately cover the actual grid, guided player entry and additional tracking
+source choices. No account data is published in the mockups.
+
+## October 29, 2026 — logo and favicon refinement selected
+
+Sean asked for a more symmetrical logo, color variations and favicon edits,
+then selected **01 Balanced (recommended)** from five visual directions.
+[Comparison board](../design/logo-redraft-2026-10-29/concepts.png) ·
+[Selected implementation](../design/logo-redraft-2026-10-29/selected-preview.png) ·
+[Asset and verification record](../design/logo-redraft-2026-10-29/README.md).
+This replaces the original Yardline G geometry in the identity rows below.
+The theme pairing and transparent backgrounds remain; alternate colors are
+exported assets. The simplified favicon drops the fine side hashes.
+
 ## Status by category — October 26, 2026
 
 This table is the current status. Each row cites the decision that set it, with

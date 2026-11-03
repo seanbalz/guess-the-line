@@ -47,7 +47,7 @@ export function TrendDetail({ title, pill, info, line, seasons, children, id }) 
         <span className="gx-tc-big">{shown.headline.value}</span>
         <span className="gx-tc-headline-sub">{shown.headline.sub}</span>
       </p>
-      {bySeason ? <SeasonStems id={seasonChartId} seasons={rows} contextLabel={title} selectedIndex={seasonIndex} onSelect={index => setSelectedSeason(rows[index].season)}/> : <TrendLine id={lineChartId} values={line.values} tip={line.tip} start={line.start} end={line.end} label={line.label} contextLabel={title}
+      {bySeason ? <SeasonStems id={seasonChartId} seasons={rows} contextLabel={title} selectedIndex={seasonIndex} onSelect={index => setSelectedSeason(rows[index].season)}/> : <TrendLine id={lineChartId} values={line.values} tip={line.tip} start={line.start} end={line.end} label={line.label} contextLabel={title} formatValue={line.formatValue}
         selectedIndex={lineSelection.index} onSelect={lineSelection.onSelect}/>}
       <StatTiles tiles={shown.tiles}/>
       {bySeason ? <SeasonTable seasons={rows} caption={seasons.caption} contextLabel={title} selectedSeason={rows[seasonIndex]?.season} onSelect={setSelectedSeason} chartId={seasonChartId}/> : null}

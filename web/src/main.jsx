@@ -39,7 +39,7 @@ class NextAppFallback extends Component {
 function SignedIn(props) {
   return <SportEntry {...props}>
     <NextAppFallback>
-      <Suspense fallback={<div className="loading" role="status"><LoaderCircle className="spin" aria-hidden="true"/>Loading your games…</div>}><NextApp {...props}/></Suspense>
+      <Suspense fallback={<div className="loading" role="status"><LoaderCircle aria-hidden="true"/>Loading your games…</div>}><NextApp {...props}/></Suspense>
     </NextAppFallback>
   </SportEntry>;
 }

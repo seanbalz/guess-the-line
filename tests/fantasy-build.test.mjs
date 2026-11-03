@@ -160,6 +160,25 @@ test("bye teams retain their most recent roster; playing teams may use last week
   assert.throws(() => buildFantasySnapshot(older), /roster coverage/i, 'a roster two weeks old is not treated as current');
 });
 
+test('a team on bye last week may use the roster from its last game, counted, never older', () => {
+  // The third and fourth teams move their Week 5 game to Week 18, so Week 5 is their bye and nflverse has no Week 5 roster
+  // for them (as with HOU, NO, NYG and SF before Week 9 of 2026). Their latest roster is from Week 4, their last game.
+  const [, , away, home] = TEAMS;
+  const byeLastWeek = rosterWeek => {
+    const input = fixture();
+    const game = input.schedule.find(row => row.week === '5' && row.away_team === away);
+    Object.assign(game, { week: '18', game_id: `fixture-${SEASON}-18-${away}-${home}` });
+    input.stats = input.stats.filter(row => !([away, home].includes(row.team) && row.week === '5'));
+    for (const row of input.rosters) if ([away, home].includes(row.team)) row.week = String(rosterWeek);
+    return input;
+  };
+  const snapshot = buildFantasySnapshot(byeLastWeek(4));
+  assert.deepEqual(snapshot.rosterFallbackTeams, [away, home].sort(), 'a roster from before this week is counted');
+  assert.match(find(snapshot, away).status, /active roster as of Week 4/);
+  assert.equal(find(snapshot, away).weekly.status === 'bye', false, 'the team plays this week');
+  assert.throws(() => buildFantasySnapshot(byeLastWeek(3)), /roster coverage/i, 'a roster older than the last game still fails closed');
+});
+
 test('Out and Doubtful suppress weekly estimates but retain conditional ROS pace; old reports are ignored', () => {
   const input = fixture();
   const injury = (team, report_status, week = WEEK) => ({ season: String(SEASON), week: String(week), season_type: 'REG', gsis_id: playerId(team), team, report_status, practice_status: 'Did Not Participate' });

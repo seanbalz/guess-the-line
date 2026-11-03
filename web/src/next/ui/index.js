@@ -34,5 +34,6 @@ export { Matchup, matchupWords, teamName, teamRecordText, MATCHUP_SIZES, MATCHUP
 export { FieldMark, FIELD_MARK_SIZES, YARDLINE_G_PATHS, YARDLINE_G_VIEWBOX } from './FieldMark.jsx';
 export { useModal, tabbables } from './useModal.js';
 export { Skeleton, SKELETON_SHAPES } from './Skeleton.jsx';
-export { lightHaptic, HAPTIC_MS } from './haptics.js';
+export { lightHaptic, winHaptic, HAPTIC_MS, WIN_MS } from './haptics.js';
+export { motionReduced } from './motion.js';
 export { GESTURE, pagerPlace } from './gesture.js';

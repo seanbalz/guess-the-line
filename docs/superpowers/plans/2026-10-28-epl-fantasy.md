@@ -1,10 +1,23 @@
 # EPL Research → Fantasy (Sleeper FEPL) Implementation Plan
 
+## Current status — October 29, 2026
+
+The task recipes below are the original build/TDD plan; their unchecked historical “expect FAIL” steps are not an unfinished-work count. The implementation is merged (PR #328), and the [M-30](../../RELEASE_2026_10_29_M30.md) and [M-31 release records](../../RELEASE_2026_10_29_M31.md) supersede earlier “not deployed” statements. Source presence, release records, fixture acceptance and physical-device acceptance remain separate evidence.
+
+| Task | Source / recorded hosted state | Current acceptance / remaining work |
+| --- | --- | --- |
+| 1. Fantasy math | Implemented in `shared/epl-fantasy.mjs`, merged in #328 | Local math, stored-position, missing-projection and view tests; no new scoring decision pending |
+| 2. Snapshot players and Fantasy read | Snapshot trimming, daily capture and stored-data view implemented; API/frontend release recorded through `43c3a84`, API v42; M-31 card records one saved snapshot and five enabled EPL jobs | **EPL-DATA-01 open:** current coordinator aggregate read finds 16/150 rostered IDs missing from every saved directory. Need verified free rostered-player enrichment and completeness tests; never infer historical scoring positions from a current directory. Scheduler health/fresh captures belong to the operations audit |
+| 3. Four Fantasy screens | Implemented in `web/src/next/epl/fantasy/`, included in recorded API/frontend release | [October 29 fixture acceptance](../../EPL_ACCESS_ACCEPTANCE_2026_10_29.md): all four sections at 320/390/1440px, dark/light, missing data and account switching. New phone-label/navigation fixes are source work pending their own CI/merge/release. Physical iPhone acceptance remains open |
+| 4. Docs | D-68, source plan and release records exist; this summary reconciles current evidence | Coordinator maintains global register/queue. Original unchecked test-writing recipes remain historical |
+
+D-68 items 17–22 supersede this plan's original member-only reads: any confirmed signed-in account can read Fantasy, with no personal matchup for an unlinked account. Queues remain private. An opponent and win chance require a full scored seven-week schedule repeat that agrees (earliest MW17 from MW9/MW16); until then “Matchup unavailable this week” is the approved state, with the linked viewer's projection retained.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Research → Fantasy in the EPL app shows the FEPL league from Sleeper (Matchup, Standings, Rosters, Insights) with projections, weekly scores, season highs and top scorers, in the D-38 hero/glass/chart style.
 
-**Architecture:** Pure scoring/insight math in `shared/epl-fantasy.mjs`; the Plan 1 `gtl-epl-jobs` `snapshot` job is extended to store a trimmed player directory and runs daily; a member-only `epl/fantasy/read` route assembles the view from stored snapshots (no live Sleeper call per request); UI under `web/src/next/epl/fantasy/`.
+**Architecture:** Pure scoring/insight math in `shared/epl-fantasy.mjs`; the Plan 1 `gtl-epl-jobs` `snapshot` job stores a trimmed player directory and runs daily; `epl/fantasy/read` is open to confirmed signed-in accounts and assembles the view from stored snapshots (no live Sleeper call per request); UI under `web/src/next/epl/fantasy/`.
 
 **Tech Stack:** as Plan 1.
 

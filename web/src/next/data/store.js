@@ -171,15 +171,15 @@ export function createDataStore(sources, { now = Date.now } = {}) {
  * FOCUS_REFRESH_MS of the last good read), when the browser comes back online, and every REFRESH_MS while the tab is
  * in view. Returns `disconnect()`.
  */
-export function connectRefresh(win, store, { intervalMs = REFRESH_MS, focusMs = FOCUS_REFRESH_MS } = {}) {
+export function connectRefresh(win, store, { intervalMs = REFRESH_MS, focusMs = FOCUS_REFRESH_MS, only } = {}) {
   const doc = win.document;
   const visible = () => !doc || doc.visibilityState !== 'hidden';
-  const onFocus = () => { if (visible()) store.refresh({ olderThan: focusMs }); };
-  const onOnline = () => store.refresh();
+  const onFocus = () => { if (visible()) store.refresh({ olderThan: focusMs, ...(only ? { only } : {}) }); };
+  const onOnline = () => store.refresh(only ? { only } : undefined);
   win.addEventListener('focus', onFocus);
   win.addEventListener('online', onOnline);
   doc?.addEventListener('visibilitychange', onFocus);
-  const timer = win.setInterval(() => { if (visible()) store.refresh(); }, intervalMs);
+  const timer = win.setInterval(() => { if (visible()) store.refresh(only ? { only } : undefined); }, intervalMs);
   return () => {
     win.removeEventListener('focus', onFocus);
     win.removeEventListener('online', onOnline);

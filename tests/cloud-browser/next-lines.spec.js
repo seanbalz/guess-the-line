@@ -81,13 +81,13 @@ async function phoneChecks(page, root = '.gx') {
   await settle(page);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'no side scroll').toBe(true);
   const report = await page.locator(root).first().evaluate(scope => {
-    const visible = el => { const s = getComputedStyle(el); return s.visibility !== 'hidden' && el.getClientRects().length > 0 && !el.closest('[inert], [hidden], dialog:not([open])'); };
+    const visible = el => { const s = getComputedStyle(el); return s.visibility !== 'hidden' && el.getClientRects().length > 0 && !el.closest('[inert], [hidden], dialog:not([open]), .gx-sr-only:not(.gx-skip-link:focus)'); };
     const targets = [...scope.querySelectorAll('button,a[href],input,select,textarea,summary,[role=button]')].filter(visible)
       .map(el => { const r = el.getBoundingClientRect(); return { name: (el.getAttribute('aria-label') || el.textContent).trim().slice(0, 40), w: Math.round(r.width), h: Math.round(r.height) }; })
       .filter(r => r.w < 44 || r.h < 44);
     const small = [], clipped = [];
     for (const el of [scope, ...scope.querySelectorAll('*')]) {
-      if (!visible(el) || el.closest('.gx-sr-only') || ![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
+      if (!visible(el) || el.closest('.gx-sr-only:not(.gx-skip-link:focus)') || ![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
       if (parseFloat(getComputedStyle(el).fontSize) < 12) small.push(el.textContent.trim().slice(0, 40));
       if (!el.closest('.gx-truncate') && el.scrollWidth > el.clientWidth + 1) clipped.push(el.textContent.trim().slice(0, 40));
       const r = el.getBoundingClientRect();
@@ -1668,17 +1668,22 @@ test('game action bar opens the selected matchup and market without writing or d
     await expect(note).toHaveValue('A private unsaved note');
     await note.fill('');
     await actions.getByRole('button', { name: 'Open Spread for HOU at JAX' }).click();
+    // D-70: the game action opens that game's own card in Your guesses, its heading focused; the week is one lip back.
     const spread = page.getByRole('article', { name: 'HOU at JAX Spread', exact: true });
-    await expect(spread).toBeFocused();
+    const heading = page.getByRole('heading', { name: 'HOU @ JAX', exact: true });
+    await expect(heading).toBeFocused();
     await expect(spread).toContainText('Draft');
-    await expect(page.getByRole('article', { name: 'SEA at DEN Spread', exact: true })).toContainText('Draft');
-    await expect(page.getByRole('article')).toHaveCount(4);
+    await expect(page.getByRole('article')).toHaveCount(1);
     expect(new URL(page.url()).hash).toContain('pickGame=HOU-JAX');
-    await page.reload(); await expect(spread).toBeFocused();
+    await page.reload(); await expect(spread).toBeVisible(); await expect(heading).toBeFocused();
+    await page.getByRole('button', { name: 'Back to Week 6 · Spread', exact: true }).click();
+    await expect(page.locator('[data-tile]')).toHaveCount(4);
+    await expect(page.locator('[data-tile="SEA-DEN"]')).toHaveAttribute('data-state', 'draft');
+    await expect(page.locator('[data-tile="HOU-JAX"]')).toHaveAttribute('data-state', 'draft');
     await page.goto('/#research/games'); await card(page, 'HOU-JAX').click();
     await sheet(page, 'HOU @ JAX').getByRole('button', { name: 'Open Total for HOU at JAX' }).click();
     const total = page.getByRole('article', { name: 'HOU at JAX Total', exact: true });
-    await expect(total).toBeFocused(); await expect(total).toContainText('Locked in');
+    await expect(page.getByRole('heading', { name: 'HOU @ JAX', exact: true })).toBeFocused(); await expect(total).toContainText('Locked in');
     await expect(total.getByRole('button', { name: 'Lock in Total', exact: true })).toHaveCount(0);
     expect(calls.filter(call => !READS.includes(call))).toEqual([]); expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
@@ -1689,7 +1694,10 @@ test('an unknown game focus keeps the complete ballot usable', async ({ page, ba
   try {
     await openLines(page);
     await page.goto('/#play/picks?market=spread&season=2026&week=6&pickGame=UNKNOWN');
-    await expect(page.getByRole('article')).toHaveCount(4);
+    // D-70: an address for a game not in this week shows the week's tiles, and each game still opens.
+    await expect(page.locator('[data-tile]')).toHaveCount(4);
+    await expect(page.locator('.gx-nest-lip')).toHaveCount(0);
+    await page.locator('[data-tile="HOU-JAX"]').click();
     await expect(page.getByRole('article', { name: 'HOU at JAX Spread', exact: true })).toContainText('Draft');
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
@@ -1740,9 +1748,9 @@ test('your pick sheet separates draft and locked references and returns focus to
       }, { once: true, capture: true });
     });
     await total.getByRole('button', { name: 'Open Total in Play', exact: true }).click();
-    await expect(page.getByRole('article', { name: 'SEA at DEN Total', exact: true })).toBeFocused();
+    await expect(page.getByRole('heading', { name: 'SEA @ DEN', exact: true })).toBeFocused(); // D-70: the game card's heading
     await page.evaluate(() => window.resumeRouteFrames());
-    await expect(page.getByRole('article', { name: 'SEA at DEN Total', exact: true })).toBeFocused();
+    await expect(page.getByRole('heading', { name: 'SEA @ DEN', exact: true })).toBeFocused(); // D-70: the game card's heading
     expect(calls.filter(call => !READS.includes(call))).toEqual([]); expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
@@ -1821,7 +1829,8 @@ test('League bets loads one game on demand with protected terms, phone layout an
     const action = sheet(page, 'SEA @ DEN').getByRole('button', { name: /^Open League bets for / });
     await expect(action).toBeFocused(); await phoneChecks(page); expect(await axe(page)).toEqual([]);
     await action.click(); await bets.getByRole('button', { name: 'Open Spread in Play', exact: true }).click();
-    await expect(page.getByRole('article', { name: 'SEA at DEN Spread', exact: true })).toBeFocused();
+    await expect(page.getByRole('article', { name: 'SEA at DEN Spread', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'SEA @ DEN', exact: true })).toBeFocused(); // D-70: the game card's heading
     expect(calls.filter(call => ![...READS, 'POST /bets/read'].includes(call))).toEqual([]);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
@@ -2346,5 +2355,29 @@ test('recorded movement timestamps select chart observations while missing rows 
     await expect(last).toHaveAttribute('aria-pressed', 'true');
     await noLeak(page, world, 'linked movement table');
     expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+// Production audit: loaded quote provenance used to consume the name column, leaving “Pa…” on phones.
+test('loaded spread quotes keep the full team-name column on phones', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL, { forge: false });
+  try {
+    await sendBallot(world, 'luke', 'guess_spread', { 'SEA-DEN': 4, 'HOU-JAX': -9, 'NO-NYG': 6, 'WAS-SF': 7 });
+    await openLines(page);
+    await expect(page.locator('.gx-l-val[data-cell="line"]').first()).toBeVisible();
+    for (const width of [320, 390]) for (const theme of ['light', 'dark']) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, theme);
+      const measurements = await card(page, 'SEA-DEN').evaluate(el => {
+        const teams = [...el.querySelectorAll('.gx-l-team')].map(team => team.getBoundingClientRect());
+        const quote = el.querySelector('.gx-l-val').getBoundingClientRect();
+        return { below: quote.top >= Math.max(...teams.map(r => r.bottom)), quoteWidth: quote.width, nameWidth: el.querySelector('.gx-l-team .gx-truncate').clientWidth, horizontal: document.documentElement.scrollWidth <= innerWidth };
+      });
+      expect(measurements.below).toBe(true);
+      expect(measurements.quoteWidth).toBeGreaterThan(width - 100);
+      expect(measurements.nameWidth).toBeGreaterThan(60);
+      expect(measurements.horizontal).toBe(true);
+      await page.screenshot({ path: test.info().outputPath(`research-loaded-${width}-${theme}.png`) });
+    }
   } finally { await world.db.close(); }
 });

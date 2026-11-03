@@ -53,7 +53,7 @@ function readPng(file) {
 
 /**
  * Where a point of the G (in the paths' own coordinates) lands in a PNG of `size` drawn from `name`: the svg's nested
- * <svg x y width height viewBox="22 20 81 53"> on its 64 x 64 board, scaled to fit and centered (preserveAspectRatio).
+ * <svg x y width height viewBox="0 8 64 48"> on its 64 x 64 board, scaled to fit and centered (preserveAspectRatio).
  */
 function placer(name) {
   const svg = fs.readFileSync(path.join(pub, name), 'utf8');
@@ -64,7 +64,7 @@ function placer(name) {
 }
 // Three points of the paths' box that the G does not cover: its open mouth, the space left of it between the yard
 // lines, and its counter. Anything drawn behind the G (a tile, faint or not) covers them.
-const holes = [[74, 39], [26, 45], [53, 52]];
+const holes = [[48, 24], [3, 32], [26, 32]];
 
 test('the PNG icons (home screen 180, manifest 192 and 512, notification badge 192) are the lime G on a real alpha channel', () => {
   const at = placer('app-icon.svg');
@@ -108,25 +108,26 @@ test('Android and notifications use the same transparent G: no maskable or navy 
   assert.match(sw, /\n {4}icon: '\/app-icon-192\.png',\n {4}badge: '\/app-icon-192\.png',\n/);
 });
 
-test('favicon.svg and app-icon.svg draw only the two G paths, centered, with no tile; the favicon is deep green in light and lime in dark', () => {
+test('favicon.svg simplifies the balanced G; app-icon.svg keeps its yard lines, both centered with no tile; the favicon is deep green in light and lime in dark', () => {
   assert.equal(paths.length, 2);
   for (const name of ['favicon.svg', 'app-icon.svg']) {
     const svg = fs.readFileSync(path.join(pub, name), 'utf8');
+    const favicon = name === 'favicon.svg';
     assert.match(svg, /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg" viewBox="0 0 64 64"[ >]/, `${name}: 64 x 64`);
     assert.doesNotMatch(svg, /<(rect|circle|ellipse|polygon|image)\b/, `${name}: nothing behind the G`);
     // Nothing else can draw a background either: no CSS background, style attribute or foreignObject. The favicon's one
     // <style> (checked below) only sets the dark-tab color.
     const style = name === 'favicon.svg' ? `<style>@media (prefers-color-scheme:dark){:root{color:${tokens.themes.dark.primaryForeground}}}</style>` : '';
     const bare = svg.replace(style, '');
-    assert.deepEqual([...bare.matchAll(/<([A-Za-z][\w:-]*)/g)].map(m => m[1]), ['svg', 'title', 'svg', 'path', 'path'], `${name}: elements`);
-    assert.deepEqual([...new Set([...bare.matchAll(/\s([\w:-]+)=/g)].map(m => m[1]))].sort(), ['color', 'd', 'fill', 'height', 'stroke', 'stroke-width', 'viewBox', 'width', 'x', 'xmlns', 'y'], `${name}: attributes`);
+    assert.deepEqual([...bare.matchAll(/<([A-Za-z][\w:-]*)/g)].map(m => m[1]), (favicon ? ['svg', 'title', 'svg', 'path'] : ['svg', 'title', 'svg', 'path', 'path']), `${name}: elements`);
+    assert.deepEqual([...new Set([...bare.matchAll(/\s([\w:-]+)=/g)].map(m => m[1]))].sort(), ['color', 'd', 'fill', 'height', ...(favicon ? [] : ['stroke', 'stroke-width']), 'viewBox', 'width', 'x', 'xmlns', 'y'], `${name}: attributes`);
     assert.doesNotMatch(bare, /background|foreignObject|style/i, `${name}: no background`);
-    assert.deepEqual([...svg.matchAll(/<path d="([^"]+)"/g)].map(m => m[1]), paths, `${name}: the G's two paths, unchanged`);
-    assert.deepEqual([...svg.matchAll(/(fill|stroke)="([^"]+)"/g)].map(m => m[2]), ['currentColor', 'none', 'currentColor'], `${name}: the G is drawn in currentColor`);
+    assert.deepEqual([...svg.matchAll(/<path d="([^"]+)"/g)].map(m => m[1]), (favicon ? paths.slice(0, 1) : paths), `${name}: shared G geometry; favicon omits fine yard lines`);
+    assert.deepEqual([...svg.matchAll(/(fill|stroke)="([^"]+)"/g)].map(m => m[2]), (favicon ? ['currentColor'] : ['currentColor', 'none', 'currentColor']), `${name}: the G is drawn in currentColor`);
     const inner = svg.match(/<svg x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)" viewBox="([^"]+)"/);
     assert.ok(inner, `${name}: the G sits in a nested svg`);
     const [x, y, width, height] = inner.slice(1, 5).map(Number);
-    assert.equal(inner[5], viewBox, `${name}: framed by the G's own bounds, as in Brand.jsx`);
+    assert.equal(inner[5], favicon ? '8 8 48 48' : viewBox, `${name}: framed by the G's own bounds, as in Brand.jsx`);
     assert.ok(x > 0 && Math.abs(2 * x + width - 64) < 1e-9 && Math.abs(2 * y + height - 64) < 1e-9, `${name}: centered with a margin`);
   }
   const favicon = fs.readFileSync(path.join(pub, 'favicon.svg'), 'utf8');
@@ -137,8 +138,8 @@ test('favicon.svg and app-icon.svg draw only the two G paths, centered, with no 
 });
 
 test('the old app\'s mark (Brand.jsx) is the G alone in --primaryForeground, framed by its own bounds, with no tile', () => {
-  // The bounds of the two paths: the yard lines run from x 22 to 103, the G from y 20 to 73.
-  assert.equal(viewBox, '22 20 81 53');
+  // Balanced geometry: mirrored yard lines span x 0 to 64, equal G corners span y 8 to 56.
+  assert.equal(viewBox, '0 8 64 48');
   const css = fs.readFileSync(path.join(root, 'web/src/brand.css'), 'utf8');
   const icon = css.match(/\.gtl-field-icon\{([^}]*)\}/)[1].split(';');
   assert.deepEqual(icon.filter(decl => /^(background|box-shadow|border|outline)/.test(decl)), [], '.gtl-field-icon draws no tile, edge or shadow');

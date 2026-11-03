@@ -15,9 +15,9 @@ import { useNbaData } from './useNbaData.js';
 import { nbaApi } from './api.js';
 import { addNextFontLinks } from '../styles/fonts.js';
 import { confirmSportLeave, nbaHash, nbaRoute, today } from './route.js';
-import EplApp from '../epl/EplApp.jsx';
+import { SportNavigationContext, sportSwitchHash } from '../sportSwitch.js';
 import { useEplAccess } from '../epl/api.js';
-import { EplAccessContext, eplGate, primeLobby, SPORT_HOME, sportOptions } from '../epl/route.js';
+import { EplAccessContext, eplGate, primeLobby, sportOptions } from '../epl/route.js';
 import { cloudApi } from '../../api.js';
 import { sportAt } from '../sportAt.js';
 
@@ -65,19 +65,19 @@ function NbaOwner({ session, onSignOut, onSportChange, epl = false, api = nbaApi
   </div></div>;
 }
 
-/** Mount above all NFL eligibility providers; cold NBA and EPL links issue no NFL reads. */
+/** Resolve sport access above the shared account provider; cold NBA/EPL links issue no NFL gameplay reads. */
 export function SportEntry({ session, onSignOut, children }) {
   const [sport, setSport] = useState(() => sportAt(window.location.hash));
   const state = useRef(sport); state.current = sport;
   const previousNfl = useRef(sport !== 'nfl' ? '#home' : window.location.hash || '#home');
   const accepted = useRef(window.location.hash);
-  // EPL access is the lobby reply's `epl` (no request of its own): the EPL option shows only for FEPL members (and the
-  // commissioner). null until a lobby reply says; a cold #epl link reads the lobby once, which the NFL app then reuses.
+  // EPL is open to every confirmed account once M-30 is available. NBA and EPL mount no NFL app, so both must prime
+  // the lobby when this account's access is unknown (including after an account switch on a saved NBA address).
   const access = useEplAccess(session.user.id), epl = access === true;
   const gate = eplGate(sport, access);
   useEffect(() => {
-    if (gate === 'wait') primeLobby(session.user.id, () => cloudApi('lobby')).catch(() => { /* Read as no EPL: leaves for NFL. */ });
-  }, [gate, session.user.id]);
+    if (gate === 'wait' || (sport === 'nba' && access === null)) primeLobby(session.user.id, () => cloudApi('lobby')).catch(() => { /* Read as no EPL; a cold EPL address leaves for NFL. */ });
+  }, [gate, sport, access, session.user.id]);
   // A cold #epl/... link for an account without EPL: leave for NFL in place (replace, so Back does not return to it).
   useEffect(() => {
     if (gate !== 'leave') return;
@@ -107,12 +107,11 @@ export function SportEntry({ session, onSignOut, children }) {
     window.history.pushState(null, '', hash);
     const event = new PopStateEvent('popstate'); event.gtlSportApproved = true; event.gtlSportFrom = from; window.dispatchEvent(event);
   }
-  const change = value => { if (value !== sport) navigate(value === 'nfl' ? previousNfl.current : SPORT_HOME[value]); };
+  const change = value => { if (value !== sport) navigate(sport === 'nba' && value === 'nfl' ? previousNfl.current : sportSwitchHash(value, window.location.hash)); };
   // The old app's shells (including the new app's crash fallback) place this after their skip link; the new app has its own in the top bar.
   const selector = <div className="gx gx-nba-sport-entry"><Segmented label="Sport" value="nfl" options={sportOptions(epl)} onChange={change}/></div>;
   if (sport === 'nba') return <NbaApp session={session} onSignOut={onSignOut} epl={epl} onSportChange={change}/>;
-  if (gate === 'show') return <EplApp key={session.user.id} onSportChange={change}/>;
   // While the lobby has not answered, or until the effect above leaves for NFL, nothing EPL-specific (and no NFL read) renders.
-  if (gate !== 'other') return null;
-  return <EplAccessContext.Provider value={epl}><SportSlotContext.Provider value={selector}>{children}</SportSlotContext.Provider></EplAccessContext.Provider>;
+  if (gate === 'wait' || gate === 'leave') return null;
+  return <EplAccessContext.Provider value={epl}><SportNavigationContext.Provider value={{ sport, change }}><SportSlotContext.Provider value={selector}>{children}</SportSlotContext.Provider></SportNavigationContext.Provider></EplAccessContext.Provider>;
 }

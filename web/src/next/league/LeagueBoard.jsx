@@ -7,7 +7,7 @@
 import { MODE, show } from '../../communityFormat.js';
 import { boardFor } from '../../../../shared/guess-board.mjs';
 import { Avatar, Badge, Card, List, Move, Pill, Rank, Row, Strip } from '../ui/index.js';
-import { CountUp } from '../home/CountUp.jsx';
+import { CountUp } from '../ui/CountUp.jsx';
 import { boardFact } from '../features/model.js';
 import { useRankMoment } from './useRankMoment.js';
 import { LeagueEmpty } from './useLeagueRead.jsx';

@@ -1,0 +1,13 @@
+// The Fantasy profile opened from a Points slot (Board i63), loaded on the "Open profile" tap so the Fantasy tools'
+// code and stylesheet stay out of the app's first load. It reuses the existing profile body (FantasyTools.jsx) with the
+// slot's own scoring. GTL's weekly estimate is that slot's House (D-56): until the read carries the House for this viewer
+// (he locked in the slot, or it kicked off), the estimate card is a lock line.
+import { playerProfile } from '../../../../../shared/fantasy-tools.mjs';
+import { PlayerProfileBody } from '../../fantasy/FantasyTools.jsx';
+import { CONTEXT_COPY, estimateOpen } from './pointsContext.js';
+
+export default function PointsProfile({ snapshot, slot, settings }) {
+  const profile = playerProfile(snapshot, slot.playerId, settings);
+  if (!profile) return <p className="gx-t-body">{CONTEXT_COPY.notInSnapshot}.</p>;
+  return <PlayerProfileBody profile={profile} snapshot={snapshot} settings={settings} estimateLocked={estimateOpen(slot) ? null : CONTEXT_COPY.estimateLocked}/>;
+}

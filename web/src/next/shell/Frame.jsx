@@ -7,7 +7,8 @@ import { cx } from '../ui/cx.js';
 import { APP_RELOAD_COPY } from '../../appView.js';
 import { useShell } from './context.js';
 import { navigateSport } from '../nba/route.js';
-import { EplAccessContext, SPORT_HOME, sportOptions } from '../epl/route.js';
+import { EplAccessContext, sportOptions } from '../epl/route.js';
+import { SportNavigationContext, sportSwitchHash } from '../sportSwitch.js';
 import { SHELL_COPY, TABS, TAB_INFO, leagueLabel, tabBadge } from './tabs.js';
 
 // Four primary destinations, using the shared original icon language.
@@ -36,12 +37,13 @@ export function TopBar({ leagueName, you, onHome, onLeague, onMenu }) {
 }
 
 /**
- * The NFL/NBA (and, for FEPL members, EPL) selector, a plain row right after the top bar. It stays out of the sticky
+ * The NFL/EPL selector, a plain row right after the top bar. NBA is hidden from this navigation. It stays out of the sticky
  * bar so the bar keeps its --gx-size-topbar height, which sticky headings and focus scroll margins rely on.
  */
 export function SportControls() {
   const epl = useContext(EplAccessContext);
-  return <div className="gx-sport-controls"><Segmented label="Sport" value="nfl" options={sportOptions(epl)} onChange={value => navigateSport(SPORT_HOME[value])}/></div>;
+  const { sport, change } = useContext(SportNavigationContext);
+  return <nav className="gx-sport-controls" aria-label="Sports"><Segmented label="Sport" value={sport} options={sportOptions(epl)} onChange={value => change ? change(value) : navigateSport(sportSwitchHash(value, window.location.hash))}/></nav>;
 }
 
 /** Shared detail navigation stays above the destination's own title. */

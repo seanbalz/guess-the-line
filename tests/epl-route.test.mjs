@@ -34,9 +34,9 @@ test('EPL and NBA fragments never claim each other', () => {
   for (const hash of ['#nba/games', '#home', '', null, undefined]) assert.equal(eplFragment(hash), false, String(hash));
 });
 
-test('sport switch offers EPL only with access; each sport has a home address', () => {
-  assert.deepEqual(sportOptions(false), [{ value: 'nfl', label: 'NFL' }, { value: 'nba', label: 'NBA' }]);
-  assert.deepEqual(sportOptions(true), [{ value: 'nfl', label: 'NFL' }, { value: 'nba', label: 'NBA' }, { value: 'epl', label: 'EPL' }]);
+test('sport switch hides NBA and offers EPL only with access; saved NBA links retain a home address', () => {
+  assert.deepEqual(sportOptions(false), [{ value: 'nfl', label: 'NFL' }]);
+  assert.deepEqual(sportOptions(true), [{ value: 'nfl', label: 'NFL' }, { value: 'epl', label: 'EPL' }]);
   assert.equal(SPORT_HOME.nba, '#nba/games');
   assert.equal(SPORT_HOME.epl, '#epl/home');
 });

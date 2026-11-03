@@ -34,3 +34,7 @@ verify_jwt = false
 [functions.gtl-epl-jobs]
 # EPL Pick a Team jobs (slate, results, settle); same one-run capability pattern as gtl-week-open.
 verify_jwt = false
+
+[functions.gtl-ops-alerts]
+# Item 22 (M-38) Supabase job alerts to the commissioner's phone; same one-run capability pattern as gtl-week-open.
+verify_jwt = false

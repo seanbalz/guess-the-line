@@ -10,7 +10,7 @@ import { applyDecisionAnalysisView } from './decision-analysis.mjs';
 import { RESULTS_METHODS, ResultError, providerResultError, handleResultReview, applyReviewedResults } from './results.mjs';
 import { applyMarketView } from './market-view.mjs';
 import { applySportsbookSources } from './sportsbook-sources.mjs';
-import { runSubmissionWithFreshOdds, SubmissionOddsError } from './submission-odds.mjs';
+import { runSubmissionWithFreshOdds, selectedBookMissing, SubmissionOddsError } from './submission-odds.mjs';
 import { collectSubmissionOdds } from './submission-collection.mjs';
 import { applyScoringBenchmark } from './scoring-view.mjs';
 import { applyProvisionalAnalysisView } from './total-analysis-view.mjs';
@@ -47,6 +47,7 @@ import { handlePoints, POINTS_METHODS, POINTS_PUBLIC_CODES, POINTS_RPCS, PointsE
 // Streaks, badges and weekly awards (redesign stage 69, M-25): their own route group; 404 "coming soon" until M-25 is applied.
 import { handleFeatures, FEATURES_METHODS, FEATURES_RPCS, FeaturesError, providerFeaturesError } from './features.mjs';
 // EPL Pick a Team (EPL plan 1, Task 4): its own route group over the M-30 service-only functions; 404 "coming soon" until M-30 is applied.
+import { EplGuessError, eplGuessErrorBody } from './epl-guess.mjs';
 import { handleEpl, EPL_BODY_LIMITS, EPL_METHODS, EPL_PUBLIC_CODES, EPL_RPCS, EplError, providerEplError, createEplService } from './epl.mjs';
 
 const MAX_BODY_BYTES = 32 * 1024;
@@ -183,10 +184,16 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
   // October 12, 2026: a refresh is attempted when useful and never required; commit() is the authority.
   async function submitWithFreshOdds(user, intent, commit) {
     if (!odds?.rpc) return commit();
+    // November 3, 2026 (Sean: "do not waste credits"): no collection when the newest stored snapshot of the save's week
+    // had a selected book missing for every game it locks in (or, for a send, every game it names).
+    const worthCollecting = odds.latestSnapshot && Number.isInteger(intent.season) && Number.isInteger(intent.week)
+      ? async () => !selectedBookMissing(await odds.latestSnapshot(intent.season, intent.week),
+        { mode: intent.mode, gameIds: intent.lockIn ?? Object.keys(intent.picks ?? {}), now: clock() })
+      : undefined;
     return runSubmissionWithFreshOdds({
       preflight: () => odds.rpc('gtl_preflight_submission', { p_user: user.id, p_intent: intent }),
       collect: ({ requestId }) => collectSubmissionOdds({ user, intent, service: odds, provider: oddsProvider, requestId, uuid }),
-      requestId: uuid(), commit,
+      worthCollecting, requestId: uuid(), commit,
     });
   }
   async function loadResultState(saved, userId, leagueId) {
@@ -293,6 +300,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
           submitBallot: (payload, commit) => submitWithFreshOdds(user, {
             season: payload.season, week: payload.week, mode: payload.mode, revision: payload.weeklyRevision,
             picks: payload.picks, submit: payload.submit, personalRevision: payload.revision, requestId: payload.requestId,
+            ...(payload.lockIn === undefined ? {} : { lockIn: payload.lockIn }),
           }, commit),
         });
         // /personal/read is /personal for a chosen week; both replies replace the same view on the client.
@@ -382,6 +390,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
       return json(await withRules(marketView(resultView(weeklyView(freshEngine.view(member.player_id, route === '/bet' ? 'betting_challenge' : mode), refreshed), refreshed, member, leagueId), user.id, leagueId), rules));
     } catch (error) {
       if (error instanceof RequestError || error instanceof NbaError || error instanceof PersonalError || error instanceof SocialError || error instanceof CommunityError || error instanceof OfficialsError || error instanceof ResultError || error instanceof LobbyError || error instanceof WeeklyError || error instanceof OddsCollectionError || error instanceof BenchmarkError || error instanceof SubmissionOddsError || error instanceof VirtualUnitsError || error instanceof WindError || error instanceof PushError || ROUTE_GROUPS.some(group => error instanceof group.Error)) return json({ error: error.message, ...(error instanceof SubmissionOddsError ? { code: error.code, submitted: false } : PUBLIC_CODES.has(error.code) ? { code: error.code } : {}) }, error.status);
+      if(error instanceof EplGuessError)return json(eplGuessErrorBody(error),error.status);
       // Provider payloads and internal errors may contain secrets or private state.
       return json({ error: 'The saved data service is temporarily unavailable. Please try again.' }, 503);
     }
@@ -392,7 +401,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
 const OPTIONAL_PERSONAL_RPCS = new Set(['gtl_read_game_notes', 'gtl_set_game_note']);
 
 /** Native HTTP adapter. Service-role credentials never leave the server. */
-export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl = fetch, clock = Date.now, reviewedResearchFeed, researchSnapshotLoader }) {
+export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl = fetch, clock = Date.now, reviewedResearchFeed, researchSnapshotLoader, eplMoneylineRefreshForLock }) {
   const base = new URL(url);
   if ((base.protocol !== 'https:' && !(base.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(base.hostname))) || base.username || base.password || base.pathname !== '/' || base.search || base.hash || !anonKey || !serviceRoleKey) throw new Error('Invalid service configuration.');
   const headers = { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}`, 'Content-Type': 'application/json' };
@@ -454,6 +463,7 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
             if (providerError === providerBetsError && !['gtl_save_recommended_virtual_pick', 'gtl_read_bets'].includes(name)) throw providerError();
             throw providerError('GTL_FEATURE_OFF');
           }
+          if(providerError===providerEplError&&name==='gtl_epl_save_guess_current'&&code==='22003')throw providerError('GTL_EPL_GUESS_INVALID');
           throw providerError(message);
         }
         return response.json();
@@ -495,7 +505,7 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
     features: groupRpc(providerFeaturesError, FEATURES_RPCS),
     // EPL Pick a Team and Fantasy: its functions only, plus the latest-week, own-queue, snapshot and bonus table reads
     // (cloud/epl.mjs createEplService).
-    epl: createEplService({ rpc: groupRpc(providerEplError, EPL_RPCS).rpc, rest, rows: restRows }),
+    epl: createEplService({ rpc: groupRpc(providerEplError, EPL_RPCS).rpc, rest, rows: restRows, refreshForLock:eplMoneylineRefreshForLock }),
     // New fields on old routes (build plan, section 3.3): PostgREST's PGRST202 for a missing function reads as "feature off".
     optionalRpc: createOptionalRpc((name, body) => request(`/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(body) })),
     async authenticate(token) {
@@ -535,6 +545,12 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
           const error = providerCollectionError(message); error.code = message; throw error;
         }
         return response.json();
+      },
+      // The newest stored snapshot of a week, its games and selected books only (selectedBookMissing). Server-side only.
+      async latestSnapshot(season, week) {
+        const [row] = await restRows('gtl_market_snapshots', { select: 'games:payload->games,books:payload->selectedBooks',
+          season: `eq.${season}`, week: `eq.${week}`, order: 'created_at.desc,id.desc', limit: '1' }, 1);
+        return row ?? null;
       },
       async marketSnapshot(userId, leagueId) {
         const response = await request('/rest/v1/rpc/gtl_read_market_snapshot', { method: 'POST', headers, body: JSON.stringify({ p_user: userId, p_league: leagueId }) });

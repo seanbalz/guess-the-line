@@ -1,5 +1,138 @@
 # Decision log
 
+## Pick a Team backups at the turn — November 3, 2026
+
+Sean requested that a saved backup ranking assign a team as soon as the manager's
+turn begins, with a confirmation naming the assigned team. He confirmed that an
+exhausted ranking leaves the turn open for a manual pick. This changes the
+pre-kickoff queue behavior in the original EPL draft decision: use the first
+available ranked club, advance consecutive queued managers in draft order, and
+stop at the first manager without an available ranked club. Existing kickoff
+resolution and the latest picker's change window are preserved. The server owns
+the assignment; confirmation requires a recorded pick. Implementation and the
+separate M-40 apply/release boundary are in
+[the turn-queue record](EPL_TURN_QUEUES_2026_11_03.md).
+
+## D-73 — Bets › Research recommendations, stage one: independent research beside Guess the Line (October 30–31, 2026)
+
+**Number.** Recorded on November 3 in the docs truth pass. The approval itself was given on October 30 and 31, after D-68
+and before D-69 to D-71 were numbered, so this entry is older than its number says. Sean approved the stage after the research and alignment discussion, then said "Merge and
+deploy" after reviewing its first-stage scope and the unapplied migration. The full contract is in
+[RESEARCH_ASSESSMENTS_STAGE_ONE.md](RESEARCH_ASSESSMENTS_STAGE_ONE.md).
+
+- **What it adds:** betting research and recommendations alongside Guess the Line. It changes no guess entry, lock,
+  reveal rule, scoring reference, points or competition settlement.
+- **Two lists:**
+  - The existing gap-based list stays at `#bets/recommended`, labelled **Your guess vs. market**.
+  - The independent list is **Research recommendations** at `#bets/research`, also reached from an eligible
+    matchup's research.
+- **Colors:**
+  - **Green** is reserved for a tested projection showing value at an available price, and stage one cannot show it.
+  - **Yellow** is a qualifying research lean with a current verified quote at the exact terms; it may oppose a
+    player's locked guess.
+  - **Red** is qualifying evidence against, with a current exact quote and no qualifying support.
+  - **Gray** means not enough usable evidence, a missing or stale quote, unresolved checks or a closed pregame window.
+- **Order:** schedule and name order, never a made-up confidence ranking. Supporting and opposing findings both show.
+- **Limits:** there is no qualified model in this stage. Outside estimates stay attributed to their source, and the
+  exact player, metric, side and threshold must match.
+- **Shipped:** released October 31 (PRs #393 and #395, API v44,
+  [release record](RELEASE_2026_10_31_RESEARCH_ASSESSMENTS.md)). The November 1 data repair (PRs #397 and #399,
+  API v45, [record](RELEASE_2026_11_01_RESEARCH_DATA.md)) populated it.
+- **Not verified:** a real-iPhone check (#398).
+
+## D-72 — My bets: Roomy cards that open in place to the selection grid (November 1, 2026)
+
+**Number.** Recorded on November 3 in the docs truth pass. Sean made both choices on November 1, before D-69 to D-71
+were numbered.
+
+- **First choice:** from [six mockups](../design/my-bets-2026-11-01/README.md), "I like the 4th one", which is
+  **04 · Selection grid**: every parlay leg as a tile in a two-column grid. Built in PR #401 and released November 1
+  as Pages `83caec6d` ([record](RELEASE_2026_11_01_MY_BETS.md)).
+- **Second choice, the same day:** from [five preview studies](../design/my-bets-previews-2026-11-01/README.md), "1 is
+  the best", which is **01 · Roomy cards**, then "Expand in place, as shown". This replaced showing every leg before a
+  ticket is opened. The rules are in [MY_BETS_ROOMY_2026_11_01.md](MY_BETS_ROOMY_2026_11_01.md).
+  - My bets starts with compact previews: source, status, the selection or parlay title, matchup marks, risk and
+    total return. Unknown amounts stay unknown.
+  - Tapping a preview replaces it in place with the full ticket, with every parlay leg in the selection grid. The
+    upward chevron collapses it, and Ticket details opens the existing details and history.
+  - Built in PR #405 and released November 1 as Pages `90a7bf99` ([record](RELEASE_2026_11_01_MY_BETS_ROOMY.md)).
+- **Spacing:** the spec set 20px padding and 24px between tickets. The November 2 follow-up (PR #408) removed a
+  legacy override that took the gap away, and now uses the existing 32px spacing token
+  ([record](RELEASE_2026_11_02_MY_BETS.md)).
+- **Not verified:** a real-iPhone check.
+
+## D-71 — A lock-in refreshes a stale line first, as a send does (November 3, 2026)
+
+A read-only readback found that the line saved with each guess had a median age of 68 seconds in Week 7, 6.9 hours in
+Week 8 and 7.8 hours so far in Week 9. The last save-triggered collection ran October 19. Cause: redesign stage 18
+(October 14) skipped the D-17 refresh for any save carrying `lockIn`, and the new app saves one game at a time by
+lock-in, so guesses took the newest twelve-hour scheduled line. Of two options, Sean chose "Refresh on lock-in". The
+other was to keep lock-ins as they were and add scheduled runs before deadlines.
+
+- **Rule:** a per-game lock-in follows D-17 exactly as a send does.
+  - If a newly locked game's newest stored line is missing or over five minutes old, the save first tries one shared
+    collection.
+  - It then saves the newest stored line at that instant, with its observation time and age, or the D-27 pending
+    reference.
+- **Limits unchanged:**
+  - The six collection attempts a UTC day, the 5-minute cooldown, the 50-credit reserve and the two-credit cap still
+    apply, shared with the scheduled runs.
+  - A refused or failed refresh never refuses the save (D-27).
+  - A draft save that locks nothing still starts no collection.
+- **Scope:** `gtl-api` only. The intent check `gtl_submission_intent_context` has counted newly locked games as changed
+  guesses since M-07 (October 15), so no migration is needed. Lines already saved keep their recorded age; nothing is
+  backfilled (D-16, D-23).
+- **Addendum, November 3, 2026 (Sean: "do not waste credits. correct this asap"):**
+  - The 18:15 UTC scheduled run's reply had no FanDuel prices for any of the 15 games. A saved line needs all three
+    selected books, so each refresh after it would have spent two credits for nothing.
+  - So a save (lock-in or send) first reads the newest stored snapshot of its week. If a selected book was missing from
+    the provider's reply (`book_missing`) for every game it needs that has not kicked off, it skips the collection.
+  - It still saves the newest qualifying stored line or the D-27 pending reference.
+  - The scheduled runs still collect twice a day. Once one sees the book again, saves refresh as before.
+  - A game missing only a stale market, or any snapshot that cannot be read, keeps the refresh. `gtl-api` only.
+
+## D-70 — Play › Your guesses becomes nesting cards: the week, then one game (November 2, 2026)
+
+Sean asked for the next design pass, "cut text on Home and Play the way Research was done". On the live app Home
+(139 words) and the Play landing (59 words) were already lean. Play › Your guesses was the long screen: 15 stacked
+525px cards, about 9,000px, with 1,317 words and 252 buttons on the open Total ballot. Of five options on the
+[comparison canvas](https://claude.ai/artifact/5Kj42mrQJZ2UJGqsxm4nSn), he chose "1 · Nesting cards".
+- **Week layer:** "Week 9", one meta line ("4 of 15 locked"), the Spread / Total control and one tile per game. Each
+  tile shows its state tag, the matchup as marks and your guess as one big number, or "—". No tile shows the line,
+  points or anyone else's guess.
+- **Game layer:** a tap opens the game with a "Week 9 · Total" lip. It holds the picker and "Lock in" as its one
+  primary button, or the receipt and everyone's guesses once you lock. "Next to lock" opens the next game in its place.
+- **Addresses:** a game uses its existing `pickGame` address, so reload, Back and deep links from Lines and Bets work.
+  Rule text and guess help move behind ⓘ.
+- **Unchanged:** the lock-in, draft, sit-out and reveal rules (D-16, D-20, D-30, D-31, D-36, D-37, D-39); the editor's
+  saving logic; the whole-market path; the old app's list; Home.
+
+Details and tests are in [the design spec](superpowers/specs/2026-11-02-play-picks-nesting-cards-design.md). This
+extends D-66's layout to Play's guesses only; the four tabs and D-58's type, palette, icons and motion stay.
+
+**Number.** This was first recorded as D-69. The design overhaul below was recorded as D-69 the same day, so on
+November 3 this entry became D-70 and the overhaul kept D-69. The release card (issue #426) and Board release r60
+still say D-69 for this work.
+
+## Shared NFL/EPL interface — October 29, 2026
+
+Sean confirmed a shared interface with sport-specific game modes, the same
+profile and navigation, and staying in the current primary section when switching
+sports. This supersedes the separate EPL mini-app frame. The
+[implementation and verification record](SHARED_SPORT_INTERFACE.md) describes
+shared account state, route isolation and sport-specific availability.
+This decision does not change game rules or authorize a production release.
+
+## Logo refinement — October 29, 2026
+
+Sean requested a more symmetrical logo, different color variations and favicon
+edits. After reviewing five visual options, he selected **01 Balanced (recommended)**.
+The [brand guide](BRAND_GUIDE.md#balanced-logo-refinement--october-29-2026)
+records the new geometry, simplified favicon and existing theme-color pairing.
+The [asset record](../design/logo-redraft-2026-10-29/README.md) separates exact
+vector implementation from generated exploration. This authorizes the selected
+identity refinement; deployment is a separate release step.
+
 ## Release timing policy - October 19, 2026
 
 Sean explicitly instructed: "permanently remove the gated window". Deployments
@@ -12,7 +145,55 @@ permissions/privacy checks, compatibility, rollback readiness and verification
 remain required. Player pick deadlines and locks are unchanged.
 
 
+## D-69 — Design overhaul: Moments, nesting cards on every tab, next move first (November 2, 2026)
+
+Sean asked on October 26 for "a page by page node by node overhaul" because the app "doesn't have interactive and
+motion and game type features". On November 2 he answered five questions, one at a time, on a mockup canvas
+([GTL Design Overhaul Mockups](https://claude.ai/artifact/YBJmR5XUV59juyGKPGphJ7), private):
+- **Game feel:** "B · Moments", within the D-58 motion rules. One big moment, never on page load; small moments for
+  saves; losses quiet.
+- **Navigation:** "2A · Nesting cards", D-66's nesting cards on every tab, not only Research.
+- **Moments:** "Use PICK column":
+  - Big: Bullseye, Week final, Guess the Points exact, a badge or award, and reaching 1st.
+  - Small: lock-in, whole week locked, rank up, Pick streak, and a tracked bet win.
+  - Quiet: losses.
+- **Order:** "Use this order": the shared kit, then Play, Home, Research, Bets, and Menu with EPL.
+- **First card:** "5A · Next move + tiles", one next-move card with the one lime button, then two columns of tiles with
+  one picture and one big number each.
+
+He approved the three design parts ("Looks right" twice, then "Looks right, write spec") and the written spec ("Spec
+approved"). Results from while a player was away are shown as NEW and play when their card is opened, never on
+launch. The overhaul is frontend only, ships as six PRs with an iPhone check after each, and adds no migration. Type,
+palette, icons and motion tokens are unchanged (D-58). New game types (friend challenges, Showdown, Gauntlet and
+Decathlon) are a separate spec. Spec: [2026-11-02-design-overhaul-design.md](superpowers/specs/2026-11-02-design-overhaul-design.md).
+This decision does not authorize a production release; each step releases through the existing workflow.
+
+*Addendum, November 3, 2026 — Step 1 Play choices: P1B, P2B, P3B, P4A, P5A, P6A.* Sean answered six Play questions
+one at a time on the same canvas (rows P1 to P6, interactive boards with sample data), choosing the recommended option
+each time ("Use P1B" through "Use P6A"):
+- **P1B, first card:** the ballot to do next is the next-move card; the other ballot is the first tile; the Feed tile
+  folds into the League tile.
+- **P2B, Your score's game layer:** a number line with the saved line, your guess and the gap; the source and times
+  sit behind "About this score".
+- **P3B, Compare:** one other member at a time; paired points bars for the week and each game; another player's guess
+  shows only once that game's D-31 gate is open.
+- **P4A, Guess the Points:** five slot tiles and a Points board tile, then a slot layer that keeps every D-56 piece.
+- **P5A, Badges and awards:** streaks and awards tiles, then the badge grid and Season winners; each opens a layer.
+- **P6A, League:** the board first, the two newest posts under it, then the feed and History as layers.
+These choose layouts only; no game rule changes. The spec's step 1 section records them, and the plan is
+[2026-11-03-design-overhaul-step1-play.md](superpowers/plans/2026-11-03-design-overhaul-step1-play.md). Sean
+approved the plan and its "Decisions for Sean" list the same day ("Approve plan"). Building step 1 waits for the
+step 0 release and his iPhone check.
+
 ## D-68 — Premier League: Sleeper FEPL, Pick a Team and EPL moneyline (October 28, 2026)
+
+**Deployment status update — October 29, 2026:** M-30 and M-31 are applied;
+API v42 and EPL jobs v1 are active. See the dated [M-30](RELEASE_2026_10_29_M30.md)
+and [M-31](RELEASE_2026_10_29_M31.md) release records and the fresh
+[workflow verification](EPL_WORKFLOW_CONTROL_2026_10_29.md). The original
+"not deployed/not applied" wording below describes the decision's initial state;
+it is not an instruction to reapply these migrations. Moneyline M-32 and its
+live DNB verdict remain pending. Product rules and later addenda still govern.
 
 **Status: approved by Sean on October 28, 2026.** It adopts the design in
 [docs/superpowers/specs/2026-10-28-epl-fantasy-and-moneyline-design.md](superpowers/specs/2026-10-28-epl-fantasy-and-moneyline-design.md)
@@ -135,6 +316,42 @@ item 14's "linked managers and the commissioner only" for `epl/fantasy/read`. No
 22. **Known risk (accepted).** An account could rename itself to an unclaimed manager's name, or claim a manager that is
     not theirs, before the real manager does. Sean accepts this because FEPL is 8 friends. Every link is audited and the
     commissioner can unlink, which the account cannot undo itself, and relink.
+
+**Addendum — Tuesday stat corrections after drafting starts (October 29, 2026).**
+Asked whether to preserve picks and flag a changed next-draft order for review,
+Sean selected: **"Preserve picks; flag for review (recommended)"**.
+
+23. **Preserve and flag.** If Tuesday stat corrections would change the next EPL
+    draft order after someone has picked, keep the existing picks and order and
+    flag the affected order for commissioner review. Corrected score evidence
+    remains separate and append-only; retain the original snapshot and show the
+    corrected totals without silently reordering, deleting or replaying entered
+    picks. This confirms the correction conflict policy; the commissioner review
+    flag must be visible, not merely an unseen job/audit status. It is not a
+    migration apply or production-deployment approval.
+
+**M-32 status update — October 29, 2026:** the release owner reports the approved
+M-32 apply verified as hosted `20261029162422`, exact source SHA-256
+`9614ecedc62323d4c2236d431dc4da77895fede41909b4cf086aee3a2bb5c2c2`.
+This supersedes the pending-M-32 status above. At apply verification, DNB
+schedule, cron and run counts were zero. The release chat owns the canonical
+apply/ledger record. Subsequently, Sean approved enabling/testing DNB; run
+`776bb6ae-6ead-40f0-a1cf-3449d46d3f25` succeeded at 16:44:48 UTC for 2026 MW9,
+with all three checked events priced by all three allowed books. Root verified
+the hosted gate independently. See [live evidence PR #375](https://github.com/seanbalz/guess-the-line/pull/375).
+This opens the approved API/collector/UI build gate; it does not establish a
+complete playable or released moneyline game.
+
+**Addendum — Midweek EPL finalization (October 29, 2026).** Asked whether to
+finalize midweek rounds once results and the next Sleeper week are verified, or
+wait for the following Monday, Sean selected **"Finalize once verified (recommended)"**.
+
+24. **Midweek finalization.** Finalize a midweek round as soon as all results and
+    the exact next Sleeper week/season are verified, with complete valid scoring
+    totals. Do not wait for the following Monday merely because the round was
+    played midweek. Missing, incomplete or out-of-interval source evidence remains
+    pending; it does not authorize invented finals or bonuses. Tuesday correction
+    checks and item 23's preservation rule remain separate requirements.
 
 ## D-67 — Your picks becomes the account-level Virtual Units placing screen (October 28, 2026)
 

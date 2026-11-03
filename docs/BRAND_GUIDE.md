@@ -2,6 +2,27 @@
 Status: canonical for all product UI, documents, dashboards, presentations, notifications, iOS, and agent-generated assets. Updated 2026-10-08.
 The new app (D-38, `web/src/next/`) follows the [D-38 section](#d-38-redesign-system-the-new-app--october-14-2026) at the end of this guide. Since D-60 (October 26, 2026) it is the app every member uses; everything above applies only to the old app, which stays reachable for older records and tools until it is deleted.
 
+## Balanced logo refinement — October 29, 2026
+
+Sean selected **01 Balanced** from the [five-option comparison board](../design/logo-redraft-2026-10-29/concepts.png).
+The [selected vector preview](../design/logo-redraft-2026-10-29/selected-preview.png)
+shows the implementation: equal outer corner cuts, consistent body weight and
+mirrored yard-line lengths/spacing. The letter G remains intentionally open on
+its right; balanced proportions do not mean literal mirror symmetry.
+
+This supersedes the original-path geometry requirement below. Both app logo
+components use `0 8 64 48`; the browser favicon omits the fine yard lines and
+frames the G at `8 8 48 48` for small-size clarity. D-44 transparency, accessible
+name, lime/deep-green theme colors and 12% home-screen margins remain in effect.
+The 180/192/512 PNG icons use the updated full mark, including notification uses.
+
+Five dark-surface color exports (lime, cyan, emerald, amber, white) and a deep-green
+light-surface export use existing `tokens-next.json` colors. They are alternate
+brand assets, not new semantic UI colors or a change to the selected app palette.
+The app continues to use its existing theme green. The image-generated concept
+board is visual exploration; the SVG exports and component paths are the exact
+implementation. See the [asset record](../design/logo-redraft-2026-10-29/README.md).
+
 ## Brand position
 Competitive NFL spread prediction meets fantasy-sports game day. Tone: precise, fast, confident, playful competition; NOT a real-money sportsbook. Inspiration: DraftKings (dense live stats), FanDuel (clear market rows), Sleeper (social competition), ESPN/CBS (scoreboard hierarchy). Borrow interaction patterns only; do not copy their logos, trade dress, artwork or proprietary iconography.
 
@@ -177,6 +198,21 @@ Every number style sets `font-variant-numeric: tabular-nums` after its font, bec
 ### Motion
 Durations: tap 100ms, quick 160ms, base 240ms (sheets in), exit 200ms, big 600ms (bursts, count-ups, at most), pulse 1800ms (the LIVE dot, the only loop). Easing: standard, enter, exit and pop (a small overshoot for selections, saves and wins). Only transform and opacity animate. Motion explains a change; saves get a small moment, verified wins a big one, losses stay quiet; one big moment at a time and never on page load; never more than 3 flashes a second. Reduced motion (the device setting, or `data-motion="reduce"` on the app root) stops every animation and transition; numbers show their final value.
 
+**Moments (D-69, November 2, 2026).** One engine (`web/src/next/moments/`) decides every moment's size from Sean's
+choice ("Use PICK column"), plays only on a fresh server read, never replays (a per-account seen record on the device,
+cleared on sign-out), never plays on page load (results from while you were away show NEW and play when their card is
+opened) and shows one big moment at a time (`ov.flash`, "New results"). Small moments are 240 ms apart.
+
+| Moment | Size |
+|---|---|
+| Lock in a pick · Whole week locked · Rank up · Pick streak grows · Tracked bet wins | Small |
+| Bullseye · Week final · Reaching 1st · Guess the Points exact · Badge or award | Big |
+| Loss or big miss | Quiet |
+
+**Nesting cards on every tab (D-69).** Every tab's sections are D-66 nesting cards: a deeper layer rises in (240 ms),
+its first six units follow 30 ms apart (160 ms), a restored parent settles (200 ms), and a tab change fades only the
+screen (160 ms). The bars never animate.
+
 ### Themes, contrast and other modes
 - Dark is the default. Light applies when `Theme.jsx` sets `data-theme="light"` on `<html>` (it resolves System), or `data-theme="light"` on the app root. Light keeps the layout; glows become 2px rings; every lime fill gets a 1px `accent-ink` edge, since lime on the light surfaces is only 1.07 to 1.32:1 (1.07 on surface-3, 1.32 on white; the edge is 7.06:1 on white).
 - Checked on the token values for both themes (`tests/next-tokens.test.mjs`): at least 4.5:1 for every text and icon color on every surface and on your-row tint, each state color and `text-1`/`text-2` on the state tints, text on lime and on solid state fills; at least 3:1 for control outlines, the focus ring and the edge of a lime fill. Lowest text pairs: dark `text-3` on your-row tint 4.80, light `win` on surface-3 4.87. Lowest outline: light `border-strong` on surface-3 3.39. Avatar initials 9.41 (Iris) to 13.94 (Butter).
@@ -235,7 +271,7 @@ instead of a hairline border. Dark's page wash is a deeper blue at the top.
 
 ### Where glow and glass may appear
 
-- At most two glow cards in view: the screen's one action card (each root's hero, the kit's
+- Any number of glow cards may be in view (D-56 addendum, October 23, 2026, which replaced D-55's two-card limit), for example the screen's one action card (each root's hero, the kit's
   `gx-card--hero`) and one opened trend.
 - Glass only on a glow card: its pills, tooltips, segmented control and tiles.
 - **Lime exception:** in Dark, lime is the decorative last stop of the chart
@@ -316,6 +352,15 @@ This follows the user’s contrast palette without changing ordinary Light/Dark.
   full names for screen readers. Each view's fine print sits behind the title's ⓘ, and
   your tracked bets lead with a net-units line you can drag and Record / ROI / Win rate
   tiles.
+- **My bets, November 1, 2026:** after the Selection grid release, Sean selected
+  **01 — Roomy cards** from the preview refinement and confirmed **Expand in place,
+  as shown**. Use a compact preview with 20px internal padding and 24px between
+  tickets. Tapping opens the full two-column selection grid with every parlay leg
+  and exact terms; the upward chevron collapses it. Full ticket notes/history
+  remain behind Ticket details. Show recorded matchup marks without inferring a
+  manually entered player's team. Comparison and record/performance content stay
+  inside Filters. This supersedes always-visible full selections and the earlier
+  always-open performance lead for My bets only. Retain both themes and tokens.
 - **Bets › Virtual › Everyone (M-10):** a Your picks / Everyone switch under the pill row.
   - Everyone starts with this week's players: face, name, picks and units, and a
     Qualified pill.

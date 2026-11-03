@@ -8,7 +8,7 @@ import {
   fmtInterval, fmtPct, fmtRecord, fmtUnits, lineText, resultWord, specKey, specNeeds, specTitle, weekMatches,
 } from '../../../../shared/trend-builder.mjs';
 import { lockedTrendText } from '../../../../shared/lines-view.mjs';
-import { Button, Card, InfoButton, NestMeter, Pill, Segmented } from '../ui/index.js';
+import { Button, Card, InfoButton, NestMeter, Pill, Segmented, Skeleton } from '../ui/index.js';
 import { INFO } from '../info.js';
 import { Select } from './PlayerEvidence.jsx';
 import { useBuilderHistory, useSavedTrends, weekGamesFor } from './builderData.js';
@@ -180,7 +180,7 @@ export function TrendBuilder({ lines, market, onMarket }) {
       {notice ? <p className="gx-t-meta" role="status">{notice}</p> : null}
     </section>
     {history.status === 'error' ? <Card role="alert"><p className="gx-t-body">Trend history didn’t load.</p><Button onClick={history.retry}>Retry</Button></Card>
-      : !result ? <p className="gx-t-body" role="status">Loading trend history…</p>
+      : !result ? <Skeleton label="Loading trend history…" shape="panels" count={2}/>
       : <BuilderResult key={specKey(current)} result={result} credit={history.history.meta.source}/>}
     <WeekMatches spec={current} games={games} week={week} status={lines.trends?.status}/>
     <section className="gx-vstack gx-gap-8" aria-label="Saved on this device">

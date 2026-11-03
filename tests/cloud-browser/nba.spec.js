@@ -88,7 +88,7 @@ test('cold NBA entry, actual SQL single/parlay lifecycle, receipts, History, exa
   try {
     await enter(page);
     await expect(page.getByText('Time unavailable', { exact: false }).first()).toBeVisible();
-    expect(world.calls.every(row => row.path === 'nba/games')).toBe(true);
+    expect(world.calls.every(row => ['nba/games', 'lobby'].includes(row.path))).toBe(true);
     await expect(page.getByText('LIVE', { exact: true })).toHaveCount(1);
     await expect(page.getByText('Cached · BALLDONTLIE', { exact: false })).toBeVisible();
     fs.mkdirSync('.local/previews/nba', { recursive: true });
@@ -306,7 +306,7 @@ for (const view of ['next']) test(`${view} sport entry/return, NFL and NBA draft
   const world = await fixture(page, baseURL);
   try {
     await enter(page, '#nba/games?date=2026-10-21', view);
-    expect(world.calls.every(row => row.path === 'nba/games')).toBe(true);
+    expect(world.calls.every(row => ['nba/games', 'lobby'].includes(row.path))).toBe(true);
     // The skip link moves focus into NBA's main region and leaves the address alone, so it never reads as a sport change.
     await page.locator('.gx-nba-skip').focus(); await page.keyboard.press('Enter');
     await expect(page.locator('#nba-main')).toBeFocused();
@@ -322,7 +322,7 @@ for (const view of ['next']) test(`${view} sport entry/return, NFL and NBA draft
     await page.goBack();
     expect(new URL(page.url()).hash).toBe('#nba/games?date=2026-10-21');
     await expect(page.getByRole('heading', { name: 'NBA Games' })).toBeVisible();
-    expect(world.calls.every(row => row.path === 'nba/games')).toBe(true);
+    expect(world.calls.every(row => ['nba/games', 'lobby'].includes(row.path))).toBe(true);
     await page.getByRole('button', { name: 'NFL', exact: true }).click();
     await expect(page.locator('.gx-nba')).toHaveCount(0);
     await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
@@ -337,24 +337,27 @@ for (const view of ['next']) test(`${view} sport entry/return, NFL and NBA draft
     expect(bar.height).toBe(bar.expected);
     await expect(page.locator('.gx-topbar .gx-sport-controls')).toHaveCount(0);
     await expect(page.locator('.gx-sport-controls').getByRole('group', { name: 'Sport', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'NBA', exact: true })).toHaveCount(0);
+    // NBA is hidden from the switch; retained bookmarked routes still honor unsaved-draft guards.
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: /^Play/ }).click();
     // The four-tab Play landing (c6afb02) opens the per-game editor from its one primary action.
     await page.getByRole('button', { name: 'Continue guessing', exact: true }).click();
-    // The current per-game entry owns the Shell dirty registry.
+    // The current per-game entry owns the Shell dirty registry (D-70: a game's card opens from its week tile).
+    await page.locator('.gx-per-game [data-tile]').first().click();
     await page.getByRole('button', { name: /Pick'em/i }).first().click();
     let confirms = 0;
     page.on('dialog', dialog => { confirms++; dialog.dismiss(); });
-    await page.getByRole('group', { name: 'Sport', exact: true }).getByRole('button', { name: 'NBA', exact: true }).click();
-    expect(confirms).toBe(1); await expect(page.locator('.gx-nba')).toHaveCount(0);
+    await page.evaluate(() => { location.hash = '#nba/games'; });
+    await expect.poll(() => confirms).toBe(1); await expect(page.locator('.gx-nba')).toHaveCount(0);
     const nflHash = new URL(page.url()).hash;
     page.removeAllListeners('dialog'); page.on('dialog', dialog => dialog.accept());
-    await page.getByRole('group', { name: 'Sport', exact: true }).getByRole('button', { name: 'NBA', exact: true }).click();
+    await page.evaluate(() => { location.hash = '#nba/games'; });
     await expect(page.getByRole('heading', { name: 'NBA Games' })).toBeVisible();
     await page.getByRole('button', { name: 'NFL', exact: true }).click();
     await expect(page.locator('.gx-nba')).toHaveCount(0);
     expect(new URL(page.url()).hash).toBe(nflHash);
-    await page.getByRole('group', { name: 'Sport', exact: true }).getByRole('button', { name: 'NBA', exact: true }).click();
+    await page.evaluate(() => { location.hash = '#nba/games'; });
     await expect(page.getByRole('heading', { name: 'NBA Games' })).toBeVisible();
     await page.getByRole('button', { name: 'Track bet', exact: true }).first().click();
     await page.getByLabel('Ticket label', { exact: true }).fill('Cross-sport back draft');

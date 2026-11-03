@@ -1,0 +1,44 @@
+name: Research data refresh
+# Free completed-game data only. No odds provider, Supabase key or app deploy.
+on:
+  schedule:
+    # Hourly slots, because GitHub delays or drops scheduled runs under load: with four-hour slots only 5 of about 13 ran
+    # from November 1 to 3, 2026, each 2-3 hours late. The app marks research history stale whenever the nflverse schedule
+    # file changes, so more runs keep it current. Each run takes about two minutes; this repository is public.
+    - cron: '23 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Build and validate without publishing
+        type: boolean
+        default: true
+permissions:
+  contents: write
+concurrency:
+  group: research-data-refresh
+  cancel-in-progress: false
+jobs:
+  refresh:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Build and validate current research
+        run: node scripts/research-refresh.mjs
+      - name: Publish and verify data
+        if: ${{ github.event_name == 'schedule' || inputs.dry_run == false }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/research-publish.mjs
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: research-data-receipt
+          path: .local/research-release/receipt.json
+          if-no-files-found: ignore

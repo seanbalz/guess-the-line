@@ -1,16 +1,31 @@
 // Boundary probes for leagues: the lobby, profiles, private groups and invites, memberships and the
 // community feed. Joined by scripts/check-cloud-boundary.mjs (see guess.mjs).
+import * as moneyline from './epl-moneyline.mjs';
 import { actor, fixtureEmail, missingId, missingLeague } from './fixtures.mjs';
 
 export const tables = Object.freeze([
+  ...moneyline.tables,
   'leagues', 'memberships', 'profiles', 'schedule_templates', 'invites', 'access_audit', 'feed_posts', 'feed_likes', 'feed_comments', 'community_removals',
   // M-21 (hosted since October 27, 2026, RELEASE_2026_10_27_FEED_MIGRATIONS.md): the append-only reaction events.
   'feed_reaction_events',
   // M-25 and M-26 (hosted since October 27, 2026): the features job's records and its schedule.
   'feature_runs', 'badge_events', 'weekly_awards', 'player_streaks', 'features_schedule', 'features_schedule_runs',
+  // M-34: pending private dated standings and immutable deadline references.
+  'epl_standings', 'epl_standings_usage',
+  // M-38 ops alerts (item 22): the schedule, its runs and the incidents. Service-only.
+  'ops_alert_schedule', 'ops_alert_runs', 'ops_incidents',
 ]);
 
 export const rpcChecks = Object.freeze([
+  // M-40: service-only turn advancement; a nonexistent week keeps this inert even if grants regress.
+  ['gtl_epl_advance_queues', { p_season: 0, p_week: 0, p_now: null }],
+  ...moneyline.rpcChecks,
+  // M-34: inert claim IDs/null source only; no real run, snapshot or pick can be written.
+  ['gtl_epl_standings_valid', { p_record: null, p_season: 2026, p_round: 8, p_now: null }],
+  ['gtl_epl_standings_state', { p_run: missingId, p_claim: missingId, p_season: 2026, p_week: 9, p_now: null }],
+  ['gtl_epl_save_standings', { p_run: missingId, p_claim: missingId, p_season: 2026, p_week: 9, p_record: null, p_now: null }],
+  ['gtl_epl_resolve_with_standings', { p_run: missingId, p_claim: missingId, p_season: 2026, p_week: 9, p_rows: null, p_standings: missingId, p_now: null }],
+  ['gtl_epl_standings_provenance', { p_season: 2026, p_week: 9 }],
   ['gtl_read_score_comparison', { p_user: missingId, p_season: 2026, p_league: null, p_now: null }],
   ['gtl_save_profile', { ...actor, p_display_name: 'Boundary check' }],
   ['gtl_lobby', { ...actor, p_email: fixtureEmail }],
@@ -55,6 +70,15 @@ export const rpcChecks = Object.freeze([
   // it writes nothing.
   ['gtl_kickoff_slots', { p_season: 1999, p_week: 1 }],
   ['gtl_write_kickoff_posts', { p_season: 1999, p_week: 1, p_actor: missingId }],
+  // M-38 ops alerts (20261103190000_gtl_ops_alerts.sql, item 22): the cron-only checks and dispatcher, and the worker's claim,
+  // mark, delivery and completion and the test alert, all service-only. The probes name no real run, claim or device.
+  ['gtl_ops_findings', { p_now: null }],
+  ['gtl_dispatch_ops_alerts', {}],
+  ['gtl_claim_ops_alerts', { p_token: '0'.repeat(64), p_run: missingId }],
+  ['gtl_mark_ops_notification', { p_run: missingId, p_claim: missingId, p_incident: 0, p_phase: 'opened' }],
+  ['gtl_record_ops_delivery', { p_run: missingId, p_claim: missingId, p_endpoint: 'https://boundary.invalid/', p_outcome: 'failed' }],
+  ['gtl_complete_ops_alerts', { p_run: missingId, p_claim: missingId, p_reason: null, p_sent: 0, p_failed: 0 }],
+  ['gtl_ops_test_alert', {}],
 ]);
 
 export const apiChecks = Object.freeze([
@@ -81,10 +105,23 @@ export const apiChecks = Object.freeze([
 export const workerChecks = Object.freeze([
   // M-26 (redesign stage 70): the badges, awards and streaks worker, deployed as gtl-league-features v1 on October 27, 2026.
   ['scheduled league features', 'gtl-league-features', { runId: missingId }],
+  // M-38 (item 22): the Supabase job alerts push worker, deployed as gtl-ops-alerts v1 on November 3, 2026.
+  ['scheduled ops alerts', 'gtl-ops-alerts', { runId: missingId }],
 ]);
 
 // /league/comparison is deployed (gtl-api v32) and its D-53 reader is hosted since October 22, 2026. The league feed
 // (redesign stages 61 to 63) is hosted and deployed since October 27, 2026: M-21, M-22 and M-23 applied, and the five
 // /league/* feed routes in gtl-api v38 (RELEASE_2026_10_27_FEED_MIGRATIONS.md), so none of its pieces awaits deploy. So are
-// M-25 and M-26 (redesign stages 69 and 70) with /league/features and /league/features/run (the same record).
-export const awaitingDeploy = Object.freeze({});
+// M-25 and M-26 (redesign stages 69 and 70) with /league/features and /league/features/run (the same record). M-38 (ops
+// alerts, item 22) is hosted as 20261103184656 since November 3, 2026 (RELEASE_2026_11_03_OPS_ALERTS_M38.md).
+export const awaitingDeploy = Object.freeze({
+  ...moneyline.awaitingDeploy,
+  'table/epl_standings': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
+  'table/epl_standings_usage': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
+  'rpc/gtl_epl_standings_valid': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
+  'rpc/gtl_epl_standings_state': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
+  'rpc/gtl_epl_save_standings': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
+  'rpc/gtl_epl_resolve_with_standings': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
+  'rpc/gtl_epl_standings_provenance': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
+  'rpc/gtl_epl_advance_queues': '20261103212932 (M-40 turn queues apply)',
+});

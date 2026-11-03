@@ -32,7 +32,7 @@ async function phone(page, label) {
   await page.evaluate(() => window.scrollTo(0, 0));
   expect(await page.evaluate(layoutProblems), label).toEqual([]);
   const small = await page.locator('.gx').evaluate(root => [...root.querySelectorAll('button, a[href], textarea, input')]
-    .filter(el => el.getClientRects().length && !el.closest('[inert], [hidden]'))
+    .filter(el => el.getClientRects().length && !el.closest('[inert], [hidden], .gx-sr-only:not(.gx-skip-link:focus)'))
     .map(el => ({ text: (el.getAttribute('aria-label') || el.textContent).trim().slice(0, 30), w: el.getBoundingClientRect().width, h: el.getBoundingClientRect().height }))
     .filter(box => box.w < 43.5 || box.h < 43.5));
   expect(small, label).toEqual([]);

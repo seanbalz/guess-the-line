@@ -70,7 +70,9 @@ test('every new-app screen, sheet and menu fits a phone: no clipped text, stray 
         }
         if (address === '#bets/active') {
           for (const value of BET_VIEWS) {
-            await page.getByLabel('Bet tracker view').selectOption(value);
+            const trackerView=page.getByLabel('Bet tracker view',{exact:true});
+            if(!await trackerView.isVisible())await page.locator('.social-filters > summary').click();
+            await trackerView.selectOption(value);
             await page.waitForLoadState('networkidle');
             await check(`${pass} ${address} view ${value}`);
           }
@@ -114,6 +116,7 @@ test('score buttons keep one-line labels and Pick’em keeps its padding at 320 
       }));
       expect(lines.filter(item => item.lines > 1), `${width}px`).toEqual([]);
       await open(page, '#play/picks');
+      await page.locator('.gx-per-game [data-tile]').first().click(); // D-70: the picker is on a game's own card
       const pickem = page.locator('button[data-side="pickem"]').first();
       await expect(pickem).toBeVisible();
       const gap = await pickem.evaluate(button => {

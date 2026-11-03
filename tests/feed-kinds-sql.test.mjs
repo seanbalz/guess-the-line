@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ALL, HOSTED, migrationSql } from './migrations.mjs';
+import { ALL, APPLIED, HOSTED, migrationSql, version } from './migrations.mjs';
 import { ACCOUNTS, createCommunityWorld, pgliteAvailable } from './cloud-browser/community-world.mjs';
 
 // M-13 (20261026130000_gtl_feed_kinds.sql, redesign build plan stage 48): one kind-check swap to the final list and a
@@ -9,10 +9,8 @@ import { ACCOUNTS, createCommunityWorld, pgliteAvailable } from './cloud-browser
 // nothing. Local PGlite only, fixture accounts only.
 const skip = pgliteAvailable ? false : 'Optional local PGlite runtime is not installed; no remote database tests are run.';
 const M13 = ALL.find(file => file.startsWith('20261026130000_'));
-// M-21, M-22, M-23, M-25, M-26, M-27, M-28 and D-61 odds were applied after M-13 on October 27, 2026, and D-59 on October 28;
-// BEFORE_M13 is the hosted schema M-13 was applied to.
-const AFTER_M13 = ['20261026131000_', '20261026132000_', '20261026133000_', '20261026220000_', '20261026230000_', '20261026231000_',
-  '20261026233000_', '20261026234000_', '20261026235000_', '20261027160000_', '20261028120000_', '20261028181000_', '20261028190000_', '20261029060000_'];
+// Exercise the schema preceding M-13, independent of migrations hosted afterward.
+// The canonical ledger tests enforce migration ordering and applied/pending membership.
 const BEFORE_M13 = HOSTED.filter(file => file < M13);
 const OLD_KINDS = ['joined', 'ballot_submitted', 'bet_posted', 'bet_settled', 'week_published', 'points_played', 'points_final'];
 const NEW_KINDS = ['bet_shared', 'challenge_offered', 'challenge_matched', 'challenge_settled', 'kickoff', 'bets_week_settled',
@@ -24,10 +22,9 @@ const insertOld = (db, kind, key) => db.query('insert into public.gtl_feed_posts
 const snapshot = async db => (await db.query('select id,actor_id,kind,season,week,mode,payload,dedupe_key,created_at from public.gtl_feed_posts order by dedupe_key')).rows;
 const check = async db => (await db.query("select pg_get_constraintdef(oid) def, convalidated from pg_constraint where conrelid='public.gtl_feed_posts'::regclass and conname='gtl_feed_posts_kind_check'")).rows;
 
-test('M-13 is the file the ledger names, after every file on main, and carries no function, trigger, grant or row change', () => {
+test('M-13 is applied and carries no function, trigger, grant or row change', () => {
   assert.ok(M13, 'the M-13 file is in the repo');
-  // Hosted since October 27, 2026 (RELEASE_2026_10_27_FEED_MIGRATIONS.md); only the files applied after it sort later.
-  assert.ok(HOSTED.every(file => file <= M13 || AFTER_M13.some(prefix => file.startsWith(prefix))), 'stamped after every file hosted before it');
+  assert.ok(APPLIED.includes(version(M13)), 'M-13 is recorded as applied');
   const sql = migrationSql(M13).replace(/--[^\n]*/g, '');
   assert.doesNotMatch(sql, /\b(?:create|drop)\s+(?:or\s+replace\s+)?(?:function|trigger|table|index)\b/i);
   assert.doesNotMatch(sql, /\b(?:grant|revoke|insert|update|delete|truncate)\b/i);

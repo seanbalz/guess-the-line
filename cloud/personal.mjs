@@ -134,9 +134,9 @@ export async function handlePersonal({ route, body = {}, user, service, clock = 
   if (route === '/journal/archive' && typeof body.archived !== 'boolean') invalid();
   const commit = () => service.rpc('gtl_mutate_personal', { ...actor, p_action: route.slice(1), p_body: payload });
   if (route !== '/personal/ballot') return commit();
-  // A per-game lock-in saves the newest stored line (or the D-27 pending one) without a refresh first: the refresh path's
-  // intent has no lockIn, and the lock-in never depends on a refresh (October 12, 2026).
-  try { return await (submitBallot && payload.lockIn === undefined ? submitBallot(payload, commit) : commit()); }
+  // D-71: a per-game lock-in goes through the same D-17 refresh as a send. Its intent carries lockIn, which
+  // gtl_submission_intent_context (M-07) counts as changed guesses; the save never depends on the refresh (D-27).
+  try { return await (submitBallot ? submitBallot(payload, commit) : commit()); }
   catch (error) {
     // D-24: name the week so the message matches the picks-due notice.
     if (error?.code === 'GTL_PREDICTION_NOT_OPEN') throw new PersonalError(error.status, `Week ${payload.week} picks open Monday 12:00 AM PT.`, error.code);

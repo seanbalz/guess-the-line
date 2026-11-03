@@ -39,8 +39,8 @@ describe('route-group wrappers', () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it('lines lists its readers: reads, never saves, sent as POST to their gtl-api routes', async () => {
-    expect(GROUP_ACTIONS.lines).toEqual({ reads: ['read', 'game', 'research', 'teams'], writes: [] });
+  it('lines distinguishes readers from durable source submissions, sent as POST to their routes', async () => {
+    expect(GROUP_ACTIONS.lines).toEqual({ reads: ['read', 'game', 'research', 'teams', 'assessments', 'research-links'], writes: ['research-submit'] });
     const fetch = vi.fn(async () => new Response(JSON.stringify({ error: 'Lines are not available right now.' }), { status: 503, headers: { 'content-type': 'application/json' } }));
     vi.stubGlobal('fetch', fetch);
     for (const [action, body] of [['read', {}], ['game', { gameId: 'SEA-DEN' }], ['research', { period: 'recent30' }]]) {

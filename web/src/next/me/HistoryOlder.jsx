@@ -5,7 +5,7 @@
 // (DP-4). Private records come only to their owner (/me/records decides); nothing here writes.
 import { useId } from 'react';
 import { socialApi } from '../../api.js';
-import { Avatar, Button, Card, Icon, LinkRow, List, Pill, Row } from '../ui/index.js';
+import { Avatar, Button, Card, Icon, LinkRow, List, Pill, Row, Skeleton } from '../ui/index.js';
 import { useShell } from '../shell/context.js';
 import { useAppData } from '../data/AppData.jsx';
 import { LeagueFailure, useLeagueRead } from '../league/useLeagueRead.jsx';
@@ -29,7 +29,7 @@ export function HistoryOlder({ args }) {
   const section = olderSections.find(item => item.id === args.older)?.id ?? null;
   // Real slips read their own route (/social/read), so they stay reachable while /me/records is not available yet (M-27).
   const off = records.error?.status === 503;
-  if (records.loading) return <p className="gx-t-body gx-c-2" role="status">{OLDER_COPY.loading}</p>;
+  if (records.loading) return <Skeleton label={OLDER_COPY.loading} shape="rows" count={4}/>;
   if (records.error && !off) return <LeagueFailure error={records.error} onRetry={records.retry}/>;
   const data = records.data, open = id => shell.setPageArgs({ older: id });
   const available = off ? olderSections.filter(item => item.id === 'slips') : olderSections;
@@ -160,7 +160,7 @@ function Slips({ args }) {
   const week = Number.isInteger(args.slipsWeek) ? args.slipsWeek : null, season = Number.isInteger(args.slipsSeason) ? args.slipsSeason : null;
   const read = useLeagueRead(`${app.accountId}:history-slips:${season ?? 'latest'}:${week ?? 'latest'}`, signal => socialApi('read', week ? { season, week } : {}, app.accountId, signal),
     error => { if (error.status === 401) app.requestSignIn?.(); });
-  if (read.loading) return <p className="gx-t-body gx-c-2" role="status">{OLDER_COPY.loading}</p>;
+  if (read.loading) return <Skeleton label={OLDER_COPY.loading} shape="rows" count={4}/>;
   if (read.error) return <LeagueFailure error={read.error} onRetry={read.retry}/>;
   const data = read.data, weeks = data.availableWeeks || [], entries = data.entries || [];
   return <>

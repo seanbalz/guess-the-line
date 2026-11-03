@@ -1,0 +1,23 @@
+.gx .gx-ra { overflow-wrap: anywhere; }
+.gx .gx-ra-heading { display: flex; gap: var(--gx-space-2); align-items: center; }
+.gx .gx-ra-heading h1 { flex: 1; min-width: 0; }
+.gx .gx-ra-filters { display: grid; gap: var(--gx-space-3); }
+.gx .gx-ra-select { display: flex; flex-direction: column; gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-ra-select :where(select,input) { min-height: var(--gx-size-touch); width: 100%; min-width: 0; padding: var(--gx-space-2); color: var(--gx-text-1); background: var(--gx-surface-2); border: 1px solid var(--gx-border-strong); border-radius: var(--gx-radius-sm); font: inherit; }
+.gx .gx-ra-tile { display: flex; flex-direction: column; align-items: flex-start; gap: var(--gx-space-2); padding: var(--gx-space-3); min-height: var(--gx-size-touch); width: 100%; text-align: start; border: 1px solid var(--gx-border-strong); border-radius: var(--gx-radius-sm); cursor: pointer; color: var(--gx-text-1); background: var(--gx-surface-2); }
+.gx .gx-ra [data-assessment="yellow"] { background: var(--gx-pending-tint); border-color: var(--gx-pending); }
+.gx .gx-ra [data-assessment="red"] { background: var(--gx-loss-tint); border-color: var(--gx-loss); }
+.gx .gx-ra [data-assessment="green"] { background: var(--gx-win-tint); border-color: var(--gx-win); }
+.gx .gx-ra-evidence { min-width: 0; }
+.gx .gx-ra-evidence summary { display: flex; align-items: center; min-height: var(--gx-size-touch); cursor: pointer; font-size: 16px; color: var(--gx-data); }
+.gx .gx-ra-evidence[open] { display: flex; flex-direction: column; gap: var(--gx-space-3); }
+.gx .gx-ra-link { display: inline-flex; align-items: center; min-height: var(--gx-size-touch); color: var(--gx-data); font-size: 16px; }
+.gx .gx-ra-links { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--gx-space-3); }
+.gx .gx-ra-links li { display: flex; flex-direction: column; }
+.gx .gx-ra :where(button,input,select,summary,a):focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
+@media (max-width: 400px) {
+  .gx .gx-ra-heading { position: relative; display: block; }
+  .gx .gx-ra-heading h1 { overflow-wrap: normal; }
+  .gx .gx-ra-heading > .gx-info-btn { position: absolute; inset-block-start: 0; inset-inline-end: 0; }
+}
+@media (forced-colors: active) { .gx .gx-ra-tile { border-color: ButtonText; } }

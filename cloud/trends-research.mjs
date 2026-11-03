@@ -5,6 +5,8 @@ import { RESEARCH_VERSION, RESEARCH_PERIODS, applyAccessibleLines, applyResearch
 import { researchLean, researchShortlist } from '../shared/trends-research.mjs';
 import { projectReviewedSources, validateReviewedFeed } from '../shared/trends-research-sources.mjs';
 import { easternToUtc } from '../shared/nfl-schedule.mjs';
+import { matchupStatistics } from '../shared/matchup-statistics.mjs';
+import { projectPlayStatistics } from '../shared/research-play-statistics.mjs';
 
 const FIVE_MINUTES = 300000, BACKOFF = 60000;
 const observationBoundary = time => Math.floor((time - 43200000) / 86400000);
@@ -44,7 +46,7 @@ export function createResearchProvider({ loadSchedule, loadSnapshot = async () =
   }
   // The server-only loader bounds its decoded-period cache. Do not pin every
   // period here or reuse a recent30 snapshot for a later Explore period.
-  const snapshot = period => Promise.resolve().then(() => loadSnapshot(period)).catch(() => null);
+  const snapshot = (period, season) => Promise.resolve().then(() => loadSnapshot(period, season)).catch(() => null);
   async function material() {
     const at = clock();
     if (source && at - source.fetchedAt < FIVE_MINUTES && !failed) return source;
@@ -75,7 +77,7 @@ export function createResearchProvider({ loadSchedule, loadSnapshot = async () =
   }
   return { async read({ board, ...request }) {
     const options = validateResearchRequest(request);
-    const [data, prepared] = await Promise.all([material(), snapshot(options.period)]);
+    const [data, prepared] = await Promise.all([material(), snapshot(options.period, board.season)]);
     const preparedAt = clock();
     const snapshotShape = prepared?.version === RESEARCH_VERSION && Array.isArray(prepared.candidates) && Array.isArray(prepared.targets);
     const hashMatches = snapshotShape && data && await fingerprint(data, preparedAt) === prepared.source.completedSha256;
@@ -152,6 +154,8 @@ export function createResearchProvider({ loadSchedule, loadSnapshot = async () =
         ...(chart ? { series: { ...sample.series, points: sample.series.points.map(p => ({ ...p, from: new Date(p.from).toISOString(), to: new Date(p.to).toISOString() })) } } : {}) };
     }).sort((a, b) => a.id.localeCompare(b.id));
     return { version: RESEARCH_VERSION, season: board.season, week: board.week, now, history, ...publicSources, shortlist, candidates, games, explore,
+      statistics: data ? matchupStatistics(board, data.rows, decisionAt, finalAvailableAt) : [],
+      playStatistics: projectPlayStatistics((prepared?.playStatistics ?? []).filter(s => s.week === board.week && board.games.some(g => g.id === s.gameId && Date.parse(g.kickoff) === Date.parse(s.kickoff))), board, decisionAt),
       filters: { period: options.period, market: options.market ?? null, family: options.family ?? null, team: options.team ?? null, periods: RESEARCH_PERIODS, families: [...new Set(candidates.map(c => c.family))].sort() } };
   } };
 }

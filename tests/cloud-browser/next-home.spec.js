@@ -53,13 +53,13 @@ async function phoneChecks(page, root = '.gx') {
   await settle(page);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'no side scroll').toBe(true);
   const report = await page.locator(root).first().evaluate(scope => {
-    const visible = el => { const s = getComputedStyle(el); return s.visibility !== 'hidden' && el.getClientRects().length > 0 && !el.closest('[inert], [hidden], dialog:not([open])'); };
+    const visible = el => { const s = getComputedStyle(el); return s.visibility !== 'hidden' && el.getClientRects().length > 0 && !el.closest('[inert], [hidden], dialog:not([open]), .gx-sr-only:not(.gx-skip-link:focus)'); };
     const targets = [...scope.querySelectorAll('button,a[href],input,select,textarea,summary,[role=button]')].filter(visible)
       .map(el => { const r = el.getBoundingClientRect(); return { name: (el.getAttribute('aria-label') || el.textContent).trim().slice(0, 40), w: Math.round(r.width), h: Math.round(r.height) }; })
       .filter(r => r.w < 44 || r.h < 44);
     const small = [], clipped = [];
     for (const el of [scope, ...scope.querySelectorAll('*')]) {
-      if (!visible(el) || el.closest('.gx-sr-only') || ![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
+      if (!visible(el) || el.closest('.gx-sr-only:not(.gx-skip-link:focus)') || ![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
       if (parseFloat(getComputedStyle(el).fontSize) < 12) small.push(el.textContent.trim().slice(0, 40));
       if (!el.closest('.gx-truncate') && el.scrollWidth > el.clientWidth + 1) clipped.push(el.textContent.trim().slice(0, 40));
       const r = el.getBoundingClientRect();
@@ -182,6 +182,27 @@ test('Home has one primary task and compact shortcuts, with no writes or hidden-
     expect(calls.filter(call => !READS.includes(call)), 'Home writes nothing and reads only the shared feed, score history and own settings').toEqual([]);
     expect(calls.filter(call => call.startsWith('POST ')).every(call => READS.includes(call)), 'POSTs are read-only feed, scores and own settings').toBe(true);
     expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('D-69: nothing animates on the first paint; a tab change after the launch fades only the screen, never the bars', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL);
+  try {
+    await page.addInitScript(() => {
+      window.__anims = [];
+      // getAttribute reads an SVG target's class too (its className is an SVGAnimatedString).
+      document.addEventListener('animationstart', event => window.__anims.push({ name: event.animationName, cls: event.target.getAttribute?.('class') ?? '' }), true);
+    });
+    await tryNewApp(page);
+    await page.waitForTimeout(1200);
+    // The LIVE dot is the one loop, and the countdown's digit tick (gx-rise-in on a .gx-cd-tick digit) belongs to the
+    // clock, not to the page load.
+    const onLoad = await page.evaluate(() => window.__anims.filter(a => a.name !== 'gx-live-pulse' && !(a.name === 'gx-rise-in' && /(^|\s)gx-cd-tick(\s|$)/.test(a.cls))));
+    expect(onLoad, 'no animation on page load').toEqual([]);
+    await tab(page, 'Play').click();
+    await expect.poll(() => page.evaluate(() => window.__anims.some(a => a.name === 'gx-fade-in' && /gx-screen/.test(a.cls)))).toBe(true);
+    const barMoved = await page.evaluate(() => window.__anims.some(a => /gx-(tabbar|topbar|dock)/.test(a.cls)));
+    expect(barMoved, 'the bars never animate').toBe(false);
   } finally { await world.db.close(); }
 });
 

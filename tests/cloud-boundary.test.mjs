@@ -1,12 +1,36 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { awaitingDeploy, checkCloudBoundary } from '../scripts/check-cloud-boundary.mjs';
+import { NOT_HOSTED } from './migrations.mjs';
 
 const options = { url: 'https://onmrgvcehkflfaizvedl.supabase.co', key: 'sb_publishable_boundary_fixture', log() {} };
 function denied(url, request) {
   const schema = request.headers['Accept-Profile'];
   return new Response(JSON.stringify({ code: schema ? 'PGRST106' : '42501', message: 'Permission denied.' }), { status: schema ? 406 : 401 });
 }
+
+test('hosted M-32 tables and all six RPCs must deny access, not disappear or grant it', async t => {
+  const paths = [
+    '/rest/v1/gtl_epl_guesses?', '/rest/v1/gtl_epl_guess_history?',
+    ...['moneyline_distance', 'guess_json', 'save_guess', 'resolve_pending_references', 'guess_board', 'guess_leaderboard']
+      .map(name => `/rest/v1/rpc/gtl_epl_${name}`),
+  ];
+  for (const target of paths) {
+    const matches = url => new URL(url).pathname === target.replace(/\?$/, '');
+    await t.test(target, async () => {
+      let seen = 0;
+      await checkCloudBoundary({ ...options, strict: true, fetchImpl: async (url, request) => {
+        if (matches(url)) { seen++; assert.equal(request.headers.Authorization, undefined); }
+        return denied(url, request);
+      } });
+      assert.equal(seen, 1, 'each newly hosted boundary is actually probed');
+      for (const status of [200, 404]) await assert.rejects(() => checkCloudBoundary({ ...options, strict: true,
+        fetchImpl: async (url, request) => matches(url)
+          ? new Response(JSON.stringify({ code: 'PGRST202' }), { status }) : denied(url, request),
+      }), new RegExp(`unexpected ${status}`));
+    });
+  }
+});
 
 test('boundary probes reviewed results without credentials, real actors or valid write payloads', async () => {
   const captured = [];
@@ -166,6 +190,31 @@ test('M-26 features schedule: the dispatcher, claim and completion and its two t
     [[null, { runId: '00000000-0000-0000-0000-000000000000' }], [`Bearer ${'0'.repeat(64)}`, { runId: '00000000-0000-0000-0000-000000000000' }]]);
   await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (url.endsWith('/functions/v1/gtl-league-features')
     ? new Response(JSON.stringify({ code: 'NOT_FOUND' }), { status: 404 }) : denied(url, request)) }), /scheduled league features without machine token: unexpected 404/);
+});
+
+test('M-38 ops alerts: its three tables, seven functions and the gtl-ops-alerts worker are probed with inert fixtures; hosted and deployed, none awaits, and a not-found answer fails', async () => {
+  // 20261103190000_gtl_ops_alerts.sql (item 22) is hosted as 20261103184656, and gtl-ops-alerts is deployed as v1 (November 3, 2026).
+  const rpcs = ['gtl_ops_findings', 'gtl_dispatch_ops_alerts', 'gtl_claim_ops_alerts', 'gtl_mark_ops_notification', 'gtl_record_ops_delivery', 'gtl_complete_ops_alerts', 'gtl_ops_test_alert'];
+  const tables = ['ops_alert_schedule', 'ops_alert_runs', 'ops_incidents'];
+  for (const key of [...rpcs.map(rpc => `rpc/${rpc}`), ...tables.map(table => `table/${table}`)]) assert.ok(!Object.hasOwn(awaitingDeploy, key), key);
+  const captured = [];
+  await checkCloudBoundary({ ...options, fetchImpl: async (url, request) => { captured.push({ url, request }); return denied(url, request); } });
+  for (const table of tables) assert.ok(captured.some(({ url }) => url.includes(`/rest/v1/gtl_${table}?`)), table);
+  const body = rpc => JSON.parse(captured.find(({ url }) => url.endsWith(`/rest/v1/rpc/${rpc}`)).request.body);
+  const missingId = '00000000-0000-0000-0000-000000000000';
+  assert.deepEqual(body('gtl_claim_ops_alerts'), { p_token: '0'.repeat(64), p_run: missingId }, 'never a real capability');
+  for (const rpc of ['gtl_mark_ops_notification', 'gtl_record_ops_delivery', 'gtl_complete_ops_alerts']) assert.deepEqual([body(rpc).p_run, body(rpc).p_claim], [missingId, missingId], rpc);
+  assert.notEqual(body('gtl_record_ops_delivery').p_outcome, 'gone', 'the delivery probe never asks to remove a device');
+  await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (url.endsWith('/rest/v1/rpc/gtl_claim_ops_alerts')
+    ? new Response(JSON.stringify({ code: 'PGRST202' }), { status: 404 }) : denied(url, request)) }), /gtl_claim_ops_alerts RPC: unexpected 404/, 'a missing function fails the default check');
+  await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (url.includes('/rest/v1/gtl_ops_incidents?')
+    ? new Response(JSON.stringify({ code: 'PGRST205' }), { status: 404 }) : denied(url, request)) }), /ops_incidents table: unexpected 404/, 'a missing table fails the default check');
+  // The worker is called without and with an invalid machine token, naming no run; a not-found answer fails.
+  const worker = captured.filter(({ url }) => url.endsWith('/functions/v1/gtl-ops-alerts'));
+  assert.deepEqual(worker.map(({ request }) => [request.headers.Authorization ?? null, JSON.parse(request.body)]),
+    [[null, { runId: missingId }], [`Bearer ${'0'.repeat(64)}`, { runId: missingId }]]);
+  await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (url.endsWith('/functions/v1/gtl-ops-alerts')
+    ? new Response(JSON.stringify({ code: 'NOT_FOUND' }), { status: 404 }) : denied(url, request)) }), /scheduled ops alerts without machine token: unexpected 404/);
 });
 
 test('referee probes are hosted and deployed, so they are no longer awaiting and a not-found answer fails', async t => {
@@ -449,9 +498,16 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
   for (const key of ['rpc/gtl_place_bets', 'rpc/gtl_bets_newest_quote', 'rpc/gtl_bets_terms', 'gtl-api/bets/place']) assert.ok(!Object.hasOwn(awaitingDeploy, key), key);
   // M-19 is hosted since October 28, 2026 (RELEASE_2026_10_28_AUTO_SETTLE.md): nothing awaits deploy.
   for (const key of Object.keys(m19)) assert.ok(!Object.hasOwn(awaitingDeploy, key), key);
-  assert.deepEqual(awaitingDeploy, {}, 'nothing is awaiting deploy');
+  // API v43 deployed all four EPL readers/writer routes on October 29; pending M33 schema is separate.
+  for (const route of ['epl/guess/read','epl/guess/save','epl/guess/leaderboard','epl/admin/corrections/read'])
+    assert.equal(awaitingDeploy[`gtl-api/${route}`], undefined);
+  for (const [key, until] of Object.entries(awaitingDeploy)) {
+    const version = /^(\d{14})\b/.exec(until);
+    assert.ok(version, `${key}: pending descriptors name their migration version`);
+    assert.ok(NOT_HOSTED.includes(Number(version[1])), `${key}: an applied migration cannot retain an absence exception`);
+  }
   const result = await checkCloudBoundary({ ...options, fetchImpl: denied });
-  assert.equal(result.awaiting.length, 0, 'every probe denies once hosted and deployed');
+  assert.equal(result.awaiting.length, 0, 'every present resource must deny access, even while its rollout is pending');
   await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (url.endsWith('/functions/v1/gtl-api/lines/teams')
     ? new Response(JSON.stringify({ error: 'Not found.' }), { status: 404 }) : denied(url, request)) }), /lines\/teams without session: unexpected 404/);
   // M-27 and M-28 are hosted and deployed: a missing History or Export function or route is now an unexpected 404.

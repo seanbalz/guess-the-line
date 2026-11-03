@@ -49,7 +49,7 @@ async function ready(page,baseURL,{ stale = false, chartValues = false, landing 
 async function phone(page) {
  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
  const problems = await page.locator('.gx').evaluate(root => {
-  const visible = e => e.getClientRects().length && !e.closest('[hidden],[inert],dialog:not([open])');
+  const visible = e => e.getClientRects().length && !e.closest('[hidden],[inert],dialog:not([open]),.gx-sr-only:not(.gx-skip-link:focus)');
   const bad = [...root.querySelectorAll('button,a[href],select,summary')].filter(visible).filter(e => { const r=e.getBoundingClientRect();return r.width<43.5||r.height<43.5; }).map(e=>e.textContent);
   for (const tab of root.querySelectorAll('.gx-tabbar button')) { const r = tab.getBoundingClientRect(); if (r.left < -.5 || r.right > innerWidth + .5) bad.push('Navigation tab clipped'); }
   return bad;
@@ -331,20 +331,45 @@ test('published week, market gates, team filters, game sheets/back, player windo
   expect(world.errors).toEqual([]);
  } finally {await world.db.close();}
 });
-test('fixture screenshots and axe at 320/390 in light/dark for This Week and populated Players',async({page,baseURL})=>{
+test('loaded Trends columns, navigation and axe at 320/390/1390 in light/dark across all sections',async({page,baseURL},testInfo)=>{
  test.setTimeout(120000); const world=await ready(page,baseURL,{stale:true});
  try{
-  for(const theme of ['dark','light'])for(const width of [320,390]){
-   await page.setViewportSize({width,height:844});await page.evaluate(t=>document.documentElement.setAttribute('data-theme',t),theme);
+  for(const theme of ['dark','light'])for(const width of [320,390,1390]){
+   await page.setViewportSize({width,height:width===1390?869:844});
+   await page.evaluate(t=>{localStorage.setItem('gtl.theme',t);window.dispatchEvent(new StorageEvent('storage',{key:'gtl.theme',newValue:t}));},theme);
+   await expect(page.locator('html')).toHaveAttribute('data-theme',theme);
+   const frame=async()=>{
+    const geometry=await page.locator('.gx-trends').evaluate(el=>{
+     const rect=el.getBoundingClientRect(),header=document.querySelector('.gx-topbar-inner').getBoundingClientRect(),title=el.querySelector('h1').getBoundingClientRect();
+     return {width:rect.width,headerWidth:header.width,left:rect.left,headerLeft:header.left,inset:title.left-rect.left,gutter:parseFloat(getComputedStyle(el).getPropertyValue('--gx-size-gutter'))};
+    });
+    expect(geometry.width).toBeCloseTo(geometry.headerWidth,0);expect(geometry.left).toBeCloseTo(geometry.headerLeft,0);expect(geometry.inset).toBeCloseTo(geometry.gutter,0);
+    const wrappedWords=await group(page,'Trends section').locator('button').evaluateAll(buttons=>buttons.filter(button=>{
+     const range=document.createRange();range.selectNodeContents(button);return range.getClientRects().length>1;
+    }).map(button=>button.textContent));
+    expect(wrappedWords,'Trends section names remain readable without word splitting').toEqual([]);
+    await expect(nav(page).getByRole('button',{name:'Research',exact:true})).toHaveAttribute('aria-current','page');
+    await expect(page.getByRole('button',{name:'Your menu',exact:true})).toBeVisible();
+   };
+   await frame();
    await group(page,'Trends section').getByRole('button',{name:'This Week',exact:true}).click();
    await expect(page.locator('[data-trend-availability]')).toContainText('2026-10-12'); await expect(page.locator('[data-trend-availability]')).toContainText('Stale');
    await phone(page);await noSentinel(page);
    expect((await new AxeBuilder({page}).include('.gx').withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze()).violations.map(v=>v.id)).toEqual([]);
    await page.screenshot({path:'.local/trends-week-'+width+'-'+theme+'.png',fullPage:true});
    await page.screenshot({path:'.local/trends-week-'+width+'-'+theme+'-viewport.png'});
+   for(const section of ['Teams','Build']){
+    await group(page,'Trends section').getByRole('button',{name:section,exact:true}).click();
+    await expect(page.getByRole('heading',{name:section==='Teams'?'Teams':'Build a trend',exact:true})).toBeVisible();
+    if(section==='Build')await page.getByRole('combobox',{name:'Add a condition',exact:true}).selectOption({label:'Not a divisional game'});
+    await frame();await phone(page);await noSentinel(page);
+    expect((await new AxeBuilder({page}).include('.gx').withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze()).violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.target)}))).toEqual([]);
+    await page.screenshot({path:testInfo.outputPath(`trends-${section.toLowerCase()}-${width}-${theme}.png`),fullPage:true});
+    if(section==='Build')await page.getByRole('button',{name:/^Remove condition:/}).click();
+   }
    await group(page,'Trends section').getByRole('button',{name:'Players',exact:true}).click();
    const pl=page.getByRole('region',{name:'Player trends',exact:true});
-   const check=async name=>{ await phone(page);await noSentinel(page);
+   const check=async name=>{ await frame();await phone(page);await noSentinel(page);
     expect((await new AxeBuilder({page}).include('.gx').withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze()).violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.target)}))).toEqual([]);
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     await page.screenshot({path:'.local/trends-players-'+name+'-'+width+'-'+theme+'.png',fullPage:true}); };
@@ -477,6 +502,35 @@ test('trend builder: conditions, honest result card, this week’s matches, save
   await page.getByRole('button',{name:'Delete saved trend: Spread · Road team · Not a divisional game',exact:true}).click();
   await expect(page.getByText('No saved trends on this device yet.')).toBeVisible();
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('gtl.trends.saved')).items)).toEqual([]);
+  expect(world.errors).toEqual([]);
+ }finally{await world.db.close();}
+});
+test('D-69: the session\'s first layer change rises in; the launch screen never moves, even after a press',async({page,baseURL})=>{
+ const world=await ready(page,baseURL);
+ try{
+  const week=page.getByRole('region',{name:'Week trends',exact:true}), card=week.locator('.gx-nest-card');
+  await expect(card).not.toHaveAttribute('data-enter',/./);
+  await page.locator('[data-trend-availability]').click(); // a press on words: the member is here, still on the launch screen
+  await expect(card).not.toHaveAttribute('data-enter',/./);
+  await week.locator('[data-game=CAR-PHI]').click(); // the first navigation of the session is this layer change
+  await expect(week.getByRole('heading',{level:2,name:'Carolina Panthers at Philadelphia Eagles',exact:true})).toBeFocused();
+  await expect(card,'a deeper layer rises in').toHaveAttribute('data-enter','in');
+  expect(world.errors).toEqual([]);
+ }finally{await world.db.close();}
+});
+test('D-69: on a launch at a deeper layer, the session\'s first Back settles the parent',async({page,baseURL})=>{
+ const world=await ready(page,baseURL);
+ try{
+  const week=page.getByRole('region',{name:'Week trends',exact:true}), card=week.locator('.gx-nest-card');
+  await page.goto('about:blank'); await page.goto('/#research/trends?weekGame=CAR-PHI');
+  const game=week.getByRole('heading',{level:2,name:'Carolina Panthers at Philadelphia Eagles',exact:true});
+  await expect(game).toBeVisible();
+  await expect(card).not.toHaveAttribute('data-enter',/./);
+  await game.click(); // a press on the layer's heading: the member is here, still on the launch screen
+  await expect(card).not.toHaveAttribute('data-enter',/./);
+  await week.getByRole('button',{name:'Back to This week',exact:true}).click(); // the session's first navigation
+  await expect(week.getByRole('heading',{level:2,name:'This week',exact:true})).toBeVisible();
+  await expect(card,'the restored parent settles').toHaveAttribute('data-enter','back');
   expect(world.errors).toEqual([]);
  }finally{await world.db.close();}
 });

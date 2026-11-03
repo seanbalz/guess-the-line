@@ -1,5 +1,6 @@
-// Contract: content-addressed names; the index is replaced last and only names files that exist; superseded copies are
-// pruned to the newest three per week; malformed indexes are refused.
+// Contract: content-addressed names; the index is replaced last and only names files that exist; superseded review copies
+// are pruned to the newest three per week; a snapshot copy is never pruned, because a Points slate cites whichever copy the
+// index named when the worker drafted it; malformed indexes are refused.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { snapshotFileName, reviewFileName, updateFantasyIndex, validateFantasyIndex, assetsToPrune, publishPlan } from '../shared/fantasy-index.mjs';
@@ -34,11 +35,46 @@ test('validation refuses wrong names, oversize files, duplicate weeks and unknow
   ]) assert.equal(validateFantasyIndex(broken).valid, false);
 });
 
-test('pruning keeps indexed files and the three newest superseded copies per week', () => {
-  const index = updateFantasyIndex(null, { season: 2026, snapshot: snap(7, 'f'), review: null, updatedAt: '2026-10-21T11:00:00Z' });
-  const assets = ['a', 'b', 'c', 'd', 'e', 'f'].map((c, i) => ({ name: snapshotFileName(2026, 7, sha(c)), createdAt: `2026-10-1${i}T11:00:00Z` }))
-    .concat([{ name: 'index.json', createdAt: '2026-10-21T11:00:00Z' }]);
-  assert.deepEqual(assetsToPrune(assets, index), [snapshotFileName(2026, 7, sha('a')), snapshotFileName(2026, 7, sha('b'))]);
+test('pruning keeps the indexed review and its three newest superseded copies per week, and every snapshot copy', () => {
+  const index = updateFantasyIndex(null, { season: 2026, snapshot: snap(7, 'f'), review: rev(6, 'f'), updatedAt: '2026-10-21T11:00:00Z' });
+  const copies = (name, week) => ['a', 'b', 'c', 'd', 'e', 'f'].map((c, i) => ({ name: name(2026, week, sha(c)), createdAt: `2026-10-1${i}T11:00:00Z` }));
+  const assets = [...copies(snapshotFileName, 7), ...copies(reviewFileName, 6), { name: 'index.json', createdAt: '2026-10-21T11:00:00Z' }];
+  assert.deepEqual(assetsToPrune(assets, index), [reviewFileName(2026, 6, sha('a')), reviewFileName(2026, 6, sha('b'))]);
+});
+
+// One week's publishes as scripts/fantasy-publish.mjs runs them: the asset list is read before the uploads, then each step
+// is applied. Returns the asset names left on the release.
+function publishWeek(runs) {
+  let index = null, assets = [];
+  for (const run of runs) {
+    index = updateFantasyIndex(index, { season: 2026, snapshot: run.snapshot ?? null, review: null, updatedAt: run.at });
+    if (run.review) index = updateFantasyIndex(index, { season: 2026, snapshot: null, review: run.review, updatedAt: run.at });
+    const files = [run.snapshot?.file, run.review?.file].filter(Boolean);
+    const steps = publishPlan({ files, existing: assets.map(a => a.name), index, assets });
+    for (const step of steps) {
+      if (step.action === 'delete') assets = assets.filter(a => a.name !== step.name);
+      else if (step.name !== 'index.json') assets.push({ name: step.name, createdAt: run.at });
+    }
+  }
+  return assets.map(a => a.name);
+}
+
+test('a snapshot copy a Points slate may cite survives every later publish of its week (the first copy and any later one)', () => {
+  // Week 8 as November 3 could run it: four Tuesday copies land before the worker's 10:30 UTC catch-up run, which drafts
+  // from the copy index.json names then (the fourth, not the first), then daily copies until the weekend freeze. Each run
+  // also rebuilds the provisional Week 7 review.
+  const at = ['2026-11-03T09:20:00Z', '2026-11-03T09:50:00Z', '2026-11-03T10:05:00Z', '2026-11-03T10:20:00Z', '2026-11-03T13:20:00Z',
+    '2026-11-03T14:00:00Z', '2026-11-04T15:00:00Z', '2026-11-05T15:00:00Z', '2026-11-06T15:00:00Z', '2026-11-07T15:00:00Z', '2026-11-08T15:00:00Z'];
+  const marks = 'abcdef0123456789';
+  const runs = at.map((time, i) => ({ at: time, snapshot: snap(8, marks[i], { generatedAt: time }), review: rev(7, marks[i]) }));
+  const first = runs[0].snapshot.file, cited = runs.filter(run => run.at < '2026-11-03T10:30:00Z').at(-1).snapshot.file;
+  assert.notEqual(cited, first, 'the slate cites a later copy than the first one');
+  const left = publishWeek(runs);
+  assert.ok(left.includes(first), 'the first copy of the week is kept');
+  assert.ok(left.includes(cited), 'the copy the slate cites is kept');
+  assert.deepEqual(left.filter(name => name.includes('-week-08.')).sort(), runs.map(run => run.snapshot.file).sort(), 'no snapshot copy is pruned');
+  assert.deepEqual(left.filter(name => name.includes('-review-week-07.')).sort(), runs.slice(-4).map(run => run.review.file).sort(),
+    'reviews keep the indexed copy and the three newest superseded ones');
 });
 
 test('publish order: new data files without clobber, then index.json with clobber, then prunes', () => {
@@ -58,12 +94,12 @@ test('publishing refuses an index that names a file neither uploaded nor already
 });
 
 test('superseded copies are deleted only after index.json is uploaded', () => {
-  const index = updateFantasyIndex(null, { season: 2026, snapshot: snap(7, 'f'), review: null, updatedAt: '2026-10-21T11:00:00Z' });
-  const assets = ['a', 'b', 'c', 'd', 'e'].map((c, i) => ({ name: snapshotFileName(2026, 7, sha(c)), createdAt: `2026-10-1${i}T11:00:00Z` }));
-  const steps = publishPlan({ files: [index.snapshots[0].file], existing: assets.map(a => a.name), index, assets });
+  const index = updateFantasyIndex(null, { season: 2026, snapshot: null, review: rev(7, 'f'), updatedAt: '2026-10-21T11:00:00Z' });
+  const assets = ['a', 'b', 'c', 'd', 'e'].map((c, i) => ({ name: reviewFileName(2026, 7, sha(c)), createdAt: `2026-10-1${i}T11:00:00Z` }));
+  const steps = publishPlan({ files: [index.reviews[0].file], existing: assets.map(a => a.name), index, assets });
   assert.deepEqual(steps.map(s => `${s.action}:${s.name}`), [
-    `upload:${index.snapshots[0].file}`, 'upload:index.json',
-    `delete:${snapshotFileName(2026, 7, sha('a'))}`, `delete:${snapshotFileName(2026, 7, sha('b'))}`,
+    `upload:${index.reviews[0].file}`, 'upload:index.json',
+    `delete:${reviewFileName(2026, 7, sha('a'))}`, `delete:${reviewFileName(2026, 7, sha('b'))}`,
   ]);
 });
 

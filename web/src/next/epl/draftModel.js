@@ -31,6 +31,8 @@ export const PICK_COPY = Object.freeze({
   closed: 'The draft has locked.',
   pickFailed: 'Your pick didn’t save. Try again.',
   queueSaved: 'Backup ranking saved.',
+  backupAssigned: name => `${name} was assigned from your backup ranking.`,
+  backupConfirmed: 'Backup pick confirmed',
   queueFailed: 'Your backup ranking didn’t save. Try again.',
   loading: 'Loading the Pick a Team draft',
   failed: 'Pick a Team didn’t load.',
@@ -69,10 +71,13 @@ export function boardModel(read, now) {
   const first = [...clubs].filter(c => ms(c.kickoff) !== null).sort((a, b) => ms(a.kickoff) - ms(b.kickoff) || (b.home ? 1 : 0) - (a.home ? 1 : 0))[0];
   const firstHome = first ? (first.home ? first : clubOf.get(first.opponent) ?? null) : null;
   const myNode = nodes.find(n => n.me) ?? null;
+  const myPick = me !== null ? picks.get(me) : null;
+  const backupPick = myPick?.source === 'queue' && myPick.club && ms(myPick.pickedAt) !== null
+    ? { club: myPick.club, name: nameOfClub(myPick.club), key: JSON.stringify([read.season, read.week, me, myPick.club, myPick.pickedAt]) } : null;
   return {
     season: read.season, week: read.week, status: read.status, deadline: read.deadline, locked,
     review: read.status === 'needs_review',
-    me, canPick, changing: canPick && me !== onTheClock,
+    me, canPick, changing: canPick && me !== onTheClock, backupPick, queueOnTurn: read.queueOnTurn === true,
     onClockName: nodes.find(n => n.onClock)?.name ?? null, onClockMe: onTheClock !== null && onTheClock === me,
     nodes, picksIn: taken.size, total: nodes.length,
     available: clubs.filter(c => !taken.has(c.code)),
@@ -87,6 +92,12 @@ export function boardModel(read, now) {
       : null,
     clubs,
     bonus: Array.isArray(read.bonusLastWeek) ? read.bonusLastWeek : [],
+    standingsSource: read.standingsSource?.kind === 'wikimedia-community' && read.standingsSource.official === false
+      && /^\d{4}-\d{2}-\d{2}$/.test(read.standingsSource.dataAsOf ?? '')
+      && ms(`${read.standingsSource.dataAsOf}T12:00:00Z`) !== null
+      && new Date(`${read.standingsSource.dataAsOf}T12:00:00Z`).toISOString().slice(0, 10) === read.standingsSource.dataAsOf
+      && /^https:\/\/en\.wikipedia\.org\/w\/index\.php\?title=[^&]+&oldid=\d+$/.test(read.standingsSource.source?.url ?? '')
+      && read.standingsSource.license?.url === 'https://creativecommons.org/licenses/by-sa/4.0/' ? read.standingsSource : null,
   };
 }
 

@@ -41,7 +41,7 @@ export const apiSources = (accountId = '') => ({
   personal: signal => cloudApi('personal', undefined, { signal }),
 });
 
-export function AppDataProvider({ session, sources, children }) {
+export function AppDataProvider({ session, sources, sport = 'nfl', children }) {
   const user = session?.user ?? {};
   const accountId = typeof user.id === 'string' ? user.id : '';
   const [store] = useState(() => createDataStore(sources ?? apiSources(accountId)));
@@ -51,11 +51,11 @@ export function AppDataProvider({ session, sources, children }) {
   // The first read, the refresh triggers, and the abort on unmount (StrictMode mounts twice; the store survives). An
   // account this device has seen with a name reads the Community alongside /lobby instead of after it.
   useEffect(() => {
-    const disconnect = connectRefresh(window, store);
+    const disconnect = connectRefresh(window, store, { only: sport === 'epl' ? ['lobby'] : undefined });
     store.load('lobby');
-    if (rememberedName(accountId)) store.load('community');
+    if (sport === 'nfl' && rememberedName(accountId)) store.load('community');
     return () => { disconnect(); store.abortAll(); };
-  }, [store]);
+  }, [store, sport]);
 
   const lobby = store.get('lobby');
   const community = store.get('community');
@@ -63,7 +63,7 @@ export function AppDataProvider({ session, sources, children }) {
   // Each lobby reply says whether this account sees EPL (its `epl` field); SportEntry, above this app, reads it from there.
   useEffect(() => { if (lobby.data) noteLobbyEpl(accountId, lobby.data); }, [lobby.data, accountId]);
   // `/community/read` refuses an account with no name; it is read once the name step is done.
-  useEffect(() => { if (name) { rememberName(accountId); store.load('community'); } }, [name, store, accountId]);
+  useEffect(() => { if (name && sport === 'nfl') { rememberName(accountId); store.load('community'); } }, [name, store, accountId, sport]);
 
   // A fresh session (signed in again in place) clears the prompt and reads again what the 401 stopped.
   const token = session?.access_token;

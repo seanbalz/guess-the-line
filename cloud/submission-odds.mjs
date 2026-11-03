@@ -40,6 +40,9 @@ const refused = error => !(error instanceof SubmissionOddsError) && (
  * already has a stored line observed in the last five minutes, so no refresh is worth spending on. A 4xx refusal
  * (see refused) stops here exactly as the commit would; any other preflight fault only skips the refresh.
  *
+ * worthCollecting() is advisory too: false (see selectedBookMissing) skips a collection the newest stored snapshot shows
+ * cannot help; a fault reading it keeps the refresh.
+ *
  * collect({requestId}) tries one shared collection inside the free limits (lease, cooldown, daily cap, budget guard,
  * measured preflight). Its result never decides the save: a refused, failed or partial collection is ignored.
  *
@@ -50,7 +53,7 @@ const refused = error => !(error instanceof SubmissionOddsError) && (
  *
  * No sleeps, automatic retries, draft writes, quote injection or reveal here.
  */
-export async function runSubmissionWithFreshOdds({ preflight, collect, commit, requestId }) {
+export async function runSubmissionWithFreshOdds({ preflight, collect, commit, requestId, worthCollecting }) {
   if (typeof commit !== 'function') throw new SubmissionOddsError();
   let refresh = false;
   try {
@@ -59,9 +62,40 @@ export async function runSubmissionWithFreshOdds({ preflight, collect, commit, r
   } catch (error) {
     if (refused(error)) throw error;
   }
+  if (refresh && typeof worthCollecting === 'function') {
+    try { refresh = await worthCollecting() !== false; } catch { /* An unreadable snapshot keeps the refresh. */ }
+  }
   if (refresh && typeof collect === 'function' && UUID.test(requestId || '')) {
     try { await collect({ requestId }); }
     catch { /* Cooldown, daily cap, budget guard, busy lease, provider or storage fault: the save still proceeds. */ }
   }
   return commit();
+}
+
+const MARKETS = Object.freeze({ guess_spread: 'spread', guess_total: 'total' });
+
+/**
+ * Sean, November 3, 2026: "do not waste credits". A collection costs two credits, and a saved line needs every selected
+ * book (gtl_line_from_snapshot). At 18:15 UTC that day the provider's reply had no FanDuel prices for any of the 15 games,
+ * so a collection after it would almost surely miss FanDuel too. True when the newest stored snapshot (`games` and
+ * `books`, its payload's games and selectedBooks) has a selected book missing from the provider's reply (book_missing) in
+ * this mode's market for every game `gameIds` names that has not kicked off; the save then skips the refresh and keeps the
+ * newest stored line (D-27). The scheduled runs still collect twice a day, and once one sees the book again saves refresh
+ * as before. Anything unreadable, an unknown mode, or a game the snapshot does not hold exactly once gives false.
+ */
+export function selectedBookMissing(snapshot, { mode, gameIds, now }) {
+  const market = MARKETS[mode], books = snapshot?.books, games = snapshot?.games;
+  if (!market || !Array.isArray(books) || !books.length || !Array.isArray(games) || !Array.isArray(gameIds)) return false;
+  const upcoming = [];
+  for (const gameId of gameIds) {
+    const entries = games.filter(g => g?.gameId === gameId);
+    if (entries.length !== 1) return false;
+    const kickoff = Date.parse(entries[0].kickoff);
+    if (!Number.isFinite(kickoff)) return false;
+    if (kickoff > now) upcoming.push(entries[0]);
+  }
+  return upcoming.length > 0 && upcoming.every(g => {
+    const unavailable = g.markets?.[market]?.unavailable;
+    return Array.isArray(unavailable) && unavailable.some(u => books.includes(u?.book) && u?.reason === 'book_missing');
+  });
 }

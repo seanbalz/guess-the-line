@@ -56,10 +56,17 @@ test('keyboard: every tab is reached and opened from the keyboard', async ({ pag
   await expect(nav(page)).toBeVisible();
   for (const tab of TABS) {
     const button = nav(page).getByRole('button', { name: new RegExp(`^${tab}`) });
+    const alreadyCurrent = await button.getAttribute('aria-current') === 'page';
     await button.focus();
     await expect(button).toBeFocused();
     await page.keyboard.press('Enter');
-    await expect(page.locator('.gx-screen').first()).toBeVisible();
+    await expect(button).toHaveAttribute('aria-current', 'page');
+    const heading = page.getByRole('heading', { name: tab, level: 1, exact: true });
+    await expect(heading).toBeVisible();
+    // Wait for the route's focus handoff before focusing the next tab. Any visible
+    // screen can be the outgoing page, and its pending frame can otherwise win.
+    // Activating the already-current Home tab does not perform a route handoff.
+    if (!alreadyCurrent) await expect(heading).toBeFocused();
   }
   await persona.axe('keyboard-research');
 });

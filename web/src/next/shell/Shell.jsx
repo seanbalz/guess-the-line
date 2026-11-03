@@ -17,15 +17,18 @@ import { reloadApp } from '../../appView.js';
 import { noteSportRoute } from '../../sportNavigation.js';
 import { useDashboardPreferences } from '../../dashboardPreferences.js';
 import { Boundary, FailCard } from './Boundary.jsx';
+import { MomentsProvider } from '../moments/MomentsProvider.jsx';
+import { armLaunch, isSettled, markNavigated } from '../moments/launch.js';
 import { ShellContext } from './context.js';
 import { DetailBack, OfflineBanner, SportControls, TabBar, TopBar } from './Frame.jsx';
 import { DialogHost, OverlayHost, PageHost, PopoverHost, SheetHost } from './LayerHosts.jsx';
 import { ToastHost } from './ToastHost.jsx';
 import { LAYERS, SCREENS } from './registry.jsx';
-import { connectHistory, fragmentFor, startPlace } from './router.js';
+import { connectHistory, NFL_ROUTER, startPlace } from './router.js';
 import { canGoBack, hasLayers, initialState, isDetail, layer, layerKind, modalOpen, navigationPatch, reduce, visibleOverlay } from './state.js';
 import { SHELL_COPY } from './tabs.js';
 import { useFixedBarsPinned } from './viewportPin.js';
+import { useTabFade } from './tabFade.js';
 import './shell.css';
 
 const browserOnline = () => typeof navigator === 'undefined' || navigator.onLine !== false;
@@ -73,25 +76,41 @@ function useHeight(element) {
 
 const prefersReducedMotion = () => typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, leagueName = SHELL_COPY.defaultLeague, league: shown, you, data = null, cover = null, initialLayer = null, notice = null, children }) {
+// D-69: the member's first navigation after the first press ends the launch screen (launch.js). It is marked before the
+// dispatch, so the cards it renders already see it: a nesting card that first changes layer rises in, a first Back
+// settles. Navigation is a tab change, `go`, Back, a navigating view step, a restore or Back from the router, and a
+// sheet, page or dialog opening or closing; overlays, popovers and toasts never count.
+const navigated = () => { if (isSettled()) markNavigated(); };
+const NAVIGATING_KINDS = new Set(['sheet', 'page', 'dialog']);
+
+export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, leagueName = SHELL_COPY.defaultLeague, league: shown, you, data = null, cover = null, initialLayer = null, notice = null, router = NFL_ROUTER, className = '', children }) {
   const [state, dispatch] = useReducer(reduce, null, () => {
-    const start = initialState(startPlace(window));
+    const start = initialState(startPlace(window, router));
     return initialLayer && layerKind(initialLayer) && !hasLayers(start) ? reduce(start, { type: 'open', layer: layer(initialLayer) }) : start;
   });
   const [online, recheckOnline] = useOnline();
   // iOS can leave the fixed tab bar, dock and toasts a keyboard's height up the screen (viewportPin.js).
   useFixedBarsPinned();
+  useEffect(() => armLaunch(window), []);
   const [preferences] = useDashboardPreferences();
   const reduceMotion = preferences.motion === 'reduced';
   const [dockHost, setDockHost] = useState(null);
   const dockHeight = useHeight(dockHost);
-  const dirty = useRef(new Set());
-  const setDirty = useCallback((key, value) => {
-    if (value) dirty.current.add(key);
+  // The address and Back follow the state (router.js).
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  // Unsaved work by key. `keeps(next)` (optional) says a destination keeps that work on screen, so moving there does not
+  // ask (D-70: Your guesses' week and one game are one editor). Without it every navigation asks, as before.
+  const dirty = useRef(new Map());
+  const setDirty = useCallback((key, value, keeps) => {
+    if (value) dirty.current.set(key, keeps);
     else dirty.current.delete(key);
   }, []);
-  const confirmLeave = useCallback(() => {
-    if (!dirty.current.size) return true;
+  /** `action` is the navigation about to run, when the caller knows it. */
+  const confirmLeave = useCallback(action => {
+    const next = action ? reduce(stateRef.current, action) : null;
+    const asks = [...dirty.current.values()].some(keeps => !(next && typeof keeps === 'function' && keeps(next)));
+    if (!asks) return true;
     if (!window.confirm('Leave without saving your changes?')) return false;
     return true;
   }, []);
@@ -110,13 +129,11 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
     return () => window.removeEventListener('beforeunload', warn);
   }, []);
 
-  // The address and Back follow the state (router.js).
-  const stateRef = useRef(state);
-  stateRef.current = state;
   const history = useRef(null);
   const synced = useRef(null);
   useEffect(() => {
-    const connection = connectHistory(window, { getState: () => stateRef.current, dispatch, confirmLeave, beforeNavigate: rememberPosition });
+    // Every router dispatch is the browser's or the OS's Back, or a restore: a navigation.
+    const connection = connectHistory(window, { getState: () => stateRef.current, dispatch: action => { navigated(); dispatch(action); }, confirmLeave, beforeNavigate: rememberPosition, route: router });
     history.current = connection;
     connection.sync(null, stateRef.current);
     synced.current = stateRef.current;
@@ -132,15 +149,15 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
 
   // Keep scroll/focus privately in memory; addresses/history never contain DOM or editor records.
   const positions = useRef(new Map());
-  const positionKey = current => isDetail(current) ? fragmentFor(current.tab, current.views[current.tab], current.views) : current.tab;
+  const positionKey = current => isDetail(current) ? router.fragmentFor(current.tab, current.views[current.tab], current.views) : current.tab;
   const rememberPosition = useCallback(() => {
     const node = document.activeElement;
     positions.current.set(positionKey(stateRef.current), { scroll: window.scrollY, focus: node && node !== document.body ? { id: node.id, tag: node.tagName, label: node.getAttribute('aria-label'), text: node.textContent?.trim() } : null });
   }, []);
-  const navigated = useRef(state.nav);
+  const focusedNav = useRef(state.nav);
   useLayoutEffect(() => {
-    if (navigated.current === state.nav) return;
-    navigated.current = state.nav;
+    if (focusedNav.current === state.nav) return;
+    focusedNav.current = state.nav;
     const saved = positions.current.get(positionKey(state));
     const returning = state.navMode === 'back' || state.navMode === 'restore';
     const main = document.querySelector('main');
@@ -185,49 +202,66 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
     return stop;
   }, [state.nav]);
 
+  // The backstop for `navigated()` above: any change of place or of an open sheet, page or dialog after the first press
+  // ends the launch screen, however it was dispatched. A change before the first press (the load-time restore) never
+  // counts, and the first render is not a change.
+  const layered = state.sheets.length > 0 || !!state.page || !!state.dialog;
+  const launchPlace = useRef({ nav: state.nav, layered });
+  useLayoutEffect(() => {
+    if (launchPlace.current.nav === state.nav && launchPlace.current.layered === layered) return;
+    launchPlace.current = { nav: state.nav, layered };
+    if (isSettled()) markNavigated();
+  }, [state.nav, layered]);
+
   const onSignOutRef = useRef(onSignOut);
   onSignOutRef.current = onSignOut;
   const actions = useMemo(() => {
     const opener = kind => (id, args) => {
       if (layerKind(id) !== kind) throw new TypeError(`${id} is not a ${kind} id.`);
+      if (NAVIGATING_KINDS.has(kind)) navigated();
       dispatch({ type: 'open', layer: layer(id, args) });
     };
     const toast = (text, options = {}) => dispatch({ type: 'toast', toast: { ...options, text } });
     return {
       setDirty,
       confirmLeave,
-      tab: tab => { if (confirmLeave()) { rememberPosition(); dispatch({ type: 'tab', tab }); } },
-      go: (tab, view) => { if (confirmLeave()) { rememberPosition(); dispatch({ type: 'go', tab, view }); } },
-      back: () => { if (confirmLeave()) { rememberPosition(); dispatch({ type: 'back' }); } },
+      tab: tab => { if (confirmLeave()) { rememberPosition(); navigated(); dispatch({ type: 'tab', tab }); } },
+      go: (tab, view) => { if (confirmLeave()) { rememberPosition(); navigated(); dispatch({ type: 'go', tab, view }); } },
+      back: () => { if (confirmLeave({ type: 'back' })) { rememberPosition(); navigated(); dispatch({ type: 'back' }); } },
       setView: (tab, patch) => {
         if (navigationPatch(stateRef.current, tab, patch)) {
-          if (!confirmLeave()) return;
+          if (!confirmLeave({ type: 'view', tab, patch })) return;
           rememberPosition();
+          navigated();
         }
         dispatch({ type: 'view', tab, patch });
       },
-      open: (id, args, options = {}) => dispatch({ type: 'open', layer: layer(id, args), front: options.front }),
+      open: (id, args, options = {}) => {
+        if (NAVIGATING_KINDS.has(layerKind(id))) navigated();
+        dispatch({ type: 'open', layer: layer(id, args), front: options.front });
+      },
       openSheet: opener('sheet'),
       replaceSheet: (id, args) => {
         if (layerKind(id) !== 'sheet') throw new TypeError(`${id} is not a sheet id.`);
+        navigated();
         dispatch({ type: 'replaceSheet', layer: layer(id, args) });
       },
       setSheetArgs: patch => dispatch({ type: 'sheetArgs', patch }),
-      closeSheet: () => dispatch({ type: 'close', kind: 'sheet' }),
-      closeAllSheets: () => dispatch({ type: 'close', kind: 'sheets' }),
+      closeSheet: () => { navigated(); dispatch({ type: 'close', kind: 'sheet' }); },
+      closeAllSheets: () => { navigated(); dispatch({ type: 'close', kind: 'sheets' }); },
       openDialog: opener('dialog'),
-      closeDialog: () => dispatch({ type: 'close', kind: 'dialog' }),
+      closeDialog: () => { navigated(); dispatch({ type: 'close', kind: 'dialog' }); },
       openPopover: opener('popover'),
       closePopover: () => dispatch({ type: 'close', kind: 'popover' }),
       openPage: opener('page'),
       setPageArgs: patch => dispatch({ type: 'pageArgs', patch }),
-      closePage: () => { if (confirmLeave()) dispatch({ type: 'close', kind: 'page' }); },
+      closePage: () => { if (confirmLeave()) { navigated(); dispatch({ type: 'close', kind: 'page' }); } },
       showOverlay: (id, args, options = {}) => {
         if (layerKind(id) !== 'overlay') throw new TypeError(`${id} is not an overlay id.`);
         dispatch({ type: 'open', layer: layer(id, args), front: options.front });
       },
       closeOverlay: key => dispatch({ type: 'close', kind: 'overlay', key }),
-      closeTop: () => { if (confirmLeave()) dispatch({ type: 'closeTop' }); },
+      closeTop: () => { if (confirmLeave()) { navigated(); dispatch({ type: 'closeTop' }); } },
       /** Closes one opening of a sheet, dialog, popover or overlay by its key, wherever it is (a layer that fails). */
       closeLayer: (id, key) => {
         const kind = layerKind(id);
@@ -241,6 +275,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
       signOut: async () => {
         if (!confirmLeave()) return false;
         try {
+          // AuthGate forgets the moments' device records and resets the launch on every sign-out (moments/forget.js).
           await onSignOutRef.current?.();
           return true;
         } catch (failure) {
@@ -257,8 +292,10 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
   const leagueLabelName = shown?.name ?? leagueName;
   const league = useMemo(() => ({ id: leagueId, name: leagueLabelName }), [leagueId, leagueLabelName]);
   const communityAdmin = data?.community?.admin === true;
-  const value = useMemo(() => ({ ...actions, communityAdmin, canGoBack: canGoBack(state), state, dockHost, you: member, league, offline: !online }),
-    [actions, state, dockHost, member, league, online, communityAdmin]);
+  // The Community read's push guard (stage 2): the Menu offers Pick reminders only while the server can send pushes.
+  const pushConfigured = data?.community?.pushConfigured === true;
+  const value = useMemo(() => ({ ...actions, communityAdmin, pushConfigured, canGoBack: canGoBack(state), state, dockHost, you: member, league, offline: !online }),
+    [actions, state, dockHost, member, league, online, communityAdmin, pushConfigured]);
 
   // A notice from outside the frame (the name just saved), once per key.
   const noticeKey = notice?.key;
@@ -273,15 +310,18 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
   const onHome = () => (state.tab === 'home' && !state.page && !hasLayers(state) ? toTop() : actions.go('home'));
   const onRetry = () => { if (!recheckOnline()) actions.toast(SHELL_COPY.stillOffline, { tone: 'plain' }); };
 
+  const tabFade = useTabFade(state.tab);
   const Screen = screens[state.tab] ?? (state.tab === 'research' ? screens[state.views.research.section === 'fantasy' ? 'fantasy' : 'lines'] : null);
   const style = { '--gx-dock-space': `${dockHeight > 0 ? dockHeight + 8 : 0}px` };
   return (
     <ShellContext.Provider value={value}>
-      <div className="gx" data-motion={reduceMotion ? 'reduce' : undefined} style={style}>
+      <MomentsProvider key={member?.id ?? 'signed-out'} account={member?.id} showOverlay={actions.showOverlay}>
+      <div className={`gx ${className}`.trim()} data-motion={reduceMotion ? 'reduce' : undefined} style={style}>
         <div className="gx-app" inert={modalOpen(state)}>
+          <a className="gx-sr-only gx-skip-link" href="#main" onClick={event => { event.preventDefault(); document.getElementById('main')?.focus(); }}>Skip to main content</a>
           <TopBar leagueName={league.name} you={member} onHome={onHome} onLeague={() => actions.openSheet('sh.switcher')} onMenu={() => actions.openSheet('sh.menu')}/>
           <SportControls/>
-          <main className="gx-main" id="main" tabIndex={-1}>
+          <main className="gx-main" id="main" tabIndex={-1} data-tab-enter={tabFade ? 'fade' : undefined}>
             <OfflineBanner offline={!online} onRetry={onRetry}/>
             {!cover && !state.page && (state.trail.length > 0 || isDetail(state)) ? <DetailBack onBack={actions.back}/> : null}
             {cover ? (
@@ -302,6 +342,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
         <OverlayHost state={state} layers={layers}/>
         {children}
       </div>
+      </MomentsProvider>
     </ShellContext.Provider>
   );
 }

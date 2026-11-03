@@ -36,7 +36,13 @@ function LeagueCover({ app }) {
  */
 export const removedFromCommunity = community => community.status === 'error' && community.error?.status === 403;
 
-export function AppGate({ session, onSignOut }) {
+/**
+ * What the EPL frame takes from the Community read (opened by its Menu): commissioner access and the push guard, so the
+ * shared Menu offers Commissioner tools and Pick reminders (the same per-device switch) in EPL too. No NFL counter.
+ */
+export const eplCommunity = data => ({ admin: data?.admin === true, pushConfigured: data?.pushConfigured === true });
+
+export function AppGate({ session, onSignOut, sport = 'nfl', shellProps }) {
   const app = useAppData();
   const [notice, setNotice] = useState(null);
   const [retrying, setRetrying] = useState(false);
@@ -70,17 +76,19 @@ export function AppGate({ session, onSignOut }) {
       </FrameRoot>
     );
   }
-  const covered = app.league.pending || (app.league.id === COMMUNITY.id && removedFromCommunity(app.community));
+  const covered = sport === 'nfl' && (app.league.pending || (app.league.id === COMMUNITY.id && removedFromCommunity(app.community)));
   return (
     <Shell
+      key={sport}
       session={session}
       onSignOut={onSignOut}
       league={app.league}
       you={you}
-      data={app.counters}
+      data={sport === 'epl' ? { community: eplCommunity(app.community.data) } : app.counters}
       cover={covered ? <LeagueCover app={app}/> : null}
-      initialLayer={app.savedInvite ? 'sh.switcher' : null}
+      initialLayer={sport === 'nfl' && app.savedInvite ? 'sh.switcher' : null}
       notice={notice}
+      {...shellProps}
     >
       <SignInAgain/>
     </Shell>

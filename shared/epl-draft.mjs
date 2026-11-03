@@ -40,18 +40,24 @@ export function canPick({ order, picks, managerId, club, clubs, now, deadline })
 const finite = v => typeof v === 'number' && Number.isFinite(v);
 
 /** Shortest 2-way price, else shortest 3-way price, else best (lowest) table position; 1 = top of the table. */
-function autoClub(available, favorability) {
+function autoClub(available, favorability, requirePosition = false) {
   const fav = club => favorability?.[club] ?? {};
   const byPosition = (a, b) => (finite(fav(a).position) ? fav(a).position : Infinity) - (finite(fav(b).position) ? fav(b).position : Infinity) || (a < b ? -1 : a > b ? 1 : 0);
   for (const key of ['twoWay', 'threeWay']) {
     const priced = available.filter(c => finite(fav(c)[key]));
-    if (priced.length) return [...priced].sort((a, b) => priceStrength(fav(b)[key]) - priceStrength(fav(a)[key]) || byPosition(a, b))[0];
+    if (priced.length) {
+      const ranked = [...priced].sort((a, b) => priceStrength(fav(b)[key]) - priceStrength(fav(a)[key]) || byPosition(a, b));
+      const tied = ranked.filter(c => priceStrength(fav(c)[key]) === priceStrength(fav(ranked[0])[key]));
+      if (requirePosition && tied.length > 1 && tied.some(c => !finite(fav(c).position))) throw new Error('EPL_STANDINGS_REQUIRED');
+      return ranked[0];
+    }
   }
+  if (requirePosition && available.length > 1 && available.some(c => !finite(fav(c).position))) throw new Error('EPL_STANDINGS_REQUIRED');
   return [...available].sort(byPosition)[0] ?? null;
 }
 
 /** Final draft at the deadline, one row per manager in order. */
-export function resolveDeadline({ order, picks, queues = {}, clubs, favorability = {} }) {
+export function resolveDeadline({ order, picks, queues = {}, clubs, favorability = {}, requirePosition = false }) {
   const made = new Map(picks.map(p => [p.managerId, p.club]));
   const taken = new Set(made.values());
   const clock = onTheClock(order, picks);
@@ -61,7 +67,7 @@ export function resolveDeadline({ order, picks, queues = {}, clubs, favorability
     const queued = (queues[managerId] ?? []).find(c => clubs.includes(c) && !taken.has(c));
     if (queued) { taken.add(queued); out.push({ managerId, club: queued, source: 'queue' }); continue; }
     if (managerId === clock) { out.push({ managerId, club: null, source: 'none' }); continue; }
-    const club = autoClub(clubs.filter(c => !taken.has(c)), favorability);
+    const club = autoClub(clubs.filter(c => !taken.has(c)), favorability, requirePosition);
     if (club) { taken.add(club); out.push({ managerId, club, source: 'auto' }); } else out.push({ managerId, club: null, source: 'none' });
   }
   return out;

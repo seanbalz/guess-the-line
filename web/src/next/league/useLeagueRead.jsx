@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { connectRefresh } from '../data/store.js';
-import { Button, Card } from '../ui/index.js';
+import { Button, Card, Skeleton } from '../ui/index.js';
 import { sharedRead } from '../../sharedReads.js';
 
 /**
@@ -44,7 +44,7 @@ export function LeagueFailure({ error, onRetry }) {
 
 /** A read on its way: "Loading this league…" in a status region, in the card a result will fill. */
 export function LeagueLoading({ label }) {
-  return <Card className="gx-vstack gx-gap-12 gx-l-state" data-league-state="loading"><p className="gx-t-body gx-c-2" role="status">{label}</p></Card>;
+  return <Card className="gx-vstack gx-gap-12 gx-l-state" data-league-state="loading"><Skeleton label={label} shape="lines" count={3}/></Card>;
 }
 
 /** Nothing to show yet: one sentence and, when there is one, one action ("Invite friends", "Refresh"). */

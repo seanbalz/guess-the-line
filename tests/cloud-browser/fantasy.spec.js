@@ -35,6 +35,19 @@ async function rowsMatch(screen, filters) {
 }
 async function layout(page, screen) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'No horizontal page overflow').toBe(true);
+  // Loaded Fantasy layers must keep the same centered reading column and gutters as the shared frame.
+  // Overflow checks alone miss a full-width page whose content still fits the viewport (#388).
+  const frame = await screen.evaluate(scope => {
+    const bounds = scope.getBoundingClientRect(), header = document.querySelector('.gx-topbar-inner').getBoundingClientRect();
+    const style = getComputedStyle(scope), title = scope.querySelector('h1').getBoundingClientRect();
+    return { width: bounds.width, left: bounds.left, headerWidth: header.width, headerLeft: header.left,
+      gutter: parseFloat(style.getPropertyValue('--gx-size-gutter')), leftInset: title.left - bounds.left,
+      rightInset: bounds.right - title.right };
+  });
+  expect(frame.width, 'Loaded content stays in the shared reading column').toBeCloseTo(frame.headerWidth, 0);
+  expect(frame.left, 'Loaded content stays centered with the header').toBeCloseTo(frame.headerLeft, 0);
+  expect(frame.leftInset, 'Fantasy keeps its page gutter').toBeCloseTo(frame.gutter, 0);
+  expect(frame.rightInset, 'Fantasy keeps its opposite page gutter').toBeCloseTo(frame.gutter, 0);
   const problems = await screen.evaluate(scope => {
     const issues = [];
     for (const el of scope.querySelectorAll('select,input,button,summary,a[href]')) {
@@ -135,9 +148,20 @@ test.describe('fantasy rankings', () => {
         const screen = root(page, app);
         await expect(list(screen)).toBeVisible();
         await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
-        for (const width of [320, 390, 1280]) {
-          await page.setViewportSize({ width, height: 844 });
+        for (const width of [320, 390, 1390]) {
+          await page.setViewportSize({ width, height: width === 1390 ? 869 : 844 });
+          await page.evaluate(() => window.scrollTo(0, 0));
           await layout(page, screen);
+          await page.screenshot({ path: testInfo.outputPath(`fantasy-top-${width}-${theme}.png`) });
+          const middle = list(screen).locator('[data-player]').nth(24);
+          await middle.scrollIntoViewIfNeeded();
+          await expect(middle).toBeInViewport();
+          await page.screenshot({ path: testInfo.outputPath(`fantasy-middle-${width}-${theme}.png`) });
+          await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+          const morePlayers = screen.getByRole('button', { name: /^Show more players/ });
+          await expect(morePlayers).toBeInViewport();
+          expect(await morePlayers.evaluate(el => el.getBoundingClientRect().bottom <= document.querySelector('.gx-tabbar').getBoundingClientRect().top), 'Last list control clears the fixed navigation').toBe(true);
+          await page.screenshot({ path: testInfo.outputPath(`fantasy-end-${width}-${theme}.png`) });
           const result = await new AxeBuilder({ page }).include(app === 'next' ? '.gx-fantasy' : '.fantasy-football').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
           expect(result.violations.map(issue => `${issue.id}: ${issue.nodes.map(node => node.target.join(' ')).join(', ')}`)).toEqual([]);
           await moreFilters(screen);
@@ -187,7 +211,7 @@ test.describe('fantasy rankings', () => {
     expect(results.violations).toEqual([]);
   });
 
-  test('new app: hosted index serves the snapshot and a PROVISIONAL accuracy card; layout and axe at 320 px in both themes', async ({ page, baseURL }) => {
+  test('new app: hosted index serves the snapshot and a PROVISIONAL accuracy card; phone and desktop layout and axe in both themes', async ({ page, baseURL }, testInfo) => {
     test.skip(!pgliteAvailable, 'PGlite runtime absent');
     const sha = bytes => createHash('sha256').update(bytes).digest('hex');
     const snapshotBytes = fs.readFileSync(new URL('../../shared/fantasy/2026-week-06.json', import.meta.url));
@@ -220,28 +244,31 @@ test.describe('fantasy rankings', () => {
       for (const theme of ['dark', 'light']) {
         await page.evaluate(value => localStorage.setItem('gtl.theme', value), theme);
         await page.reload();
-        await page.setViewportSize({ width: 320, height: 844 });
-        const screen = root(page, 'next');
-        await expect(list(screen)).toBeVisible();
-        await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
-        await expect(screen.getByRole('status').filter({ hasText: /^Updated / })).toBeVisible();
-        await expect(screen.getByText('Showing saved Week 6', { exact: false })).toHaveCount(0);
-        // D-66: the report card is one layer in, from its tile on the rankings card.
-        await screen.locator('[data-fantasy=report]').click();
-        await expect(screen.getByRole('button', { name: 'Back to Fantasy', exact: true })).toBeVisible();
-        const card = screen.getByLabel('Week 5 accuracy');
-        await expect(card).toBeVisible();
-        await expect(card.getByText('PROVISIONAL', { exact: true })).toBeVisible();
-        await layout(page, screen);
-        const results = await new AxeBuilder({ page }).include('.gx-fantasy').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
-        expect(results.violations.map(issue => `${issue.id}: ${issue.nodes.map(node => node.target.join(' ')).join(', ')}`)).toEqual([]);
-        await backToFantasy(screen);
+        for (const width of [320, 390, 1390]) {
+          await page.setViewportSize({ width, height: width === 1390 ? 869 : 844 });
+          const screen = root(page, 'next');
+          await expect(list(screen)).toBeVisible();
+          await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+          await expect(screen.getByRole('status').filter({ hasText: /^Updated / })).toBeVisible();
+          await expect(screen.getByText('Showing saved Week 6', { exact: false })).toHaveCount(0);
+          // D-66: the report card is one layer in, from its tile on the rankings card.
+          await screen.locator('[data-fantasy=report]').click();
+          await expect(screen.getByRole('button', { name: 'Back to Fantasy', exact: true })).toBeVisible();
+          const card = screen.getByLabel('Week 5 accuracy');
+          await expect(card).toBeVisible();
+          await expect(card.getByText('PROVISIONAL', { exact: true })).toBeVisible();
+          await layout(page, screen);
+          await page.screenshot({ path: testInfo.outputPath(`fantasy-report-${width}-${theme}.png`), fullPage: true });
+          const results = await new AxeBuilder({ page }).include('.gx-fantasy').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
+          expect(results.violations.map(issue => `${issue.id}: ${issue.nodes.map(node => node.target.join(' ')).join(', ')}`)).toEqual([]);
+          await backToFantasy(screen);
+        }
       }
       expect(world.errors).toEqual([]);
     } finally { await world.db.close(); }
   });
 
-  test('new app: player profile and comparison tools at 320 and 390 px in both themes, keyboard and axe', async ({ page, baseURL }, testInfo) => {
+  test('new app: player profile and comparison tools at phone and desktop widths in both themes, keyboard and axe', async ({ page, baseURL }, testInfo) => {
     test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
     const { world } = await open(page, baseURL, 'next');
     const [first, second] = expected({});
@@ -251,7 +278,7 @@ test.describe('fantasy rankings', () => {
         await page.reload();
         const screen = root(page, 'next');
         await expect(list(screen)).toBeVisible();
-        for (const width of [320, 390]) {
+        for (const width of [320, 390, 1390]) {
           await page.setViewportSize({ width, height: 844 });
           await list(screen).locator('[data-player]').first().click();
           await screen.getByRole('button', { name: `Usage & production: ${first.name}`, exact: true }).click();
@@ -284,6 +311,13 @@ test.describe('fantasy rankings', () => {
           await expect(compare.getByText(/Week 6 GTL pace estimate, not a result/)).toBeVisible();
           await compare.scrollIntoViewIfNeeded();
           await layout(page, screen);
+          const tableScroll = compare.getByRole('region', { name: 'Player comparison data', exact: true });
+          await tableScroll.focus();
+          await expect(tableScroll).toBeFocused();
+          if (await tableScroll.evaluate(el => el.scrollWidth > el.clientWidth)) {
+            await page.keyboard.press('ArrowRight');
+            await expect.poll(() => tableScroll.evaluate(el => el.scrollLeft)).toBeGreaterThan(0);
+          }
           await page.screenshot({ path: testInfo.outputPath(`fantasy-compare-${width}-${theme}.png`) });
           const compareAxe = await new AxeBuilder({ page }).include('.gx-fantasy-compare').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
           expect(compareAxe.violations.map(issue => `${issue.id}: ${issue.nodes.map(node => node.target.join(' ')).join(', ')}`)).toEqual([]);

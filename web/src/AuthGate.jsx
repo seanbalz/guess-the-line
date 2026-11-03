@@ -8,6 +8,7 @@ import { clearTabDrafts } from './predictionDraft';
 import { clearSoloDrafts } from './soloDraft';
 import { clearCommunityDrafts } from './communityDraft';
 import { clearNextDrafts } from './nextDrafts';
+import { forgetMomentsDevice } from './next/moments/forget.js';
 import { pendingInvitation } from './invitations';
 import { oauthReturnError, startGoogleSignIn } from './oauth';
 import { forgetSharedReads } from './sharedReads.js';
@@ -20,6 +21,8 @@ export default function AuthGate({ children }) {
     const next = nextSession?.user?.id || null;
     // Redesign stage 11: the new app's typed-text drafts go with the old app's, so another account never sees them.
     if (lastAccount.current && lastAccount.current !== next) { clearTabDrafts(); clearSoloDrafts(); clearCommunityDrafts(); clearNextDrafts(); }
+    // D-69: the moments' seen record and count-up values go the same way, and the next screen is a launch again.
+    if (lastAccount.current && lastAccount.current !== next) forgetMomentsDevice();
     // Answers screens share (sharedReads.js) are account-keyed; a new account starts with none kept.
     if (lastAccount.current !== next) forgetSharedReads();
     lastAccount.current = next;
@@ -42,7 +45,7 @@ export default function AuthGate({ children }) {
     if (!supabase) { setLoading(false); return; }
     let active = true;
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
-      if (event === 'SIGNED_OUT') { clearTabDrafts(); clearSoloDrafts(); clearCommunityDrafts(); }
+      if (event === 'SIGNED_OUT') { clearTabDrafts(); clearSoloDrafts(); clearCommunityDrafts(); forgetMomentsDevice(); }
       accountChanged(nextSession);
       if (active) { if (event === 'PASSWORD_RECOVERY') setRecovering(true); setSession(nextSession); setLoading(false); }
     });
