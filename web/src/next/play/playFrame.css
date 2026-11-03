@@ -11,6 +11,8 @@
 .gx .gx-week-chips > .gx-chip { flex: none; }
 .gx .gx-filter-toggle { display: flex; flex-direction: column; align-items: flex-end; gap: var(--gx-space-3); }
 .gx .gx-filter-panel { align-self: stretch; }
+/* A class that sets display outranks the browser's [hidden] rule, so closed panels need their own. */
+.gx .gx-week-chips[hidden], .gx .gx-filter-panel[hidden] { display: none; }
 .gx .gx-filter-toggle-on { box-shadow: inset 0 0 0 2px var(--gx-accent-ink); }
 @media (forced-colors: active) {
   .gx .gx-play-tile-new { border: 1px solid CanvasText; }

@@ -1,6 +1,7 @@
 // D-69 step 1, the Play frame (docs/superpowers/specs/2026-11-02-design-overhaul-design.md sections 4.1, 5 and 6):
 // every Play section is a nesting card under a "Play" lip; landing tiles, week chips and the filter toggle are shared.
 import { describe, expect, it, vi } from 'vitest';
+import fs from 'node:fs';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { markupProblems, nameFrom, parseMarkup, walk } from './helpers/ui-markup.mjs';
 
@@ -88,5 +89,15 @@ describe('FilterToggle', () => {
     const panel = nodes(html).find(n => n.attrs?.id === button.attrs['aria-controls']);
     expect(panel.attrs.hidden).toBeDefined();
     expect(nameFrom(buttons(render(<FilterToggle><span>x</span></FilterToggle>))[0])).toBe('Filter games');
+  });
+});
+
+describe('playFrame.css disclosure panels', () => {
+  it('a closed disclosure panel stays hidden even though its class sets a flex display', () => {
+    const css = fs.readFileSync(new URL('../web/src/next/play/playFrame.css', import.meta.url), 'utf8');
+    const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(m => ({ selectors: m[1].split(',').map(s => s.trim()), body: m[2] }));
+    const hides = cls => rules.some(r => r.selectors.some(s => s.includes(cls) && s.endsWith('[hidden]')) && /display:\s*none/.test(r.body));
+    expect(hides('.gx-week-chips')).toBe(true);
+    expect(hides('.gx-filter-panel')).toBe(true);
   });
 });

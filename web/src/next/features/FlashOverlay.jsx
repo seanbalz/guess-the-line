@@ -1,5 +1,6 @@
-// `ov.flash`: the celebration for a big moment of your own (a new badge or award, a Bullseye, a week final, a Points exact guess, reaching 1st) (design system 7.16, "stadium flash"; the prototype's
-// Bullseye flash and New results). Brand Motion: verified outcomes only, one big moment at a time (one overlay however
+// `ov.flash`: the celebration for a big moment of your own (a new badge or award, a Bullseye, a week final, a Points
+// exact guess, reaching 1st) (design system 7.16, "stadium flash"; the prototype's Bullseye flash and New results).
+// Brand Motion: verified outcomes only, one big moment at a time (one overlay however
 // many arrived) and never on page load. Celebrations come from the D-69 moments engine (moments/), which shows this card
 // for big moments on a fresh read, where their card is open. Only transform and opacity move, for at most 600 ms, once;
 // reduced motion (the device or the app's setting) stops it and the words stay.

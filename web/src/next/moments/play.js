@@ -1,7 +1,6 @@
 // D-69 big moments: one celebration card (`ov.flash`) for every big moment playing together, plus a win buzz unless motion is reduced. Pure.
 import { winHaptic } from '../ui/haptics.js';
 
-/** The overlay's item from a moment (FlashOverlay reads key, title, meta, parts, icon and rarity). */
 /** The overlay's item from a moment (FlashOverlay reads key, title, meta, parts, icon, rarity and kind). */
 export const flashItem = m => ({ key: m.id, title: m.title, meta: m.meta, parts: m.parts, icon: m.icon, rarity: m.rarity, ...(m.kind ? { kind: m.kind } : {}) });
 
