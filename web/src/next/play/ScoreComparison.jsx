@@ -50,6 +50,10 @@ function Bar({ who, points, max, me = false, grow = false }) {
     <span className="gx-n-s gx-cmp-num">{show(points)}</span></span>;
 }
 
+/** One ⓘ line per locked side: its saved line only when the reference carries a number; a pending one just says it is waiting. */
+export const lineNotes = (lines, text) => lines.map(([who, { reference }]) => Number.isFinite(reference?.value)
+  ? `${who} · line ${text(reference.value)} · ${reference.source || 'Source unavailable'} · ${fmtFull(reference.observedAt)}` : `${who} · waiting for a line`);
+
 function CompareRow({ row, mode, name, multi }) {
   const tag = rowTag(row, name), game = row.game, text = value => pickText(mode, game.awayCode, game.homeCode, value);
   const sides = row.state === 'hidden' ? [] : [['You', row.me, true], [name, row.them, false]];
@@ -58,7 +62,7 @@ function CompareRow({ row, mode, name, multi }) {
     <div className="gx-cmp-row-top"><Matchup away={game.awayCode} home={game.homeCode}/>
       <span className="gx-cmp-row-end"><Pill tone={tag.tone}>{tag.text}</Pill>
         {lines.length ? <InfoButton title={`Saved lines, Week ${row.week} ${game.awayCode} at ${game.homeCode}`}
-          body={lines.map(([who, side]) => `${who} · line ${text(side.reference.value)} · ${side.reference.source || 'Source unavailable'} · ${fmtFull(side.reference.observedAt)}`)}/> : null}</span></div>
+          body={lineNotes(lines, text)}/> : null}</span></div>
     <p className="gx-t-meta gx-c-2">{multi ? `Week ${row.week} · ` : ''}{rowLine(row, mode, name)}</p>
     {scored.length ? <div className="gx-cmp-bars" role="img" aria-label={scored.map(([who, side]) => `${who} ${show(side.points)} points`).join(', ')}>
       {scored.map(([who, side, me]) => <Bar key={me ? 'me' : 'them'} who={who} points={side.points} max={10} me={me}/>)}</div> : null}
@@ -73,7 +77,10 @@ export function ComparisonContent({ data, currentWeek, scopeName, view, onChange
   const week = weeks.includes(view.week) ? view.week : weeks.includes(currentWeek) ? currentWeek : weeks.at(-1) ?? null;
   const from = period === 'season' ? null : period === 'range' ? (weeks.includes(view.from) ? view.from : weeks[0] ?? null) : week;
   const to = period === 'season' ? null : period === 'range' ? (weeks.includes(view.to) ? view.to : weeks.at(-1) ?? null) : week;
-  const team = view.team || '', matchup = view.matchup || '', filtered = period !== 'week' || !!team || !!matchup;
+  const team = view.team || '';
+  // A matchup filter only exists while the Matchup select can show it: one outside the chosen range is no filter at all.
+  const inRange = id => (data.weeks || []).some(w => (from === null || (w.week >= from && w.week <= to)) && (w.games || []).some(g => g.id === id));
+  const matchup = view.matchup && inRange(view.matchup) ? view.matchup : '', filtered = period !== 'week' || !!team || !!matchup;
   const rows = useMemo(() => !opponent ? [] : (opponent === EVERYONE ? fieldRows : compareRows)(data, { mode, opponent, from, to, team, matchup }),
     [data, mode, opponent, from, to, team, matchup]);
   // The bars grow when you change what is compared, never on the first paint (D-69: nothing moves on a page load).
@@ -86,6 +93,7 @@ export function ComparisonContent({ data, currentWeek, scopeName, view, onChange
   const games = [...new Map((data.weeks || []).filter(w => from === null || (w.week >= from && w.week <= to)).flatMap(w => w.games || []).map(g => [g.id, g])).values()];
   const when = period === 'season' ? `${data.season} season` : period === 'range' ? `Weeks ${from}–${to}` : `Week ${week}`;
   const weekOptions = weeks.map(w => <option key={w} value={w}>Week {w}</option>);
+  const dropMatchup = (lo, hi) => matchup && !(data.weeks || []).some(w => w.week >= lo && w.week <= hi && (w.games || []).some(g => g.id === matchup)) ? { matchup: '' } : {};
   const pick = id => () => { if (id !== opponent) onChange({ item: id }); };
   return <div className="gx-vstack gx-gap-12">
     <p className="gx-t-meta gx-c-2">{scopeName} · {when} · {mode === 'guess_total' ? 'Total' : 'Spread'}</p>
@@ -94,13 +102,13 @@ export function ComparisonContent({ data, currentWeek, scopeName, view, onChange
       <Chip text selected={everyone} className="gx-cmp-face" onClick={pick(EVERYONE)}><Avatar anyone size={32}/>Everyone</Chip>
     </ChipRail>
     <Segmented label="Compare market" options={SCORE_MARKETS} value={mode} onChange={value => onChange({ market: value === 'guess_total' ? 'total' : 'spread' })}/>
-    <WeekChips label="Week" weeks={weeks} week={period === 'week' ? week : null} onWeek={value => onChange({ week: value, period: 'week' })}
+    <WeekChips label="Week" weeks={weeks} week={period === 'week' ? week : null} onWeek={value => onChange({ week: value, period: 'week', matchup: '' })}
       seasons={data.seasons || []} season={data.season} onSeason={year => onChange({ season: year, week: null, period: 'week', matchup: '' })}/>
     <FilterToggle label="Filter games" active={filtered}>
       <div className="gx-cmp-filters gx-vstack gx-gap-12">
-        <label className="gx-t-body">Period<select className="gx-input" value={period} onChange={e => onChange({ period: e.target.value })}><option value="week">Single week</option><option value="range">Week range</option><option value="season">Full season</option></select></label>
-        {period === 'range' && <><label className="gx-t-body">From week<select className="gx-input" value={from ?? ''} onChange={e => onChange({ from: Number(e.target.value) })}>{weekOptions}</select></label>
-          <label className="gx-t-body">Through week<select className="gx-input" value={to ?? ''} onChange={e => onChange({ to: Number(e.target.value) })}>{weekOptions}</select></label></>}
+        <label className="gx-t-body">Period<select className="gx-input" value={period} onChange={e => onChange({ period: e.target.value, matchup: '' })}><option value="week">Single week</option><option value="range">Week range</option><option value="season">Full season</option></select></label>
+        {period === 'range' && <><label className="gx-t-body">From week<select className="gx-input" value={from ?? ''} onChange={e => onChange({ from: Number(e.target.value), ...dropMatchup(Number(e.target.value), to) })}>{weekOptions}</select></label>
+          <label className="gx-t-body">Through week<select className="gx-input" value={to ?? ''} onChange={e => onChange({ to: Number(e.target.value), ...dropMatchup(from, Number(e.target.value)) })}>{weekOptions}</select></label></>}
         <label className="gx-t-body">Team<select className="gx-input" value={team} onChange={e => onChange({ team: e.target.value })}><option value="">All teams</option>{team && !teams.includes(team) && <option value={team}>{team}</option>}{teams.map(t => <option key={t} value={t}>{t}</option>)}</select></label>
         <label className="gx-t-body">Matchup<select className="gx-input" value={matchup} onChange={e => onChange({ matchup: e.target.value })}><option value="">All matchups</option>{games.map(g => <option key={g.id} value={g.id}>{g.awayCode} at {g.homeCode}</option>)}</select></label>
         <Button disabled={!filtered} onClick={() => onChange(CLEAR)}>Clear filters</Button>

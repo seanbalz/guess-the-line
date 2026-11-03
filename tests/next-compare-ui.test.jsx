@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 vi.mock('../web/src/api.js', () => ({ leagueApi: vi.fn(), communityApi: vi.fn(), cloudApi: vi.fn() }));
 vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: vi.fn() }));
-import { ComparisonContent } from '../web/src/next/play/ScoreComparison.jsx';
+import { ComparisonContent, lineNotes } from '../web/src/next/play/ScoreComparison.jsx';
 import { markupProblems, nameFrom, parseMarkup, readText, walk } from './helpers/ui-markup.mjs';
 
 const SEA = { id: 'SEA-DEN', awayCode: 'SEA', homeCode: 'DEN', kickoff: '2026-10-25T20:05:00Z' };
@@ -22,6 +22,10 @@ const week8 = week(8, [entry('me', [locked(SEA.id, -3, -3, 10), locked(BUF.id, 2
 const week9 = week(9, [entry('me', [locked(BUF.id, 2, 2.5, 9)]), entry('troy', [locked(SEA.id, -17.5, -16.5, 7), { gameId: BUF.id, guess: null, reference: null, points: null, hidden: false }])], gate(false, true));
 const data = { viewer: 'me', season: 2026, seasons: [2026, 2025], now: '2026-10-24T12:00:00Z', members, weeks: [week9, week8] };
 const render = (view, patch = {}) => renderToStaticMarkup(<div className="gx"><ComparisonContent data={{ ...data, ...patch }} currentWeek={9} scopeName="Community" view={view} onChange={() => {}}/></div>);
+
+// Week 8 also carries a game Week 9 does not, so a matchup picked in Week 8 is not in Week 9's Matchup options.
+const NYJ = { id: 'NYJ-MIA', awayCode: 'NYJ', homeCode: 'MIA', kickoff: '2026-10-25T17:00:00Z' };
+const wide = { weeks: [week9, { ...week8, games: [SEA, BUF, NYJ] }] };
 
 describe('Compare', () => {
   it('D-31: a game you have not locked renders HIDDEN with no guess, line or points of the other player, even when the reply carries them', () => {
@@ -54,6 +58,31 @@ describe('Compare', () => {
     expect(everyone).toContain('You lead by 1');
     expect(everyone).toContain('Avg miss 0.3–0.5 · 2 shared games');
     expect(everyone).toContain('You Broncos −3 · 2 players avg 9.5');
+  });
+  it('after a week change no matchup filter stays applied that the Matchup select cannot show', () => {
+    const stale = render({ week: 9, matchup: NYJ.id }, wide);
+    expect(readText(stale)).not.toContain('No games match these filters.');
+    expect(readText(stale)).toContain('Lock yours to see Troy’s guess');
+    expect(stale).not.toContain('value="NYJ-MIA"');
+    const kept = render({ week: 8, matchup: NYJ.id }, wide);
+    expect(kept).toContain('<option value="NYJ-MIA" selected');
+    expect(readText(kept)).toContain('New York Jets at Miami Dolphins');
+    expect(readText(kept)).not.toContain('Seattle Seahawks');
+  });
+  it('a stale or foreign item opens on the default opponent, not an empty card', () => {
+    for (const item of ['ghost', 'me', 'someone-removed']) {
+      const html = render({ week: 8, item });
+      const chips = [...walk(parseMarkup(html))].filter(n => n.tag === 'button' && (n.attrs.class ?? '').split(/\s+/).includes('gx-cmp-face'));
+      expect(chips.map(n => n.attrs['aria-pressed'])).toEqual(['false', 'true', 'false']);
+      expect(readText(html)).toContain('You lead by 2');
+    }
+  });
+  it('a pending reference lists no line in the info dialog, only that it is waiting', () => {
+    const text = value => String(value);
+    const notes = lineNotes([['You', { reference: { value: null, status: 'pending' } }], ['Troy', { reference: ref(-3) }]], text);
+    expect(notes[0]).toBe('You · waiting for a line');
+    expect(notes[1]).toMatch(/^Troy · line -3 · Fixture median · /);
+    expect(notes.join(' ')).not.toMatch(/line —|Source unavailable/);
   });
   it('nothing moves on the first paint: no bar carries the grow attribute', () => {
     expect(render({ week: 8 })).not.toContain('data-grow');

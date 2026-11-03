@@ -125,7 +125,7 @@ test('landing tile: the latest week with a shared game, a signed lead, the view 
 test('D-31: the other player’s own hiddenGames list shuts a game even when the gate is open and the pick looks plain; the legacy week.revealed shuts or opens it when a reply has no gate', () => {
   const plain = { ...locked(BUF.id, 17.5, 16.5, 7), hidden: false };
   const listed = rows(history([week(9, [entry(ME, [locked(BUF.id, 2, 2.5, 9)]), entry(TROY, [locked(SEA.id, -3, -3, 10), plain], { hiddenGames: [BUF.id] })])]));
-  assert.deepEqual(listed.map(r => [r.game.id, r.state, r.me, r.them === null]), [[SEA.id, 'noGuess', listed[0].me, false], [BUF.id, 'hidden', null, true]]);
+  assert.deepEqual(listed.map(r => [r.game.id, r.state, r.me, r.them === null]), [[SEA.id, "noGuess", { locked: false, points: null, satOut: false }, false], [BUF.id, 'hidden', null, true]]);
   assert.doesNotMatch(JSON.stringify(listed[1]), /17\.5|16\.5/);
   const noGate = (revealed) => ({ season: 2026, week: 9, games: [SEA, BUF], revealed: { guess_spread: revealed, guess_total: false },
     entries: [entry(ME, [locked(SEA.id, -3, -3, 10)]), entry(TROY, [locked(SEA.id, -17.5, -16.5, 7)])] });
