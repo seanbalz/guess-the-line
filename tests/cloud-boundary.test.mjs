@@ -192,22 +192,24 @@ test('M-26 features schedule: the dispatcher, claim and completion and its two t
     ? new Response(JSON.stringify({ code: 'NOT_FOUND' }), { status: 404 }) : denied(url, request)) }), /scheduled league features without machine token: unexpected 404/);
 });
 
-test('M-38 ops alerts: its three tables and seven functions are probed with inert fixtures and await deploy until "apply M-38"', async () => {
-  // 20261103190000_gtl_ops_alerts.sql (item 22) is written and not applied; the gtl-ops-alerts worker joins workerChecks with its deploy.
+test('M-38 ops alerts: its three tables and seven functions are probed with inert fixtures; hosted, none awaits, and a not-found answer fails', async () => {
+  // 20261103190000_gtl_ops_alerts.sql (item 22) is hosted as 20261103184656 (November 3, 2026); the gtl-ops-alerts worker joins
+  // workerChecks with its deploy.
   const rpcs = ['gtl_ops_findings', 'gtl_dispatch_ops_alerts', 'gtl_claim_ops_alerts', 'gtl_mark_ops_notification', 'gtl_record_ops_delivery', 'gtl_complete_ops_alerts', 'gtl_ops_test_alert'];
   const tables = ['ops_alert_schedule', 'ops_alert_runs', 'ops_incidents'];
-  for (const key of [...rpcs.map(rpc => `rpc/${rpc}`), ...tables.map(table => `table/${table}`)]) assert.match(awaitingDeploy[key] ?? '', /^20261103190000 /, key);
+  for (const key of [...rpcs.map(rpc => `rpc/${rpc}`), ...tables.map(table => `table/${table}`)]) assert.ok(!Object.hasOwn(awaitingDeploy, key), key);
   const captured = [];
-  const missing = (url, request) => rpcs.some(rpc => url.endsWith(`/rest/v1/rpc/${rpc}`)) ? new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function.' }), { status: 404 })
-    : tables.some(table => url.includes(`/rest/v1/gtl_${table}?`)) ? new Response(JSON.stringify({ code: 'PGRST205', message: 'Could not find the table.' }), { status: 404 }) : denied(url, request);
-  const result = await checkCloudBoundary({ ...options, fetchImpl: async (url, request) => { captured.push({ url, request }); return missing(url, request); } });
-  assert.equal(result.awaiting.filter(({ name }) => [...rpcs, ...tables].some(piece => name.includes(piece))).length, rpcs.length + tables.length);
+  await checkCloudBoundary({ ...options, fetchImpl: async (url, request) => { captured.push({ url, request }); return denied(url, request); } });
+  for (const table of tables) assert.ok(captured.some(({ url }) => url.includes(`/rest/v1/gtl_${table}?`)), table);
   const body = rpc => JSON.parse(captured.find(({ url }) => url.endsWith(`/rest/v1/rpc/${rpc}`)).request.body);
   const missingId = '00000000-0000-0000-0000-000000000000';
   assert.deepEqual(body('gtl_claim_ops_alerts'), { p_token: '0'.repeat(64), p_run: missingId }, 'never a real capability');
   for (const rpc of ['gtl_mark_ops_notification', 'gtl_record_ops_delivery', 'gtl_complete_ops_alerts']) assert.deepEqual([body(rpc).p_run, body(rpc).p_claim], [missingId, missingId], rpc);
   assert.notEqual(body('gtl_record_ops_delivery').p_outcome, 'gone', 'the delivery probe never asks to remove a device');
-  await assert.rejects(() => checkCloudBoundary({ ...options, strict: true, fetchImpl: async (url, request) => missing(url, request) }), /ops_alert_schedule table: unexpected 404/, '--strict fails until they deny');
+  await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (url.endsWith('/rest/v1/rpc/gtl_claim_ops_alerts')
+    ? new Response(JSON.stringify({ code: 'PGRST202' }), { status: 404 }) : denied(url, request)) }), /gtl_claim_ops_alerts RPC: unexpected 404/, 'a missing function fails the default check');
+  await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (url.includes('/rest/v1/gtl_ops_incidents?')
+    ? new Response(JSON.stringify({ code: 'PGRST205' }), { status: 404 }) : denied(url, request)) }), /ops_incidents table: unexpected 404/, 'a missing table fails the default check');
   assert.ok(!captured.some(({ url }) => url.includes('/functions/v1/gtl-ops-alerts')), 'the worker joins the worker probes with its deploy');
 });
 

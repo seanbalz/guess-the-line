@@ -86,9 +86,9 @@ async function fixture(t) {
   return f;
 }
 
-test('M-38 is written and not applied; the migration inserts no schedule row and registers no cron job', () => {
+test('M-38 is applied (hosted 20261103184656, November 3); the migration inserts no schedule row and registers no cron job', () => {
   assert.ok(ALL.includes(MIGRATION));
-  assert.ok(NOT_HOSTED.includes(version(MIGRATION)) && !APPLIED.includes(version(MIGRATION)), 'Gate M applies it separately');
+  assert.ok(APPLIED.includes(version(MIGRATION)) && !NOT_HOSTED.includes(version(MIGRATION)), 'recorded by the Gate M apply record');
   const sql = fs.readFileSync(new URL(`../supabase/migrations/${MIGRATION}`, import.meta.url), 'utf8');
   assert.doesNotMatch(sql, /insert into public\.gtl_ops_alert_schedule\b/, 'the admin script adds the schedule row, disabled first');
   assert.doesNotMatch(sql, /cron\.schedule/);
