@@ -1,4 +1,4 @@
-// D-69 Play › Your guesses as nesting cards (docs/superpowers/specs/2026-11-02-play-picks-nesting-cards-design.md):
+// D-70 Play › Your guesses as nesting cards (docs/superpowers/specs/2026-11-02-play-picks-nesting-cards-design.md):
 // the week as one tile per game, then one game's card. Fixture games and players only; the server decides every state
 // and the editor's saving is unchanged (tests/cloud-browser/next-play-nest.spec.js drives the real handler).
 import { describe, expect, it, vi } from 'vitest';

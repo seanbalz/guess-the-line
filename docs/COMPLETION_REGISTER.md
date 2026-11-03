@@ -97,7 +97,7 @@ and nesting rules. Follow-ups: reset `usePopped` before step 1; the tab fade
 stays on once it starts; a tab change into a Nest moves twice; and the old app's
 AuthGate spinner.
 
-## Play › Your guesses nesting cards (D-69) — November 2, 2026
+## Play › Your guesses nesting cards (D-70) — November 2, 2026
 
 Sean asked for the next design pass, to cut text on Home and Play. On the live app Home (139 words) and the Play
 landing (59) were already lean. Your guesses was the long screen: 15 stacked 525px cards, 9,043px, 1,317 words

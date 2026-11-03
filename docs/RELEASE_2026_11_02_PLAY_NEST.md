@@ -1,14 +1,15 @@
-# Play › Your guesses nesting cards release (D-69) — November 2, 2026
+# Play › Your guesses nesting cards release (D-70) — November 2, 2026
 
 Released November 3, 2026 at 00:47 UTC (November 2, 4:47 PM PST) on Sean's approval of the
 [release card, issue #426](https://github.com/seanbalz/guess-the-line/issues/426): **frontend only**, from `main` at
 `ffaefd6427d908d6c5cfa6c6fdeba893be992eed` (the merge of PR #418). Sean said "Release it", then OK'd the 390 px Light
 and Dark phone captures of the built screens ("Looks good, release"), as his November 2 rule asks before a change
-players see goes live. No migration, Edge Function or server change.
+players see goes live. No migration, Edge Function or server change. The card and Board release r60 call this
+decision D-69; it was renumbered D-70 on November 3 (see [DECISIONS.md](DECISIONS.md)).
 
 ## What shipped
 
-**Play › Your guesses as nesting cards (PR #418, [D-69](DECISIONS.md)).** The
+**Play › Your guesses as nesting cards (PR #418, [D-70](DECISIONS.md)).** The
 [design spec](superpowers/specs/2026-11-02-play-picks-nesting-cards-design.md) has the details.
 
 - **The week:** one card of game tiles. Each tile shows your own guess only.

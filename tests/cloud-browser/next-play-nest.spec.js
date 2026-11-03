@@ -4,7 +4,7 @@ import { HOSTED } from '../migrations.mjs';
 import { SUPABASE, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 import { gameCard, openGame, openWeek } from './play-nest.mjs';
 
-// D-69 Play › Your guesses as nesting cards (docs/superpowers/specs/2026-11-02-play-picks-nesting-cards-design.md):
+// D-70 Play › Your guesses as nesting cards (docs/superpowers/specs/2026-11-02-play-picks-nesting-cards-design.md):
 // the week's game tiles, then one game's card, on the real shell and router. Fictional /personal reads and writes over
 // the local account fixture (the next-per-game-scoring.spec.js pattern); SQL authority is tested separately.
 test.use({ viewport: { width: 390, height: 844 } });
