@@ -10,6 +10,24 @@ records what it listed for a mismatched game. Local checks pass, including PGlit
 mutation checks. M-37 is **not applied** (Gate M, Sean's "apply M-37"). The provider change is **not deployed**
 (next `gtl-api` release and a Mac mini `gtl-odds-refresh` deploy). See the [release card](RELEASE_2026_11_03_ODDS_REFRESH_M37.md).
 
+## Ops alerts for the data refreshes (item 22) — November 3, 2026
+
+On November 3 the Fantasy refresh failed on every run from Monday night (PT)
+until about 3:00 AM PT on Tuesday, and nothing reported it; Points Week 9 opened about
+three and a half hours late. The new `Ops alerts` workflow starts whenever the Fantasy or Research data
+refresh completes on main. A failure opens one issue per workflow, labelled
+`ops-alert` and assigned to Sean, so GitHub notifies his phone and email; later
+failures only update that issue, and the next run that publishes comments and
+closes it. A dry run or a skipped publish never closes an alert. The repository
+is public, so an alert holds only the workflow name, run link, event, failed
+step and times, never log text. A manual run replays one past run by id.
+Local checks: 15 Node tests (alert decisions, GitHub calls, the workflow's
+triggers, permissions and step names), each mutation of the publish, staleness
+and count rules failing its test, and read-only dry runs against today's real
+runs (a failed Fantasy run plans `open`, the recovering run and a CI run plan
+nothing). Supabase cron jobs are not covered yet: their failures and missed
+outcomes need a server-side check.
+
 ## Tracked bets Overview — November 2, 2026
 
 The [Overview follow-up](TRACKED_BETS_OVERVIEW_2026_11_02.md) restores a first-class
