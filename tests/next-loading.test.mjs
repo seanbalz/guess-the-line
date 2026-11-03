@@ -8,11 +8,17 @@ import path from 'node:path';
 const root = path.resolve(import.meta.dirname, '..');
 const files = dir => fs.readdirSync(path.join(root, dir), { withFileTypes: true }).flatMap(e => (e.isDirectory() ? files(`${dir}/${e.name}`) : /\.(jsx|js)$/.test(e.name) ? [`${dir}/${e.name}`] : []));
 
+// Two screens keep a deliberately visually hidden status beside visible content (their placeholder or content is
+// already on screen); everything else must use a Skeleton, whose words stay for screen readers.
+const HIDDEN_STATUS = new Set(['web/src/next/lines/LinesBoard.jsx', 'web/src/next/lines/GameNote.jsx']);
+// A <p> or <div role=status> whose only content is Loading text or a {…loading…} expression (copy constant, ternary).
+const LOADING_STATUS = /<(p|div)\b[^>]*role="status"[^>]*>\s*(\{(?=[^<]*loading)[^<]*\}|Loading[^<]*)\s*<\/\1>/i;
+
 test('loading: no bare role="status" Loading sentence in the new app; Skeleton carries the words for screen readers', () => {
   const offenders = [];
   for (const file of files('web/src/next')) {
     const text = fs.readFileSync(path.join(root, file), 'utf8');
-    if (/<p(?![^>]*gx-sr-only)[^>]*role="status"[^>]*>\s*(\{[A-Z_]*LOADING[A-Z_]*\}|Loading[^<]*)<\/p>/.test(text)) offenders.push(file);
+    if (!HIDDEN_STATUS.has(file) && LOADING_STATUS.test(text)) offenders.push(file);
     if (/FEATURES_COPY\.loading\}<\/p>/.test(text)) offenders.push(file);
   }
   assert.deepEqual(offenders, []);

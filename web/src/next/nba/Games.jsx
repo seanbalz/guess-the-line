@@ -1,4 +1,4 @@
-import { Button, Card, Pill } from '../ui/index.js';
+import { Button, Card, Pill, Skeleton } from '../ui/index.js';
 import { today } from './route.js';
 import { fmtWhen } from '../format.js';
 const titles = { scheduled: 'Scheduled', in_progress: 'In progress', final: 'Final', other: 'Schedule updates' };
@@ -13,7 +13,7 @@ export function Games({ board, date, timeZone, onDate, onTrack, refresh, loading
     <p className="gx-c-2">{date} · {timeZone}</p>
     <div className="gx-nba-actions"><Button onClick={() => onDate(shiftDate(date, -1))}>Yesterday</Button><Button onClick={() => onDate(today(timeZone))}>Today</Button><Button onClick={() => onDate(shiftDate(date, 1))}>Tomorrow</Button></div>
     <label className="gx-nba-field">Game date<input type="date" value={date} onChange={event => event.target.value && onDate(event.target.value)}/></label>
-    <div role="status">{loading ? 'Loading games…' : error ? `${error.status === 401 ? 'Sign in again. ' : ''}Refresh failed. ${error.message}` : board?.unavailable ? 'Games are unavailable. Source connection or refresh is pending.' : null}</div>
+    {loading ? <Skeleton label="Loading games…" shape="cards" count={3}/> : <div role="status">{error ? `${error.status === 401 ? 'Sign in again. ' : ''}Refresh failed. ${error.message}` : board?.unavailable ? 'Games are unavailable. Source connection or refresh is pending.' : null}</div>}
     {board?.observedAt && <p className="gx-t-meta gx-c-2">{error || board.stale ? 'Cached' : 'Observed'} · {board.source} · {new Date(board.observedAt).toLocaleString()} · {Math.max(0, Math.floor((Date.now() - Date.parse(board.observedAt)) / 60000))} min ago</p>}
     <Button disabled={loading} onClick={() => refresh()}>Refresh games</Button>
     {board && !board.unavailable && !board.games.length && <Card>No games on this date.</Card>}

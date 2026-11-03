@@ -231,7 +231,7 @@ function Referees({ app, week }) {
   }
   return <>
     <p className="gx-t-body gx-c-2">Week {number}. Pick each game’s referee once the NFL announces crews. Every member’s trends then show that referee’s records. Changes are kept with their history, never deleted.</p>
-    {trends.status === 'loading' && <Skeleton label={`Loading Week ${number} games…`} shape="rows" count={4}/>}
+    {trends.status === 'loading' && <Skeleton label={`Loading Week ${number} games…`} shape="panels" count={2}/>}
     {trends.status === 'missing' && <p className="gx-t-body" role="status">The Week {number} trends file is not published yet, so there is no game or referee list to choose from.</p>}
     {trends.status === 'error' && <div role="alert" className="gx-cm-stack"><p className="gx-t-body gx-cm-problem">The Week {number} games could not load.</p><Button onClick={trends.retry}>Retry</Button></div>}
     {state === 'not_deployed' && <p className="gx-t-body" role="status">Saving referees needs the next gtl-api deploy and the game officials migration.</p>}

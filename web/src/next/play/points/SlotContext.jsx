@@ -5,7 +5,7 @@
 // The profile's code (FantasyTools and its stylesheet) loads on that tap, as Research › Fantasy loads its own on a visit.
 import { lazy, Suspense, useId, useRef, useState } from 'react';
 import { Boundary } from '../../shell/Boundary.jsx';
-import { Button, Card } from '../../ui/index.js';
+import { Button, Card, Skeleton } from '../../ui/index.js';
 import { retryViewImport } from '../../ui/retryViewImport.js';
 import { CONTEXT_COPY, contextNumber, gamesText, slotContext } from './pointsContext.js';
 
@@ -22,7 +22,7 @@ export function ProfileView(props) {
       <p className="gx-t-body">{CONTEXT_COPY.profileFailed}</p>
       <Button variant="secondary" onClick={retry}>{CONTEXT_COPY.profileRetry}</Button>
     </div>}>
-      <Suspense fallback={<p className="gx-t-body" role="status">{CONTEXT_COPY.profileLoading}</p>}><Profile {...props}/></Suspense>
+      <Suspense fallback={<Skeleton label={CONTEXT_COPY.profileLoading} shape="lines" count={3}/>}><Profile {...props}/></Suspense>
     </Boundary>
   </div>;
 }
@@ -46,7 +46,7 @@ export function SlotContext({ week, slot, snapshot: state, settings, onProfile }
   const titleId = useId();
   const head = <><h3 className="gx-t-strong" id={titleId}>{CONTEXT_COPY.title}</h3><p className="gx-t-meta gx-pt-sub">{CONTEXT_COPY.scoring}</p></>;
   let body;
-  if (!state || state.status === 'loading') body = <p className="gx-t-body" role="status">{CONTEXT_COPY.loading}</p>;
+  if (!state || state.status === 'loading') body = <Skeleton label={CONTEXT_COPY.loading} shape="panels" count={2}/>;
   else if (state.status !== 'ready' || !state.snapshot) {
     body = <>
       <p className="gx-t-body">{state.status === 'error' ? CONTEXT_COPY.failed : CONTEXT_COPY.unavailable(week)}</p>

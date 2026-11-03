@@ -9,7 +9,7 @@
 import { useId } from 'react';
 import { APP_RELOAD_COPY } from '../../appView.js';
 import { useDashboardPreferences } from '../../dashboardPreferences.js';
-import { Button, FieldMark, Icon } from '../ui/index.js';
+import { Button, FieldMark, Icon, Skeleton } from '../ui/index.js';
 
 export const APP_SCREENS_COPY = Object.freeze({
   name: 'Guess The Line',
@@ -40,7 +40,7 @@ export function StartScreen() {
     <main className="gx-solo" id="main">
       <h1 className="gx-sr-only">{APP_SCREENS_COPY.name}</h1>
       <FieldMark size={80}/>
-      <p className="gx-t-body gx-c-2" role="status">{APP_SCREENS_COPY.loading}</p>
+      <Skeleton label={APP_SCREENS_COPY.loading} shape="lines" count={2}/>
     </main>
   );
 }
