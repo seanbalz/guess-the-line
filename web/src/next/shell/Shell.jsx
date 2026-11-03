@@ -76,6 +76,13 @@ function useHeight(element) {
 
 const prefersReducedMotion = () => typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+// D-69: the member's first navigation after the first press ends the launch screen (launch.js). It is marked before the
+// dispatch, so the cards it renders already see it: a nesting card that first changes layer rises in, a first Back
+// settles. Navigation is a tab change, `go`, Back, a navigating view step, a restore or Back from the router, and a
+// sheet, page or dialog opening or closing; overlays, popovers and toasts never count.
+const navigated = () => { if (isSettled()) markNavigated(); };
+const NAVIGATING_KINDS = new Set(['sheet', 'page', 'dialog']);
+
 export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, leagueName = SHELL_COPY.defaultLeague, league: shown, you, data = null, cover = null, initialLayer = null, notice = null, router = NFL_ROUTER, className = '', children }) {
   const [state, dispatch] = useReducer(reduce, null, () => {
     const start = initialState(startPlace(window, router));
@@ -120,7 +127,8 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
   const history = useRef(null);
   const synced = useRef(null);
   useEffect(() => {
-    const connection = connectHistory(window, { getState: () => stateRef.current, dispatch, confirmLeave, beforeNavigate: rememberPosition, route: router });
+    // Every router dispatch is the browser's or the OS's Back, or a restore: a navigation.
+    const connection = connectHistory(window, { getState: () => stateRef.current, dispatch: action => { navigated(); dispatch(action); }, confirmLeave, beforeNavigate: rememberPosition, route: router });
     history.current = connection;
     connection.sync(null, stateRef.current);
     synced.current = stateRef.current;
@@ -141,10 +149,10 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
     const node = document.activeElement;
     positions.current.set(positionKey(stateRef.current), { scroll: window.scrollY, focus: node && node !== document.body ? { id: node.id, tag: node.tagName, label: node.getAttribute('aria-label'), text: node.textContent?.trim() } : null });
   }, []);
-  const navigated = useRef(state.nav);
+  const focusedNav = useRef(state.nav);
   useLayoutEffect(() => {
-    if (navigated.current === state.nav) return;
-    navigated.current = state.nav;
+    if (focusedNav.current === state.nav) return;
+    focusedNav.current = state.nav;
     const saved = positions.current.get(positionKey(state));
     const returning = state.navMode === 'back' || state.navMode === 'restore';
     const main = document.querySelector('main');
@@ -189,10 +197,9 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
     return stop;
   }, [state.nav]);
 
-  // D-69: the launch screen ends at the member's first navigation (launch.js): a tab change, `go`, Back, a restore, or
-  // a sheet, page or dialog opening or closing. A change before the first press (the load-time restore) never counts,
-  // and the first render is not a change. A layout effect, so the cards this navigation mounts already see it when
-  // their moment scopes open (useMomentScope's passive effect runs after every layout effect of the commit).
+  // The backstop for `navigated()` above: any change of place or of an open sheet, page or dialog after the first press
+  // ends the launch screen, however it was dispatched. A change before the first press (the load-time restore) never
+  // counts, and the first render is not a change.
   const layered = state.sheets.length > 0 || !!state.page || !!state.dialog;
   const launchPlace = useRef({ nav: state.nav, layered });
   useLayoutEffect(() => {
@@ -206,44 +213,50 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
   const actions = useMemo(() => {
     const opener = kind => (id, args) => {
       if (layerKind(id) !== kind) throw new TypeError(`${id} is not a ${kind} id.`);
+      if (NAVIGATING_KINDS.has(kind)) navigated();
       dispatch({ type: 'open', layer: layer(id, args) });
     };
     const toast = (text, options = {}) => dispatch({ type: 'toast', toast: { ...options, text } });
     return {
       setDirty,
       confirmLeave,
-      tab: tab => { if (confirmLeave()) { rememberPosition(); dispatch({ type: 'tab', tab }); } },
-      go: (tab, view) => { if (confirmLeave()) { rememberPosition(); dispatch({ type: 'go', tab, view }); } },
-      back: () => { if (confirmLeave()) { rememberPosition(); dispatch({ type: 'back' }); } },
+      tab: tab => { if (confirmLeave()) { rememberPosition(); navigated(); dispatch({ type: 'tab', tab }); } },
+      go: (tab, view) => { if (confirmLeave()) { rememberPosition(); navigated(); dispatch({ type: 'go', tab, view }); } },
+      back: () => { if (confirmLeave()) { rememberPosition(); navigated(); dispatch({ type: 'back' }); } },
       setView: (tab, patch) => {
         if (navigationPatch(stateRef.current, tab, patch)) {
           if (!confirmLeave()) return;
           rememberPosition();
+          navigated();
         }
         dispatch({ type: 'view', tab, patch });
       },
-      open: (id, args, options = {}) => dispatch({ type: 'open', layer: layer(id, args), front: options.front }),
+      open: (id, args, options = {}) => {
+        if (NAVIGATING_KINDS.has(layerKind(id))) navigated();
+        dispatch({ type: 'open', layer: layer(id, args), front: options.front });
+      },
       openSheet: opener('sheet'),
       replaceSheet: (id, args) => {
         if (layerKind(id) !== 'sheet') throw new TypeError(`${id} is not a sheet id.`);
+        navigated();
         dispatch({ type: 'replaceSheet', layer: layer(id, args) });
       },
       setSheetArgs: patch => dispatch({ type: 'sheetArgs', patch }),
-      closeSheet: () => dispatch({ type: 'close', kind: 'sheet' }),
-      closeAllSheets: () => dispatch({ type: 'close', kind: 'sheets' }),
+      closeSheet: () => { navigated(); dispatch({ type: 'close', kind: 'sheet' }); },
+      closeAllSheets: () => { navigated(); dispatch({ type: 'close', kind: 'sheets' }); },
       openDialog: opener('dialog'),
-      closeDialog: () => dispatch({ type: 'close', kind: 'dialog' }),
+      closeDialog: () => { navigated(); dispatch({ type: 'close', kind: 'dialog' }); },
       openPopover: opener('popover'),
       closePopover: () => dispatch({ type: 'close', kind: 'popover' }),
       openPage: opener('page'),
       setPageArgs: patch => dispatch({ type: 'pageArgs', patch }),
-      closePage: () => { if (confirmLeave()) dispatch({ type: 'close', kind: 'page' }); },
+      closePage: () => { if (confirmLeave()) { navigated(); dispatch({ type: 'close', kind: 'page' }); } },
       showOverlay: (id, args, options = {}) => {
         if (layerKind(id) !== 'overlay') throw new TypeError(`${id} is not an overlay id.`);
         dispatch({ type: 'open', layer: layer(id, args), front: options.front });
       },
       closeOverlay: key => dispatch({ type: 'close', kind: 'overlay', key }),
-      closeTop: () => { if (confirmLeave()) dispatch({ type: 'closeTop' }); },
+      closeTop: () => { if (confirmLeave()) { navigated(); dispatch({ type: 'closeTop' }); } },
       /** Closes one opening of a sheet, dialog, popover or overlay by its key, wherever it is (a layer that fails). */
       closeLayer: (id, key) => {
         const kind = layerKind(id);
