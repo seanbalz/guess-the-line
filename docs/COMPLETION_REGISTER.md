@@ -1,5 +1,16 @@
 # Guess The Line — current completion register
 
+## Pick a Team turn queues — November 3, 2026
+
+Sean requested immediate assignment from the highest available saved backup when
+the turn begins, confirmed an exhausted ranking waits for a manual pick, and
+requested a visible team confirmation. The
+[implementation record](EPL_TURN_QUEUES_2026_11_03.md) covers transactional server
+advancement, a persistent note and a one-time popup. M-40 is prepared, not
+applied. Local checks pass: 74 focused Node, 87 boundary/migration, 670 component
+checks, the M-40 rollback harness and four EPL browser scenarios, plus typecheck,
+build/privacy and Brand QA. No hosted records are changed by this work.
+
 ## Reminder worker error answer, gtl-push-reminders v6 — November 3, 2026
 
 The `gtl-ops-alerts` review (item 22) found that `cloud/push-reminders.mjs` returned `finish(...)` inside `try` without

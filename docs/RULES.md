@@ -1,5 +1,20 @@
 # Current competition rules — status updated October 19, 2026
 
+## Pick a Team backup rankings — November 3, 2026
+
+A manager with a saved ranking receives the highest-ranked available club when
+their turn begins. Consecutive ranked managers are processed in draft order. If
+no ranked club is available, their turn stays open for a manual pick; an unranked
+team is not selected before kickoff. Saving a ranking while on the clock can
+assign the club immediately. The existing first-kickoff resolution and latest
+picker change window remain in force. A recorded backup assignment shows a team
+confirmation on the board and a one-time popup on the viewer’s device.
+
+This confirmed rule requires M-40 plus compatible API/frontend. They are prepared
+and locally tested, not applied/deployed; until then the hosted queue still uses
+the existing kickoff behavior. See [the rollout record](EPL_TURN_QUEUES_2026_11_03.md).
+
+
 D-39/D-41 and D-50 supersede D-16's edit-after-submission rule: each game's
 Spread or Total guess is final once locked in. Available personal accuracy
 points appear immediately; shared standings retain their per-game kickoff

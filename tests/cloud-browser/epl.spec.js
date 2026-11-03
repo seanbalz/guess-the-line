@@ -75,6 +75,37 @@ async function enter(page, account = 'luke', hash = '#epl/play/pick') {
   await page.goto(`/${hash}`); await signIn(page, account, { navigate: false });
   await expect(page.locator('.gx-epl')).toBeVisible();
 }
+
+test('saved backup becomes the confirmed team as the previous manager picks, with no browser auto-pick write or repeat popup',async({page,baseURL})=>{
+ test.skip(!pgliteAvailable,'Disposable PGlite required.');test.setTimeout(90000);
+ const world=await fixture(page,baseURL);
+ try{
+  await world.db.query('update public.gtl_epl_managers set user_id=$1 where owner_id=$2',[ACCOUNTS.luke.id,ADAM]);
+  await enter(page,'troy');
+  await expect(page.getByRole('region',{name:'Backup pick confirmed'})).toHaveCount(0);
+  await page.getByRole('button',{name:'Set my backup ranking (queue)',exact:true}).click();
+  await expect(page.getByRole('dialog',{name:'Backup ranking'})).toContainText('When your turn starts');
+  await expect(page.getByRole('dialog',{name:'Backup ranking'})).toContainText('your turn stays open for a manual pick');
+  await page.getByRole('dialog',{name:'Backup ranking'}).getByRole('button',{name:'Close',exact:true}).click();
+  // Another manager's server-side pick advances the queue even though the queued player sends no pick request.
+  await world.rpc('gtl_epl_save_pick',{p_user:ACCOUNTS.luke.id,p_season:2026,p_week:9,p_club:'ARS'});
+  expect((await world.db.query('select club,source from public.gtl_epl_picks where owner_id=$1',[EVAN])).rows).toEqual([{club:'LIV',source:'queue'}]);
+  await page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));
+  const confirmation=page.getByRole('region',{name:'Backup pick confirmed'});await expect(confirmation).toBeVisible();
+  await expect(confirmation).toContainText('Liverpool was assigned from your backup ranking.');
+  const toast=page.locator('.gx-epl-toast');await expect(toast).toContainText('Liverpool was assigned from your backup ranking.');
+  await toast.getByRole('button',{name:'Dismiss',exact:true}).click();
+  await page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));await expect(toast).toHaveCount(0);
+  await page.reload();await expect(confirmation).toBeVisible();await expect(toast).toHaveCount(0);
+  for(const theme of ['light','dark'])for(const width of [320,390]){
+   await page.evaluate(t=>document.documentElement.dataset.theme=t,theme);await page.setViewportSize({width,height:844});await layout(page);
+   const scan=await new AxeBuilder({page}).include('.gx-epl').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(scan.violations.map(v=>v.id)).toEqual([]);
+   await page.screenshot({path:`.local/queue-confirmation/${theme}-${width}.png`,fullPage:true});
+  }
+  expect(world.calls.filter(c=>c.path==='epl/draft/pick'||c.path==='epl/queue/save')).toEqual([]);
+  expect(world.errors).toEqual([]);
+ }finally{await world.db.close();}
+});
 async function layout(page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   const brokenLabels = await page.locator('.gx-epl-fx > .gx-seg button').evaluateAll(buttons => buttons.filter(button => {
@@ -106,7 +137,7 @@ test('open board stays read-only, a claim enables only its owner queue, and Fant
     await expect(page.getByText('No clubs ranked yet. Add clubs below.')).toBeVisible();
     await page.getByRole('button', { name: 'Add Arsenal', exact: true }).click();
     await page.getByRole('button', { name: 'Save ranking', exact: true }).click();
-    await expect(page.getByText('Backup ranking saved.', { exact: true })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Backup pick confirmed' })).toContainText('Arsenal was assigned from your backup ranking.');
     expect((await world.db.query('select owner_id,clubs from public.gtl_epl_queues order by owner_id')).rows).toEqual([
       { owner_id: EVAN, clubs: ['LIV'] }, { owner_id: ADAM, clubs: ['ARS'] },
     ].sort((a, b) => a.owner_id.localeCompare(b.owner_id)));

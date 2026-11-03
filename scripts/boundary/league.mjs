@@ -17,6 +17,8 @@ export const tables = Object.freeze([
 ]);
 
 export const rpcChecks = Object.freeze([
+  // M-40: service-only turn advancement; a nonexistent week keeps this inert even if grants regress.
+  ['gtl_epl_advance_queues', { p_season: 0, p_week: 0, p_now: null }],
   ...moneyline.rpcChecks,
   // M-34: inert claim IDs/null source only; no real run, snapshot or pick can be written.
   ['gtl_epl_standings_valid', { p_record: null, p_season: 2026, p_round: 8, p_now: null }],
@@ -121,4 +123,5 @@ export const awaitingDeploy = Object.freeze({
   'rpc/gtl_epl_save_standings': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
   'rpc/gtl_epl_resolve_with_standings': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
   'rpc/gtl_epl_standings_provenance': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
+  'rpc/gtl_epl_advance_queues': '20261103212932 (M-40 turn queues apply)',
 });
