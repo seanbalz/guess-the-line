@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import vm from 'node:vm';
+import { placeFromFragment } from '../web/src/next/shell/router.js';
 import { planReminders, reminderPayload, pointsReminderPayload, pacificClock, createPushReminderHandler, createPushReminderAdapter } from '../cloud/push-reminders.mjs';
 import { handlePush, providerPushError, PUSH_METHODS } from '../cloud/push.mjs';
 import { b64uDecode, b64uEncode, encryptPayload, importVapid, validPushEndpoint, vapidAuthorization, sendWebPush } from '../cloud/web-push.mjs';
@@ -273,12 +275,37 @@ test('reminder worker: skips outside the window and fails closed without VAPID s
   assert.deepEqual(await replay.json(), { runId: id(900), status: 'succeeded', reason: null, sent: 3, failed: 0 });
 });
 
+test('reminder worker: a refused completion is answered with the mapped error, never a rejected request (both finish paths)', async t => {
+  t.mock.method(console, 'info', () => {});
+  // The completion RPC refuses (a finished or reclaimed run: GTL_SCHEDULE_RUN; a database outage: anything else). Before the
+  // fix, `return finish(...)` inside `try` handed back a rejected promise the catch never saw, so the function answered 500.
+  const refusing = code => ({ rpc: async name => {
+    if (name === 'gtl_claim_push_reminders') return { replay: false, runId: id(900), claim: id(901), week, players: [player(1)] };
+    if (name === 'gtl_points_reminder_candidates') return { players: [] };
+    if (name === 'gtl_complete_push_reminders') throw Object.assign(new Error('refused'), { code });
+    throw new Error(`unexpected ${name}`);
+  } });
+  const request = () => new Request('https://x.supabase.co/functions/v1/gtl-push-reminders', { method: 'POST',
+    headers: { authorization: `Bearer ${'a'.repeat(64)}`, 'content-type': 'application/json' }, body: JSON.stringify({ runId: id(900) }) });
+  const goodKeys = await vapidPair();
+  for (const [code, status] of [['GTL_SCHEDULE_RUN', 400], ['GTL_SCHEDULE_AUTH', 401], ['UNAVAILABLE', 503]]) {
+    // The skip path (outside the window) and the VAPID failure path both end in finish(...).
+    for (const [clock, vapid] of [[Date.parse(DEADLINE) - 3 * HOUR, goodKeys], [inWindow, { publicKey: '', privateKey: '', subject: '' }]]) {
+      const handler = createPushReminderHandler({ service: refusing(code), vapid, clock: () => clock, fetchImpl: async () => { throw new Error('no send'); } });
+      const response = await handler(request());
+      assert.equal(response.status, status, `${code} at ${clock === inWindow ? 'vapid_unavailable' : 'not_due_yet'}`);
+    }
+  }
+});
+
 test('service worker handles push and notification clicks only; CSP names worker-src self', async () => {
   const sw = fs.readFileSync('web/public/sw.js', 'utf8');
   const listeners = [...sw.matchAll(/addEventListener\('([a-z]+)'/g)].map(m => m[1]).sort();
   assert.deepEqual(listeners, ['activate', 'install', 'notificationclick', 'push']);
-  assert.doesNotMatch(sw.replace(/\/\/.*$/gm, ''), /\bfetch\b|caches\.|importScripts|indexedDB|localStorage/, 'no fetch handler, no caches, no storage');
-  assert.match(sw, /new URL\('\/#picks', self\.location\.origin\)/, 'a click opens the app at #picks');
+  const code = sw.replace(/\/\/.*$/gm, '');
+  assert.doesNotMatch(code, /\bfetch\b|caches\.|importScripts|indexedDB|localStorage/, 'no fetch handler, no caches, no storage');
+  // Where a click lands is covered by running the worker below; here, nothing in it reads a URL from the payload.
+  assert.doesNotMatch(code, /notification\.data|data\.url|\.url\s*\?\?|openWindow\(data/, 'the payload never chooses a URL');
   const headers = fs.readFileSync('web/public/_headers', 'utf8');
   assert.match(headers, /Content-Security-Policy: default-src 'self'; script-src 'self'; worker-src 'self';/);
   assert.match(headers, /\/sw\.js\n {2}Cache-Control: no-cache/);
@@ -288,6 +315,99 @@ test('service worker handles push and notification clicks only; CSP names worker
     const response = await fetch(`http://127.0.0.1:${server.address().port}/`);
     assert.match(response.headers.get('content-security-policy'), /script-src 'self'; worker-src 'self';/);
   } finally { server.close(); }
+});
+
+// #411 review follow-up: a tap on a reminder lands on the screen it is about. The worker maps only the notification's
+// fixed tag prefix to one of this app's own fixed addresses; nothing in the payload can choose where a click goes.
+const ORIGIN = 'https://gtl.example';
+const POINTS_URL = `${ORIGIN}/#play/points`, PICKS_URL = `${ORIGIN}/#picks`;
+/** web/public/sw.js run in a fake worker scope: the notifications it shows, the windows it opens, and its two events. */
+function workerScope({ windows = [] } = {}) {
+  const listeners = {}, shown = [], opened = [];
+  const self = {
+    location: { origin: ORIGIN },
+    addEventListener: (type, listener) => { listeners[type] = listener; },
+    skipWaiting: () => {},
+    registration: { showNotification: async (title, options) => { shown.push({ title, options }); } },
+    clients: {
+      claim: async () => {},
+      matchAll: async query => { assert.deepEqual({ ...query }, { type: 'window', includeUncontrolled: true }); return windows; },
+      openWindow: async url => { opened.push(url); return null; },
+    },
+  };
+  vm.runInNewContext(fs.readFileSync('web/public/sw.js', 'utf8'), { self, URL }, { filename: 'web/public/sw.js' });
+  const dispatch = async (type, event) => {
+    const waits = [];
+    listeners[type]({ ...event, waitUntil: promise => waits.push(promise) });
+    assert.equal(waits.length, 1, `${type} waits for its work`);
+    await Promise.all(waits);
+  };
+  return {
+    shown, opened,
+    push: data => dispatch('push', { data: { json: () => data } }),
+    /** Clicks a notification with these fields (as the browser hands it over); true when the worker closed it. */
+    async click(fields) {
+      let closed = false;
+      await dispatch('notificationclick', { notification: { ...fields, close: () => { closed = true; } } });
+      return closed;
+    },
+  };
+}
+function appWindow(url, { navigates = true } = {}) {
+  const calls = [];
+  return { url, calls, focus: async () => { calls.push('focus'); }, navigate: async to => { calls.push(['navigate', to]); if (!navigates) throw new TypeError('This client is not controlled.'); } };
+}
+
+test('notification click: a Points reminder opens Play › Points, every other tag (or none) opens Picks', async () => {
+  const worker = workerScope();
+  // The tags the sender writes (cloud/push-reminders.mjs), so the sender and the worker agree on the format.
+  const points = pointsReminderPayload({ season: 2026, week: 9, open: 2, nextKickoff: '2026-11-08T18:00:00Z' });
+  const deadline = reminderPayload({ season: 2026, week: 6, deadline: DEADLINE, modes: ['guess_spread'] });
+  assert.match(points.tag, /^gtl-points-/);
+  assert.doesNotMatch(deadline.tag, /^gtl-points-/);
+  assert.equal(await worker.click({ tag: points.tag }), true, 'the notification closes');
+  assert.equal(await worker.click({ tag: deadline.tag }), true);
+  await worker.click({ tag: 'gtl-reminder' }); // the push handler's own tag when a payload names none
+  await worker.click({ tag: '' }); // a notification shown without a tag
+  await worker.click({}); // no tag at all
+  assert.deepEqual(worker.opened, [POINTS_URL, PICKS_URL, PICKS_URL, PICKS_URL, PICKS_URL]);
+  // Both addresses are the new app's real routes (web/src/next/shell/router.js).
+  assert.deepEqual(placeFromFragment(new URL(POINTS_URL).hash), { tab: 'play', view: { section: 'points' } });
+  assert.deepEqual(placeFromFragment(new URL(PICKS_URL).hash), { tab: 'play', view: { section: 'picks' } });
+});
+
+test('notification click: a URL in the payload is never followed; only the exact tag prefix maps, to this origin', async () => {
+  const worker = workerScope();
+  const evil = 'https://evil.example/phish';
+  await worker.push({ title: 'Guess The Line', body: 'Week 9 Points: 2 players still open.', tag: 'gtl-points-2026-9', url: evil, data: { url: evil }, actions: [{ action: 'open', title: 'Open' }] });
+  assert.deepEqual(Object.keys(worker.shown[0].options).sort(), ['badge', 'body', 'icon', 'tag'], 'no data, url or action reaches the notification');
+  assert.equal(worker.shown[0].options.tag, 'gtl-points-2026-9');
+  await worker.click({ tag: 'gtl-points-2026-9', data: { url: evil }, url: evil, action: 'open' });
+  await worker.click({ tag: 'gtl-deadline-2026-9', data: { url: evil }, url: evil });
+  // Tags that only look like the prefix, or carry an address, open Picks.
+  const lookalikes = ['GTL-POINTS-2026-9', 'x-gtl-points-2026-9', ' gtl-points-2026-9', 'gtl-points', 'https://evil.example/#play/points', '/#play/points', '//evil.example', 'javascript:alert(1)'];
+  for (const tag of lookalikes) await worker.click({ tag });
+  await worker.click({ tag: { startsWith: () => true, toString: () => evil } }); // never a string in a browser; still ignored
+  assert.deepEqual(worker.opened, [POINTS_URL, PICKS_URL, ...lookalikes.map(() => PICKS_URL), PICKS_URL]);
+  assert.ok(worker.opened.every(url => new URL(url).origin === ORIGIN));
+});
+
+test('notification click: an open app window is focused and moved to the screen; otherwise one opens', async () => {
+  const other = appWindow('https://other.example/'), app = appWindow(`${ORIGIN}/#home`);
+  const worker = workerScope({ windows: [other, app] });
+  await worker.click({ tag: 'gtl-points-2026-9' });
+  assert.deepEqual(app.calls, ['focus', ['navigate', POINTS_URL]]);
+  assert.deepEqual(other.calls, [], 'a window of another origin is never used');
+  assert.deepEqual(worker.opened, []);
+  // A window the worker does not control cannot be navigated; it still comes to the front and nothing else opens.
+  const uncontrolled = appWindow(`${ORIGIN}/#bets`, { navigates: false });
+  const second = workerScope({ windows: [uncontrolled] });
+  await second.click({ tag: 'gtl-deadline-2026-9' });
+  assert.deepEqual(uncontrolled.calls, ['focus', ['navigate', PICKS_URL]]);
+  assert.deepEqual(second.opened, []);
+  const none = workerScope({ windows: [other] });
+  await none.click({ tag: 'gtl-points-2026-9' });
+  assert.deepEqual(none.opened, [POINTS_URL]);
 });
 
 // P-02 (D-56): the one weekly Points reminder, sent after the Spread/Total pass of the same run.

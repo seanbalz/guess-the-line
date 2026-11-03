@@ -1,4 +1,5 @@
 // Manual tracking presentation only; never fetches prices or grades bets.
+import {summarizeSocialBets} from '../../shared/social-bets.mjs';
 export const PROP_STATS = [['rushing yards','Rushing yards'],['receiving yards','Receiving yards'],['passing yards','Passing yards'],['receptions','Receptions'],['rushing + receiving yards','Rushing + receiving yards'],['passing touchdowns','Passing touchdowns'],['anytime touchdown','Anytime touchdown']];
 export const unitText = value => Number.isFinite(value) ? `${Number(value.toFixed(4))}U` : 'Unknown';
 export const cashText = value => Number.isFinite(value) ? new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(value) : '—';
@@ -48,4 +49,50 @@ export function trackedLeg(leg) {
   if(win)return {name:win[1],pick:'Win',stat:'Moneyline'};
   if(leg.market==='total')return {name:'Game total',pick:`${leg.side==='over'?'Over':'Under'} ${leg.line??'—'}`,stat:'Total points'};
   return {name:leg.selection||'Selection',pick:null,stat:leg.market==='spread'?'Spread':'Custom selection'};
+}
+
+const bookName = entry => (typeof entry.source==='string'?entry.source:entry.source?.name||'').trim();
+const placementDay=new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'});
+/** Date filters use the saved placement date, or recording date when placement is unknown, in Pacific time. */
+export function trackedBetDate(entry) {
+  const time=Date.parse(entry.placedAt||entry.recordedAt||'');
+  if(!Number.isFinite(time))return null;
+  const parts=placementDay.formatToParts(time);
+  return ['year','month','day'].map(key=>parts.find(part=>part.type===key).value).join('-');
+}
+/** Owner-only dashboard projection. Accounting is the same core used by the server; saved tickets never change. */
+export function trackedOverview(data,{actorId,source='',from='',to=''}={}) {
+  const own=(data?.entries||[]).filter(entry=>actorId&&entry.ownerId===actorId&&entry.origin==='tracked');
+  const books=[...new Set(own.map(bookName))].sort((a,b)=>a.localeCompare(b));
+  const validDate=value=>!value||/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value))&&new Date(value).toISOString().slice(0,10)===value;
+  const rangeError=!validDate(from)||!validDate(to)?'Enter valid dates.':from&&to&&from>to?'Start date must be on or before end date.':null;
+  const entries=rangeError?[]:own.filter(entry=>{
+    if(source&&source!==`book:${bookName(entry)}`)return false;
+    if(!from&&!to)return true;
+    const date=trackedBetDate(entry);return date&&(!from||date>=from)&&(!to||date<=to);
+  });
+  const included=entries.filter(entry=>entry.countsForRecord!==false),ids=new Set(included.map(entry=>entry.id));
+  let running=0;
+  const chart=(data?.chart||[]).filter(point=>point.ownerId===actorId&&ids.has(point.entryId)&&Number.isFinite(point.netUnits)).map(point=>{
+    running=Math.round((running+point.netUnits)*10000)/10000;
+    return {...point,cumulativeNetUnits:running};
+  });
+  const group=labelOf=>{
+    const rows=new Map();
+    for(const entry of included){const label=labelOf(entry);rows.set(label,(rows.get(label)||0)+1);}
+    return [...rows].map(([label,count])=>({label,count}));
+  };
+  const marketOf=entry=>{
+    const markets=[...new Set(entry.legs.map(leg=>leg.market==='spread'?'Spreads':leg.market==='total'?'Totals':trackedLeg(leg).stat==='Moneyline'?'Moneylines':'Props / custom'))];
+    return markets.length===1?markets[0]:'Mixed markets';
+  };
+  const pending=included.filter(entry=>entry.outcome==='pending');
+  return {entries,books,chart,summary:summarizeSocialBets(entries),rangeError,
+    types:['Singles','Parlays'].map(label=>({label,count:included.filter(entry=>entry.kind===(label==='Singles'?'single':'parlay')).length})),
+    markets:group(marketOf).sort((a,b)=>b.count-a.count||a.label.localeCompare(b.label)),
+    sources:group(bookName).map(row=>({...row,value:`book:${row.label}`,label:row.label||'Unknown book'})).sort((a,b)=>b.count-a.count||a.label.localeCompare(b.label)),
+    outcomes:['win','loss','push','pending','void'].map(outcome=>({outcome,label:({win:'Won',loss:'Lost',push:'Push',pending:'Open',void:'Void'})[outcome],count:included.filter(entry=>entry.outcome===outcome).length})),
+    pendingStakeUnits:Math.round(pending.reduce((sum,entry)=>sum+(Number.isFinite(entry.stakeUnits)?entry.stakeUnits:0),0)*10000)/10000,
+    unknownPendingStakes:pending.filter(entry=>!Number.isFinite(entry.stakeUnits)).length,
+  };
 }

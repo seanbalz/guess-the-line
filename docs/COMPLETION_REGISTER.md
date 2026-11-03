@@ -1,5 +1,134 @@
 # Guess The Line — current completion register
 
+## Pick a Team turn queues — November 3, 2026
+
+Sean requested immediate assignment from the highest available saved backup when
+the turn begins, confirmed an exhausted ranking waits for a manual pick, and
+requested a visible team confirmation. The
+[implementation record](EPL_TURN_QUEUES_2026_11_03.md) covers transactional server
+advancement, a persistent note and a one-time popup. M-40 is prepared, not
+applied. Local checks pass: 74 focused Node, 87 boundary/migration, 670 component
+checks, the M-40 rollback harness and four EPL browser scenarios, plus typecheck,
+build/privacy and Brand QA. No hosted records are changed by this work.
+
+## Reminder worker error answer, gtl-push-reminders v6 — November 3, 2026
+
+The `gtl-ops-alerts` review (item 22) found that `cloud/push-reminders.mjs` returned `finish(...)` inside `try` without
+`await`. A refused completion (a finished or reclaimed run, or a database outage) therefore answered a generic 500, not the
+mapped 400, 401 or 503. The run state in SQL was already right. PR #450 (merged as `067ce119`) awaits both finish paths, and a
+test written first failed before the fix and passes after it (39 reminder tests, `# skipped 0`).
+
+Released at Sean's word in the operating session ("you have full approval and permission"). The session approved both
+production gates after checking each run title:
+- check-only 41719765821;
+- readiness 41719845465, history digest `4345486d…4066`;
+- deploy 41720249887, release card on PR #450.
+
+`gtl-push-reminders` is **v6**, ACTIVE, `verify_jwt` false, bundle SHA-256 `460389e9…952b`. Nothing else was deployed. Signed
+out, the live worker refuses calls with no token or a wrong one (401). Nothing players see changed.
+
+## Signed-in production readback — November 3, 2026
+
+On Sean's request, a read-only check ran in the Mac mini's Chrome, signed in as the commissioner, against the
+frontend at `134f17c8`. Passed:
+- Home and Play › Your guesses (D-70: 15 tiles, 71 words);
+- My bets (D-72: Roomy previews, 32px gaps);
+- the Virtual Units placing screen (D-67);
+- Research Games, Trends and Fantasy;
+- Odds connection;
+- the step 0 tab fade.
+
+**Defect:** a cold load of Bets › Research recommendations (D-73) can fail with "Research is unavailable right
+now". `POST /lines/assessments` logged 546 "CPU Time exceeded" at 20:53:58 UTC. Warm loads return 200. The fix,
+PR #453, is **deployed** as `gtl-api` v48 (November 3, 22:04 UTC, release run 41726861800). The first signed-in cold load
+on v48 returned 200, with no 546 or "CPU Time exceeded"; see the
+[release record](RELEASE_2026_11_03_ASSESSMENTS_CPU.md).
+
+Not checked: the 320/390px phone widths and a real iPhone. See the
+[readback record](READBACK_2026_11_03_SIGNED_IN.md).
+
+## Supabase job alerts by phone push, M-38 — November 3, 2026
+
+Item 22, second half. A pg_cron row says `succeeded` when the dispatcher ran, not when the work happened (Points
+logged `nothing_due` six times while Week 9 had no slate). M-38 (`20261103190000`) reads each job family's own run table
+and the weekly outcomes, keeps each problem as an incident, and the new `gtl-ops-alerts` worker pushes one alert per
+change to Sean's phone. The `ops-alerts` release target, `supabase/admin/ops_alerts_cron.sql` (row disabled first, with
+a findings read-back before the enable) and `ops_alerts_test.sql` are written. Local checks, executed on branch
+`claude/ops-watchdog`: the M-38 PGlite suite (boundaries, no duplicate pushes, re-alert after recovery, privacy), the
+worker suite with an end-to-end run, the release-target contract and migration/rollback registry tests, with
+`# skipped 0`. M-38 is **applied and verified** as hosted `20261103184656` (Sean's "apply M-38", SQL editor, November 3): 7 functions with the reviewed grants, 3 empty RLS tables, history unchanged before it. `gtl-ops-alerts` is **deployed** as v1 (deploy run 41699378146, Sean approved both gates), and the schedule is **enabled**
+since 20:20 UTC November 3: the findings were empty, and the test alert and its clear each pushed once (sent 1, failed 0). See the [release card](RELEASE_2026_11_03_OPS_ALERTS_M38.md).
+
+## No refresh while a selected book is missing — November 3, 2026
+
+Sean: "do not waste credits. correct this asap". The 18:15 UTC scheduled run's reply had no FanDuel prices for any of the
+15 games. A saved line needs all three books, so after D-71 each lock-in refresh would have spent two credits for
+nothing. `gtl-api` now skips the collection when the newest stored snapshot of the week has a selected book missing for
+every game the save needs. The save still goes through (D-27), and the scheduled runs keep checking. No collection ran
+between 18:16 UTC and the deploy of D-71. Local checks pass:
+- all 2,751 node tests, apart from one research-intake check that is Windows-only (POSIX file modes);
+- a PGlite run of the deployed handler;
+- two mutation checks.
+
+**Deployed** November 3, 19:36 UTC as `gtl-api` v47 from `2c0c18b7` (release run 41704220392). See the [release card](RELEASE_2026_11_03_BOOK_OUTAGE.md).
+
+## Lock-in refresh, D-71 — November 3, 2026
+
+Sean chose "Refresh on lock-in" ([D-71](DECISIONS.md)). Since redesign stage 18 a per-game lock-in skipped the D-17
+refresh. The new app saves by lock-in, so lines saved with guesses had a median age of 6.9 hours in Week 8, against 68
+seconds in Week 7. `gtl-api` now sends lock-ins through the same refresh; the hosted SQL already accepted them (M-07).
+Local checks pass, including a PGlite run of the deployed handler and mutation checks. **Deployed** November 3, 18:47 UTC:
+`gtl-api` v46 from `ff7b27f5` (release run 41696516851); see the [release card](RELEASE_2026_11_03_LOCKIN_REFRESH.md).
+
+## Odds refresh fixes, M-37 — November 3, 2026
+
+Board item 40. A read-only hosted readback found most "partial" odds runs were only the label: the provider stops
+listing a game once it kicks off. Two real faults remain. A preflight race skipped October 29's 06:15 UTC run as
+`budget_guard` with 400 credits left. Week 8 CHI-SEA never matched at any book, and nothing recorded why. M-37
+(`20261103170000`) preflights after 23 hours instead of 24 and counts partial only against unstarted games. The provider now
+records what it listed for a mismatched game. Local checks pass, including PGlite runs of the deployed worker and
+mutation checks. M-37 is **applied and verified** as hosted `20261103164210`. On Sean's "merge and apply" it went in
+through his SQL editor; both bodies, permissions and the earlier history rows were checked, and the score hash is unchanged.
+The provider change is **not deployed** (next `gtl-api` release and a Mac mini `gtl-odds-refresh` deploy). The first
+scheduled run after the apply is still to be read back. See the [release card](RELEASE_2026_11_03_ODDS_REFRESH_M37.md).
+
+## Ops alerts for the data refreshes (item 22) — November 3, 2026
+
+On November 3 the Fantasy refresh failed on every run from Monday night (PT)
+until about 3:00 AM PT on Tuesday, and nothing reported it; Points Week 9 opened about
+three and a half hours late. The new `Ops alerts` workflow starts whenever the Fantasy or Research data
+refresh completes on main. A failure opens one issue per workflow, labelled
+`ops-alert` and assigned to Sean, so GitHub notifies his phone and email; later
+failures only update that issue, and the next run that publishes comments and
+closes it. A dry run or a skipped publish never closes an alert. The repository
+is public, so an alert holds only the workflow name, run link, event, failed
+step and times, never log text.
+Local checks: 17 Node tests (alert decisions, GitHub calls, the workflow's
+triggers, permissions and step names), each mutation of the publish, staleness
+and count rules failing its test, and read-only dry runs against today's real
+runs. PR #433 merged as `ed92ec9e`. Live check on November 3: replaying the
+10:14 UTC failed run opened issue #435 (assigned to Sean, labelled), and a real
+delayed scheduled refresh, run 41672840130, published at 16:19 UTC; its own
+workflow_run alert closed #435. A manual replay of the 11:02 UTC recovery ran at
+the same moment in a different concurrency group and also closed it, leaving two
+"Recovered" comments, so the follow-up removes the manual trigger: every alert
+run for a workflow now shares one group. Supabase cron jobs are not covered
+yet: their failures and missed outcomes need a server-side check.
+
+## Tracked bets Overview — November 2, 2026
+
+The [Overview follow-up](TRACKED_BETS_OVERVIEW_2026_11_02.md) restores a first-class
+chart destination beside Tickets, with performance, outcome, type, market and
+sportsbook breakdowns, shared filters and optional cash display. Accounting uses
+the existing core; this frontend change does not alter saved tickets or guesses.
+Local checks pass: 43 focused Node tests, 650 component tests and 16 tracked-bet
+browser scenarios, plus typecheck, build, bundle privacy scan and Brand QA.
+PR #420 is merged and [deployed November 3](RELEASE_2026_11_03_TRACKED_BETS_OVERVIEW.md)
+from `c6d6434` in protected run 41596638055. Independent readback matched all 129
+served files and found Overview in the live bundle. API v45, all hosted function
+summaries and migration history stayed unchanged. Signed-in production and
+physical-phone acceptance remain separate evidence states.
+
 ## EPL Week 9 results and weekly automation — November 2, 2026
 
 Owner: Sean Balsiger · Verified hosted data maintenance; no source deployment.
@@ -66,11 +195,27 @@ The [follow-up record](RELEASE_2026_11_02_MY_BETS.md) covers the actual 32px
 separation, searchable manual sources/matchups, same-week player suggestions and
 clearer Monday pending-answer refresh. Local checks pass: 31 focused Node, 621
 component and 27 browser scenarios, typecheck, build, privacy scan and brand QA.
-Merge and deployment are not yet claimed. Authorized profile reconciliation was verified
-privately through the existing audited writer. Fantasy opens Tuesday under
-D-61; existing locked guesses remain intact.
+PR #408 is merged as `e02fed3b2e3cd9acf5bc63b4ecda1d0c3bcf5356` after all twelve PR checks.
+Its interrupted exact-main browser checks recovered in attempt 3, then source
+check 41543354162 passed. An external controller deployed the newer combined
+`e7a38c6e9017a9c49cdf2a526482c05f8219f29f` in protected run 41542487945; this
+lane did not deploy or approve it and did not overwrite it with e02. All seven
+#408 runtime files are identical. Independent readback matched all 127 served
+files, and protected-data aggregates stayed unchanged before/after deployment
+and browser QA. Actual signed-in checks verify 32px gaps across populated tickets
+at 320/390px in Light/Dark, expansion/reload, search/Enter, roster/manual entry,
+prop resets and a read refresh of 15 already-available locked receipts. Only the
+unsaved QA draft was discarded; original settings/filter/viewport were restored.
+Approximate completion is **90–95%**: physical iPhone acceptance is pending the
+OS-required phone lock. Research acceptance follows the verified stable release;
+#388 remains open for its physical matrix. Points retains D-61's Tuesday opening
+and fresh-snapshot prerequisites; no existing locked guess was reset.
 
-Owner: Sean Balsiger · Reconciled October 29, 2026
+Owner: Sean Balsiger · Reconciled October 29, 2026 · Release status checked November 3, 2026
+
+**November 3 truth pass.** Every merge recorded below as "not released", "not deployed" or "draft" was checked against
+the protected release runs. The entries now name the first frontend release that carried each one. Production is the
+frontend from `134f17c8` (Pages `489e8b38`). The entries above this note are newer and kept their own wording.
 
 The current task list is [the sequential platform queue](../planning/PLATFORM_WORK_QUEUE.md).
 Sean approved finishing the existing redesign and optimizations before expanding
@@ -78,6 +223,67 @@ scope. The approved direction remains Home / Play / Bets / Research, “One thin
 first,” with D-55 Round 3 charts. No new design selection is required for this work.
 The frozen v62 tracker is unchanged. The previous, cumulative register is retained
 as a [dated archive](COMPLETION_REGISTER_ARCHIVE_2026_10_26.md).
+
+## D-69 design overhaul, step 0: the shared kit — November 2, 2026
+
+PR #428 merged as `975744c5`. **Released November 3** in the frontend from `134f17c8` (Pages `489e8b38`, run
+41660239622); the [release record](RELEASE_2026_11_03_OVERHAUL_STEP0.md) has the evidence and what is not verified.
+Step 0 adds the
+kit the page-by-page steps build on: the moments engine (`web/src/next/moments`:
+the Q3 sizes, a per-account seen record of ids only, nothing played on page
+load or on the launch screen, results from while you were away marked NEW and
+played when their card opens, several big moments as one `ov.flash` card,
+small ones 240 ms apart), with badges and awards moved onto it (awards per league
+and season); `ui/CountUp.jsx`, counting from the last value shown; nesting-card
+entrances (`ui/Nest.jsx`) and the 160 ms tab fade, with the bars never moving;
+`tap` and `win` vibration that reduced motion stops; `ui/Skeleton.jsx`
+placeholders in place of the "Loading" text; and the brand guide's moments
+and nesting rules. Follow-ups: reset `usePopped` before step 1; the tab fade
+stays on once it starts; a tab change into a Nest moves twice; and the old app's
+AuthGate spinner.
+
+## Play › Your guesses nesting cards (D-70) — November 2, 2026
+
+Sean asked for the next design pass, to cut text on Home and Play. On the live app Home (139 words) and the Play
+landing (59) were already lean. Your guesses was the long screen: 15 stacked 525px cards, 9,043px, 1,317 words
+and 252 buttons on the open Total ballot. From five options on the
+[comparison canvas](https://claude.ai/artifact/5Kj42mrQJZ2UJGqsxm4nSn) he chose **1 · Nesting cards** and approved the
+[design spec](superpowers/specs/2026-11-02-play-picks-nesting-cards-design.md).
+
+- **Built in PR #418.**
+  - **The week:** one card, with one tile per game showing your own guess only.
+  - **One game:** a tile opens that game's card, with a lip back to the week. It holds the picker and Lock in, or the
+    receipt and the reveal, then Next.
+  - **Navigation:** a game has its own address, and Next replaces the open game in both the trail and the browser
+    history. Moving between the week and its games never asks to leave an unsaved draft; leaving Your guesses still
+    does.
+  - **Recovery:** checking and retrying an unconfirmed save is reachable from either card.
+- **Evidence (local).**
+  - **Unit and navigation:** 12 component tests and 17 router tests.
+  - **Cloud browser:** the per-game scoring, moments, Lines game actions and new `next-play-nest` cases pass against
+    the real handler on PGlite. They cover 390px and 320px, Dark and Light, axe, 44px targets and no sideways scroll.
+- **Released.** PR #418 merged as `ffaefd64`, released November 3 at 00:47 UTC from that commit as Pages `53d2991a`
+  ([release record](RELEASE_2026_11_02_PLAY_NEST.md), card #426).
+  - **Signed-in readback:** Total Week 9 is 15 tiles in 68 words on 1,338 px, down from 1,317 words on 9,043 px. A
+    game card and browser Back work. Preservation matched before and after the deploy.
+- **Not done:** no real-iPhone check yet. The other Play screens (League, Your weekly score, Badges, Guess the Points)
+  are not in this pass.
+
+## Pick reminders follow-ups from the #411 review — November 2, 2026
+
+Menu › Pick reminders now shows in EPL as well as NFL: the EPL frame takes the
+push guard (`pushConfigured`) from the same Community read its Menu already
+opens for commissioner access, and the row opens the same per-device switch.
+Tapping a Points reminder (tag `gtl-points-…`) opens Play › Points
+(`/#play/points`); every other tag still opens `/#picks`. `web/public/sw.js`
+maps only the fixed tag prefix to one of these two addresses, so the payload
+still cannot choose a URL. Node tests run the worker itself (points, other,
+missing and look-alike tags; payload `url`/`data` ignored; focus an open
+window, else open one); a 390 px browser check covers the EPL Menu row. Phone
+captures of the Menu in EPL and NFL, Light and Dark, are in
+[design/qa/reminder-followups-2026-11-02](../design/qa/reminder-followups-2026-11-02/).
+Frontend only; released November 2 in Pages `8c9b193e` from `82f1c2b`
+([release record](RELEASE_2026_11_02_POINTS_CONTEXT.md), card #422). A tap on a real phone is not verified.
 
 ## Player context on the Points ballot (Board i63) — November 2, 2026
 
@@ -94,7 +300,8 @@ it (and the rest-of-season estimate) behind a lock line until the read carries
 the House (lock-in or kickoff, D-56). No implied team totals (D-57). The ballot
 is keyed by account. Also fixed: the slot sheet's glow card shrank under later
 cards once the sheet overflowed, and the profile's sideways-scrolling tables are
-now focusable regions. Frontend only; ships with the next Pages release.
+now focusable regions. Frontend only; released November 2 in Pages `8c9b193e` from
+`82f1c2b` ([release record](RELEASE_2026_11_02_POINTS_CONTEXT.md), card #422) after Sean OK'd the mockups.
 
 ## Pick reminders opt-in in the new app (Board i39) — November 2, 2026
 
@@ -107,9 +314,10 @@ Play's Points card, remembered per account on the device. Both reuse
 `web/src/webPush.js` and the existing `/push/*` routes, ask for permission only
 on a tap and show only while `pushConfigured` is true. Frontend only; no route,
 migration or Edge Function changed. Released November 2 in Pages `6c458d6d` from
-`e7a38c6` ([release record](RELEASE_2026_11_02_REMINDERS.md), card #414); the prompt
-and Menu row were seen live, signed in. Delivery to a real iPhone from the Home
-Screen app is not verified, and push subscriptions are still 0 until someone opts in.
+`e7a38c6` ([release record](RELEASE_2026_11_02_REMINDERS.md), card #414); the release
+owner saw the prompt and Menu row live, signed in, and reported 0 subscriptions
+at that observation. This acceptance lane did not opt in or change notification
+permission. Delivery to a real iPhone from the Home Screen app is not verified.
 
 ## My bets Roomy cards and inline expansion — November 1, 2026
 
@@ -167,8 +375,16 @@ verifies the public data publication, protected API v45 and frontend release,
 research access denials and unchanged score/ballot/settlement fingerprints.
 The real public loader plus captured production read inputs return 14 scoring/
 play-statistics matchups, 68 assessments and eight evidence entries; this is a
-local projection. Real signed-in production/physical-phone acceptance and the
-first observed scheduled refresh remain open. No automatic X feed is connected.
+local projection. [November 2 acceptance evidence](RESEARCH_ACCEPTANCE_2026_11_02.md)
+verifies automatic publication, all six current public assets and resolution of
+schedule drift through one coordinated normal refresh (run 41544353761). Both
+normalized source dependencies match, with zero missing finals at 23:21 UTC.
+A real signed-in account on stable #408 frontend shows Week 9, 15 statistics
+links and populated qualitative assessments/evidence; read-only refresh, filters,
+Light/Dark and 320/390-pixel layouts pass. Physical iPhone acceptance remains
+with the sole device owner; #398 stays open at the bounded 85–95% estimate.
+The record distinguishes one-account browser checks from device, cross-account
+and unlocked-market acceptance. No automatic X feed is connected.
 
 ## Independent research assessments — October 30, 2026
 
@@ -335,7 +551,7 @@ establishes deployment. This task has not deployed the app or applied SQL.
 | Fantasy | [Track 1](RELEASE_2026_10_23_FANTASY_TRACK1.md) released, first data published, readback retry fixed in #202, daily schedule in #205. Scheduled runs succeeded October 24–26; [October 26 run](https://github.com/seanbalz/guess-the-lines-repo/actions/runs/40365251250). | Phone readback; richer usage/comparisons/matchup/trade tools Q12–Q15 and connected roster work follow current redesign completion. D-59 fantasy feed: the private `fantasy-feed` bucket migration `20261026220000` is applied (hosted as `20261028131021`, October 28, [card](RELEASE_2026_10_28_D59_TRENDS.md)); the machine-only `gtl-fantasy-ingest` upload is deployed (v1, October 28, through the `fantasy-ingest` release target) and answers 503 until Sean sets its upload secret; the read route, app views and exporter follow ([release card](FANTASY_FEED_RELEASE.md)). |
 | Guess the Points | P-01/P-02, API v36 and frontend released; signed-in `/points/read` verified in the release record. | P-03 actuals loader/jobs (PR #219) and the worker release targets (PR #223) merged October 26 (`9da3ce6`). [October 26 release](RELEASE_2026_10_26_POINTS_JOBS.md): P-03 applied (hosted `20261026213106`, 54 migrations, digest `bd53dcf4…`), `gtl-points-jobs` v1 and `gtl-push-reminders` v5 deployed, cron jobs registered with the schedule row disabled. Open: [release card](GUESS_THE_POINTS_P03.md) step 5 (enable and one verified run) and step 6 (first actuals readback); until then no slate is drafted or published automatically and automatic Points scoring is not verified. Commissioner "Publish now" on Play › Points (preview a drafted week, confirm, publish through the existing `POST /points/slate`; no server change) merged in PR #277 (`671e3ec`) and live in Pages `48a36ee4-a4f9-48c8-a64b-b030a7d2d29a` from `9460635` (October 28, release card PR #279); signed-in commissioner acceptance on a phone is still open. |
 | Social and rewards | Existing feed/comments and group membership work. League feed (stages 61–63) and badges, awards and streaks (stage 69): routes in `gtl-api` v38 and M-13, M-21, M-22, M-23, M-25, M-26 [applied October 27](RELEASE_2026_10_27_FEED_MIGRATIONS.md); signed-in feed and features reads answer 200 in hosted logs. Badges worker `gtl-league-features` v1 and its weekly schedule (Tuesday 12:00 UTC, on Sean's "once a week") are live since October 27 ([release record](RELEASE_2026_10_27_LEAGUE_FEATURES.md)); the first scheduled run recorded 58 badges, 18 awards and 10 streaks and posted the Week 7 recap. Open: phone checks. | Remaining approved friend challenges, player/social detail screens and badge/streak/award/recap pipeline; each needs its real contract and implementation gate, not a completion claim based on a mockup. |
-| Preservation and transition | [RETIRE-01–04 checklist](../planning/new-app-retirement.md) exists. Me › History (older records included) and Export my data: routes in `gtl-api` v38, M-27 and M-28 [applied October 27](RELEASE_2026_10_27_FEED_MIGRATIONS.md); no signed-in use yet. RETIRE-03 [hosted inventory](RETIRE_03_INVENTORY_2026_10_28.md) (October 28, read-only): 47 of 48 recorded deployment URLs served an old-app build; step 1 (October 28) put every non-production URL behind Cloudflare Access (49 checked, all HTTP 302); deletion and device checks await approval. | Q17 history/export, commissioner tools (Menu › Commissioner tools built October 28 for D-65: status, week opening, referees, final scores, odds connection; draft PR #316, not deployed, no signed-in use), invitations/creation and older-record destinations; Q09/Q10/Q19 device/full-week acceptance, then Q20 transition. No cutover or record deletion authorized by this audit. |
+| Preservation and transition | [RETIRE-01–04 checklist](../planning/new-app-retirement.md) exists. Me › History (older records included) and Export my data: routes in `gtl-api` v38, M-27 and M-28 [applied October 27](RELEASE_2026_10_27_FEED_MIGRATIONS.md); no signed-in use yet. RETIRE-03 [hosted inventory](RETIRE_03_INVENTORY_2026_10_28.md) (October 28, read-only): 47 of 48 recorded deployment URLs served an old-app build; step 1 (October 28) put every non-production URL behind Cloudflare Access (49 checked, all HTTP 302); deletion and device checks await approval. | Q17 history/export, commissioner tools (Menu › Commissioner tools built October 28 for D-65: status, week opening, referees, final scores, odds connection; PR #316, merged October 29 and released in the frontend from `4564fff` that day; no signed-in use recorded), invitations/creation and older-record destinations; Q09/Q10/Q19 device/full-week acceptance, then Q20 transition. No cutover or record deletion authorized by this audit. |
 | EPL Pick a Team | M-30 is [applied](RELEASE_2026_10_29_M30.md); `gtl-api` v42 and `gtl-epl-jobs` v2 are active. Fresh October 29 read-only checks verify all 26 current EPL function hashes, browser-role denial, five enabled jobs, seeded MW9 and after-MW8/daily snapshots. See the [workflow record](EPL_WORKFLOW_CONTROL_2026_10_29.md). | Rollover validation repair [#366](https://github.com/seanbalz/guess-the-line/pull/366) deployed in worker v2 with [verified release evidence](RELEASE_2026_10_29_NBA_EPL.md); Tuesday capture/audit is in #370 with M-33 pending; the commissioner flag and current league-table source remain open. Sean confirmed preserve picks/order and flag review (D-68 item 23). Full MW9 → MW10 automatic cycle and phone acceptance remain open. |
 | EPL Research → Fantasy | Stored-snapshot routes and Matchup/Standings/Rosters/Insights screens are implemented and included in the recorded [M-31/API/frontend release](RELEASE_2026_10_29_M31.md). An after-MW8 and October 29 daily snapshot are hosted; no per-request Sleeper fetch is introduced. | [PR #369](https://github.com/seanbalz/guess-the-line/pull/369) supplies tested narrow-screen and account-discovery fixes plus disposable-SQL browser acceptance; merged and deployed in the [October 29 batch](RELEASE_2026_10_29_NBA_EPL.md). EPL-DATA-01 tracks 16/150 rostered players lacking saved metadata. Before-kickoff/after-MW9 captures, full-cycle readback and a real linked/unlinked phone check remain open. Opponent inference remains unavailable until the approved scored-repeat evidence exists (first possible MW17). |
 | EPL open access and automatic linking | [M-31 is applied](RELEASE_2026_10_29_M31.md); its function hashes and service-only permissions match current source. Fresh October 29 aggregate readback shows eight managers, seven linked. Confirmed-account open reads and audited auto-link/claim flows are implemented. | Remaining manager must claim or be linked by the commissioner under the existing identity flow. Agent acceptance covers account switching, aliases, claim conflicts and private queues without changing a real account; real phone acceptance remains separate. Manual links remain manual audit events. |
@@ -909,7 +1125,7 @@ Export my data, written and not applied.
 
 ## Trend builder (D-63, approved October 28)
 
-Draft PR on `claude/trend-builder`: Trends › Build, honest result card, this week's matches and per-device saved
+Built on `claude/trend-builder`: Trends › Build, honest result card, this week's matches and per-device saved
 trends with a Home indicator ([TRENDS.md](TRENDS.md#trend-builder-and-saved-trend-matches--proposed-d-63-october-28-2026)).
 Frontend only; merged in PR #285 (`c091ec0`) and live in Pages `0f9312bf` (release run 40691552196). D-63 approved by Sean October 28.
 
@@ -927,8 +1143,8 @@ Sean chose option 1, Nesting cards, from five options on the comparison canvas. 
 - **Fine print:** the footnote, freshness and credits move behind ⓘ.
 - **Evidence:** the cloud-browser Trends case runs the three layers at 390px and 320px, with axe and the overflow
   check. Eleven component and navigation tests cover the mapping, the locks and the addresses.
-- **Not done:** This Week, Explore games, Build and Fantasy follow one PR each. This rollout has no release or
-  real-phone check yet.
+- **Not done:** the real-phone check. This Week, Explore games, Build and Fantasy followed one PR each, below; this
+  rollout was released October 28 with Players and This Week.
 
 **Second rollout: Trends › Players**, on branch `claude/research-nesting-players`, stacked on the Teams branch. The
 layers are:
@@ -942,7 +1158,7 @@ layers are:
 
 These layers replace the Player team and Player matchup filters and the "Compare history windows" panel; the
 history window stays as one select. The seven Players browser cases run the new path at 320px and 390px, in light,
-dark and forced colors, with axe. No release or real-phone check yet.
+dark and forced colors, with axe. Released October 28 with Teams and This Week; no real-phone check yet.
 
 **Third rollout: Trends › This Week**, on branch `claude/research-nesting-week`. Its layers are This week › one game
 › one trend.
@@ -964,25 +1180,30 @@ on October 29. The [release card](RELEASE_2026_10_28_RESEARCH_NESTING.md) holds 
 
 ## Recommended bets stay on Recommended (player feedback, October 28)
 
-A player asked to keep loading recommended bets without being sent to My bets. Draft PR on
+A player asked to keep loading recommended bets without being sent to My bets. PR #315, from
 `claude/quizzical-ritchie-2b5da5`: Track this bet now opens the tracker's review editor over Recommended
 (`SocialBetTracker` `reviewOnly`), so the market choice, scroll position and open card stay put. A save shows
 "Bet saved to My bets" with a View action to that ticket's week. Failure and uncertain-save recovery stay in the
 editor; the review and the Virtual Units card keep separate draft guards. Unit test `tests/next-bets-review.test.jsx`;
-browser test in `tests/cloud-browser/recommended-bets.spec.js` saves two in a row at 390 and 320 px. Not deployed.
+browser test in `tests/cloud-browser/recommended-bets.spec.js` saves two in a row at 390 and 320 px. Merged October 29
+(00:27 UTC) and released in the frontend from `4564fff` (run 40797726894, 01:00 UTC); no signed-in or real-phone
+check recorded.
 
 **Fourth rollout: Explore games**, on branch `claude/research-nesting-games`. The board said the same source and
 update line under every card, 28 lines and about 390 of its 800 words on the live board. It now says them once: the
 update time in the header’s one meta line and the source behind its ⓘ. Each game sheet keeps its sources, books and
 times. The “Current line” and “Latest recorded line” labels and final-score provenance stay on the cards, and so
-does the card’s screen-reader sentence. Not released.
+does the card’s screen-reader sentence. PR #332, released October 29 in Pages `5f242880` from `1998e4c` (run
+40812649921, card #346; the deploy step succeeded and its post-deploy verify timed out, see
+[the M-11 record](RELEASE_2026_10_29_M11.md)). No real-phone check yet.
 
 **Fifth rollout: Trends › Build**, on branch `claude/research-nesting-build`. The result card leads with the
 record as one big W-L-P and a cover meter. Cover rate, Wilson 95% interval, sample and “Illustrative units at -110”
 become tiles, and “By season” moves into a disclosure. The paragraphs that repeated the card’s ⓘ (the label’s
 explanation, the period-split note, the reference note, the line source and the history credit) move behind it. D-63’s
 visible labels and the period table stay. Nesting cards now enter with a short slide only, with no fade or scale,
-because checks caught text mid-fade below its contrast. Not released.
+because checks caught text mid-fade below its contrast. PR #336, released with the fourth rollout in Pages
+`5f242880` from `1998e4c`. No real-phone check yet.
 
 **Sixth rollout: Research › Fantasy**, on branch `claude/research-nesting-fantasy`. The new-app `FantasyNest.jsx`
 replaces the wrapped old `FantasyFootball` rankings; the same `shared/fantasy-*` engine, reads and gates stay.
@@ -993,7 +1214,9 @@ replaces the wrapped old `FantasyFootball` rankings; the same `shared/fantasy-*`
   The method, scoring, sources and trend sentences sit behind ⓘ.
 - **Lips now go back:** a lip that returns to the place just before goes back instead of adding a step, in every
   nesting card, so Back after a lip leaves the section.
-- **Not done:** release and the real-phone check.
+- **Released** October 29: PR #343, in Pages `58fd60f1` from `25b5f3c` (run 40818790945, card #351, 104 assets
+  checked).
+- **Not done:** the real-phone check.
 
 ## M-11 Virtual Units placement (Q06, stage 41, October 28)
 
@@ -1001,15 +1224,16 @@ Sean chose Q06 next. Stage 41 is written on `claude/q06-m11-placement`: M-11
 (`20261028181000_gtl_bets_place.sql`: `gtl_bet_receipts`, `gtl_place_bets`, `gtl_bets_newest_quote`, `gtl_bets_terms`) and
 `POST /bets/place` with the `bets-place` off switch. PGlite and handler checks in `tests/bets-place-sql.test.mjs`
 cover a two-bet slip, an edit with audit, replay, line lock, half units, a stale quote, kickoff, a Guess autosave
-with no 409 and an old `/virtual-pick` edit giving "This bet changed". **Not applied, not deployed:** it waits for
-Sean's "apply M-11" and a `gtl-api` deploy.
+with no 409 and an old `/virtual-pick` edit giving "This bet changed". **Applied and deployed October 29:** PR #334
+merged, `/bets/place` deployed from `1998e4c`, then M-11 applied on Sean's "apply M-11" as hosted `20261029041843`.
+See [the M-11 record](RELEASE_2026_10_29_M11.md).
 
 Stages 43–44 (D-67) are on `claude/q06-bets-place-ui`, stacked on M-11: Bets › Virtual › Your picks is the
 account-level placing screen (`web/src/next/bets/place.js`, `PlaceBets.jsx`) with the slip in the dock. Unit tests in
 `tests/next-bets-place.test.jsx`; the browser case in `tests/cloud-browser/next-bets-live.spec.js` places two bets,
 confirms a lost reply without a duplicate, edits, refuses a bet changed elsewhere and fits 390/320px in both themes.
-Its frontend ships only after M-11 is applied and `/bets/place` is deployed; until then the screen reads
-"Placing Virtual Units bets opens soon".
+PR #340 merged October 29 and was released after the M-11 apply, in Pages `58fd60f1` from `25b5f3c` (run
+40818790945). Signed-in placement on a phone is not recorded.
 
 ## Native Odds connection (redesign stage 78, October 29)
 
@@ -1024,7 +1248,9 @@ starts a second one, and only counts are shown, never the provider key or a mark
 - **Evidence:** `tests/odds-connection-rules.test.mjs`; `tests/next-commissioner-ui.test.jsx`; the cloud-browser
   `next-commissioner.spec.js` drives a pending check, a low-quota check, a good check and a fetch at 390 and 320 px in
   light and dark, with axe and the phone-layout check, and confirms a reply's market value never reaches the page.
-- **Not done:** no release, no signed-in hosted check and no real-phone check.
+- **Released** October 29: PR #357, in Pages `452d9304` from `76329b7f` (run 40887118540, card #362, 124 assets
+  checked).
+- **Not done:** no signed-in hosted check and no real-phone check.
 
 ## What needs Sean
 

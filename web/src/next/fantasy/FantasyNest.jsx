@@ -11,7 +11,7 @@ import { MAX_COMPARE } from '../../../../shared/fantasy-tools.mjs';
 import { FANTASY_AVAILABLE, FANTASY_INITIAL, useFantasySnapshot } from '../../fantasyData.js';
 import { useFantasyGameContext } from '../../fantasyContext.js';
 import { FantasyAccuracy } from '../../FantasyAccuracy.jsx';
-import { Button, InfoButton, LockLine, Nest, Pill, Segmented, Switch } from '../ui/index.js';
+import { Button, InfoButton, LockLine, Nest, Pill, Segmented, Switch, Skeleton } from '../ui/index.js';
 import { PlayerCompare, PlayerProfileSheet, PlayerToolButtons } from './FantasyTools.jsx';
 
 export const FANTASY_PAGE = 50;
@@ -187,7 +187,7 @@ export function FantasyNest({ navigationState, onNavigationState, view = {}, onL
         </div>
       </details>
     </div>
-    {state?.status === 'loading' && <p className="gx-t-body" role="status">Loading Week {selectedWeek} rankings…</p>}
+    {state?.status === 'loading' && <Skeleton label={`Loading Week ${selectedWeek} rankings…`} shape="rows" count={4}/>}
     {state?.status === 'missing' && <div className="gx-vstack gx-gap-8"><p className="gx-t-body">No fantasy snapshot is available for {selectedSeason} Week {selectedWeek}.</p><Button variant="secondary" onClick={state.retry}>Check again</Button></div>}
     {state?.status === 'error' && <div className="gx-vstack gx-gap-8"><p className="gx-t-body" role="alert">Week {selectedWeek} rankings could not be loaded.</p><Button variant="secondary" onClick={state.retry}>Try again</Button></div>}
     {snapshot && <>

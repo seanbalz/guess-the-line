@@ -10,7 +10,7 @@ import { HOME_COPY, heroProgress, homeHero, homeTiles } from '../../../../shared
 import { HOME_LOADING } from '../copy.js';
 import { useShell } from '../shell/context.js';
 import { SHELL_COPY } from '../shell/tabs.js';
-import { Avatar, Button, Card, Countdown, Meter, Move, Pill } from '../ui/index.js';
+import { Avatar, Button, Card, Countdown, Meter, Move, Pill, Skeleton } from '../ui/index.js';
 import { useHomeData } from './homeData.js';
 import { useTicketSummary } from '../bets/useTicketSummary.js';
 import { FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
@@ -18,10 +18,11 @@ import { nextGuess } from '../play/nextGuess.js';
 import { HomeAwards } from '../features/HomeAwards.jsx';
 import { HomeStreak } from '../features/HomeStreak.jsx';
 import { peekMove, rankKey, readRank } from '../league/rankMoment.js';
-import { CountUp } from './CountUp.jsx';
+import { CountUp } from '../ui/CountUp.jsx';
 import { HERO_COPY, heroHeadline } from './homeModel.js';
 import { useSavedTrends } from '../trends/builderData.js';
 import './home.css';
+import { useMomentScope } from '../moments/MomentsProvider.jsx';
 
 // Loaded only when this device has saved trends, so Home never pulls in the week reads otherwise.
 const SavedTrendsHomeRow = lazy(() => import('../trends/SavedTrendsSummary.jsx').then(m => ({ default: m.SavedTrendsHomeRow })));
@@ -155,6 +156,7 @@ function WhosIn({ who, league, onBoard, onInvite }) {
 }
 
 export function Home() {
+  useMomentScope('home');
   const shell = useShell();
   const { app, community } = useHomeData();
   const data = community.data ?? null;
@@ -180,7 +182,7 @@ export function Home() {
             <Button variant="ghost" onClick={shell.reload}>{APP_RELOAD_COPY.reload}</Button>
           </section>
         ) : (
-          <p className="gx-t-body gx-c-2" role="status">{HOME_LOADING}</p>
+          <Skeleton label={HOME_LOADING} shape="panels" count={3}/>
         )}
       </div>
     );

@@ -46,6 +46,74 @@ function callsFrom(page) {
   });
   return calls;
 }
+
+test('tracked Overview shows owner charts, shared filters and cash, then drills into unchanged tickets',async({page,baseURL})=>{
+ const world=await communityWorld(page,baseURL);
+ try{
+  const {season,week}=world.state.league,gameId=world.state.games[0].id;
+  const leg={gameId,market:'prop',side:'Fixture Runner',line:30,selection:'Fixture Runner 30+ receiving yards'};
+  async function seedTicket(label,extra={},outcome=null,account='luke'){
+   const read=await world.api(account,'social/read',{season,week});expect(read.status).toBe(200);
+   let reply=await world.api(account,'social/create',{season,week,weekRevision:read.body.weekRevision,requestId:crypto.randomUUID(),kind:'single',legs:[leg],stakeUnits:1,odds:100,source:'Book A',notes:label,...extra});
+   expect(reply.status,JSON.stringify(reply.body)).toBe(200);
+   let entry=reply.body.entries.find(e=>e.notes===label);expect(entry).toBeTruthy();
+   if(outcome){reply=await world.api(account,'social/settle',{season,week,weekRevision:reply.body.weekRevision,requestId:crypto.randomUUID(),entryId:entry.id,revision:entry.revision,outcome,actualReturnUnits:null,reason:'Local fixture reported result'});expect(reply.status,JSON.stringify(reply.body)).toBe(200);entry=reply.body.entries.find(e=>e.id===entry.id);}
+   if(label==='excluded'){reply=await world.api(account,'social/include',{season,week,weekRevision:reply.body.weekRevision,requestId:crypto.randomUUID(),entryId:entry.id,revision:entry.revision,countsForRecord:false,reason:'Local fixture exclusion'});expect(reply.status).toBe(200);}
+  }
+  await seedTicket('winner',{},'win');
+  await seedTicket('parlay',{kind:'parlay',legs:[leg,{...leg,side:'Fixture Scorer',line:1,selection:'Fixture Scorer anytime touchdown (1+)'}],stakeUnits:.25,odds:400,source:'Book B'},'loss');
+  await seedTicket('open',{stakeUnits:.5,odds:null,source:'Book B'});
+  await seedTicket('excluded',{},'win');await seedTicket('foreign',{stakeUnits:100},'win','troy');
+  const before=(await world.db.query('select state from public.gtl_social_weeks order by season,week')).rows;
+  const calls=callsFrom(page);
+  await openBets(page);await tab(page,'Bets').click();await page.getByRole('button',{name:'Overview',exact:true}).click();
+  const overview=page.getByRole('region',{name:'Tracked bets overview',exact:true});await expect(overview).toBeVisible();
+  await expect(page.getByLabel('Competition week',{exact:true})).toHaveValue('all');
+  await expect(overview.locator('.gx-tc-big')).toHaveText('+0.75 U');
+  await expect(overview.getByRole('slider',{name:'Move along the line · Net units',exact:true})).toBeVisible();
+  await expect(overview.getByRole('region',{name:'Bet activity'}).getByText('Tracked bets',{exact:true}).locator('..')).toContainText('3');
+  await expect(overview.getByRole('region',{name:'Bet types'}).getByRole('button',{name:'Show Parlays: 1 bet',exact:true})).toBeVisible();
+  await expect(overview).toContainText('1 excluded from records');
+  await expect(overview.getByRole('button',{name:'Cash',exact:true})).toBeDisabled();
+  await page.locator('.social-filters > summary').click();await page.getByText('Set cash value of 1U',{exact:true}).click();
+  await page.getByLabel('Display cash value of 1U ($)',{exact:true}).fill('100');
+  await page.locator('.social-filters > summary').click();
+  await overview.getByRole('button',{name:'Cash',exact:true}).click();await expect(overview.locator('.gx-tc-big')).toHaveText('$75.00');
+  await expect(overview.locator('.gx-tc-scale-values')).toHaveText('$0.00 to $100.00');await expect(overview.locator('.gx-tc-zero-label')).toHaveText('$0.00');
+  await expect(overview.getByRole('region',{name:'Bet activity'})).toContainText('$50.00');
+  const slider=overview.getByRole('slider',{name:'Move along the line · Net profit',exact:true});await slider.focus();await slider.press('Home');await expect(slider).toHaveValue('0');await slider.press('End');await expect(slider).toHaveValue('2');
+  for(const theme of ['light','dark'])for(const width of [320,390]){
+   await page.evaluate(t=>document.documentElement.dataset.theme=t,theme);await page.setViewportSize({width,height:844});
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+   const targets=await overview.locator('button').evaluateAll(els=>els.filter(el=>el.getClientRects().length).map(el=>({name:el.textContent,height:el.getBoundingClientRect().height})));for(const target of targets)expect(target.height,target.name).toBeGreaterThanOrEqual(44);
+   const scan=await new AxeBuilder({page}).include('.gx-bets').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(scan.violations.map(v=>v.id)).toEqual([]);
+   await page.screenshot({path:`.local/tracked-overview/overview-${theme}-${width}.png`,fullPage:true});
+  }
+  await page.locator('.social-filters > summary').click();await page.getByRole('combobox',{name:'Sportsbook filter',exact:true}).selectOption('book:Book B');
+  await expect(overview.locator('.gx-tc-big')).toHaveText('-$25.00');await expect(overview.getByRole('slider')).toHaveCount(0);
+  await page.getByRole('button',{name:'View matching tickets (2)',exact:true}).click();await expect(page.locator('.gx-tracked-row')).toHaveCount(2);
+  await page.getByRole('group',{name:'Tracked bets section'}).getByRole('button',{name:'Overview',exact:true}).click();await expect(overview.locator('.gx-tc-big')).toHaveText('-$25.00');
+  await page.getByRole('button',{name:'Reset filters',exact:true}).click();await expect(overview.locator('.gx-tc-big')).toHaveText('$75.00');
+  await overview.getByRole('region',{name:'Bet types'}).getByRole('button',{name:'Show Parlays: 1 bet',exact:true}).click();await expect(page.locator('.gx-tracked-row')).toHaveCount(1);
+  await page.getByRole('group',{name:'Tracked bets section'}).getByRole('button',{name:'Overview',exact:true}).click();await expect(overview).toBeVisible();await expect(page.getByRole('combobox',{name:'Bet type',exact:true})).toHaveValue('parlay');
+  await tab(page,'Home').click();await tab(page,'Bets').click();await page.getByRole('button',{name:'Overview',exact:true}).click();await expect(overview).toBeVisible();await expect(overview.locator('.gx-tc-big')).toHaveText('-$25.00');
+  expect(calls.filter(c=>/^social\/(create|settle|correct|include|tail)$/.test(c.path))).toEqual([]);
+  for(const call of calls.filter(c=>c.path==='social/read'))for(const field of ['source','from','to'])expect(call.body.filters).not.toHaveProperty(field);
+  expect((await world.db.query('select state from public.gtl_social_weeks order by season,week')).rows).toEqual(before);expect(world.errors).toEqual([]);
+ }finally{await world.db.close();}
+});
+
+test('empty tracked Overview keeps charts visible as empty states and never invents returns',async({page,baseURL})=>{
+ const world=await communityWorld(page,baseURL);
+ try{
+  const calls=callsFrom(page);await openBets(page);
+  await page.getByRole('group',{name:'Tracked bets section'}).getByRole('button',{name:'Overview',exact:true}).click();
+  const overview=page.getByRole('region',{name:'Tracked bets overview'});await expect(overview).toBeVisible();await expect(overview.locator('.gx-tc-big')).toHaveText('—');await expect(overview.getByRole('slider')).toHaveCount(0);
+  await expect(overview.getByRole('region',{name:'Bet types'})).toContainText('No included bets match these filters.');
+  await page.locator('.social-filters > summary').click();await page.getByLabel('From date',{exact:true}).fill('2026-11-03');await page.getByLabel('Through date',{exact:true}).fill('2026-11-02');await expect(page.getByRole('alert')).toContainText('Start date must be on or before end date.');
+  expect(calls.filter(c=>/^social\/(create|settle|correct|include|tail)$/.test(c.path))).toEqual([]);expect(world.errors).toEqual([]);
+ }finally{await world.db.close();}
+});
 async function loseReplyAfterCommit(page, world, action) {
   await page.route(url => url.origin === SUPABASE && url.pathname === `/functions/v1/gtl-api/${action}`, async route => {
     const req = route.request();
@@ -393,7 +461,7 @@ test('My bets keeps ownership across weeks and grouped filters, hides an obsolet
     await page.locator('.social-filters > summary').click();
     await page.getByRole('group', { name: 'Market filter', exact: true }).getByRole('button', { name: 'Spreads', exact: true }).click();
     await expect(page.locator('.social-bet-card')).toHaveCount(3);
-    await expect(page.locator('.social-filter-body')).toContainText('Filtered summary');
+    await expect(page.getByText('Showing filtered bets',{exact:true})).toBeVisible();
     await page.getByRole('group', { name: 'Market filter', exact: true }).getByRole('button', { name: 'Props', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Clear filters', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Clear filters', exact: true }).click();
@@ -471,7 +539,8 @@ test('an inclusion save finishing after a filter change does not invalidate the 
     releaseRead();
     await expect(page.locator('.social-loading')).toHaveCount(0);
     await expect(page.locator('.social-bet-card')).toHaveCount(1);
-    await expect(page.locator('.social-data-note')).toContainText('1 excluded');
+    await page.getByRole('group',{name:'Tracked bets section'}).getByRole('button',{name:'Overview',exact:true}).click();
+    await expect(page.getByRole('region',{name:'Tracked bets overview'})).toContainText('1 excluded from records');
     expect(world.errors).toEqual([]);
   } finally {
     releaseSave?.();

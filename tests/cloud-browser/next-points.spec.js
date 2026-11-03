@@ -18,6 +18,8 @@ test.beforeEach(() => test.skip(!pgliteAvailable, 'Local PGlite required; never 
 const tabs = page => page.getByRole('navigation', { name: 'Main' });
 const SENTINEL = 47; // Troy's locked QB guess: hidden from Luke until Luke locks in that slot.
 const DAY = 86_400_000, iso = ms => new Date(ms).toISOString();
+// 44 px touch targets, less subpixel rounding: a 44 px box can measure 43.99999 (as the other cloud specs allow).
+const MIN_TARGET = 43.9;
 
 async function seedWeek(world) {
   const now = Date.now();
@@ -119,7 +121,7 @@ test('a fixture week: draft, lock in with a confirm, then Everyone and the House
   for (const target of await sheet.locator('button').all()) {
     if (!(await target.isVisible())) continue;
     const box = await target.boundingBox();
-    expect(Math.min(box.width, box.height), await target.innerText()).toBeGreaterThanOrEqual(44);
+    expect(Math.min(box.width, box.height), await target.innerText()).toBeGreaterThanOrEqual(MIN_TARGET);
   }
   expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations.map(v => v.id)).toEqual([]);
   await page.screenshot({ path: info.outputPath('points-sheet-editor-390.png') });
@@ -147,7 +149,7 @@ test('a fixture week: draft, lock in with a confirm, then Everyone and the House
   await expect(line).toContainText(String(SENTINEL));
   for (const marker of await line.getByRole('button').all()) {
     const size = await marker.boundingBox();
-    expect(Math.min(size.width, size.height)).toBeGreaterThanOrEqual(44);
+    expect(Math.min(size.width, size.height)).toBeGreaterThanOrEqual(MIN_TARGET);
   }
   expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations.map(v => v.id)).toEqual([]);
   await expect(sheet.getByRole('button', { name: /^Lock in/ })).toHaveCount(0);
@@ -262,7 +264,7 @@ test('Pick reminders: the Points prompt and the Menu switch ask permission only 
   await expect(toggle).not.toBeChecked();
   await expect(toggle).toBeEnabled();
   await expect(sheet).toContainText('One push 2 hours before picks are due');
-  expect((await sheet.locator('.gx-switch-row').boundingBox()).height).toBeGreaterThanOrEqual(44);
+  expect((await sheet.locator('.gx-switch-row').boundingBox()).height).toBeGreaterThanOrEqual(MIN_TARGET);
   expect(await page.evaluate(() => window.__permissionAsks), 'opening the switch asks nothing').toBe(0);
   await themesAndWidths(page, info, 'reminders-switch');
   // A tap asks once; "not now" keeps reminders off, says so, and nothing reaches the subscribe route.
@@ -334,7 +336,7 @@ async function targets(scope) {
   for (const target of await scope.locator('button').all()) {
     if (!(await target.isVisible())) continue;
     const box = await target.boundingBox();
-    expect(Math.min(box.width, box.height), await target.innerText()).toBeGreaterThanOrEqual(44);
+    expect(Math.min(box.width, box.height), await target.innerText()).toBeGreaterThanOrEqual(MIN_TARGET);
   }
 }
 /** Phone and desktop layout, 44 px targets, axe and a screenshot in Dark and Light at 320, 390 and 1280; `extra` runs at each. */

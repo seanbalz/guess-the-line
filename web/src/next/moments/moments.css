@@ -1,0 +1,6 @@
+/* web/src/next/moments/moments.css
+   D-69 small moments: the tag or chip that just earned its moment pops once in place (pop easing, base duration).
+   Reduced motion: base.css stops it; the tag itself always shows. */
+@media (prefers-reduced-motion: no-preference) {
+  .gx [data-moment="pop"] { animation: gx-pop-in var(--gx-dur-base) var(--gx-ease-pop); }
+}

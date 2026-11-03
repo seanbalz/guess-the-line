@@ -250,3 +250,8 @@
   display: block;
   padding: var(--gx-space-3);
 }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* D-69 4.3: a new tab screen fades in; <main> is not an ancestor of the top bar, tab bar or dock. */
+  .gx .gx-main[data-tab-enter="fade"] > .gx-screen { animation: gx-fade-in var(--gx-dur-quick) var(--gx-ease-standard); }
+}

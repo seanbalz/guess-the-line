@@ -87,6 +87,26 @@ test('existing reproduced trends can qualify at the evaluated consensus line, pr
   lines.spread.books[0].line = -4;
   assert.ok((await run()).assessments.every(a => a.color === 'gray'));
 });
+test('historical evidence is evaluated once per game and market, not once per book and side (Edge CPU budget)', async () => {
+  const { board } = fixture();
+  let coverageReads = 0;
+  const record = { sample: 21, decisive: 20, hitRate: 0.7 };
+  Object.defineProperty(record, 'coverage', { enumerable: true, get: () => { coverageReads++; return { from: '2025-10-01', to: '2026-10-28' }; } });
+  const existing = { history: { status: 'fresh', source: { url: 'https://github.com/nflverse/nflverse-data' }, snapshotAsOf: AT, snapshotSha256: 'a'.repeat(64) },
+    games: [{ id: game.id, spread: { visible: true, candidateIds: ['test'], currentReference: { value: -3 } } }],
+    candidates: [{ id: 'test', title: 'Synthetic historical home trend', qualification: { qualifies: true }, applications: [{ gameId: game.id, direction: 'home' }],
+      conditionDescriptions: ['Synthetic condition'], record }] };
+  const books = [['draftkings', -3], ['fanduel', -3], ['betmgm', -3.5]].map(([book, line]) => ({ book, line, observedAt: AT, prices: { home: -110, away: -110 } }));
+  const lines = { game, spread: { visible: true, line: { capturedAt: AT }, books } };
+  const service = { rpc: async name => name === 'gtl_read_game_lines' ? lines : null, research: { read: async () => existing } };
+  const reply = await readAssessments({ board, userId: 'fixture', now: NOW, service });
+  // Three books and two sides used to repeat the lookup and date parsing six times for one candidate.
+  assert.equal(coverageReads, 1);
+  const at = (side, line) => reply.assessments.find(a => a.selection.side === side && a.selection.line === line);
+  assert.equal(at('home', -3).evidence[0].stance, 'support');
+  assert.equal(at('away', 3).evidence[0].stance, 'oppose');
+  assert.deepEqual(at('home', -3.5)?.evidence ?? [], [], 'a book off the consensus line carries no historical evidence');
+});
 test('observed play statistics preserve zero, missingness and exact 40/60/100 definitions without inventing charting', () => {
   const base = { game_id: 'completed', posteam: 'SEA', no_play: 0, qb_spike: 0, qb_kneel: 0, qb_scramble: 0, rush_attempt: 0, qb_dropback: 1, pass_attempt: 1, sack: 0, down: 1, ydstogo: 10 };
   const facts = observedPlayStatistics({ team: 'SEA', asOf: AT, sourceHash: 'a'.repeat(64), completedGames: [{ id: 'completed', date: '2026-10-20', availableAt: '2026-10-21T12:00:00Z' }],

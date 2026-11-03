@@ -8,25 +8,30 @@ import { progressLegend } from './moments.js';
 
 export const STATE_ICONS = Object.freeze({ locked: Lock, draft: Pencil, open: Circle, kicked: Clock, skipped: Minus, notopen: CalendarClock });
 
-/** `progress` is weekProgress(); `market` is "Spread" or "Total"; `onNext(gameId)` moves to that game's card. */
-export function WeekProgress({ progress, market, week, onNext }) {
+/**
+ * `progress` is weekProgress(); `market` is "Spread" or "Total"; `onNext(gameId)` moves to that game's card. `nested`
+ * (D-70, inside the week's nesting card) leaves out the count and the strip: the card's meta line and its game tiles
+ * say both, so the meter, the legend and the next button remain.
+ */
+export function WeekProgress({ progress, market, week, onNext, nested = false }) {
   if (!progress.total) return null;
   const legend = progressLegend(progress), next = progress.next;
-  return <Card as="section" className="gx-play-progress" aria-label={`Week ${week} ${market} progress`} data-play="progress">
-    <div className="gx-play-progress-head">
+  const Frame = nested ? 'section' : Card, frame = nested ? {} : { as: 'section' };
+  return <Frame {...frame} className={cx('gx-play-progress', nested && 'gx-play-progress--nested')} aria-label={`Week ${week} ${market} progress`} data-play="progress">
+    {nested ? null : <div className="gx-play-progress-head">
       <p className="gx-play-progress-count"><span className="gx-n-l">{progress.locked}</span><span className="gx-t-body"> of {progress.total} locked</span></p>
       <span className="gx-t-label gx-c-2">{market}</span>
-    </div>
+    </div>}
     <Meter value={progress.locked} max={progress.total}/>
     {/* The tiles are a picture of the legend below (hidden from assistive technology); each card also says its state. */}
-    <ol className="gx-play-states" aria-hidden="true">
+    {nested ? null : <ol className="gx-play-states" aria-hidden="true">
       {progress.games.map(row => <li key={row.id} className={cx('gx-play-state', `gx-play-state--${row.state}`)} data-state={row.state}><Icon icon={STATE_ICONS[row.state]} size={12}/></li>)}
-    </ol>
+    </ol>}
     <ul className="gx-play-legend" aria-label="Games by state">
       {legend.map(item => <li key={item.state} className={cx('gx-play-legend-item', `gx-play-legend-item--${item.state}`)}><Icon icon={STATE_ICONS[item.state]} size={16}/><span className="gx-n-xs">{item.count}</span><span className="gx-t-meta">{item.word}</span></li>)}
     </ul>
     {/* D-62: the game as marks; the button's name reads "Next to lock · Seattle Seahawks at Denver Broncos". */}
     {next ? <Button variant="ghost" iconEnd="chevronRight" className="gx-play-next" onClick={() => onNext?.(next.id)}>Next to lock · <Matchup away={next.game.awayCode} home={next.game.homeCode}/></Button>
       : <p className="gx-t-meta gx-c-2">{progress.locked === progress.total ? 'Every game is locked in.' : 'Nothing left to lock this week.'}</p>}
-  </Card>;
+  </Frame>;
 }

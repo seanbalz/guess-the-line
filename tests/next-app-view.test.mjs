@@ -206,6 +206,13 @@ test('the apps keep separate shells and allow only documented workflow and pick-
         assert.match(text, /rules\?\.sentFinal === true && [^\n]*rules\?\.lateWindow === 'kickoff' && [^\n]*rules\?\.perGameScoring === true/);
         continue;
       }
+      // D-69: AuthGate forgets the moments' device records at the account boundary through one pure module (no React,
+      // no CSS, no screen), like the drafts it already clears.
+      if (file === 'AuthGate.jsx' && spec === './next/moments/forget.js') {
+        assert.match(text, /import \{ forgetMomentsDevice \} from '\.\/next\/moments\/forget\.js'/);
+        for (const pure of ['forget.js', 'countUp.js', 'launch.js', 'seen.js']) assert.doesNotMatch(read(`web/src/next/moments/${pure}`), /^import\b[^\n]*(from\s*['"](react|react-dom[^'"]*|lucide-react)['"]|\.css['"])/m, pure);
+        continue;
+      }
       if (file === 'FantasyFootball.jsx' && spec === './next/ui/index.js') {
         assert.match(text, /import \{ Button, Card, LockLine, Segmented, Switch \} from '\.\/next\/ui\/index\.js'/);
         continue;

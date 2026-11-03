@@ -5,6 +5,7 @@
 import { ChevronLeft } from 'lucide-react';
 import { useLayoutEffect, useRef } from 'react';
 import { cx } from './cx.js';
+import { hasNavigated } from '../moments/launch.js';
 import './nest.css';
 
 /** At 320px three steps still leave the card 254px of content. */
@@ -12,11 +13,28 @@ export const NEST_MAX_STEPS = 3;
 const depth = i => ({ '--gx-nest-depth': Math.min(i, NEST_MAX_STEPS) });
 
 /**
+ * How the card enters (D-69 section 4.3): 'in' when a deeper layer opens (or the card first shows after the member's
+ * first navigation), 'back' when a parent layer is restored, and nothing on the launch screen (`navigated` false, even
+ * after a scroll press) or while the layer stays the same.
+ */
+export function nestEnter({ navigated, mounted, prevDepth = 0, depth = 0, prevLayer, layer }) {
+  if (!navigated) return undefined;
+  if (!mounted) return 'in';
+  if (prevLayer === layer) return undefined;
+  return depth < prevDepth ? 'back' : 'in';
+}
+
+/**
  * `lips`: the open parents, outermost first, `{ key, label, onOpen }`. `layer` names the current layer (it moves focus
  * when it changes). `info` is the layer's ⓘ (fine print lives there, D-55 rule 10).
  */
 export function Nest({ label, lips = [], layer, title, info, children, className }) {
-  const heading = useRef(null), shown = useRef(layer);
+  const heading = useRef(null), shown = useRef(layer), last = useRef(null), latch = useRef({ layer: undefined, enter: undefined });
+  // The entrance is decided once per layer (a re-render of the same layer, such as a data load, keeps it, so the
+  // animation is never cut short); under StrictMode's double render both passes read the same latch.
+  if (latch.current.layer !== layer) latch.current = { layer, enter: nestEnter({ navigated: hasNavigated(), mounted: last.current !== null, prevDepth: last.current?.depth, depth: lips.length, prevLayer: last.current?.layer, layer }) };
+  const enter = latch.current.enter;
+  useLayoutEffect(() => { last.current = { depth: lips.length, layer }; });
   useLayoutEffect(() => {
     if (shown.current === layer) return;
     shown.current = layer;
@@ -34,7 +52,7 @@ export function Nest({ label, lips = [], layer, title, info, children, className
           ))}
         </nav>
       ) : null}
-      <div className="gx-nest-card" style={depth(lips.length)}>
+      <div key={layer ?? 'layer'} className="gx-nest-card" style={depth(lips.length)} data-enter={enter}>
         <div className="gx-nest-head">
           <h2 ref={heading} className="gx-t-section gx-nest-title" tabIndex={-1} data-route-focus>{title}</h2>
           {info}

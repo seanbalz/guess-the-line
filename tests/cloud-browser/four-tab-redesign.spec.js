@@ -34,6 +34,8 @@ test('four simple roots, detail origins, reload and phone geometry', async ({ pa
           });
           expect(Math.abs(geometry.bottom - geometry.viewport)).toBeLessThan(2);
           expect(geometry.labels.every(size => size >= 16)).toBe(true);
+          // D-69 4.3: a tab screen fades in after the launch; contrast is checked once it has settled.
+          await page.evaluate(() => Promise.all(document.getAnimations().filter(a => a.playState === 'running' && Number.isFinite(a.effect?.getComputedTiming().endTime)).map(a => a.finished.catch(() => {}))));
           const result = await new AxeBuilder({ page }).include('.gx').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
           expect(result.violations.map(issue => ({ id: issue.id, targets: issue.nodes.map(node => node.target) }))).toEqual([]);
           if (width === 390) {

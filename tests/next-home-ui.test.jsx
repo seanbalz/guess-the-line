@@ -214,6 +214,7 @@ describe('while the Community read loads or fails', () => {
     const html = render();
     expect(markupProblems(html)).toEqual([]);
     expect(nodes(html, attr('role', 'status')).map(textOf)).toEqual(['Loading this week…']);
+    expect(nodes(html, attr('data-skeleton', 'panels'))).toHaveLength(1);
     expect(buttons(html)).toEqual([]);
     expect(nodes(html, n => n.tag === 'h1').map(textOf)).toEqual(['Home']);
   });

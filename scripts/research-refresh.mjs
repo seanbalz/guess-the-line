@@ -57,12 +57,28 @@ export async function buildResearchRelease({ csv, plays, pbpHash, season, now, r
   return { index, files, receipt: { season, generatedAt: now, latestCompleted: snapshot.source.latestCompleted, completedGames: completed.length, candidates: snapshot.candidates.length,
     qualifyingTrends: snapshot.candidates.filter(c => c.qualification.qualifies).length, statisticMatchups: playStatistics.length, pbpGames: playedIds.size, sourceSha256: snapshot.source.sha256, pbpSha256: pbpHash } };
 }
-async function download(url, limit) {
-  const response = await fetch(url, { signal: AbortSignal.timeout(60_000) });
-  if (!response.ok || !response.body) throw new Error('Free research source unavailable.');
-  const chunks = []; let size = 0;
-  for await (const part of response.body) { size += part.length; if (size > limit) throw new Error('Research source exceeds limit.'); chunks.push(part); }
-  return Buffer.concat(chunks);
+const transient = status => status === 408 || status === 429 || status >= 500;
+class SourceTooLarge extends Error {}
+/** Three attempts, 5 s then 10 s apart, for a timeout, a network failure, 408, 429 or 5xx; any other refusal fails at once. */
+export async function download(url, limit, { name, fetchImpl = fetch, attempts = 3, sleep = ms => new Promise(r => setTimeout(r, ms)) } = {}) {
+  let failure = 'no response';
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      const response = await fetchImpl(url, { signal: AbortSignal.timeout(60_000) });
+      if (response.ok && response.body) {
+        const chunks = []; let size = 0;
+        for await (const part of response.body) { size += part.length; if (size > limit) throw new SourceTooLarge('Research source exceeds limit.'); chunks.push(part); }
+        return Buffer.concat(chunks);
+      }
+      failure = response.ok ? 'empty response' : `HTTP ${response.status}`;
+      if (!response.ok && !transient(response.status)) break;
+    } catch (error) {
+      if (error instanceof SourceTooLarge) throw error;
+      failure = error?.name === 'TimeoutError' ? 'timed out' : 'network error';
+    }
+    if (attempt < attempts) await sleep(5000 * attempt);
+  }
+  throw new Error(`Free research source unavailable: ${name} (${failure}).`);
 }
 async function main() {
   const { values } = parseArgs({ options: { season: { type: 'string' }, out: { type: 'string', default: '.local/research-release' }, schedule: { type: 'string' }, pbp: { type: 'string' }, now: { type: 'string' } } });
@@ -72,8 +88,8 @@ async function main() {
   if (!dir.startsWith(path.join(root, '.local') + path.sep)) throw new Error('Use an ignored .local output directory.');
   await fs.mkdir(dir, { recursive: true });
   const [schedule, pbp] = await Promise.all([
-    values.schedule ? fs.readFile(values.schedule) : download(TRENDS_SOURCE.url, 12_000_000),
-    values.pbp ? fs.readFile(values.pbp) : download(`https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_${season}.csv.gz`, 50_000_000),
+    values.schedule ? fs.readFile(values.schedule) : download(TRENDS_SOURCE.url, 12_000_000, { name: 'nflverse schedule' }),
+    values.pbp ? fs.readFile(values.pbp) : download(`https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_${season}.csv.gz`, 50_000_000, { name: 'nflverse play-by-play' }),
   ]);
   const read = async name => JSON.parse(await fs.readFile(path.join(root, 'shared', name), 'utf8'));
   const [registry, venues, corrections] = await Promise.all(['trends-registry.json', 'nfl-venues.json', 'trends-corrections.json'].map(read));

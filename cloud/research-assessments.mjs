@@ -40,6 +40,12 @@ export async function readAssessments({ service, board, userId, now, gameId, mar
   let existing = null;
   try { existing = await service.research?.read({ board, ...(gameId ? { gameId } : {}) }); } catch { /* Independent source failure; do not promote stale research. */ }
   const eligibleGames = board.games.filter(g => (!gameId || g.id === gameId) && !g.started && Date.parse(g.kickoff) > now && (g.spread.visible || g.total.visible));
+  // Edge CPU is capped near 2 s per request. A trend's qualification and dates depend on its game and market only,
+  // so they are evaluated once there, not again for every book and side (D-73; November 3 readback).
+  const candidateById = new Map(), periodOf = new Map();
+  for (const c of existing?.candidates ?? []) if (!candidateById.has(c?.id)) candidateById.set(c?.id, c);
+  const periodFor = c => { if (!periodOf.has(c)) periodOf.set(c, historicalPeriod(c?.record?.coverage)); return periodOf.get(c); };
+  const candidateIds = new Set(data.candidates.map(c => c.id));
   // Bounded concurrency: read stored quotes only, never spend provider credits on a page read.
   for (let i = 0; i < eligibleGames.length; i += 4) await Promise.all(eligibleGames.slice(i, i + 4).map(async g => {
     let lines;
@@ -47,31 +53,35 @@ export async function readAssessments({ service, board, userId, now, gameId, mar
     if (lines?.game?.id !== g.id || Date.parse(lines.game.kickoff) !== Date.parse(g.kickoff)) return;
     for (const m of ['spread', 'total']) {
       if (g[m]?.visible !== true || lines[m]?.visible !== true) continue;
+      const cell = existing?.games?.find(x => x.id === g.id)?.[m];
+      const qualifying = (existing?.history?.status === 'fresh' && cell?.visible ? cell.candidateIds ?? [] : []).flatMap(id => {
+        const c = candidateById.get(id);
+        const applied = c?.applications?.find(a => a.gameId === g.id);
+        const period = periodFor(c);
+        if (!c?.qualification?.qualifies || !applied || !['home', 'away', 'over', 'under'].includes(applied.direction) || !c.record?.decisive || !period) return [];
+        return [{ id, c, applied, period }];
+      }).slice(0, 20);
       for (const book of (lines[m].books ?? []).slice(0, 3)) for (const side of m === 'spread' ? ['home', 'away'] : ['over', 'under']) {
         if (!Number.isFinite(book.line)) continue;
         const selection = { market: m, key: m === 'spread' ? 'spreads' : 'totals', side, line: m === 'spread' && side === 'away' ? -book.line : book.line, unit: 'points' };
         data.quotes.push({ gameId: g.id, kickoff: g.kickoff, selection, provider: 'the-odds-api', book: book.book, source: book.source ?? book.book,
           odds: book.prices?.[side], observedAt: book.observedAt, capturedAt: lines[m].line?.capturedAt ?? null });
-        const cell = existing?.games?.find(x => x.id === g.id)?.[m];
-        const evidence = (existing?.history?.status === 'fresh' && cell?.visible ? cell.candidateIds ?? [] : []).flatMap(id => {
-          const c = existing.candidates?.find(c => c.id === id);
-          const applied = c?.applications?.find(a => a.gameId === g.id);
-          const period = historicalPeriod(c?.record?.coverage);
-          if (!c?.qualification?.qualifies || !applied || !['home', 'away', 'over', 'under'].includes(applied.direction) || !c.record?.decisive
-            || book.line !== cell.currentReference?.value || !period) return [];
+        const evidence = (book.line === cell?.currentReference?.value ? qualifying : []).map(({ id, c, applied, period }) => (
           // These are historical consistency records, never model probabilities.
-          return [{ id: `registry-${id.replace(/[^a-zA-Z0-9_.:-]/g, '_')}`.slice(0, 100), origin: 'computed', family: 'historical',
+          { id: `registry-${id.replace(/[^a-zA-Z0-9_.:-]/g, '_')}`.slice(0, 100), origin: 'computed', family: 'historical',
             statement: c.title, stance: applied.direction === side ? 'support' : 'oppose', datasetId: 'nflverse-schedules', groupKey: `historical-${m}`,
             sourceUrl: existing.history.source?.url, publishedAt: existing.history.snapshotAsOf, observedAt: at, asOf: existing.history.snapshotAsOf,
-            period, sample: { count: c.record.decisive, unit: 'decided qualifying games' },
+            period: { ...period }, sample: { count: c.record.decisive, unit: 'decided qualifying games' },
             metric: { name: 'Historical hit rate', value: c.record.hitRate, unit: 'share', denominator: 'decided qualifying games; pushes excluded' },
             conditionsKnown: true, rights: 'permitted', reproduced: true, inputHash: existing.history.snapshotSha256,
-            assumptions: ['Historical consistency is descriptive; it is not a calculated betting edge.', ...(c.conditionDescriptions ?? []).slice(0, 10).filter(s => typeof s === 'string').map(s => s.slice(0, 240))] }];
-        }).slice(0, 20);
+            assumptions: ['Historical consistency is descriptive; it is not a calculated betting edge.', ...(c.conditionDescriptions ?? []).slice(0, 10).filter(s => typeof s === 'string').map(s => s.slice(0, 240))] }));
         const id = `stored-${g.id}-${m}-${side}-${String(selection.line).replace('.', '_')}`;
         const title = m === 'spread' ? `${side === 'home' ? g.homeCode : g.awayCode} ${selection.line > 0 ? '+' : selection.line < 0 ? '−' : ''}${Math.abs(selection.line)}` : `${side === 'over' ? 'Over' : 'Under'} ${selection.line}`;
-        if (data.candidates.length < 500 && !data.candidates.some(c => c.id === id)) data.candidates.push({ id, gameId: g.id, kickoff: g.kickoff, title: `${g.id.replace('-', ' at ')} · ${title}`,
-          selection, dependenciesComplete: true, dependencies: [{ gameId: g.id, market: m }], evidence });
+        if (data.candidates.length < 500 && !candidateIds.has(id)) {
+          candidateIds.add(id);
+          data.candidates.push({ id, gameId: g.id, kickoff: g.kickoff, title: `${g.id.replace('-', ' at ')} · ${title}`,
+            selection, dependenciesComplete: true, dependencies: [{ gameId: g.id, market: m }], evidence });
+        }
       }
     }
   }));

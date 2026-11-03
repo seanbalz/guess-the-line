@@ -8,7 +8,7 @@ import { leagueApi } from '../../api.js';
 import { nextDraftKey } from '../../nextDrafts.js';
 import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
-import { Avatar, Button, List, Sheet } from '../ui/index.js';
+import { Avatar, Button, List, Sheet, Skeleton } from '../ui/index.js';
 import { fmtPostTime } from '../format.js';
 import { COMMENT_MAX, commentDraft, gameName } from './feedModel.js';
 import { feedChanged } from './feedActions.js';
@@ -89,7 +89,7 @@ export function CommentsSheet({ args }) {
     {problem ? <p className="gx-t-body gx-c-loss" role="alert">{problem}</p> : null}
   </form>;
   return <Sheet title={title} onClose={shell.closeSheet} footer={footer} tall>
-    {list.loading ? <p className="gx-t-body gx-c-2" role="status">Loading comments…</p> : null}
+    {list.loading ? <Skeleton label="Loading comments…" shape="rows" count={3}/> : null}
     {list.error ? <p className="gx-t-body gx-c-loss" role="alert">{list.error.status ? list.error.message : 'No connection. Reconnect and try again.'}</p> : null}
     {list.next ? <Button variant="ghost" onClick={older} aria-disabled={olderBusy || undefined}>{olderBusy ? 'Loading…' : 'Show earlier comments'}</Button> : null}
     {!list.loading && !list.comments.length && !list.error ? <p className="gx-t-body gx-c-2">No comments yet. Say something.</p> : null}

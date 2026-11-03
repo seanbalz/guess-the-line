@@ -37,6 +37,16 @@ export function writeSeen(key, value, storage = deviceStorage()) {
   try { storage.setItem(key, String(value)); } catch { /* No count-up next time on this device. */ }
 }
 
+/** Forgets every account's count-up values on this device (sign-out, an account switch). Other gtl. keys stay. */
+export function clearCountUpSeen(storage = deviceStorage()) {
+  if (!storage) return;
+  try {
+    const keys = [];
+    for (let i = 0; i < storage.length; i += 1) { const key = storage.key(i); if (key?.startsWith(COUNT_UP_PREFIX)) keys.push(key); }
+    for (const key of keys) storage.removeItem(key);
+  } catch { /* Storage blocked: there is nothing to clear. */ }
+}
+
 /** `[x1, y1, x2, y2]` from a token such as "cubic-bezier(0.05, 0.7, 0.1, 1)", or null. */
 export function parseBezier(text) {
   const m = /^\s*cubic-bezier\(\s*([^,]+),\s*([^,]+),\s*([^,]+),\s*([^)]+)\)\s*$/.exec(String(text ?? ''));
@@ -120,13 +130,26 @@ export function formatCount(value, decimals = decimalsOf(value)) {
 }
 
 /**
- * Whether to count and from where: `{ animate, from, to }`. It counts only from a value this device saw (finite and
- * different), never from 0 or a guess, and never under reduced motion or while the page is hidden.
+ * D-69: whether a value is a launch value (it shows its final value at once and nothing remembers it). Every value is,
+ * before the member's first press (`settled`), as the moments engine holds every moment until then; after it, only a
+ * mount's `first` value while the member is still on the launch screen (not yet `navigated`).
  */
-export function countUpPlan({ seen, value, reduced = false, hidden = false } = {}) {
-  if (!finite(value)) return { animate: false, from: null, to: null };
-  const animate = finite(seen) && seen !== value && !reduced && !hidden;
-  return { animate, from: animate ? seen : value, to: value };
+export const launchValue = ({ first, settled, navigated }) => !settled || (first && !navigated);
+
+/**
+ * Whether to count and from where: `{ animate, from, to, remember }`. `shown` is the value this mount last showed at
+ * rest, `seen` the one this device remembers. It counts from `shown` when there is one (a later value in the same
+ * mount moves on from the screen, never back through an older record), otherwise from `seen`: only from a finite
+ * value that differs, never from 0 or a guess, and never under reduced motion or while the page is hidden. On a launch
+ * (D-69: the mount's first value on the launch screen) it shows the final value and remembers nothing, so the count
+ * plays the next time the member opens the card.
+ */
+export function countUpPlan({ seen, shown = null, value, reduced = false, hidden = false, launch = false } = {}) {
+  if (!finite(value)) return { animate: false, from: null, to: null, remember: false };
+  if (launch) return { animate: false, from: value, to: value, remember: false };
+  const start = finite(shown) ? shown : seen;
+  const animate = finite(start) && start !== value && !reduced && !hidden;
+  return { animate, from: animate ? start : value, to: value, remember: true };
 }
 
 /**

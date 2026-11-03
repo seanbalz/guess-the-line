@@ -2,13 +2,13 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { eplApi } from '../../epl/api.js';
 import { fmtFull, fmtNum, fmtSigned } from '../../format.js';
-import { Button, Card } from '../../ui/index.js';
+import { Button, Card, Skeleton } from '../../ui/index.js';
 
 export function EplCorrectionReviewsView({ data, loading = false, failed = false, denied = false, onRefresh }) {
   const id = useId();
   return <div className="gx-cm-stack">
     <p className="gx-t-body gx-c-2">Sleeper stat corrections are shown beside their original captures. Existing picks and draft order are preserved.</p>
-    {loading ? <p role="status" className="gx-t-body">{data ? 'Refreshing EPL correction reviews…' : 'Loading EPL correction reviews…'}</p> : null}
+    {loading && !data ? <Skeleton label="Loading EPL correction reviews…" shape="panels" count={2}/> : loading ? <p role="status" className="gx-t-body">Refreshing EPL correction reviews…</p> : null}
     {failed ? <p role="alert" className="gx-t-body gx-cm-problem">{data ? 'Could not refresh. Showing the last loaded reviews.' : 'EPL correction reviews could not load.'}</p> : null}
     {denied ? <p role="alert" className="gx-t-body">Only the Community commissioner can view these corrections.</p> : null}
     {data?.available === false ? <p role="status" className="gx-t-body">EPL correction checks are not available yet.</p> : null}

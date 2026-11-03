@@ -7,8 +7,8 @@ test.setTimeout(90000);
 test.beforeEach(() => test.skip(!pgliteAvailable, 'Disposable PGlite required.'));
 const nav = page => page.getByRole('navigation', { name: 'Main', exact: true });
 const sport = (page, name) => page.getByRole('group', { name: 'Sport', exact: true }).getByRole('button', { name, exact: true });
-async function fixture(page, baseURL) {
-  const world = await communityWorld(page, baseURL), calls = [], guessReads = [];
+async function fixture(page, baseURL, options = {}) {
+  const world = await communityWorld(page, baseURL, options), calls = [], guessReads = [];
   page.on('request', request => {
     if (request.url().includes('/gtl-api/')) calls.push(new URL(request.url()).pathname.split('/gtl-api/')[1]);
     if (request.url().endsWith('/gtl-api/epl/guess/read')) guessReads.push({ method: request.method(), body: request.postDataJSON() });
@@ -141,6 +141,8 @@ test('EPL profile drafts guard leaving, survive sport switches, and commissioner
     await page.getByRole('button', { name: 'Your menu', exact: true }).click();
     const menu = page.getByRole('dialog', { name: 'Menu', exact: true });
     await expect(menu.getByRole('button', { name: 'Commissioner tools', exact: true })).toBeVisible();
+    // The Community read that shows Commissioner tools has answered: without a VAPID key there is no Pick reminders row.
+    await expect(menu.getByRole('button', { name: 'Pick reminders', exact: true })).toHaveCount(0);
     await menu.getByRole('button', { name: 'Profile', exact: true }).click();
     const profile = page.getByRole('dialog', { name: 'Profile', exact: true });
     await profile.getByLabel('Display name', { exact: true }).fill('Unfinished profile');
@@ -154,6 +156,57 @@ test('EPL profile drafts guard leaving, survive sport switches, and commissioner
     const reopened = await openProfile(page);
     await expect(reopened.getByLabel('Display name', { exact: true })).toHaveValue('Unfinished profile');
     expect(world.calls.filter(path => path === 'profile')).toEqual([]);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+// #411 review follow-up: Menu › Pick reminders is the same per-device switch in EPL as in NFL. A cold EPL entry reads no
+// Community data until the Menu opens; that one read carries the push guard (pushConfigured, a fixture VAPID public key here).
+// The permission question is stubbed to count asks, so nothing subscribes and no push service is contacted.
+test('EPL Menu offers Pick reminders at 390 px, the same switch as NFL, and asks nothing until a tap', async ({ page, baseURL }, testInfo) => {
+  await page.addInitScript(() => {
+    window.__permissionAsks = 0;
+    Object.defineProperty(Notification, 'permission', { configurable: true, get: () => 'default' });
+    Notification.requestPermission = () => { window.__permissionAsks += 1; return Promise.resolve('default'); };
+  });
+  const world = await fixture(page, baseURL, { pushPublicKey: `B${'A'.repeat(86)}` });
+  try {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/#epl/home');
+    await signIn(page, 'luke', { navigate: false });
+    await expect(sport(page, 'EPL')).toHaveAttribute('aria-pressed', 'true');
+    await page.getByRole('button', { name: 'Your menu', exact: true }).click();
+    const menu = page.getByRole('dialog', { name: 'Menu', exact: true });
+    const row = menu.getByRole('button', { name: 'Pick reminders', exact: true });
+    await expect(row).toBeVisible();
+    await expect(row).toBeInViewport();
+    expect((await row.boundingBox()).height).toBeGreaterThanOrEqual(44);
+    expect(world.calls.filter(path => path.startsWith('push/')), 'no push route before a tap').toEqual([]);
+    for (const theme of ['dark', 'light']) {
+      await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, theme);
+      expect(await page.evaluate(layoutProblems), `EPL menu ${theme}`).toEqual([]);
+      expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations.map(v => v.id), `EPL menu ${theme}`).toEqual([]);
+      await page.screenshot({ path: testInfo.outputPath(`epl-menu-reminders-390-${theme}.png`) });
+    }
+    await page.evaluate(() => { delete document.documentElement.dataset.theme; });
+    await row.click();
+    const sheet = page.getByRole('dialog', { name: 'Pick reminders', exact: true });
+    const toggle = sheet.getByRole('switch', { name: 'Pick reminders', exact: true });
+    await expect(toggle).not.toBeChecked();
+    await expect(toggle).toBeEnabled();
+    await expect(sheet).toContainText('One push 2 hours before picks are due');
+    expect(await page.evaluate(layoutProblems), 'EPL reminders sheet').toEqual([]);
+    expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations.map(v => v.id)).toEqual([]);
+    await page.screenshot({ path: testInfo.outputPath('epl-reminders-switch-390.png') });
+    expect(await page.evaluate(() => window.__permissionAsks), 'opening the switch asks nothing').toBe(0);
+    await page.keyboard.press('Escape');
+    await expect(sheet).toHaveCount(0);
+    // The same row on the NFL side of the shared frame.
+    await sport(page, 'NFL').click();
+    await expect(sport(page, 'NFL')).toHaveAttribute('aria-pressed', 'true');
+    await page.getByRole('button', { name: 'Your menu', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: 'Menu', exact: true }).getByRole('button', { name: 'Pick reminders', exact: true })).toBeVisible();
+    expect(world.calls.filter(path => path.startsWith('push/'))).toEqual([]);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

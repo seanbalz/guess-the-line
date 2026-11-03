@@ -10,7 +10,7 @@ import { lazy, Suspense, useId, useState } from 'react';
 import { useAppData } from '../data/AppData.jsx';
 import { fmtFull, plural } from '../format.js';
 import { useShell } from '../shell/context.js';
-import { Avatar, Button, Card, Icon, LinkRow, List, Row, Sheet } from '../ui/index.js';
+import { Avatar, Button, Card, Icon, LinkRow, List, Row, Sheet, Skeleton } from '../ui/index.js';
 
 const CreateLeague = lazy(() => import('./CreateLeague.jsx').then(module => ({ default: module.CreateLeague })));
 const InvitePlayers = lazy(() => import('./InvitePlayers.jsx').then(module => ({ default: module.InvitePlayers })));
@@ -98,13 +98,13 @@ export function SwitcherSheet({ args = {} }) {
     shell.closeSheet();
   }
 
-  if (args.createLeague) return <Suspense fallback={<Sheet title="Create a league" onClose={shell.closeSheet}><p className="gx-t-body" role="status">Loading league creation…</p></Sheet>}>
+  if (args.createLeague) return <Suspense fallback={<Sheet title="Create a league" onClose={shell.closeSheet}><Skeleton label="Loading league creation…" shape="panels" count={2}/></Sheet>}>
     <CreateLeague key={app.accountId}/>
   </Suspense>;
   const hosted = app.leagues.filter(row => row.host && !row.community && row.id !== 'sean-troy-luke');
   const inviteLeague = hosted.find(row => row.id === args.inviteLeagueId);
   if (inviteLeague) return <Suspense fallback={<Sheet title={`Invite to ${inviteLeague.name}`} onClose={shell.closeSheet}
-    back={{ label: 'Your leagues', onBack: () => shell.setSheetArgs({ inviteLeagueId: null }) }}><p className="gx-t-body" role="status">Loading invitations…</p></Sheet>}>
+    back={{ label: 'Your leagues', onBack: () => shell.setSheetArgs({ inviteLeagueId: null }) }}><Skeleton label="Loading invitations…" shape="panels" count={2}/></Sheet>}>
     <InvitePlayers key={`${app.accountId}:${inviteLeague.id}`} league={inviteLeague}/>
   </Suspense>;
 

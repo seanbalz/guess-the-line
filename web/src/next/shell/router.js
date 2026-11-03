@@ -1,7 +1,7 @@
 // Four roots and allowlisted detail addresses. History contains navigation metadata only.
 import { DEFAULT_TAB, LEGACY_TABS, destination, hasLayers, isTab } from './state.js';
 const LEFT_ALONE = new Set(['main', 'picks-due']);
-const KEYS = new Set(['market','season','week','weekId','leagueId','accountId','period','team','matchup','scoreGame','comparisonKind']);
+const KEYS = new Set(['market','season','week','weekId','leagueId','accountId','period','team','matchup','scoreGame','comparisonKind','layer','item']);
 const SECTIONS = { play: ['picks','score','compare','league','points','features'], research: ['games','fantasy','trends'], bets: ['active','settled','tracked','recommended','research','virtual','everyone','add'] };
 export function safeView(tab, view = {}) {
   const result = {};
@@ -125,6 +125,8 @@ export function connectHistory(win, { getState, dispatch, confirmLeave = () => t
       if (hasLayers(next)) write(next, true, true, true);
       return;
     }
+    // D-70: one game's card in place of another rewrites this entry, so browser Back still lands on the week.
+    if (navigation && next.navMode === 'replace' && !hasLayers(next) && !history.state?.gxLayer) { write(next); return; }
     if (navigation && next.navMode === 'back' && history.state?.gxRoute?.trail?.length > next.trail.length) {
       ours += 1;
       try { history.back(); } catch { ours -= 1; }
@@ -161,7 +163,7 @@ export function connectHistory(win, { getState, dispatch, confirmLeave = () => t
     }
     const saved = readEntry(history.state, route);
     const place = saved ?? address ?? { tab: DEFAULT_TAB };
-    if (!confirmLeave()) { rejectTraversal(); return; }
+    if (!confirmLeave({ type: 'restore', place })) { rejectTraversal(); return; }
     index = targetIndex;
     beforeNavigate();
     dispatch({ type: 'restore', place });
