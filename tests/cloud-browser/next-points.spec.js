@@ -1,8 +1,11 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { createHash } from 'node:crypto';
 import { ALL } from '../migrations.mjs';
 import { layoutProblems } from '../helpers/phone-layout.mjs';
 import { ACCOUNTS, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
+import { FANTASY_REPOSITORY, snapshotFileName, updateFantasyIndex } from '../../shared/fantasy-index.mjs';
+import { CONTEXT_HOUSE, CONTEXT_SNAPSHOT_TIMES, pointsContextSnapshot } from '../fixtures/points-context-snapshot.mjs';
 
 // Guess the Points in the new app (D-56 spec section 5; ballot card option D, the D-56 addendum) on local PGlite through the
 // real gtl-api handler: the schema before P-01 shows "Points is coming soon" (what any project without P-01 serves);
@@ -309,4 +312,127 @@ test('Pick reminders on an iPhone Safari tab: one line to add the app to the Hom
     logs.check();
     expect(world.errors).toEqual([]);
   } finally { await context.close(); }
+});
+
+// Board i63, player context on the Points ballot: the slot sheet's strip from the week's Fantasy snapshot, served signed in
+// through the real /fantasy/week route from a fixture release (index and file checked by size and SHA-256), and the
+// Fantasy profile as the sheet's sub-view. GTL's weekly estimate for the QB is the House (19.4): hidden until lock-in.
+function fixtureRelease(snapshot) {
+  const bytes = Buffer.from(JSON.stringify(snapshot)), sha256 = createHash('sha256').update(bytes).digest('hex');
+  const index = updateFantasyIndex(null, { season: snapshot.season, updatedAt: snapshot.generatedAt, review: null, snapshot: {
+    week: snapshot.week, file: snapshotFileName(snapshot.season, snapshot.week, sha256), sha256, bytes: bytes.byteLength, generatedAt: snapshot.generatedAt,
+    statsThroughWeek: snapshot.statsThroughWeek, publishedAfterFreeze: false, rosterFallbackTeams: 0 } });
+  const base = `https://github.com/${FANTASY_REPOSITORY}/releases/download/fantasy-data-${snapshot.season}/`;
+  const served = new Map([['index.json', Buffer.from(JSON.stringify(index))], [index.snapshots[0].file, bytes]]);
+  return async url => {
+    const name = String(url).startsWith(base) ? String(url).slice(base.length) : null;
+    return served.has(name) ? new Response(served.get(name), { status: 200 }) : new Response(null, { status: 404 });
+  };
+}
+/** Every visible button under `scope` is at least 44 px both ways. */
+async function targets(scope) {
+  for (const target of await scope.locator('button').all()) {
+    if (!(await target.isVisible())) continue;
+    const box = await target.boundingBox();
+    expect(Math.min(box.width, box.height), await target.innerText()).toBeGreaterThanOrEqual(44);
+  }
+}
+/** Phone and desktop layout, 44 px targets, axe and a screenshot in Dark and Light at 320, 390 and 1280; `extra` runs at each. */
+async function contextChecks(page, scope, info, name, extra = async () => {}) {
+  for (const theme of ['dark', 'light']) {
+    await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, theme);
+    for (const width of [320, 390, 1280]) {
+      await page.setViewportSize({ width, height: width === 1280 ? 900 : 844 });
+      expect(await page.evaluate(layoutProblems), `${name} ${theme} ${width}`).toEqual([]);
+      await targets(scope);
+      await extra(`${theme} ${width}`);
+      expect((await new AxeBuilder({ page }).withTags(AXE).analyze()).violations.map(v => v.id), `${name} ${theme} ${width}`).toEqual([]);
+      await page.screenshot({ path: info.outputPath(`${name}-${width}-${theme}.png`) });
+    }
+  }
+  await page.evaluate(() => { delete document.documentElement.dataset.theme; });
+  await page.setViewportSize({ width: 390, height: 844 });
+}
+
+test('Player context: averages with game counts, the opponent, the report and its time; the House stays hidden until lock-in, per account', async ({ page, baseURL }, info) => {
+  const logs = consoleErrors(page);
+  const world = await communityWorld(page, baseURL, { migrations: ALL, fantasyFetch: fixtureRelease(pointsContextSnapshot()) });
+  await seedWeek(world);
+  await openNewApp(page);
+  await page.locator('[data-points-landing]').click();
+  await page.locator('[data-slot="QB"]').click();
+  const sheet = page.getByRole('dialog', { name: 'QB · Fixture QB Player' });
+  const strip = sheet.getByRole('region', { name: 'Player context' });
+  await expect(strip.getByText('15.3', { exact: true })).toBeVisible();
+  await expect(strip).toContainText(/Last 3\s*15\.3\s*3 games/);
+  await expect(strip).toContainText(/Season\s*15\.6\s*5 games/);
+  await expect(strip).toContainText(/@ CLE allows\s*15\.2\s*to QBs · 5 games/);
+  await expect(strip).toContainText(`Limited Participation in Practice · as of ${CONTEXT_SNAPSHOT_TIMES.asOfText}`);
+  await expect(sheet).not.toContainText(String(CONTEXT_HOUSE.QB));
+  await expect(sheet).not.toContainText(/implied/i);
+  // The glow card keeps its full height above the strip (the sheet body scrolls): nothing in it is covered.
+  const uncovered = async where => {
+    for (const control of [sheet.getByRole('button', { name: 'Save draft', exact: true }), strip.getByRole('button', { name: 'Open profile: Fixture QB Player' })]) {
+      await control.scrollIntoViewIfNeeded();
+      expect(await control.evaluate(el => { const r = el.getBoundingClientRect(); return document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)?.closest('button') === el; }), where).toBe(true);
+    }
+  };
+  await contextChecks(page, sheet, info, 'points-context-strip', uncovered);
+
+  // A guess in progress survives the profile: set 21, open the profile, come back.
+  const spin = sheet.getByRole('spinbutton', { name: 'Your guess' });
+  await spin.focus();
+  await page.keyboard.press('Home');
+  for (let i = 0; i < 4; i++) await page.keyboard.press('PageUp');
+  await page.keyboard.press('ArrowUp');
+  await expect(spin).toHaveAttribute('aria-valuenow', '21');
+  await strip.getByRole('button', { name: 'Open profile: Fixture QB Player' }).click();
+  const profile = page.getByRole('dialog', { name: 'Fixture QB Player' });
+  await expect(profile.getByRole('heading', { name: 'Observed production' })).toBeVisible();
+  await expect(profile).toContainText('GTL’s estimate for this week is the House. It opens once you lock in this player, or at his kickoff.');
+  await expect(profile).not.toContainText(String(CONTEXT_HOUSE.QB));
+  await expect(profile).not.toContainText('Rest of season');
+  await contextChecks(page, profile, info, 'points-context-profile-locked');
+  await profile.getByRole('button', { name: 'QB · Fixture QB Player' }).click();
+  await expect(sheet.getByRole('spinbutton', { name: 'Your guess' })).toHaveAttribute('aria-valuenow', '21');
+
+  // Lock in: the read now carries the House for Luke, so the profile shows the estimate.
+  await sheet.getByRole('button', { name: 'Lock in 21', exact: true }).click();
+  await page.getByRole('alertdialog', { name: 'Lock in 21?' }).getByRole('button', { name: 'Confirm lock-in' }).click();
+  await expect(sheet.getByText(/^Locked in 21\./)).toBeVisible();
+  await expect(strip).not.toContainText(String(CONTEXT_HOUSE.QB));
+  await strip.getByRole('button', { name: 'Open profile: Fixture QB Player' }).click();
+  await expect(profile).toContainText(String(CONTEXT_HOUSE.QB));
+  await expect(profile).not.toContainText('GTL’s estimate for this week is the House');
+
+  // Missing values read "—", never 0: the WR has no recorded games, the FLEX is not in the snapshot.
+  await page.keyboard.press('Escape');
+  await expect(profile).toHaveCount(0);
+  await page.locator('[data-slot="WR"]').click();
+  const wr = page.getByRole('dialog', { name: 'WR · Fixture WR Player' }).getByRole('region', { name: 'Player context' });
+  await expect(wr).toContainText(/Last 3\s*—\s*no recorded games\s*no games/);
+  await expect(wr).toContainText(/@ DEN allows\s*15\.0\s*to WRs · 2 games/);
+  await page.keyboard.press('Escape');
+  await page.locator('[data-slot="FLEX"]').click();
+  const flex = page.getByRole('dialog', { name: 'FLEX · Fixture FLEX Player' }).getByRole('region', { name: 'Player context' });
+  await expect(flex).toContainText('Not in this week’s player data');
+  await expect(flex.getByRole('button', { name: /Open profile/ })).toHaveCount(0);
+  expect(await flex.innerText()).not.toMatch(/(^|\s)0(\.0)?(\s|$)/);
+  await page.keyboard.press('Escape');
+
+  // An account switch starts clean: Sean has locked nothing, so his QB profile is locked again.
+  await page.getByRole('button', { name: 'Your menu' }).click();
+  await page.getByRole('dialog', { name: 'Menu' }).getByRole('button', { name: 'Sign out', exact: true }).click();
+  await signIn(page, 'sean', { navigate: false });
+  await tabs(page).getByRole('button', { name: /^Play(,|$)/ }).click();
+  await page.locator('[data-points-landing]').click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.locator('[data-slot="QB"]').click();
+  const seanSheet = page.getByRole('dialog', { name: 'QB · Fixture QB Player' });
+  await expect(seanSheet.getByRole('spinbutton', { name: 'Your guess' })).toHaveAttribute('aria-valuetext', 'No guess yet');
+  await seanSheet.getByRole('region', { name: 'Player context' }).getByRole('button', { name: 'Open profile: Fixture QB Player' }).click();
+  await expect(page.getByRole('dialog', { name: 'Fixture QB Player' })).toContainText('GTL’s estimate for this week is the House');
+  await expect(page.getByRole('dialog', { name: 'Fixture QB Player' })).not.toContainText(String(CONTEXT_HOUSE.QB));
+  logs.check();
+  expect(world.errors).toEqual([]);
 });
