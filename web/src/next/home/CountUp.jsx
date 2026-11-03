@@ -14,16 +14,13 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { cx } from '../ui/cx.js';
 import { countUpKey, countUpPlan, countUpTiming, decimalsOf, formatCount, frameAt, readSeen, writeSeen } from './countUp.js';
+import { motionReduced } from '../ui/motion.js';
 import './countUp.css';
+
+export { motionReduced } from '../ui/motion.js';
 
 const useClientLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 const finite = value => typeof value === 'number' && Number.isFinite(value);
-
-/** True when motion should stop: the device setting or the app's own (data-motion="reduce" on an ancestor). */
-export function motionReduced(element) {
-  const device = typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  return device || Boolean(element?.closest?.('[data-motion="reduce"]'));
-}
 
 /** The element's count timing from the --gx- tokens it inherits inside the .gx root. */
 function timingOf(element) {

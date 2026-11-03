@@ -17,6 +17,9 @@ import { reloadApp } from '../../appView.js';
 import { noteSportRoute } from '../../sportNavigation.js';
 import { useDashboardPreferences } from '../../dashboardPreferences.js';
 import { Boundary, FailCard } from './Boundary.jsx';
+import { MomentsProvider } from '../moments/MomentsProvider.jsx';
+import { armLaunch, resetLaunch } from '../moments/launch.js';
+import { clearMomentSeen } from '../moments/seen.js';
 import { ShellContext } from './context.js';
 import { DetailBack, OfflineBanner, SportControls, TabBar, TopBar } from './Frame.jsx';
 import { DialogHost, OverlayHost, PageHost, PopoverHost, SheetHost } from './LayerHosts.jsx';
@@ -81,6 +84,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
   const [online, recheckOnline] = useOnline();
   // iOS can leave the fixed tab bar, dock and toasts a keyboard's height up the screen (viewportPin.js).
   useFixedBarsPinned();
+  useEffect(() => armLaunch(window), []);
   const [preferences] = useDashboardPreferences();
   const reduceMotion = preferences.motion === 'reduced';
   const [dockHost, setDockHost] = useState(null);
@@ -242,6 +246,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
         if (!confirmLeave()) return false;
         try {
           await onSignOutRef.current?.();
+          clearMomentSeen(); resetLaunch();
           return true;
         } catch (failure) {
           toast(failure?.message || SHELL_COPY.signOutFailed, { tone: 'error' });
@@ -279,6 +284,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
   const style = { '--gx-dock-space': `${dockHeight > 0 ? dockHeight + 8 : 0}px` };
   return (
     <ShellContext.Provider value={value}>
+      <MomentsProvider key={member?.id ?? 'signed-out'} account={member?.id} showOverlay={actions.showOverlay}>
       <div className={`gx ${className}`.trim()} data-motion={reduceMotion ? 'reduce' : undefined} style={style}>
         <div className="gx-app" inert={modalOpen(state)}>
           <a className="gx-sr-only gx-skip-link" href="#main" onClick={event => { event.preventDefault(); document.getElementById('main')?.focus(); }}>Skip to main content</a>
@@ -305,6 +311,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
         <OverlayHost state={state} layers={layers}/>
         {children}
       </div>
+      </MomentsProvider>
     </ShellContext.Provider>
   );
 }
