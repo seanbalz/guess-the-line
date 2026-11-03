@@ -365,3 +365,24 @@ test('D-69 Guess the Points: browser Back closes the slot layer, then leaves Poi
   assert.equal(shell.state.views.play.section, 'points');
   assert.equal(shell.state.views.play.item, undefined);
 });
+
+test('D-69 Badges and awards: a shared badge link reopens it; each layer is one browser step; Back closes one layer', async () => {
+  const win = fakeWindow('https://gtl.test/#play/features?layer=badge&item=bullseye');
+  let shell = app(win);
+  assert.deepEqual([shell.state.views.play.section, shell.state.views.play.layer, shell.state.views.play.item], ['features', 'badge', 'bullseye']);
+  shell.connection.disconnect();
+  const away = fakeWindow('https://gtl.test/#play/league?view=board');
+  shell = app(away);
+  shell.dispatch({ type: 'go', tab: 'play', view: { section: 'features', layer: 'badge', item: 'sharp@u-troy' } });
+  assert.equal(away.location.hash, '#play/features?layer=badge&item=sharp%40u-troy');
+  shell.dispatch({ type: 'view', tab: 'play', patch: { layer: undefined, item: undefined } });
+  shell.dispatch({ type: 'view', tab: 'play', patch: { layer: 'streaks', item: undefined } });
+  assert.deepEqual(away.stack(), ['#play/league?view=board', '#play/features?layer=badge&item=sharp%40u-troy', '#play/features', '[#play/features?layer=streaks]']);
+  away.history.back(); await settle();
+  assert.deepEqual([shell.state.views.play.section, shell.state.views.play.layer], ['features', undefined], 'Back closes the streaks layer');
+  away.history.back(); await settle();
+  assert.deepEqual([shell.state.views.play.layer, shell.state.views.play.item], ['badge', 'sharp@u-troy']);
+  away.history.back(); await settle();
+  assert.equal(shell.state.views.play.section, 'league', 'and then the board the badge was opened from');
+  shell.connection.disconnect();
+});
