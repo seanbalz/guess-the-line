@@ -68,7 +68,9 @@ confirmed that the live bundle contains "Player context" and that `sw.js` has th
 - **Play › Points, Week 8 QB slot.** The Player context card shows real data: last 3 at
   19.3 over 2 games, season 20.9 over 4 games, "@ SEA allows 10.4 to QBs · 7 games",
   "Game availability not confirmed · as of Nov 1, 8:01 AM PT", and Open profile. The
-  game counts look low for Week 8 and have not been checked against nflverse.
+  game counts are correct: in nflverse `stats_player_week_2026` he has rows only for
+  Weeks 1, 2, 6 and 7 (Chicago started other quarterbacks in Weeks 3–5), so "last 3"
+  covers Weeks 5–7 with 2 games. Checked by the Fantasy football session on November 2.
 - **EPL section.** The Menu lists Pick reminders. The app was switched back to NFL afterwards.
 - **Not exercised.** No reminder was turned on and no reminder tap was exercised.
 
@@ -76,7 +78,6 @@ confirmed that the live bundle contains "Player context" and that `sw.js` has th
 
 - Opening a Points reminder on a real phone. There are still 0 subscriptions.
 - Phone acceptance of the Player context card and profile.
-- A check of the player-context game counts against nflverse for one or two players.
 
 ## Rollback
 
