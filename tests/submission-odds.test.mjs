@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { runSubmissionWithFreshOdds, SubmissionOddsError } from '../cloud/submission-odds.mjs';
+import { runSubmissionWithFreshOdds, selectedBookMissing, SubmissionOddsError } from '../cloud/submission-odds.mjs';
 
 // October 12, 2026 ruling: a refresh is tried when useful and never required. commit() is the authority.
 const requestId = '00000000-0000-4000-8000-000000000001';
@@ -100,4 +100,41 @@ test('no player-facing refusal message names a refresh limit any more', () => {
   for (const code of ['GTL_SUBMISSION_REFRESH_COOLDOWN', 'GTL_SUBMISSION_REFRESH_DAILY_LIMIT', 'GTL_SUBMISSION_REFRESH_BUDGET', 'GTL_SUBMISSION_REFRESH_LIMIT', 'GTL_SUBMISSION_REFRESH_BUSY']) {
     assert.equal(new SubmissionOddsError(code).code, 'GTL_SUBMISSION_CHECK_UNAVAILABLE');
   }
+});
+
+// Sean, November 3, 2026: "do not waste credits". worthCollecting false skips the collection; the save still commits.
+test('a refresh the newest snapshot shows cannot help is skipped and the save still commits; an unreadable snapshot keeps it', async () => {
+  for (const [worth, expected] of [[async () => false, ['check', 'worth', 'commit']], [async () => true, ['check', 'worth', 'collect', 'commit']],
+    [async () => { throw new Error('read failed'); }, ['check', 'worth', 'collect', 'commit']]]) {
+    const calls = [];
+    assert.equal(await runSubmissionWithFreshOdds({ requestId,
+      preflight: async () => { calls.push('check'); return aged; },
+      worthCollecting: async () => { calls.push('worth'); return worth(); },
+      collect: async () => { calls.push('collect'); },
+      commit: async () => { calls.push('commit'); return 1; },
+    }), 1);
+    assert.deepEqual(calls, expected);
+  }
+  // A fresh line or a draft never reads the snapshot.
+  await runSubmissionWithFreshOdds({ requestId, preflight: async () => fresh, worthCollecting: () => assert.fail('no read'), commit: async () => 1 });
+});
+
+test('selectedBookMissing: true only when a selected book is missing from the reply for every upcoming game the save needs', () => {
+  const now = Date.parse('2026-11-03T18:20:00Z'), later = '2026-11-06T01:15:00.000Z', earlier = '2026-11-02T01:15:00.000Z';
+  const entry = (gameId, kickoff, spread, total = spread) => ({ gameId, kickoff, markets: { spread: { unavailable: spread }, total: { unavailable: total } } });
+  const fdMissing = [{ book: 'fanduel', reason: 'book_missing' }];
+  const snapshot = { books: ['draftkings', 'fanduel', 'betmgm'], games: [entry('JAX-BAL', later, fdMissing), entry('SEA-DEN', later, fdMissing, []), entry('BUF-MIA', earlier, []), entry('NE-NYJ', later, [])] };
+  const missing = (gameIds, mode = 'guess_spread', s = snapshot) => selectedBookMissing(s, { mode, gameIds, now });
+  assert.equal(missing(['JAX-BAL']), true, '18:15 UTC: FanDuel absent');
+  assert.equal(missing(['JAX-BAL', 'SEA-DEN']), true);
+  assert.equal(missing(['SEA-DEN'], 'guess_total'), false, 'the total had every book');
+  assert.equal(missing(['JAX-BAL', 'NE-NYJ']), false, 'one game could still get a line');
+  assert.equal(missing(['JAX-BAL', 'BUF-MIA']), true, 'a game that has kicked off needs no line');
+  assert.equal(missing(['BUF-MIA']), false, 'nothing upcoming: let the database decide');
+  assert.equal(missing(['JAX-BAL', 'CHI-GB']), false, 'a game the snapshot does not hold');
+  assert.equal(missing(['JAX-BAL'], 'betting_challenge'), false);
+  assert.equal(missing(['JAX-BAL'], 'guess_spread', { ...snapshot, games: [entry('JAX-BAL', later, [{ book: 'fanduel', reason: 'stale_market' }])] }), false, 'a stale market may refresh');
+  assert.equal(missing(['JAX-BAL'], 'guess_spread', { ...snapshot, games: [entry('JAX-BAL', later, [{ book: 'caesars', reason: 'book_missing' }])] }), false, 'not a selected book');
+  assert.equal(missing(['JAX-BAL'], 'guess_spread', { ...snapshot, games: [entry('JAX-BAL', 'not a time', fdMissing)] }), false);
+  for (const s of [null, {}, { books: [], games: snapshot.games }]) assert.equal(missing(['JAX-BAL'], 'guess_spread', s), false);
 });

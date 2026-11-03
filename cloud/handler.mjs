@@ -10,7 +10,7 @@ import { applyDecisionAnalysisView } from './decision-analysis.mjs';
 import { RESULTS_METHODS, ResultError, providerResultError, handleResultReview, applyReviewedResults } from './results.mjs';
 import { applyMarketView } from './market-view.mjs';
 import { applySportsbookSources } from './sportsbook-sources.mjs';
-import { runSubmissionWithFreshOdds, SubmissionOddsError } from './submission-odds.mjs';
+import { runSubmissionWithFreshOdds, selectedBookMissing, SubmissionOddsError } from './submission-odds.mjs';
 import { collectSubmissionOdds } from './submission-collection.mjs';
 import { applyScoringBenchmark } from './scoring-view.mjs';
 import { applyProvisionalAnalysisView } from './total-analysis-view.mjs';
@@ -184,10 +184,16 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
   // October 12, 2026: a refresh is attempted when useful and never required; commit() is the authority.
   async function submitWithFreshOdds(user, intent, commit) {
     if (!odds?.rpc) return commit();
+    // November 3, 2026 (Sean: "do not waste credits"): no collection when the newest stored snapshot of the save's week
+    // had a selected book missing for every game it locks in (or, for a send, every game it names).
+    const worthCollecting = odds.latestSnapshot && Number.isInteger(intent.season) && Number.isInteger(intent.week)
+      ? async () => !selectedBookMissing(await odds.latestSnapshot(intent.season, intent.week),
+        { mode: intent.mode, gameIds: intent.lockIn ?? Object.keys(intent.picks ?? {}), now: clock() })
+      : undefined;
     return runSubmissionWithFreshOdds({
       preflight: () => odds.rpc('gtl_preflight_submission', { p_user: user.id, p_intent: intent }),
       collect: ({ requestId }) => collectSubmissionOdds({ user, intent, service: odds, provider: oddsProvider, requestId, uuid }),
-      requestId: uuid(), commit,
+      worthCollecting, requestId: uuid(), commit,
     });
   }
   async function loadResultState(saved, userId, leagueId) {
@@ -539,6 +545,12 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
           const error = providerCollectionError(message); error.code = message; throw error;
         }
         return response.json();
+      },
+      // The newest stored snapshot of a week, its games and selected books only (selectedBookMissing). Server-side only.
+      async latestSnapshot(season, week) {
+        const [row] = await restRows('gtl_market_snapshots', { select: 'games:payload->games,books:payload->selectedBooks',
+          season: `eq.${season}`, week: `eq.${week}`, order: 'created_at.desc,id.desc', limit: '1' }, 1);
+        return row ?? null;
       },
       async marketSnapshot(userId, leagueId) {
         const response = await request('/rest/v1/rpc/gtl_read_market_snapshot', { method: 'POST', headers, body: JSON.stringify({ p_user: userId, p_league: leagueId }) });
