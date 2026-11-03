@@ -108,7 +108,8 @@ export const workerChecks = Object.freeze([
 // /league/comparison is deployed (gtl-api v32) and its D-53 reader is hosted since October 22, 2026. The league feed
 // (redesign stages 61 to 63) is hosted and deployed since October 27, 2026: M-21, M-22 and M-23 applied, and the five
 // /league/* feed routes in gtl-api v38 (RELEASE_2026_10_27_FEED_MIGRATIONS.md), so none of its pieces awaits deploy. So are
-// M-25 and M-26 (redesign stages 69 and 70) with /league/features and /league/features/run (the same record).
+// M-25 and M-26 (redesign stages 69 and 70) with /league/features and /league/features/run (the same record). M-38 (ops
+// alerts, item 22) is hosted as 20261103184656 since November 3, 2026 (RELEASE_2026_11_03_OPS_ALERTS_M38.md).
 export const awaitingDeploy = Object.freeze({
   ...moneyline.awaitingDeploy,
   'table/epl_standings': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
@@ -118,15 +119,4 @@ export const awaitingDeploy = Object.freeze({
   'rpc/gtl_epl_save_standings': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
   'rpc/gtl_epl_resolve_with_standings': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
   'rpc/gtl_epl_standings_provenance': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
-  // M-38 is written and not applied; its apply record removes these (Gate M step 8).
-  'table/ops_alert_schedule': '20261103190000 (M-38 ops alerts apply)',
-  'table/ops_alert_runs': '20261103190000 (M-38 ops alerts apply)',
-  'table/ops_incidents': '20261103190000 (M-38 ops alerts apply)',
-  'rpc/gtl_ops_findings': '20261103190000 (M-38 ops alerts apply)',
-  'rpc/gtl_dispatch_ops_alerts': '20261103190000 (M-38 ops alerts apply)',
-  'rpc/gtl_claim_ops_alerts': '20261103190000 (M-38 ops alerts apply)',
-  'rpc/gtl_mark_ops_notification': '20261103190000 (M-38 ops alerts apply)',
-  'rpc/gtl_record_ops_delivery': '20261103190000 (M-38 ops alerts apply)',
-  'rpc/gtl_complete_ops_alerts': '20261103190000 (M-38 ops alerts apply)',
-  'rpc/gtl_ops_test_alert': '20261103190000 (M-38 ops alerts apply)',
 });

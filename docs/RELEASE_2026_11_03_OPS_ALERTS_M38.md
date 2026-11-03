@@ -2,18 +2,55 @@
 
 Board item 22. Design: [OPS_ALERTS.md](OPS_ALERTS.md). Sean chose a phone push to the commissioner (November 3, 2026).
 This card covers one migration (M-38, Gate M), one Edge Function (`gtl-ops-alerts`, the new `ops-alerts` release target),
-two admin scripts and a follow-up PR for the boundary probes. **Nothing here is applied or deployed.** Nothing players see
+two admin scripts and a follow-up PR for the boundary probes. **M-38 is applied and verified (step 1); the function is not deployed.** Nothing players see
 changes: the alerts go only to the active push subscriptions of the `sean-troy-luke` commissioner.
 
 ## Current state
 
 | Part | State |
 | --- | --- |
-| M-38 `20261103190000_gtl_ops_alerts.sql` | **Not applied.** Local source only (`NOT_HOSTED` in `tests/migrations.mjs`). |
-| `gtl-ops-alerts` Edge Function | **Not deployed.** Source, `supabase/config.toml` entry and release target are in the M-38 PR (branch `claude/ops-watchdog`); they reach main when it merges. |
+| M-38 `20261103190000_gtl_ops_alerts.sql` | **Applied and verified** as hosted `20261103184656` (November 3, SQL editor, Gate M). `APPLIED` in `tests/migrations.mjs`. |
+| `gtl-ops-alerts` Edge Function | **Not deployed.** Source, `supabase/config.toml` entry and release target are on main (PR #440, `3b1a77c0`). |
 | `gtl_ops_alert_schedule` row `ops` | **Does not exist.** `ops_alerts_cron.sql` has not been run. |
 | Cron job `gtl-ops-alerts` | **Not scheduled.** |
-| Boundary probes | The 3 tables and 7 functions are in `scripts/boundary/league.mjs` as `awaitingDeploy`; the worker has no probe yet. |
+| Boundary probes | The 3 tables and 7 functions are live signed-out probes (no longer `awaitingDeploy`); the worker joins `workerChecks` with its deploy. |
+
+## Step 1 record: the apply (November 3, 2026)
+
+Sean: "Yes, merge when green" (PR #440, merged as `3b1a77c0810557831cb26f492da21bf3c3b14a77`), then "Yes, apply M-38" and
+"Ran it" (the SQL editor in his signed-in Chrome).
+
+- **Pre-check (read-only, before the apply):** `gtl_ops_incidents`, `gtl_ops_alert_runs` and `gtl_ops_alert_schedule` did
+  not exist, and no history row named `ops_alerts`. History: 73 rows, digest of `version||name` in version order
+  `a669de40189e76fe277cb3271535820f917e4eba616e4f6016248195de1b4a2e`, the newest M-37 `20261103164210`. Every table,
+  column and function M-38 reads exists hosted; of the unapplied M-33 to M-35, only M-34 touches one of them (the EPL job
+  check constraint), so M-38 does not depend on them.
+- **Apply (SQL editor, one implicit transaction):** the file fetched in the editor tab from `raw.githubusercontent.com` at
+  `3b1a77c0`, 24380 bytes, SHA-256 checked in the page against `d5581c03…8675`. The script ran, in order:
+  1. a guard that raised if any M-38 table or history row existed;
+  2. the file;
+  3. the history insert (`array[$gtlmig$<file>$gtlmig$]`, created by sbalsiger2@gmail.com);
+  4. a read-back.
+- **Verify (read-only):**
+  - **History:** hosted version **`20261103184656`**, name `gtl_ops_alerts`. It holds 1 statement of 24380 bytes, md5
+    `046122809776e5e3d75e55730384d374`, equal to the file. History has 74 rows, and the 73 before it are unchanged
+    (same digest `a669de40…`).
+  - **Functions:** all 7 exist, each security invoker with `search_path=""`. `anon` and `authenticated` can execute
+    none of them. `service_role` executes only the claim, mark, record delivery, complete and test alert functions; the
+    findings and the dispatcher have no API grant. The Supabase MCP connection was refused on `gtl_ops_findings`
+    (`permission denied`), consistent with that.
+  - **Tables:** all 3 have RLS on, no policies, no `anon` or `authenticated` select, and no rows. No schedule row
+    exists, so the dispatcher answers `disabled` and nothing is pushed.
+  - **Score hash:** not taken. M-38 reads and writes no ballot, pick or settlement.
+- **Record (this PR):**
+  - `tests/migrations.mjs` moves `20261103190000` to `APPLIED`;
+  - the 10 `awaitingDeploy` entries leave `scripts/boundary/league.mjs`, and `tests/cloud-boundary.test.mjs` asserts
+    that a not-found answer now fails.
+  - The worker probe is added after step 2.
+- **`check:cloud` after the apply** (signed-out probes from this branch, November 3):
+  - all 3 tables and 7 functions answer `denied (401)`;
+  - 435 live denials in all;
+  - 19 still await deploy, all for the unapplied M-33, M-34 and M-35, so `--strict` was not run, as in M-37's record. Those are not M-38's.
 
 ## What M-38 adds
 
