@@ -29,6 +29,7 @@ import { connectHistory, NFL_ROUTER, startPlace } from './router.js';
 import { canGoBack, hasLayers, initialState, isDetail, layer, layerKind, modalOpen, navigationPatch, reduce, visibleOverlay } from './state.js';
 import { SHELL_COPY } from './tabs.js';
 import { useFixedBarsPinned } from './viewportPin.js';
+import { useTabFade } from './tabFade.js';
 import './shell.css';
 
 const browserOnline = () => typeof navigator === 'undefined' || navigator.onLine !== false;
@@ -280,6 +281,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
   const onHome = () => (state.tab === 'home' && !state.page && !hasLayers(state) ? toTop() : actions.go('home'));
   const onRetry = () => { if (!recheckOnline()) actions.toast(SHELL_COPY.stillOffline, { tone: 'plain' }); };
 
+  const tabFade = useTabFade(state.tab);
   const Screen = screens[state.tab] ?? (state.tab === 'research' ? screens[state.views.research.section === 'fantasy' ? 'fantasy' : 'lines'] : null);
   const style = { '--gx-dock-space': `${dockHeight > 0 ? dockHeight + 8 : 0}px` };
   return (
@@ -290,7 +292,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
           <a className="gx-sr-only gx-skip-link" href="#main" onClick={event => { event.preventDefault(); document.getElementById('main')?.focus(); }}>Skip to main content</a>
           <TopBar leagueName={league.name} you={member} onHome={onHome} onLeague={() => actions.openSheet('sh.switcher')} onMenu={() => actions.openSheet('sh.menu')}/>
           <SportControls/>
-          <main className="gx-main" id="main" tabIndex={-1}>
+          <main className="gx-main" id="main" tabIndex={-1} data-tab-enter={tabFade ? 'fade' : undefined}>
             <OfflineBanner offline={!online} onRetry={onRetry}/>
             {!cover && !state.page && (state.trail.length > 0 || isDetail(state)) ? <DetailBack onBack={actions.back}/> : null}
             {cover ? (

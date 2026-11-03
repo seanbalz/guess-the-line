@@ -4,20 +4,21 @@
 // - The `big` duration (600 ms, the brand's cap for count-ups) with the `enter` easing, read from the element's
 //   --gx-dur-big and --gx-ease-enter, which tokens.css defines from design/tokens-next.json (tests/next-tokens.test.mjs
 //   keeps the two equal). Enter never overshoots, and frameAt keeps every frame between the two values anyway.
-// - The remembered value is per account and figure in localStorage (`gtl.next.countUp.v1.…`), written the moment the
-//   new value arrives, so it counts once per change and a reload shows the number still.
+// - The remembered value is per account and figure in localStorage (`gtl.next.countUp.v1.…`), written once the launch has
+//   settled (D-69: a page load shows the final value and remembers nothing), so it counts once per change.
 // - At rest the element holds one text node, the server's value ("—" when it sent none). While counting, the moving
 //   digits are hidden from assistive technology and the final value is in screen-reader text, so nobody is told a
 //   number the server did not send.
 // - Reduced motion (the device setting, or data-motion="reduce" on the app root) and a hidden page show the final value
 //   at once. Only text changes: no layout property animates.
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { cx } from '../ui/cx.js';
+import { cx } from './cx.js';
 import { countUpKey, countUpPlan, countUpTiming, decimalsOf, formatCount, frameAt, readSeen, writeSeen } from './countUp.js';
-import { motionReduced } from '../ui/motion.js';
+import { motionReduced } from './motion.js';
+import { isSettled } from '../moments/launch.js';
 import './countUp.css';
 
-export { motionReduced } from '../ui/motion.js';
+export { motionReduced } from './motion.js';
 
 const useClientLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 const finite = value => typeof value === 'number' && Number.isFinite(value);
@@ -44,8 +45,8 @@ export function CountUp({ value, account, figure, format = formatCount, classNam
     // still count from what the device saw, not from the value the first pass just wrote.
     const id = `${key}=${final}`;
     if (seenFor.current?.id !== id) seenFor.current = { id, seen: readSeen(key) };
-    writeSeen(key, final);
-    const plan = countUpPlan({ seen: seenFor.current.seen, value: final, reduced: motionReduced(ref.current), hidden: typeof document !== 'undefined' && document.hidden === true });
+    const plan = countUpPlan({ seen: seenFor.current.seen, value: final, reduced: motionReduced(ref.current), hidden: typeof document !== 'undefined' && document.hidden === true, launch: !isSettled() });
+    if (plan.remember) writeSeen(key, final);
     if (!plan.animate) { setFrame(null); return undefined; }
     const { ms, ease } = timingOf(ref.current);
     const decimals = Math.max(decimalsOf(plan.from), decimalsOf(plan.to));

@@ -18,7 +18,7 @@ import { nextGuess } from '../play/nextGuess.js';
 import { HomeAwards } from '../features/HomeAwards.jsx';
 import { HomeStreak } from '../features/HomeStreak.jsx';
 import { peekMove, rankKey, readRank } from '../league/rankMoment.js';
-import { CountUp } from './CountUp.jsx';
+import { CountUp } from '../ui/CountUp.jsx';
 import { HERO_COPY, heroHeadline } from './homeModel.js';
 import { useSavedTrends } from '../trends/builderData.js';
 import './home.css';

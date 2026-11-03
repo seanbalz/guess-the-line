@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import * as C from '../web/src/next/home/countUp.js';
+import * as C from '../web/src/next/ui/countUp.js';
 
-// Design lane, item 1: the score count-up's rules (web/src/next/home/countUp.js). Each test names the contract it guards.
+// Design lane, item 1: the score count-up's rules (web/src/next/ui/countUp.js). Each test names the contract it guards.
 // The component's timing (600 ms, the `enter` easing) is checked against the tokens in tests/next-count-up.test.jsx, and
 // the counting itself in a real browser in tests/cloud-browser/next-design-home-league.spec.js.
 const tokens = JSON.parse(fs.readFileSync(new URL('../design/tokens-next.json', import.meta.url), 'utf8'));
@@ -35,14 +35,21 @@ test('remembered value: only a finite server number is written; garbage, nothing
 });
 
 test('plan: it counts only from a value this device saw that differs, never from 0, and never under reduced motion or a hidden page', () => {
-  assert.deepEqual(C.countUpPlan({ seen: null, value: 20 }), { animate: false, from: 20, to: 20 }, 'first sighting shows the number at once');
-  assert.deepEqual(C.countUpPlan({ seen: 12, value: 20 }), { animate: true, from: 12, to: 20 });
-  assert.deepEqual(C.countUpPlan({ seen: 20, value: 12 }), { animate: true, from: 20, to: 12 }, 'a total can count down');
+  assert.deepEqual(C.countUpPlan({ seen: null, value: 20 }), { animate: false, from: 20, to: 20, remember: true }, 'first sighting shows the number at once');
+  assert.deepEqual(C.countUpPlan({ seen: 12, value: 20 }), { animate: true, from: 12, to: 20, remember: true });
+  assert.deepEqual(C.countUpPlan({ seen: 20, value: 12 }), { animate: true, from: 20, to: 12, remember: true }, 'a total can count down');
   assert.equal(C.countUpPlan({ seen: 20, value: 20 }).animate, false);
   assert.equal(C.countUpPlan({ seen: 12, value: 20, reduced: true }).animate, false);
   assert.equal(C.countUpPlan({ seen: 12, value: 20, reduced: true }).from, 20, 'reduced motion starts (and ends) at the final value');
   assert.equal(C.countUpPlan({ seen: 12, value: 20, hidden: true }).animate, false);
-  assert.deepEqual(C.countUpPlan({ seen: 12, value: null }), { animate: false, from: null, to: null }, 'no server value, nothing to count');
+  assert.deepEqual(C.countUpPlan({ seen: 12, value: null }), { animate: false, from: null, to: null, remember: false }, 'no server value, nothing to count');
+});
+
+test('D-69: a page load shows the final value and remembers nothing, so the count plays when the card is next opened', () => {
+  assert.deepEqual(C.countUpPlan({ seen: 12, value: 20, launch: true }), { animate: false, from: 20, to: 20, remember: false });
+  assert.deepEqual(C.countUpPlan({ seen: 12, value: 20 }), { animate: true, from: 12, to: 20, remember: true });
+  assert.deepEqual(C.countUpPlan({ seen: 12, value: 20, reduced: true }), { animate: false, from: 20, to: 20, remember: true }, 'reduced motion still moves on');
+  assert.deepEqual(C.countUpPlan({ seen: null, value: 20 }), { animate: false, from: 20, to: 20, remember: true }, 'a first sighting shows the number');
 });
 
 test('frames: the last frame is exactly the server value, and no frame leaves the range between the two values', () => {

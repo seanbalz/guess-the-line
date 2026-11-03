@@ -6,7 +6,7 @@ import { ALL } from '../migrations.mjs';
 import { layoutProblems } from '../helpers/phone-layout.mjs';
 import { seedFinishedWeek } from '../helpers/features-week.mjs';
 import { ACCOUNTS, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
-import { countUpKey } from '../../web/src/next/home/countUp.js';
+import { countUpKey } from '../../web/src/next/ui/countUp.js';
 import { rankKey } from '../../web/src/next/league/rankMoment.js';
 
 // Design lane ("game feel" and the Home and League pass) at 390 x 844 (build plan section 4.1), on the real app and the
@@ -65,6 +65,7 @@ async function openAs(page, account, address, storage = {}) {
 }
 const frames = (page, where) => page.evaluate(w => window.__frames.filter(f => f.where === w), where);
 const toNumber = text => Number(String(text).replace('−', '-'));
+const tab = (page, name) => page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: new RegExp(`^${name}(, .+)?$`) });
 
 async function settle(page) {
   await page.evaluate(() => Promise.all(document.getAnimations().filter(a => a.playState === 'running' && Number.isFinite(a.effect?.getComputedTiming().endTime)).map(a => a.finished.catch(() => {}))));
@@ -147,18 +148,23 @@ test('Home: one primary card, the week meter, the streak and the award chips; Sp
     const hero = page.locator('[data-home="hero"]');
     await expect(hero).toBeVisible();
 
-    // 1. The count-up: it ran, every frame stayed between 12 and 20, and it rests on the server's 20, now remembered.
+    // 1. The count-up (D-69): a page load shows the server's 20 at once and remembers nothing; once Luke has used the
+    // app, opening Home again counts from the 12 this device saw, stays between 12 and 20, rests on 20 and remembers it.
     const spreadPoints = page.locator('[data-tile="spread"] [data-home="points"] .gx-countup');
     await expect(spreadPoints).toHaveAttribute('data-count', 'rest');
     await expect(spreadPoints).toHaveText('20');
+    expect((await frames(page, 'spread')).filter(f => f.state === 'run'), 'nothing counts on page load').toEqual([]);
+    expect(await page.evaluate(key => localStorage.getItem(key), countUpKey(LUKE, spreadFigure(LUKE)))).toBe('12');
+    await page.evaluate(() => { window.__frames = []; });
+    await tab(page, 'Play').click();
+    await tab(page, 'Home').click();
+    await expect(spreadPoints).toHaveAttribute('data-count', 'rest');
+    await expect(spreadPoints).toHaveText('20');
     const spread = await frames(page, 'spread');
-    // How many frames land in between depends on the machine's frame rate (a busy runner can skip them), so the
-    // contract checked is the one that cannot vary: it started from what the device saw, never left 12–20, ended on 20.
     const counted = spread.filter(f => f.state === 'run').map(f => toNumber(f.text));
     expect(counted[0], 'the count starts from the value this device saw').toBe(12);
     expect(counted.every(n => n >= 12 && n <= 20), `frames ${counted}`).toBe(true);
     expect(spread.at(-1)).toMatchObject({ state: 'rest', text: '20' });
-    // The count takes the `big` token (600 ms, the brand's cap): it can never rest sooner (the ceiling only guards a hang).
     const firstRun = spread.find(f => f.state === 'run'), rest = spread.at(-1);
     expect(rest.t - firstRun.t, 'count-up duration in ms').toBeGreaterThan(550);
     expect(rest.t - firstRun.t, 'count-up duration in ms').toBeLessThan(3000);
@@ -205,7 +211,8 @@ test('reduced motion: a changed total shows its final value at once, with no fra
     await expect(board.locator(`[data-board-row="${TROY}"] .gx-countup`)).toHaveText('12');
     await expect(board.locator(`[data-board-row="${LUKE}"] .gx-countup`)).toHaveText('20');
     for (const who of [LUKE, TROY]) expect((await frames(page, who)).filter(f => f.state === 'run'), who).toEqual([]);
-    expect(await page.evaluate(key => localStorage.getItem(key), countUpKey(LUKE, spreadFigure(TROY)))).toBe('12');
+    expect(await page.evaluate(key => localStorage.getItem(key), countUpKey(LUKE, spreadFigure(TROY)))).toBe('4');
+    // D-69: a page load remembers nothing; the next opening after the launch moves the record on.
     // The rank's arrow is drawn (the change is real) but does not pop; the toast's words still say it.
     const move = board.locator(`[data-board-row="${LUKE}"] .gx-move`);
     await expect(move).toHaveClass(/gx-l-move--fresh/);
@@ -256,8 +263,13 @@ test('League board: faces, the leader, week badges, the race strip and counting 
     const troyTotal = board.locator(`[data-board-row="${TROY}"] .gx-countup`);
     await expect(troyTotal).toHaveAttribute('data-count', 'rest');
     await expect(troyTotal).toHaveText('12');
+    expect((await frames(page, TROY)).filter(f => f.state === 'run'), 'nothing counts on page load').toEqual([]);
+    await page.evaluate(() => { window.__frames = []; });
+    await tab(page, 'Home').click();
+    await page.evaluate(() => { location.hash = '#play/league?view=board'; });
+    await expect(troyTotal).toHaveAttribute('data-count', 'rest');
     const counted = (await frames(page, TROY)).filter(f => f.state === 'run').map(f => toNumber(f.text));
-    expect(counted[0], 'Troy’s total counts from the 4 this device saw').toBe(4);
+    expect(counted[0], 'Troy’s total counts from the 4 this device saw, once the card is opened again').toBe(4);
     expect(counted.every(n => n >= 4 && n <= 12), `frames ${counted}`).toBe(true);
     // No ballot is never 0: Sean has no Spread total.
     await expect(board.locator(`[data-board-row="${ACCOUNTS.sean.id}"] .gx-row-sub`)).toContainText('Season: —');
