@@ -16,15 +16,19 @@ const kickoffAt = game => Date.parse(game?.kickoff ?? '');
 export const scoreSource = data => `score:${Number.isInteger(data?.season) ? data.season : 'latest'}`;
 
 /**
- * True when every game of your week for one market is settled for scoring: each is scored, or can no longer be (it was
- * not locked when it kicked off). A sit-out, an ineligible ballot, a week with nothing scored, or a locked game still
- * waiting for its line is not final. `now` is the server's clock in ms; without it only a fully scored week is final.
+ * True when your week for one market is over: the server clock `now` (ms) is at or after the kickoff of the week's last
+ * game, and every game is settled for scoring (scored, or closed because it kicked off without a lock). Scoring happens
+ * at lock-in, so a fully scored week can still be unplayed; it is not a final until the last kickoff has passed. Without
+ * the server clock a week is never final, and a game with no valid kickoff time never counts as passed. A sit-out, an
+ * ineligible ballot, a week with nothing scored, or a locked game still waiting for its line is not final.
  */
 export function weekFinal(week, entry, now) {
-  if (!entry || entry.eligible === false || entry.status === 'sat_out') return false;
+  if (!Number.isFinite(now) || !entry || entry.eligible === false || entry.status === 'sat_out') return false;
   const rows = scoreRows(week, entry);
   if (!rows.length || !rows.some(row => row.points !== null)) return false;
-  return rows.every(row => row.points !== null || (!row.locked && Number.isFinite(now) && now >= kickoffAt(row.game)));
+  const kickoffs = rows.map(row => kickoffAt(row.game));
+  if (!kickoffs.every(Number.isFinite) || now < Math.max(...kickoffs)) return false;
+  return rows.every(row => row.points !== null || !row.locked);
 }
 
 /** Every score moment a history reply holds for `viewer`, with stable ids (the seen record matches them across reads). */

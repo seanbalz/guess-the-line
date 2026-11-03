@@ -12,7 +12,8 @@ const LAC_LV = { id: 'LAC-LV', awayCode: 'LAC', homeCode: 'LV', kickoff: '2026-1
 const NYG_PHI = { id: 'NYG-PHI', awayCode: 'NYG', homeCode: 'PHI', kickoff: '2026-11-03T01:15:00Z' };
 const pick = (gameId, guess, points, line) => ({ gameId, guess, lockedIn: true, lockedAt: '2026-10-28T18:00:00Z', points, reference: { value: line } });
 const mine = (picks, extra = {}) => ({ userId: ME, mode: 'guess_spread', status: 'submitted', eligible: true, scoreTiming: 'immediate', weekPoints: 15, picks, ...extra });
-const reply = (entries, games = [SEA_DEN, LAC_LV]) => ({ viewer: ME, season: 2026, now: '2026-10-29T12:00:00Z', seasons: [2026], weeks: [{ season: 2026, week: 8, games, entries }] });
+const AFTER = '2026-11-04T12:00:00Z'; // after every kickoff in these fixtures
+const reply = (entries, games = [SEA_DEN, LAC_LV], now = '2026-10-29T12:00:00Z') => ({ viewer: ME, season: 2026, now, seasons: [2026], weeks: [{ season: 2026, week: 8, games, entries }] });
 const memory = () => { const map = new Map(); return { getItem: k => (map.has(k) ? map.get(k) : null), setItem: (k, v) => map.set(k, String(v)), removeItem: k => map.delete(k), key: i => [...map.keys()][i] ?? null, get length() { return map.size; } }; };
 const ids = list => list.map(m => m.id);
 const words = list => JSON.stringify(list.map(({ id, title, meta }) => ({ id, title, meta })));
@@ -29,15 +30,21 @@ test('Bullseye: a scored 10 of 10 game of yours is one big moment for the score 
 test('Week final: every game of your week is scored or closed without a lock; a game still open or waiting for its line is not final', () => {
   const week = reply([]).weeks[0];
   const both = mine([pick('SEA-DEN', -3, 10, -3), pick('LAC-LV', 4, 5, 6.5)]);
-  assert.equal(weekFinal(week, both, NaN), true, 'every game scored: final, whatever the clock');
+  const afterLast = Date.parse('2026-11-02T02:00:00Z'), beforeLast = Date.parse('2026-11-02T00:00:00Z');
+  assert.equal(weekFinal(week, both, NaN), false, 'every game scored but the clock is unknown: not final (scoring is at lock-in, so a scored week can still be unplayed)');
+  assert.equal(weekFinal(week, both, beforeLast), false, 'every game scored at lock-in but the week has not kicked off: not final');
+  assert.equal(weekFinal(week, both, afterLast), true, 'every game scored and the last kickoff has passed: final');
+  assert.equal(weekFinal(week, both, Date.parse('2026-11-02T01:20:00Z')), true, 'the last kickoff itself counts as passed');
   const oneOpen = mine([pick('SEA-DEN', -3, 10, -3)]);
   assert.equal(weekFinal(week, oneOpen, Date.parse('2026-11-01T00:00:00Z')), false, 'LAC at LV can still be locked');
   assert.equal(weekFinal(week, oneOpen, Date.parse('2026-11-02T02:00:00Z')), true, 'LAC at LV kicked off without a lock: the week is settled');
   assert.equal(weekFinal(week, oneOpen, NaN), false, 'without the server clock an unlocked game never counts as closed');
-  assert.equal(weekFinal(week, mine([pick('SEA-DEN', -3, 10, -3), pick('LAC-LV', 4, null, null)]), NaN), false, 'a locked game waiting for its line');
-  assert.equal(weekFinal(week, { ...both, status: 'sat_out' }, NaN), false, 'a sit-out never celebrates');
-  assert.equal(weekFinal(week, { ...both, eligible: false }, NaN), false, 'an ineligible ballot never celebrates');
-  const final = scoreMoments(reply([both]), ME).find(m => m.kind === 'weekFinal');
+  assert.equal(weekFinal(week, mine([pick('SEA-DEN', -3, 10, -3), pick('LAC-LV', 4, null, null)]), afterLast), false, 'a locked game waiting for its line');
+  assert.equal(weekFinal({ ...week, games: [{ ...SEA_DEN, kickoff: 'soon' }, LAC_LV] }, both, afterLast), false, 'a game with no valid kickoff time never counts as passed');
+  assert.equal(weekFinal(week, { ...both, status: 'sat_out' }, afterLast), false, 'a sit-out never celebrates');
+  assert.equal(weekFinal(week, { ...both, eligible: false }, afterLast), false, 'an ineligible ballot never celebrates');
+  assert.equal(scoreMoments(reply([both], undefined, '2026-11-02T00:00:00Z'), ME).some(m => m.kind === 'weekFinal'), false, 'a reply clocked before the last kickoff makes no week final');
+  const final = scoreMoments(reply([both], undefined, AFTER), ME).find(m => m.kind === 'weekFinal');
   assert.deepEqual([final.id, final.title, final.meta, sizeOf(final.kind)], ['score:weekFinal:2026:8:guess_spread', 'Week 8 final', 'Spread · 15 points', 'big']);
 });
 
@@ -72,12 +79,12 @@ test('engine: the first read seeds; a new Bullseye waits as NEW for the Play til
   report(reply([mine([pick('SEA-DEN', -3, 10, -3)], { weekPoints: 10 })]));
   assert.deepEqual(big, [], 'this device\'s first read shows results as they are');
   assert.equal(engine.newCount(SCOPES.score), 0);
-  report(reply([mine([pick('SEA-DEN', -3, 10, -3), pick('LAC-LV', 6.5, 10, 6.5)], { weekPoints: 20 })]));
+  report(reply([mine([pick('SEA-DEN', -3, 10, -3), pick('LAC-LV', 6.5, 10, 6.5)], { weekPoints: 20 })], undefined, AFTER));
   assert.equal(engine.newCount(SCOPES.score), 2, 'the new Bullseye and the final week wait: the Play tile shows NEW');
   const close = engine.open(SCOPES.score);
   assert.deepEqual(big, [['score:bullseye:2026:8:guess_spread:LAC-LV', 'score:weekFinal:2026:8:guess_spread']], 'one card for both big moments');
   assert.equal(engine.newCount(SCOPES.score), 0);
-  report(reply([mine([pick('SEA-DEN', -3, 10, -3), pick('LAC-LV', 6.5, 10, 6.5)], { weekPoints: 20 })]));
+  report(reply([mine([pick('SEA-DEN', -3, 10, -3), pick('LAC-LV', 6.5, 10, 6.5)], { weekPoints: 20 })], undefined, AFTER));
   close();
   engine.open(SCOPES.score);
   assert.equal(big.length, 1, 'a moment in the seen record never plays again');
@@ -90,6 +97,6 @@ test('engine: a miss stays quiet, and a Bullseye that arrives while Your score i
   engine.open(SCOPES.score);
   report(reply([mine([pick('SEA-DEN', -3, 9, -3.5), pick('LAC-LV', 4, 5, 6.5)], { weekPoints: 14 })], games));
   assert.deepEqual(big, [], 'a scored miss plays nothing, and NYG at PHI is still open');
-  report(reply([mine([pick('SEA-DEN', -3, 9, -3.5), pick('LAC-LV', 4, 5, 6.5), pick('NYG-PHI', -7, 10, -7)], { weekPoints: 24 })], games));
+  report(reply([mine([pick('SEA-DEN', -3, 9, -3.5), pick('LAC-LV', 4, 5, 6.5), pick('NYG-PHI', -7, 10, -7)], { weekPoints: 24 })], games, AFTER));
   assert.deepEqual(big, [['score:bullseye:2026:8:guess_spread:NYG-PHI', 'score:weekFinal:2026:8:guess_spread']], 'it plays where you are, as one card');
 });
