@@ -22,7 +22,7 @@ other was to keep lock-ins as they were and add scheduled runs before deadlines.
   guesses since M-07 (October 15), so no migration is needed. Lines already saved keep their recorded age; nothing is
   backfilled (D-16, D-23).
 
-## D-69 — Play › Your guesses becomes nesting cards: the week, then one game (November 2, 2026)
+## D-70 — Play › Your guesses becomes nesting cards: the week, then one game (November 2, 2026)
 
 Sean asked for the next design pass, "cut text on Home and Play the way Research was done". On the live app Home
 (139 words) and the Play landing (59 words) were already lean. Play › Your guesses was the long screen: 15 stacked
@@ -40,6 +40,10 @@ Sean asked for the next design pass, "cut text on Home and Play the way Research
 
 Details and tests are in [the design spec](superpowers/specs/2026-11-02-play-picks-nesting-cards-design.md). This
 extends D-66's layout to Play's guesses only; the four tabs and D-58's type, palette, icons and motion stay.
+
+**Number.** This was first recorded as D-69. The design overhaul below was recorded as D-69 the same day, so on
+November 3 this entry became D-70 and the overhaul kept D-69. The release card (issue #426) and Board release r60
+still say D-69 for this work.
 
 ## Shared NFL/EPL interface — October 29, 2026
 

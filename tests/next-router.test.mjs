@@ -169,7 +169,7 @@ test('a game focus follows Back but is cleared for a fresh general Play destinat
   assert.equal(reduce(state, { type: 'restore', place: { tab: 'play', view: { section: 'picks' } } }).views.play.pickGame, undefined);
 });
 
-test('D-69: opening a game in Your guesses is a step; the lip and Next keep the week underneath', () => {
+test('D-70: opening a game in Your guesses is a step; the lip and Next keep the week underneath', () => {
   const start = initialState({ tab: 'play', view: { section: 'picks', market: 'total', season: 2026, week: 9 } });
   const game = reduce(start, { type: 'view', tab: 'play', patch: { pickGame: 'DEN-CAR' } });
   assert.equal(game.views.play.pickGame, 'DEN-CAR');
@@ -192,7 +192,7 @@ test('D-69: opening a game in Your guesses is a step; the lip and Next keep the 
   assert.equal(reduce(score, { type: 'view', tab: 'play', patch: { pickGame: 'DEN-CAR' } }).trail.length, 0);
 });
 
-test('D-69: Next replaces the game in browser history too, so the browser Back button lands on the week', async () => {
+test('D-70: Next replaces the game in browser history too, so the browser Back button lands on the week', async () => {
   const win = fakeWindow('https://gtl.test/#play/picks?market=spread&season=2026&week=9');
   const shell = app(win);
   shell.dispatch({ type: 'view', tab: 'play', patch: { pickGame: 'DEN-CAR' } });
@@ -208,7 +208,7 @@ test('D-69: Next replaces the game in browser history too, so the browser Back b
   assert.deepEqual(shell.state.trail, []);
 });
 
-test('D-69: a deep link opens the game layer and Back returns to where it came from', () => {
+test('D-70: a deep link opens the game layer and Back returns to where it came from', () => {
   let state = initialState({ tab: 'research', view: { section: 'games' } });
   state = reduce(state, { type: 'go', tab: 'play', view: { section: 'picks', market: 'spread', season: 2026, week: 9, pickGame: 'HOU-JAX' } });
   assert.equal(state.views.play.pickGame, 'HOU-JAX');

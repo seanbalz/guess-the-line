@@ -100,7 +100,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
   const stateRef = useRef(state);
   stateRef.current = state;
   // Unsaved work by key. `keeps(next)` (optional) says a destination keeps that work on screen, so moving there does not
-  // ask (D-69: Your guesses' week and one game are one editor). Without it every navigation asks, as before.
+  // ask (D-70: Your guesses' week and one game are one editor). Without it every navigation asks, as before.
   const dirty = useRef(new Map());
   const setDirty = useCallback((key, value, keeps) => {
     if (value) dirty.current.set(key, keeps);

@@ -1,4 +1,4 @@
-/* D-69 Your guesses as nesting cards: the week's game tiles (the D-66 nest tile, three to a row). */
+/* D-70 Your guesses as nesting cards: the week's game tiles (the D-66 nest tile, three to a row). */
 .gx .gx-picks-tile { gap: var(--gx-space-1); padding: var(--gx-space-2) var(--gx-space-3) var(--gx-space-3); }
 /* The next game to lock: a data edge, not lime (lime stays for your selection and the one primary action). */
 .gx .gx-picks-tile--next { border-color: var(--gx-data); box-shadow: inset 0 0 0 1px var(--gx-data); }
