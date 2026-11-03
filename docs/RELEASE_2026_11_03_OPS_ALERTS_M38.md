@@ -2,7 +2,7 @@
 
 Board item 22. Design: [OPS_ALERTS.md](OPS_ALERTS.md). Sean chose a phone push to the commissioner (November 3, 2026).
 This card covers one migration (M-38, Gate M), one Edge Function (`gtl-ops-alerts`, the new `ops-alerts` release target),
-two admin scripts and a follow-up PR for the boundary probes. **M-38 is applied and verified (step 1), and `gtl-ops-alerts` is deployed as v1 (step 2). No schedule row exists, so nothing pushes yet.** Nothing players see
+two admin scripts and a follow-up PR for the boundary probes. **Live since November 3, 2026, 20:20 UTC:** M-38 applied (step 1), `gtl-ops-alerts` v1 deployed (step 2), schedule enabled (step 3), and the test alert and its clear reached Sean's phone (step 4). Nothing players see
 changes: the alerts go only to the active push subscriptions of the `sean-troy-luke` commissioner.
 
 ## Current state
@@ -11,8 +11,8 @@ changes: the alerts go only to the active push subscriptions of the `sean-troy-l
 | --- | --- |
 | M-38 `20261103190000_gtl_ops_alerts.sql` | **Applied and verified** as hosted `20261103184656` (November 3, SQL editor, Gate M). `APPLIED` in `tests/migrations.mjs`. |
 | `gtl-ops-alerts` Edge Function | **Deployed** as version 1, ACTIVE, `verify_jwt` false, bundle SHA-256 `b78376f3…0e53` (deploy run 41699378146, November 3). |
-| `gtl_ops_alert_schedule` row `ops` | **Does not exist.** `ops_alerts_cron.sql` has not been run. |
-| Cron job `gtl-ops-alerts` | **Not scheduled.** |
+| `gtl_ops_alert_schedule` row `ops` | **Enabled** (20:20 UTC, November 3). |
+| Cron job `gtl-ops-alerts` | **Active** at `7-59/15 * * * *`. |
 | Boundary probes | The 3 tables, 7 functions and the worker (`workerChecks`) are live signed-out probes. |
 
 ## Step 1 record: the apply (November 3, 2026)
@@ -71,6 +71,23 @@ word; the named release captain was offline, and the release-lane session was to
   - `opsAlertsSourceVerified: false` is the standing worker limitation: the remote bytes are not independently matched to the checkout.
 - **Live probe (signed out, after the deploy):** POST with no token gives 401, POST with a wrong 64-hex token gives 401, and GET gives 405.
   This PR adds the worker to `workerChecks`.
+
+## Steps 3 and 4 record: schedule, enable and test alert (November 3, 2026)
+
+Sean: "Load the cron script". His first run did not reach the database: no row, no job, and no matching log entry; the tab
+had been closed. Then Sean said "You have permissions to hit run for me". The script was reloaded from `main` at
+`18c4e916`: 3128 bytes, SHA-256 `3bc57ad3…4832`, checked in the page, with the enable statement commented. Claude
+clicked Run in Sean's signed-in Chrome (Gambling, production).
+
+- **Step 3:**
+  - The `ops` row was inserted **disabled**, with the `gtl-ops-alerts` endpoint.
+  - Cron job `gtl-ops-alerts` was scheduled at `7-59/15 * * * *`, active; 23 cron jobs in all.
+  - `gtl_ops_findings(now())`, run on its own read-only, returned **0 rows**: nothing was wrong, so the enable would push nothing but the test.
+- **Step 4:** Sean said "Enable and test".
+  - At 20:20:20 UTC, `update ... set enabled=true` and `gtl_ops_test_alert()` opened incident 1 (`test:1793737220`). The commissioner had 1 active subscription, which had never had a successful push.
+  - **Tick 20:22 UTC:** run slot 20:15 succeeded, `sent 1, failed 0`. The incident was notified at 20:22:01, and the subscription's `last_success_at` was set (the push service accepted the alert).
+  - **Tick 20:37 UTC:** the dispatcher cleared the test incident, and run slot 20:30 succeeded, `sent 1, failed 0`. The incident was cleared-notified at 20:37:01: "Test alert cleared."
+- Every `gtl-ops-alerts` cron run so far has succeeded. Incidents and runs are kept (D-23).
 
 ## What M-38 adds
 
