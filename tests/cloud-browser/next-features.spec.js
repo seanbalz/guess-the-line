@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { ALL, HOSTED } from '../migrations.mjs';
 import { layoutProblems } from '../helpers/phone-layout.mjs';
 import { seedFinishedWeek } from '../helpers/features-week.mjs';
-import { communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
+import { ACCOUNTS, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 
 // Redesign build plan stage 71: badges, streaks and awards in the new app, on local PGlite through the real gtl-api handler.
 // The schema before M-25 (hosted until its October 27, 2026 apply) shows nothing new; ALL (M-25) with a finished fixture Week 4
@@ -158,5 +158,40 @@ test('Home\'s recap card and the League board\'s "Won Week 4" show once the job 
   const board = page.getByRole('list', { name: 'Spread season standings' });
   await expect(board).toContainText('Won Week 4');
   expect(await page.evaluate(layoutProblems)).toEqual([]);
+  expect(world.errors).toEqual([]);
+});
+
+test('D-69 (the review race): a scroll press on the launch screen is not a navigation; an away badge waits as NEW and plays when Play opens', async ({ page, baseURL }) => {
+  const world = await communityWorld(page, baseURL, { migrations: ALL });
+  await seedFinishedWeek(world);
+  expect((await world.api('sean', 'league/features/run', {})).status).toBe(200);
+  // Yesterday this device read the community's features before the job ran: the record holds only the source's marker.
+  await page.addInitScript(key => {
+    if (sessionStorage.getItem('gtl-test-seeded')) return;
+    localStorage.setItem(key, JSON.stringify(['source:features:community']));
+    sessionStorage.setItem('gtl-test-seeded', '1');
+  }, `gtl.next.moments.v1.${ACCOUNTS.luke.id}`);
+  // The session's first features read is held until after Luke's first press.
+  let release;
+  const held = new Promise(resolve => { release = resolve; });
+  let first = true;
+  await page.route(url => url.pathname.endsWith('/league/features'), async route => {
+    if (first) { first = false; await held; }
+    await route.fallback();
+  });
+  await openNewApp(page, '#home');
+  const hero = page.locator('[data-home="hero"]');
+  await expect(hero).toBeVisible();
+  await hero.getByRole('heading', { level: 2 }).click(); // a trusted press on words (a scroll touch), not a navigation
+  release();
+  const awards = page.locator('[data-home="awards"]');
+  await expect(awards.getByRole('heading', { name: 'Week 4 awards' })).toBeVisible();
+  // Let the read's effects and any overlay they open commit before looking.
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(resolve, 0)))));
+  const flash = page.getByRole('dialog', { name: 'New results' });
+  await expect(flash, 'nothing plays on the launch screen, even after a press').toHaveCount(0);
+  await tabs(page).getByRole('button', { name: /^Play(,|$)/ }).click();
+  await expect(flash, 'it plays when a card holding it opens after a navigation').toBeVisible();
+  await expect(flash).toContainText('Bullseye');
   expect(world.errors).toEqual([]);
 });

@@ -190,12 +190,14 @@ test('D-69: nothing animates on the first paint; a tab change after the launch f
   try {
     await page.addInitScript(() => {
       window.__anims = [];
-      document.addEventListener('animationstart', event => window.__anims.push({ name: event.animationName, cls: String(event.target.className || '') }), true);
+      // getAttribute reads an SVG target's class too (its className is an SVGAnimatedString).
+      document.addEventListener('animationstart', event => window.__anims.push({ name: event.animationName, cls: event.target.getAttribute?.('class') ?? '' }), true);
     });
     await tryNewApp(page);
     await page.waitForTimeout(1200);
-    // The LIVE dot is the one loop, and the countdown's digit tick belongs to the clock, not to the page load.
-    const onLoad = await page.evaluate(() => window.__anims.filter(a => a.name !== 'gx-live-pulse' && !/gx-countdown/.test(a.cls)));
+    // The LIVE dot is the one loop, and the countdown's digit tick (gx-rise-in on a .gx-cd-tick digit) belongs to the
+    // clock, not to the page load.
+    const onLoad = await page.evaluate(() => window.__anims.filter(a => a.name !== 'gx-live-pulse' && !(a.name === 'gx-rise-in' && /(^|\s)gx-cd-tick(\s|$)/.test(a.cls))));
     expect(onLoad, 'no animation on page load').toEqual([]);
     await tab(page, 'Play').click();
     await expect.poll(() => page.evaluate(() => window.__anims.some(a => a.name === 'gx-fade-in' && /gx-screen/.test(a.cls)))).toBe(true);
