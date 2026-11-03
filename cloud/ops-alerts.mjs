@@ -13,8 +13,8 @@ const headers = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store
 const json = (value, status = 200) => new Response(JSON.stringify(value), { status, headers });
 const NAMES = Object.freeze(['gtl_claim_ops_alerts', 'gtl_mark_ops_notification', 'gtl_record_ops_delivery', 'gtl_complete_ops_alerts']);
 const SCHEDULE_CODES = Object.freeze(['GTL_SCHEDULE_AUTH', 'GTL_SCHEDULE_RUN', 'GTL_SCHEDULE_EXPIRED']);
-// Six hours asked; web-push.mjs caps every push at four.
-export const OPS_ALERT_TTL_S = 6 * 3600;
+// Four hours: the most cloud/web-push.mjs allows for any push. An alert still owed after that is pushed again by a later run.
+export const OPS_ALERT_TTL_S = 4 * 3600;
 // The claim's own limit (oldest first); anything past it stays owed for the next run.
 const MAX_NOTIFICATIONS = 20;
 const PACIFIC = 'America/Los_Angeles';

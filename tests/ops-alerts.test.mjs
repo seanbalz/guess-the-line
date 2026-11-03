@@ -280,9 +280,9 @@ test('on the wire: oldest first, encrypted to each device, exactly { title, body
     { title: 'GTL ops alert cleared', body: 'Points Week 10 is open now.', tag: 'gtl-ops-points-open:2026-10' },
     { title: 'GTL ops alert', body: 'The odds refresh has not run since Tue 2:35 PM PT.', tag: 'gtl-ops-quiet:odds' },
   ]);
-  assert.equal(OPS_ALERT_TTL_S, 6 * 3600);
+  assert.equal(OPS_ALERT_TTL_S, 4 * 3600);
   for (const { headers } of result.delivered) {
-    assert.equal(headers.TTL, '14400', 'six hours asked; cloud/web-push.mjs caps every push at four');
+    assert.equal(headers.TTL, '14400', 'four hours, the cap in cloud/web-push.mjs');
     assert.match(headers.Authorization, /^vapid t=[^,]+, k=/);
     assert.equal(headers['Content-Encoding'], 'aes128gcm');
   }
