@@ -8,7 +8,11 @@ sportsbook breakdowns, shared filters and optional cash display. Accounting uses
 the existing core; this frontend change does not alter saved tickets or guesses.
 Local checks pass: 43 focused Node tests, 650 component tests and 16 tracked-bet
 browser scenarios, plus typecheck, build, bundle privacy scan and Brand QA.
-Merge, deployment and physical-phone acceptance remain separate evidence states.
+PR #420 is merged and [deployed November 3](RELEASE_2026_11_03_TRACKED_BETS_OVERVIEW.md)
+from `c6d6434` in protected run 41596638055. Independent readback matched all 129
+served files and found Overview in the live bundle. API v45, all hosted function
+summaries and migration history stayed unchanged. Signed-in production and
+physical-phone acceptance remain separate evidence states.
 
 ## My bets spacing and entry follow-up — November 2, 2026
 

@@ -5,9 +5,11 @@
 Sean requested a visible Overview tab after the graph became hard to find.
 The [implementation record](../docs/TRACKED_BETS_OVERVIEW_2026_11_02.md) covers
 charts, ticket-level breakdowns, shared filters, unit/cash display and drill-down
-to matching tickets. Local verification passes, including all 16 tracked-bet
-browser scenarios; the single release captain handles the eventual frontend
-batch. Saved records are unchanged.
+to matching tickets. All 16 tracked-bet browser scenarios pass. The protected
+[frontend release](../docs/RELEASE_2026_11_03_TRACKED_BETS_OVERVIEW.md) deployed
+`c6d6434` on November 3; independent production readback matched all 129 served
+files and confirmed Overview. No saved records were rewritten. Signed-in
+production and physical-phone acceptance remain separate.
 
 ## My bets follow-up — November 2, 2026
 
