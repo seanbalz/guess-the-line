@@ -7,8 +7,10 @@ listing a game once it kicks off. Two real faults remain. A preflight race skipp
 `budget_guard` with 400 credits left. Week 8 CHI-SEA never matched at any book, and nothing recorded why. M-37
 (`20261103170000`) preflights after 23 hours instead of 24 and counts partial only against unstarted games. The provider now
 records what it listed for a mismatched game. Local checks pass, including PGlite runs of the deployed worker and
-mutation checks. M-37 is **not applied** (Gate M, Sean's "apply M-37"). The provider change is **not deployed**
-(next `gtl-api` release and a Mac mini `gtl-odds-refresh` deploy). See the [release card](RELEASE_2026_11_03_ODDS_REFRESH_M37.md).
+mutation checks. M-37 is **applied and verified** as hosted `20261103164210`. On Sean's "merge and apply" it went in
+through his SQL editor; both bodies, permissions and the earlier history rows were checked, and the score hash is unchanged.
+The provider change is **not deployed** (next `gtl-api` release and a Mac mini `gtl-odds-refresh` deploy). The first
+scheduled run after the apply is still to be read back. See the [release card](RELEASE_2026_11_03_ODDS_REFRESH_M37.md).
 
 ## Ops alerts for the data refreshes (item 22) — November 3, 2026
 

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { ALL, HOSTED, NOT_HOSTED, PRELUDE, migrationSql } from './migrations.mjs';
+import { ALL, APPLIED, HOSTED, NOT_HOSTED, PRELUDE, migrationSql } from './migrations.mjs';
 import { catalog, readMigrations } from '../scripts/migration-functions.mjs';
 import { seed } from '../server/store.mjs';
 import { createOddsProvider } from '../cloud/odds-provider.mjs';
@@ -514,11 +514,11 @@ test('M-05 is idempotent, adds one function, and every function it writes is ser
 // M-37 (20261103170000_gtl_odds_refresh_fixes.sql, board item 40). The claim asks for a preflight once the last one is
 // over 23 hours old, so the collection's 24-hour check moments later always passes (the October 29 06:15 UTC run was
 // skipped as budget_guard with 400 credits left); and a run is partial only against the games still to be played when
-// its collection began (every run after Thursday's kickoff was partial). HOSTED is the schema before M-37.
+// its collection began (every run after Thursday's kickoff was partial). `before` is the hosted schema without M-37.
 const M37 = '20261103170000_gtl_odds_refresh_fixes.sql';
 
 test('M-37 static: each body is the one it replaces with only its own change; no table, grant or schedule change', () => {
-  assert(NOT_HOSTED.includes(20261103170000), 'not applied until Gate M');
+  assert(APPLIED.includes(20261103170000) && !NOT_HOSTED.includes(20261103170000), 'hosted as 20261103164210 (Gate M)');
   const read = file => fs.readFileSync(path.join('supabase/migrations', file), 'utf8');
   const code = (sql, name) => {
     const start = [...sql.matchAll(new RegExp(`create (?:or replace )?function public\\.${name}\\(`, 'g'))].at(-1).index;
@@ -536,8 +536,8 @@ test('M-37 static: each body is the one it replaces with only its own change; no
 
 test('M-37: the scheduled run keeps its preflight valid to the end, and partial means a game still to play has no line', { skip }, async t => {
   const now = Date.now();
-  const before = await fixture(t, { files: HOSTED, now }), f = await fixture(t, { now });
-  const age = (fx, interval) => fx.db.query(`update public.gtl_odds_budget set last_successful_preflight_at=clock_timestamp()-interval '${interval}'`);
+  const before = await fixture(t, { files: HOSTED.filter(file => file !== M37), now }), f = await fixture(t, { now });
+  const age =(fx, interval) => fx.db.query(`update public.gtl_odds_budget set last_successful_preflight_at=clock_timestamp()-interval '${interval}'`);
   const begin = (fx, job) => fx.rpc('gtl_begin_odds_collection', { p_user: id(COMMISSIONER), p_request: job.collectionRequestId, p_operation: 'collect' });
 
   await t.test('a preflight 23 to 24 hours old is redone first, so the collection never refuses it', async () => {
