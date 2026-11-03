@@ -81,19 +81,22 @@ describe('teamNest: what the layers are built from', () => {
 });
 
 describe('TeamsNest: one smaller layer per tap', () => {
-  it('Teams: one tile per team with its mark, one number and a meter; no lips; fine print only behind ⓘ', () => {
+  it('Teams: one glass tile per team with its mark, one win rate and its games; no lips; fine print only behind ⓘ (D-75)', () => {
     const html = render({});
     expect(markupProblems(html)).toEqual([]);
     const tiles = nodes(html).filter(n => n.tag === 'button' && n.attrs?.['data-team']);
     expect(tiles.map(n => n.attrs['data-team'])).toEqual(['CAR', 'GB']);
     expect(nameFrom(tiles[1])).toContain('Green Bay Packers');
-    expect(nameFrom(tiles[1])).toContain('5–2');
+    expect(nameFrom(tiles[1])).toContain('71.4%'); // GB at home 5–2
+    expect(nameFrom(tiles[1])).toContain('7 games');
+    expect(tiles.every(n => n.attrs.class.includes('gx-nest-tile--glass'))).toBe(true);
+    expect(html).not.toContain('gx-nest-meter');
     expect(html).not.toContain('gx-nest-lip');
     expect(nodes(html).some(n => n.tag === 'button' && nameFrom(n) === 'About team trends')).toBe(true);
     expect(html).not.toContain('Past results since 2002'); // the footnote moved behind ⓘ
     for (const sentence of surfaceSentences(html)) expect(sentence.split(/\s+/).length).toBeLessThanOrEqual(12);
   });
-  it('one team: a lip back to Teams, the game in one meta line, a tile per trend, and the game sheet one tap away', () => {
+  it('one team: a lip back to Teams, the game in one meta line, its own trends as tiles (D-75: two, then the fold), and the game sheet one tap away', () => {
     const html = render({ teamsTeam: 'GB' });
     expect(markupProblems(html)).toEqual([]);
     const lips = nodes(html).filter(n => n.tag === 'button' && n.attrs?.class?.includes('gx-nest-lip'));
@@ -101,9 +104,18 @@ describe('TeamsNest: one smaller layer per tap', () => {
     expect(nodes(html).find(n => n.tag === 'h2' && n.attrs?.['data-route-focus'] !== undefined)).toBeTruthy();
     expect(html).toContain('Green Bay Packers');
     expect(html).toContain('CAR @ GB · Thu, Oct 29, 5:15 PM PT');
-    expect(html).toContain('GB at home: ATS');
+    expect(html).toContain('1 more GB trend'); // GB's third trend, GB at home: ATS, waits behind the fold
     expect(html).not.toContain('CAR on the road: ATS');
     expect(html).toContain('Game details · CAR @ GB');
+  });
+  it('one team: two trends, then N more in place behind aria-expanded (D-75)', () => {
+    const html = render({ teamsTeam: 'GB' });
+    expect(markupProblems(html)).toEqual([]);
+    const shown = nodes(html).filter(n => n.tag === 'button' && n.attrs?.['data-trend'] && n.attrs['data-trend'] !== 'locked');
+    expect(shown).toHaveLength(2);
+    const more = nodes(html).find(n => n.tag === 'button' && n.attrs?.class?.includes('gx-nest-more'));
+    expect(more.attrs['aria-expanded']).toBe('false');
+    expect(nameFrom(more)).toBe('1 more GB trend');
   });
   it('one trend: two lips, one glass chart card with the win rate and record, the tier behind ⓘ (D-75)', () => {
     const key = `${GB_ATS}@GB`, slug = trendSlug(key);

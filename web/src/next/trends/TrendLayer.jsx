@@ -20,8 +20,6 @@ export function trendSlug(key) {
   return 't' + h.toString(36);
 }
 
-export const shareWords = share => `${Math.round(share * 100)}% of decided games went this way; the tick is the 52.4% break-even`;
-
 /** "712 games · since 2002": a trend's sample and the years it covers (D-75). */
 export const gamesText = card => `${(card.games ?? 0).toLocaleString('en-US')} games · ${sinceText(card.years)}`;
 
