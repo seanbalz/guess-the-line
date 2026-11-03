@@ -1,5 +1,29 @@
 # Decision log
 
+## D-74 — PROPOSAL, not decided: BetRivers stands in when a selected book is missing (November 3, 2026)
+
+**Status:** a draft Sean asked for ("Draft it, don't ship"). Nothing here is approved, merged, applied or deployed.
+See the [proposal card](PROPOSAL_2026_11_03_BACKUP_BOOK.md).
+
+At 18:15 UTC on November 3 the provider sent no FanDuel prices for any of the 15 games. A saved line needs three books, so
+no new line can be made while FanDuel is missing.
+
+- **Proposed rule:** the line stays a three-book median.
+  - BetRivers can stand in for one selected book (DraftKings, FanDuel or BetMGM) that the provider's reply could not
+    quote. This is game by game and market by market, with the same checks as the other books.
+  - It never replaces a book that was quoted. BetRivers is asked for in the same request, at no extra credits.
+- **Shown:** where BetRivers stood in, the missing book stays listed as missing and BetRivers is named.
+- **Unchanged:**
+  - lines already saved (D-16, D-23);
+  - Challenge selections, Virtual Units and the frozen spread benchmark;
+  - every free limit.
+- **Needs:**
+  - Sean's decision on the rule and on BetRivers as the backup;
+  - phone mockups of the BetRivers rows (Sean's standing rule);
+  - M-39 by Gate M;
+  - the `api` release;
+  - the `gtl-odds-refresh` Mac mini deploy.
+
 ## D-73 — Bets › Research recommendations, stage one: independent research beside Guess the Line (October 30–31, 2026)
 
 **Number.** Recorded on November 3 in the docs truth pass. The approval itself was given on October 30 and 31, after D-68

@@ -94,8 +94,10 @@ export function selectedBookMissing(snapshot, { mode, gameIds, now }) {
     if (!Number.isFinite(kickoff)) return false;
     if (kickoff > now) upcoming.push(entries[0]);
   }
+  // A backup book standing in (D-74 proposal) makes the market whole again: only fewer quotes than books counts as missing.
   return upcoming.length > 0 && upcoming.every(g => {
-    const unavailable = g.markets?.[market]?.unavailable;
-    return Array.isArray(unavailable) && unavailable.some(u => books.includes(u?.book) && u?.reason === 'book_missing');
+    const { unavailable, quotes } = g.markets?.[market] ?? {};
+    return Array.isArray(unavailable) && unavailable.some(u => books.includes(u?.book) && u?.reason === 'book_missing')
+      && !(Array.isArray(quotes) && quotes.length >= books.length);
   });
 }

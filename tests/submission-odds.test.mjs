@@ -137,4 +137,8 @@ test('selectedBookMissing: true only when a selected book is missing from the re
   assert.equal(missing(['JAX-BAL'], 'guess_spread', { ...snapshot, games: [entry('JAX-BAL', later, [{ book: 'caesars', reason: 'book_missing' }])] }), false, 'not a selected book');
   assert.equal(missing(['JAX-BAL'], 'guess_spread', { ...snapshot, games: [entry('JAX-BAL', 'not a time', fdMissing)] }), false);
   for (const s of [null, {}, { books: [], games: snapshot.games }]) assert.equal(missing(['JAX-BAL'], 'guess_spread', s), false);
+  // D-74 proposal: BetRivers stood in for FanDuel, so the market has its three quotes and a refresh can make a line.
+  const stoodIn = { ...entry('JAX-BAL', later, fdMissing), markets: { spread: { unavailable: fdMissing, quotes: [{}, {}, {}], standIns: [{ book: 'betrivers', for: 'fanduel' }] } } };
+  assert.equal(missing(['JAX-BAL'], 'guess_spread', { ...snapshot, games: [stoodIn] }), false, 'a stand-in makes the market whole');
+  assert.equal(missing(['JAX-BAL'], 'guess_spread', { ...snapshot, games: [{ ...stoodIn, markets: { spread: { ...stoodIn.markets.spread, quotes: [{}, {}] } } }] }), true);
 });

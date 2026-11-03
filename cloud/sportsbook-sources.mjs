@@ -1,7 +1,9 @@
 // Safe, per-market provenance for the revealed dashboard. Scoring is never
 // recomputed by the browser, and later observations never replace a saved receipt.
-const BOOKS = { draftkings: 'DraftKings', fanduel: 'FanDuel', betmgm: 'BetMGM' };
-const REQUIRED = Object.keys(BOOKS);
+const BOOKS = { draftkings: 'DraftKings', fanduel: 'FanDuel', betmgm: 'BetMGM', betrivers: 'BetRivers' };
+const REQUIRED = ['draftkings', 'fanduel', 'betmgm'];
+// D-74 proposal (a draft, not approved): a backup book may stand in for one required book the provider could not quote.
+const BACKUPS = ['betrivers'];
 const FRESH_MS = 5 * 60_000;
 const time = value => typeof value === 'string' ? Date.parse(value) : NaN;
 const iso = value => Number.isFinite(time(value)) ? new Date(time(value)).toISOString() : null;
@@ -9,6 +11,13 @@ const validValue = (value, market) => Number.isFinite(value) && Number.isInteger
   && value >= (market === 'total' ? 0 : -100) && value <= (market === 'total' ? 200 : 100);
 const midpoint = quotes => quotes.map(q => q.value).sort((a, b) => a - b)[1];
 const aligned = quotes => quotes.length === 3 && quotes.every(q => Math.abs(q.value - midpoint(quotes)) <= 5);
+const counted = rows => rows.filter(q => q.status === 'included');
+// Three aligned included books; a required book may be missing only where a backup stood in for it.
+const whole = rows => aligned(counted(rows)) && rows.every(q => q.status === 'included' || q.stoodIn);
+const standIn = (rows, i, row, backup) => {
+  rows[i] = { ...rows[i], stoodIn: backup, reason: `${rows[i].reason || 'No qualifying quote was recorded.'} ${BOOKS[backup]} stood in.` };
+  rows.push({ ...row, standInFor: REQUIRED[i], reason: `Stood in for ${BOOKS[REQUIRED[i]]}.` });
+};
 const REASONS = {
   book_missing: 'No quote returned for this sportsbook.', market_missing: 'No quote returned for this market.',
   stale_market: 'The provider observation was already stale when collected.',
@@ -32,7 +41,7 @@ function snapshotRows(snapshot, game, market, asOf) {
   const entry = matches[0], quotes = entry.markets?.[market]?.quotes;
   if (entry.matchStatus !== 'matched' || typeof entry.providerEventId !== 'string' || !entry.providerEventId
     || !Array.isArray(quotes) || quotes.length > 3) return REQUIRED.map(book => missing(book, REASONS[entry.matchStatus]));
-  return REQUIRED.map(book => {
+  const row = book => {
     const found = quotes.filter(q => q?.book === book);
     if (found.length !== 1) {
       const absent = entry.markets[market].unavailable?.find(q => q.book === book);
@@ -47,13 +56,20 @@ function snapshotRows(snapshot, game, market, asOf) {
       || collected - observed > FRESH_MS || collected >= time(game.kickoff)) return missing(book, 'Invalid quote evidence was excluded.');
     return { book, source: BOOKS[book], value: q.value, status: 'included', reason: null,
       observedAt: iso(q.providerObservedAt), collectedAt: iso(q.collectedAt) };
-  });
+  };
+  const rows = REQUIRED.map(row), standIns = entry.markets[market].standIns;
+  for (const s of Array.isArray(standIns) ? standIns : []) {
+    const i = REQUIRED.indexOf(s?.for), backup = BACKUPS.includes(s?.book) ? row(s.book) : null;
+    if (i < 0 || rows[i].status !== 'missing' || rows.some(r => r.book === s.book) || backup?.status !== 'included') continue;
+    standIn(rows, i, backup, s.book);
+  }
+  return rows;
 }
 
 function persistedRows(reference, market, game) {
   const raw = reference?.quotes;
   if (!Array.isArray(raw) || raw.length !== 3) return null;
-  const rows = REQUIRED.map(book => {
+  const row = book => {
     const found = raw.filter(q => q?.book === book);
     if (found.length !== 1) return null;
     const q = found[0], observed = time(q.observedAt), collected = time(q.collectedAt);
@@ -62,8 +78,15 @@ function persistedRows(reference, market, game) {
       || observed > collected || collected !== time(reference.capturedAt) || collected >= time(game.kickoff)) return null;
     return { book, source: BOOKS[book], value: q.value, status: 'included', reason: null,
       observedAt: iso(q.observedAt), collectedAt: iso(q.collectedAt) };
-  });
-  return rows.every(Boolean) ? rows : null;
+  };
+  const rows = REQUIRED.map(row), gaps = rows.flatMap((r, i) => r ? [] : [i]);
+  if (!gaps.length) return rows;
+  // A saved receipt does not name the book a backup replaced: with exactly one required book absent, it is that one.
+  const backup = BACKUPS.map(row).find(Boolean);
+  if (gaps.length !== 1 || !backup) return null;
+  rows[gaps[0]] = missing(REQUIRED[gaps[0]]);
+  standIn(rows, gaps[0], backup, backup.book);
+  return rows;
 }
 
 function savedBoard(game, market, snapshots, now) {
@@ -81,9 +104,9 @@ function savedBoard(game, market, snapshots, now) {
     const snapshot = snapshots.find(s => s?.id === ref.snapshotId);
     if (snapshot) rows = snapshotRows(snapshot, game, market, firstAfter ? now : time(ref.savedAt));
   }
-  if (!rows || !rows.every(q => q.status === 'included') || !aligned(rows)
-    || midpoint(rows) !== ref?.value || Math.min(...rows.map(q => time(q.observedAt))) !== time(ref?.observedAt)
-    || rows.some(q => time(q.collectedAt) !== time(ref?.capturedAt))) {
+  if (!rows || !whole(rows)
+    || midpoint(counted(rows)) !== ref?.value || Math.min(...counted(rows).map(q => time(q.observedAt))) !== time(ref?.observedAt)
+    || counted(rows).some(q => time(q.collectedAt) !== time(ref?.capturedAt))) {
     rows = REQUIRED.map(book => missing(book, available ? 'The individual saved quote breakdown is unavailable.' : ref?.status === 'pending' ? 'Waiting for the first line collected after this guess.' : 'No valid scoring reference was saved.'));
   }
   return { status: available ? 'available' : ref?.status === 'pending' ? 'pending' : 'unavailable', value: available ? ref.value : null,
@@ -101,11 +124,11 @@ export function applySportsbookSources(view, snapshot, now = Date.now()) {
   const snapshots = [snapshot, ...(Array.isArray(snapshot?.history) ? snapshot.history : [])].filter(Boolean);
   return { ...view, games: view.games.map(game => {
     const rows = snapshotRows(snapshot, game, market, now);
-    const complete = rows.every(q => q.status === 'included') && aligned(rows);
-    const fresh = complete && rows.every(q => now - time(q.observedAt) <= FRESH_MS) && now < time(game.kickoff);
+    const complete = whole(rows), used = counted(rows);
+    const fresh = complete && used.every(q => now - time(q.observedAt) <= FRESH_MS) && now < time(game.kickoff);
     const latest = { status: fresh ? 'available' : complete ? 'stale' : 'unavailable',
-      value: complete ? midpoint(rows) : null, source: 'The Odds API · 3-book median',
-      observedAt: complete ? new Date(Math.min(...rows.map(q => time(q.observedAt)))).toISOString() : null,
+      value: complete ? midpoint(used) : null, source: 'The Odds API · 3-book median',
+      observedAt: complete ? new Date(Math.min(...used.map(q => time(q.observedAt)))).toISOString() : null,
       collectedAt: iso(snapshot?.payload?.fetchedAt), snapshotId: snapshot?.id || null, savedAt: null,
       quotes: [...rows.map(q => q.status !== 'included' || fresh ? q : { ...q, status: 'excluded',
         reason: complete ? 'Saved observation; not a fresh scoring reference now.' : 'All three qualifying sportsbooks are required for consensus.' }), caesars()] };

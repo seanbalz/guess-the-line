@@ -92,3 +92,32 @@ test('a first line after submission shows when collected after the save, also wi
   assert.equal(pending.status, 'pending'); assert.equal(pending.value, null); assert.equal(pending.basis, 'first_line_after_submission');
   assert(pending.quotes.slice(0, 3).every(q => q.reason === 'Waiting for the first line collected after this guess.'));
 });
+
+// D-74 proposal (November 3, 2026, a draft): BetRivers stands in for a required book the provider could not quote.
+test('a BetRivers stand-in shows as an included book, the book it replaced stays listed as missing, and the median uses the three included', () => {
+  const standIn = (id, stamp) => {
+    const s = snapshot(id, stamp, 'spread', [-3, -3.5, -4]), m = s.payload.games[0].markets.spread;
+    m.quotes[1] = { ...m.quotes[1], book: 'betrivers', value: -2.5, outcomes: { home: { line: -2.5 }, away: { line: 2.5 } } };
+    m.unavailable = [{ book: 'fanduel', reason: 'book_missing' }]; m.standIns = [{ book: 'betrivers', for: 'fanduel' }];
+    return s;
+  };
+  const latest = applySportsbookSources(view(), standIn('latest', now - 60000), now).games[0].sportsbookSources.latest;
+  assert.deepEqual([latest.status, latest.value], ['available', -3]);
+  assert.deepEqual(latest.quotes.map(q => [q.book, q.status]), [['draftkings', 'included'], ['fanduel', 'missing'], ['betmgm', 'included'], ['betrivers', 'included'], ['williamhill_us', 'missing']]);
+  assert.match(latest.quotes[1].reason, /BetRivers stood in/); assert.equal(latest.quotes[3].reason, 'Stood in for FanDuel.');
+  assert.equal(latest.quotes[3].source, 'BetRivers');
+  // The saved receipt names BetRivers too, whether read from the reference itself or from its snapshot.
+  const stamp = now - 3600000, ref = saved(stamp);
+  ref.quotes = [['betmgm', -4], ['betrivers', -2.5], ['draftkings', -3]].map(([book, value]) => ({ book, value, observedAt: iso(stamp - 10000), collectedAt: iso(stamp) }));
+  for (const [reference, snap] of [[ref, null], [saved(stamp, 'old'), { ...standIn('now', now - 60000), history: [standIn('old', stamp)] }]]) {
+    const scoring = applySportsbookSources(view(reference), snap, now).games[0].sportsbookSources.scoring;
+    assert.deepEqual(scoring.quotes.map(q => [q.book, q.status]), [['draftkings', 'included'], ['fanduel', 'missing'], ['betmgm', 'included'], ['betrivers', 'included'], ['williamhill_us', 'missing']]);
+  }
+  // A stand-in for a book that was quoted, an unknown backup, or two gaps with one backup cannot form consensus.
+  for (const mutate of [s => { s.payload.games[0].markets.spread.standIns = [{ book: 'betrivers', for: 'draftkings' }]; },
+    s => { s.payload.games[0].markets.spread.quotes[1].book = 'bovada'; s.payload.games[0].markets.spread.standIns = [{ book: 'bovada', for: 'fanduel' }]; },
+    s => { s.payload.games[0].markets.spread.quotes.pop(); }]) {
+    const input = standIn('bad', now - 60000); mutate(input);
+    assert.equal(applySportsbookSources(view(), input, now).games[0].sportsbookSources.latest.status, 'unavailable');
+  }
+});

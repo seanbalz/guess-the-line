@@ -37,6 +37,7 @@ export const NOT_HOSTED = [
   20261029151727, // M-33 gtl_epl_stat_rechecks: local source only; Gate M apply is separate.
   20261029161613, // M-34 gtl_epl_standings: private dated source persistence/usage; collection absent/disabled until separately authorized.
   20261029162144, // M-35 gtl_epl_corrected_draft_order: local source only; requires pending M-33.
+  20261103210000, // M-39 gtl_backup_book: DRAFT (D-74 proposal), BetRivers as a backup book; not approved, not applied.
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
