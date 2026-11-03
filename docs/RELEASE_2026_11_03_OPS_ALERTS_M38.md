@@ -2,7 +2,7 @@
 
 Board item 22. Design: [OPS_ALERTS.md](OPS_ALERTS.md). Sean chose a phone push to the commissioner (November 3, 2026).
 This card covers one migration (M-38, Gate M), one Edge Function (`gtl-ops-alerts`, the new `ops-alerts` release target),
-two admin scripts and a follow-up PR for the boundary probes. **M-38 is applied and verified (step 1); the function is not deployed.** Nothing players see
+two admin scripts and a follow-up PR for the boundary probes. **M-38 is applied and verified (step 1), and `gtl-ops-alerts` is deployed as v1 (step 2). No schedule row exists, so nothing pushes yet.** Nothing players see
 changes: the alerts go only to the active push subscriptions of the `sean-troy-luke` commissioner.
 
 ## Current state
@@ -10,10 +10,10 @@ changes: the alerts go only to the active push subscriptions of the `sean-troy-l
 | Part | State |
 | --- | --- |
 | M-38 `20261103190000_gtl_ops_alerts.sql` | **Applied and verified** as hosted `20261103184656` (November 3, SQL editor, Gate M). `APPLIED` in `tests/migrations.mjs`. |
-| `gtl-ops-alerts` Edge Function | **Not deployed.** Source, `supabase/config.toml` entry and release target are on main (PR #440, `3b1a77c0`). |
+| `gtl-ops-alerts` Edge Function | **Deployed** as version 1, ACTIVE, `verify_jwt` false, bundle SHA-256 `b78376f3…0e53` (deploy run 41699378146, November 3). |
 | `gtl_ops_alert_schedule` row `ops` | **Does not exist.** `ops_alerts_cron.sql` has not been run. |
 | Cron job `gtl-ops-alerts` | **Not scheduled.** |
-| Boundary probes | The 3 tables and 7 functions are live signed-out probes (no longer `awaitingDeploy`); the worker joins `workerChecks` with its deploy. |
+| Boundary probes | The 3 tables, 7 functions and the worker (`workerChecks`) are live signed-out probes. |
 
 ## Step 1 record: the apply (November 3, 2026)
 
@@ -51,6 +51,26 @@ Sean: "Yes, merge when green" (PR #440, merged as `3b1a77c0810557831cb26f492da21
   - all 3 tables and 7 functions answer `denied (401)`;
   - 435 live denials in all;
   - 19 still await deploy, all for the unapplied M-33, M-34 and M-35, so `--strict` was not run, as in M-37's record. Those are not M-38's.
+
+## Step 2 record: the deploy (November 3, 2026)
+
+Sean: "Release ops-alerts", then "Approved it" on each production gate in GitHub. This session dispatched the runs at his
+word; the named release captain was offline, and the release-lane session was told first. No gate was approved by an agent.
+
+- **Source:** `main` at `3b1a77c0810557831cb26f492da21bf3c3b14a77` (PR #440). All 14 push checks were green on that SHA.
+- **check-only** [41698146053](https://github.com/seanbalz/guess-the-line/actions/runs/41698146053): success.
+- **readiness** [41698364734](https://github.com/seanbalz/guess-the-line/actions/runs/41698364734): success.
+  - Migration history digest `4345486d8d5097cfa2d8a114d44c5569682e5a70cc42a97901635e8379434066`, including M-38.
+  - `opsAlertsBefore.present: false`; 454 boundary checks.
+- **deploy** [41699378146](https://github.com/seanbalz/guess-the-line/actions/runs/41699378146): success, with the release card at
+  [PR #443](https://github.com/seanbalz/guess-the-line/pull/443#issuecomment-6612875062). The run deployed only the ops alerts worker; every other component step was skipped. The evidence showed:
+  - `gtl-ops-alerts` version 1, ACTIVE, `verify_jwt` false;
+  - bundle SHA-256 `b78376f31aafb7630e6e10c80223aed53d3e1fd2ec9a0f1c70f8dcd10e901e53`;
+  - `opsAlertsCreated: true`;
+  - migration history unchanged.
+  - `opsAlertsSourceVerified: false` is the standing worker limitation: the remote bytes are not independently matched to the checkout.
+- **Live probe (signed out, after the deploy):** POST with no token gives 401, POST with a wrong 64-hex token gives 401, and GET gives 405.
+  This PR adds the worker to `workerChecks`.
 
 ## What M-38 adds
 

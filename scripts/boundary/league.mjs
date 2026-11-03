@@ -103,6 +103,8 @@ export const apiChecks = Object.freeze([
 export const workerChecks = Object.freeze([
   // M-26 (redesign stage 70): the badges, awards and streaks worker, deployed as gtl-league-features v1 on October 27, 2026.
   ['scheduled league features', 'gtl-league-features', { runId: missingId }],
+  // M-38 (item 22): the Supabase job alerts push worker, deployed as gtl-ops-alerts v1 on November 3, 2026.
+  ['scheduled ops alerts', 'gtl-ops-alerts', { runId: missingId }],
 ]);
 
 // /league/comparison is deployed (gtl-api v32) and its D-53 reader is hosted since October 22, 2026. The league feed
