@@ -58,6 +58,8 @@ test('the head-to-head counts only games scored for both: points, Bullseyes, ave
   assert.equal(leadLine(h, 'Troy'), 'You lead by 2');
   assert.equal(statLine(h), 'Bullseyes 1–0 · Avg miss 0.3–0.8 · 2 shared games');
   assert.equal(leadLine(headToHead([]), 'Troy'), 'No shared games yet');
+  assert.equal(statLine(headToHead([])), '', 'nothing shared: no stat line, and no crash on the null sides');
+  assert.equal(statLine(headToHead([]), true), '');
   assert.equal(leadLine({ shared: 1, lead: -1 }, 'Troy'), 'Troy leads by 1');
   assert.equal(leadLine({ shared: 1, lead: 0 }, 'Troy'), 'All square');
 });
@@ -118,4 +120,33 @@ test('landing tile: the latest week with a shared game, a signed lead, the view 
   assert.deepEqual([compareTile(history([week8]), { season: 2026, week: 7 }).big, compareTile(history([week8]), { season: 2026, week: 7 }).sub], ['—', 'vs Troy'], 'a later week never shows early');
   assert.deepEqual(compareTile(null, { season: 2026, week: 8 }), { big: '—', sub: 'Head-to-head', tone: 'plain', ariaLabel: 'Compare: head-to-head with another player',
     view: { period: 'week', team: '', matchup: '' } });
+});
+
+test('D-31: the other player’s own hiddenGames list shuts a game even when the gate is open and the pick looks plain; the legacy week.revealed shuts or opens it when a reply has no gate', () => {
+  const plain = { ...locked(BUF.id, 17.5, 16.5, 7), hidden: false };
+  const listed = rows(history([week(9, [entry(ME, [locked(BUF.id, 2, 2.5, 9)]), entry(TROY, [locked(SEA.id, -3, -3, 10), plain], { hiddenGames: [BUF.id] })])]));
+  assert.deepEqual(listed.map(r => [r.game.id, r.state, r.me, r.them === null]), [[SEA.id, 'noGuess', listed[0].me, false], [BUF.id, 'hidden', null, true]]);
+  assert.doesNotMatch(JSON.stringify(listed[1]), /17\.5|16\.5/);
+  const noGate = (revealed) => ({ season: 2026, week: 9, games: [SEA, BUF], revealed: { guess_spread: revealed, guess_total: false },
+    entries: [entry(ME, [locked(SEA.id, -3, -3, 10)]), entry(TROY, [locked(SEA.id, -17.5, -16.5, 7)])] });
+  const shut = rows(history([noGate(false)]));
+  assert.deepEqual(shut.map(r => [r.state, r.me, r.them]), [['hidden', null, null], ['hidden', null, null]]);
+  assert.doesNotMatch(JSON.stringify(shut), /17\.5|16\.5|-3/);
+  assert.equal(rows(history([noGate(true)]))[0].state, 'scored', 'the legacy flag opens the market when the reply has no gate');
+  assert.ok(rows(history([noGate(true)]), { mode: 'guess_total' }).every(r => r.state === 'hidden'), 'the legacy flag is per market');
+});
+
+test('without a usable server clock nothing is known to have kicked off: an unlocked player stays WAITING, whatever the kickoff; a sit-out is still NO GUESS', () => {
+  const past = { ...SEA, kickoff: '2020-01-01T00:00:00Z' }, future = { ...BUF, kickoff: '2099-01-01T00:00:00Z' }, unknown = { id: 'NYJ-MIA', awayCode: 'NYJ', homeCode: 'MIA' };
+  const gate = Object.fromEntries([past, future, unknown].map(g => [g.id, { spread: true, total: false }]));
+  const idle = [past, future, unknown].map(g => ({ gameId: g.id, guess: null, reference: null, points: null, hidden: false }));
+  const mine = [past, future, unknown].map(g => locked(g.id, -3, -3, 10));
+  const w = { season: 2026, week: 9, games: [past, future, unknown], gate, entries: [entry(ME, mine), entry(TROY, idle)] };
+  for (const now of [undefined, null, 'soon']) {
+    const out = rows({ viewer: ME, season: 2026, members, weeks: [w], now }, now === undefined ? {} : { now: Date.parse(now ?? '') });
+    assert.deepEqual(out.map(r => r.state), ['waiting', 'waiting', 'waiting'], `now=${String(now)}`);
+  }
+  assert.deepEqual(rows(history([w], '2026-10-25T00:00:00Z')).map(r => r.state), ['noGuess', 'waiting', 'waiting'], 'with a clock a past kickoff reads NO GUESS; an unknown one still waits');
+  const sat = { ...w, entries: [entry(ME, mine), { userId: TROY, mode: 'guess_spread', status: 'sat_out', picks: null, hiddenGames: [] }] };
+  assert.deepEqual(rows({ viewer: ME, season: 2026, members, weeks: [sat] }).map(r => r.state), ['noGuess', 'noGuess', 'noGuess']);
 });

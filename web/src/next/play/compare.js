@@ -48,7 +48,8 @@ export function compareRows(data, { mode = 'guess_spread', opponent = null, from
       const t = theirs.get(game.id);
       if (!gameOpen(week, game.id, mode) || t?.hidden || theirEntry?.hiddenGames?.includes(game.id)) return { ...base, state: 'hidden', me: null, them: null };
       const me = side(mine.get(game.id), myEntry), them = side(t, theirEntry);
-      const started = Date.parse(game.kickoff) <= now;
+      // Without a usable clock nothing is known to have kicked off, so an unlocked player stays WAITING (a sit-out is still NO GUESS).
+      const started = Number.isFinite(now) && Date.parse(game.kickoff) <= now;
       const state = !them.locked ? (started || them.satOut ? 'noGuess' : 'waiting') : !me.locked ? 'noGuess'
         : me.miss === null || them.miss === null ? 'unscored' : 'scored';
       return { ...base, state, me, them };
@@ -95,7 +96,7 @@ export function leadLine(h, name) {
   if (!h.shared) return 'No shared games yet';
   return h.lead > 0 ? `You lead by ${show(h.lead)}` : h.lead < 0 ? `${name} leads by ${show(-h.lead)}` : 'All square';
 }
-export const statLine = (h, everyone = false) => `${everyone ? '' : `Bullseyes ${h.me.bullseyes}–${h.them.bullseyes} · `}Avg miss ${show(h.me.avgMiss)}–${show(h.them.avgMiss)} · ${h.shared} shared ${h.shared === 1 ? 'game' : 'games'}`;
+export const statLine = (h, everyone = false) => !h.shared ? '' : `${everyone ? '' : `Bullseyes ${h.me.bullseyes}–${h.them.bullseyes} · `}Avg miss ${show(h.me.avgMiss)}–${show(h.them.avgMiss)} · ${h.shared} shared ${h.shared === 1 ? 'game' : 'games'}`;
 
 /** The row's tag: always words (never color alone). A game you lost is quiet (neutral), never a loss color. */
 export function rowTag(row, name) {
