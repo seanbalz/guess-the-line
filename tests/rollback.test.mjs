@@ -99,6 +99,11 @@ test('the rollback convention: each file names a migration, restores exactly the
       const addedFunctions = parseFunctions(migration);
       if (addedFunctions.length) {
         const reviewedOffSwitches = {
+          // M-38 ops alerts: the worker's functions and the test alert. The dispatcher and the checks have no grant to revoke;
+          // every incident and run stays.
+          '20261103190000_gtl_ops_alerts.sql': [
+            'revokeexecuteonfunctionpublic.gtl_claim_ops_alerts(text,uuid),public.gtl_mark_ops_notification(uuid,uuid,bigint,text),public.gtl_record_ops_delivery(uuid,uuid,text,text),public.gtl_complete_ops_alerts(uuid,uuid,text,integer,integer),public.gtl_ops_test_alert()fromservice_role',
+          ],
           // New service-only research functions. These statements revoke only
           // this stage's entry points and preserve submissions/captures/snapshots.
           '20261030204548_gtl_research_assessments.sql': [
