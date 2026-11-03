@@ -185,6 +185,25 @@ test('Home has one primary task and compact shortcuts, with no writes or hidden-
   } finally { await world.db.close(); }
 });
 
+test('D-69: nothing animates on the first paint; a tab change after the launch fades only the screen, never the bars', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL);
+  try {
+    await page.addInitScript(() => {
+      window.__anims = [];
+      document.addEventListener('animationstart', event => window.__anims.push({ name: event.animationName, cls: String(event.target.className || '') }), true);
+    });
+    await tryNewApp(page);
+    await page.waitForTimeout(1200);
+    // The LIVE dot is the one loop, and the countdown's digit tick belongs to the clock, not to the page load.
+    const onLoad = await page.evaluate(() => window.__anims.filter(a => a.name !== 'gx-live-pulse' && !/gx-countdown/.test(a.cls)));
+    expect(onLoad, 'no animation on page load').toEqual([]);
+    await tab(page, 'Play').click();
+    await expect.poll(() => page.evaluate(() => window.__anims.some(a => a.name === 'gx-fade-in' && /gx-screen/.test(a.cls)))).toBe(true);
+    const barMoved = await page.evaluate(() => window.__anims.some(a => /gx-(tabbar|topbar|dock)/.test(a.cls)));
+    expect(barMoved, 'the bars never animate').toBe(false);
+  } finally { await world.db.close(); }
+});
+
 test('"Make picks" opens the live Play tab without leaving the new app; "See Lines" never shows while picks are due', async ({ page, baseURL }) => {
   const { world } = await lukesWeek(page, baseURL);
   try {
