@@ -2,6 +2,7 @@
 // record and the count-ups' last values) and makes the next screen a launch again. Fixture keys only.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { forgetMomentsDevice } from '../web/src/next/moments/forget.js';
 import { clearCountUpSeen, countUpKey } from '../web/src/next/moments/countUp.js';
 import { momentsKey } from '../web/src/next/moments/seen.js';
@@ -45,6 +46,14 @@ test('forget: without a storage argument it clears the device\'s own localStorag
     if (had) Object.defineProperty(globalThis, 'localStorage', had); else delete globalThis.localStorage;
     resetLaunch();
   }
+});
+
+test('AuthGate forgets the moments on sign-out and on every account change, the drafts\' rule', () => {
+  const source = readFileSync(new URL('../web/src/AuthGate.jsx', import.meta.url), 'utf8');
+  assert.match(source, /if \(event === 'SIGNED_OUT'\) \{[^}]*forgetMomentsDevice\(\);[^}]*\}/);
+  const changed = source.match(/function accountChanged\(nextSession\) \{([\s\S]*?)\n {2}\}/)?.[1] ?? '';
+  assert.match(changed, /if \(lastAccount\.current && lastAccount\.current !== next\) forgetMomentsDevice\(\);/);
+  assert.doesNotMatch(readFileSync(new URL('../web/src/next/shell/Shell.jsx', import.meta.url), 'utf8'), /clearMomentSeen|resetLaunch/, 'the shell leaves it to AuthGate');
 });
 
 test('clearCountUpSeen: only gtl.next.countUp.v1. keys go; blocked or missing storage is a no-op', () => {

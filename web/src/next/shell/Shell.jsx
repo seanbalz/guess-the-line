@@ -18,8 +18,7 @@ import { noteSportRoute } from '../../sportNavigation.js';
 import { useDashboardPreferences } from '../../dashboardPreferences.js';
 import { Boundary, FailCard } from './Boundary.jsx';
 import { MomentsProvider } from '../moments/MomentsProvider.jsx';
-import { armLaunch, isSettled, markNavigated, resetLaunch } from '../moments/launch.js';
-import { clearMomentSeen } from '../moments/seen.js';
+import { armLaunch, isSettled, markNavigated } from '../moments/launch.js';
 import { ShellContext } from './context.js';
 import { DetailBack, OfflineBanner, SportControls, TabBar, TopBar } from './Frame.jsx';
 import { DialogHost, OverlayHost, PageHost, PopoverHost, SheetHost } from './LayerHosts.jsx';
@@ -258,8 +257,8 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
       signOut: async () => {
         if (!confirmLeave()) return false;
         try {
+          // AuthGate forgets the moments' device records and resets the launch on every sign-out (moments/forget.js).
           await onSignOutRef.current?.();
-          clearMomentSeen(); resetLaunch();
           return true;
         } catch (failure) {
           toast(failure?.message || SHELL_COPY.signOutFailed, { tone: 'error' });
