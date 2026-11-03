@@ -6,13 +6,18 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { markupProblems, parseMarkup, walk } from './helpers/ui-markup.mjs';
 import { featuresModel } from '../web/src/next/features/model.js';
 
-const state = vi.hoisted(() => ({ features: null, app: null, waiting: [], popped: new Set() }));
+const state = vi.hoisted(() => ({ features: null, app: null, waiting: [], popped: new Set(), tile: null }));
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn(), meApi: vi.fn() }));
 vi.mock('../web/src/next/features/useFeatures.js', () => ({ useFeatures: () => state.features }));
 vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: () => state.app }));
 vi.mock('../web/src/next/moments/MomentsProvider.jsx', () => ({
   useMomentScope: () => {}, usePopped: id => state.popped.has(id), useNewCount: () => state.waiting.length, useNewMoments: () => state.waiting,
 }));
+// Passes PlayTile through and keeps its props, so a test can press the tile (react-dom/server cannot click).
+vi.mock('../web/src/next/play/PlayTile.jsx', async () => {
+  const actual = await vi.importActual('../web/src/next/play/PlayTile.jsx');
+  return { PlayTile: props => { state.tile = props; return actual.PlayTile(props); } };
+});
 
 const { ShellContext } = await import('../web/src/next/shell/context.js');
 const { FeaturesScreen } = await import('../web/src/next/features/FeaturesScreen.jsx');
@@ -153,16 +158,28 @@ describe('Badges and awards: the layers', () => {
 describe('the Play landing Badges tile', () => {
   it('the earned count; "New: <name>" and NEW while a badge waits; NEW alone for a streak; a dash before the read answers', () => {
     setup();
-    expect(render(<BadgesTile/>)).toContain('aria-label="Badges, 1 earned"');
+    const plain = render(<BadgesTile/>);
+    expect(plain).toContain('aria-label="Badges, 1 earned"');
+    expect(words(plain)).not.toMatch(/\bNEW\b/);
     state.waiting = [{ id: 'badge:x', kind: 'badge', badge: 'bullseye', title: 'Bullseye' }];
     const fresh = render(<BadgesTile/>);
     expect(fresh).toContain('aria-label="Badges, 1 earned, new: Bullseye"');
     expect(words(fresh)).toContain('New: Bullseye');
+    expect(words(fresh)).toMatch(/\bNEW\b/);
     state.waiting = [{ id: 'streak:pick:2026:4:6', kind: 'streak', title: 'Pick streak' }];
-    expect(render(<BadgesTile/>)).toContain('aria-label="Badges, 1 earned"');
+    const streak = render(<BadgesTile/>);
+    expect(streak).toContain('aria-label="Badges, 1 earned, new"');
+    expect(words(streak)).toMatch(/\bNEW\b/);
     setup(read(null, { loading: true }));
     expect(words(render(<BadgesTile/>))).toContain('—');
     setup(read(null, { off: true }));
     expect(render(<BadgesTile/>)).toContain('aria-label="Badges, coming soon"');
+  });
+  it('the default onOpen opens the first card of Badges and awards', () => {
+    setup();
+    const shell = shellAt({});
+    render(<BadgesTile/>, shell);
+    state.tile.onClick();
+    expect(shell.go).toHaveBeenCalledWith('play', { section: 'features', layer: undefined, item: undefined });
   });
 });

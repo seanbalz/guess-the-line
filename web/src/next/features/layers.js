@@ -94,13 +94,14 @@ export function seasonLine(season) {
 
 /**
  * The Play landing's Badges tile (Sean's P1B): how many badges you have earned, then "New: <name>" while a new badge
- * waits to be seen, else "earned". Before the features read answers (or while the server has no features route) it
- * shows a dash and the old row's words, never a sample number.
+ * waits to be seen, else "earned". With no badge name but a moment that waits (`waiting`, a streak or award), the
+ * spoken name still says "new" so it matches the visible NEW tag. Before the features read answers (or while the
+ * server has no features route) it shows a dash and the old row's words, never a sample number.
  */
-export function badgesTile({ model, off = false, newest = null }) {
+export function badgesTile({ model, off = false, newest = null, waiting = false }) {
   if (!model) return off ? { big: DASH, sub: 'Coming soon', tone: 'plain', ariaLabel: 'Badges, coming soon' }
     : { big: DASH, sub: 'Your badges, streaks and awards', tone: 'plain', ariaLabel: 'Badges' };
   const n = model.shelf.earned.length;
-  return newest ? { big: String(n), sub: `New: ${newest}`, tone: 'good', ariaLabel: `Badges, ${n} earned, new: ${newest}` }
-    : { big: String(n), sub: 'earned', tone: 'plain', ariaLabel: `Badges, ${n} earned` };
+  if (newest) return { big: String(n), sub: `New: ${newest}`, tone: 'good', ariaLabel: `Badges, ${n} earned, new: ${newest}` };
+  return { big: String(n), sub: 'earned', tone: 'plain', ariaLabel: waiting ? `Badges, ${n} earned, new` : `Badges, ${n} earned` };
 }

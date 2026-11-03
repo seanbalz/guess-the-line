@@ -87,6 +87,8 @@ test('the landing tile: earned count, "New: <name>" while a badge waits, and no 
   const model = { shelf: { earned: [{ id: 'bullseye' }, { id: 'sharp' }], toEarn: [], of: 9 } };
   assert.deepEqual(L.badgesTile({ model }), { big: '2', sub: 'earned', tone: 'plain', ariaLabel: 'Badges, 2 earned' });
   assert.deepEqual(L.badgesTile({ model, newest: 'Bullseye' }), { big: '2', sub: 'New: Bullseye', tone: 'good', ariaLabel: 'Badges, 2 earned, new: Bullseye' });
+  assert.deepEqual(L.badgesTile({ model, waiting: true }), { big: '2', sub: 'earned', tone: 'plain', ariaLabel: 'Badges, 2 earned, new' }, 'a streak or award moment waits with no badge name: the spoken name says new, matching the visible NEW tag');
+  assert.deepEqual(L.badgesTile({ model, newest: 'Bullseye', waiting: true }), { big: '2', sub: 'New: Bullseye', tone: 'good', ariaLabel: 'Badges, 2 earned, new: Bullseye' }, 'a newest badge wins over the bare new');
   assert.deepEqual(L.badgesTile({ model: null }), { big: '—', sub: 'Your badges, streaks and awards', tone: 'plain', ariaLabel: 'Badges' });
   assert.deepEqual(L.badgesTile({ model: null, off: true }), { big: '—', sub: 'Coming soon', tone: 'plain', ariaLabel: 'Badges, coming soon' });
 });

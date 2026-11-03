@@ -17,7 +17,7 @@ export function BadgesTile({ onOpen }) {
   const features = useFeatures(app, shell);
   const waiting = useNewCount(SCOPES.features);
   const newest = useNewMoments(SCOPES.features).filter(m => m.kind === 'badge').at(-1)?.title ?? null;
-  const tile = badgesTile({ model: features.model, off: features.off, newest });
+  const tile = badgesTile({ model: features.model, off: features.off, newest, waiting: waiting > 0 });
   return <PlayTile label="Badges" icon="award" big={tile.big} sub={tile.sub} tone={tile.tone} isNew={waiting > 0} ariaLabel={tile.ariaLabel}
     onClick={onOpen ?? (() => shell.go('play', featuresView()))}/>;
 }
