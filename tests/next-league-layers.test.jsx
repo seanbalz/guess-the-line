@@ -31,15 +31,15 @@ const shell = { state: null, go: vi.fn(), back: vi.fn(), setView: vi.fn(), openS
 const store = new Map();
 const find = (node, test) => [...walk(node)].filter(n => n.tag && test(n));
 const cls = name => n => (n.attrs.class ?? '').split(/\s+/).includes(name);
-function render(node, league = {}) {
+function render(node, league = {}, app = {}, feedState = {}) {
   state.app = { accountId: YOU, league: { id: 'community', name: 'Community', community: true }, leagues: [{ id: 'community', on: true, players: 2 }],
-    community: { status: 'ready', data: community, error: null }, refresh: vi.fn(), requestSignIn: vi.fn(), chooseLeague: vi.fn(), mutateCommunity: vi.fn() };
-  state.feed = { status: 'ready', page: { posts, members, now: '2026-11-03T00:00:00Z', next: null }, posts, next: null, busy: false, error: null, more: vi.fn(), retry: vi.fn() };
+    community: { status: 'ready', data: community, error: null }, refresh: vi.fn(), requestSignIn: vi.fn(), chooseLeague: vi.fn(), mutateCommunity: vi.fn(), ...app };
+  state.feed = { status: 'ready', page: { posts, members, now: '2026-11-03T00:00:00Z', next: null }, posts, next: null, busy: false, error: null, more: vi.fn(), retry: vi.fn(), ...feedState };
   shell.state = { views: { play: { section: 'league' }, league }, trail: [] };
   vi.stubGlobal('localStorage', { getItem: key => store.get(key) ?? null, setItem: (key, value) => store.set(key, String(value)) });
   return renderToStaticMarkup(<ShellContext.Provider value={shell}><div className="gx">{node}</div></ShellContext.Provider>).replace(/<!-- -->/g, '');
 }
-afterEach(() => { store.clear(); state.waiting = 0; vi.unstubAllGlobals(); });
+afterEach(() => { store.clear(); state.waiting = 0; state.read = null; vi.unstubAllGlobals(); });
 
 describe('League, board first (P6A)', () => {
   it('the landing: the league\'s board, your rank chip and total, then the newest two posts with NEW, the feed and History', () => {
@@ -65,6 +65,16 @@ describe('League, board first (P6A)', () => {
     expect(find(root, n => n.tag === 'article')).toHaveLength(3);
     expect(find(root, n => n.attrs['data-league'] === 'preview')).toHaveLength(0);
   });
+  it('a private group whose feed was refused shows none of its posts, on the landing or in the feed layer', () => {
+    const group = { league: { id: 'g1', name: 'Fixture Group', community: false }, leagues: [{ id: 'g1', on: true, players: 5 }] };
+    const refused = { status: 'error', page: null, posts: [], next: null, error: { status: 403, message: 'This group is no longer available.' } };
+    state.read = { loading: false, data: null, error: refused.error };
+    for (const view of [{}, { view: 'feed' }]) {
+      expect(find(parseMarkup(render(<LeagueScreen/>, view, group, refused)), n => n.tag === 'article'), JSON.stringify(view)).toHaveLength(0);
+    }
+    const shown = find(parseMarkup(render(<LeagueScreen/>, { view: 'feed' }, group)), n => n.tag === 'article');
+    expect(shown.length, 'the same screen with a good feed does show the posts').toBeGreaterThan(0);
+  });
   it('the League tile: your Spread rank, the move and "New posts" from the Community read; NEW while a League moment waits', () => {
     store.set(seenKey(YOU, null), '2026-11-01T00:00:00Z');
     store.set(rankKey(YOU, 'community', 'guess_spread'), JSON.stringify({ rank: 3, from: null }));
@@ -73,6 +83,16 @@ describe('League, board first (P6A)', () => {
       'data-sub': '▲ 1 · New posts', 'data-tone': 'good', 'data-new': 'true', 'aria-label': 'League, 2nd on the Spread board, up 1, new posts' });
     state.waiting = 0;
     expect(find(parseMarkup(render(<LeagueTile onOpen={vi.fn()}/>)), n => n.tag === 'output')[0].attrs['data-new']).toBe('false');
+  });
+  it('the League tile says "new" whenever NEW shows: a waiting rank moment with no new posts, and a private group', () => {
+    const tile = node => find(parseMarkup(render(node.element, {}, node.app)), n => n.tag === 'output')[0].attrs;
+    store.set(seenKey(YOU, null), '2026-11-03T00:00:00Z'); // every post already shown: nothing new in the feed
+    state.waiting = 1;
+    expect(tile({ element: <LeagueTile onOpen={vi.fn()}/> })).toMatchObject({ 'data-new': 'true', 'aria-label': 'League, 2nd on the Spread board, new' });
+    const group = { league: { id: 'g1', name: 'Fixture Group', community: false }, leagues: [{ id: 'g1', on: true, players: 5 }] };
+    expect(tile({ element: <LeagueTile onOpen={vi.fn()}/>, app: group })).toMatchObject({ 'data-new': 'true', 'aria-label': 'League, 5 players, new' });
+    store.set(seenKey(YOU, null), '2026-11-01T00:00:00Z'); // new posts and a waiting moment: "new" once
+    expect(tile({ element: <LeagueTile onOpen={vi.fn()}/> })['aria-label']).toBe('League, 2nd on the Spread board, new posts');
   });
 });
 

@@ -76,8 +76,8 @@ test('through the engine: a launch read waits as NEW, plays once when League ope
 
 test('Home reads the arrow without spending the moment: peekMove never writes, and matches what the board will show', () => {
   assert.equal(R.peekMove(null, { rank: 2 }), null);
-  assert.equal(R.peekMove({ rank: 4, from: null }, { rank: 2 }), 2, 'a change the board has not toasted yet');
-  assert.equal(R.peekMove({ rank: 2, from: 4 }, { rank: 2 }), 2, 'the last change, after the board toasted it');
+  assert.equal(R.peekMove({ rank: 4, from: null }, { rank: 2 }), 2, 'a change the engine moment has not shown yet');
+  assert.equal(R.peekMove({ rank: 2, from: 4 }, { rank: 2 }), 2, 'the last change, after the engine moment showed it');
   assert.equal(R.peekMove({ rank: 2, from: null }, { rank: 2 }), null);
   assert.equal(R.peekMove({ rank: 2, from: 1 }, { rank: null }), null);
   for (const [stored, rank] of [[{ rank: 4, from: null }, 2], [{ rank: 2, from: 3 }, 2], [{ rank: 1, from: null }, 3]]) {

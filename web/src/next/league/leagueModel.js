@@ -56,17 +56,19 @@ export function postArrivals(known, posts) {
 /**
  * The Play landing's League tile from reads the landing already makes: the Community's Spread rank (the board League opens
  * on), the move this device last saw (read only, as Home's rank tile) and "New posts". A private group shows its player
- * count from the lobby. `stored` is this device's rank record, `seen` the newest post it showed.
+ * count from the lobby. `stored` is this device's rank record, `seen` the newest post it showed. `waiting` is true while the
+ * tile shows NEW: the label then says "new" (once), as PlayTile asks of its caller.
  */
-export function leagueTile({ community = true, data = null, viewer = '', stored = null, seen = null, players = null } = {}) {
+export function leagueTile({ community = true, data = null, viewer = '', stored = null, seen = null, players = null, waiting = false } = {}) {
+  const said = aria => (waiting && !/\bnew\b/i.test(aria) ? `${aria}, new` : aria);
   if (!community) {
     const big = Number.isInteger(players) ? String(players) : DASH;
-    return { rank: null, tied: false, big, sub: 'Players', tone: 'plain', aria: big === DASH ? 'League' : `League, ${big} players` };
+    return { rank: null, tied: false, big, sub: 'Players', tone: 'plain', aria: said(big === DASH ? 'League' : `League, ${big} players`) };
   }
   const tile = rankTile({ standings: data?.standings ?? [], viewer, mode: 'guess_spread' });
   const move = peekMove(stored, { rank: tile.rank }), posts = hasNewPosts(data?.posts, viewer, seen);
   const place = tile.rank ? `${ordinal(tile.rank)}${tile.tied ? ', tied,' : ''} on the Spread board` : 'not ranked on the Spread board';
   const sub = [tile.tied ? 'Tied' : null, move > 0 ? `▲ ${move}` : move < 0 ? `▼ ${-move}` : null, posts ? 'New posts' : null].filter(Boolean).join(' · ');
   return { rank: tile.rank, tied: tile.tied, big: tile.rank ? ordinal(tile.rank) : DASH, sub: sub || 'Spread board', tone: move > 0 ? 'good' : 'plain',
-    aria: `League, ${place}${move > 0 ? `, up ${move}` : move < 0 ? `, down ${-move}` : ''}${posts ? ', new posts' : ''}` };
+    aria: said(`League, ${place}${move > 0 ? `, up ${move}` : move < 0 ? `, down ${-move}` : ''}${posts ? ', new posts' : ''}`) };
 }

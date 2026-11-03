@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { randomUUID } from 'node:crypto';
-import { HOSTED } from '../migrations.mjs';
+import { ALL, HOSTED } from '../migrations.mjs';
 import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 
 // The League's Community feed path on HOSTED as it was before the October 27, 2026 feed applies (M-21 onward), the path the
@@ -193,6 +193,35 @@ test('private standings stay membership-scoped on rapid switching and discard da
     await expect(region(page)).not.toContainText('Luke Fixture');
     expect(world.errors).toEqual([]);
   } finally { release?.(); await page.unrouteAll({ behavior: 'wait' }); await page.close(); await world.db.close(); }
+});
+
+// Runs with the feed reader on (ALL): BEFORE_FEED has no group posts. The group answers 403 to its feed and its standings.
+test('a private group that refuses shows none of its posts, on the board or in the feed layer', async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite required.');
+  const world = await communityWorld(page, baseURL, { migrations: ALL, groupScreens: true, optionalRpc: true });
+  try {
+    const gamma = await group(world, 'Fixture Gamma'), { season, week, deadline } = world.state.league;
+    const post = (await world.db.query("insert into public.gtl_feed_posts(actor_id,kind,season,week,payload,dedupe_key,league_id) values($1,'week_published',$2,$3,$4,$5,$6) returning id",
+      [ACCOUNTS.sean.id, season, week, { games: 2, deadline }, `week_published:${randomUUID()}`, gamma])).rows[0].id;
+    await open(page);
+    const groupPost = page.locator(`.gx-feed-post[data-post="${post}"]`);
+    await choose(page, 'Fixture Gamma');
+    await expect(groupPost).toBeVisible(); // the feed layer of the group shows its post
+    const refuse = (name, match) => page.route(url => apiPath(name)(url) && match(url), route => route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ error: 'This group is no longer available.' }) }));
+    await page.route(url => apiPath('league/feed')(url), route => (route.request().postDataJSON()?.leagueId === gamma
+      ? route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ error: 'This group is no longer available.' }) }) : route.fallback()));
+    await refuse('state', url => url.searchParams.get('league') === gamma);
+    await page.evaluate(() => window.dispatchEvent(new Event('online')));
+    await expect(region(page).getByRole('alert')).toContainText('This group is no longer available.');
+    await expect(groupPost).toHaveCount(0);
+    await expect(region(page).locator('.gx-feed-post')).toHaveCount(0);
+    await toBoard(page).click();
+    await expect(region(page).getByRole('alert')).toContainText('This group is no longer available.');
+    await expect(groupPost).toHaveCount(0);
+    await expect(region(page).locator('.gx-feed-post')).toHaveCount(0);
+    await expect(region(page).locator('[data-league="preview"]')).toHaveCount(0);
+    expect(world.errors).toEqual([]);
+  } finally { await page.unrouteAll({ behavior: 'wait' }); await page.close(); await world.db.close(); }
 });
 
 test('an older-feed refusal immediately removes loaded activity while the main refresh is pending', async ({ page, baseURL }) => {

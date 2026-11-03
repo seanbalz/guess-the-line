@@ -14,10 +14,10 @@ import { useRankMoment } from './useRankMoment.js';
 export function LeagueTile({ onOpen }) {
   const app = useAppData(), viewer = app.accountId, community = app.league.community === true, read = app.community;
   const players = app.leagues?.find(row => row.on)?.players ?? null;
-  const tile = useMemo(() => leagueTile({ community, data: read.data, viewer, players,
-    stored: readRank(rankKey(viewer, 'community', 'guess_spread')), seen: readSeen(seenKey(viewer, null)) }), [community, read.data, viewer, players]);
+  const isNew = useNewCount(SCOPES.league) > 0;
+  const tile = useMemo(() => leagueTile({ community, data: read.data, viewer, players, waiting: isNew,
+    stored: readRank(rankKey(viewer, 'community', 'guess_spread')), seen: readSeen(seenKey(viewer, null)) }), [community, read.data, viewer, players, isNew]);
   useRankMoment({ account: viewer, league: 'community', mode: 'guess_spread', rank: tile.rank, tied: tile.tied, market: 'Spread',
     read: community ? read.data : null, fresh: community && read.status === 'ready' && !read.error });
-  const isNew = useNewCount(SCOPES.league) > 0;
   return <PlayTile label="League" icon="trophy" big={tile.big} sub={tile.sub} tone={tile.tone} isNew={isNew} onClick={onOpen} ariaLabel={tile.aria}/>;
 }

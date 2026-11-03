@@ -50,3 +50,11 @@ test('the League tile: your Spread rank (never Total), the move this device saw,
   assert.equal(leagueTile({ data: null, viewer: 'me' }).big, '—', 'loading or unranked is "—", never 0');
   assert.deepEqual(leagueTile({ community: false, players: 5 }), { rank: null, tied: false, big: '5', sub: 'Players', tone: 'plain', aria: 'League, 5 players' });
 });
+test('the League tile says "new" whenever its NEW tag shows (PlayTile contract), once, with or without new posts', () => {
+  const data = { standings: [{ userId: 'them', mode: 'guess_spread', seasonPoints: 30, seasonScored: 4 }, { userId: 'me', mode: 'guess_spread', seasonPoints: 20, seasonScored: 4 }], posts: [] };
+  assert.equal(leagueTile({ data, viewer: 'me', waiting: true }).aria, 'League, 2nd on the Spread board, new', 'a waiting rank moment, no new posts');
+  assert.equal(leagueTile({ data, viewer: 'me' }).aria, 'League, 2nd on the Spread board', 'nothing waiting, nothing said');
+  assert.equal(leagueTile({ community: false, players: 5, waiting: true }).aria, 'League, 5 players, new', 'a private group');
+  const posted = { ...data, posts: [{ id: 'a', actorId: 'them', createdAt: '2026-11-02T10:00:00Z' }] };
+  assert.equal(leagueTile({ data: posted, viewer: 'me', seen: '2026-11-01T00:00:00Z', waiting: true }).aria, 'League, 2nd on the Spread board, new posts', '"new" is not said twice');
+});

@@ -136,11 +136,14 @@ function CommunityFeed({ feed, app }) {
   </section>;
 }
 
-function PrivateLeague({ app, shell, mode, features }) {
+function PrivateLeague({ app, shell, mode, features, onRead }) {
   const id = app.league.id;
   const read = useLeagueRead(`${app.accountId}:${id}:${mode}`, signal => cloudApi('state', undefined, { league: id, mode, signal }), error => {
+    onRead?.(error);
     if (error.status === 401) app.requestSignIn?.(); else app.refresh({ only: ['lobby'] });
   });
+  const answered = read.data !== null && read.data !== undefined;
+  useEffect(() => { if (answered) onRead?.(null); }, [answered]); // eslint-disable-line react-hooks/exhaustive-deps
   if (read.loading) return <LeagueLoading label="Loading this league…"/>;
   if (read.error) return <LeagueFailure error={read.error} onRetry={read.retry}/>;
   const data = read.data;
@@ -166,13 +169,13 @@ export const LEAGUE_COPY = Object.freeze({
 });
 
 /** The landing (P6A): the board for the market showing, the recap, the two newest posts, then History. */
-function BoardLanding({ app, shell, mode, features, feed, fresh, arrived, waiting, set }) {
+function BoardLanding({ app, shell, mode, features, feed, fresh, arrived, waiting, set, gone, onRead }) {
   const community = app.league.community === true, data = app.community.data;
   const players = community ? communityPlayers(data) : app.leagues?.find(row => row.on)?.players ?? null;
   const meta = [Number.isInteger(players) ? LEAGUE_COPY.members(players) : null, community && data?.week ? `Week ${data.week.week}` : null].filter(Boolean).join(' · ');
   const board = waiting ?? (mode === 'guess_points' ? <PointsBoard key={`${app.accountId}:${app.league.id}`} app={app} groupId={community ? null : app.league.id}/>
     : community ? <CommunityBoard feed={data} mode={mode} features={features} app={app} shell={shell} fresh={app.community.status === 'ready' && !app.community.error}/>
-    : <PrivateLeague key={`${app.accountId}:${app.league.id}`} app={app} shell={shell} mode={mode} features={features}/>);
+    : <PrivateLeague key={`${app.accountId}:${app.league.id}`} app={app} shell={shell} mode={mode} features={features} onRead={onRead}/>);
   // History is Community-wide: from a group it switches to the Community, as today's "Open Community feed and history" did.
   const history = () => { if (!community) app.chooseLeague(COMMUNITY); set({ view: 'history', week: null }); };
   return <PlayLayer label="League board" layer="league" title={app.league.name} info={<InfoButton title={LEAGUE_COPY.about} body={community ? BOARD_NOTES.community : BOARD_NOTES.group}/>}>
@@ -180,7 +183,7 @@ function BoardLanding({ app, shell, mode, features, feed, fresh, arrived, waitin
     <Segmented label="Standings market" options={MARKETS} value={mode} onChange={value => set({ market: value })}/>
     {board}
     <RecapPost model={features}/>
-    <FeedPreview feed={feed} app={app} leagueId={community ? null : app.league.id} fresh={fresh} arrived={arrived} onOpen={() => set({ view: 'feed' })}/>
+    {gone ? null : <FeedPreview feed={feed} app={app} leagueId={community ? null : app.league.id} fresh={fresh} arrived={arrived} onOpen={() => set({ view: 'feed' })}/>}
     <LinkRow icon="clock" onClick={history}>{community ? <>{LEAGUE_COPY.history}<span className="gx-t-meta gx-c-2"> · {LEAGUE_COPY.seasons}</span></> : LEAGUE_COPY.communityHistory}</LinkRow>
   </PlayLayer>;
 }
@@ -191,7 +194,11 @@ export function LeagueScreen() {
   const place = leagueLayer(view), mode = leagueMode(view.market);
   const community = app.league.community === true, leagueId = community ? null : app.league.id;
   const features = useFeatures(app, shell);
-  const feed = useLeagueFeed({ accountId: app.accountId, leagueId, onRefused: error => { if (error.status === 401) app.requestSignIn?.(); else if (community) app.refresh({ only: ['community'] }); } });
+  const feed = useLeagueFeed({ accountId: app.accountId, leagueId, onRefused: error => { if (error.status === 401) app.requestSignIn?.(); else app.refresh({ only: [community ? 'community' : 'lobby'] }); } });
+  // A private group that refused its read shows none of its posts: not in the landing's preview, not in the feed layer.
+  const [refusal, setRefusal] = useState(null), groupKey = `${app.accountId}:${app.league.id}`;
+  const onRead = error => setRefusal(error ? { key: groupKey, error } : null);
+  const gone = !community && refusal?.key === groupKey ? refusal.error : null;
   useFeedSeen(app.accountId, leagueId, feed);
   const since = useSeenSince(app.accountId, leagueId), arrived = usePostArrivals(feed.page, `${app.accountId}:${leagueId ?? 'community'}`);
   const fresh = newPostIds(feed.posts, app.accountId, since);
@@ -203,7 +210,7 @@ export function LeagueScreen() {
   let body;
   if (place.layer === 'feed') {
     body = <PlayLayer label="League feed" parents={[toBoard]} layer="league:feed" title={LEAGUE_COPY.feed}>
-      {waiting ?? <FeedView feed={feed} app={app} leagueId={leagueId} leagueName={app.league.name} fresh={fresh} arrived={arrived}
+      {gone ? <LeagueFailure error={gone} onRetry={() => { app.refresh({ only: ['lobby'] }); feed.retry(); }}/> : waiting ?? <FeedView feed={feed} app={app} leagueId={leagueId} leagueName={app.league.name} fresh={fresh} arrived={arrived}
         legacy={community ? <CommunityFeed key={app.accountId} feed={app.community.data} app={app}/> : null}/>}
     </PlayLayer>;
   } else if (community && place.layer !== 'board') {
@@ -211,7 +218,7 @@ export function LeagueScreen() {
       historyLip={lip('history', LEAGUE_COPY.history, 'history', { week: null })}
       onScore={(season, week, market) => shell.go('play', { section: 'score', season, week, market: market === 'guess_total' ? 'total' : 'spread' })}/>;
   } else {
-    body = <BoardLanding app={app} shell={shell} mode={mode} features={features.model} feed={feed} fresh={fresh} arrived={arrived} waiting={waiting} set={set}/>;
+    body = <BoardLanding app={app} shell={shell} mode={mode} features={features.model} feed={feed} fresh={fresh} arrived={arrived} waiting={waiting} set={set} gone={Boolean(gone)} onRead={onRead}/>;
   }
   return <div className="gx-screen gx-league">
     <div className="gx-league-heading"><div className="gx-hstack gx-between gx-wrap gx-gap-8"><h1 className="gx-t-title">{LEAGUE_COPY.heading}</h1><Button variant="ghost" onClick={() => shell.openSheet('sh.switcher')}>{LEAGUE_COPY.switcher}</Button></div></div>

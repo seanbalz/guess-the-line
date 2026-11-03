@@ -62,7 +62,7 @@
 .gx .gx-lg-total { min-width: 3ch; text-align: right; }
 /* At 320 the face, the rank chip and the total cannot share a line with a readable name: the end slot drops under it, at the right. */
 .gx .gx-l-row { flex-wrap: wrap; row-gap: var(--gx-space-1); }
-.gx .gx-l-row .gx-row-main { flex: 1 1 7rem; }
+.gx .gx-l-row .gx-row-main { flex: 1 1 112px; }
 .gx .gx-l-row .gx-row-end { margin-inline-start: auto; }
 .gx .gx-lg-more { align-self: flex-start; }
 @media (forced-colors: active) { .gx .gx-lg-chip { border: 1px solid CanvasText; } }

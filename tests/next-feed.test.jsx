@@ -11,6 +11,9 @@ import { markupProblems, matchups, readText } from './helpers/ui-markup.mjs';
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn(), leagueApi: vi.fn(), date: value => String(value) }));
 const model = await import('../web/src/next/feed/feedModel.js');
 const { PostCard } = await import('../web/src/next/feed/PostCard.jsx');
+const { failedState } = await import('../web/src/next/feed/useLeagueFeed.js');
+const { react } = await import('../web/src/next/feed/feedActions.js');
+const { leagueApi } = await import('../web/src/api.js');
 const { DigestCard } = await import('../web/src/next/feed/DigestCard.jsx');
 const { ShellContext } = await import('../web/src/next/shell/context.js');
 
@@ -190,5 +193,40 @@ describe('times, comments and the new-posts dot', () => {
     model.writeSeen(model.seenKey(ME, null), '2026-10-26T18:00:00Z', storage);
     expect(model.readSeen(model.seenKey(ME, null), storage)).toBe('2026-10-26T18:00:00Z');
     expect(model.readSeen('x', { getItem: () => { throw new Error('blocked'); } })).toBe(null);
+  });
+});
+
+describe('a refused group read drops its posts (A3); the Community keeps them', () => {
+  const loaded = { key: 'me:g1', status: 'ready', page: { posts: [{ id: 'p1' }], next: null }, older: [{ id: 'p0' }], next: 'c', error: null, busy: false };
+  const gone = { status: 403, message: 'This group is no longer available.' };
+  it('a 401 or 403 on a group leaves no page, no older posts and no cursor; a Community refusal and a plain failure keep them', () => {
+    for (const status of [401, 403]) {
+      expect(failedState(loaded, 'me:g1', { ...gone, status }, true)).toMatchObject({ status: 'error', page: null, older: [], next: null, error: { status } });
+    }
+    expect(failedState(loaded, 'me:community', gone, false).page).toBeNull(); // another key never carries posts over
+    expect(failedState({ ...loaded, key: 'me:community' }, 'me:community', gone, false)).toMatchObject({ status: 'ready', page: loaded.page, older: loaded.older });
+    expect(failedState(loaded, 'me:g1', { status: 500, message: 'x' }, true)).toMatchObject({ status: 'ready', page: loaded.page, older: loaded.older });
+  });
+});
+
+describe('react() is the confirmation the pop waits for (A2)', () => {
+  it('shows the change at once without confirming; a saved write confirms with the reaction the server kept; a refusal restores and confirms nothing', async () => {
+    const events = [], { onFeedChange } = await import('../web/src/next/feed/feedActions.js');
+    const stop = onFeedChange(change => events.push(change));
+    let answer;
+    leagueApi.mockImplementationOnce(() => new Promise(resolve => { answer = resolve; }));
+    const current = { counts: {}, total: 0, mine: null };
+    const pending = react({ postId: 'p1', current, next: 'fire', toast: vi.fn() });
+    let settled = false; pending.then(() => { settled = true; });
+    await Promise.resolve();
+    expect(events.map(e => e.reactions.mine), 'the optimistic change is shown').toEqual(['fire']);
+    expect(settled, 'but nothing is confirmed yet').toBe(false);
+    answer({ counts: { fire: 1 }, total: 1, mine: 'fire' });
+    expect(await pending).toEqual({ ok: true, mine: 'fire' });
+    leagueApi.mockRejectedValueOnce({ status: 403, message: 'Reactions are closed.' });
+    const refused = await react({ postId: 'p1', current: { counts: { fire: 1 }, total: 1, mine: 'fire' }, next: null, toast: vi.fn() });
+    expect(refused.ok).toBe(false);
+    expect(events.at(-1).reactions.mine, 'the old reaction is back').toBe('fire');
+    stop();
   });
 });

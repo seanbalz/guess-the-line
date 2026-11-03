@@ -70,7 +70,7 @@ export function rankReport({ fresh, stored, rank, tied = false, league, mode, ma
   return { write: step.write, move: step.move, candidates: candidate ? [candidate] : [] };
 }
 
-/** The arrow Home can show without spending the moment (nothing is written; the League board still toasts). */
+/** The arrow Home can show without spending the moment (nothing is written; the engine's rank moment is what spends it). */
 export function peekMove(stored, current) {
   const rank = rankOf(current?.rank), last = rankOf(stored?.rank), before = rankOf(stored?.from);
   if (rank === null || last === null) return null;
