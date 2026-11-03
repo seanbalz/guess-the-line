@@ -34,7 +34,9 @@ No console errors on the last load. API replies were 200 except the defect below
 On a fresh page load of `#bets/research`, `POST /lines/assessments` failed twice in a row, and the screen showed
 "Research is unavailable right now." with "Retry research".
 
-- **First call:** the browser recorded 503 after about 1 second. No hosted log line exists for it.
+- **First call:** the browser recorded 503 after about 1 second. No hosted log line exists for it. Found later: this
+  is the app's own cancel, not a server reply. `useAssessments.js` keys the request on personal data, so when
+  `/personal` returns it aborts the first request and sends again (timing status 0).
 - **Second call:** 546 after 2,050ms. The hosted logs record `POST | 546 | …/gtl-api/lines/assessments` and
   "CPU Time exceeded" at 20:53:58 UTC.
 - **Earlier:** a load at 20:52 also saw two unlogged 503s.
@@ -46,12 +48,24 @@ On a fresh page load of `#bets/research`, `POST /lines/assessments` failed twice
 It is the same failure class as the October 22 `/trends/week` release: an Edge Function is capped at about 2 seconds
 of CPU per request.
 
-**Fix, not deployed:** [PR #453](https://github.com/seanbalz/guess-the-line/pull/453).
+**Fix, deployed and checked:** [PR #453](https://github.com/seanbalz/guess-the-line/pull/453).
 - **Cause:** `readAssessments` rebuilt each game-market's historical evidence for every book and side.
 - **Change:** that work now runs once per game-market, and the reply is byte-identical.
 - **Local CPU,** median of 5 cold processes: cold 282 → 218 ms, warm 110 → 47 ms.
-- **Release:** it ships with the next `api` release on Sean's approval. Only a signed-in readback afterwards proves the
-  546 is gone.
+- **Release:** `gtl-api` v48 from `386467aa`, deploy run
+  [41726861800](https://github.com/seanbalz/guess-the-line/actions/runs/41726861800), finished 22:04:01 UTC
+  ([release card #456](https://github.com/seanbalz/guess-the-line/issues/456)). Sean said "deploy now" and approved
+  the production gate.
+- **Readback after release:** the same Mac mini Chrome, signed in, read only, three full reloads of
+  `#bets/research`, at 22:04:40, 22:05:18 and 22:05:29 UTC.
+  - Every load showed the list of 20 assessed bets; none showed "Research is unavailable right now", and the console
+    had no errors.
+  - Each load's `/lines/assessments` returned 200, after 3,327, 2,740 and 2,405ms. The cancelled first call is
+    still there, as above.
+  - The hosted logs show `POST | 200 | …/lines/assessments` at 22:04:46.967, 22:05:24.279 and 22:05:33.531 UTC, and no
+    546 or "CPU Time exceeded".
+- **Still open:** the shared research reader's per-worker cold work (about 200ms locally). If a 546 comes back, move
+  that work into the prepared snapshot.
 
 ## Wording note: Trends › This Week top-trend tiles
 
