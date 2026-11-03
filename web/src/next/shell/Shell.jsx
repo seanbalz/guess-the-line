@@ -18,7 +18,7 @@ import { noteSportRoute } from '../../sportNavigation.js';
 import { useDashboardPreferences } from '../../dashboardPreferences.js';
 import { Boundary, FailCard } from './Boundary.jsx';
 import { MomentsProvider } from '../moments/MomentsProvider.jsx';
-import { armLaunch, resetLaunch } from '../moments/launch.js';
+import { armLaunch, isSettled, markNavigated, resetLaunch } from '../moments/launch.js';
 import { clearMomentSeen } from '../moments/seen.js';
 import { ShellContext } from './context.js';
 import { DetailBack, OfflineBanner, SportControls, TabBar, TopBar } from './Frame.jsx';
@@ -189,6 +189,18 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
     schedule();
     return stop;
   }, [state.nav]);
+
+  // D-69: the launch screen ends at the member's first navigation (launch.js): a tab change, `go`, Back, a restore, or
+  // a sheet, page or dialog opening or closing. A change before the first press (the load-time restore) never counts,
+  // and the first render is not a change. A layout effect, so the cards this navigation mounts already see it when
+  // their moment scopes open (useMomentScope's passive effect runs after every layout effect of the commit).
+  const layered = state.sheets.length > 0 || !!state.page || !!state.dialog;
+  const launchPlace = useRef({ nav: state.nav, layered });
+  useLayoutEffect(() => {
+    if (launchPlace.current.nav === state.nav && launchPlace.current.layered === layered) return;
+    launchPlace.current = { nav: state.nav, layered };
+    if (isSettled()) markNavigated();
+  }, [state.nav, layered]);
 
   const onSignOutRef = useRef(onSignOut);
   onSignOutRef.current = onSignOut;

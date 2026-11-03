@@ -1,7 +1,7 @@
 // D-69 moments engine: the launch guard and the engine that plays moments (web/src/next/moments). Fixture data only.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { armLaunch, isSettled, markSettled, onSettled, resetLaunch } from '../web/src/next/moments/launch.js';
+import { armLaunch, hasNavigated, isSettled, markNavigated, markSettled, onLaunchScreen, onSettled, resetLaunch } from '../web/src/next/moments/launch.js';
 import { createMomentsEngine } from '../web/src/next/moments/engine.js';
 import { SCOPES } from '../web/src/next/moments/catalog.js';
 
@@ -33,6 +33,22 @@ test('launch guard: settled only by a trusted press or key; a reset makes it a l
   disarm();
   assert.deepEqual(Object.keys(handlers), []);
   resetLaunch();
+});
+
+test('launch screen: a press settles the launch but only a navigation ends the launch screen; a reset starts both again', () => {
+  resetLaunch();
+  assert.equal(hasNavigated(), false);
+  assert.equal(onLaunchScreen(), true);
+  markSettled();
+  assert.equal(isSettled(), true, 'a scroll press means the member is here');
+  assert.equal(onLaunchScreen(), true, 'but a press alone is not a navigation: the launch screen stays');
+  markNavigated();
+  assert.equal(hasNavigated(), true);
+  assert.equal(onLaunchScreen(), false, 'the first navigation ends the launch screen');
+  resetLaunch();
+  assert.equal(isSettled(), false, 'a new sign-in is a launch again');
+  assert.equal(hasNavigated(), false, 'and a launch screen again');
+  assert.equal(onLaunchScreen(), true);
 });
 
 test('engine: a first read seeds silently; a new badge at launch waits as NEW and plays when its card is opened after the launch', () => {
