@@ -2,7 +2,10 @@ name: Research data refresh
 # Free completed-game data only. No odds provider, Supabase key or app deploy.
 on:
   schedule:
-    - cron: '23 */4 * * *'
+    # Hourly slots, because GitHub delays or drops scheduled runs under load: with four-hour slots only 5 of about 13 ran
+    # from November 1 to 3, 2026, each 2-3 hours late. The app marks research history stale whenever the nflverse schedule
+    # file changes, so more runs keep it current. Each run takes about two minutes; this repository is public.
+    - cron: '23 * * * *'
   workflow_dispatch:
     inputs:
       dry_run:
