@@ -1,0 +1,21 @@
+/* D-69 Your guesses as nesting cards: the week's game tiles (the D-66 nest tile, three to a row). */
+.gx .gx-picks-tile { gap: var(--gx-space-1); padding: var(--gx-space-2) var(--gx-space-3) var(--gx-space-3); }
+/* The next game to lock: a data edge, not lime (lime stays for your selection and the one primary action). */
+.gx .gx-picks-tile--next { border-color: var(--gx-data); box-shadow: inset 0 0 0 1px var(--gx-data); }
+.gx .gx-picks-tile .gx-nest-tile-top { flex-wrap: nowrap; color: var(--gx-text-3); }
+.gx .gx-picks-tag { min-width: 0; color: var(--gx-text-2); }
+.gx .gx-picks-tag--next { color: var(--gx-data); }
+.gx .gx-picks-tag--draft { color: var(--gx-pending); }
+.gx .gx-picks-tile[data-state="locked"] .gx-nest-tile-top { color: var(--gx-accent-ink); }
+.gx .gx-picks-guess { display: flex; align-items: baseline; gap: var(--gx-space-1); min-width: 0; }
+.gx .gx-picks-lead { color: var(--gx-text-2); }
+/* One game's card body sits inside its nesting card: no second frame, so the picker keeps 44px chips at 320. */
+.gx .gx-live-play .gx-play-game.gx-play-game--nested { padding: 0; border: 0; background: none; box-shadow: none; }
+/* Next to lock wraps its matchup onto a second line when the nested card is narrow (320, wider fallback fonts), so it
+   never widens the column into a sideways scroll. */
+.gx .gx-per-game--nest .gx-play-next { flex-wrap: wrap; min-width: 0; max-width: 100%; padding-block: var(--gx-space-2); }
+/* Next to lock as the lime button (after a lock): the matchup's codes and "@" take the button's text color. */
+.gx .gx-play-next.gx-btn--primary .gx-mu-side, .gx .gx-play-next.gx-btn--primary .gx-mu-at { color: inherit; }
+@media (max-width: 359px) {
+  .gx .gx-picks-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

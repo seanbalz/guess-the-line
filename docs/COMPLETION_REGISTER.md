@@ -32,6 +32,29 @@ first,” with D-55 Round 3 charts. No new design selection is required for this
 The frozen v62 tracker is unchanged. The previous, cumulative register is retained
 as a [dated archive](COMPLETION_REGISTER_ARCHIVE_2026_10_26.md).
 
+## Play › Your guesses nesting cards (D-69) — November 2, 2026
+
+Sean asked for the next design pass, to cut text on Home and Play. On the live app Home (139 words) and the Play
+landing (59) were already lean. Your guesses was the long screen: 15 stacked 525px cards, 9,043px, 1,317 words
+and 252 buttons on the open Total ballot. From five options on the
+[comparison canvas](https://claude.ai/artifact/5Kj42mrQJZ2UJGqsxm4nSn) he chose **1 · Nesting cards** and approved the
+[design spec](superpowers/specs/2026-11-02-play-picks-nesting-cards-design.md).
+
+- **Built, on branch `claude/home-play-design`.**
+  - **The week:** one card, with one tile per game showing your own guess only.
+  - **One game:** a tile opens that game's card, with a lip back to the week. It holds the picker and Lock in, or the
+    receipt and the reveal, then Next.
+  - **Navigation:** a game has its own address, and Next replaces the open game in both the trail and the browser
+    history. Moving between the week and its games never asks to leave an unsaved draft; leaving Your guesses still
+    does.
+  - **Recovery:** checking and retrying an unconfirmed save is reachable from either card.
+- **Evidence (local).**
+  - **Unit and navigation:** 12 component tests and 17 router tests.
+  - **Cloud browser:** the per-game scoring, moments, Lines game actions and new `next-play-nest` cases pass against
+    the real handler on PGlite. They cover 390px and 320px, Dark and Light, axe, 44px targets and no sideways scroll.
+- **Not done:** no release or real-phone check yet. The other Play screens (League, Your weekly score, Badges, Guess
+  the Points) are not in this pass.
+
 ## Pick reminders follow-ups from the #411 review — November 2, 2026
 
 Menu › Pick reminders now shows in EPL as well as NFL: the EPL frame takes the
