@@ -18,8 +18,10 @@ permissions:
   actions: read
   contents: read
   issues: write
+# One group per watched workflow: its runs are handled in order, so one incident opens one issue. GitHub keeps only the
+# newest pending run of a group, so a shared group could drop the other workflow's alert.
 concurrency:
-  group: ops-alerts
+  group: ops-alerts-${{ github.event.workflow_run.path || inputs.run_id }}
   cancel-in-progress: false
 jobs:
   alert:

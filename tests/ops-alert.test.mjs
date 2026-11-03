@@ -64,6 +64,20 @@ test('runs older than the open alert never update or close it (a replayed or lat
   assert.equal(alertPlan({ run: run({ run_started_at: older, conclusion: 'success' }), jobs: publishedOk, issues: [openAlert()] }).action, 'none');
 });
 
+test('the same run delivered twice counts once; a re-run attempt of it (same id, later start) counts again', () => {
+  const same = run({ id: 102, run_started_at: '2026-11-03T09:34:36Z' });
+  assert.equal(alertPlan({ run: same, jobs: buildFailed, issues: [openAlert()] }).action, 'none', 'a redelivered event is not a new failure');
+  const rerun = alertPlan({ run: run({ id: 102, run_started_at: '2026-11-03T09:40:00Z' }), jobs: buildFailed, issues: [openAlert()] });
+  assert.equal(rerun.action, 'update');
+  assert.equal(readAlertState(rerun.body).failures, 3);
+});
+
+test('an alert whose hidden state was edited out of shape is ignored, never crashes the run', () => {
+  const broken = { number: 7, body: '<!-- ops-alert {"workflow":".github/workflows/fantasy-refresh.yml","failures":2} -->' };
+  assert.equal(readAlertState(broken.body), null);
+  assert.equal(alertPlan({ run: run(), jobs: buildFailed, issues: [broken] }).action, 'open');
+});
+
 test('cancelled, skipped, non-main and unwatched runs change nothing; a success with no open alert does nothing', () => {
   for (const conclusion of ['cancelled', 'skipped', 'neutral']) assert.equal(alertPlan({ run: run({ conclusion }), jobs: [], issues: [openAlert()] }).action, 'none', conclusion);
   assert.equal(alertPlan({ run: run({ head_branch: 'claude/x' }), jobs: buildFailed, issues: [] }).action, 'none');
@@ -128,8 +142,8 @@ test('updating edits only the body; closing comments, then closes; pull requests
   const close = fakeGitHub({ runOver: { conclusion: 'success', run_started_at: '2026-11-03T11:02:05Z' }, jobs: publishedOk, issues: [openAlert()] });
   await runOpsAlert({ env, fetchImpl: close.fetchImpl, log: () => {} });
   const writes = close.calls.filter(call => call.method !== 'GET');
-  assert.deepEqual(writes.map(call => `${call.method} ${call.route}`), ['POST /issues/7/comments', 'PATCH /issues/7']);
-  assert.deepEqual(writes[1].body, { state: 'closed', state_reason: 'completed' });
+  assert.deepEqual(writes.map(call => `${call.method} ${call.route}`), ['PATCH /issues/7', 'POST /issues/7/comments'], 'closed before the comment, so a retry never comments twice');
+  assert.deepEqual(writes[0].body, { state: 'closed', state_reason: 'completed' });
 });
 
 test('a dry run reads but never writes, and a bad run id or a failed API call stops with an error', async () => {

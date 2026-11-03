@@ -1,6 +1,7 @@
 // Contract (item 22): the Ops alerts workflow starts when either data refresh completes, by the exact names those
 // workflows carry (a rename would silently stop alerts), can replay one run by hand, may only read runs and write issues,
-// never sees a secret or the event payload inside a shell line, and handles one run at a time so an incident opens one issue.
+// never sees a secret or the event payload inside a shell line, and handles each workflow's runs one at a time so an
+// incident opens one issue, without one workflow's runs displacing the other's.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -27,7 +28,8 @@ test('least privilege: read runs and code, write issues, no secrets, no stored c
 
 test('only main runs (or a manual replay) are handled, one at a time, and the run id reaches the script only through env', () => {
   assert.match(yaml, /^ {4}if: github\.event_name == 'workflow_dispatch' \|\| github\.event\.workflow_run\.head_branch == 'main'$/m);
-  assert.match(yaml, /^concurrency:\n {2}group: ops-alerts\n {2}cancel-in-progress: false$/m);
+  // Per workflow: GitHub keeps only the newest pending run of a group, so a shared group could drop another workflow's alert.
+  assert.match(yaml, /^concurrency:\n {2}group: ops-alerts-\$\{\{ github\.event\.workflow_run\.path \|\| inputs\.run_id \}\}\n {2}cancel-in-progress: false$/m);
   assert.match(yaml, /env:\n {10}GH_TOKEN: \$\{\{ github\.token \}\}\n {10}RUN_ID: \$\{\{ github\.event\.workflow_run\.id \|\| inputs\.run_id \}\}\n {8}run: node scripts\/ops-alert\.mjs$/m);
   const runLines = yaml.match(/^ +run: .+$/gm);
   assert.deepEqual(runLines, ['        run: node scripts/ops-alert.mjs']);

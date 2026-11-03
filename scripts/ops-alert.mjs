@@ -31,8 +31,9 @@ export async function runOpsAlert({ env = process.env, fetchImpl = fetch, dryRun
   } else if (plan.action === 'update') {
     await api(`/issues/${plan.number}`, { method: 'PATCH', body: { body: plan.body } });
   } else {
-    await api(`/issues/${plan.number}/comments`, { method: 'POST', body: { body: plan.comment } });
+    // Close first: if the comment then fails, a retry finds no open alert instead of posting the comment twice.
     await api(`/issues/${plan.number}`, { method: 'PATCH', body: { state: 'closed', state_reason: 'completed' } });
+    await api(`/issues/${plan.number}/comments`, { method: 'POST', body: { body: plan.comment } });
   }
   return plan;
 }

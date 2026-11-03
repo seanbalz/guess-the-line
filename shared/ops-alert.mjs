@@ -19,10 +19,14 @@ export function failedStep(jobs) {
 /** True when a publish step ran and succeeded: a dry run, or a run whose publish was skipped, proves nothing. */
 export const published = jobs => (jobs ?? []).some(job => (job.steps ?? []).some(step => /^Publish\b/.test(step.name) && step.conclusion === 'success'));
 
-/** The alert state kept in the issue body, or null for any other issue. */
+/** The alert state kept in the issue body, or null for any other issue (or a marker edited out of shape). */
 export function readAlertState(body) {
   const match = typeof body === 'string' ? body.match(MARKER) : null;
-  try { return match ? JSON.parse(match[1]) : null; } catch { return null; }
+  let state = null;
+  try { state = match ? JSON.parse(match[1]) : null; } catch { return null; }
+  const valid = state && typeof state.workflow === 'string' && Number.isInteger(state.failures) && Number.isFinite(Date.parse(state.first))
+    && Number.isFinite(Date.parse(state.last?.at));
+  return valid ? state : null;
 }
 
 export const alertTitle = name => `Ops alert: ${name} is failing`;
