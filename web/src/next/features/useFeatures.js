@@ -23,10 +23,11 @@ export function useFeatures(app, shell, { celebrate = true } = {}) {
   const moments = useMoments();
   // D-69: every fresh features read reports the viewer's badges and awards; the engine plays the new ones only where
   // their card opens after the launch, and keeps the rest as NEW. `celebrate: false` (a badge's own sheet) reports nothing.
+  // Each league's read is its own source: the first read of a league on this device seeds it silently.
   useEffect(() => {
     if (!read.data || !viewer || !celebrate || !moments) return;
-    moments.report(featureMoments(read.data, viewer));
-  }, [read.data, viewer, celebrate, moments?.report]);
+    moments.report(featureMoments(read.data, viewer), { source: `features:${leagueId ?? 'community'}` });
+  }, [read.data, viewer, celebrate, moments?.report, leagueId]);
   // 404: M-25 is not on the server yet (or this gtl-api has no route): the features are simply not shown.
   const off = read.error?.status === 404;
   return { ...read, model, off, leagueId };

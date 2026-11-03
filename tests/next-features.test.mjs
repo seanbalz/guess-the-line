@@ -81,6 +81,12 @@ test('celebrations: every badge and award of the viewer is a moment candidate, o
   assert.ok(!items.some(i => i.title === 'Sharp'), 'another player\'s badge is not your celebration');
   assert.ok(items.every(i => typeof i.icon === 'string' && i.icon.length > 10));
   assert.ok(items.every(i => /^(badge|award):/.test(i.id)), 'stable ids: the seen record matches them across reads');
+  assert.deepEqual(items.map(i => i.id), ['badge:community:bullseye:u-you:2026:6:SEA-DEN', 'badge:community:double_bullseye:u-you:2026:7:PIT-TB',
+    'badge:community:bullseye:u-you:2026:7:PIT-TB', 'award:community:2026:7:spread_winner', 'award:community:2026:7:best_guess'], 'ids name the league and the season');
+  const elsewhere = M.featureMoments({ ...REPLY, leagueId: 'L2', season: 2027 }, YOU).map(i => i.id);
+  assert.ok(elsewhere.includes('award:L2:2027:7:spread_winner'), 'another league\'s or season\'s Week 7 award is another moment');
+  assert.ok(elsewhere.includes('badge:L2:bullseye:u-you:2026:6:SEA-DEN'));
+  assert.ok(!elsewhere.some(id => items.some(i => i.id === id)), 'no id is shared across leagues');
   assert.deepEqual(items[0].scopes, M.FEATURE_SCOPES);
   assert.deepEqual(M.FEATURE_SCOPES, ['features', 'home', 'league', 'play']);
   assert.deepEqual(M.featureMoments(null, YOU), []);
