@@ -16,6 +16,24 @@ production gates after checking each run title:
 `gtl-push-reminders` is **v6**, ACTIVE, `verify_jwt` false, bundle SHA-256 `460389e9…952b`. Nothing else was deployed. Signed
 out, the live worker refuses calls with no token or a wrong one (401). Nothing players see changed.
 
+## Signed-in production readback — November 3, 2026
+
+On Sean's request, a read-only check ran in the Mac mini's Chrome, signed in as the commissioner, against the
+frontend at `134f17c8`. Passed:
+- Home and Play › Your guesses (D-70: 15 tiles, 71 words);
+- My bets (D-72: Roomy previews, 32px gaps);
+- the Virtual Units placing screen (D-67);
+- Research Games, Trends and Fantasy;
+- Odds connection;
+- the step 0 tab fade.
+
+**Defect:** a cold load of Bets › Research recommendations (D-73) can fail with "Research is unavailable right
+now". `POST /lines/assessments` logged 546 "CPU Time exceeded" at 20:53:58 UTC. Warm loads return 200. The fix is
+PR #453, not deployed.
+
+Not checked: the 320/390px phone widths and a real iPhone. See the
+[readback record](READBACK_2026_11_03_SIGNED_IN.md).
+
 ## Supabase job alerts by phone push, M-38 — November 3, 2026
 
 Item 22, second half. A pg_cron row says `succeeded` when the dispatcher ran, not when the work happened (Points
