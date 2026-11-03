@@ -1,5 +1,21 @@
 # Guess The Line — current completion register
 
+## Reminder worker error answer, gtl-push-reminders v6 — November 3, 2026
+
+The `gtl-ops-alerts` review (item 22) found that `cloud/push-reminders.mjs` returned `finish(...)` inside `try` without
+`await`. A refused completion (a finished or reclaimed run, or a database outage) therefore answered a generic 500, not the
+mapped 400, 401 or 503. The run state in SQL was already right. PR #450 (merged as `067ce119`) awaits both finish paths, and a
+test written first failed before the fix and passes after it (39 reminder tests, `# skipped 0`).
+
+Released at Sean's word in the operating session ("you have full approval and permission"). The session approved both
+production gates after checking each run title:
+- check-only 41719765821;
+- readiness 41719845465, history digest `4345486d…4066`;
+- deploy 41720249887, release card on PR #450.
+
+`gtl-push-reminders` is **v6**, ACTIVE, `verify_jwt` false, bundle SHA-256 `460389e9…952b`. Nothing else was deployed. Signed
+out, the live worker refuses calls with no token or a wrong one (401). Nothing players see changed.
+
 ## Signed-in production readback — November 3, 2026
 
 On Sean's request, a read-only check ran in the Mac mini's Chrome, signed in as the commissioner, against the
