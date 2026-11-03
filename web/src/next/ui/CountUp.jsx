@@ -4,18 +4,19 @@
 // - The `big` duration (600 ms, the brand's cap for count-ups) with the `enter` easing, read from the element's
 //   --gx-dur-big and --gx-ease-enter, which tokens.css defines from design/tokens-next.json (tests/next-tokens.test.mjs
 //   keeps the two equal). Enter never overshoots, and frameAt keeps every frame between the two values anyway.
-// - The remembered value is per account and figure in device storage (`gtl.next.countUp.v1.…`), written once the launch has
-//   settled (D-69: a page load shows the final value and remembers nothing), so it counts once per change.
-// - At rest the element holds one text node, the server's value ("—" when it sent none). While counting, the moving
-//   digits are hidden from assistive technology and the final value is in screen-reader text, so nobody is told a
-//   number the server did not send.
+// - The remembered value is per account and figure in device storage (`gtl.next.countUp.v1.…`), so it counts once per
+//   change. D-69: the first value a mount sees on the launch screen (before the member's first navigation) shows as it
+//   is and is not remembered; a later value in the same mount counts from the value on screen.
+// - At rest the element holds one text node, the server's value ("—" when it sent none), in a polite live region
+//   (spec 4.4). While counting, the moving digits are hidden from assistive technology and the final value is in
+//   screen-reader text, so nobody is told a number the server did not send.
 // - Reduced motion (the device setting, or data-motion="reduce" on the app root) and a hidden page show the final value
 //   at once. Only text changes: no layout property animates.
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { cx } from './cx.js';
 import { countUpKey, countUpPlan, countUpTiming, decimalsOf, formatCount, frameAt, readSeen, writeSeen } from '../moments/countUp.js';
 import { motionReduced } from './motion.js';
-import { isSettled } from '../moments/launch.js';
+import { onLaunchScreen } from '../moments/launch.js';
 import './countUp.css';
 
 export { motionReduced } from './motion.js';
@@ -36,17 +37,25 @@ function timingOf(element) {
 export function CountUp({ value, account, figure, format = formatCount, className, ...rest }) {
   const final = finite(value) ? value : null;
   const text = final === null ? formatCount(null) : format(final);
-  const ref = useRef(null), seenFor = useRef(null);
+  // `seenFor`: what one value is planned from; `shown`: the value this mount last showed at rest, for one figure;
+  // `fresh`: true until the mount's first value, the only one that can be a launch value.
+  const ref = useRef(null), seenFor = useRef(null), shown = useRef(null), fresh = useRef(true);
   const [frame, setFrame] = useState(null);
   const key = countUpKey(account, figure);
   useClientLayoutEffect(() => {
     if (final === null || !key) { setFrame(null); return undefined; }
-    // Read the remembered value once per new value: under React's development double effects the second pass must
-    // still count from what the device saw, not from the value the first pass just wrote.
+    // Read the remembered and shown values once per new value: under React's development double effects the second
+    // pass must still count from what the device saw and showed, not from the value the first pass just wrote.
     const id = `${key}=${final}`;
-    if (seenFor.current?.id !== id) seenFor.current = { id, seen: readSeen(key) };
-    const plan = countUpPlan({ seen: seenFor.current.seen, value: final, reduced: motionReduced(ref.current), hidden: typeof document !== 'undefined' && document.hidden === true, launch: !isSettled() });
+    if (seenFor.current?.id !== id) {
+      const launch = fresh.current && onLaunchScreen();
+      fresh.current = false;
+      seenFor.current = { id, seen: readSeen(key), shown: shown.current?.key === key ? shown.current.value : null, launch };
+    }
+    const { seen, shown: from, launch } = seenFor.current;
+    const plan = countUpPlan({ seen, shown: from, value: final, reduced: motionReduced(ref.current), hidden: typeof document !== 'undefined' && document.hidden === true, launch });
     if (plan.remember) writeSeen(key, final);
+    shown.current = { key, value: final };
     if (!plan.animate) { setFrame(null); return undefined; }
     const { ms, ease } = timingOf(ref.current);
     const decimals = Math.max(decimalsOf(plan.from), decimalsOf(plan.to));
@@ -64,7 +73,7 @@ export function CountUp({ value, account, figure, format = formatCount, classNam
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
   }, [final, key]);
-  if (frame === null) return <span ref={ref} className={cx('gx-countup', className)} data-count="rest" {...rest}>{text}</span>;
+  if (frame === null) return <span ref={ref} className={cx('gx-countup', className)} data-count="rest" aria-live="polite" {...rest}>{text}</span>;
   return (
     <span ref={ref} className={cx('gx-countup', className)} data-count="run" {...rest}>
       <span aria-hidden="true">{frame}</span>

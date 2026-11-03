@@ -76,6 +76,7 @@ describe('CountUp', () => {
       expect(markupProblems(html)).toEqual([]);
       const el = nodes(html, hasClass('gx-countup'))[0];
       expect(el.attrs['data-count']).toBe('rest');
+      expect(el.attrs['aria-live'], 'screen readers hear the settled number only (spec 4.4)').toBe('polite');
       expect(el.children).toEqual([expect.objectContaining({ text })]);
     }
   });

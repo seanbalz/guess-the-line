@@ -52,6 +52,20 @@ test('D-69: a page load shows the final value and remembers nothing, so the coun
   assert.deepEqual(C.countUpPlan({ seen: null, value: 20 }), { animate: false, from: 20, to: 20, remember: true }, 'a first sighting shows the number');
 });
 
+test('D-69: a later value in the same mount counts from the value on screen, never back through an older record (20 → 24, not 20 → 12 → 24)', () => {
+  // The launch: this device's record says 12, the screen shows the server's 20 and remembers nothing.
+  assert.deepEqual(C.countUpPlan({ seen: 12, shown: null, value: 20, launch: true }), { animate: false, from: 20, to: 20, remember: false });
+  // A refresh brings 24 while the card stays open: it counts from the 20 on screen and remembers 24.
+  assert.deepEqual(C.countUpPlan({ seen: 12, shown: 20, value: 24 }), { animate: true, from: 20, to: 24, remember: true });
+  assert.deepEqual(C.countUpPlan({ seen: 12, shown: 24, value: 24 }), { animate: false, from: 24, to: 24, remember: true }, 'the value already on screen does not move');
+  assert.deepEqual(C.countUpPlan({ seen: null, shown: 20, value: 18 }), { animate: true, from: 20, to: 18, remember: true }, 'from the screen even without a record');
+  // Nothing shown yet in this mount (or a shown value that is not a number): from the device's record, as before.
+  assert.deepEqual(C.countUpPlan({ seen: 12, shown: null, value: 24 }), { animate: true, from: 12, to: 24, remember: true });
+  assert.deepEqual(C.countUpPlan({ seen: 12, shown: Number.NaN, value: 24 }), { animate: true, from: 12, to: 24, remember: true });
+  assert.deepEqual(C.countUpPlan({ seen: 12, shown: 20, value: 24, reduced: true }), { animate: false, from: 24, to: 24, remember: true }, 'reduced motion shows the final value');
+  assert.equal(C.countUpPlan({ seen: 12, shown: 20, value: 24, hidden: true }).animate, false);
+});
+
 test('frames: the last frame is exactly the server value, and no frame leaves the range between the two values', () => {
   const pop = C.bezierEasing(C.parseBezier(tokens.ease.pop)); // overshoots past 1 on purpose
   let overshoot = 0;

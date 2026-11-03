@@ -120,16 +120,19 @@ export function formatCount(value, decimals = decimalsOf(value)) {
 }
 
 /**
- * Whether to count and from where: `{ animate, from, to, remember }`. It counts only from a value this device saw
- * (finite and different), never from 0 or a guess, and never under reduced motion or while the page is hidden. On a
- * launch (D-69: nothing moves on page load) it shows the final value and remembers nothing, so the count plays the
- * next time the member opens the card.
+ * Whether to count and from where: `{ animate, from, to, remember }`. `shown` is the value this mount last showed at
+ * rest, `seen` the one this device remembers. It counts from `shown` when there is one (a later value in the same
+ * mount moves on from the screen, never back through an older record), otherwise from `seen`: only from a finite
+ * value that differs, never from 0 or a guess, and never under reduced motion or while the page is hidden. On a launch
+ * (D-69: the mount's first value on the launch screen) it shows the final value and remembers nothing, so the count
+ * plays the next time the member opens the card.
  */
-export function countUpPlan({ seen, value, reduced = false, hidden = false, launch = false } = {}) {
+export function countUpPlan({ seen, shown = null, value, reduced = false, hidden = false, launch = false } = {}) {
   if (!finite(value)) return { animate: false, from: null, to: null, remember: false };
   if (launch) return { animate: false, from: value, to: value, remember: false };
-  const animate = finite(seen) && seen !== value && !reduced && !hidden;
-  return { animate, from: animate ? seen : value, to: value, remember: true };
+  const start = finite(shown) ? shown : seen;
+  const animate = finite(start) && start !== value && !reduced && !hidden;
+  return { animate, from: animate ? start : value, to: value, remember: true };
 }
 
 /**
