@@ -77,3 +77,11 @@ test('engine: an exact guess that arrives while the ballot is open plays in plac
   r.engine.report(pointsMoments(week([scored('QB', 21, 18.4), scored('RB', 12, 12)])), { source: SOURCE });
   assert.deepEqual(r.big, [['points-exact:2026:7:RB']]);
 });
+
+test('pointsMoments meta: "1 point" is singular, and every separator is the one middle dot', () => {
+  const [one] = pointsMoments(week([scored('RB', 1, 1)]));
+  assert.equal(one.meta, 'Week 7 · RB · Fixture RB Player · 1 point');
+  const [two] = pointsMoments(week([scored('QB', 21, 21)]));
+  assert.match(two.meta, /21 points$/);
+  assert.equal(two.meta.split(' · ').length, 4, 'one separator between each part, none hand-typed');
+});

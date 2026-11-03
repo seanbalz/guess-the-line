@@ -14,7 +14,7 @@ export function pointsMoments(read) {
   if (read?.status !== 'open' || !Number.isInteger(read.season) || !Number.isInteger(read.week) || !Array.isArray(read.slots)) return [];
   return read.slots.filter(isExact).map(slot => ({
     id: `points-exact:${read.season}:${read.week}:${slot.slot}`, kind: 'pointsExact', scopes: [SCOPES.points],
-    title: 'Exact guess', meta: `Week ${read.week}${SEP}${slot.slot} · ${slot.name}${SEP}${pts(slot.actual)} points`,
+    title: 'Exact guess', meta: `Week ${read.week}${SEP}${slot.slot}${SEP}${slot.name}${SEP}${pts(slot.actual)} ${slot.actual === 1 ? 'point' : 'points'}`,
     icon: BADGE_ICONS.bullseye, rarity: 'rare',
   }));
 }
