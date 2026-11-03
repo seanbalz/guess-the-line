@@ -99,6 +99,23 @@ palette, icons and motion tokens are unchanged (D-58). New game types (friend ch
 Decathlon) are a separate spec. Spec: [2026-11-02-design-overhaul-design.md](superpowers/specs/2026-11-02-design-overhaul-design.md).
 This decision does not authorize a production release; each step releases through the existing workflow.
 
+*Addendum, November 3, 2026 — Step 1 Play choices: P1B, P2B, P3B, P4A, P5A, P6A.* Sean answered six Play questions
+one at a time on the same canvas (rows P1 to P6, interactive boards with sample data), choosing the recommended option
+each time ("Use P1B" through "Use P6A"):
+- **P1B, first card:** the ballot to do next is the next-move card; the other ballot is the first tile; the Feed tile
+  folds into the League tile.
+- **P2B, Your score's game layer:** a number line with the saved line, your guess and the gap; the source and times
+  sit behind "About this score".
+- **P3B, Compare:** one other member at a time; paired points bars for the week and each game; another player's guess
+  shows only once that game's D-31 gate is open.
+- **P4A, Guess the Points:** five slot tiles and a Points board tile, then a slot layer that keeps every D-56 piece.
+- **P5A, Badges and awards:** streaks and awards tiles, then the badge grid and Season winners; each opens a layer.
+- **P6A, League:** the board first, the two newest posts under it, then the feed and History as layers.
+These choose layouts only; no game rule changes. The spec's step 1 section records them, and the plan is
+[2026-11-03-design-overhaul-step1-play.md](superpowers/plans/2026-11-03-design-overhaul-step1-play.md). Sean
+approved the plan and its "Decisions for Sean" list the same day ("Approve plan"). Building step 1 waits for the
+step 0 release and his iPhone check.
+
 ## D-68 — Premier League: Sleeper FEPL, Pick a Team and EPL moneyline (October 28, 2026)
 
 **Deployment status update — October 29, 2026:** M-30 and M-31 are applied;

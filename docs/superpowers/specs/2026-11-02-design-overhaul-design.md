@@ -2,11 +2,13 @@
 
 Owner: Sean Balsiger · Designed with Sean in chat October 26 and November 2, 2026 · Status: **approved as written
 (D-69).** Sean answered five questions one at a time on a mockup canvas, approved the three design parts in chat
-("Looks right", "Looks right", "Looks right, write spec"), then reviewed this written spec: "Spec approved". Nothing
-is built. The step 0 plan is `docs/superpowers/plans/2026-11-02-design-overhaul-step0-kit.md`.
+("Looks right", "Looks right", "Looks right, write spec"), then reviewed this written spec: "Spec approved". Step 0
+(`docs/superpowers/plans/2026-11-02-design-overhaul-step0-kit.md`) is merged (PR #428) and not released. On November 3
+he answered the six Play questions (section 2) and approved the step 1 plan ("Approve plan"),
+`docs/superpowers/plans/2026-11-03-design-overhaul-step1-play.md`. Step 1 is not built.
 
 Mockups: [GTL Design Overhaul Mockups](https://claude.ai/artifact/YBJmR5XUV59juyGKPGphJ7), a private canvas with
-rows Q1 to Q5. The mockups use sample numbers and colored circles in place of team marks.
+rows Q1 to Q5 and P1 to P6. The mockups use sample numbers and colored circles in place of team marks.
 
 Claim tags: **[inspected]** read in this repository at `e7a38c6e` (or at `1f392fe1` where noted); **[assumed]** a
 design default, not measured.
@@ -48,6 +50,21 @@ design default, not measured.
 | Part 1 | Scope and shared kit | | "Looks right" |
 | Part 2 | Card anatomy and page plan | | "Looks right" |
 | Part 3 | Testing, delivery and decision record | | "Looks right, write spec" |
+
+### Step 1 · Play answers (November 3, 2026)
+
+Sean answered six Play questions, one at a time, on the same canvas (rows P1 to P6, interactive boards with sample
+data). Each answer was the recommended option. The step 1 plan is
+`docs/superpowers/plans/2026-11-03-design-overhaul-step1-play.md`.
+
+| # | Question | Options shown | Sean's answer |
+|---|---|---|---|
+| P1 | Two ballots, one next move: where does Guess the Total go? | P1A both ballots inside the card; P1B next ballot first, the other as a tile (recommended); P1C a Spread/Total switch on the card | **Use P1B** |
+| P2 | What opens when you tap a game in Your score? | P2A receipt; P2B number line (recommended); P2C timeline | **Use P2B** |
+| P3 | Compare: how do you and a friend line up? | P3A side by side; P3B paired bars (recommended); P3C tug of war | **Use P3B** |
+| P4 | Guess the Points: how do the five slots sit? | P4A slot tiles, then the slot layer (recommended); P4B lineup rows; P4C slot strip, card in place | **Use P4A** |
+| P5 | Badges and awards: what comes first? | P5A badge grid first, streaks and awards as tiles (recommended); P5B four tiles; P5C shelves by game | **Use P5A** |
+| P6 | League: board, feed and history in one layer | P6A board first, the newest posts under it (recommended); P6B feed first; P6C four tiles | **Use P6A** |
 
 ### Defaults chosen in this spec (not asked separately)
 
@@ -199,9 +216,11 @@ total, ranks, units, Points totals, streaks and the board.
 Every page below gets the shared kit. Only the changes are listed.
 
 ### Step 1 · Play
-- **First card:**
-  - The next move: Lock in Week N, with the 14-segment week progress and "Make picks".
-  - Tiles: Your score, League, Guess the Points, Badges, Feed and Compare.
+- **First card (P1B):**
+  - The next move is the ballot to do next (`nextGuess`): its name, its 14-segment week progress, one meta line and
+    "Make picks". When both ballots are locked it reads "Week N locked in" with "Review your guesses".
+  - Tiles: the other ballot, Guess the Points, Your score, League, Badges and Compare. The Feed tile folds into the
+    League tile, which shows the rank and the new posts.
   - This replaces `FocusAction`, `FocusRows` and the Points glow card in `play/Play.jsx`.
 - **Picks:** the per-game cards keep the native picker, the lock-in stamp and the reveal.
   - The old-app fallback (WeekPicks from `CommunityHome.jsx`) is rebuilt as the same per-game cards, read-only where
@@ -214,16 +233,22 @@ Every page below gets the shared kit. Only the changes are listed.
   - The hero total counts up, and a rank chip shows the move ("3rd ▲ 2").
   - Game rows show team marks, "Line · You · off by", a miss bar and a points pill; a Bullseye shows its tag.
   - Filters move behind a filter icon button.
-  - Tapping a game opens the game layer (your guess, the saved line and its source, the miss, and kickoff).
-- **Compare:** two faces, then head-to-head big numbers (points, Bullseyes, average miss), then game rows with both
-  guesses once each game's gate allows (D-31).
-- **League:**
-  - **Board:** count-ups and the rank chip; reaching 1st is a big moment.
+  - Tapping a game opens the game layer (P2B): the points, the miss in words, then a number line with the saved line
+    as a tick and your guess as a dot, the gap between them filled, and kickoff. The lock-in time, the saved line's
+    source and when it was seen sit behind "About this score".
+- **Compare (P3B):** one other member at a time, chosen by face. Two faces, then head-to-head big numbers (points as
+  paired bars, Bullseyes, average miss), then game rows with both guesses and paired points bars once each game's gate
+  allows (D-31). Each player is scored against their own saved line.
+- **League (P6A):**
+  - **Board first:** count-ups and the rank chip; reaching 1st is a big moment. The two newest posts sit under it,
+    then "Open the feed" and "History", each a layer.
   - **Feed:** new posts rise in, and reactions pop (small).
   - **History** (old `CommunityHistory.jsx`): rebuilt as season tiles › week tiles › game rows.
-- **Guess the Points:** slot tiles (QB, RB, WR, TE, FLEX) with each slot's state word, then a slot layer. The big
-  stepper and the number line with faces stay. An exact guess is a big moment.
-- **Badges:** a badge grid, then a badge layer. A new badge plays through the engine.
+- **Guess the Points (P4A):** slot tiles (QB, RB, WR, TE, FLEX) in two columns with each slot's state word, and a
+  Points board tile, then a slot layer. The big stepper and the number line with faces stay. An exact guess is a big
+  moment.
+- **Badges (P5A):** a "Your streaks" tile and an awards tile, then the badge grid and a Season winners row; each opens
+  its own layer, the badge layer included. A new badge plays through the engine.
 
 ### Step 2 · Home
 - **The hero:** the existing hero card (week, countdown, status meter and primary button) becomes the next-move card.
