@@ -59,7 +59,7 @@ create table if not exists public.gtl_ops_incidents (
   id bigint generated always as identity primary key,
   key text not null check(char_length(key) between 6 and 80),
   kind text not null check(kind in ('failed','quiet','points-open','points-final','week-open','test')),
-  family text check(family is null or family ~ '^(results|odds|points|push|week_open|features|epl:[a-z-]{1,20})$'),
+  family text check(family is null or family ~ '^(results|odds|points|push|week_open|features|epl:[a-z0-9_-]{1,40})$'),
   season integer check(season is null or season between 2000 and 2200),
   week integer check(week is null or week between 1 and 18),
   at timestamptz not null,

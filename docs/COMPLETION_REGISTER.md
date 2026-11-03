@@ -10,7 +10,7 @@ a findings read-back before the enable) and `ops_alerts_test.sql` are written. L
 `claude/ops-watchdog`: the M-38 PGlite suite (boundaries, no duplicate pushes, re-alert after recovery, privacy), the
 worker suite with an end-to-end run, the release-target contract and migration/rollback registry tests, with
 `# skipped 0`. M-38 is **not applied** (Gate M, Sean's "apply M-38"). `gtl-ops-alerts` is **not deployed**, no schedule
-row or cron exists, and the branch is not pushed. See the [release card](RELEASE_2026_11_03_OPS_ALERTS_M38.md).
+row or cron exists. See the [release card](RELEASE_2026_11_03_OPS_ALERTS_M38.md).
 
 ## Lock-in refresh, D-71 — November 3, 2026
 

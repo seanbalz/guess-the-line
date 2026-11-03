@@ -10,7 +10,7 @@ changes: the alerts go only to the active push subscriptions of the `sean-troy-l
 | Part | State |
 | --- | --- |
 | M-38 `20261103190000_gtl_ops_alerts.sql` | **Not applied.** Local source only (`NOT_HOSTED` in `tests/migrations.mjs`). |
-| `gtl-ops-alerts` Edge Function | **Not deployed.** Source, `supabase/config.toml` entry and release target exist on branch `claude/ops-watchdog`, which is not pushed (no PR). |
+| `gtl-ops-alerts` Edge Function | **Not deployed.** Source, `supabase/config.toml` entry and release target are in the M-38 PR (branch `claude/ops-watchdog`); they reach main when it merges. |
 | `gtl_ops_alert_schedule` row `ops` | **Does not exist.** `ops_alerts_cron.sql` has not been run. |
 | Cron job `gtl-ops-alerts` | **Not scheduled.** |
 | Boundary probes | The 3 tables and 7 functions are in `scripts/boundary/league.mjs` as `awaitingDeploy`; the worker has no probe yet. |
@@ -31,7 +31,7 @@ All of it new; no existing function or table is replaced.
 
 | File | SHA-256 | Bytes |
 | --- | --- | --- |
-| `supabase/migrations/20261103190000_gtl_ops_alerts.sql` | `f415f8f10ea982f49d17454729198c8b5c1c933c1ee02241b605763b50e888c1` | 24376 |
+| `supabase/migrations/20261103190000_gtl_ops_alerts.sql` | `d5581c03d3d188f3b7925c0612721d75925b839229c52038390f2e828b588675` | 24380 |
 | `supabase/rollback/20261103190000_gtl_ops_alerts.sql` | `6e3d51631c9c4844702780102549da596da73dd96bc95b4877cf244a70c81300` | 688 |
 
 The migration inserts no schedule row and registers no cron job; the admin scripts do. It reads only run status and times,
@@ -40,7 +40,7 @@ name or feed table is referenced. The push text never names a player, a pick, a 
 
 ## Apply order
 
-Each step waits for Sean's word. Steps 1 to 3 change nothing a player sees; step 4 sends pushes to Sean's phone.
+Each step waits for Sean's word. Nothing here changes what a player sees. Steps 3 and 4 send pushes to Sean's phone: the enable in step 3 pushes once per finding the read-back showed, and step 4 sends the test alert.
 
 ### 1. M-38 through Gate M
 
@@ -145,20 +145,23 @@ incident with `cleared_at` and `cleared_notified_at` set. The incident and runs 
 - **Pushes last 4 hours**, the cap in `cloud/web-push.mjs`. A phone offline longer misses the alert after it was recorded.
 - **A device that fails or is gone gets no more pushes in that run**; its alerts stay owed and are retried on the next run.
 - **Disabling a job family clears its alert** with the "working again" wording. A disabled family is never checked.
-- **The findings read every run row on each tick**, which is fine at today's volume. A per-family indexed lookup is noted as
-  debt.
+- **The findings read every run row on each tick**: about 35 ms on PGlite with a month of rows, about 0.9 s with a year
+  (every EPL tick adds a row). Fine for now. A per-family indexed lookup is debt to do within a few months.
+- **A repeat alert may arrive silently** where it replaces a "cleared" push still on screen with the same tag, because
+  `web/public/sw.js` does not set `renotify` (assumed for Chrome and Android, not executed). Changing `sw.js` needs Sean's
+  mockups first.
 - **A job that alternates failing and succeeding** pushes on each change (the design accepts this).
 - **Defect found outside this task:** `cloud/push-reminders.mjs` returns `finish(...)` without `await` inside `try`, so a
   refused completion escapes its error mapping. Not changed here; a one-line follow-up with a test.
 
-## Evidence (local, executed on branch `claude/ops-watchdog`, not pushed)
+## Evidence (local, executed on branch `claude/ops-watchdog`)
 
 - `tests/ops-alerts-sql.test.mjs` (PGlite, every migration): the checks at their boundaries, no duplicate pushes, a failed
   push stays owed, re-alert after recovery, grants, privacy and the go-live order of the admin script.
 - `tests/ops-alerts.test.mjs`: the worker's text, guards, send, mark and error rules, and one end-to-end run of the real
   handler against the real migrations. Both dispatch-then-claim suites wait out the last 3 seconds of a 15-minute slot
   (`tests/helpers/slot-edge.mjs`).
-- `tests/release-preflight.test.mjs`, `tests/ci-workflows.test.mjs`: the `ops-alerts` target deploys only
+- `tests/release-preflight.test.mjs`: the `ops-alerts` target deploys only
   `gtl-ops-alerts`, refuses a source without its config entry or entry file, and takes the create-or-update rule.
 - `tests/migrations.test.mjs`, `tests/rollback.test.mjs`, `tests/cloud-boundary.test.mjs`: M-38 is registered as not hosted,
   its rollback is the reviewed off switch, and its probes are inert until the apply.

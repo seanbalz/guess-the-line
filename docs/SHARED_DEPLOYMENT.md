@@ -1,6 +1,6 @@
 # Guess The Line shared production releases
 
-Owner: Sean Balsiger · Version 2 · October 15, 2026, updated October 26, 2026 (`push-reminders` and `points-jobs` targets), October 27, 2026 (`league-features`) October 28, 2026 (`fantasy-ingest` and `epl-jobs`) and November 3, 2026 (`ops-alerts`)
+Owner: Sean Balsiger · Version 2 · October 15, 2026, updated October 26, 2026 (`push-reminders` and `points-jobs` targets), October 27, 2026 (`league-features`), October 28, 2026 (`fantasy-ingest` and `epl-jobs`) and November 3, 2026 (`ops-alerts`)
 
 The manual **Shared production release** workflow gives a local or online agent
 the same release path: an exact GitHub commit, successful CI, Sean's production
