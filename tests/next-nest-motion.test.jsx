@@ -8,6 +8,10 @@ import { markNavigated, markSettled, resetLaunch } from '../web/src/next/moments
 afterEach(() => resetLaunch());
 
 describe('nestEnter', () => {
+  it('a card that first shows inside a tab fade does not rise too (one motion per navigation); its later layer changes do', () => {
+    expect(nestEnter({ navigated: true, tabFade: true, mounted: false, prevDepth: 0, depth: 0, layer: 'a' })).toBeUndefined();
+    expect(nestEnter({ navigated: true, tabFade: false, mounted: true, prevDepth: 0, depth: 1, prevLayer: 'a', layer: 'b' })).toBe('in');
+  });
   it('the launch screen never animates, on the first card or a layer change', () => {
     expect(nestEnter({ navigated: false, mounted: false, prevDepth: 0, depth: 0, layer: 'a' })).toBeUndefined();
     expect(nestEnter({ navigated: false, mounted: true, prevDepth: 0, depth: 1, prevLayer: 'a', layer: 'b' })).toBeUndefined();

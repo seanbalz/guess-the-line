@@ -5,7 +5,7 @@
 import { ChevronLeft } from 'lucide-react';
 import { useLayoutEffect, useRef } from 'react';
 import { cx } from './cx.js';
-import { hasNavigated } from '../moments/launch.js';
+import { hasNavigated, tabFading } from '../moments/launch.js';
 import './nest.css';
 
 /** At 320px three steps still leave the card 254px of content. */
@@ -15,11 +15,12 @@ const depth = i => ({ '--gx-nest-depth': Math.min(i, NEST_MAX_STEPS) });
 /**
  * How the card enters (D-69 section 4.3): 'in' when a deeper layer opens (or the card first shows after the member's
  * first navigation), 'back' when a parent layer is restored, and nothing on the launch screen (`navigated` false, even
- * after a scroll press) or while the layer stays the same.
+ * after a scroll press), while the layer stays the same, or when the card first shows inside a tab change's fade
+ * (`tabFade`: the screen already fades in, and one navigation moves once).
  */
-export function nestEnter({ navigated, mounted, prevDepth = 0, depth = 0, prevLayer, layer }) {
+export function nestEnter({ navigated, tabFade = false, mounted, prevDepth = 0, depth = 0, prevLayer, layer }) {
   if (!navigated) return undefined;
-  if (!mounted) return 'in';
+  if (!mounted) return tabFade ? undefined : 'in';
   if (prevLayer === layer) return undefined;
   return depth < prevDepth ? 'back' : 'in';
 }
@@ -32,7 +33,7 @@ export function Nest({ label, lips = [], layer, title, info, children, className
   const heading = useRef(null), shown = useRef(layer), last = useRef(null), latch = useRef({ layer: undefined, enter: undefined });
   // The entrance is decided once per layer (a re-render of the same layer, such as a data load, keeps it, so the
   // animation is never cut short); under StrictMode's double render both passes read the same latch.
-  if (latch.current.layer !== layer) latch.current = { layer, enter: nestEnter({ navigated: hasNavigated(), mounted: last.current !== null, prevDepth: last.current?.depth, depth: lips.length, prevLayer: last.current?.layer, layer }) };
+  if (latch.current.layer !== layer) latch.current = { layer, enter: nestEnter({ navigated: hasNavigated(), tabFade: tabFading(), mounted: last.current !== null, prevDepth: last.current?.depth, depth: lips.length, prevLayer: last.current?.layer, layer }) };
   const enter = latch.current.enter;
   useLayoutEffect(() => { last.current = { depth: lips.length, layer }; });
   useLayoutEffect(() => {
