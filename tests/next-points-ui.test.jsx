@@ -268,10 +268,12 @@ describe('League board: Spread / Total / Points', () => {
 });
 
 describe('pointsModel', () => {
-  it('number line: the scale is max(30, top value rounded up to 10) and close faces take separate lanes', () => {
+  it('number line: the scale is max(30, top value rounded up to 10) and faces closer than a third of it take separate lanes', () => {
     const line = model.numberLine(READ.slots[1], ME);
     expect(line.max).toBe(30);
-    expect(line.markers.map(m => [m.name, m.lane])).toEqual([['Luke Fixture', 0], ['You', 0], ['Troy Fixture', 1]]);
+    // 17, 22 and 24 on a 0–30 line are under 10 apart: three lanes, so no two 44px faces overlap on a 170px line (320 wide).
+    expect(line.markers.map(m => [m.name, m.lane])).toEqual([['Luke Fixture', 0], ['You', 1], ['Troy Fixture', 2]]);
+    expect(line.lanes).toBe(3);
     const wide = model.numberLine({ ...READ.slots[1], house: { estimate: 41.2 } }, ME);
     expect(wide.max).toBe(50);
     expect(model.numberLine({ own: { guess: 2, locked: true }, guesses: [{ userId: TROY, displayName: 'T', guess: 28 }], house: null }, ME).markers.map(m => m.lane)).toEqual([0, 0]);

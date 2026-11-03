@@ -21,6 +21,8 @@ import { useShell } from '../../shell/context.js';
 import { PlayEmpty, PlayFailure, PlayLoading } from '../PlayStates.jsx';
 import { Avatar, AvatarStack, Button, Card, CardButton, Dialog, Icon, InfoButton, Matchup, Sheet } from '../../ui/index.js';
 import { INFO } from '../../info.js';
+import { useMoments } from '../../moments/MomentsProvider.jsx';
+import { pointsMoments, pointsSource } from './pointsMoments.js';
 import { GUESS_MAX, GUESS_MIN, SLOT_NAMES, closestLine, comingSoon, editable, kickoffText, landingCard, lineWords, matchupCodes, matchupText, numberLine, publishTarget, pts, resultTiles, slotStatus, step, summaryLine } from './pointsModel.js';
 import { PointsPublish } from './PointsPublish.jsx';
 import { ProfileView, SlotContext } from './SlotContext.jsx';
@@ -57,6 +59,16 @@ export function usePointsRead(app, groupId = null) {
   }, [key, groupId, revision]);
   const current = state.key === key ? state : { loading: true, data: null, error: null };
   return { loading: current.loading, data: current.data, error: current.error, retry: () => setRevision(n => n + 1) };
+}
+
+/**
+ * D-69: each fresh /points/read reply reports the viewer's exact slots to the moments engine. It runs on a new reply only:
+ * a refresh in flight keeps the last reply, and a save's own answer is not a read, so nothing pending ever plays.
+ */
+export function usePointsMoments(read, groupId = null) {
+  const report = useMoments()?.report;
+  const data = read.data;
+  useEffect(() => { if (data && report) report(pointsMoments(data), { source: pointsSource(groupId) }); }, [data, report, groupId]);
 }
 
 /** Decision 1C: the Play landing's Points row, a glow card with a glass pill, a big "2/5" (locked of five) and one meta line. */
