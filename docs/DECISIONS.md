@@ -1,5 +1,53 @@
 # Decision log
 
+## D-73 — Bets › Research recommendations, stage one: independent research beside Guess the Line (October 30–31, 2026)
+
+**Number.** Recorded on November 3 in the docs truth pass. The approval itself was given on October 30 and 31, after D-68
+and before D-69 to D-71 were numbered, so this entry is older than its number says. Sean approved the stage after the research and alignment discussion, then said "Merge and
+deploy" after reviewing its first-stage scope and the unapplied migration. The full contract is in
+[RESEARCH_ASSESSMENTS_STAGE_ONE.md](RESEARCH_ASSESSMENTS_STAGE_ONE.md).
+
+- **What it adds:** betting research and recommendations alongside Guess the Line. It changes no guess entry, lock,
+  reveal rule, scoring reference, points or competition settlement.
+- **Two lists:**
+  - The existing gap-based list stays at `#bets/recommended`, labelled **Your guess vs. market**.
+  - The independent list is **Research recommendations** at `#bets/research`, also reached from an eligible
+    matchup's research.
+- **Colors:**
+  - **Green** is reserved for a tested projection showing value at an available price, and stage one cannot show it.
+  - **Yellow** is a qualifying research lean with a current verified quote at the exact terms; it may oppose a
+    player's locked guess.
+  - **Red** is qualifying evidence against, with a current exact quote and no qualifying support.
+  - **Gray** means not enough usable evidence, a missing or stale quote, unresolved checks or a closed pregame window.
+- **Order:** schedule and name order, never a made-up confidence ranking. Supporting and opposing findings both show.
+- **Limits:** there is no qualified model in this stage. Outside estimates stay attributed to their source, and the
+  exact player, metric, side and threshold must match.
+- **Shipped:** released October 31 (PRs #393 and #395, API v44,
+  [release record](RELEASE_2026_10_31_RESEARCH_ASSESSMENTS.md)). The November 1 data repair (PRs #397 and #399,
+  API v45, [record](RELEASE_2026_11_01_RESEARCH_DATA.md)) populated it.
+- **Not verified:** a real-iPhone check (#398).
+
+## D-72 — My bets: Roomy cards that open in place to the selection grid (November 1, 2026)
+
+**Number.** Recorded on November 3 in the docs truth pass. Sean made both choices on November 1, before D-69 to D-71
+were numbered.
+
+- **First choice:** from [six mockups](../design/my-bets-2026-11-01/README.md), "I like the 4th one", which is
+  **04 · Selection grid**: every parlay leg as a tile in a two-column grid. Built in PR #401 and released November 1
+  as Pages `83caec6d` ([record](RELEASE_2026_11_01_MY_BETS.md)).
+- **Second choice, the same day:** from [five preview studies](../design/my-bets-previews-2026-11-01/README.md), "1 is
+  the best", which is **01 · Roomy cards**, then "Expand in place, as shown". This replaced showing every leg before a
+  ticket is opened. The rules are in [MY_BETS_ROOMY_2026_11_01.md](MY_BETS_ROOMY_2026_11_01.md).
+  - My bets starts with compact previews: source, status, the selection or parlay title, matchup marks, risk and
+    total return. Unknown amounts stay unknown.
+  - Tapping a preview replaces it in place with the full ticket, with every parlay leg in the selection grid. The
+    upward chevron collapses it, and Ticket details opens the existing details and history.
+  - Built in PR #405 and released November 1 as Pages `90a7bf99` ([record](RELEASE_2026_11_01_MY_BETS_ROOMY.md)).
+- **Spacing:** the spec set 20px padding and 24px between tickets. The November 2 follow-up (PR #408) removed a
+  legacy override that took the gap away, and now uses the existing 32px spacing token
+  ([record](RELEASE_2026_11_02_MY_BETS.md)).
+- **Not verified:** a real-iPhone check.
+
 ## D-71 — A lock-in refreshes a stale line first, as a send does (November 3, 2026)
 
 A read-only readback found that the line saved with each guess had a median age of 68 seconds in Week 7, 6.9 hours in
