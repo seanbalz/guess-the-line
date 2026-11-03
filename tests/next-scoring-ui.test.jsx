@@ -2,28 +2,73 @@ import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn() }));
 vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: vi.fn() }));
-import { WeeklyScoreContent } from '../web/src/next/play/WeeklyScore.jsx';
+// The layer's Play lip opens the landing through the shell (PlayLayer.jsx).
+vi.mock('../web/src/next/shell/context.js', () => ({ useShell: () => ({ state: { views: { play: {} } }, go: vi.fn(), setView: vi.fn() }) }));
+import { ScoreFilters, WeeklyScoreContent, gameDetails } from '../web/src/next/play/WeeklyScore.jsx';
 import { ScoreReceipt, receiptDetails } from '../web/src/next/play/ScoreReceipt.jsx';
 import { ComparisonContent } from '../web/src/next/play/ScoreComparison.jsx';
+import { scoreRows } from '../web/src/next/play/scoring.js';
 import { markupProblems, matchups, nameFrom, parseMarkup, walk } from './helpers/ui-markup.mjs';
 import { teamMarks } from '../web/src/teamLogoRegistry.js';
 
 const game = { id: 'SEA-DEN', awayCode: 'SEA', homeCode: 'DEN', kickoff: '2026-10-18T20:00:00Z' };
 const entry = { userId: 'owner', mode: 'guess_spread', status: 'draft', eligible: true, scoreTiming: 'immediate', weekPoints: 8, weekScored: 1, standingsPoints: 0, awaitingKickoffPoints: 8, picks: [{ gameId: game.id, guess: -3, lockedIn: true, lockedAt: '2026-10-15T18:00:00Z', points: 8, reference: { value: -5, source: 'Synthetic three-book median', observedAt: '2026-10-15T17:59:00Z' } }] };
-const data = { viewer: 'owner', season: 2026, seasons: [2026, 2025], weeks: [{ season: 2026, week: 6, games: [game], entries: [entry] }] };
-const render = (view = {}) => renderToStaticMarkup(<div className="gx"><WeeklyScoreContent data={data} view={view} onChange={() => {}} onRefresh={() => {}} onPicks={() => {}}/></div>);
-describe('weekly personal scoring', () => {
-  it('labels immediate own points separately from started-game standings with source and lock evidence', () => {
-    const html = render({ scoreGame: game.id });
+const data = { viewer: 'owner', season: 2026, seasons: [2026, 2025], now: '2026-10-19T00:00:00Z', weeks: [{ season: 2026, week: 6, games: [game], entries: [entry] }] };
+const render = (view = {}, props = {}) => renderToStaticMarkup(<div className="gx"><WeeklyScoreContent data={data} view={view} onChange={() => {}} onRefresh={() => {}} onPicks={() => {}} {...props}/></div>);
+const words = html => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+
+describe('Your score (D-69, mockup Q1-B)', () => {
+  it('shows your own points as the hero, the saved line and the miss on the row, and keeps the standings behind ⓘ', () => {
+    const html = render();
     expect(markupProblems(html)).toEqual([]);
-    expect(html).toContain('Your weekly points'); expect(html).toContain('Standings · games started');
-    expect(html).toContain('8 personal points waiting for kickoff'); expect(html).toContain('Synthetic three-book median');
-    expect(html).toContain('Missed by 2 points'); expect(html).toContain('Your eligible locked guesses count immediately.');
+    const text = words(html);
+    expect(html).toContain('aria-label="Personal score summary"');
+    expect(text).toContain('Week 6 · Spread 8 points');
+    expect(text).toContain('Line DEN −5 · You DEN −3 · off by 2');
+    expect(text).toContain('8 / 10');
+    expect(text).toContain('Week 6 · all games scored'); // the layer's one meta line
+    // D-38: the standings and the counts sit behind "About your scores" (scoreFinePrint, tested in next-your-score).
+    expect(html).toContain('aria-label="About your scores"');
+    expect(html).not.toContain('Standings · games started');
+    expect(text).toContain('Refresh scores'); expect(text).toContain('View this week’s picks'); expect(text).toContain('Compare players');
   });
-  it('AND filters have an explicit empty state and a subset label, never an invented rank', () => {
-    const html = render({ team: 'HOU', matchup: game.id });
-    expect(html).toContain('Selected games'); expect(html).toContain('No games match both filters');
-    expect(html).not.toContain('8 personal points waiting'); expect(html).not.toContain('rank 1');
+  it('AND filters say "Selected games", have an explicit empty state and never draw a rank', () => {
+    const rank = { rank: 1, label: '1st', move: 2, said: 'season rank 1st, up 2' };
+    const html = render({ team: 'HOU', matchup: game.id }, { rank });
+    expect(html).toContain('Selected games'); expect(html).toContain('No games match both filters. Clear filters to see this week.');
+    expect(html).not.toContain('gx-ys-rank'); expect(html).not.toContain('1st');
+  });
+  it('the season rank chip says the move with a symbol and in words beside the total', () => {
+    const html = render({}, { rank: { rank: 3, label: '3rd', move: 2, said: 'season rank 3rd, up 2' } });
+    expect(words(html)).toContain('Season 3rd ▲2 up 2');
+  });
+  it('P2B: a game opens its own layer with the points, the miss and the number line, and only your guess and saved line', () => {
+    const other = { userId: 'friend', mode: 'guess_spread', status: 'submitted', eligible: true, picks: [{ gameId: game.id, guess: -9, lockedIn: true, points: 4, reference: { value: -11, source: 'Other source' } }] };
+    const html = render({ scoreGame: game.id }, { data: { ...data, weeks: [{ ...data.weeks[0], entries: [entry, other] }] } });
+    expect(markupProblems(html)).toEqual([]);
+    const text = words(html);
+    expect(text).toContain('Back to Play'); expect(text).toContain('Back to Your score');
+    expect(text).toContain('Week 6 · Guess the Spread'); expect(text).toContain('8 / 10 points'); expect(text).toContain('Off by 2');
+    expect(html).toContain('role="img" aria-label="Line DEN −5, you DEN −3, off by 2"');
+    expect(text).toContain('DEN wins by'); expect(text).toContain('Each half point off costs 1 point.'); expect(text).toContain('Kickoff Sun Oct 18, 1:00 PM PT');
+    expect(html).toContain('aria-label="About this score"');
+    expect(html).not.toContain('Personal score summary');
+    for (const leak of ['−9', '−11', 'Other source']) expect(html).not.toContain(leak);
+  });
+  it('a game not scored yet says so in one sentence and keeps its Late marker; the reason stays one tap away', () => {
+    const lateEntry = { ...entry, weekPoints: null, picks: [{ ...entry.picks[0], points: null, late: { minutes: 0 }, reference: { value: null, status: 'pending', reason: 'First qualifying quote has not arrived' } }] };
+    const week = { ...data.weeks[0], entries: [lateEntry] };
+    const html = render({ scoreGame: game.id }, { data: { ...data, weeks: [week] } });
+    expect(html).toContain('Late · 0 min'); expect(html).toContain('Waiting for a scoring line.'); expect(words(html)).toContain('You · DEN −3');
+    expect(html).not.toContain('/ 10 points'); expect(html).not.toContain('gx-ys-axis');
+    expect(gameDetails({ row: scoreRows(week, lateEntry)[0], mode: 'guess_spread', entry: lateEntry })).toContain('First qualifying quote has not arrived');
+  });
+  it('a read on its way draws placeholders in the layer; a failure says why with Try again; a kept copy stays under one status line', () => {
+    expect(render({}, { data: null, loading: true })).toContain('Loading your score…');
+    const failed = words(render({}, { data: null, error: { status: 500, message: 'Server down' }, onRetry: () => {} }));
+    expect(failed).toContain('Your score could not be loaded. Server down'); expect(failed).toContain('Try again');
+    const stale = words(render({}, { error: { status: 500, message: 'Server down' }, stale: true, onRetry: () => {} }));
+    expect(stale).toContain('Your score could not refresh. Showing the last loaded copy.'); expect(stale).toContain('8 / 10');
   });
   it('receipt keeps pending distinct from a legitimate zero and never uses a current quote', () => {
     const pendingRow = { lockedIn: true, points: null, late: { minutes: 12 }, reference: { value: null, status: 'pending', reason: 'No qualifying saved quote' } };
@@ -40,9 +85,9 @@ describe('weekly personal scoring', () => {
     const props = { game: { id: 'PHI-JAX', awayCode: 'PHI', homeCode: 'JAX' }, mode: 'guess_spread', row, guess: -3, lockedAt: '2026-10-27T19:30:00Z' };
     const html = renderToStaticMarkup(<div className="gx"><ScoreReceipt {...props} onScore={() => {}}/></div>);
     expect(markupProblems(html)).toEqual([]);
-    const words = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
     // Picture first: the score, the one sentence, then "You JAX −3" beside "Line JAX −2", and the weekly-score link.
-    expect(words).toBe('8 / 10 points Missed by 1 You JAX −3 Line JAX −2 View weekly score');
+    expect(text).toBe('8 / 10 points Missed by 1 You JAX −3 Line JAX −2 View weekly score');
     expect(html.indexOf('gx-n-l')).toBeLessThan(html.indexOf('Missed by 1'));
     expect(html).toContain('aria-label="About this score"');
     // Nothing is removed: the lock-in time, the guess and line in words, the source with its observed time and the rule.
@@ -57,21 +102,20 @@ describe('weekly personal scoring', () => {
     const ineligible = renderToStaticMarkup(<ScoreReceipt {...props} row={{ ...row, eligible: false }}/>);
     expect(ineligible).toContain('Not eligible for scoring.'); expect(ineligible).not.toContain('8 / 10');
   });
-  it('weekly expanded rows keep recorded lateness and a missing-reference reason', () => {
-    const lateEntry = { ...entry, weekPoints: null, picks: [{ ...entry.picks[0], points: null, late: { minutes: 0 }, reference: { value: null, status: 'pending', reason: 'First qualifying quote has not arrived' } }] };
-    const html = renderToStaticMarkup(<WeeklyScoreContent data={{ ...data, weeks: [{ ...data.weeks[0], entries: [lateEntry] }] }} view={{ scoreGame: game.id }} onChange={() => {}}/>);
-    expect(html).toContain('Late · 0 min'); expect(html).toContain('First qualifying quote has not arrived');
-  });
 });
 
 describe('matchups as marks (D-62)', () => {
   const SEA_DEN = { srcs: [teamMarks.SEA.src, teamMarks.DEN.src], name: 'Seattle Seahawks at Denver Broncos' };
-  it('each weekly game row leads with the matchup, away first; the Matchup filter keeps its text options', () => {
+  it('each Your score row leads with the matchup, away first; the game layer\'s heading is the matchup; the Matchup filter keeps its text options', () => {
     const html = render();
     expect(matchups(html)).toEqual([SEA_DEN]);
-    const summary = [...walk(parseMarkup(html))].find(n => n.tag === 'summary' && n.children[0]?.attrs?.class?.includes('gx-mu'));
-    expect(nameFrom(summary)).toContain('Seattle Seahawks at Denver Broncos');
-    expect(html).toContain('<option value="SEA-DEN">SEA at DEN</option>');
+    const row = [...walk(parseMarkup(html))].find(n => n.tag === 'button' && (n.attrs.class ?? '').includes('gx-ys-row'));
+    expect(nameFrom(row)).toContain('Seattle Seahawks at Denver Broncos');
+    const layer = render({ scoreGame: game.id });
+    const heading = [...walk(parseMarkup(layer))].find(n => n.tag === 'h2');
+    expect(nameFrom(heading)).toBe('Seattle Seahawks at Denver Broncos');
+    const filters = renderToStaticMarkup(<div className="gx"><ScoreFilters week={data.weeks[0]} filters={{ team: '', matchup: '' }} onChange={() => {}}/></div>);
+    expect(filters).toContain('<option value="SEA-DEN">SEA at DEN</option>');
   });
   it('each comparison card’s heading is the week and the matchup as 32px marks', () => {
     const pick = { gameId: game.id, guess: -3, lockedIn: true, points: 8, reference: { value: -5, source: 'Fixture', observedAt: '2026-10-15T17:59:00Z' } };

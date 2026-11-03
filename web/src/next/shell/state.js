@@ -33,6 +33,11 @@ export const navigationPatch = (state, tab, patch) => !!patch && (
   || (tab === 'play' && state.views.play.section === 'picks' && ['market', 'season', 'week'].some(key => Object.hasOwn(patch, key) && patch[key] !== state.views.play[key]))
   // D-70: opening or closing one game's card in Your guesses is a step, so back returns to the week.
   || (tab === 'play' && state.views.play.section === 'picks' && Object.hasOwn(patch, 'pickGame') && (patch.pickGame ?? null) !== (state.views.play.pickGame ?? null))
+  // D-69: opening or closing one game's layer in Your score is a step too, so Back closes the game and leaves the week.
+  || (tab === 'play' && state.views.play.section === 'score' && Object.hasOwn(patch, 'scoreGame') && (patch.scoreGame ?? null) !== (state.views.play.scoreGame ?? null))
+  // D-69 step 1: a Play section's nested layer (the generic `layer` and `item` keys: a Points slot, a badge, the awards)
+  // is a step, so Back closes one layer. Compare's `item` picks the other player in place, a choice inside one layer.
+  || (tab === 'play' && state.views.play.section !== 'compare' && ['layer', 'item'].some(key => Object.hasOwn(patch, key) && (patch[key] ?? null) !== (state.views.play[key] ?? null)))
   // D-66: opening or closing a Trends nesting card is a step, so back closes one layer. The account reset in
   // TrendsScreen also clears the history window; it is not a step, so back never restores another account's choice.
   || (tab === 'fantasy' && ['fantasyLayer', 'fantasyPlayer'].some(key => Object.hasOwn(patch, key) && (patch[key] ?? null) !== (state.views.fantasy?.[key] ?? null)))
@@ -86,10 +91,13 @@ export function initialState(place = null) {
 }
 
 const closed = { sheets: [], dialog: null, popover: null, page: null };
+/** The Play view keys that open a nested layer (D-69): Your guesses (`pickGame`), Your score (`scoreGame`) and every
+ * other section's generic `layer` and `item`. */
+const PLAY_LAYER_KEYS = Object.freeze(['pickGame', 'scoreGame', 'layer', 'item']);
 const withView = (views, tab, patch) => (isRecord(patch) ? { ...views, [tab]: { ...views[tab], ...patch } } : views);
 
 // Origin context is reversible; newer local list/filter preferences survive returning through a root.
-const ROUTE_KEYS = ['section', 'view', 'market', 'season', 'week', 'weekId', 'leagueId', 'accountId', 'period', 'team', 'matchup', 'scoreGame', 'comparisonKind', 'pickGame', 'teamsTeam', 'teamsTrend', 'player', 'playerLayer', 'playerItem', 'weekGame', 'weekTrend', 'fantasyLayer', 'fantasyPlayer', 'assessment'];
+const ROUTE_KEYS = ['section', 'view', 'market', 'season', 'week', 'weekId', 'leagueId', 'accountId', 'period', 'team', 'matchup', 'scoreGame', 'comparisonKind', 'pickGame', 'layer', 'item', 'teamsTeam', 'teamsTrend', 'player', 'playerLayer', 'playerItem', 'weekGame', 'weekTrend', 'fantasyLayer', 'fantasyPlayer', 'assessment'];
 function originView(current, prior, detail) {
   const view = { ...prior, ...current };
   for (const key of detail ? ROUTE_KEYS : ['section', 'view']) view[key] = prior?.[key];
@@ -137,7 +145,9 @@ export function reduce(state, action) {
       const target = destination(action.tab, action.view);
       if (!isTab(target.tab)) return state;
       const current = state.views[target.tab];
-      const next = target.tab === 'play' && Object.hasOwn(current, 'pickGame') ? Object.fromEntries(Object.entries(current).filter(([key]) => key !== 'pickGame')) : current;
+      // A nested layer is opened by its own address key, never carried into a fresh Play destination (a link that names
+      // one, such as a receipt's scoreGame, passes it in `target.view`, which is merged after this).
+      const next = target.tab === 'play' && PLAY_LAYER_KEYS.some(key => Object.hasOwn(current, key)) ? Object.fromEntries(Object.entries(current).filter(([key]) => !PLAY_LAYER_KEYS.includes(key))) : current;
       const root = { ...next, section: undefined, ...(target.tab === 'bets' ? { view: undefined } : {}) };
       const view = action.type === 'tab' || !target.view ? root : { ...next, ...target.view };
       const views = { ...state.views, [target.tab]: view, ...(target.adapter ? { [target.adapter]: { ...state.views[target.adapter], ...target.adapterView } } : {}) };
@@ -171,7 +181,7 @@ export function reduce(state, action) {
     case 'restore': {
       const place = action.place;
       if (!isTab(place?.tab)) return state;
-      return { ...state, ...closed, tab: place.tab, views: { ...state.views, ...mergeAdapters(state.views, place.adapters), [place.tab]: { ...state.views[place.tab], section: undefined, pickGame: undefined, ...(place.tab === 'bets' ? { view: undefined, assessment: undefined } : {}), ...place.view } }, trail: place.trail ?? [], nav: state.nav + 1, navMode: 'restore' };
+      return { ...state, ...closed, tab: place.tab, views: { ...state.views, ...mergeAdapters(state.views, place.adapters), [place.tab]: { ...state.views[place.tab], section: undefined, pickGame: undefined, scoreGame: undefined, layer: undefined, item: undefined, ...(place.tab === 'bets' ? { view: undefined, assessment: undefined } : {}), ...place.view } }, trail: place.trail ?? [], nav: state.nav + 1, navMode: 'restore' };
     }
     case 'open': {
       const kind = layerKind(action.layer?.id);

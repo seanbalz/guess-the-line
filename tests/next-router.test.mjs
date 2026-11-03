@@ -255,3 +255,61 @@ test('D-69 layer addresses: every section keeps a layer and an item, so a reload
   }
   assert.equal(placeFromFragment('#play/score?layer=%3Cscript%3E').view?.layer, undefined, 'only safe characters');
 });
+
+test('D-69: a game in Your score is its own layer: opening it is a step, the lip and Back close it, and its address reopens it', () => {
+  const start = initialState({ tab: 'play', view: { section: 'score', market: 'guess_spread', season: 2026, week: 8 } });
+  const game = reduce(start, { type: 'view', tab: 'play', patch: { scoreGame: 'SEA-DEN' } });
+  assert.equal(game.views.play.scoreGame, 'SEA-DEN');
+  assert.equal(game.trail.length, 1);
+  const place = placeFromFragment(fragmentFor('play', game.views.play)); // a reload or a shared link reopens it
+  assert.deepEqual([place.view.section, place.view.scoreGame, place.view.week, place.view.market], ['score', 'SEA-DEN', 8, 'guess_spread']);
+  for (const list of [reduce(game, { type: 'back' }), reduce(game, { type: 'view', tab: 'play', patch: { scoreGame: undefined } })]) {
+    assert.equal(list.views.play.section, 'score');
+    assert.equal(list.views.play.scoreGame ?? null, null);
+    assert.equal(list.views.play.week, 8);
+    assert.deepEqual(list.trail, [], 'the lip back to the list is Back, so the next Back leaves Your score');
+  }
+  // Week chips, the market and the filters change the list in place: no step.
+  for (const patch of [{ week: 7 }, { market: 'guess_total' }, { team: 'DEN' }, { season: 2025, week: null }]) assert.equal(reduce(start, { type: 'view', tab: 'play', patch }).trail.length, 0, JSON.stringify(patch));
+  // A pick's "View weekly score" lands on the game layer; Back returns to the picks.
+  const picks = initialState({ tab: 'play', view: { section: 'picks', market: 'spread', season: 2026, week: 8 } });
+  const linked = reduce(picks, { type: 'view', tab: 'play', patch: { section: 'score', season: 2026, week: 8, market: 'guess_spread', scoreGame: 'SEA-DEN' } });
+  assert.equal(linked.views.play.scoreGame, 'SEA-DEN');
+  assert.equal(reduce(linked, { type: 'back' }).views.play.section, 'picks');
+});
+
+test('D-69: the browser Back button closes the Your score game layer and keeps the list', async () => {
+  const win = fakeWindow('https://gtl.test/#play/score?market=guess_spread&season=2026&week=8');
+  const shell = app(win);
+  shell.dispatch({ type: 'view', tab: 'play', patch: { scoreGame: 'SEA-DEN' } });
+  await settle();
+  assert.deepEqual(win.stack(), ['#play/score?market=guess_spread&season=2026&week=8', '[#play/score?market=guess_spread&season=2026&week=8&scoreGame=SEA-DEN]']);
+  win.history.back();
+  await settle();
+  assert.equal(shell.state.views.play.section, 'score');
+  assert.equal(shell.state.views.play.scoreGame ?? null, null);
+  assert.equal(win.location.hash, '#play/score?market=guess_spread&season=2026&week=8');
+});
+
+test('D-69: an open Your score game follows Back but never rides into the Play tab or a fresh Your score link', () => {
+  let state = initialState({ tab: 'play', view: { section: 'score', season: 2026, week: 8, scoreGame: 'SEA-DEN' } });
+  state = reduce(state, { type: 'go', tab: 'research', view: { section: 'games' } });
+  assert.equal(reduce(state, { type: 'back' }).views.play.scoreGame, 'SEA-DEN');
+  assert.equal(reduce(state, { type: 'tab', tab: 'play' }).views.play.scoreGame, undefined);
+  assert.equal(reduce(state, { type: 'go', tab: 'play', view: { section: 'score', week: 8 } }).views.play.scoreGame, undefined, 'the Play tile opens the list');
+  assert.equal(reduce(state, { type: 'restore', place: { tab: 'play', view: { section: 'score' } } }).views.play.scoreGame, undefined);
+});
+
+test('D-69: any nested Play layer (layer, item) is a step Back closes and never rides into a fresh destination; Compare\'s player choice is not a step', () => {
+  const grid = initialState({ tab: 'play', view: { section: 'features' } });
+  const badge = reduce(grid, { type: 'view', tab: 'play', patch: { layer: 'badge', item: 'bullseye' } });
+  assert.equal(badge.trail.length, 1, 'opening the badge is a step');
+  const back = reduce(badge, { type: 'back' });
+  assert.equal(back.views.play.section, 'features');
+  assert.equal(back.views.play.layer ?? null, null);
+  assert.equal(back.views.play.item ?? null, null);
+  assert.equal(reduce(badge, { type: 'go', tab: 'play', view: { section: 'points' } }).views.play.layer, undefined, 'a tile opens its section on its first layer');
+  assert.equal(reduce(badge, { type: 'restore', place: { tab: 'play', view: { section: 'features' } } }).views.play.item, undefined);
+  const compare = initialState({ tab: 'play', view: { section: 'compare' } });
+  assert.equal(reduce(compare, { type: 'view', tab: 'play', patch: { item: 'u-2' } }).trail.length, 0, 'choosing the other player is not a step');
+});
