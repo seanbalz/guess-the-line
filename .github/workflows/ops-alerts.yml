@@ -2,30 +2,26 @@ name: Ops alerts
 # Item 22: a failed Fantasy or Research data refresh on main opens one GitHub issue assigned to the repository owner
 # (GitHub notifies the phone app and email); later failures update that issue without a new notification, and the next
 # run that publishes comments and closes it. workflow_run starts as soon as the watched run completes, so alerts do not
-# wait for GitHub's late scheduled starts. A manual run replays one past run by id. The issue holds only the workflow
-# name, run link, event, failed step and times, never log text: this repository is public.
+# wait for GitHub's late scheduled starts. The issue holds only the workflow name, run link, event, failed step and
+# times, never log text: this repository is public. There is no manual trigger: on November 3 a manual replay ran
+# beside a real run's alert in another group and both closed the same issue. To check a past run without writing:
+# RUN_ID=<id> GH_TOKEN=$(gh auth token) node scripts/ops-alert.mjs --dry-run
 on:
   workflow_run:
     workflows: [Fantasy refresh, Research data refresh]
     types: [completed]
-  workflow_dispatch:
-    inputs:
-      run_id:
-        description: Workflow run id to alert on
-        required: true
-        type: string
 permissions:
   actions: read
   contents: read
   issues: write
-# One group per watched workflow: its runs are handled in order, so one incident opens one issue. GitHub keeps only the
-# newest pending run of a group, so a shared group could drop the other workflow's alert.
+# One group per watched workflow: its runs are handled in order, so one incident opens one issue and closes once. GitHub
+# keeps only the newest pending run of a group, so a shared group could drop the other workflow's alert.
 concurrency:
-  group: ops-alerts-${{ github.event.workflow_run.path || inputs.run_id }}
+  group: ops-alerts-${{ github.event.workflow_run.path }}
   cancel-in-progress: false
 jobs:
   alert:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.head_branch == 'main'
+    if: github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -38,5 +34,5 @@ jobs:
       - name: Open, update or close the alert
         env:
           GH_TOKEN: ${{ github.token }}
-          RUN_ID: ${{ github.event.workflow_run.id || inputs.run_id }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
         run: node scripts/ops-alert.mjs
