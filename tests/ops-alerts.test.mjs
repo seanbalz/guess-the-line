@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import { ALL } from './migrations.mjs';
 import { ACCOUNTS, createCommunityWorld, pgliteAvailable } from './cloud-browser/community-world.mjs';
 import { serviceSql } from './helpers/guess-week.mjs';
+import { waitOutSlotEdge } from './helpers/slot-edge.mjs';
 import { OPS_ALERT_TTL_S, createOpsAlertAdapter, createOpsAlertHandler, familyName, opsAlertPayload, pacificWhen } from '../cloud/ops-alerts.mjs';
 import { b64uDecode, b64uEncode } from '../cloud/web-push.mjs';
 
@@ -415,7 +416,8 @@ test('end to end on PGlite with the real migrations: a failed results run pushes
     delivered.push({ url, payload: JSON.parse(await decrypt(new Uint8Array(init.body), phone)) });
     return new Response(null, { status: answers.shift() ?? 201 });
   } });
-  const dispatch = async () => (await one('select public.gtl_dispatch_ops_alerts() value')).value;
+  // The claim after a dispatch must land in the dispatch's 15-minute slot, so near a slot edge wait for the next slot first.
+  const dispatch = async () => { await waitOutSlotEdge(); return (await one('select public.gtl_dispatch_ops_alerts() value')).value; };
   // Moves this slot's run to its own past slot, as if 15 minutes went by (tests/ops-alerts-sql.test.mjs).
   const nextSlot = () => db.query("update public.gtl_ops_alert_runs set slot_start=timestamptz '2000-01-01 00:00:00+00'+(select count(*) from public.gtl_ops_alert_runs)*interval '15 minutes' where slot_start=date_bin(interval '15 minutes',clock_timestamp(),timestamptz '2000-01-01 00:00:00+00')");
   /** What the dispatcher posted for `queued`: its token and run id, sent to the real handler. */

@@ -5,6 +5,7 @@ import { randomUUID } from 'node:crypto';
 import { ALL, APPLIED, NOT_HOSTED, version } from './migrations.mjs';
 import { ACCOUNTS, createCommunityWorld, pgliteAvailable } from './cloud-browser/community-world.mjs';
 import { serviceSql } from './helpers/guess-week.mjs';
+import { waitOutSlotEdge } from './helpers/slot-edge.mjs';
 
 // M-38 ops alerts (item 22, docs/OPS_ALERTS.md): the checks, the incidents, the 15-minute dispatcher and the worker's claim,
 // mark, delivery and completion, on local PGlite (ALL). pg_net is hosted-only, so net.http_post is a stand-in that records each
@@ -14,7 +15,7 @@ const skip = pgliteAvailable ? false : 'Optional local PGlite runtime is not ins
 const SEAN = ACCOUNTS.sean.id, LUKE = ACCOUNTS.luke.id, TROY = ACCOUNTS.troy.id;
 const ENDPOINT = 'https://onmrgvcehkflfaizvedl.supabase.co/functions/v1/gtl-ops-alerts';
 const FUNCTION = name => `https://abc.supabase.co/functions/v1/${name}`;
-const MINUTE = 60_000, HOUR = 60 * MINUTE, SLOT = 15 * MINUTE;
+const MINUTE = 60_000, HOUR = 60 * MINUTE;
 const iso = ms => new Date(ms).toISOString();
 const RUNS = { results: ['gtl_results_refresh_runs', 'nfl-results'], odds: ['gtl_odds_refresh_runs', 'nfl-12h'], points: ['gtl_points_job_runs', 'nfl-points'],
   push: ['gtl_push_reminder_runs', 'deadline-2h'], week_open: ['gtl_week_open_runs', 'nfl-weekly'], features: ['gtl_features_schedule_runs', 'league-features'] };
@@ -61,8 +62,7 @@ async function fixture(t) {
     // A dispatch and the claim after it must share one 15-minute slot (the claim refuses another slot's run). Near a slot edge,
     // wait for the next slot first (at most 3 s) so the pair cannot straddle it.
     dispatch: async () => {
-      const edge = Date.now() % SLOT;
-      if (edge > SLOT - 3000) await new Promise(resolve => setTimeout(resolve, SLOT - edge + 50));
+      await waitOutSlotEdge();
       return (await one('select public.gtl_dispatch_ops_alerts() value')).value;
     },
     outbox: async () => rows('select url,body,headers from net.outbox order by id'),
@@ -93,6 +93,26 @@ test('M-38 is written and not applied; the migration inserts no schedule row and
   assert.doesNotMatch(sql, /insert into public\.gtl_ops_alert_schedule\b/, 'the admin script adds the schedule row, disabled first');
   assert.doesNotMatch(sql, /cron\.schedule/);
   assert.doesNotMatch(sql, /delete from public\.gtl_ops_|truncate/i, 'no incident, run or schedule row is ever deleted (D-23)');
+});
+
+test('go-live order: the admin script inserts the schedule row disabled, reads the findings back, and leaves the enable statement commented after that read-back; the cron name and slot are new', () => {
+  const read = name => fs.readFileSync(new URL(`../supabase/admin/${name}`, import.meta.url), 'utf8');
+  const cron = read('ops_alerts_cron.sql');
+  const insert = cron.match(/insert into public\.gtl_ops_alert_schedule\(id,enabled,endpoint\)\s*values\('ops',(\w+),'([^']+)'\)\s*on conflict\(id\) do update set endpoint=excluded\.endpoint;/);
+  assert.equal(insert?.[1], 'false', 'the row goes in disabled, and a rerun never changes its enabled flag');
+  assert.equal(insert[2], ENDPOINT);
+  const live = cron.split('\n').filter(line => !line.startsWith('--')).join('\n');
+  assert.doesNotMatch(live, /enabled\s*=\s*true/, 'nothing live enables the schedule: the enable stays commented');
+  const findings = cron.indexOf('select * from public.gtl_ops_findings(now());'), enable = cron.indexOf("-- update public.gtl_ops_alert_schedule set enabled=true where id='ops';");
+  assert.ok(findings > 0 && enable > findings, 'the findings read-back comes before the enable statement');
+  assert.match(cron, /cron\.schedule\('gtl-ops-alerts','7-59\/15 \* \* \* \*',\$\$select public\.gtl_dispatch_ops_alerts\(\)\$\$\)/);
+  assert.match(cron, /cron\.unschedule\('gtl-ops-alerts'\)/);
+  assert.doesNotMatch(cron, /delete from|truncate/i, 'the row and its history are never deleted (D-23)');
+  for (const name of fs.readdirSync(new URL('../supabase/admin/', import.meta.url)).filter(file => file.endsWith('.sql') && !file.startsWith('ops_alerts_')))
+    assert.doesNotMatch(read(name), /'gtl-ops-alerts'/, `${name} does not use the job name`);
+  const check = read('ops_alerts_test.sql');
+  assert.match(check, /select public\.gtl_ops_test_alert\(\);/);
+  assert.ok(check.includes('Test alert: this phone gets GTL ops alerts.') && check.includes('Test alert cleared.'));
 });
 
 test('grants: anon and authenticated cannot execute any M-38 function; the worker functions are service-role only; the dispatcher and findings are cron only; the tables are RLS-on and never deletable', { skip }, async t => {
