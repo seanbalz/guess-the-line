@@ -28,8 +28,10 @@ frontend at `134f17c8`. Passed:
 - the step 0 tab fade.
 
 **Defect:** a cold load of Bets › Research recommendations (D-73) can fail with "Research is unavailable right
-now". `POST /lines/assessments` logged 546 "CPU Time exceeded" at 20:53:58 UTC. Warm loads return 200. The fix is
-PR #453, not deployed.
+now". `POST /lines/assessments` logged 546 "CPU Time exceeded" at 20:53:58 UTC. Warm loads return 200. The fix,
+PR #453, is **deployed** as `gtl-api` v48 (November 3, 22:04 UTC, release run 41726861800). The first signed-in cold load
+on v48 returned 200, with no 546 or "CPU Time exceeded"; see the
+[release record](RELEASE_2026_11_03_ASSESSMENTS_CPU.md).
 
 Not checked: the 320/390px phone widths and a real iPhone. See the
 [readback record](READBACK_2026_11_03_SIGNED_IN.md).
