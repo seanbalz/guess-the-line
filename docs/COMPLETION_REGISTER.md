@@ -78,7 +78,8 @@ missing and look-alike tags; payload `url`/`data` ignored; focus an open
 window, else open one); a 390 px browser check covers the EPL Menu row. Phone
 captures of the Menu in EPL and NFL, Light and Dark, are in
 [design/qa/reminder-followups-2026-11-02](../design/qa/reminder-followups-2026-11-02/).
-Frontend only; it ships with the next Pages release. A tap on a real phone is not verified.
+Frontend only; released November 2 in Pages `8c9b193e` from `82f1c2b`
+([release record](RELEASE_2026_11_02_POINTS_CONTEXT.md), card #422). A tap on a real phone is not verified.
 
 ## Player context on the Points ballot (Board i63) — November 2, 2026
 
@@ -95,7 +96,8 @@ it (and the rest-of-season estimate) behind a lock line until the read carries
 the House (lock-in or kickoff, D-56). No implied team totals (D-57). The ballot
 is keyed by account. Also fixed: the slot sheet's glow card shrank under later
 cards once the sheet overflowed, and the profile's sideways-scrolling tables are
-now focusable regions. Frontend only; ships with the next Pages release.
+now focusable regions. Frontend only; released November 2 in Pages `8c9b193e` from
+`82f1c2b` ([release record](RELEASE_2026_11_02_POINTS_CONTEXT.md), card #422) after Sean OK'd the mockups.
 
 ## Pick reminders opt-in in the new app (Board i39) — November 2, 2026
 
