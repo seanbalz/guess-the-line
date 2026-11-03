@@ -8,13 +8,14 @@ export const statusLabel = game => game.status === 'in_progress' ? 'LIVE' : game
 const shiftDate = (date, days) => { const value = new Date(`${date}T12:00:00Z`); value.setUTCDate(value.getUTCDate() + days); return value.toISOString().slice(0, 10); };
 export function Games({ board, date, timeZone, onDate, onTrack, refresh, loading, error }) {
   const groups = Object.keys(titles).map(key => [key, (board?.games ?? []).filter(game => (['scheduled', 'in_progress', 'final'].includes(game.status) ? game.status : 'other') === key)]);
+  const statusText = loading ? null : error ? `${error.status === 401 ? 'Sign in again. ' : ''}Refresh failed. ${error.message}` : board?.unavailable ? 'Games are unavailable. Source connection or refresh is pending.' : null;
   return <div className="gx-nba-stack">
     <h1 className="gx-t-title">NBA Games</h1>
     <p className="gx-c-2">{date} · {timeZone}</p>
     <div className="gx-nba-actions"><Button onClick={() => onDate(shiftDate(date, -1))}>Yesterday</Button><Button onClick={() => onDate(today(timeZone))}>Today</Button><Button onClick={() => onDate(shiftDate(date, 1))}>Tomorrow</Button></div>
     <label className="gx-nba-field">Game date<input type="date" value={date} onChange={event => event.target.value && onDate(event.target.value)}/></label>
     {loading ? <Skeleton label="Loading games…" shape="cards" count={3}/> : null}
-    <div role="status">{error ? `${error.status === 401 ? 'Sign in again. ' : ''}Refresh failed. ${error.message}` : board?.unavailable ? 'Games are unavailable. Source connection or refresh is pending.' : null}</div>
+    <div role="status">{statusText}</div>
     {board?.observedAt && <p className="gx-t-meta gx-c-2">{error || board.stale ? 'Cached' : 'Observed'} · {board.source} · {new Date(board.observedAt).toLocaleString()} · {Math.max(0, Math.floor((Date.now() - Date.parse(board.observedAt)) / 60000))} min ago</p>}
     <Button disabled={loading} onClick={() => refresh()}>Refresh games</Button>
     {board && !board.unavailable && !board.games.length && <Card>No games on this date.</Card>}
