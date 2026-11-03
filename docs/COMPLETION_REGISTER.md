@@ -89,8 +89,9 @@ listing a game once it kicks off. Two real faults remain. A preflight race skipp
 records what it listed for a mismatched game. Local checks pass, including PGlite runs of the deployed worker and
 mutation checks. M-37 is **applied and verified** as hosted `20261103164210`. On Sean's "merge and apply" it went in
 through his SQL editor; both bodies, permissions and the earlier history rows were checked, and the score hash is unchanged.
-The provider change is **not deployed** (next `gtl-api` release and a Mac mini `gtl-odds-refresh` deploy). The first
-scheduled run after the apply is still to be read back. See the [release card](RELEASE_2026_11_03_ODDS_REFRESH_M37.md).
+The provider change is **deployed**: `gtl-api` v48 (run 41726861800), then `gtl-odds-refresh` v7 through the new
+`odds-refresh` release target (run 41735886452 from `4cf149e7`, Sean's "Yes, release it"; no Mac mini). The first
+scheduled run on v7 (06:15 UTC, November 4) is still to be read back. See the [release card](RELEASE_2026_11_03_ODDS_REFRESH_M37.md).
 
 ## Ops alerts for the data refreshes (item 22) — November 3, 2026
 
