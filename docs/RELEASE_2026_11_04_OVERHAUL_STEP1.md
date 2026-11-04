@@ -75,11 +75,16 @@ after `a10d28e9` would have rolled D-77 back.
   | `/league/comparison` | 5 |
   | `/league/feed` | 1 |
 
-- **Still to do:** a readback of the first signed-in visit to the new Play.
+- **Sean's phone, open question:** Sean reported that the home-screen app loaded his week after the deploy. He also
+  said it shows the new "Play" lip, which the old version did not have on Play's cards (its game card lip read
+  "Week N · market"). But no browser request reached `gtl-api`, or Supabase at all, from 05:57 to 08:15 UTC. The
+  logging itself works: a signed-out probe this session sent with a browser user agent at 08:15:01 UTC was logged
+  within a minute, with a 401. A real load of the week reads `gtl-api`, so these two observations disagree. The
+  signed-in readback stays open until a visit shows up in the logs.
 
 ## Not verified
 
-- No signed-in use of the released Play yet.
+- No signed-in call from the released Play has been logged yet (see the open question above).
 - No real iPhone check of Play's layers, moments or NEW pills. Sean's iPhone check stands in for device acceptance
   (spec section 10). His step 0 iPhone check is not recorded either.
 
