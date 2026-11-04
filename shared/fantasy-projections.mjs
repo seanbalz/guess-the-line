@@ -1,26 +1,19 @@
 // Weekly projection methods for the offline backtest (Board item 64). Each method sees only a player's appearances
-// before week w plus league and defense aggregates from those same weeks. Analysis only: the live method stays
-// estimatePace (GTL statistical pace 1.1) until Sean decides otherwise (a19).
+// before week w plus league and defense aggregates from those same weeks. usage won; since D-76 the live weekly estimate
+// for QB, RB, WR and TE calls the same usage() from shared/fantasy-usage.mjs, so this file grades exactly what ships.
 import { appCode } from './nfl-schedule.mjs';
 import { estimatePace, normalizePlayerStats } from './fantasy-build.mjs';
 import { scoreStats } from './fantasy-rankings.mjs';
+import { USAGE_POSITIONS, countsTowardLeague, leagueRates, usage } from './fantasy-usage.mjs';
 
-export const POSITIONS = Object.freeze(['QB', 'RB', 'WR', 'TE']);
+export { RATES, leagueRates, recencyMean, shrinkRate, usage } from './fantasy-usage.mjs';
+export const POSITIONS = USAGE_POSITIONS;
 export const METHODS = Object.freeze(['seasonAverage', 'pace11', 'usage', 'usageOpp']);
 export const DEFAULT_SETTINGS = Object.freeze({ halfLife: 4, kEff: 50, kTd: 200, kOpp: 4 });
 export const FACTOR_RANGE = Object.freeze([0.8, 1.2]);
 /** The Points game's rules: Full PPR with a 4-point passing touchdown. */
 export const points = (stats, position) => scoreStats(stats, { scoring: 'ppr', passingTds: 4, position });
 
-// [stat, opportunity, prior strength]. Touchdowns are rarer than catches or yards, so their rates take the larger K.
-export const RATES = Object.freeze([
-  ['receptions', 'targets', 'kEff'], ['receivingYards', 'targets', 'kEff'], ['receivingTds', 'targets', 'kTd'],
-  ['rushingYards', 'carries', 'kEff'], ['rushingTds', 'carries', 'kTd'],
-  ['passingYards', 'passingAttempts', 'kEff'], ['interceptions', 'passingAttempts', 'kEff'], ['passingTds', 'passingAttempts', 'kTd'],
-]);
-const OPPORTUNITIES = ['targets', 'carries', 'passingAttempts'];
-const AVERAGED = ['fumblesLost', 'twoPointConversions', 'specialTeamsTds'];
-const USED = [...OPPORTUNITIES, ...RATES.map(([stat]) => stat), ...AVERAGED];
 const round = value => Math.round(value * 1e6) / 1e6;
 const finite = value => typeof value === 'number' && Number.isFinite(value);
 const sum = (rows, key) => rows.reduce((total, row) => total + row[key], 0);
@@ -33,39 +26,8 @@ export function seasonAverage(history) {
   return Object.fromEntries(keys.map(key => [key, history.some(row => !finite(row[key])) ? null : round(sum(history, key) / history.length)]));
 }
 
-/** Today's live method, imported rather than reimplemented so the backtest grades exactly what ships. */
+/** Pace 1.1, the live method before D-76 and still the kickers' method, imported rather than reimplemented. */
 export const pace11 = history => estimatePace(history);
-
-/** Empirical-Bayes rate: weight n ÷ (n + k) on the player's own rate, the rest on the league's. */
-export function shrinkRate(made, opportunities, leagueRate, k) {
-  return opportunities > 0 ? (made + k * leagueRate) / (opportunities + k) : leagueRate;
-}
-
-/** Mean of prior appearances, each weighted 0.5^(weeks ago ÷ halfLife). */
-export function recencyMean(history, key, week, halfLife) {
-  let total = 0, weights = 0;
-  for (const row of history) { const weight = 0.5 ** ((week - row.week) / halfLife); total += weight * row[key]; weights += weight; }
-  return total / weights;
-}
-
-/** Per-opportunity league rates by position, opportunity-weighted over every prior appearance. */
-export function leagueRates(entries) {
-  const totals = Object.fromEntries(POSITIONS.map(position => [position, Object.fromEntries(USED.map(key => [key, 0]))]));
-  for (const { position, stats } of entries) if (totals[position]) for (const key of USED) totals[position][key] += stats[key];
-  return Object.fromEntries(POSITIONS.map(position => [position, Object.fromEntries(RATES.map(([stat, opportunity]) => {
-    const t = totals[position]; return [stat, t[opportunity] > 0 ? t[stat] / t[opportunity] : 0];
-  }))]));
-}
-
-/** Opportunities from recency-weighted volume, times shrunk season-to-date rates; rare events use the season average. */
-export function usage(history, { week, position, league, halfLife, kEff, kTd }) {
-  if (history.length < 2 || history.some(row => USED.some(key => !finite(row[key])))) return null;
-  const k = { kEff, kTd }, rates = league[position], line = {};
-  for (const opportunity of OPPORTUNITIES) line[opportunity] = recencyMean(history, opportunity, week, halfLife);
-  for (const [stat, opportunity, prior] of RATES) line[stat] = line[opportunity] * shrinkRate(sum(history, stat), sum(history, opportunity), rates[stat], k[prior]);
-  for (const key of AVERAGED) line[key] = sum(history, key) / history.length;
-  return line;
-}
 
 /** Full PPR points each defense allowed to each position, totalled per defense with its game count. */
 export function defenseAllowed(entries) {
@@ -118,7 +80,7 @@ export function buildWeekContext({ rows, schedule, season, week }) {
     player.history.push({ week: w, ...stats });
     // The latest prior appearance names team and position; a traded player keeps his old team until he appears again.
     if (w > player.lastWeek) Object.assign(player, { lastWeek: w, team: appCode(row.team), position: row.position });
-    if (USED.every(key => finite(stats[key])) && points(stats, row.position) !== null) entries.push({ position: row.position, defense: appCode(row.opponent_team), week: w, stats });
+    if (countsTowardLeague(row.position, stats)) entries.push({ position: row.position, defense: appCode(row.opponent_team), week: w, stats });
   }
   for (const player of players.values()) player.history.sort((a, b) => a.week - b.week);
   const opponents = new Map();
