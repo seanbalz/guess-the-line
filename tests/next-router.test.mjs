@@ -6,7 +6,8 @@ import assert from 'node:assert/strict';
 import { connectHistory, fragmentFor, isLegacyFragment, placeFromFragment, startPlace } from '../web/src/next/shell/router.js';
 import { EPL_ROUTER } from '../web/src/next/epl/shellRoute.js';
 import { leagueLayer, leagueMode } from '../web/src/next/league/leagueModel.js';
-import { HOME_LAYER_IDS, RESEARCH_LAYERS, canGoBack, initialState, isDetail, layer, reduce, researchLayerOf } from '../web/src/next/shell/state.js';
+import { BETS_LAYERS, HOME_LAYER_IDS, RESEARCH_LAYERS, betsLayerOf, canGoBack, initialState, isDetail, layer, reduce, researchLayerOf } from '../web/src/next/shell/state.js';
+import { BETS_FRESH } from '../web/src/next/bets/betsNav.js';
 import { HOME_LAYERS } from '../web/src/next/home/homeModel.js';
 
 const tick = () => new Promise(resolve => setTimeout(resolve, 0));
@@ -247,14 +248,15 @@ test('EPL uses the shared sheet/history loop and restores only its own route sta
 });
 
 test('D-69 layer addresses: every section keeps a layer and an item, so a reload or a shared link reopens a card', () => {
-  // Home is not in this list since step 2's final review: its one layer is Who's in (the M3 test below).
-  for (const [tab, view] of [['play', { section: 'score' }], ['research', { section: 'games' }], ['bets', { view: 'tracked' }]]) {
-    const fragment = fragmentFor(tab, { ...view, layer: 'game', item: '2026_08_SEA_DEN' });
-    assert.match(fragment, /layer=game/, tab);
-    assert.match(fragment, /item=2026_08_SEA_DEN/, tab);
+  // Home is not in this list since step 2's final review: its one layer is Who's in (the M3 test below). Bets' one layer
+  // is a gap (D-69 step 4): its values are allowlisted, so it carries its own layer and item.
+  for (const [tab, view, layerName, item] of [['play', { section: 'score' }, 'game', '2026_08_SEA_DEN'], ['research', { section: 'games' }, 'game', '2026_08_SEA_DEN'], ['bets', { view: 'recommended' }, 'gap', 'SEA-DEN:total']]) {
+    const fragment = fragmentFor(tab, { ...view, layer: layerName, item });
+    assert.match(fragment, new RegExp(`layer=${layerName}`), tab);
+    assert.match(fragment, /item=/, tab);
     const place = placeFromFragment(fragment);
-    assert.equal(place.view.layer, 'game', tab);
-    assert.equal(place.view.item, '2026_08_SEA_DEN', tab);
+    assert.equal(place.view.layer, layerName, tab);
+    assert.equal(place.view.item, item, tab);
   }
   assert.equal(placeFromFragment('#play/score?layer=%3Cscript%3E').view?.layer, undefined, 'only safe characters');
 });
@@ -677,5 +679,81 @@ test('D-69 step 3: browser Back closes the game layer; the pager rewrites its en
   shell.connection.disconnect();
   const reloaded = app(win);
   assert.deepEqual(researchLayerOf('games', reloaded.state.views.lines), { layer: 'game', item: 'HOU-JAX' });
+  reloaded.connection.disconnect();
+});
+
+const GAP = '#bets/recommended?layer=gap&item=SEA-DEN%3Atotal';
+
+test('D-69 step 4: one gap is a Bets layer with its own address; any other layer or item draws the section', () => {
+  const place = placeFromFragment(GAP);
+  assert.deepEqual([place.tab, place.view.view, place.view.layer, place.view.item], ['bets', 'recommended', 'gap', 'SEA-DEN:total']);
+  const opened = initialState(place);
+  assert.deepEqual(betsLayerOf(opened.views.bets), { layer: 'gap', item: 'SEA-DEN:total' });
+  assert.equal(at(opened, 'bets'), GAP, 'a reload or a shared link reopens it');
+  assert.equal(isDetail(opened), true);
+  for (const fragment of ['#bets/recommended?layer=nope&item=SEA-DEN%3Atotal', '#bets/recommended?layer=gap&item=SEA-DEN',
+    '#bets/recommended?layer=gap&item=SEA-DEN%3Amoneyline', '#bets/recommended?layer=gap&item=%3Cx%3E',
+    '#bets/virtual?layer=gap&item=SEA-DEN%3Atotal', '#bets/active?layer=who', '#bets?layer=gap&item=SEA-DEN%3Atotal']) {
+    const state = initialState(placeFromFragment(fragment));
+    assert.equal(betsLayerOf(state.views.bets), null, fragment);
+    assert.doesNotMatch(at(state, 'bets'), /layer=|item=/, `${fragment}: the address draws the section`);
+  }
+  assert.deepEqual(Object.keys(BETS_LAYERS), ['recommended']);
+});
+
+test('D-69 step 4: opening a gap is a step; the lip and Back close it; on a shared link both close it to Your gap, never to the landing', () => {
+  const list = initialState({ tab: 'bets', view: { view: 'recommended' } });
+  const gap = reduce(list, { type: 'view', tab: 'bets', patch: { layer: 'gap', item: 'SEA-DEN:total' } });
+  assert.deepEqual([gap.trail.length, gap.navMode], [1, 'go'], 'opening a gap is a step');
+  for (const closed of [reduce(gap, { type: 'back' }), reduce(gap, { type: 'view', tab: 'bets', patch: { layer: undefined, item: undefined } })]) {
+    assert.deepEqual([closed.views.bets.view, betsLayerOf(closed.views.bets), closed.trail.length], ['recommended', null, 0]);
+  }
+  const linked = initialState(placeFromFragment(GAP));
+  assert.equal(linked.trail.length, 0);
+  for (const closed of [reduce(linked, { type: 'back' }), reduce(linked, { type: 'view', tab: 'bets', patch: { layer: undefined, item: undefined } })]) {
+    assert.deepEqual([closed.tab, closed.views.bets.view, closed.navMode, betsLayerOf(closed.views.bets)], ['bets', 'recommended', 'back', null]);
+  }
+  assert.equal(reduce(reduce(linked, { type: 'back' }), { type: 'back' }).views.bets.view, undefined, 'the next Back leaves for the landing');
+});
+
+test('D-69 step 4: each Bets section is a step from the landing with its own address; Back returns to the landing', () => {
+  const landing = initialState(placeFromFragment('#bets'));
+  for (const [view, path] of [['active', '#bets/active'], ['virtual', '#bets/virtual'], ['everyone', '#bets/everyone'], ['research', '#bets/research'], ['recommended', '#bets/recommended']]) {
+    const opened = reduce(landing, { type: 'go', tab: 'bets', view: { view, ...BETS_FRESH } });
+    assert.equal(at(opened, 'bets').split('?')[0], path);
+    assert.equal(opened.trail.length, 1);
+    assert.equal(reduce(opened, { type: 'back' }).views.bets.view, undefined);
+    assert.equal(initialState(placeFromFragment(path)).views.bets.view, view, 'a reload reopens it');
+  }
+});
+
+test('D-69 step 4: a Bets layer never rides into a fresh destination or another tab, and other tabs’ layers never reach Bets', () => {
+  const gap = initialState(placeFromFragment(GAP));
+  const home = reduce(gap, { type: 'tab', tab: 'home' });
+  assert.equal(home.views.home.layer, undefined, 'a Bets layer never reaches Home');
+  assert.equal(at(reduce(home, { type: 'tab', tab: 'bets' }), 'bets'), '#bets', 'the Bets tab opens the landing');
+  assert.equal(betsLayerOf(reduce(gap, { type: 'go', tab: 'bets', view: { view: 'recommended', ...BETS_FRESH } }).views.bets), null, 'the Your gap tile opens the list');
+  assert.equal(at(reduce(gap, { type: 'go', tab: 'research', view: { section: 'teams' } }), 'research'), '#research/teams', 'a Bets layer never reaches Research');
+  assert.equal(at(reduce(gap, { type: 'go', tab: 'play', view: { section: 'score' } }), 'play'), '#play/score', 'a Bets layer never reaches Play');
+  const who = initialState(placeFromFragment('#home?layer=who'));
+  assert.doesNotMatch(at(reduce(who, { type: 'go', tab: 'bets', view: { view: 'recommended' } }), 'bets'), /layer=|item=/, 'Home’s layer never reaches Bets');
+  const team = initialState(placeFromFragment('#research/teams?layer=team&item=SEA'));
+  assert.doesNotMatch(at(reduce(team, { type: 'go', tab: 'bets', view: { view: 'recommended' } }), 'bets'), /layer=|item=/, 'Research’s layer never reaches Bets');
+  assert.equal(betsLayerOf(reduce(gap, { type: 'restore', place: placeFromFragment('#bets/recommended') }).views.bets), null, 'a restored list entry is the list');
+});
+
+test('D-69 step 4: browser Back closes the gap layer; Forward and a reload reopen it', async () => {
+  const win = fakeWindow('https://gtl.test/#bets/recommended'); const shell = app(win);
+  shell.dispatch({ type: 'view', tab: 'bets', patch: { layer: 'gap', item: 'SEA-DEN:total' } });
+  await settle();
+  assert.deepEqual(win.stack(), ['#bets/recommended', `[${GAP}]`]);
+  win.history.back(); await settle();
+  assert.equal(betsLayerOf(shell.state.views.bets), null);
+  assert.equal(win.location.hash, '#bets/recommended');
+  win.history.forward(); await settle();
+  assert.equal(shell.state.views.bets.item, 'SEA-DEN:total');
+  shell.connection.disconnect();
+  const reloaded = app(win);
+  assert.deepEqual(betsLayerOf(reloaded.state.views.bets), { layer: 'gap', item: 'SEA-DEN:total' });
   reloaded.connection.disconnect();
 });

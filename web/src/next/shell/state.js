@@ -43,8 +43,9 @@ export function researchLayerOf(section, view) {
   const spec = Object.hasOwn(RESEARCH_LAYERS, section ?? '') ? RESEARCH_LAYERS[section] : null;
   return spec && view?.layer === spec.layer && spec.item(view.item) ? { layer: view.layer, item: view.item } : null;
 }
-/** Which view holds the Research layer open now ('lines' for a game, 'research' for a team), or null. */
-function researchOpenLayer(state) {
+/** Which view holds the layer open now: 'lines' (a game), 'research' (a team) or 'bets' (a gap), or null. */
+function openLayerView(state) {
+  if (state.tab === 'bets') return betsLayerOf(state.views.bets) ? 'bets' : null;
   if (state.tab !== 'research') return null;
   const section = state.views.research?.section;
   if (section === 'games' && researchLayerOf('games', state.views.lines)) return 'lines';
@@ -53,9 +54,21 @@ function researchOpenLayer(state) {
 }
 /** The game layer's pager shows another game in place (the same layer, a new item): not a step. */
 const pagesGame = (state, patch) => !!researchLayerOf('games', state.views.lines) && !Object.hasOwn(patch, 'layer') && RESEARCH_LAYERS.games.item(patch.item);
-/** A patch that closes the Research layer open now. */
-const closesResearchLayer = (state, tab, patch) => researchOpenLayer(state) === tab && Object.hasOwn(patch, 'layer') && !patch.layer;
+/** A patch that closes the layer open now (a game, a team or a gap). */
+const closesOpenLayer = (state, tab, patch) => openLayerView(state) === tab && Object.hasOwn(patch, 'layer') && !patch.layer;
 const RESEARCH_LAYER_CLEARED = Object.freeze({ layer: undefined, item: undefined });
+/**
+ * D-69 step 4: Bets' one nested layer, one gap in Your gap (`#bets/recommended?layer=gap&item=SEA-DEN:total`: the game
+ * and the market). Any other layer or item on any Bets view draws the section.
+ */
+export const BETS_LAYERS = Object.freeze({
+  recommended: Object.freeze({ layer: 'gap', item: value => typeof value === 'string' && /^[A-Z]{2,3}-[A-Z]{2,3}:(spread|total)$/.test(value) }),
+});
+/** The open layer of a Bets view (`views.bets`, or a parsed place's view: `{ view, layer, item }`), or null. */
+export function betsLayerOf(view) {
+  const spec = Object.hasOwn(BETS_LAYERS, view?.view ?? '') ? BETS_LAYERS[view.view] : null;
+  return spec && view.layer === spec.layer && spec.item(view.item) ? { layer: view.layer, item: view.item } : null;
+}
 // D-69 step 2: Home's layer (Who's in) is a detail too, so Back after a reload closes it and the top bar shows Back. Only
 // a known layer counts: any other value draws Home's root, which has no Back.
 export const isDetail = state => !!state.views[state.tab]?.section || (state.tab === 'bets' && !!state.views.bets.view)
@@ -80,6 +93,8 @@ export const navigationPatch = (state, tab, patch) => !!patch && (
   // it; the game layer's pager showing another game is not (it swaps the item in place, and Back still lands on the board).
   || (tab === 'lines' && ['layer', 'item'].some(key => Object.hasOwn(patch, key) && (patch[key] ?? null) !== (state.views.lines?.[key] ?? null)) && !pagesGame(state, patch))
   || (tab === 'research' && ['layer', 'item'].some(key => Object.hasOwn(patch, key) && (patch[key] ?? null) !== (state.views.research?.[key] ?? null)))
+  // D-69 step 4: opening or closing one gap in Your gap (Bets' `layer` and `item`) is a step, so Back closes it.
+  || (tab === 'bets' && ['layer', 'item'].some(key => Object.hasOwn(patch, key) && (patch[key] ?? null) !== (state.views.bets?.[key] ?? null)))
   // D-66: opening or closing a Trends nesting card is a step, so back closes one layer. The account reset in
   // TrendsScreen also clears the history window; it is not a step, so back never restores another account's choice.
   || (tab === 'fantasy' && ['fantasyLayer', 'fantasyPlayer'].some(key => Object.hasOwn(patch, key) && (patch[key] ?? null) !== (state.views.fantasy?.[key] ?? null)))
@@ -138,8 +153,8 @@ const closed = { sheets: [], dialog: null, popover: null, page: null };
 const PLAY_LAYER_KEYS = Object.freeze(['pickGame', 'scoreGame', 'layer', 'item']);
 /** Home's layer key (D-69 step 2): Who's in opens over Home's root. */
 const HOME_LAYER_KEYS = Object.freeze(['layer']);
-/** The view keys that open a nested layer, per tab: a fresh destination on that tab never carries one over. */
-const LAYER_KEYS = Object.freeze({ play: PLAY_LAYER_KEYS, home: HOME_LAYER_KEYS, research: Object.freeze(['layer', 'item']) });
+/** The view keys that open a nested layer, per tab: a fresh destination on that tab never carries one over: Play's, Home's, Research's and Bets' layers. */
+const LAYER_KEYS = Object.freeze({ play: PLAY_LAYER_KEYS, home: HOME_LAYER_KEYS, research: Object.freeze(['layer', 'item']), bets: Object.freeze(['layer', 'item']) });
 const withView = (views, tab, patch) => (isRecord(patch) ? { ...views, [tab]: { ...views[tab], ...patch } } : views);
 
 // Origin context is reversible; newer local list/filter preferences survive returning through a root.
@@ -222,8 +237,8 @@ export function reduce(state, action) {
         // D-66: a step that lands exactly on the previous place (a nesting card's lip to its parent) goes back, so the
         // next Back leaves the section instead of reopening the layer just closed.
         if (returnsToPrior(state, action.tab, action.patch)) return reduce(state, { type: 'back' });
-        // D-69 step 3: a Research layer reached by a shared link or a reload has nothing under it; its lip is Back.
-        if (!state.trail.length && closesResearchLayer(state, action.tab, action.patch)) return reduce(state, { type: 'back' });
+        // D-69 steps 3-4: a layer reached by a shared link or a reload has nothing under it; its lip is Back.
+        if (!state.trail.length && closesOpenLayer(state, action.tab, action.patch)) return reduce(state, { type: 'back' });
         // D-70: Next swaps one game's card for another, so the trail keeps the week under it, never the previous game.
         // `replace` tells the router to rewrite the current entry instead of adding one.
         if (swapsGame(state, action.tab, action.patch)) return { ...reduce(reduce(state, { type: 'back' }), action), navMode: 'replace' };
@@ -235,8 +250,8 @@ export function reduce(state, action) {
       if (hasLayers(state)) return reduce(state, { type: 'closeTop' });
       const prior = state.trail.at(-1);
       if (!prior) {
-        // D-69 step 3: Back on a Research layer with nothing under it (a shared link, a reload) closes that one layer.
-        const open = researchOpenLayer(state);
+        // D-69 steps 3-4: Back on a layer with nothing under it (a shared link, a reload) closes that one layer.
+        const open = openLayerView(state);
         if (open) return { ...state, ...closed, views: { ...state.views, [open]: { ...state.views[open], ...RESEARCH_LAYER_CLEARED } }, nav: state.nav + 1, navMode: 'back' };
         return isDetail(state) ? { ...reduce(state, { type: 'tab', tab: state.tab }), navMode: 'back' } : state;
       }

@@ -1,5 +1,5 @@
 // Four roots and allowlisted detail addresses. History contains navigation metadata only.
-import { DEFAULT_TAB, HOME_LAYER_IDS, LEGACY_TABS, destination, hasLayers, isTab, researchLayerOf } from './state.js';
+import { DEFAULT_TAB, HOME_LAYER_IDS, betsLayerOf, LEGACY_TABS, destination, hasLayers, isTab, researchLayerOf } from './state.js';
 const LEFT_ALONE = new Set(['main', 'picks-due']);
 const KEYS = new Set(['market','season','week','weekId','leagueId','accountId','period','team','matchup','scoreGame','comparisonKind','layer','item']);
 const SECTIONS = { play: ['picks','score','compare','league','points','features'], research: ['games','fantasy','trends','teams'], bets: ['active','settled','tracked','recommended','research','virtual','everyone','add'] };
@@ -17,6 +17,8 @@ export function safeView(tab, view = {}) {
   if (tab === 'home' && !HOME_LAYER_IDS.includes(result.layer)) delete result.layer;
   // D-69 step 3: Research's layers (one game, one team) by allowlist; any other layer or item draws the section's list.
   if (tab === 'research' && !researchLayerOf(result.section, result)) { delete result.layer; delete result.item; }
+  // D-69 step 4: Bets' one layer (one gap in Your gap) by allowlist; any other layer or item draws the section.
+  if (tab === 'bets' && !betsLayerOf(result)) { delete result.layer; delete result.item; }
   if (tab === 'bets' && result.view === 'research' && typeof view.assessment === 'string' && /^[a-zA-Z0-9_.:-]{1,100}$/.test(view.assessment)) result.assessment = view.assessment;
   // A game focus is navigation metadata only and belongs to the picks destination.
   if (tab === 'play' && result.section === 'picks' && typeof view.pickGame === 'string' && /^[\w-]{1,100}$/.test(view.pickGame)) result.pickGame = view.pickGame;
