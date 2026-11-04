@@ -5,7 +5,20 @@ import {Pill} from '../ui/Pill.jsx';
 import {cx} from '../ui/cx.js';
 import {cashText,trackedLeg,unitText,validUnitCash} from '../../trackedBetTerms.js';
 import {DASH,MINUS,fmtAmt,fmtU} from '../format.js';
+import {useMomentScope,usePopped} from '../moments/MomentsProvider.jsx';
+import {ticketScope} from '../moments/catalog.js';
+import {betWinId} from './betMoments.js';
 import './tracked-bets.css';
+// D-69 step 4: a tracked win waits on the card that draws its ticket as won (ticketScope), and only while that card's
+// preview shows its Won pill. The ticket summary that reports the win and the list that draws these cards are separate
+// reads, so a card still showing the ticket as Open (or Lost, or expanded with its preview hidden) holds nothing: a win
+// the summary brings first waits (NEW on My bets) instead of being spent where it cannot show. The pill pops once when
+// the win plays; a loss stays quiet. No buzz (the lock-in's).
+function WonPill({id,tone,children}) {
+  useMomentScope(ticketScope(id));
+  const pop=usePopped(betWinId(id));
+  return <Pill tone={tone} data-moment={pop?'pop':undefined}>{children}</Pill>;
+}
 export function TrackedBetRow({entry,games,unitCash,children}) {
   const [expanded,setExpanded]=useState(false),[open,setOpen]=useState(false),id=useId();
   const preview=useRef(null),collapse=useRef(null),nextFocus=useRef(null);
@@ -19,6 +32,7 @@ export function TrackedBetRow({entry,games,unitCash,children}) {
   const source=typeof entry.source==='string'?entry.source:entry.source?.name,pending=entry.outcome==='pending',parlay=entry.kind==='parlay';
   const status={pending:'Open',win:'Won',loss:'Lost',push:'Push',void:'Void'}[entry.outcome]||'Pending';
   const tone=['win','loss','pending'].includes(entry.outcome)?entry.outcome:'neutral';
+  const won=entry.outcome==='win'&&typeof entry.id==='string'&&entry.id!=='';
   const odds=Number.isFinite(entry.odds)?`${entry.odds>0?'+':'−'}${Math.abs(entry.odds)}`:'Odds unknown';
   const cash=value=>validUnitCash(unitCash)&&Number.isFinite(value)?cashText(value*Number(unitCash)):null;
   const result=pending?entry.potentialReturnUnits:entry.netUnits;
@@ -32,9 +46,9 @@ export function TrackedBetRow({entry,games,unitCash,children}) {
   const shortRisk=cash(entry.stakeUnits)||(known(entry.stakeUnits)?fmtU(entry.stakeUnits):null),shortReturn=pending?(cash(result)||(known(result)?fmtU(result):null)):known(result)?fmtAmt(result):null;
   const returnLabel=pending?'Total return':'Net units',unknown=(label,value)=>value===null?`${label} · unknown`:label;
   const resultClass=!pending&&result>0?'gx-c-win':!pending&&result<0?'gx-c-loss':undefined;
-  return <article className="gx-tracked-row" aria-label={`${parlay?`${entry.legs.length}-leg parlay`:entry.legs[0]?.selection||'Tracked bet'} · ${status}`}>
+  return <article className="gx-tracked-row" data-ticket={entry.id} data-outcome={entry.outcome} aria-label={`${parlay?`${entry.legs.length}-leg parlay`:entry.legs[0]?.selection||'Tracked bet'} · ${status}`}>
     <button type="button" ref={preview} className="gx-tracked-preview" hidden={expanded} aria-label={`Expand ${title}`} aria-expanded={expanded} aria-controls={`${id}-ticket`} aria-describedby={`${id}-meta ${id}-money`} onClick={showTicket}>
-      <span id={`${id}-meta`} className="gx-tracked-preview-head"><span>{source||'Book unknown'}</span><Pill tone={tone}>{status}</Pill></span>
+      <span id={`${id}-meta`} className="gx-tracked-preview-head"><span>{source||'Book unknown'}</span>{won&&!expanded?<WonPill id={entry.id} tone={tone}>{status}</WonPill>:<Pill tone={tone}>{status}</Pill>}</span>
       <span className="gx-tracked-preview-heading"><strong>{title}</strong><ChevronRight size={20} aria-hidden="true"/></span>
       {parlay?allTouchdowns&&<span className="gx-tracked-preview-description">Anytime touchdowns</span>:first.pick&&<span className="gx-tracked-preview-description"><span className="gx-tracked-preview-pick">{first.pick}</span> {first.stat}</span>}
       <span className="gx-tracked-preview-games" aria-hidden="true">{gameIds.slice(0,3).map(gameId=>{

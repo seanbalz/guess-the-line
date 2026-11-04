@@ -8,9 +8,9 @@ import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
 import { Dock } from '../shell/Frame.jsx';
 import { LeagueFailure, useLeagueRead } from '../league/useLeagueRead.jsx';
-import { AvatarStack, Button, Card, Chip, ChipRail, GateBanner, IconButton, LockLine, Matchup, Meter, Pill, Sheet, Tag, Skeleton } from '../ui/index.js';
+import { AvatarStack, Button, Card, Chip, ChipRail, GateBanner, IconButton, LockLine, Matchup, Meter, Pill, Sheet, Tag, Skeleton, useEntrance } from '../ui/index.js';
 import { fmtNum, fmtU, fmtWhen } from '../format.js';
-import { PLACE_COPY, UNIT_CHIPS, placeBoard, placeRequest, slipEntries, slipKey, stepUnits, weekCard } from './place.js';
+import { PLACE_COPY, UNIT_CHIPS, placeBoard, placeRequest, placementStep, slipEntries, slipKey, stepUnits, weekCard } from './place.js';
 import './place.css';
 
 export function PlaceBets({ onDirty }) {
@@ -18,7 +18,24 @@ export function PlaceBets({ onDirty }) {
   const leagueId = app.league?.community === false && !app.league.pending ? app.league.id : null;
   const key = `${app.accountId}:place:${leagueId ?? 'community'}`;
   const read = useLeagueRead(key, signal => betsApi('read', leagueId ? { leagueId } : {}, signal), error => { if (error.status === 401) app.requestSignIn(); });
-  const board = useMemo(() => read.data ? placeBoard(read.data, app.accountId) : null, [read.data, app.accountId]);
+  const enter = useEntrance();
+  // D-69 step 4: the last good reply stays on screen while a refresh reads (spec 4.5), so the cards never flash to a
+  // skeleton or rise in twice; a failed refresh keeps it under its failure line.
+  const [last, setLast] = useState(null);
+  useEffect(() => { if (read.data) setLast({ key, data: read.data }); }, [read.data, key]);
+  const data = read.data ?? (last?.key === key ? last.data : null);
+  const refreshing = read.loading && !read.data && data !== null;
+  const board = useMemo(() => (data ? placeBoard(data, app.accountId) : null), [data, app.accountId]);
+  // D-69 step 4, a placement's small moment: it waits for the read that starts after the write and pops the tags of the
+  // bets that read confirms (placementStep, confirmedPlacements); a refusal, a lost reply, a read from before the write
+  // or a request still on its way pops nothing.
+  const [confirming, setConfirming] = useState(null), [placed, setPlaced] = useState(null);
+  const { loading: reading, data: replied } = read;
+  useEffect(() => {
+    const step = placementStep(confirming, { loading: reading, data: replied }, app.accountId);
+    if (step.waiting !== confirming) setConfirming(step.waiting);
+    if (step.placed !== undefined) setPlaced(step.placed);
+  }, [confirming, reading, replied, app.accountId]);
   const [slip, setSlip] = useState({}), [review, setReview] = useState(false), [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState(null), [uncertain, setUncertain] = useState(false);
   const request = useRef(null);
@@ -41,11 +58,13 @@ export function PlaceBets({ onDirty }) {
     if (busy || !entries.length) return;
     request.current ??= crypto.randomUUID();
     setBusy(true); setFailure(null);
+    const body = placeRequest(board, entries, request.current);
     try {
-      const reply = await betsApi('place', placeRequest(board, entries, request.current));
+      const reply = await betsApi('place', body);
       const count = reply?.placed?.bets?.length ?? entries.length;
       request.current = null; setUncertain(false); setSlip({}); setReview(false);
       shell.toast(`${count} ${count === 1 ? 'bet' : 'bets'} saved`, { tone: 'done' });
+      setConfirming({ id: body.requestId, bets: body.bets });
       read.retry();
     } catch (error) {
       if (error?.uncertain) { setUncertain(true); setFailure(error.message); return; }
@@ -65,10 +84,13 @@ export function PlaceBets({ onDirty }) {
   const units = entries.reduce((sum, entry) => sum + entry.units, 0);
   return <div className="gx-place gx-vstack gx-gap-16" data-bets="place">
     <p className="gx-t-meta gx-c-2">Week {board.week} · Virtual Units · {PLACE_COPY.empty}</p>
-    <WeekCard week={weekCard(read.data, app.accountId)}/>
+    {read.error ? <LeagueFailure error={read.error} onRetry={read.retry}/> : null}
+    <WeekCard week={weekCard(data, app.accountId)}/>
     {board.closed ? <GateBanner gate={{ locked: true, sentence: PLACE_COPY.banner, ctaLabel: 'Lock in a guess' }} onCta={() => shell.go('play', { section: 'picks' })}/> : null}
-    {board.games.map(game => <PlaceGame key={game.id} game={game} slip={slip} disabled={busy || uncertain} onToggle={toggle}/>)}
-    <Button variant="ghost" onClick={read.retry} disabled={busy}>Refresh prices</Button>
+    <ol className="gx-place-games gx-stagger" data-enter={enter} aria-label={`Week ${board.week} games`}>
+      {board.games.map(game => <li key={game.id}><PlaceGame game={game} slip={slip} disabled={busy || uncertain || refreshing} placed={placed} onToggle={toggle}/></li>)}
+    </ol>
+    <Button variant="ghost" onClick={read.retry} disabled={busy || refreshing} aria-busy={refreshing}>{refreshing ? 'Refreshing…' : 'Refresh prices'}</Button>
     {entries.length ? <Dock><div className="gx-dock-bar gx-place-dock">
       <span className="gx-grow gx-vstack"><span className="gx-t-strong">Slip · {entries.length} {entries.length === 1 ? 'bet' : 'bets'}</span><span className="gx-t-meta gx-c-2">{fmtU(units)} risked</span></span>
       <Button variant="primary" onClick={() => setReview(true)}>Review slip</Button>
@@ -76,7 +98,7 @@ export function PlaceBets({ onDirty }) {
     {review && entries.length ? <Sheet title="Your slip" onClose={() => { if (!busy) setReview(false); }} tall
       footer={<div className="gx-vstack gx-gap-8">
         {failure ? <p className="gx-t-body gx-c-loss" role="alert">{failure}</p> : null}
-        <Button variant="primary" block onClick={place} disabled={busy}>{busy ? 'Saving…' : uncertain ? 'Retry the same save' : `Place ${entries.length} ${entries.length === 1 ? 'bet' : 'bets'} · ${fmtU(units)}`}</Button>
+        <Button variant="primary" block onClick={place} disabled={busy || refreshing}>{busy ? 'Saving…' : uncertain ? 'Retry the same save' : `Place ${entries.length} ${entries.length === 1 ? 'bet' : 'bets'} · ${fmtU(units)}`}</Button>
       </div>}>
       <ul className="gx-place-slip gx-vstack gx-gap-16">
         {entries.map(entry => <SlipRow key={entry.key} entry={entry} disabled={busy || uncertain} onUnits={value => setUnits(entry.key, value)} onRemove={() => remove(entry.key)}/>)}
@@ -98,7 +120,7 @@ export function WeekCard({ week }) {
   </Card>;
 }
 
-export function PlaceGame({ game, slip, disabled, onToggle }) {
+export function PlaceGame({ game, slip, disabled, placed = null, onToggle }) {
   return <Card as="section" className="gx-place-game gx-vstack gx-gap-12" aria-labelledby={`gx-place-${game.id}`} data-game={game.id}>
     <header className="gx-place-game-head">
       <span className="gx-grow gx-vstack gx-gap-4">
@@ -110,7 +132,9 @@ export function PlaceGame({ game, slip, disabled, onToggle }) {
     {game.markets.map(market => <div key={market.market} className="gx-place-market gx-vstack gx-gap-8" data-market={market.market}>
       <div className="gx-hstack gx-gap-8">
         <span className="gx-t-label gx-grow">{market.name}</span>
-        {market.mine ? <Tag k="Your bet">{market.mine.text} · {market.mine.units}</Tag> : null}
+        {market.mine ? (() => { const pop = placed?.keys.has(slipKey(game.id, market.market)) ? placed.id : null;
+          // A new confirmation remounts the tag (its key), so an edit confirmed again pops again; a re-render never does.
+          return <Tag key={pop ?? 'mine'} k="Your bet" data-moment={pop ? 'pop' : undefined}>{market.mine.text} · {market.mine.units}</Tag>; })() : null}
       </div>
       {market.mine?.moved && !game.started ? <Pill tone="pending">{PLACE_COPY.priceMoved}</Pill> : null}
       {market.locked ? <LockLine as="p" className="gx-t-meta">{market.locked}</LockLine>

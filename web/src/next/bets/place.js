@@ -112,6 +112,32 @@ export function placeRequest(board, entries, requestId) {
   })) };
 }
 
+/**
+ * D-69 step 4: the placed bets a fresh /bets/read confirms (spec 4.2 rule 1, a moment plays on confirmed data only): each
+ * bet the request sent whose saved row for you now has the same side, line, price and units. A refusal, a lost reply or a
+ * bet saved elsewhere with other terms confirms nothing. Their slip keys, in the request's order.
+ */
+export function confirmedPlacements(reply, viewer, sent) {
+  const bets = Array.isArray(reply?.bets) ? reply.bets : [];
+  return (Array.isArray(sent) ? sent : []).filter(bet => bets.some(row => row?.userId === viewer && row.gameId === bet.gameId && row.market === bet.market
+    && row.selection?.side === bet.side && row.selection?.line === bet.line && row.selection?.odds === bet.odds && row.selection?.units === bet.units))
+    .map(bet => slipKey(bet.gameId, bet.market));
+}
+
+/**
+ * D-69 step 4: one step of a placement's confirmation. `waiting` is `{ id, bets }` once the write replied; `read` is the
+ * placing read now. Only the read that starts after the write confirms (the reply on screen, or one already on its way,
+ * was read before it), so the read must be seen loading first (`reading`). `{ waiting }` while it waits; then
+ * `{ waiting: null, placed }`: `{ id, keys }` for the bets that read confirms, or null (a failed read, other terms).
+ */
+export function placementStep(waiting, read, viewer) {
+  if (!waiting) return { waiting: null };
+  if (read?.loading) return { waiting: waiting.reading ? waiting : { ...waiting, reading: true } };
+  if (!waiting.reading) return { waiting };
+  const keys = confirmedPlacements(read?.data, viewer, waiting.bets);
+  return { waiting: null, placed: keys.length ? { id: waiting.id, keys: new Set(keys) } : null };
+}
+
 /** Half units only, from 0.5 up to MAX_UNITS. */
 export function stepUnits(units, direction) {
   const next = Math.round(((finite(units) ? units : 1) + direction * 0.5) * 2) / 2;

@@ -1,5 +1,5 @@
 // D-69 step 4 (spec 5A): the Bets landing drawn. Contracts: one glow card labelled by its eyebrow with the kit meter, one
-// meta line and the screen's one lime button; five tiles with stable ids and faces on Everyone (Task 4 adds NEW on My bets); while
+// meta line and the screen's one lime button; five tiles with stable ids and faces on Everyone, NEW only on My bets (a tracked win waiting for its card); while
 // /personal loads, the meter card's skeleton with five tile skeletons; a failed read says one sentence
 // with Try again and keeps the tiles; a failed refresh keeps the last copy and says so. Fixture data only.
 import { describe, expect, it, vi } from 'vitest';
@@ -69,5 +69,12 @@ describe('the Bets landing', () => {
     const stale = render({ ...ready, status: 'error', error: { status: 0 } });
     expect(stale).toContain('This week could not refresh. Showing the last loaded update.');
     expect(byAttr(stale, 'data-bets', 'hero')).toHaveLength(1);
+  });
+  it('NEW only on My bets while a tracked win waits for its card', () => {
+    state.waiting = 1;
+    const html = render();
+    state.waiting = 0;
+    expect(nameFrom(tiles(html)[0])).toMatch(/^My bets, .*, new$/);
+    expect(tiles(html).slice(1).every(t => !/, new$/.test(nameFrom(t)))).toBe(true);
   });
 });

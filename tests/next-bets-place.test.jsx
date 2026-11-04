@@ -9,7 +9,7 @@ import { markupProblems, nameFrom, parseMarkup, walk } from './helpers/ui-markup
 vi.mock('../web/src/api.js', () => ({ betsApi: vi.fn() }));
 vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: vi.fn() }));
 
-const { PLACE_COPY, placeBoard, placeRequest, slipEntries, slipKey, stepUnits } = await import('../web/src/next/bets/place.js');
+const { PLACE_COPY, confirmedPlacements, placeBoard, placeRequest, slipEntries, slipKey, stepUnits } = await import('../web/src/next/bets/place.js');
 const { PlaceGame } = await import('../web/src/next/bets/PlaceBets.jsx');
 
 const LUKE = '00000000-0000-4000-8000-000000000003', TROY = '00000000-0000-4000-8000-000000000002';
@@ -90,6 +90,14 @@ describe('the placing board', () => {
   });
   it('reads an unpublished week as unpublished', () => {
     expect(placeBoard({ ...data, published: false }, LUKE)).toMatchObject({ published: false, games: [] });
+  });
+  // D-69 step 4, a placement's small moment (spec 4.2 rule 1): only the fresh /bets/read after the write confirms it.
+  it('confirms only placements whose fresh read holds the sent terms', () => {
+    const sent = [{ gameId: 'SEA-DEN', market: 'spread', side: 'home', line: -3, odds: -110, units: 2 }, { gameId: 'KC-BUF', market: 'total', side: 'over', line: 44.5, odds: -105, units: 1 }];
+    const row = (userId, bet, change = {}) => ({ userId, gameId: bet.gameId, market: bet.market, selection: { side: bet.side, line: bet.line, odds: bet.odds, units: bet.units, ...change } });
+    expect(confirmedPlacements({ bets: [row(LUKE, sent[0]), row(LUKE, sent[1])] }, LUKE, sent)).toEqual(['SEA-DEN:spread', 'KC-BUF:total']);
+    expect(confirmedPlacements({ bets: [row(LUKE, sent[0], { units: 3 }), row(TROY, sent[1])] }, LUKE, sent), 'other terms or another player confirm nothing').toEqual([]);
+    expect(confirmedPlacements(null, LUKE, sent)).toEqual([]);
   });
 });
 

@@ -18,6 +18,7 @@ import { PlaceBets } from './PlaceBets.jsx';
 import { Segmented } from '../ui/Segmented.jsx';
 import { TrackedBetRow } from './TrackedBetRow.jsx';
 import { BetsLanding } from './BetsLanding.jsx';
+import { useBetWins } from './useBetWins.js';
 import { BETS_NAMES, LIST_WORDS, SECTION_OF, openSection } from './betsNav.js';
 import { draftParts, savedTicketToast } from './recommendationReview.js';
 import { recommendationMarket } from '../../../../shared/recommended-bets.mjs';
@@ -92,6 +93,9 @@ function BetsSection({ destination }) {
 /** My bets: the tracker with its November 1 Roomy cards (D-72), unchanged, on the list its address names. */
 function MyBets({ destination, trackerState, rememberTracker, onDirty, onSaved }) {
   const app = useAppData(), shell = useShell(), route = shell.state.views.bets;
+  // D-69 step 4: the ticket summary read (shared with the landing and Home) reports your tracked wins, so a win that
+  // arrives while you watch plays on its own card (TrackedBetRow).
+  useBetWins(app);
   return <Deferred label="tracked bets"><SocialBetTracker key={`${app.accountId}:${destination}:${shell.state.nav}`} player={app.accountId}
     initialOutcome={destination === 'active' ? 'pending' : destination === 'settled' ? 'settled' : ''} initialAllHistory={destination === 'active' || destination === 'settled'}
     autoCreate={destination === 'add'} navigationState={trackerState} onNavigationState={rememberTracker} initialView="mybets" embedded compactTickets

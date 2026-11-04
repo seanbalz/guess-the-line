@@ -1,7 +1,7 @@
 // D-69 moments engine, the pure rules (web/src/next/moments). Each test names the contract it guards.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { MOMENTS, SCOPES, scoreScope, sizeOf } from '../web/src/next/moments/catalog.js';
+import { MOMENTS, SCOPES, scoreScope, sizeOf, ticketScope } from '../web/src/next/moments/catalog.js';
 import { SEEN_CAP, clearMomentSeen, momentsKey, readMomentSeen, writeMomentSeen } from '../web/src/next/moments/seen.js';
 import { SMALL_GAP_MS, freshMoments, planMoments } from '../web/src/next/moments/detect.js';
 
@@ -22,8 +22,9 @@ test('moments size: every moment plays at the size Sean chose (Q3, "Use PICK col
   assert.equal(sizeOf('toString'), 'quiet', 'only own keys count');
 });
 
-test('scopes: Play cards that hold moments each have a scope, so a landing tile can show NEW for its own card', () => {
-  assert.deepEqual({ ...SCOPES }, { home: 'home', play: 'play', league: 'league', features: 'features', score: 'score', picks: 'picks', points: 'points' });
+test('scopes: every card that holds moments has a scope, so a landing tile can show NEW for its own card', () => {
+  assert.deepEqual({ ...SCOPES }, { home: 'home', play: 'play', league: 'league', features: 'features', score: 'score', picks: 'picks', points: 'points', bets: 'bets' });
+  assert.equal(ticketScope('abc'), 'bets:ticket:abc');
 });
 
 test('scoreScope: Your score holds a scope per market, so a rank tile’s waiting move plays on its own market only', () => {
