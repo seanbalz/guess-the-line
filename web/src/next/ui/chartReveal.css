@@ -1,0 +1,11 @@
+/* D-69 section 4.3: a chart's reveal, left to right, once (ui/ChartReveal.jsx). The clip group slides in from the left
+   while its content slides the other way, so the drawing stays put and only the window over it grows. Transform only;
+   clipped only while it plays; reduced motion never starts it (and base.css stops every animation anyway). */
+.gx .gx-reveal { display: block; min-width: 0; }
+.gx .gx-reveal-in { display: block; }
+@media (prefers-reduced-motion: no-preference) {
+  .gx .gx-reveal[data-reveal="in"] { overflow: hidden; animation: gx-reveal-clip var(--gx-dur-big) var(--gx-ease-enter) both; }
+  .gx .gx-reveal[data-reveal="in"] > .gx-reveal-in { animation: gx-reveal-hold var(--gx-dur-big) var(--gx-ease-enter) both; }
+}
+@keyframes gx-reveal-clip { from { transform: translateX(-100%); } to { transform: none; } }
+@keyframes gx-reveal-hold { from { transform: translateX(100%); } to { transform: none; } }

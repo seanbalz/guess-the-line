@@ -8,6 +8,8 @@ export const DESTINATION_ICONS = Object.freeze({
   trends: 'trendingUp',
   fantasy: 'people',
   weeklyResearch: 'chart',
+  games: 'chart', // Research › Games: the board and one game's lines (D-69 step 3)
+  teams: 'shieldCheck', // Research › Teams: a team's mark, record and margins (D-69 step 3)
   researchPicks: 'clipboardCheck', // Research recommendations, a Bets view that Research links to as well
   // Bets
   overview: 'chartPie',

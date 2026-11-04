@@ -3,7 +3,7 @@
 // the layer changes the card's heading takes focus (`data-route-focus` keeps it through the shell's navigation
 // focus), so a screen reader hears the new layer; going back lets the shell return focus to what opened it.
 import { ChevronLeft } from 'lucide-react';
-import { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { cx } from './cx.js';
 import { hasNavigated, tabFading } from '../moments/launch.js';
 import './nest.css';
@@ -24,6 +24,15 @@ export function nestEnter({ navigated, tabFade = false, mounted, prevDepth = 0, 
   if (!mounted) return tabFade ? undefined : 'in';
   if (prevLayer === layer) return undefined;
   return depth < prevDepth ? 'back' : 'in';
+}
+
+/**
+ * A page list's entrance (D-69 4.3): 'in' when it first shows after the member's own navigation, never on the launch
+ * screen nor inside a tab change's fade (the screen already moves once). Decided once per mount.
+ */
+export function useEntrance() {
+  const [enter] = useState(() => nestEnter({ navigated: hasNavigated(), tabFade: tabFading(), mounted: false }));
+  return enter;
 }
 
 /**
