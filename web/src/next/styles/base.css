@@ -212,6 +212,12 @@
 .gx-anim-rise {
   animation: gx-rise-in var(--gx-dur-base) var(--gx-ease-enter);
 }
+/* The old app's endless spinner (its .spin class) never loops inside the new app: the LIVE dot is the only loop
+   (design audit A18), and busy controls say "Refreshing…" instead. The attribute form matches exactly that class and
+   keeps this sheet to gx- classes, as shell.css does for the old save-bar. */
+.gx [class~="spin"] {
+  animation: none;
+}
 
 /* Reduced motion: the device setting, or data-motion="reduce" on the .gx root (the app's own
    setting). Nothing animates or transitions; values show their final state at once. ::backdrop
