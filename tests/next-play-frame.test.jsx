@@ -55,6 +55,17 @@ describe('PlayTile', () => {
     expect(markupProblems(fresh)).toEqual([]);
   });
 
+  it('F2: NEW is always spoken: the tile adds ", new" when its label does not say it, and never says it twice', () => {
+    const name = props => nameFrom(buttons(render(<PlayTile label="Tile" icon="flame" big="4" sub="Line" onClick={() => {}} {...props}/>))[0]);
+    expect(name({ isNew: true, ariaLabel: 'Your streaks: Pick streak, 4 weeks' })).toBe('Your streaks: Pick streak, 4 weeks, new');
+    expect(name({ isNew: true, ariaLabel: 'Week 7 awards: you won Best guess' })).toBe('Week 7 awards: you won Best guess, new');
+    // Callers that already say it (Badges, League, the ballot tile) keep their wording, once.
+    for (const said of ['Badges, 1 earned, new: Bullseye', 'Badges, 1 earned, new', 'League, 3rd, New posts', 'Spread, 14 of 14 locked, new']) expect(name({ isNew: true, ariaLabel: said })).toBe(said);
+    // A word that only contains "new" is not the word.
+    expect(name({ isNew: true, ariaLabel: 'League, News desk' })).toBe('League, News desk, new');
+    expect(name({ isNew: false, ariaLabel: 'Your streaks: Pick streak, 4 weeks' })).toBe('Your streaks: Pick streak, 4 weeks');
+  });
+
   it('an unknown tone falls back to plain, so a state color never appears without its word', () => {
     const html = render(<PlayTile label="League" icon="trophy" big="3rd" sub="4 new posts" tone="loud" ariaLabel="League, 3rd" onClick={() => {}}/>);
     expect(html).toContain('gx-play-tile-sub--plain');

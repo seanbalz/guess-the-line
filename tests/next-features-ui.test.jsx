@@ -79,6 +79,14 @@ describe('Badges and awards: the first card', () => {
     // The badge's own pill says "New"; the streak tile's tag (PlayTile) says "NEW".
     expect((html.match(/>New<|>NEW</g) ?? []).length).toBe(2);
   });
+  it('F2: the streak and awards tiles with NEW say "new" (PlayTile adds it to their wording)', () => {
+    setup();
+    state.waiting = [{ id: 'streak:pick:2026:4:6', kind: 'streak', title: 'Pick streak' }, { id: 'award:2026:7:best_guess', kind: 'award', title: 'Best guess' }];
+    const html = render(<FeaturesScreen/>);
+    expect(html).toContain('aria-label="Your streaks: Pick streak, 4 weeks, new"');
+    expect(html).toContain('aria-label="Week 7 awards: you won Best guess, new"');
+    expect(html).not.toMatch(/new, new/i);
+  });
   it('before the job has run: no awards number and one plain line; loading is a Skeleton; off is "coming soon"', () => {
     setup(read({ ...REPLY, badges: [], awards: [], streaks: [] }));
     const html = render(<FeaturesScreen/>);
@@ -170,6 +178,8 @@ describe('the Play landing Badges tile', () => {
     const streak = render(<BadgesTile/>);
     expect(streak).toContain('aria-label="Badges, 1 earned, new"');
     expect(words(streak)).toMatch(/\bNEW\b/);
+    // With nothing waiting (a tile that shows NEW says "new", PlayTile's F2 rule).
+    state.waiting = [];
     setup(read(null, { loading: true }));
     expect(words(render(<BadgesTile/>))).toContain('—');
     setup(read(null, { off: true }));

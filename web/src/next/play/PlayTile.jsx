@@ -6,12 +6,16 @@ import './playFrame.css';
 
 const TONES = new Set(['plain', 'good', 'warn']);
 
-/** `ref` (a React 19 ref prop) reaches the button, so the landing can return focus to a tile. `ariaLabel` is the whole
- * spoken name: the caller says "new" in it when `isNew` (the visible NEW tag is the same word). */
+/** The spoken name with NEW in it: ", new" is added when `isNew` and the caller's label does not already say the word. */
+export const spokenName = (ariaLabel, isNew) => (isNew && typeof ariaLabel === 'string' && !/\bnew\b/i.test(ariaLabel) ? `${ariaLabel}, new` : ariaLabel);
+
+/** `ref` (a React 19 ref prop) reaches the button, so the landing can return focus to a tile. `ariaLabel` is the spoken
+ * name; the tile says "new" in it whenever the visible NEW tag shows (spokenName), so no caller can forget it and none
+ * says it twice. */
 export function PlayTile({ ref, label, icon, big, sub, tone = 'plain', isNew = false, onClick, ariaLabel }) {
   const t = TONES.has(tone) ? tone : 'plain';
   return (
-    <button ref={ref} type="button" className="gx-nest-tile gx-play-tile" aria-label={ariaLabel} onClick={onClick}>
+    <button ref={ref} type="button" className="gx-nest-tile gx-play-tile" aria-label={spokenName(ariaLabel, isNew)} onClick={onClick}>
       <span className="gx-nest-tile-top">
         <span className="gx-nest-tile-label">{label}</span>
         {icon ? <Icon icon={icon} size={20}/> : null}
