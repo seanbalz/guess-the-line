@@ -7,7 +7,7 @@
 //   is left). Each market's meter carries its own words ("Spread · 3 of 14 locked").
 // - The count is the games still to lock in the market with the most left: a per-game market's `openGames` (open and
 //   not yet locked by you), a whole-market ballot's games until it is sent or sat out.
-// - A game tile says only the viewer's own Spread state, in the picks card's words (play/moments.js gameState), never a
+// - A game tile says only the viewer's own Spread state, in the picks card's words (play/moments.js gameState, CARD_STATE), never a
 //   pick, a line or another player (D-31).
 // "N games live" is not drawn: the Community read carries no per-game status and there is no approved live source
 // (rule of restraint 8), so Home never claims a game is in progress.
@@ -16,9 +16,9 @@ import { HOME_COPY } from '../../../../shared/home-view.mjs';
 import { gamesOf, optOutsFor, teamOf } from '../../../../shared/lines-view.mjs';
 import { weekOpenAt } from '../../../../shared/nfl-schedule.mjs';
 import { show } from '../../communityFormat.js';
-import { DASH, SEP, fmtWhen, plural } from '../format.js';
+import { DASH, SEP, fmtWhen, plural, toMs } from '../format.js';
 import { ballotProgress } from '../play/landing.js';
-import { STATE_WORDS, gameState } from '../play/moments.js';
+import { CARD_STATE, gameState } from '../play/moments.js';
 import { rankChip } from '../play/yourScore.js';
 
 /** Home's layers (`#home?layer=who`). */
@@ -95,7 +95,7 @@ export function rankTileView({ label, tile, move = null }) {
   if (!chip) return { ranked: false, big: DASH, arrow: null, points: null, tone: 'plain', ariaLabel: `${label}, ${HOME_COPY.notScored.toLowerCase()}` };
   const points = typeof tile.points === 'number' && Number.isFinite(tile.points) ? tile.points : null;
   const arrow = chip.move > 0 ? `▲ ${chip.move}` : chip.move < 0 ? `▼ ${-chip.move}` : null;
-  const said = [chip.move > 0 ? `up ${chip.move}` : chip.move < 0 ? `down ${-chip.move}` : null, points === null ? null : `${show(points)} points`];
+  const said = [chip.move > 0 ? `up ${chip.move}` : chip.move < 0 ? `down ${-chip.move}` : null, points === null ? null : `${show(points)} ${points === 1 ? 'point' : 'points'}`];
   return { ranked: true, big: chip.label, arrow, points, tone: chip.move > 0 ? 'good' : 'plain', ariaLabel: [`${label}, ${chip.label}`, ...said].filter(Boolean).join(', ') };
 }
 
@@ -155,7 +155,7 @@ export function weekGames(personal, community = null, { limit = GAME_TILES } = {
   if (!games.length) return null;
   const ballot = personal.ballots?.guess_spread ?? null;
   const now = Date.parse(personal.now ?? '');
-  const openAt = personal.deadline ? Date.parse(weekOpenAt(personal.deadline)) : NaN;
+  const openAt = toMs(personal.deadline) !== null ? Date.parse(weekOpenAt(personal.deadline)) : NaN;
   const receipt = personal.scoring?.guess_spread?.satOut;
   const satOut = typeof receipt === 'boolean' ? receipt : optOutsFor(personal, community).includes('guess_spread');
   const ahead = Number.isFinite(now) ? games.findIndex(game => now < Date.parse(game.kickoff)) : 0;
@@ -163,7 +163,7 @@ export function weekGames(personal, community = null, { limit = GAME_TILES } = {
   const season = personal.season ?? null, week = personal.week ?? null;
   return { season, week, count: games.length, games: games.slice(start, start + limit).map(game => {
     const state = gameState(game, { ballot, picks: ballot?.picks ?? {}, now, openAt, satOut });
-    const away = teamOf(game.away), home = teamOf(game.home), when = fmtWhen(game.kickoff), word = STATE_WORDS[state];
+    const away = teamOf(game.away), home = teamOf(game.home), when = fmtWhen(game.kickoff), word = CARD_STATE[state][0];
     return { id: game.id, away: away.code, home: home.code, matchup: `${away.code} @ ${home.code}`, when, state, word,
       ariaLabel: `${away.nick} at ${home.nick}, ${when}, Spread ${word.toLowerCase()}`,
       open: { market: 'spread', season, week, pickGame: game.id } };

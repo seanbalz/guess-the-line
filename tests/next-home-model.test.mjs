@@ -94,19 +94,19 @@ test('This week: the next four games in kickoff order with your own Spread word;
   assert.equal(GAME_TILES, 4);
   const sunday = weekGames(personal(SUNDAY_MORNING));
   assert.deepEqual([sunday.season, sunday.week, sunday.count], [2026, 9, 6]);
-  assert.deepEqual(sunday.games.map(g => [g.id, g.word]), [['BUF-KC', 'Draft'], ['LAC-LV', 'Locked'], ['NYG-PHI', 'Open'], ['HOU-JAX', 'Open']], 'Thursday’s game has gone');
+  assert.deepEqual(sunday.games.map(g => [g.id, g.word]), [['BUF-KC', 'Draft'], ['LAC-LV', 'Locked in'], ['NYG-PHI', 'To pick'], ['HOU-JAX', 'To pick']], 'Thursday’s game has gone');
   assert.deepEqual(sunday.games[0], { id: 'BUF-KC', away: 'BUF', home: 'KC', matchup: 'BUF @ KC', when: 'Sun 10:00 AM PT', state: 'draft', word: 'Draft',
     ariaLabel: 'Bills at Chiefs, Sun 10:00 AM PT, Spread draft', open: { market: 'spread', season: 2026, week: 9, pickGame: 'BUF-KC' } });
-  assert.deepEqual(weekGames(personal(MONDAY_MORNING)).games.map(g => [g.id, g.word]), [['LAC-LV', 'Locked'], ['NYG-PHI', 'Kicked off'], ['HOU-JAX', 'Kicked off'], ['CHI-GB', 'Open']]);
+  assert.deepEqual(weekGames(personal(MONDAY_MORNING)).games.map(g => [g.id, g.word]), [['LAC-LV', 'Locked in'], ['NYG-PHI', 'Closed at kickoff'], ['HOU-JAX', 'Closed at kickoff'], ['CHI-GB', 'To pick']]);
   assert.deepEqual(weekGames(personal(WEDNESDAY_AFTER)).games.map(g => g.id), ['LAC-LV', 'NYG-PHI', 'HOU-JAX', 'CHI-GB'], 'all kicked off: the last four');
   assert.deepEqual(weekGames({ ...personal(SUNDAY_MORNING), games: GAMES.slice(4) }).games.map(g => g.id), ['HOU-JAX', 'CHI-GB'], 'a short week shows what it has');
   assert.equal(weekGames(personal('2026-11-01T12:00:00.000Z')).games[0].word, 'Not open', 'before Monday 12:00 AM PT the week is not open');
 });
 
 test('a sit-out: open games say "Sat out" and a locked guess stays "Locked"; another week’s sit-out is not this week’s', () => {
-  assert.deepEqual(weekGames(personal(SUNDAY_MORNING, { scoring: { guess_spread: { satOut: true } } })).games.map(g => g.word), ['Sat out', 'Locked', 'Sat out', 'Sat out']);
-  assert.deepEqual(weekGames(personal(SUNDAY_MORNING), { week: { season: 2026, week: 9 }, optOuts: ['guess_spread'] }).games.map(g => g.word), ['Sat out', 'Locked', 'Sat out', 'Sat out']);
-  assert.deepEqual(weekGames(personal(SUNDAY_MORNING), { week: { season: 2026, week: 8 }, optOuts: ['guess_spread'] }).games.map(g => g.word), ['Draft', 'Locked', 'Open', 'Open']);
+  assert.deepEqual(weekGames(personal(SUNDAY_MORNING, { scoring: { guess_spread: { satOut: true } } })).games.map(g => g.word), ['Skipped', 'Locked in', 'Skipped', 'Skipped']);
+  assert.deepEqual(weekGames(personal(SUNDAY_MORNING), { week: { season: 2026, week: 9 }, optOuts: ['guess_spread'] }).games.map(g => g.word), ['Skipped', 'Locked in', 'Skipped', 'Skipped']);
+  assert.deepEqual(weekGames(personal(SUNDAY_MORNING), { week: { season: 2026, week: 8 }, optOuts: ['guess_spread'] }).games.map(g => g.word), ['Draft', 'Locked in', 'To pick', 'To pick']);
 });
 
 test('D-31: a game tile carries your own state word only: no pick, no saved line and nothing of another player, whatever the replies hold', () => {
@@ -121,8 +121,8 @@ test('empty and failed shapes: no reply, no games or no kickoff draw no tiles; w
   assert.equal(weekGames(null), null);
   assert.equal(weekGames({ ...personal(SUNDAY_MORNING), games: [] }), null);
   assert.equal(weekGames({ ...personal(SUNDAY_MORNING), games: [{ id: 'SEA-DEN' }] }), null);
-  assert.deepEqual(weekGames({ ...personal(SUNDAY_MORNING), now: null }).games.map(g => g.word), ['Kicked off', 'Kicked off', 'Locked', 'Kicked off']);
-  assert.deepEqual(weekGames({ ...personal(SUNDAY_MORNING), ballots: {} }).games.map(g => g.word), ['Open', 'Open', 'Open', 'Open']);
+  assert.deepEqual(weekGames({ ...personal(SUNDAY_MORNING), now: null }).games.map(g => g.word), ['Closed at kickoff', 'Closed at kickoff', 'Locked in', 'Closed at kickoff']);
+  assert.deepEqual(weekGames({ ...personal(SUNDAY_MORNING), ballots: {} }).games.map(g => g.word), ['To pick', 'To pick', 'To pick', 'To pick']);
 });
 
 test('no surface sentence over twelve words in anything Home says (D-66)', () => {
@@ -133,4 +133,31 @@ test('no surface sentence over twelve words in anything Home says (D-66)', () =>
     ...weekGames(personal(SUNDAY_MORNING)).games.flatMap(g => [g.ariaLabel, g.when, g.word]),
   ].filter(Boolean);
   for (const line of said) assert.ok(wordCount(line) <= 12, line);
+});
+
+test('a malformed deadline draws the same safe tiles as a missing one and never throws (Home calls this during render)', () => {
+  const missing = weekGames({ ...personal(SUNDAY_MORNING), deadline: null });
+  assert.doesNotThrow(() => weekGames({ ...personal(SUNDAY_MORNING), deadline: 'not-a-date' }));
+  assert.deepEqual(weekGames({ ...personal(SUNDAY_MORNING), deadline: 'not-a-date' }), missing);
+});
+
+test('the rank tile says "1 point" for one and "2 points" for two', () => {
+  const tile = points => ({ rank: 1, tied: false, label: '1', points, scored: 1, of: 1 });
+  assert.equal(rankTileView({ label: 'Spread rank', tile: tile(1) }).ariaLabel, 'Spread rank, 1st, 1 point');
+  assert.equal(rankTileView({ label: 'Spread rank', tile: tile(2) }).ariaLabel, 'Spread rank, 1st, 2 points');
+});
+
+test('a game tile says the word its card says, in the picks card’s spoken form, in twelve words or fewer', () => {
+  const stateWords = { locked: 'Locked in', draft: 'Draft', open: 'To pick', kicked: 'Closed at kickoff', skipped: 'Skipped', notopen: 'Not open' };
+  const seen = new Set();
+  for (const view of [weekGames(personal(SUNDAY_MORNING)), weekGames(personal(MONDAY_MORNING)), weekGames(personal('2026-11-01T12:00:00.000Z')),
+    weekGames(personal(SUNDAY_MORNING, { scoring: { guess_spread: { satOut: true } } }))]) {
+    for (const g of view.games) {
+      seen.add(g.state);
+      assert.equal(g.word, stateWords[g.state]);
+      assert.ok(g.ariaLabel.endsWith(`Spread ${g.word.toLowerCase()}`), g.ariaLabel);
+      assert.ok(wordCount(g.ariaLabel) <= 12, `${g.ariaLabel} is ${wordCount(g.ariaLabel)} words`);
+    }
+  }
+  assert.ok(seen.has('kicked') && seen.has('skipped') && seen.has('notopen'));
 });
