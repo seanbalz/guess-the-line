@@ -48,8 +48,20 @@ is new in #482; no file under `web/src` at `68019b3e` has it.
   16:34 UTC. These are the release runs' signed-out boundary probes: the user agent is `node`, and the minutes match
   this readiness and deploy. The quick-wins release left the same pattern at 09:47 to 09:51 UTC.
 
-**Not checked:** signed in, and on a real phone. When a player opens Home, check the hosted logs for `GET /personal`
-status, latency and Edge CPU.
+**Signed-in readback** (executed, hosted logs from 16:35 to about 18:15 UTC). The step 3 session reported it first, and
+this session re-ran the queries:
+
+- There was one signed-in visit, from an iPhone (iOS 18.7, Safari), from 17:52:24 to 17:53:58 UTC.
+- Home's `GET /personal` returned 200, with an execution time of 1,131 ms.
+- All 17 `gtl-api` routes called in the visit returned 200, every call. The routes were `lobby`, `community/read`,
+  `me/preferences`, `social/read`, `league/features`, `personal`, `trends/week`, `push/status`, `points/read`,
+  `community/history`, `epl/draft/read`, `epl/guess/read`, `bets/recommendations`, `lines/read`, `fantasy/week`,
+  `wind/read` and `lines/teams`. Their preflights returned 204.
+- The slowest call was `bets/recommendations`, at 2,297 ms.
+- No log line since the release mentions CPU time, a worker limit, a wall clock or a memory limit.
+
+**Not checked:** how Home looks on that iPhone. The logs show the reads succeeded, not what the screen drew. Sean's
+iPhone check of Home is still open.
 
 ## Left for later
 
