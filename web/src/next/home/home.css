@@ -1,77 +1,42 @@
-/* Home (redesign build plan stage 12; prototype spec 1.2): the hero, who's in and the two rank tiles. Shared kit
-   classes are composed, never restyled; everything here is gx-h-. Colors and sizes come from the kit's own classes. */
+/* Home (D-69 step 2, H1A): the next-move card, the six tiles (the kit's, ui/tile.css) and Who's in's list. Shared kit
+   classes are composed, never restyled; everything here is gx-h-. Tokens only. */
+.gx .gx-h { gap: var(--gx-space-3); }
 
-/* ----- hero ----- */
-.gx-h-hero { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; }
-.gx-h-hero .gx-btn--block { align-self: stretch; }
-.gx-h-cd { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
-/* Three tiles fit the hero at 320 in the app's fonts; a wider fallback font wraps the last tile under the others
-   instead of pushing it out of the card. */
-.gx-h-cd .gx-cd { flex-wrap: wrap; }
-/* One status line per market, no bullets. */
-.gx-h-status { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; list-style: none; }
-
-/* ----- who's in ----- */
-.gx-h-who > .gx-vstack { min-width: 0; }
-
-/* ----- rank tiles ----- */
-.gx-h-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.gx-h-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; }
-/* The kit's rank is laid out for a board row (32 wide, right-aligned). In a tile it sits at the left and grows with
-   its words, so "T-2" in a wide fallback font never leaves its ring. */
-.gx-h-tile .gx-rank { width: auto; margin-left: 0; text-align: left; }
-.gx-h-tile .gx-rank--1,
-.gx-h-tile .gx-rank--top { width: auto; min-width: 28px; padding: 0 6px; }
-/* A long leader's name in the chase line breaks rather than widening the tile. */
-.gx-h-tile .gx-t-meta { overflow-wrap: anywhere; }
-
-.gx .gx-home-guide { padding-left: var(--gx-space-6); display: grid; gap: var(--gx-space-3); }
-
-/* ----- D-55 round 3 ----- */
-/* One progress bar per market under its status line; the words carry the count. */
-.gx-h-progress { display: flex; flex-direction: column; gap: 6px; }
-.gx-h-bar { position: relative; display: block; height: 8px; border-radius: var(--gx-radius-pill); background: var(--gx-track); overflow: hidden; }
-.gx-h-bar-fill { position: absolute; inset: 0 auto 0 0; border-radius: var(--gx-radius-pill); background-image: linear-gradient(90deg, var(--gx-bar-1), var(--gx-bar-2)); }
-.gx-h-status { align-self: stretch; gap: 12px; }
-
-/* Three stat tiles: a label, one number and its chase line or count. */
-.gx-h-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.gx-h-stat {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  min-width: 0;
-  min-height: 96px;
-  padding: 12px 10px;
-  border: 0;
-  border-radius: var(--gx-radius-md);
-  background: var(--gx-surface-1);
-  box-shadow: var(--gx-e1);
-  color: var(--gx-text-1);
-  text-align: start;
-  cursor: pointer;
-}
-.gx-h-stat > .gx-t-meta { overflow-wrap: anywhere; }
-.gx-h-stat:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
-.gx-h-stat-value { font: 700 28px/32px var(--gx-font-num); font-variant-numeric: tabular-nums; }
-
-/* ----- design lane: hierarchy pass ----- */
-/* The hero's first line: the week, "Due soon" while urgent, and the Pick streak. Nothing to show, no line. */
-.gx .gx-h-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
+/* ----- the next-move card ----- */
+/* 24 px padding, as the focus-landing card gives it, set here because C9's 332 px rule below counts on it. */
+.gx .gx-h-hero { display: flex; flex-direction: column; align-items: stretch; gap: var(--gx-space-4); padding: var(--gx-space-6); }
+.gx .gx-h-hero > .gx-btn { margin-top: var(--gx-space-1); }
+/* The eyebrow, "Due soon" while urgent, and the Pick streak. Nothing to show, no line. */
+.gx .gx-h-top { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gx-space-2); min-width: 0; }
 .gx .gx-h-top:empty { display: none; }
-/* The next action in words: "Lock in 9 games" over "before Thu 5:15 PM PT". */
-.gx .gx-h-head { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-/* A rank tile's number with its last move beside it, and the season points under it. */
-.gx .gx-h-stat-value { display: inline-flex; align-items: baseline; gap: 4px; }
-.gx .gx-h-move { width: auto; }
-.gx .gx-h-pts { color: var(--gx-text-1); }
+/* The eyebrow is a label, not lime (D-38), in the glow card's second text color, as on Play. */
+.gx .gx-h-eyebrow { margin: 0; color: var(--gx-hero-text-2); }
+.gx .gx-h-head { display: flex; flex-direction: column; gap: var(--gx-space-1); min-width: 0; }
+.gx .gx-h-cd { display: flex; flex-direction: column; align-items: flex-start; gap: var(--gx-space-2); }
+/* A wider fallback font wraps the last countdown tile under the others instead of pushing it out of the card. */
+.gx .gx-h-cd .gx-cd { flex-wrap: wrap; }
+/* C9: the two markets as one status row of half-width meters with their words when the card's content box is at least
+   284 px (a 332 px card less 2 x 24 px padding: 136 + 12 + 136), else stacked. auto-fit decides from the card's own
+   width, not the viewport's; a long word wraps inside its column. */
+.gx .gx-h-meters { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 136px), 1fr)); gap: var(--gx-space-3); margin: 0; padding: 0; list-style: none; }
+.gx .gx-h-meter { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.gx .gx-h-meter > .gx-t-label { overflow-wrap: anywhere; }
+/* The week meter on the glow card: empty segments on the track, filled ones in the bar's end color; the words beside it
+   carry the count, so it is a picture only. Kept even if the kit's own 8 px pills (#479, A10) land: Home never relies on them. */
+.gx .gx-h-hero .gx-meter3 { gap: 3px; }
+.gx .gx-h-hero .gx-meter3-seg { height: 8px; border-radius: var(--gx-radius-pill); background: var(--gx-track); box-shadow: none; }
+.gx .gx-h-hero .gx-meter3-seg--on { background: var(--gx-bar-2); }
+@media (forced-colors: active) {
+  .gx .gx-h-hero .gx-meter3-seg { border: 1px solid CanvasText; }
+  .gx .gx-h-hero .gx-meter3-seg--on { forced-color-adjust: none; background: CanvasText; }
+}
 
-/* Who's in: faces first, one status word each, then Standings and Invite. */
-.gx-h-who { display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 12px; }
-.gx-h-who-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.gx-h-people { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
-.gx-h-person { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.gx-h-person > .gx-t-body { min-width: 0; overflow-wrap: anywhere; }
-.gx-h-who-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.gx-h-who-actions > .gx-btn { flex: 1 1 140px; }
+/* ----- Who's in (the layer, Task 7): faces first, one status word each, then Standings and Invite ----- */
+.gx .gx-h-people { display: flex; flex-direction: column; gap: var(--gx-space-2); margin: 0; padding: 0; list-style: none; }
+.gx .gx-h-person { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.gx .gx-h-person > .gx-t-body { min-width: 0; overflow-wrap: anywhere; }
+.gx .gx-h-who-actions { display: flex; flex-wrap: wrap; gap: var(--gx-space-2); }
+.gx .gx-h-who-actions > .gx-btn { flex: 1 1 140px; }
+
+/* Play's How to play guide (HomeGuide.jsx). */
+.gx .gx-home-guide { padding-left: var(--gx-space-6); display: grid; gap: var(--gx-space-3); }

@@ -1,9 +1,8 @@
-// "Matches this week" for the trends saved on this device (proposed D-63): one line on Trends › This Week and one
-// row on Home. It counts saved trends that fit at least one upcoming game, using the same matching as the builder (the
-// week's schedule, and a line only from the viewer's own saved line once that market is open). No alerts are sent.
+// "Matches this week" for the trends saved on this device (proposed D-63): one line on Trends › This Week. It counts
+// saved trends that fit at least one upcoming game, using the same matching as the builder (the week's schedule, and a
+// line only from the viewer's own saved line once that market is open). No alerts are sent. Home's Trends tile (D-69
+// step 2) says only how many are saved, so Home never reads the week's lines for it.
 import { Pill } from '../ui/index.js';
-import { FocusRow } from '../ui/FocusLanding.jsx';
-import { useLinesData } from '../lines/linesData.js';
 import { savedMatches, useSavedTrends, weekGamesFor } from './builderData.js';
 
 /** `{ matching, of, loading }` for the saved trends against this week's games. */
@@ -35,11 +34,4 @@ function SummaryCard({ lines, onOpen }) {
       <span className="gx-nest-tags"><Pill>Found by search, not tested</Pill>{m.matching ? <Pill tone="data">Matches this week</Pill> : null}</span>
     </button>
   </li></ul></section>;
-}
-
-/** Home's row. Home mounts it only when this device has saved trends, so Home makes no extra read otherwise. */
-export function SavedTrendsHomeRow({ onOpen, ...rest }) {
-  const lines = useLinesData();
-  const m = useSavedTrendMatches(lines);
-  return <FocusRow icon="chart" title={m.matching ? 'Saved trends · Matches this week' : 'Saved trends'} sub={matchesLine(m)} onClick={onOpen} data-home="saved-trends" {...rest}/>;
 }

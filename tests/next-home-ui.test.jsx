@@ -4,17 +4,24 @@
 // the network. Fixture people and points only; no player data.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { markupProblems, parseMarkup, walk } from './helpers/ui-markup.mjs';
-import { HOME_COPY, homeTiles } from '../shared/home-view.mjs';
+import { markupProblems, nameFrom, parseMarkup, walk } from './helpers/ui-markup.mjs';
+import { HOME_COPY } from '../shared/home-view.mjs';
 import { HERO_COPY } from '../web/src/next/home/homeModel.js';
 import { rankKey } from '../web/src/next/league/rankMoment.js';
+import { featuresModel } from '../web/src/next/features/model.js';
+import { scoreScope } from '../web/src/next/moments/catalog.js';
 
 vi.mock('../web/src/api.js', () => ({ meApi: vi.fn() }));
-vi.mock('../web/src/next/home/HomeSummaries.jsx', () => ({ ScoreSummaryRow: () => <p>Your scores</p>, BetsSummaryRow: () => <p>My bets</p> }));
-const state = vi.hoisted(() => ({ home: null, tickets: { loading: true, error: null, active: null } }));
+const state = vi.hoisted(() => ({ home: null, tickets: { loading: true, error: null, active: null }, features: { model: null }, waiting: {}, popped: [], scopes: [] }));
 vi.mock('../web/src/next/home/homeData.js', () => ({ useHomeData: () => state.home }));
 // The tickets tile's read, held loading (its real first render) unless a test sets a count.
 vi.mock('../web/src/next/bets/useTicketSummary.js', () => ({ useTicketSummary: () => state.tickets }));
+// The features read (awards, the Pick streak) and the moments engine stand in: each test says what read and what waits.
+vi.mock('../web/src/next/features/useFeatures.js', () => ({ useFeatures: () => state.features }));
+vi.mock('../web/src/next/moments/MomentsProvider.jsx', () => ({
+  useMoments: () => null, useMomentScope: scope => { state.scopes.push(scope); },
+  useNewCount: scope => (state.waiting[scope] ?? []).length, useNewMoments: scope => state.waiting[scope] ?? [], usePopped: id => state.popped.includes(id),
+}));
 
 const { ShellContext } = await import('../web/src/next/shell/context.js');
 const { Home } = await import('../web/src/next/home/Home.jsx');
@@ -74,34 +81,45 @@ const seen = n => [...walk(n)].filter(x => x.text !== undefined && !hidden(x)).m
 const primaries = html => nodes(html, hasClass('gx-btn--primary'));
 const buttons = html => nodes(html, n => n.tag === 'button').map(textOf);
 const tile = (html, market) => nodes(html, attr('data-tile', market))[0];
+const button = n => nodes(n, x => x.tag === 'button')[0];
+/** D-66 (design audit B0-4): each element's own visible text runs no longer than twelve words. */
+const longLines = html => nodes(html, n => !hidden(n) && n.attrs['aria-hidden'] !== 'true')
+  .map(n => n.children.filter(c => c.text !== undefined).map(c => c.text).join(' ').replace(/\s+/g, ' ').trim())
+  .filter(text => text.split(' ').filter(w => w && w !== '·').length > 12);
+const FEATURES = { leagueId: null, season: 2026, ran: true, badges: [], seasonWinners: null,
+  awards: [{ week: 5, version: 1, createdAt: '2026-10-13T16:00:00Z', awards: [{ id: 'spread_winner', winners: ['u-blake'], entries: [], value: { points: 12 } }, { id: 'total_winner', winners: ['u-casey'], entries: [], value: { points: 7 } }] }],
+  streaks: [{ userId: 'u-casey', pick: { current: 3, best: 3 }, bets: { current: 0, best: 0 } }] };
+const features = () => ({ model: featuresModel(FEATURES, { viewer: 'u-casey', nameOf: id => id }), data: FEATURES });
 
-afterEach(() => { state.home = null; vi.clearAllMocks(); });
+afterEach(() => { state.home = null; state.features = { model: null }; state.waiting = {}; state.popped = []; state.scopes = []; vi.clearAllMocks(); });
 
 describe('Home while picks are due', () => {
-  it('one lime button, "Make picks"; the week; the countdown named with its words; one status line per market', () => {
+  it('one lime button, "Make picks"; the eyebrow; the countdown named with its words; one status line per market', () => {
     home(reply());
     const html = render();
     expect(markupProblems(html)).toEqual([]);
     expect(nodes(html, n => n.tag === 'h1').map(textOf)).toEqual(['Home']);
     const hero = nodes(html, attr('data-home', 'hero'))[0];
     expect(hero.attrs['data-state']).toBe('due');
-    expect(textOf(hero)).toContain('Week 6');
+    // H1A: while picks are due the card's eyebrow is "Your next move", in place of "Week 6" (Decisions for Sean).
+    expect(textOf(hero)).toContain(HERO_COPY.nextMove);
     expect(primaries(html).map(textOf)).toEqual(['Make picks']);
     expect(buttons(html).filter(t => t === 'See Lines')).toEqual([]);
     const timer = nodes(html, attr('role', 'timer'))[0];
     expect(timer.attrs['aria-label']).toBe('Picks lock in 2 days 4 hours 12 minutes');
     expect(timer.attrs['aria-live']).toBe('off');
-    expect(nodes(html, attr('data-home', 'status')).map(textOf)).toEqual(['Spread 2 of 4 picked Total 0 of 4 picked']);
+    expect(nodes(html, attr('data-home', 'status')).map(textOf)).toEqual(['Spread · 2 of 4 picked Total · 0 of 4 picked']);
   });
 
   // Design lane hierarchy pass: the one primary card says the next action in words, with the week's deadline under it.
-  it('the hero names the next action: "Lock in 4 games" over "before Thu 5:15 PM PT", the week above it once', () => {
+  it('the card names the next action under "Your next move": "Lock in 4 games" over "before Thu 5:15 PM PT"', () => {
     home(reply());
     const html = render();
     const hero = nodes(html, attr('data-home', 'hero'))[0];
     expect(nodes(hero, n => n.tag === 'h2').map(textOf)).toEqual(['Lock in 4 games']);
     expect(nodes(hero, attr('data-home', 'when')).map(textOf)).toEqual(['before Thu 5:15 PM PT']);
-    expect(seen(hero).match(/Week 6/g)).toHaveLength(1);
+    expect(nodes(hero, attr('data-home', 'eyebrow')).map(textOf)).toEqual([HERO_COPY.nextMove]);
+    expect(seen(hero)).not.toContain('Week 6');
     expect(textOf(hero)).not.toContain(HERO_COPY.dueSoon);
   });
 
@@ -133,30 +151,30 @@ describe('Home while picks are due', () => {
     expect(meters.map(m => nodes(m, hasClass('gx-meter3-seg--on')).length)).toEqual([2, 0]);
   });
 
-  // D-55 round 3 (Sean approved R3 on October 21): the rank tiles and who's in come back as D tiles and a league strip.
-  it('three stat tiles, who’s in with Standings and Invite, and a progress bar per market', () => {
+  it('H1A: six tiles in two columns, each one button with its spoken name; Who’s in is a tile, not a card', () => {
     home(reply());
     const html = render();
     expect(markupProblems(html)).toEqual([]);
-    for (const tile of ['spread', 'total', 'tickets']) expect(nodes(html, attr('data-tile', tile))).toHaveLength(1);
-    expect(textOf(nodes(html, attr('data-tile', 'spread'))[0])).toContain(HOME_COPY.spreadRank);
-    const who = nodes(html, attr('data-home', 'whos-in'));
-    expect(who).toHaveLength(1);
-    expect(buttons(who[0])).toEqual(['Standings', 'Invite']);
+    const list = nodes(html, attr('data-home', 'tiles'))[0];
+    expect(list.attrs.class).toContain('gx-tiles');
+    expect(nodes(list, n => n.tag === 'li').map(li => li.attrs['data-tile'])).toEqual(['spread', 'total', 'who', 'awards', 'tickets', 'trends']);
+    expect(nodes(list, n => n.tag === 'button').map(nameFrom)).toEqual([
+      'Spread rank, T-2, 10 points', 'Total rank, not scored yet', 'Who’s in, 4 of 5 Spread ballots in', 'Awards', 'My bets, loading', 'Trends, none saved, charts for every game']);
+    expect(nodes(tile(html, 'who'), hasClass('gx-tile-pic'))).toHaveLength(1);
+    expect(nodes(html, attr('data-home', 'whos-in'))).toHaveLength(0);
     expect(nodes(html, hasClass('gx-meter3'))).toHaveLength(2);
     expect(html).not.toContain('Your scores');
   });
 
-  it('a ranked tile shows its rank, the season points the server sent and the chase line; an unranked tile shows no points', () => {
+  it('a ranked tile shows its rank and the season points the server sent, no chase line (H1A); an unranked tile shows no points', () => {
     home(reply());
     const html = render();
     const spread = tile(html, 'spread'), total = tile(html, 'total');
-    expect(seen(spread)).toBe('Spread rank #T-2 10 pts 2 behind Blake Rivers');
+    expect(seen(spread)).toBe('Spread rank T-2 10 pts');
     expect(nodes(spread, attr('data-home', 'points')).map(textOf)).toEqual(['10 pts']);
     expect(nodes(spread, hasClass('gx-countup'))[0].attrs['data-count']).toBe('rest');
     expect(seen(total)).toBe(`Total rank — ${HOME_COPY.notScored}`);
     expect(nodes(total, attr('data-home', 'points'))).toHaveLength(0);
-    expect(nodes(spread, hasClass('gx-move'))).toHaveLength(0);
   });
 
   it('a rank tile shows the last move the League board saw on this device, and reads it without spending it', () => {
@@ -165,9 +183,9 @@ describe('Home while picks are due', () => {
     try {
       home(reply());
       const spread = tile(render(), 'spread');
-      const move = nodes(spread, hasClass('gx-move'))[0];
-      expect(move.attrs.class).toContain('gx-move--up');
-      expect(textOf(move)).toBe('▲2 up 2');
+      expect(seen(spread)).toBe('Spread rank T-2 ▲ 2 · 10 pts');
+      expect(nameFrom(button(spread))).toBe('Spread rank, T-2, up 2, 10 points');
+      expect(nodes(spread, hasClass('gx-tile-sub--good'))).toHaveLength(1);
       expect(store.get(rankKey('u-casey', 'community', SPREAD))).toBe(JSON.stringify({ rank: 4, from: null }));
     } finally { vi.unstubAllGlobals(); }
   });
@@ -195,8 +213,8 @@ describe('the other hero states', () => {
 
     home(reply({ due: [{ mode: SPREAD, submitted: true, satOut: false, filled: 4, games: 4 }, { mode: TOTAL, submitted: false, satOut: true, filled: 0, games: 4 }], picksDue: { state: 'done', modes: [] } }));
     html = render();
-    expect(heading(html)).toEqual([HERO_COPY.allIn(6)]);
-    expect(nodes(html, attr('data-home', 'status')).map(textOf)).toEqual(['Spread sent Total sat out']);
+    expect(heading(html)).toEqual(['Week 6 locked in']);
+    expect(nodes(html, attr('data-home', 'status')).map(textOf)).toEqual(['Spread · sent Total · sat out']);
     expect(primaries(html)).toHaveLength(1);
 
     home(reply({ week: null, due: [], submissions: [], standings: [], picksDue: { state: 'none', modes: [] } }));
@@ -216,7 +234,7 @@ describe('while the Community read loads or fails', () => {
     const html = render();
     expect(markupProblems(html)).toEqual([]);
     expect(nodes(html, attr('role', 'status')).map(textOf)).toEqual(['Loading this week…']);
-    expect(nodes(html, attr('data-skeleton', 'panels'))).toHaveLength(1);
+    expect(nodes(html, attr('data-skeleton', 'landing'))).toHaveLength(1);
     expect(buttons(html)).toEqual([]);
     expect(nodes(html, n => n.tag === 'h1').map(textOf)).toEqual(['Home']);
   });
@@ -243,5 +261,61 @@ describe('the My bets tile', () => {
       expect(words(0)).toBe('My bets 0 active tickets');
       expect(words(3)).toBe('My bets 3 active tickets');
     } finally { state.tickets = { loading: true, error: null, active: null }; }
+  });
+});
+
+describe('NEW on Home’s tiles (D-69 4.2: results from while you were away, never played on launch)', () => {
+  it('a rank move that waits shows NEW on its own market’s tile and says it; the other tile stays quiet', () => {
+    home(reply());
+    state.waiting = { [scoreScope('guess_spread')]: [{ id: 'rank:community:guess_spread:1', kind: 'rankUp', title: 'Up to 2nd' }] };
+    const html = render();
+    expect(nameFrom(button(tile(html, 'spread')))).toBe('Spread rank, T-2, 10 points, new');
+    expect(nodes(tile(html, 'spread'), hasClass('gx-new'))).toHaveLength(1);
+    expect(nodes(tile(html, 'total'), hasClass('gx-new'))).toHaveLength(0);
+  });
+
+  it('the Awards tile: the newest week’s count, your award named, NEW for a waiting award or badge and never for a streak', () => {
+    home(reply());
+    state.features = features();
+    expect(nameFrom(button(tile(render(), 'awards')))).toBe('Awards, 2 in Week 5, you won Total winner');
+    state.waiting = { features: [{ id: 'award:community:2026:5:total_winner', kind: 'award', title: 'Total winner' }] };
+    let awards = tile(render(), 'awards');
+    expect(seen(awards)).toBe('Awards 2 Week 5 · New: Total winner NEW');
+    expect(nameFrom(button(awards))).toBe('Awards, 2 in Week 5, new: Total winner');
+    state.waiting = { features: [{ id: 'badge:x', kind: 'badge', title: 'Bullseye' }] };
+    expect(nameFrom(button(tile(render(), 'awards')))).toBe('Awards, 2 in Week 5, you won Total winner, new');
+    state.waiting = { features: [{ id: 'streak:pick:2026:4:4', kind: 'streak', title: 'Pick streak' }] };
+    awards = tile(render(), 'awards');
+    expect(nodes(awards, hasClass('gx-new'))).toHaveLength(0);
+  });
+});
+
+describe('Home’s own moments (spec 6 step 2: only Whole week locked and the Pick streak, in place)', () => {
+  it('Home holds only its own scope, from the next-move card, so a waiting badge, award or rank move never plays on Home', () => {
+    home(reply()); state.scopes = [];
+    render();
+    expect(state.scopes).toEqual(['home']);
+    home(null, { community: { status: 'loading', data: null, error: null, loading: true } }); state.scopes = [];
+    render();
+    expect(state.scopes, 'a loading Home holds no card, so nothing waiting is spent on a placeholder').toEqual([]);
+  });
+
+  it('Whole week locked pops its market’s meter in place; a longer Pick streak pops the streak pill', () => {
+    home(reply());
+    state.features = features();
+    state.popped = ['weekLocked:2026:6:guess_spread', 'streak:pick:2026:3:3'];
+    const html = render();
+    const columns = nodes(nodes(html, attr('data-home', 'status'))[0], n => n.tag === 'li');
+    expect(columns.map(li => [li.attrs['data-market'], li.attrs['data-moment'] ?? null])).toEqual([['guess_spread', 'pop'], ['guess_total', null]]);
+    expect(nodes(html, attr('data-home', 'streak'))[0].attrs['data-moment']).toBe('pop');
+  });
+});
+
+describe('words', () => {
+  it('no surface sentence over twelve words on Home, in every card state (D-66; design audit B0-4)', () => {
+    for (const community of [reply(), reply({ picksDue: { ...reply().picksDue, state: 'urgent' } }), reply({ picksDue: { state: 'done', modes: [] } }), reply({ week: null, due: [], submissions: [], standings: [], picksDue: { state: 'none', modes: [] } })]) {
+      home(community); state.features = features();
+      expect(longLines(render())).toEqual([]);
+    }
   });
 });
