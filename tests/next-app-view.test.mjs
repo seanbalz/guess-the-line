@@ -172,7 +172,8 @@ test('the apps keep separate shells and allow only documented workflow and pick-
     // D-66: the Fantasy nesting cards reuse the snapshot and game-context reads; D-69 step 3: not the old report card.
     'web/src/next/fantasy/FantasyNest.jsx': ['fantasyData.js', 'fantasyContext.js'],
     'web/src/next/NextApp.jsx': ['liveWorkflows.css'],
-    'web/src/next/bets/Bets.jsx': ['SocialBetTracker.jsx', 'VirtualUnits.jsx', 'DeferredScreen.jsx', 'liveBets.css'],
+    // D-69 step 4: Your gap is the new app's own (bets/gap/); the old app keeps VirtualUnits.jsx.
+    'web/src/next/bets/Bets.jsx': ['SocialBetTracker.jsx', 'DeferredScreen.jsx', 'liveBets.css'],
     // D-65 follow-up: Menu › Commissioner tools reuses the old Final scores editor and the pure odds-schedule formatter
     // through one adapter; Odds connection is native since stage 78.
     'web/src/next/me/commissioner/LegacyTools.jsx': ['ResultReviewControls.jsx', 'marketStatus.js'],
@@ -224,8 +225,8 @@ test('the apps keep separate shells and allow only documented workflow and pick-
     }
   }
   assert.doesNotMatch(read('web/src/next/play/PerGameLegacy.jsx'), /from ['"][^'"]*(NextApp|shell\/context|AppData)/, 'the compatibility wrapper never mounts or depends on the new shell');
-  // Spec test 13: the rebuilt Play pages no longer import the old screens they replace.
-  for (const file of filesUnder('web/src/next')) for (const spec of importsOf(read(file))) assert.doesNotMatch(spec, /CommunityHome|PlayPresentation|FantasyAccuracy/, `${file} imports ${spec}`);
+  // Spec test 13: the rebuilt Play, Research and Bets pages no longer import the old screens they replace.
+  for (const file of filesUnder('web/src/next')) for (const spec of importsOf(read(file))) assert.doesNotMatch(spec, /CommunityHome|PlayPresentation|FantasyAccuracy|VirtualUnits|RecommendationTrends|recommendedBets\.css/, `${file} imports ${spec}`);
 });
 
 test('no screen offers the old app: failure screens reload, the Menu has no old-app row', () => {

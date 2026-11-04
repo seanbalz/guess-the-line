@@ -2,8 +2,8 @@
 // sections, each a screen with its own address, its one-word title and its ⓘ, opened from its tile; the top bar's Back
 // returns to the landing, with focus on that tile. My bets is #bets/tracked, active, settled or add (the November 1
 // Roomy cards, D-72); Your picks #bets/virtual (D-67); Everyone #bets/everyone; Recommended #bets/research (its own
-// screen, research/Assessments.jsx); Your gap #bets/recommended. Recommendations and Virtual Units placement follow the
-// published account week.
+// screen, research/Assessments.jsx); Your gap #bets/recommended (its own screen, gap/YourGap.jsx; one gap as a layer).
+// Recommendations and Virtual Units placement follow the published account week.
 import { lazy, useCallback, useEffect, useMemo, useState } from 'react';
 import { Deferred } from '../ui/Deferred.jsx';
 import { useAppData } from '../data/AppData.jsx';
@@ -15,22 +15,19 @@ import { NetUnits } from './NetUnits.jsx';
 import { TrackedOverview } from './TrackedOverview.jsx';
 import { EveryoneBets } from './EveryoneBets.jsx';
 import { PlaceBets } from './PlaceBets.jsx';
-import { Segmented } from '../ui/Segmented.jsx';
 import { TrackedBetRow } from './TrackedBetRow.jsx';
 import { BetsLanding } from './BetsLanding.jsx';
 import { useBetWins } from './useBetWins.js';
-import { BETS_NAMES, LIST_WORDS, SECTION_OF, openSection } from './betsNav.js';
+import { BETS_NAMES, LIST_WORDS, SECTION_OF, keepsYourGap, openSection } from './betsNav.js';
 import { draftParts, savedTicketToast } from './recommendationReview.js';
-import { recommendationMarket } from '../../../../shared/recommended-bets.mjs';
 import './bets.css';
 import '../../liveBets.css';
 
 const SocialBetTracker = lazy(() => import('../../SocialBetTracker.jsx'));
 // Each section's fine print, behind the title's ⓘ (D-55).
-const TOPIC = Object.freeze({ mybets: 'trackedBets', picks: 'virtual', everyone: 'everyone', gap: 'recommended' });
-const VirtualUnits = lazy(() => import('../../VirtualUnits.jsx'));
+const TOPIC = Object.freeze({ mybets: 'trackedBets', picks: 'virtual', everyone: 'everyone' });
+const YourGap = lazy(() => import('./gap/YourGap.jsx'));
 const ResearchAssessments = lazy(() => import('../research/Assessments.jsx'));
-const RECOMMENDED_MARKETS = [{ value: 'all', label: 'All' }, { value: 'spread', label: 'Spreads' }, { value: 'total', label: 'Totals' }];
 
 export function Bets() { const view = useShell().state.views.bets.view; return Object.hasOwn(SECTION_OF, view ?? '') ? <BetsSection destination={view}/> : <BetsLanding/>; }
 
@@ -47,17 +44,13 @@ function BetsSection({ destination }) {
     week: value.allHistory ? null : value.selectedWeek?.week ?? null,
     period: value.allHistory ? 'all' : null,
   }), [shell.setView, shell.state.views.bets.trackers, destination]);
-  // BETS-NEXT-01: Recommended's All / Spreads / Totals choice is a Bets view preference. It survives reviewing a
-  // recommended bet and returning within Bets; it is not part of the address and changes nothing that is saved. The
-  // embedded Recommended list filters by it; the new app's own segmented control is drawn here and handed to that list.
-  const recommendedMarket = recommendationMarket(route.recommendedMarket);
-  const chooseRecommendedMarket = useCallback(value => shell.setView('bets', { recommendedMarket: value }), [shell.setView]);
-  const marketControl = <Segmented label="Recommendation market" value={recommendedMarket} onChange={chooseRecommendedMarket} options={RECOMMENDED_MARKETS}/>;
   const { setDirty } = shell;
   const [ticketRequest, setTicketRequest] = useState(null);
   const drafts = useMemo(() => draftParts(setDirty), [setDirty]);
   const clearDirty = drafts.clear;
   const dirty = useCallback(value => drafts.mark('view', value), [drafts]);
+  // Your gap's selections stay on screen while one gap opens and closes over its list, so those steps never ask.
+  const gapDirty = useCallback(value => drafts.mark('view', value, keepsYourGap), [drafts]);
   const reviewDirty = useCallback(value => drafts.mark('review', value), [drafts]);
   useEffect(() => clearDirty, [clearDirty]);
   const saved = () => app.refresh({ only: ['community', 'personal'] });
@@ -76,6 +69,7 @@ function BetsSection({ destination }) {
   }
   const review = ticketRequest?.accountId === app.accountId ? <Deferred resetKey={ticketRequest.id} label="bet review"><SocialBetTracker key={ticketRequest.id} player={app.accountId} reviewOnly initialView="mybets" ticketRequest={ticketRequest} onReviewDone={reviewDone} onDirty={reviewDirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred> : null;
   if (section === 'recommended') return <><Deferred resetKey={`${app.accountId}:research`} label="research recommendations"><ResearchAssessments key={app.accountId} onDirty={dirty} onTrack={trackRecommendation}/></Deferred>{review}</>;
+  if (section === 'gap') return <><Deferred resetKey={`${app.accountId}:gap`} label="your gap"><YourGap key={app.accountId} onDirty={gapDirty} onSaved={saved} onTrackTicket={trackRecommendation}/></Deferred>{review}</>;
   const topic = INFO[TOPIC[section]];
   return <section className="gx-screen gx-bets gx-live-workflow" aria-labelledby="gx-bets-title" data-bets-section={section}>
     <header className="gx-bets-heading">
@@ -84,9 +78,7 @@ function BetsSection({ destination }) {
     </header>
     {section === 'mybets' ? <MyBets destination={destination} trackerState={trackerState} rememberTracker={rememberTracker} onDirty={dirty} onSaved={saved}/>
       : section === 'picks' ? <PlaceBets key={app.accountId} onDirty={dirty}/>
-      : section === 'everyone' ? <EveryoneBets onPlace={() => openSection(shell, 'picks')}/>
-      // Your gap: the old app's screen until Task 7 rebuilds it (gap/YourGap.jsx draws its own screen then).
-      : <><Deferred resetKey={`${app.accountId}:recommended`} label="recommended bets"><VirtualUnits key={`${app.accountId}:recommended`} accountId={app.accountId} embedded initialView="recommended" accountRecommendations showViewTabs={false} recommendedMarket={recommendedMarket} onRecommendedMarket={chooseRecommendedMarket} marketControl={marketControl} onTrackTicket={trackRecommendation} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred>{review}</>}
+      : <EveryoneBets onPlace={() => openSection(shell, 'picks')}/>}
   </section>;
 }
 

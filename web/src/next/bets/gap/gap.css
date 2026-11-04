@@ -16,3 +16,15 @@
 .gx .gx-gap-stat { justify-content: space-between; }
 /* A skeleton row is a gap row's height, 72 px (measured in Task 8 at 390 px). */
 .gx .gx-gap-skel .gx-skel-row { min-height: calc(var(--gx-space-10) + var(--gx-space-2)); }
+.gx .gx-gap-compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-3); margin: 0; }
+.gx .gx-gap-compare dd { margin: 0; }
+.gx .gx-gap-sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-2); margin: 0; padding: 0; list-style: none; }
+.gx .gx-gap-side { display: flex; flex-direction: column; gap: var(--gx-space-1); min-width: 0; padding: var(--gx-space-3); border-radius: var(--gx-radius-md); background: var(--gx-surface-3); overflow-wrap: anywhere; }
+.gx .gx-gap-side-word { display: flex; align-items: center; gap: var(--gx-space-1); font-weight: 600; }
+.gx .gx-gap-side[data-value-color="green"] .gx-gap-side-word { color: var(--gx-win); }
+.gx .gx-gap-side[data-value-color="red"] .gx-gap-side-word { color: var(--gx-loss); }
+.gx .gx-gap-side[data-value-color="yellow"] .gx-gap-side-word { color: var(--gx-pending); }
+/* The two actions wrap under each other rather than clip (step 3's lesson: a wide font at 320 px). */
+.gx .gx-gap-actions { display: flex; flex-wrap: wrap; gap: var(--gx-space-2); }
+.gx .gx-gap-actions > .gx-btn { flex: 1 1 auto; }
+@media (forced-colors: active) { .gx .gx-gap-side { border: 1px solid CanvasText; } }

@@ -29,3 +29,8 @@ export function openView(shell, view) { shell.go('bets', { view, ...BETS_FRESH }
 export function openSection(shell, key) { openView(shell, SECTION_VIEW[key]); }
 export function openGap(shell, item) { shell.setView('bets', { layer: BETS_LAYERS.recommended.layer, item }); }
 export function closeGap(shell) { shell.setView('bets', { layer: undefined, item: undefined }); }
+/**
+ * Your gap's unsaved selections stay on screen at every Your gap address (its list, or one gap over the list, which
+ * stays mounted under it), so opening or closing a gap never asks to leave them (the shell's `setDirty` keeps).
+ */
+export const keepsYourGap = next => next?.tab === 'bets' && next.views?.bets?.view === SECTION_VIEW.gap;

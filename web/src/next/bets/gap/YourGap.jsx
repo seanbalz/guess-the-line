@@ -1,13 +1,19 @@
 // Bets › Your gap (D-69 step 4, spec 6 "rebuilt as tiles and rows on the same data", built for Sean's review): the old
 // app's VirtualUnits.jsx Recommended view in the new app. D-77's hit-rate hero is its first card, then the market
-// switch, four tiles, your gaps as picture rows (one opens as a layer: GapLayer.jsx, Task 7), your card's unsaved
-// selections and your saved virtual card. useGap.js holds the state, gapModel.js every rule. The old app keeps
+// switch, four tiles, your gaps as picture rows (one opens as a layer at its own address: GapLayer.jsx), your card's
+// unsaved selections and your saved virtual card. useGap.js holds the state, gapModel.js every rule. The old app keeps
 // VirtualUnits.jsx.
 import { useRef } from 'react';
-import { Button, InfoButton, PictureRow, Segmented, Skeleton, useEntrance, useLayerFocus } from '../../ui/index.js';
+import { Button, InfoButton, KeptParent, PictureRow, Segmented, Skeleton, useEntrance, useLayerFocus } from '../../ui/index.js';
 import { INFO } from '../../info.js';
 import { SEP, plural } from '../../format.js';
-import { BETS_NAMES, gapRowId } from '../betsNav.js';
+import { useAppData } from '../../data/AppData.jsx';
+import { useShell } from '../../shell/context.js';
+import { betsLayerOf } from '../../shell/state.js';
+import { recommendationMarket } from '../../../../../shared/recommended-bets.mjs';
+import { BETS_NAMES, closeGap, gapRowId, openGap } from '../betsNav.js';
+import { useGap } from './useGap.js';
+import { GapLayer } from './GapLayer.jsx';
 import { GAP_COPY, GAP_FINE_PRINT, gapRow, gapTiles, noneForMarket, pendingRows, savedRows, showAllLabel, weekOptions } from './gapModel.js';
 import { GapMessages, marks } from './GapParts.jsx';
 import { GapHero } from './GapHero.jsx';
@@ -61,4 +67,13 @@ export function GapList({ gap, market, messages = true, onMarket, onOpen }) {
   </section>;
 }
 
-/** Task 7 adds the state owner (`useGap`), the gap layer and the default export here. */
+/** Bets › Your gap: the state (useGap) for the list and the gap layer; the list stays mounted, hidden, under the layer. */
+export default function YourGap({ onTrackTicket, onDirty, onSaved }) {
+  const app = useAppData(), shell = useShell(), route = shell.state.views.bets;
+  // BETS-NEXT-01: All / Spreads / Totals is a Bets view preference: it survives a review and a return within Bets.
+  const market = recommendationMarket(route.recommendedMarket);
+  const gap = useGap({ accountId: app.accountId, market, onDirty, onSaved, onSignInAgain: app.requestSignIn, onTrackTicket, confirm: () => shell.confirmLeave() });
+  const open = betsLayerOf(route);
+  const layer = open ? <GapLayer gap={gap} item={open.item} onClose={() => closeGap(shell)}/> : null;
+  return <KeptParent layer={layer}><GapList gap={gap} market={market} messages={!open} onMarket={value => shell.setView('bets', { recommendedMarket: value })} onOpen={item => openGap(shell, item)}/></KeptParent>;
+}

@@ -8,13 +8,20 @@ export function savedTicketToast(ticket, go) {
 }
 
 /**
- * Bets has one dirty flag in the shell but two editors that can hold a draft at once: the open view (Recommended's
- * Virtual Units card) and the recommended-bet review over it. Closing one must not clear the other's guard.
+ * Bets has one dirty flag in the shell but two editors that can hold a draft at once: the open section (Your gap's
+ * card, Your picks' slip, a tracker editor) and the recommended-bet review over it. Closing one must not clear the
+ * other's guard. A part may name the places that keep its draft on screen (`keeps(next)`, the shell's setDirty rule):
+ * moving there does not ask only when every part holding a draft keeps it.
  */
 export function draftParts(setDirty) {
-  let parts = { view: false, review: false };
+  let parts = { view: false, review: false }, keeps = {};
+  const report = () => {
+    const held = Object.keys(parts).filter(part => parts[part]);
+    if (held.length && held.every(part => keeps[part])) setDirty('bets', true, next => held.every(part => keeps[part](next)));
+    else setDirty('bets', held.length > 0);
+  };
   return {
-    mark(part, value) { parts = { ...parts, [part]: Boolean(value) }; setDirty('bets', parts.view || parts.review); },
-    clear() { parts = { view: false, review: false }; setDirty('bets', false); },
+    mark(part, value, keep) { parts = { ...parts, [part]: Boolean(value) }; keeps = { ...keeps, [part]: typeof keep === 'function' ? keep : undefined }; report(); },
+    clear() { parts = { view: false, review: false }; keeps = {}; setDirty('bets', false); },
   };
 }
