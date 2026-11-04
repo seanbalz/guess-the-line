@@ -21,8 +21,9 @@ After the 390 px captures Sean said "Yes, merge #482", then "Yes, release it".
 
 **Released** November 4, 2026, about 16:35 UTC: Pages `beab6d1b` from `main` at `7bb83a5b`, run 41868177237. See the
 [release record](RELEASE_2026_11_04_HOME_STEP2.md). Live bytes were checked signed out.
-Not yet: Sean's iPhone check of Home, and a signed-in readback of `GET /personal` (latency and Edge CPU). No signed-in
-request had arrived by about 16:45 UTC.
+The signed-in readback is done (hosted logs). An iPhone visit at 17:52 UTC got 200 from Home's `GET /personal` in
+1.1 s. All 17 `gtl-api` routes in that visit returned 200, and no CPU or worker-limit message appeared.
+Not yet: Sean's iPhone check of how Home looks.
 
 ## Design audit quick wins (group A) — November 4, 2026
 
