@@ -17,7 +17,10 @@ import { ALL } from '../migrations.mjs';
 import { communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 
 const ADDRESSES = ['#home', '#home?layer=who', '#play', '#play/picks', '#play/score', '#play/compare', '#play/points', '#play/league', '#play/features', '#play/features?layer=streaks', '#play/features?layer=awards', '#play/features?layer=season', '#play/features?layer=badge&item=bullseye', '#play/league?view=feed', '#play/league?view=history', '#play/league?view=history&week=6', '#bets', '#bets/recommended', '#bets/active',
-  '#bets/virtual', '#bets/everyone', '#research', '#research/games', '#research/trends',
+  '#bets/virtual', '#bets/everyone',
+  // D-69 step 4: Recommended is its own screen, and one gap a layer with its own address (a gap not on the list still draws
+  // its layer's frame, which is what the fixed-bar check needs).
+  '#bets/research', '#bets/recommended?layer=gap&item=TB-DAL%3Atotal', '#research', '#research/games', '#research/trends',
   // D-69 step 3: one game (this world's first, Week 5's TB-DAL) and one team are layers with their own addresses; Teams is a list.
   '#research/games?layer=game&item=TB-DAL', '#research/teams', '#research/teams?layer=team&item=SEA', '#history', '#history/bets', '#history/older'];
 const PASSES = [{ theme: 'dark', width: 390, height: 844 }, { theme: 'light', width: 320, height: 568 }];

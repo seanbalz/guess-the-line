@@ -10,6 +10,8 @@ import { sendBallot, storeLines } from '../helpers/guess-week.mjs';
 
 const ADDRESSES = ['#home', '#home?layer=who', '#play', '#play/picks', '#play/picks?market=total', '#play/score', '#play/score?scoreGame=SEA-DEN', '#play/compare', '#play/points', '#play/features', '#play/features?layer=streaks', '#play/features?layer=awards', '#play/features?layer=season', '#play/features?layer=badge&item=bullseye', '#play/league', '#play/league?view=history&week=6',
   '#play/league?view=feed', '#play/league?view=board', '#play/league?view=history', '#bets', '#bets/active', '#bets/settled', '#bets/recommended',
+  // D-69 step 4: Recommended is its own screen, and one gap a layer with its own address (not on this world's list: its frame).
+  '#bets/research', '#bets/recommended?layer=gap&item=SEA-DEN%3Atotal',
   '#bets/virtual', '#bets/everyone', '#bets/add', '#groups', '#research', '#research/games', '#research/fantasy', '#research/trends',
   // D-69 step 3: one game and one team are layers with their own addresses, and Teams is a list.
   '#research/games?layer=game&item=SEA-DEN', '#research/teams', '#research/teams?layer=team&item=SEA',
