@@ -431,3 +431,65 @@ test('D-69 step 1: the Play landing opens each section on its first layer, a rel
     assert.equal(placeFromFragment(fragmentFor('play', opened.views.play)).view.section, section);
   }
 });
+
+// Final fix wave F1 (spec test 8): League never reopens a stale layer. Every arrival from outside League (the landing's
+// tile, the Play lip then the tile, a tab switch, a restored entry that names no League layer) lands on the board;
+// Back from the feed or History lands on the board; an address that names a layer still opens it.
+test('F1 League: the tile after a History week opens the board, also after the Play lip and a tab switch', () => {
+  const tile = state => reduce(state, { type: 'go', tab: 'play', view: { section: 'league', ...CLOSED_LAYER } });
+  const playLip = state => reduce(state, { type: 'go', tab: 'play', view: { section: undefined, ...CLOSED_LAYER } });
+  let state = tile(initialState({ tab: 'play' }));
+  state = reduce(state, { type: 'view', tab: 'league', patch: { view: 'history', week: null } });
+  state = reduce(state, { type: 'view', tab: 'league', patch: { season: 2025 } });
+  state = reduce(state, { type: 'view', tab: 'league', patch: { week: 6 } });
+  assert.equal(leagueLayer(state.views.league).layer, 'week');
+  const again = tile(playLip(state));
+  assert.deepEqual(leagueLayer(again.views.league), { layer: 'board', season: null, week: null }, 'the tile opens the board, not Week 6');
+  assert.equal(fragmentFor('play', again.views.play, again.views), '#play/league', 'and its address is the canonical board');
+  const switched = tile(reduce(reduce(state, { type: 'tab', tab: 'home' }), { type: 'tab', tab: 'play' }));
+  assert.equal(leagueLayer(switched.views.league).layer, 'board', 'the same after a tab switch');
+  // History from that board starts fresh: no week and no season left from the last visit.
+  const history = reduce(again, { type: 'view', tab: 'league', patch: { view: 'history', week: null } });
+  assert.deepEqual(leagueLayer(history.views.league), { layer: 'history', season: null, week: null });
+  // Inside League a step keeps its own keys: the History lip from a week returns to that season's History.
+  const inside = reduce(state, { type: 'view', tab: 'league', patch: { week: null } });
+  assert.deepEqual(leagueLayer(inside.views.league), { layer: 'history', season: 2025, week: null });
+  // Openers that name their layer still get it.
+  assert.equal(leagueLayer(reduce(playLip(state), { type: 'go', tab: 'league', view: { view: 'feed' } }).views.league).layer, 'feed');
+});
+
+test('F1 League: browser Back from the feed or History (a restored entry) lands on the board; deep links and Forward still open the layer', async () => {
+  for (const patch of [{ view: 'feed' }, { view: 'history', week: null }]) {
+    const win = fakeWindow('https://gtl.test/#play/league'), shell = app(win);
+    shell.dispatch({ type: 'view', tab: 'league', patch }); await settle();
+    const opened = win.location.hash;
+    assert.notEqual(opened, '#play/league');
+    win.history.back(); await settle();
+    assert.equal(leagueLayer(shell.state.views.league).layer, 'board', `Back from ${patch.view} lands on the board`);
+    assert.equal(win.location.hash, '#play/league', 'and the address stays the board');
+    win.history.forward(); await settle();
+    assert.equal(leagueLayer(shell.state.views.league).layer, patch.view, 'Forward reopens the layer');
+    assert.equal(win.location.hash, opened);
+    shell.connection.disconnect();
+  }
+  // A History week restored, then Back to an entry without a week or season: History, then the board.
+  const win = fakeWindow('https://gtl.test/#play/league'), shell = app(win);
+  shell.dispatch({ type: 'view', tab: 'league', patch: { view: 'history', week: null } });
+  shell.dispatch({ type: 'view', tab: 'league', patch: { season: 2025 } });
+  shell.dispatch({ type: 'view', tab: 'league', patch: { week: 6 } }); await settle();
+  win.history.back(); await settle();
+  assert.deepEqual(leagueLayer(shell.state.views.league), { layer: 'history', season: 2025, week: null });
+  win.history.back(); await settle();
+  assert.deepEqual(leagueLayer(shell.state.views.league), { layer: 'board', season: null, week: null });
+  shell.connection.disconnect();
+  for (const [fragment, layer] of [['#play/league?view=feed', 'feed'], ['#play/league?view=history', 'history'], ['#play/league?season=2026&week=6&view=history', 'week']]) {
+    const deep = fakeWindow(`https://gtl.test/${fragment}`), linked = app(deep);
+    assert.equal(leagueLayer(linked.state.views.league).layer, layer, `${fragment} opens ${layer}`);
+    linked.connection.disconnect();
+  }
+  // A followed #play/league link from History (popstate with no saved entry) lands on the board too.
+  const followed = fakeWindow('https://gtl.test/#play/league?view=history'), linked = app(followed);
+  followed.follow('#play/league'); await settle();
+  assert.equal(leagueLayer(linked.state.views.league).layer, 'board');
+  linked.connection.disconnect();
+});

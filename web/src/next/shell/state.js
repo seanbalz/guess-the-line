@@ -118,8 +118,12 @@ function returnsToPrior(state, tab, patch) {
 /** D-70: one game's card opening in place of another (Next) while the week is the place under it. */
 const swapsGame = (state, tab, patch) => tab === 'play' && !!state.views.play.pickGame && !!patch.pickGame
   && patch.pickGame !== state.views.play.pickGame && returnsToPrior(state, tab, { pickGame: undefined });
-// A restored place brings its own League week (D-69): an entry without one is History or the board, never the week left.
-const mergeAdapters = (views, adapters) => Object.fromEntries(Object.entries(adapters ?? {}).map(([tab, view]) => [tab, { ...views[tab], ...(tab === 'league' ? { week: undefined } : {}), ...view }]));
+// D-69 (spec test 8): League's layer keys. Arriving from outside League (a tile, the Play lip then a tile, a tab switch)
+// clears them, so the board shows unless the destination names a layer; a restored place brings its own (an entry
+// without them is the board, never the feed, History or week left). Inside League a step keeps them.
+const LEAGUE_LAYER_CLEARED = Object.freeze({ view: undefined, week: undefined, season: undefined });
+const mergeAdapters = (views, adapters) => Object.fromEntries(Object.entries(adapters ?? {}).map(([tab, view]) => [tab, { ...views[tab], ...(tab === 'league' ? LEAGUE_LAYER_CLEARED : {}), ...view }]));
+const onLeague = state => state.tab === 'play' && state.views.play.section === 'league';
 
 /** Every layer that is open, overlays queued behind the first one included. */
 export function layerCount(state) {
@@ -153,7 +157,8 @@ export function reduce(state, action) {
       const next = target.tab === 'play' && PLAY_LAYER_KEYS.some(key => Object.hasOwn(current, key)) ? Object.fromEntries(Object.entries(current).filter(([key]) => !PLAY_LAYER_KEYS.includes(key))) : current;
       const root = { ...next, section: undefined, ...(target.tab === 'bets' ? { view: undefined } : {}) };
       const view = action.type === 'tab' || !target.view ? root : { ...next, ...target.view };
-      const views = { ...state.views, [target.tab]: view, ...(target.adapter ? { [target.adapter]: { ...state.views[target.adapter], ...target.adapterView } } : {}) };
+      const adapterFrom = target.adapter === 'league' && !onLeague(state) ? { ...state.views.league, ...LEAGUE_LAYER_CLEARED } : state.views[target.adapter];
+      const views = { ...state.views, [target.tab]: view, ...(target.adapter ? { [target.adapter]: { ...adapterFrom, ...target.adapterView } } : {}) };
       const changed = state.tab !== target.tab || JSON.stringify(current) !== JSON.stringify(view) || !!target.adapter;
       if (!changed && !hasLayers(state)) return state;
       const trail = action.type === 'tab' || !target.view ? [] : [...state.trail, { tab: state.tab, view: state.views[state.tab], adapters: Object.fromEntries(LEGACY_TABS.map(tab => [tab, state.views[tab]])) }];

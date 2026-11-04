@@ -162,6 +162,37 @@ test('history obeys each market reveal and refreshes when the browser comes back
   } finally { await page.unrouteAll({ behavior: 'wait' }); await page.close(); await world.db.close(); }
 });
 
+test('League never reopens a stale layer: the tile after a History week opens the board, and browser Back from the feed lands on it', async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite required.');
+  const world = await communityWorld(page, baseURL, { migrations: BEFORE_FEED, optionalRpc: true });
+  const board = () => page.getByRole('button', { name: 'Open the feed', exact: true });
+  const hash = () => new URL(page.url()).hash;
+  try {
+    await open(page);
+    await toBoard(page).click(); await page.getByRole('button', { name: /^History/ }).click();
+    const { season, week } = world.state.league;
+    await page.getByRole('button', { name: new RegExp(`^Week ${week},`) }).click();
+    await expect(page.getByRole('heading', { name: `Week ${week} · ${season}`, level: 2 })).toBeVisible();
+    await page.getByRole('button', { name: 'Back to Play', exact: true }).click();
+    await page.locator('[data-play-tile="league"]').getByRole('button').click();
+    await expect(board()).toBeVisible();
+    await expect(page.getByRole('heading', { name: `Week ${week} · ${season}`, level: 2 })).toHaveCount(0);
+    expect(hash()).toBe('#play/league');
+    // The canonical board address: the feed, then browser Back (a restored entry), lands on the board again.
+    await page.goto('/#play/league');
+    await expect(board()).toBeVisible();
+    await board().click();
+    await expect(toBoard(page)).toBeVisible();
+    await page.goBack();
+    await expect(board()).toBeVisible();
+    expect(hash()).toBe('#play/league');
+    await page.goForward();
+    await expect(toBoard(page)).toBeVisible();
+    expect(hash()).toBe('#play/league?view=feed');
+    expect(world.errors).toEqual([]);
+  } finally { await page.unrouteAll({ behavior: 'wait' }); await page.close(); await world.db.close(); }
+});
+
 test('private standings stay membership-scoped on rapid switching and discard data after a 403', async ({ page, baseURL }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required.');
   const world = await communityWorld(page, baseURL, { migrations: BEFORE_FEED, groupScreens: true, optionalRpc: true });
