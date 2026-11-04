@@ -1,0 +1,3 @@
+/* MetaLine (quick win A20): each part is one inline unit, so a line breaks only between parts. An inline-block moves to
+   the next line whole when it does not fit, and wraps inside itself only when it is wider than the whole line. */
+.gx .gx-meta-part { display: inline-block; max-width: 100%; }

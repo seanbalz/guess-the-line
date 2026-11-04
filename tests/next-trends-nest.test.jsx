@@ -241,7 +241,10 @@ describe('This Week layers: top trends, games, one game, one trend', async () =>
     const html = show({});
     expect(markupProblems(html)).toEqual([]);
     expect(lips(html)).toEqual([]);
-    expect(html).toContain('CAR @ GB · Home team after a loss: ATS');
+    // The hero's label reads "CAR @ GB · Home team after a loss: ATS"; A20 keeps each part whole (MetaLine).
+    const label = nodes(html).find(n => n.attrs?.['data-hero'] !== undefined && n.tag === 'button').children.find(n => n.attrs?.class === 'gx-nest-tile-label');
+    expect(textOf(label)).toBe('CAR @ GB · Home team after a loss: ATS');
+    expect([...walk(label)].filter(n => n.attrs?.class === 'gx-meta-part').map(textOf)).toEqual(['CAR @ GB ·', 'Home team after a loss: ATS']);
     const tile = nodes(html).find(n => n.tag === 'button' && n.attrs?.['data-game'] === 'CAR-GB');
     expect(nameFrom(tile).startsWith('Carolina Panthers at Green Bay Packers')).toBe(true);
     expect(html).not.toContain('Past results since 2002');

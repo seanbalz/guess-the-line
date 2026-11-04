@@ -157,7 +157,9 @@ test('press feedback: a pressed card, button or icon button dips and dims, then 
   const { world, order } = await week(page, baseURL);
   try {
     await openLines(page);
-    const targets = { card: card(page, order[0].id), button: page.getByRole('button', { name: 'Open weekly research', exact: true }), icon: page.getByRole('button', { name: 'About trends', exact: true }) };
+    // Quick win A5 made "Open weekly research" a row; the gate's ghost "Finish … picks" is the board's text button now.
+    const targets = { card: card(page, order[0].id), button: page.locator('.gx-lock-card').getByRole('button', { name: /^Finish (Spread|Total) picks$/ }),
+      row: page.getByRole('button', { name: 'Open weekly research', exact: true }), icon: page.getByRole('button', { name: 'About trends', exact: true }) };
     for (const [kind, target] of Object.entries(targets)) {
       await target.scrollIntoViewIfNeeded();
       await settle(page);
@@ -174,11 +176,12 @@ test('press feedback: a pressed card, button or icon button dips and dims, then 
     }
     // The press runs on the tap tokens (100ms, standard easing), transform and opacity only.
     expect(await targets.card.evaluate(el => [getComputedStyle(el).transitionProperty, getComputedStyle(el).transitionDuration])).toEqual(['transform, opacity', '0.1s, 0.1s']);
-    expect(await page.evaluate(() => window.__vibrations), 'no tick for a card, a secondary button or an icon button').toEqual([]);
+    expect(await page.evaluate(() => window.__vibrations), 'no tick for a card, a text button, a row or an icon button').toEqual([]);
 
     // Reduced motion, from the device: the dim stays, the dip goes, and nothing transitions.
     await page.emulateMedia({ reducedMotion: 'reduce' });
     for (const [kind, target] of Object.entries(targets)) {
+      await target.scrollIntoViewIfNeeded(); // the research row sits below the games
       const at = await center(target);
       await page.mouse.move(at.x, at.y);
       await page.mouse.down();

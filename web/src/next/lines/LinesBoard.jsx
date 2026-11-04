@@ -6,14 +6,15 @@ import { useId, useMemo, useRef } from 'react';
 import { APP_RELOAD_COPY } from '../../appView.js';
 import { LINES_COPY, linesBoard } from '../../../../shared/lines-view.mjs';
 import { useShell } from '../shell/context.js';
-import { Button, CardButton, GateBanner, Icon, InfoButton, Pill, Skeleton, Tag, TeamMark } from '../ui/index.js';
+import { Button, CardButton, DESTINATION_ICONS, GateBanner, Icon, IconButton, InfoButton, MetaLine, Pill, Skeleton, Tag, TeamMark } from '../ui/index.js';
+import { SEP } from '../format.js';
 import { useLinesData } from './linesData.js';
 import { useWind } from './trendsHooks.js';
 import { INFO } from '../info.js';
 import { forfeitView } from '../play/forfeit.js';
 import './lines.css';
 import { useBoardLines } from './useGameLines.js';
-import { boardGate, boardQuotes, marketBoard } from './boardMarkets.js';
+import { boardGate, boardQuotes, marketBoard, quoteTime } from './boardMarkets.js';
 import { FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
 import { matchupRecords } from '../teams/teamModel.js';
 import { useTeamSeason } from '../teams/teamsData.js';
@@ -126,18 +127,25 @@ export function LinesBoard({ trendsOnly = false }) {
       results: Object.fromEntries((board.finals?.cards ?? []).map(card => [card.id, card.final.record])) } } : {}),
   });
   // D-66: the quotes' source and update time are said once, in the one meta line and the ⓘ, not under every card.
+  // Quick wins A5 and A20: one meta line ("Week 6 · Due Wed 11:59 PM PT · Quotes 6:26 PM PT") that wraps only between
+  // its parts; the full date, year and source stay behind the title's ⓘ.
   const quotes = trendsOnly ? null : boardQuotes(board);
-  const quotesMeta = !quotes ? null : quotes.updates ? `Quotes from ${quotes.updates} updates` : `Quotes updated ${quotes.observed}`;
+  const quotesMeta = !quotes ? null : quotes.updates ? `Quotes from ${quotes.updates} updates` : `Quotes ${quoteTime(quotes.observedAt, markets.now)}`;
   const quotesInfo = !quotes ? [] : [quotes.updates ? 'Market quotes come from more than one update. Each game’s sheet lists its source, books and times.'
     : `Market quotes: ${quotes.source}, updated ${quotes.observed}. Each game’s sheet lists its books and times.`];
-  const meta = [board?.meta, quotesMeta].filter(Boolean).join(' · ');
+  // The shared board joins its week name and deadline with the app's separator; each becomes its own part.
+  const meta = [...(board?.meta ? board.meta.split(SEP) : []), quotesMeta];
+  // A5: the refresh is an icon beside the ⓘ. It keeps its name, says Retry after a failure and is busy while quotes load.
+  const refresh = board && !trendsOnly ? <IconButton icon="refresh" label={markets.status === 'error' ? 'Retry market lines' : 'Refresh market lines'}
+    aria-busy={markets.status === 'loading' || undefined} onClick={markets.reload}/> : null;
   const head = (
     <div className="gx-vstack gx-gap-2">
       <div className="gx-l-sechead">
         <h1 className="gx-t-title gx-grow">{trendsOnly ? 'Trends' : LINES_COPY.title}</h1>
+        {refresh}
         <InfoButton title={INFO.trends.title} body={trendsOnly ? [TRENDS_INTRO, ...INFO.trends.body] : [...quotesInfo, ...INFO.trends.body]} links={INFO.trends.links}/>
       </div>
-      {meta ? <p className="gx-t-meta" data-board-quotes={quotes ? (quotes.updates ? 'mixed' : 'one') : undefined}>{meta}</p> : null}
+      <MetaLine parts={meta} data-board-quotes={quotes ? (quotes.updates ? 'mixed' : 'one') : undefined}/>
     </div>
   );
   if (!board) {
@@ -160,18 +168,21 @@ export function LinesBoard({ trendsOnly = false }) {
   return (
     <div className="gx-screen">
       {head}
-      <Button variant="secondary" onClick={() => shell.openSheet('sh.research')}>Open weekly research</Button>
       {!trendsOnly && <>
         {markets.status === 'loading' ? <p className="gx-sr-only" role="status">Loading market lines and results…</p>
           : markets.status === 'error' ? <p className="gx-t-body" role="status">Market lines and results are unavailable. Your saved guesses are kept.</p> : null}
-        <GateBanner gate={gate} onCta={enter} onSkip={() => shell.openDialog('dlg.forfeit', revealScope)} note="See picks now requires a final sit-out confirmation. Locked guesses count; drafts are kept."/>
-        <Button variant="ghost" onClick={markets.reload}>{markets.status === 'error' ? 'Retry market lines' : 'Refresh market lines'}</Button>
+        {/* A5: no fine print here; the forfeit dialog behind See picks now already says it is final and what is kept. */}
+        <GateBanner gate={gate} onCta={enter} onSkip={() => shell.openDialog('dlg.forfeit', revealScope)}/>
       </>}
       {trendsOnly ? <><FocusRows label="Matchup trends">{[...board.groups.flatMap(group => group.cards), ...(board.started?.cards ?? []), ...(board.finals?.cards ?? [])].map(card => <FocusRow key={card.id} icon="chart" title={`${card.away.code} at ${card.home.code}`} sub={card.chip?.text ?? 'Open available trends'} onClick={() => open(card.id)}/>)}</FocusRows></> : <>
         {board.groups.map(group => <Group key={group.key} label={group.label} time={group.time} cards={group.cards} season={season} onOpen={open} focusScope={focusScope}/>)}
         {board.started ? <Group label={`${board.started.label} · ${board.started.count} ${board.started.count === 1 ? 'game' : 'games'}`} cards={board.started.cards} season={season} onOpen={open} focusScope={focusScope}/> : null}
         {board.finals ? <Group label={`${board.finals.label} · ${board.finals.count} ${board.finals.count === 1 ? 'game' : 'games'}`} cards={board.finals.cards} season={season} onOpen={open} focusScope={focusScope}/> : null}
       </>}
+      {/* A5: the weekly research is a row after the last game, so the first game comes first. */}
+      <FocusRows label="More research">
+        <FocusRow icon={DESTINATION_ICONS.weeklyResearch} title="Weekly research" sub="This week’s shortlist and situations" aria-label="Open weekly research" onClick={() => shell.openSheet('sh.research')}/>
+      </FocusRows>
       {!board.groups.length && !board.started && !board.finals ? <p className="gx-empty gx-t-body">{LINES_COPY.unpublished}</p> : null}
     </div>
   );
