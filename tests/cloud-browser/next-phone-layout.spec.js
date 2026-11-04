@@ -154,7 +154,7 @@ test('Research › Games keeps whole matchups and records inside their rows at 3
         for (const row of rows) {
           const c = row.getBoundingClientRect(), main = row.querySelector('.gx-prow-main').getBoundingClientRect(), end = row.querySelector('.gx-prow-end').getBoundingClientRect();
           if (!inside(c, { left: 0, right: document.documentElement.clientWidth })) out.push(`${row.dataset.game}: row leaves the screen`);
-          if (main.right > end.left + 1) out.push(`${row.dataset.game}: the name block runs into the Spread`);
+          if (main.right > end.left + 1 && main.bottom > end.top + 1) out.push(`${row.dataset.game}: the name block runs into the Spread`);
           for (const el of row.querySelectorAll('*')) {
             if (el.closest('.gx-team') || el.closest('svg')) continue; // the mark's own code letters are hidden once its logo loads
             const r = el.getBoundingClientRect();
@@ -165,6 +165,21 @@ test('Research › Games keeps whole matchups and records inside their rows at 3
               for (const rect of range.getClientRects()) if (rect.width && !(inside(rect, r) && inside(rect, c))) out.push(`"${node.textContent.trim()}" leaves its box`);
             }
             if (el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).overflowX !== 'visible') out.push(`"${el.textContent.trim()}" is clipped`);
+          }
+        }
+        // A word that fits its line is never split inside it (the title and the meta line wrap between words first).
+        const measure = document.createElement('canvas').getContext('2d');
+        for (const el of document.querySelectorAll('button.gx-prow[data-game] .gx-prow-title, button.gx-prow[data-game] .gx-prow-meta')) {
+          const cs = getComputedStyle(el), room = el.getBoundingClientRect().width - 1;
+          measure.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+          const text = el.firstChild;
+          if (!text || text.nodeType !== 3) continue;
+          for (const found of text.textContent.matchAll(/S+/g)) {
+            const range = document.createRange();
+            range.setStart(text, found.index);
+            range.setEnd(text, found.index + found[0].length);
+            const lines = new Set([...range.getClientRects()].filter(r => r.width).map(r => Math.round(r.top))).size;
+            if (lines > 1 && measure.measureText(found[0]).width <= room) out.push(`"${found[0]}" breaks although it fits on one line`);
           }
         }
         return [...new Set(out)];

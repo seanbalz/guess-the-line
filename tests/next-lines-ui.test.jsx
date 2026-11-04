@@ -117,6 +117,17 @@ describe('the Lines board', () => {
     expect(text(html)).not.toContain('11.5');
   });
 
+  it('a Total that is open with no quote is said as unavailable in the row’s name: never "line hidden", never a lock', () => {
+    state.lines = data();
+    const html = render(<LinesBoard/>);
+    const jax = nodes(html, n => n.tag === 'button' && n.attrs['data-game'] === 'HOU-JAX')[0];
+    const name = jax.attrs['aria-label'];
+    expect(name).toContain('Total —. Unavailable');
+    expect(name).not.toContain('Total line hidden');
+    expect(name).toContain('Spread line hidden'); // the Spread is the closed market; its lock stays on the row's face
+    expect([...walk(jax)].filter(n => n.attrs?.['data-cell'] === 'locked')).toHaveLength(1);
+  });
+
   it('D-62: each row’s meta line is the two records in text-2, said after the matchup; the row stays one button', () => {
     state.lines = data();
     const record = (w, l, t = 0) => ({ overall: { w, l, t }, home: null, road: null, pointsFor: null, pointsAgainst: null, games: [] });

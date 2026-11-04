@@ -18,9 +18,9 @@
 }
 .gx-l-ghead .gx-t-section { min-width: 0; }
 
-.gx-l-lock { display: flex; align-items: center; justify-content: flex-end; min-width: 44px; min-height: 44px; color: var(--gx-text-3); }
+.gx-l-lock { display: flex; align-items: center; justify-content: flex-end; min-width: 44px; color: var(--gx-text-3); }
 /* A market still loading: a skeleton bar (skeleton.css) where its line will be, never "—", which means missing. */
-.gx-l-wait { display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
+.gx-l-wait { display: flex; align-items: center; justify-content: center; min-width: 44px; }
 .gx-l-wait .gx-l-wait-bar { width: 44px; height: 16px; }
 .gx-l-credits { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding-top: 8px; }
 .gx-l-link { display: inline-flex; align-items: center; min-height: 44px; }

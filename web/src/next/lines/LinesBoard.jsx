@@ -81,8 +81,8 @@ export function LinesBoard() {
   // its parts; the full date, year and source stay behind the title's ⓘ.
   const quotes = boardQuotes(board);
   const quotesMeta = !quotes ? null : quotes.updates ? `Quotes from ${quotes.updates} updates` : `Quotes ${quoteTime(quotes.observedAt, markets.now)}`;
-  const quotesInfo = !quotes ? [] : [quotes.updates ? 'Market quotes come from more than one update. Each game’s sheet lists its source, books and times.'
-    : `Market quotes: ${quotes.source}, updated ${quotes.observed}. Each game’s sheet lists its books and times.`];
+  const quotesInfo = !quotes ? [] : [quotes.updates ? 'Market quotes come from more than one update. Each game lists its source, books and times.'
+    : `Market quotes: ${quotes.source}, updated ${quotes.observed}. Each game lists its books and times.`];
   // The shared board joins its week name and deadline with the app's separator; each becomes its own part.
   const meta = [...(board?.meta ? board.meta.split(SEP) : []), quotesMeta];
   // A5: the refresh is an icon beside the ⓘ. It keeps its name, says Retry after a failure and is busy while quotes load.

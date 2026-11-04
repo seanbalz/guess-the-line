@@ -23,10 +23,10 @@ export function withRecords(aria, card, records) {
 export function boardRow(card, records = null) {
   const cell = card.spread ?? { open: false };
   const value = !cell.open ? { lock: true } : cell.loading ? { loading: true } : cell.line ? { text: cell.line, line: true } : { text: DASH, line: false };
-  const word = card.final ? 'Final' : card.started ? 'Kicked off' : !cell.open ? 'Locked' : cell.loading ? null : ROW_WORDS[cell.label] ?? cell.label ?? null;
+  const word = card.final ? 'Final' : card.started ? 'Kicked off' : !cell.open ? 'Locked' : cell.loading ? null : ROW_WORDS[cell.label] ?? null;
   const tone = !card.final && !card.started && cell.open && PENDING.has(cell.label) ? 'warn' : 'plain';
   const score = typeof card.final?.score === 'string' ? card.final.score.replace(/^Final · /, '') : null;
   const recs = records && (records.away || records.home) ? `${records.away ?? DASH}${SEP}${records.home ?? DASH}` : null;
-  return { id: card.id, title: card.matchup, meta: [card.showTime ? card.time : null, score ?? recs].filter(Boolean), value, word, tone,
+  return { id: card.id, title: card.away?.nick && card.home?.nick ? `${card.away.nick} @ ${card.home.nick}` : card.matchup, meta: [card.showTime ? card.time : null, score ?? recs].filter(Boolean), value, word, tone,
     ariaLabel: withRecords(card.aria, card, records) };
 }

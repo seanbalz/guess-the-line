@@ -13,7 +13,7 @@ const card = (patch = {}) => ({ id: 'SEA-DEN', matchup: 'SEA @ DEN', away: { cod
 
 test('an open line: the quote over "Current"; the records as the meta line, said after the matchup in the name', () => {
   const row = boardRow(card(), { away: '3–2', home: '2–2–1' });
-  assert.deepEqual([row.id, row.title, row.value, row.word, row.tone], ['SEA-DEN', 'SEA @ DEN', { text: 'DEN −1.5', line: true }, 'Current', 'plain']);
+  assert.deepEqual([row.id, row.title, row.value, row.word, row.tone], ['SEA-DEN', 'Seahawks @ Broncos', { text: 'DEN −1.5', line: true }, 'Current', 'plain']);
   assert.deepEqual(row.meta, ['3–2 · 2–2–1']);
   assert.match(row.ariaLabel, /^Seahawks at Broncos, Sun 1:05 PM PT\. Records: Seahawks 3–2, Broncos 2–2–1\. Spread DEN −1\.5/);
   for (const kept of ['Total 43.5', 'Your total pick 44', 'Trend: Broncos at home']) assert.ok(row.ariaLabel.includes(kept), kept);
@@ -36,6 +36,13 @@ test('an old or unverified quote says so in its word, with the pending tone; a k
   const final = boardRow(card({ started: true, final: { score: 'Final · SEA 24–DEN 17' } }), { away: '3–2', home: '2–2–1' });
   assert.deepEqual([final.word, final.tone, final.meta], ['Final', 'plain', ['SEA 24–DEN 17']]);
   assert.deepEqual(Object.values(ROW_WORDS), ['Current', 'Latest', 'Unverified', 'No line']);
+});
+
+test('AUD-01: the row title names the teams (nicknames), never the codes; an unknown label never reaches the row face', () => {
+  assert.equal(boardRow(card()).title, 'Seahawks @ Broncos');
+  assert.equal(boardRow(card({ away: { code: 'SEA' }, home: { code: 'DEN' } })).title, 'SEA @ DEN');
+  const odd = boardRow(card({ spread: { open: true, line: 'DEN −1.5', label: 'Some new multi word label' } }));
+  assert.equal(odd.word, null);
 });
 
 test('several kickoff times in one group put the time first in the meta line; no records and no time is no meta line', () => {
