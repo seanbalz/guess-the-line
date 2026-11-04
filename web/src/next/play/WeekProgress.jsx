@@ -9,7 +9,7 @@ import { progressLegend } from './moments.js';
 export const STATE_ICONS = Object.freeze({ locked: Lock, draft: Pencil, open: Circle, kicked: Clock, skipped: Minus, notopen: CalendarClock });
 
 /**
- * `progress` is weekProgress(); `market` is "Spread" or "Total"; `onNext(gameId)` moves to that game's card. `nested`
+ * `progress` is weekProgress(); `market` is "Spread" or "Total"; `onNext(gameId)` moves to that game's card (none, as on read-only cards, draws no Next button). `nested`
  * (D-70, inside the week's nesting card) leaves out the count and the strip: the card's meta line and its game tiles
  * say both, so the meter, the legend and the next button remain.
  */
@@ -31,7 +31,7 @@ export function WeekProgress({ progress, market, week, onNext, nested = false })
       {legend.map(item => <li key={item.state} className={cx('gx-play-legend-item', `gx-play-legend-item--${item.state}`)}><Icon icon={STATE_ICONS[item.state]} size={16}/><span className="gx-n-xs">{item.count}</span><span className="gx-t-meta">{item.word}</span></li>)}
     </ul>
     {/* D-62: the game as marks; the button's name reads "Next to lock · Seattle Seahawks at Denver Broncos". */}
-    {next ? <Button variant="ghost" iconEnd="chevronRight" className="gx-play-next" onClick={() => onNext?.(next.id)}>Next to lock · <Matchup away={next.game.awayCode} home={next.game.homeCode}/></Button>
+    {next ? onNext ? <Button variant="ghost" iconEnd="chevronRight" className="gx-play-next" onClick={() => onNext(next.id)}>Next to lock · <Matchup away={next.game.awayCode} home={next.game.homeCode}/></Button> : null
       : <p className="gx-t-meta gx-c-2">{progress.locked === progress.total ? 'Every game is locked in.' : 'Nothing left to lock this week.'}</p>}
   </Frame>;
 }

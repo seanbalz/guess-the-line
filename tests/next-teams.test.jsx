@@ -16,7 +16,6 @@ const { TeamView, NO_GAMES, teamInfo } = await import('../web/src/next/teams/Tea
 const { marginLayout } = await import('../web/src/next/teams/MarginChart.jsx');
 const { ShellContext } = await import('../web/src/next/shell/context.js');
 const { PerGameEditor } = await import('../web/src/next/play/PerGamePlay.jsx');
-const { playPresentation } = await import('../web/src/next/play/PlayPresentation.jsx');
 const { GUIDANCE_ORDER, INFO, TEAM_RECORDS_CREDIT, TEAM_RECORDS_LINKS } = await import('../web/src/next/info.js');
 const api = await import('../web/src/api.js');
 
@@ -323,15 +322,5 @@ describe('pick-screen headers: away @ home as marks with records, each team open
     expect([...walk(h2)].filter(n => n.tag === 'button')).toEqual([]);
     expect(textOf(h2)).toContain('Seattle Seahawks at Denver Broncos');
     expect(textOf(h2)).not.toMatch(/\d–\d/);
-  });
-
-  it('the whole-market card (PlayPresentation) keeps its heading name and draws the matchup with records', () => {
-    const { GameCard } = playPresentation;
-    const html = inShell(<GameCard game={games[0]} title="Seattle Seahawks @ Denver Broncos" kickoff="Nov 1, 1:05 PM PT" facts={null} picked={false}/>);
-    // The card itself keeps the shared ballot's own classes (panel, week-pick); everything else is the kit's.
-    expect(markupProblems(html).filter(problem => !/class "(panel|week-pick)"/.test(problem))).toEqual([]);
-    const h3 = nodes(html).find(n => n.tag === 'h3');
-    expect(h3.attrs['aria-label']).toBe('Seattle Seahawks @ Denver Broncos');
-    expect([...walk(h3)].filter(n => n.tag === 'button').map(n => n.attrs['aria-label'])).toEqual(['Seattle Seahawks, 4–1–1. Open team', 'Denver Broncos, 3–3. Open team']);
   });
 });

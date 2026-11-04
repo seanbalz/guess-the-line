@@ -1,9 +1,9 @@
-// The player context strip in a Points slot's sheet (Board i63): last-3 and season Full PPR averages with their game
+// The player context strip in a Points slot's layer (Board i63): last-3 and season Full PPR averages with their game
 // counts, the opponent and what it allows to the position, the game or practice report with the snapshot's time, and
-// "Open profile" into the Fantasy profile (shown in place as the sheet's sub-view). It draws only slotContext()
+// "Open profile" into the Fantasy profile (the slot's next card, its address `layer` 'profile'). It draws only slotContext()
 // (pointsContext.js): never GTL's weekly estimate, which is the House (D-56), and never an implied team total (D-57).
 // The profile's code (FantasyTools and its stylesheet) loads on that tap, as Research › Fantasy loads its own on a visit.
-import { lazy, Suspense, useId, useRef, useState } from 'react';
+import { lazy, Suspense, useId, useLayoutEffect, useRef, useState } from 'react';
 import { Boundary } from '../../shell/Boundary.jsx';
 import { Button, Card, Skeleton } from '../../ui/index.js';
 import { retryViewImport } from '../../ui/retryViewImport.js';
@@ -12,12 +12,18 @@ import { CONTEXT_COPY, contextNumber, gamesText, slotContext } from './pointsCon
 const importProfile = retryViewImport(() => import('./PointsProfile.jsx'));
 const loadProfile = () => lazy(importProfile);
 
-/** The profile sub-view's body: the lazily loaded profile, with a local retry if its code cannot load. */
-export function ProfileView(props) {
+/**
+ * The profile's body: the lazily loaded profile, with a local retry if its code cannot load. `focus` (it just opened from
+ * the slot) moves focus here; `data-route-focus` keeps it through the shell's navigation focus.
+ */
+export function ProfileView({ focus = false, ...props }) {
   const [Profile, setProfile] = useState(loadProfile), [attempt, setAttempt] = useState(0);
   const region = useRef(null);
+  // Only the opening render asks; a later render of the same profile never moves focus again.
+  const opening = useRef(focus);
+  useLayoutEffect(() => { if (opening.current) region.current?.focus({ preventScroll: true }); }, []);
   const retry = () => { region.current?.focus({ preventScroll: true }); setProfile(loadProfile); setAttempt(n => n + 1); };
-  return <div ref={region} role="group" aria-label="Player profile" tabIndex={-1} className="gx-vstack gx-gap-16">
+  return <div ref={region} role="group" aria-label="Player profile" tabIndex={-1} className="gx-vstack gx-gap-16" data-route-focus>
     <Boundary key={attempt} fallback={() => <div className="gx-vstack gx-gap-8" role="alert">
       <p className="gx-t-body">{CONTEXT_COPY.profileFailed}</p>
       <Button variant="secondary" onClick={retry}>{CONTEXT_COPY.profileRetry}</Button>

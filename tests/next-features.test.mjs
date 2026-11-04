@@ -80,15 +80,17 @@ test('celebrations: every badge and award of the viewer is a moment candidate, o
   assert.ok(mine.some(([k, t]) => k === 'badge' && t === 'Double Bullseye'));
   assert.ok(!items.some(i => i.title === 'Sharp'), 'another player\'s badge is not your celebration');
   assert.ok(items.every(i => typeof i.icon === 'string' && i.icon.length > 10));
-  assert.ok(items.every(i => /^(badge|award):/.test(i.id)), 'stable ids: the seen record matches them across reads');
-  assert.deepEqual(items.map(i => i.id), ['badge:bullseye:u-you:2026:6:SEA-DEN', 'badge:double_bullseye:u-you:2026:7:PIT-TB',
-    'badge:bullseye:u-you:2026:7:PIT-TB', 'award:community:2026:7:spread_winner', 'award:community:2026:7:best_guess'],
-  'a badge is its award key (badge, player, season, week: badges have no league); an award names the league and the season');
+  assert.ok(items.every(i => /^(badge|award|score:bullseye):/.test(i.id)), 'stable ids: the seen record matches them across reads');
+  assert.deepEqual(items.map(i => i.id), ['score:bullseye:2026:6:guess_total:SEA-DEN', 'badge:double_bullseye:u-you:2026:7:PIT-TB',
+    'score:bullseye:2026:7:guess_spread:PIT-TB', 'award:community:2026:7:spread_winner', 'award:community:2026:7:best_guess'],
+  'a Bullseye shares Your score\'s Bullseye id (one exact guess, one celebration); another badge is its award key (no league); an award names the league and the season');
+  assert.deepEqual(items[0].aka, ['badge:bullseye:u-you:2026:6:SEA-DEN'], 'the award key stays as an earlier id');
   const elsewhere = M.featureMoments({ ...REPLY, leagueId: 'L2', season: 2027 }, YOU).map(i => i.id);
   assert.ok(elsewhere.includes('award:L2:2027:7:spread_winner'), 'another league\'s or season\'s Week 7 award is another moment');
   const awards = ids => ids.filter(id => id.startsWith('award:'));
   assert.ok(!awards(elsewhere).some(id => items.some(i => i.id === id)), 'no award id is shared across leagues');
-  assert.deepEqual(elsewhere.filter(id => id.startsWith('badge:')), items.filter(i => i.kind === 'badge').map(i => i.id), 'a badge is one moment in every league');
+  const badgeIds = ids => ids.filter(id => !id.startsWith('award:'));
+  assert.deepEqual(badgeIds(M.featureMoments({ ...REPLY, leagueId: 'L2' }, YOU).map(i => i.id)), items.filter(i => i.kind === 'badge').map(i => i.id), 'a badge is one moment in every league');
   assert.deepEqual(items[0].scopes, M.FEATURE_SCOPES);
   assert.deepEqual(M.FEATURE_SCOPES, ['features', 'home', 'league', 'play']);
   assert.deepEqual(M.featureMoments(null, YOU), []);

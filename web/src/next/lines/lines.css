@@ -24,13 +24,16 @@
 .gx-l-teams {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
-  grid-template-rows: 44px 44px;
+  grid-template-rows: minmax(44px, auto) minmax(44px, auto);
   align-items: center;
   column-gap: 12px;
 }
 .gx-l-team { grid-column: 1; grid-row: 1; display: flex; align-items: center; gap: 12px; min-width: 0; }
 .gx-l-team--2 { grid-row: 2; }
-/* D-62: a team's record beside its name, in text-2 numbers; the name gives way first on a narrow card. */
+/* D-62: a team's record beside its name, in text-2 numbers. The name is never cut to "…" (AUD-01): on a narrow card or
+   with large text the record wraps under the name first, and a name wider than the card breaks onto a second line. */
+.gx-l-tname { display: flex; flex-wrap: wrap; align-items: center; column-gap: 12px; min-width: 0; }
+.gx-l-tname > .gx-t-strong { min-width: 0; overflow-wrap: anywhere; }
 .gx-l-rec { flex: none; font: 600 16px/20px var(--gx-font-num); font-variant-numeric: tabular-nums; letter-spacing: 0.01em; color: var(--gx-text-2); }
 .gx-l-tag1,
 .gx-l-tag2 { grid-column: 2; justify-self: end; }
@@ -121,7 +124,7 @@
 /* Loaded quote provenance must not take the team names' width on phones. */
 .gx-l-market-label { display: none; }
 @media (max-width: 480px) {
-  .gx-l-teams { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 44px 44px auto; }
+  .gx-l-teams { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: minmax(44px, auto) minmax(44px, auto) auto; }
   .gx .gx-l-val { grid-column: 1 / -1; grid-row: 3; flex-direction: row; align-items: center; justify-content: space-between; gap: var(--gx-space-2); min-height: var(--gx-size-touch); width: 100%; max-width: none; }
   .gx .gx-l-val .gx-l-market-label { display: block; margin-right: auto; }
   .gx .gx-l-val > .gx-t-meta { max-width: 96px; }

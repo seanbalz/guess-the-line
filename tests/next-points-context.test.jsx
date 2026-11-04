@@ -1,11 +1,11 @@
-// Player context on the Points ballot (Board i63): each slot's sheet shows the player's last-3 and season Full PPR
+// Player context on the Points ballot (Board i63): each slot's layer shows the player's last-3 and season Full PPR
 // averages with game counts, the opponent and what it allows to the position, the game or practice report with the
 // snapshot's time, and "Open profile" into the Fantasy profile. Contracts:
 // - every average carries its game count, and a missing value is "—", never 0;
 // - GTL's weekly estimate is the House (D-56): it is never on the strip, and the profile keeps it behind a lock line until
 //   the read carries the House for this viewer (lock-in or kickoff);
 // - no implied team total anywhere (D-57);
-// - the ballot is keyed by account, so an account switch starts the sheet and its context empty.
+// - the ballot is keyed by account, so an account switch starts the slot layer and its context empty.
 // Fixture players and numbers only (tests/fixtures/points-context-snapshot.mjs).
 import { describe, expect, it, vi } from 'vitest';
 import fs from 'node:fs';
@@ -22,7 +22,7 @@ vi.mock('../web/src/fantasyData.js', () => ({
   fantasyWeekKey: (season, week) => `${season}-${String(week).padStart(2, '0')}`,
   useFantasySnapshot: key => { fantasy.keys.push(key); return fantasy.state; },
 }));
-const { SlotSheet } = await import('../web/src/next/play/points/PointsBallot.jsx');
+const { SlotLayer } = await import('../web/src/next/play/points/PointsBallot.jsx');
 const { slotContext, estimateOpen, contextSettings, gamesText, CONTEXT_COPY } = await import('../web/src/next/play/points/pointsContext.js');
 const { default: PointsProfile } = await import('../web/src/next/play/points/PointsProfile.jsx');
 
@@ -45,7 +45,7 @@ const LOCKED_QB = { ...SLOTS.QB, revealed: true, own: { guess: 21, locked: true,
 const ready = () => ({ status: 'ready', snapshot: SNAPSHOT, retry: vi.fn() });
 const sheet = (target, view = 'slot', state = ready()) => {
   fantasy.state = state;
-  return renderToStaticMarkup(<div className="gx"><SlotSheet data={READ} slot={target} viewer={ME} setDirty={vi.fn()} onClose={vi.fn()} initialView={view}/></div>);
+  return renderToStaticMarkup(<div className="gx"><SlotLayer data={READ} slot={target} viewer={ME} setDirty={vi.fn()} onProfile={vi.fn()} profile={view === 'profile'}/></div>);
 };
 const text = html => decode(html.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim();
 const strip = html => text(html.match(/<section[^>]*data-points-context[\s\S]*?<\/section>/)[0]);
@@ -85,7 +85,7 @@ describe('slotContext: averages with game counts, the opponent, the report and i
   });
 });
 
-describe('the slot sheet’s context strip', () => {
+describe('the slot layer’s context strip', () => {
   it('reads the slot’s own week and draws three tiles, each value over its game count, and the report with its time', () => {
     fantasy.keys = [];
     const html = sheet(SLOTS.QB);
@@ -131,18 +131,23 @@ describe('the slot sheet’s context strip', () => {
   });
 });
 
-describe('Open profile: the Fantasy profile as the sheet’s sub-view', () => {
+describe('Open profile: the Fantasy profile as the slot’s next card', () => {
   const profile = target => renderToStaticMarkup(<div className="gx"><PointsProfile snapshot={SNAPSHOT} slot={target} settings={PPR}/></div>);
 
-  it('opens in place under "‹ QB · Player", with no Lock in footer, while its code loads on the tap', () => {
+  it('replaces the slot’s card, with no Lock in, while its code loads on the tap; the region can take focus through navigation', () => {
     const html = sheet(SLOTS.QB, 'profile');
     expect(markupProblems(html)).toEqual([]);
-    expect(text(html)).toMatch(/QB · Fixture QB Player Fixture QB Player/);
     expect(html).toContain(CONTEXT_COPY.profileLoading);
-    expect(html).toContain('gx-fantasy-profile');
+    expect(html).toMatch(/role="group" aria-label="Player profile" tabindex="-1"[^>]*data-route-focus/);
     expect(html).not.toContain('Lock in');
-    // A sheet whose snapshot is not ready stays on the slot.
-    expect(sheet(SLOTS.QB, 'profile', { status: 'loading' })).toContain('Choose a guess to lock in');
+    expect(html).not.toContain('data-points-context');
+  });
+
+  it('opened from an address before the week’s player data is ready, it says so in place of the profile, never an empty one', () => {
+    expect(sheet(SLOTS.QB, 'profile', { status: 'loading' })).toContain(CONTEXT_COPY.profileLoading);
+    expect(text(sheet(SLOTS.QB, 'profile', { status: 'missing' }))).toBe('Player context isn’t available for Week 7 yet.');
+    expect(text(sheet(SLOTS.QB, 'profile', { status: 'error', retry: vi.fn() }))).toBe(`${CONTEXT_COPY.failed} ${CONTEXT_COPY.retry}`);
+    for (const state of [{ status: 'loading' }, { status: 'missing' }]) expect(sheet(SLOTS.QB, 'profile', state)).not.toMatch(/Lock in|Observed production/);
   });
 
   it('before lock-in the GTL estimate (the House) and the rest-of-season estimate stay behind a lock line', () => {
@@ -170,10 +175,10 @@ describe('Open profile: the Fantasy profile as the sheet’s sub-view', () => {
 });
 
 describe('an account switch clears it', () => {
-  it('the ballot is keyed by account, so the slot sheet, its view and its context start empty for the next account', () => {
+  it('the ballot is keyed by account, so the slot layer, its view and its context start empty for the next account', () => {
     const source = fs.readFileSync(path.join(root, 'web/src/next/play/points/PointsBallot.jsx'), 'utf8');
     expect(source).toMatch(/<PointsBallotView key=\{app\.accountId\} app=\{app\}/);
-    // The context lives only in the slot sheet (no module or storage state of its own): the strip reads useFantasySnapshot there.
+    // The context lives only in the slot layer (no module or storage state of its own): the strip reads useFantasySnapshot there.
     expect(source.match(/useFantasySnapshot\(/g)).toHaveLength(1);
     // The profile's code and the Fantasy stylesheets load on the tap, never with the ballot (Fantasy detail code waits for a visit).
     expect(source).not.toMatch(/FantasyTools|fantasy\.css|fantasyTools\.css/);

@@ -29,10 +29,17 @@ export const isDetail = state => !!state.views[state.tab]?.section || (state.tab
 export const navigationPatch = (state, tab, patch) => !!patch && (
   (Object.hasOwn(patch, 'section') && patch.section !== state.views[tab]?.section)
   || (['bets', 'league'].includes(tab) && Object.hasOwn(patch, 'view') && patch.view !== state.views[tab]?.view)
+  // D-69: League › History › one week is a layer, so Back closes the week. A season tile is a filter inside History.
+  || (tab === 'league' && (Object.hasOwn(patch, 'view') ? patch.view : state.views.league?.view) === 'history' && Object.hasOwn(patch, 'week') && (patch.week ?? null) !== (state.views.league?.week ?? null))
   || (tab === 'bets' && Object.hasOwn(patch, 'assessment') && (patch.assessment ?? null) !== (state.views.bets.assessment ?? null))
   || (tab === 'play' && state.views.play.section === 'picks' && ['market', 'season', 'week'].some(key => Object.hasOwn(patch, key) && patch[key] !== state.views.play[key]))
   // D-70: opening or closing one game's card in Your guesses is a step, so back returns to the week.
   || (tab === 'play' && state.views.play.section === 'picks' && Object.hasOwn(patch, 'pickGame') && (patch.pickGame ?? null) !== (state.views.play.pickGame ?? null))
+  // D-69: opening or closing one game's layer in Your score is a step too, so Back closes the game and leaves the week.
+  || (tab === 'play' && state.views.play.section === 'score' && Object.hasOwn(patch, 'scoreGame') && (patch.scoreGame ?? null) !== (state.views.play.scoreGame ?? null))
+  // D-69 step 1: a Play section's nested layer (the generic `layer` and `item` keys: a Points slot, a badge, the awards)
+  // is a step, so Back closes one layer. Compare's `item` picks the other player in place, a choice inside one layer.
+  || (tab === 'play' && state.views.play.section !== 'compare' && ['layer', 'item'].some(key => Object.hasOwn(patch, key) && (patch[key] ?? null) !== (state.views.play[key] ?? null)))
   // D-66: opening or closing a Trends nesting card is a step, so back closes one layer. The account reset in
   // TrendsScreen also clears the history window; it is not a step, so back never restores another account's choice.
   || (tab === 'fantasy' && ['fantasyLayer', 'fantasyPlayer'].some(key => Object.hasOwn(patch, key) && (patch[key] ?? null) !== (state.views.fantasy?.[key] ?? null)))
@@ -86,10 +93,13 @@ export function initialState(place = null) {
 }
 
 const closed = { sheets: [], dialog: null, popover: null, page: null };
+/** The Play view keys that open a nested layer (D-69): Your guesses (`pickGame`), Your score (`scoreGame`) and every
+ * other section's generic `layer` and `item`. */
+const PLAY_LAYER_KEYS = Object.freeze(['pickGame', 'scoreGame', 'layer', 'item']);
 const withView = (views, tab, patch) => (isRecord(patch) ? { ...views, [tab]: { ...views[tab], ...patch } } : views);
 
 // Origin context is reversible; newer local list/filter preferences survive returning through a root.
-const ROUTE_KEYS = ['section', 'view', 'market', 'season', 'week', 'weekId', 'leagueId', 'accountId', 'period', 'team', 'matchup', 'scoreGame', 'comparisonKind', 'pickGame', 'teamsTeam', 'teamsTrend', 'player', 'playerLayer', 'playerItem', 'weekGame', 'weekTrend', 'weekList', 'fantasyLayer', 'fantasyPlayer', 'assessment'];
+const ROUTE_KEYS = ['section', 'view', 'market', 'season', 'week', 'weekId', 'leagueId', 'accountId', 'period', 'team', 'matchup', 'scoreGame', 'comparisonKind', 'pickGame', 'layer', 'item', 'teamsTeam', 'teamsTrend', 'player', 'playerLayer', 'playerItem', 'weekGame', 'weekTrend', 'weekList', 'fantasyLayer', 'fantasyPlayer', 'assessment'];
 function originView(current, prior, detail) {
   const view = { ...prior, ...current };
   for (const key of detail ? ROUTE_KEYS : ['section', 'view']) view[key] = prior?.[key];
@@ -108,7 +118,14 @@ function returnsToPrior(state, tab, patch) {
 /** D-70: one game's card opening in place of another (Next) while the week is the place under it. */
 const swapsGame = (state, tab, patch) => tab === 'play' && !!state.views.play.pickGame && !!patch.pickGame
   && patch.pickGame !== state.views.play.pickGame && returnsToPrior(state, tab, { pickGame: undefined });
-const mergeAdapters =(views, adapters) => Object.fromEntries(Object.entries(adapters ?? {}).map(([tab, view]) => [tab, { ...views[tab], ...view }]));
+// D-69 (spec test 8): League's layer keys. Arriving from outside League (a tile, the Play lip then a tile, a tab switch)
+// clears them, so the board shows unless the destination names a layer; a restored place brings its own (an entry
+// without them is the board, never the feed, History or week left). Inside League a step keeps them.
+const LEAGUE_LAYER_CLEARED = Object.freeze({ view: undefined, week: undefined, season: undefined, market: undefined });
+// League's board market lives in the league view only (its address reads it there); the Play view keeps Picks's own market.
+const ownMarket = (view, current) => (view.section === 'league' ? { ...view, market: current.market } : view);
+const mergeAdapters = (views, adapters) => Object.fromEntries(Object.entries(adapters ?? {}).map(([tab, view]) => [tab, { ...views[tab], ...(tab === 'league' ? LEAGUE_LAYER_CLEARED : {}), ...view }]));
+const onLeague = state => state.tab === 'play' && state.views.play.section === 'league';
 
 /** Every layer that is open, overlays queued behind the first one included. */
 export function layerCount(state) {
@@ -137,10 +154,13 @@ export function reduce(state, action) {
       const target = destination(action.tab, action.view);
       if (!isTab(target.tab)) return state;
       const current = state.views[target.tab];
-      const next = target.tab === 'play' && Object.hasOwn(current, 'pickGame') ? Object.fromEntries(Object.entries(current).filter(([key]) => key !== 'pickGame')) : current;
+      // A nested layer is opened by its own address key, never carried into a fresh Play destination (a link that names
+      // one, such as a receipt's scoreGame, passes it in `target.view`, which is merged after this).
+      const next = target.tab === 'play' && PLAY_LAYER_KEYS.some(key => Object.hasOwn(current, key)) ? Object.fromEntries(Object.entries(current).filter(([key]) => !PLAY_LAYER_KEYS.includes(key))) : current;
       const root = { ...next, section: undefined, ...(target.tab === 'bets' ? { view: undefined } : {}) };
-      const view = action.type === 'tab' || !target.view ? root : { ...next, ...target.view };
-      const views = { ...state.views, [target.tab]: view, ...(target.adapter ? { [target.adapter]: { ...state.views[target.adapter], ...target.adapterView } } : {}) };
+      const view = action.type === 'tab' || !target.view ? root : target.adapter === 'league' ? ownMarket({ ...next, ...target.view }, current) : { ...next, ...target.view };
+      const adapterFrom = target.adapter === 'league' && !onLeague(state) ? { ...state.views.league, ...LEAGUE_LAYER_CLEARED } : state.views[target.adapter];
+      const views = { ...state.views, [target.tab]: view, ...(target.adapter ? { [target.adapter]: { ...adapterFrom, ...target.adapterView } } : {}) };
       const changed = state.tab !== target.tab || JSON.stringify(current) !== JSON.stringify(view) || !!target.adapter;
       if (!changed && !hasLayers(state)) return state;
       const trail = action.type === 'tab' || !target.view ? [] : [...state.trail, { tab: state.tab, view: state.views[state.tab], adapters: Object.fromEntries(LEGACY_TABS.map(tab => [tab, state.views[tab]])) }];
@@ -171,7 +191,7 @@ export function reduce(state, action) {
     case 'restore': {
       const place = action.place;
       if (!isTab(place?.tab)) return state;
-      return { ...state, ...closed, tab: place.tab, views: { ...state.views, ...mergeAdapters(state.views, place.adapters), [place.tab]: { ...state.views[place.tab], section: undefined, pickGame: undefined, ...(place.tab === 'bets' ? { view: undefined, assessment: undefined } : {}), ...place.view } }, trail: place.trail ?? [], nav: state.nav + 1, navMode: 'restore' };
+      return { ...state, ...closed, tab: place.tab, views: { ...state.views, ...mergeAdapters(state.views, place.adapters), [place.tab]: { ...state.views[place.tab], section: undefined, pickGame: undefined, scoreGame: undefined, layer: undefined, item: undefined, ...(place.tab === 'bets' ? { view: undefined, assessment: undefined } : {}), ...(place.tab === 'play' && place.view ? ownMarket(place.view, state.views.play) : place.view) } }, trail: place.trail ?? [], nav: state.nav + 1, navMode: 'restore' };
     }
     case 'open': {
       const kind = layerKind(action.layer?.id);

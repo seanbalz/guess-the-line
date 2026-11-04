@@ -1,6 +1,6 @@
 # GUESS THE LINE — BRAND & DESIGN SYSTEM v1.0
 Status: canonical for all product UI, documents, dashboards, presentations, notifications, iOS, and agent-generated assets. Updated 2026-10-08.
-The new app (D-38, `web/src/next/`) follows the [D-38 section](#d-38-redesign-system-the-new-app--october-14-2026) at the end of this guide. Since D-60 (October 26, 2026) it is the app every member uses; everything above applies only to the old app, which stays reachable for older records and tools until it is deleted.
+The new app (D-38, `web/src/next/`) follows the [D-38 section](#d-38-redesign-system-the-new-app--october-14-2026) at the end of this guide. Since D-65 (October 28, 2026) it is the only app; the old app is no longer built or served. Everything above is the old app's legacy styling, which only the sign-in screen (until build plan stage 76) and the local engineering dashboard still use.
 
 ## Balanced logo refinement — October 29, 2026
 
@@ -116,7 +116,7 @@ Sources of truth, in this order:
 
 ### What stays and what changes
 - **Stays:** the name **Guess The Line**, the Field monogram (since D-44 the Yardline G alone in `accent-ink` on a transparent background, with no tile; `Brand.jsx` geometry), Electric Lime `#B8F34B` for the one primary action, cyan for data in dark mode, dark as the default with Light and System per device, and every data-integrity rule above.
-- **Darker navy** (D-35 "darker"): canvas `#070B16` instead of Midnight `#0B1020`; surfaces one step darker on the same hue. Browser theme color `#070B16` dark, `#EEF1F6` light.
+- **Darker navy** (D-35 "darker"): canvas `#070B16` instead of Midnight `#0B1020`; surfaces one step darker on the same hue. Browser theme color `#070B16` dark, `#EEF1F6` light: `web/index.html` names one per color scheme, `Theme.jsx` sets the bar to the theme in use, and the manifest's single theme and splash color is the dark canvas (Dark is the default).
 - **Type:** Figtree replaces Inter for reading text; Big Shoulders Display for words only (titles, 20px and up); Barlow Condensed for every number and team abbreviation. IBM Plex Mono is not used.
 - **Violet means live** (`#D08CFF` dark, `#7B2CBF` light), for games in progress only. It is the color most distinct from loss for color-blind players.
 - **Loss** is `#FC7C8E` in dark. The separate tie color retires: a push uses pending plus the word PUSH.
@@ -155,7 +155,7 @@ Avatars (faces first): eight fills, the same in both themes, with initials in `#
 Dark-only lighting is decorative: a faint floodlight wash at the top of the canvas and yard lines inside the Home hero card. Text never sits on the wash. Light mode drops both; its glows become solid 2px rings.
 
 ### Type
-Fonts load from Google Fonts with `display=swap` (no font file is distributed): Barlow Condensed 500/600/700, Big Shoulders Display 700/800, Figtree 400 to 800. The new app adds the link when it mounts (`web/src/next/styles/fonts.js`); `web/index.html` keeps the old app's fonts until the flip. Both content security policies already allow `fonts.googleapis.com` and `fonts.gstatic.com`. Fallbacks: Big Shoulders → Impact, Arial Narrow; Barlow → Arial Narrow; Figtree → system-ui, -apple-system, Segoe UI; then sans-serif.
+Fonts load from Google Fonts with `display=swap` (no font file is distributed): Barlow Condensed 500/600/700, Big Shoulders Display 700/800, Figtree 400 to 800. The new app adds the link when it mounts (`web/src/next/styles/fonts.js`), and `web/index.html` links the same stylesheet, so these are the only webfonts the site loads (Board item 73); the legacy styling's Inter and IBM Plex Mono fall back to system fonts. Both content security policies already allow `fonts.googleapis.com` and `fonts.gstatic.com`. Fallbacks: Big Shoulders → Impact, Arial Narrow; Barlow → Arial Narrow; Figtree → system-ui, -apple-system, Segoe UI; then sans-serif.
 
 | Style | Family, weight | Size / line | Case, tracking | Use |
 |---|---|---|---|---|
@@ -254,8 +254,8 @@ and `web/src/next/styles/tokens.css`; `tests/next-tokens.test.mjs` checks them.
 
 | Token | Dark | Light | Use |
 |---|---|---|---|
-| `hero-card` (effect) | deep-blue radial + linear glow | white to `#F4F9FD` | Home hero and an opened trend only |
-| `hero-ring` (effect) | 1px cyan edge + deep shadow | 1px `#E3E8F0` + soft shadow | The same two cards |
+| `hero-card` (effect) | deep-blue radial + linear glow | white to `#F4F9FD` | Glow cards: a screen's action card (`gx-card--hero`) and an opened trend, any number in view (D-56) |
+| `hero-ring` (effect) | 1px cyan edge + deep shadow | 1px `#E3E8F0` + soft shadow | The same glow cards |
 | `hero-base` | `#0C2540` | `#FFFFFF` | The card's base color, for contrast checks |
 | `hero-text-2` | `#C9DCEB` | `#3C4A63` | Secondary words on a glow card |
 | `glass` / `glass-line` | `#FFFFFF1A` / `#FFFFFF33` | `#FFFFFF` / `#E3E8F0` | Pills, tooltips and tiles on a glow card |

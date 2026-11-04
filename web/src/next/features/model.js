@@ -136,9 +136,21 @@ export function boardFact(model, userId, mode) {
 export const FEATURE_SCOPES = Object.freeze([SCOPES.features, SCOPES.home, SCOPES.league, SCOPES.play]);
 
 /**
+ * A badge moment's id: its award key, `badge:<key>`, except a Bullseye, which celebrates the same exact guess as Your
+ * score's Bullseye moment and so shares its id, `score:bullseye:<season>:<week>:guess_<market>:<gameId>` (the engine plays
+ * one id once). `aka` keeps the award key, so a device that already celebrated it under that id never replays it.
+ */
+function badgeMomentId(b, season) {
+  const own = `badge:${b.key}`, f = b.facts ?? {};
+  if (b.badge !== 'bullseye' || !Number.isInteger(season) || !Number.isInteger(b.week) || !['spread', 'total'].includes(f.market) || typeof f.gameId !== 'string' || !f.gameId) return { id: own };
+  return { id: `score:bullseye:${season}:${b.week}:guess_${f.market}:${f.gameId}`, aka: [own] };
+}
+
+/**
  * Every badge and award of the viewer in a features reply, as moments (moments/detect.js decides which are new):
- * `{ id, kind: 'badge' | 'award', scopes, title, meta, icon, rarity }`; a badge also carries `parts` (badgeParts) so the
- * overlay draws its game as marks. Badges oldest first, then awards. Ids are stable across reads. A badge's id is its
+ * `{ id, kind: 'badge' | 'award', scopes, title, meta, icon, rarity }`; a badge also carries `badge` (its catalog id, so the
+ * grid marks it NEW while it waits) and `parts` (badgeParts) so the overlay draws its game as marks; a Bullseye's id is
+ * Your score's (badgeMomentId). Badges oldest first, then awards. Ids are stable across reads. A badge's id is its
  * award key (badge, player, season and week; badge events have no league), so a badge is one moment in every league
  * and never plays twice. An award's id names the league ("community" for the community) and the season, so another
  * league's Week 7 award is another moment.
@@ -148,7 +160,7 @@ export function featureMoments(reply, viewer) {
   const league = reply.leagueId ?? 'community', season = reply.season;
   const out = (reply.badges ?? []).filter(b => b.userId === viewer && BADGE_BY_ID[b.badge])
     .sort((a, b) => Date.parse(a.visibleAt) - Date.parse(b.visibleAt))
-    .map(b => ({ id: `badge:${b.key}`, kind: 'badge', scopes: [...FEATURE_SCOPES], title: BADGE_BY_ID[b.badge].name, meta: badgeLine(b), parts: badgeParts(b), icon: BADGE_ICONS[b.badge], rarity: BADGE_BY_ID[b.badge].rarity }));
+    .map(b => ({ ...badgeMomentId(b, season), kind: 'badge', badge: b.badge, scopes: [...FEATURE_SCOPES], title: BADGE_BY_ID[b.badge].name, meta: badgeLine(b), parts: badgeParts(b), icon: BADGE_ICONS[b.badge], rarity: BADGE_BY_ID[b.badge].rarity }));
   for (const w of reply.awards ?? []) for (const a of w.awards) {
     if (!a.winners.includes(viewer)) continue;
     out.push({ id: `award:${league}:${season}:${w.week}:${a.id}`, kind: 'award', scopes: [...FEATURE_SCOPES], title: AWARD_BY_ID[a.id]?.name ?? a.id, meta: `Week ${w.week}${SEP}${awardValue(a)}`, icon: AWARD_ICONS[a.id], rarity: 'rare' });

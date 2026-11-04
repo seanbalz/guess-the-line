@@ -1,27 +1,23 @@
-// The League board's rank-change moment as a hook (rankMoment.js holds the rules). It compares the rank the board
-// shows with the rank this device last saw, remembers the new one, and asks the shell's toast queue (`shell.toast`,
-// which draws the kit's Toast one at a time and holds it while a celebration shows) for one toast per change.
-import { useEffect, useRef, useState } from 'react';
-import { rankKey, rankMoment, readRank, writeRank } from './rankMoment.js';
+// The League rank moment as a hook (rankMoment.js holds the rules). On each fresh confirmed read of a board it compares
+// your rank with the rank this device last saw, remembers the new one and reports the change to the D-69 engine under
+// SCOPES.league: it plays where League opens after the launch and shows NEW on the Play landing's League tile meanwhile.
+// A drop reports nothing (losses stay quiet). The old toast is gone.
+import { useEffect, useState } from 'react';
+import { useMoments } from '../moments/MomentsProvider.jsx';
+import { rankKey, rankReport, rankSource, readRank, writeRank } from './rankMoment.js';
 
-/**
- * `{ move, fresh }` for the viewer's row: `move` is the places moved at the last change (positive is up, null for none)
- * and `fresh` is true when that change was seen now, so the arrow pops once with the toast and is still afterwards.
- */
-export function useRankMoment({ account, league, mode, rank, tied = false, toast }) {
-  const [state, setState] = useState({ move: null, fresh: false });
-  const say = useRef(toast), fired = useRef(null);
-  say.current = toast;
+/** `{ move, id }`: the places moved at the last change (positive is up, null for none) and that change's moment id. */
+export function useRankMoment({ account, league, mode, rank, tied = false, read, fresh, market }) {
+  const report = useMoments()?.report;
+  const [state, setState] = useState({ move: null, id: null });
   useEffect(() => {
     const key = rankKey(account, league, mode);
-    if (!key) { setState({ move: null, fresh: false }); return; }
-    const id = `${key}=${rank}`;
-    const result = rankMoment(readRank(key), { rank, tied });
+    const result = key && read ? rankReport({ fresh, stored: readRank(key), rank, tied, league, mode, market }) : null;
+    if (!result) return;
     if (result.write) writeRank(key, result.write);
-    if (result.toast) { fired.current = id; say.current?.(result.toast.text, { tone: result.toast.tone }); }
-    // Under React's development double effects the second pass finds the rank already written; it keeps the arrow and
-    // the pop of the first pass, and never toasts again.
-    setState({ move: result.move, fresh: fired.current === id });
-  }, [account, league, mode, rank, tied]);
+    // Before the engine exists this reports nothing; when it arrives the effect runs again and derives the same moment.
+    report?.(result.candidates, { source: rankSource(league, mode) });
+    setState({ move: result.move, id: result.candidates[0]?.id ?? null });
+  }, [account, league, mode, rank, tied, read, fresh, market, report]);
   return state;
 }

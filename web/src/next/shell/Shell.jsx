@@ -310,7 +310,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
   const onHome = () => (state.tab === 'home' && !state.page && !hasLayers(state) ? toTop() : actions.go('home'));
   const onRetry = () => { if (!recheckOnline()) actions.toast(SHELL_COPY.stillOffline, { tone: 'plain' }); };
 
-  const tabFade = useTabFade(state.tab);
+  const tabFade = useTabFade(state.tab, state.nav);
   const Screen = screens[state.tab] ?? (state.tab === 'research' ? screens[state.views.research.section === 'fantasy' ? 'fantasy' : 'lines'] : null);
   const style = { '--gx-dock-space': `${dockHeight > 0 ? dockHeight + 8 : 0}px` };
   return (

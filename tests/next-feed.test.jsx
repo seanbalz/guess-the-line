@@ -11,6 +11,9 @@ import { markupProblems, matchups, readText } from './helpers/ui-markup.mjs';
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn(), leagueApi: vi.fn(), date: value => String(value) }));
 const model = await import('../web/src/next/feed/feedModel.js');
 const { PostCard } = await import('../web/src/next/feed/PostCard.jsx');
+const { failedState } = await import('../web/src/next/feed/useLeagueFeed.js');
+const { react } = await import('../web/src/next/feed/feedActions.js');
+const { leagueApi } = await import('../web/src/api.js');
 const { DigestCard } = await import('../web/src/next/feed/DigestCard.jsx');
 const { ShellContext } = await import('../web/src/next/shell/context.js');
 
@@ -50,6 +53,13 @@ describe('folding friends\' ballots (review D4)', () => {
     expect(html).toContain('Avery Fixture, Blake Fixture and Casey Fixture locked in picks');
     expect(html).toContain('Show each post (3)');
     expect(markupProblems(html)).toEqual([]);
+    expect(html).not.toContain(', new"');
+  });
+  it('says "new" in its name whenever its NEW tag shows', () => {
+    const posts = [ballot(AVERY, '2026-10-26T18:00:00Z'), ballot(BLAKE, '2026-10-26T17:00:00Z')];
+    const html = render(<DigestCard posts={posts} names={names} viewer={ME} now="2026-10-26T20:00:00Z" fresh={new Set([posts[1].id])}/>);
+    expect(html).toMatch(/aria-label="[^"]*locked in picks, [^"]*, new"/);
+    expect(html).toContain('NEW');
   });
 });
 
@@ -74,6 +84,18 @@ describe('reactions (D-35)', () => {
     expect(html).toContain('aria-label="Add a reaction"');
     expect(html).toContain('aria-label="2 comments. Open comments"');
     expect(html).toContain('View all 2');
+  });
+});
+
+describe('D-69 feed moments', () => {
+  it('NEW marks a post this device had not shown; an arriving post rises in; nothing pops on the first render', () => {
+    const html = render(<PostCard post={post('joined', { reactions: { counts: { fire: 1 }, total: 1, mine: 'fire' } })} names={names} viewer={ME} now="2026-10-26T20:00:00Z" leagueId={null} isNew arrived/>);
+    expect(markupProblems(html)).toEqual([]);
+    expect(html).toContain('data-arrived="true"');
+    // M3: one NEW look across the app (ui/Pill.jsx NewPill), the same on a digest.
+    expect(html).toContain('class="gx-pill gx-pill--accent gx-new">NEW</span>');
+    expect(html).not.toContain('data-moment');
+    expect(card(post('joined'))).not.toContain('data-arrived');
   });
 });
 
@@ -149,6 +171,8 @@ describe('post cards draw only what the server let through', () => {
     }
     expect(model.postLink(post('bet_posted'))).toEqual({ text: 'See real slips', tab: 'bets', view: { section: 'tracked' } });
     expect(model.postLink(post('joined'))).toBeNull();
+    // D-69: each post opens the layer it is about.
+    expect(['badge_earned', 'streak_milestone', 'weekly_recap', 'season_champion'].map(kind => model.postLink(post(kind)).view.layer)).toEqual([undefined, 'streaks', 'awards', 'season']);
   });
 });
 
@@ -177,5 +201,42 @@ describe('times, comments and the new-posts dot', () => {
     model.writeSeen(model.seenKey(ME, null), '2026-10-26T18:00:00Z', storage);
     expect(model.readSeen(model.seenKey(ME, null), storage)).toBe('2026-10-26T18:00:00Z');
     expect(model.readSeen('x', { getItem: () => { throw new Error('blocked'); } })).toBe(null);
+  });
+});
+
+describe('a refused group read drops its posts (A3); the Community keeps them', () => {
+  const loaded = { key: 'me:g1', status: 'ready', page: { posts: [{ id: 'p1' }], next: null }, older: [{ id: 'p0' }], next: 'c', error: null, busy: false };
+  const gone = { status: 403, message: 'This group is no longer available.' };
+  it('a 401 or 403 on a group leaves no page, no older posts and no cursor; a Community refusal and a plain failure keep them', () => {
+    for (const status of [401, 403]) {
+      expect(failedState(loaded, 'me:g1', { ...gone, status }, true)).toMatchObject({ status: 'error', page: null, older: [], next: null, error: { status } });
+    }
+    expect(failedState(loaded, 'me:community', gone, false).page).toBeNull(); // another key never carries posts over
+    expect(failedState({ ...loaded, key: 'me:community' }, 'me:community', gone, false)).toMatchObject({ status: 'ready', page: loaded.page, older: loaded.older });
+    expect(failedState(loaded, 'me:g1', { status: 500, message: 'x' }, true)).toMatchObject({ status: 'ready', page: loaded.page, older: loaded.older });
+  });
+});
+
+describe('react() is the confirmation the pop waits for (A2)', () => {
+  it('shows the change at once without confirming; a saved write confirms with the reaction the server kept; a refusal restores and confirms nothing', async () => {
+    const events = [], { onFeedChange } = await import('../web/src/next/feed/feedActions.js');
+    const stop = onFeedChange(change => events.push(change));
+    let answer;
+    leagueApi.mockImplementationOnce(() => new Promise(resolve => { answer = resolve; }));
+    const current = { counts: {}, total: 0, mine: null };
+    const pending = react({ postId: 'p1', current, next: 'fire', toast: vi.fn() });
+    let settled = false; pending.then(() => { settled = true; });
+    await Promise.resolve();
+    expect(events.map(e => [e.reactions.mine, e.confirmed === true]), 'the optimistic change is shown, unconfirmed').toEqual([['fire', false]]);
+    expect(settled, 'but nothing is confirmed yet').toBe(false);
+    answer({ counts: { fire: 1 }, total: 1, mine: 'fire' });
+    expect(await pending).toEqual({ ok: true, mine: 'fire' });
+    expect(events.at(-1), 'the server answer goes out as the confirmation every chip pops on, popover writes included').toMatchObject({ confirmed: true, reactions: { mine: 'fire' } });
+    leagueApi.mockRejectedValueOnce({ status: 403, message: 'Reactions are closed.' });
+    const refused = await react({ postId: 'p1', current: { counts: { fire: 1 }, total: 1, mine: 'fire' }, next: null, toast: vi.fn() });
+    expect(refused.ok).toBe(false);
+    expect(events.at(-1).reactions.mine, 'the old reaction is back').toBe('fire');
+    expect(events.at(-1).confirmed, 'a refusal confirms nothing').not.toBe(true);
+    stop();
   });
 });

@@ -16,8 +16,11 @@ const valid = c => c && typeof c.id === 'string' && c.id && typeof c.kind === 's
 export function freshMoments(candidates, seen) {
   const unique = [...new Map((candidates ?? []).filter(valid).map(c => [c.id, c])).values()];
   if (seen === null) return { fresh: [], seed: unique.map(c => c.id) };
-  const unseen = unique.filter(c => !seen.has(c.id));
-  return { fresh: unseen.filter(c => sizeOf(c.kind) !== 'quiet'), seed: unseen.filter(c => sizeOf(c.kind) === 'quiet').map(c => c.id) };
+  // A moment whose id changed lists its earlier ids in `aka`: seen under any of them, it is seen, and its new id is
+  // remembered at once, so a device that showed it never shows it again.
+  const known = unique.filter(c => !seen.has(c.id) && Array.isArray(c.aka) && c.aka.some(id => seen.has(id)));
+  const unseen = unique.filter(c => !seen.has(c.id) && !known.includes(c));
+  return { fresh: unseen.filter(c => sizeOf(c.kind) !== 'quiet'), seed: [...unseen.filter(c => sizeOf(c.kind) === 'quiet'), ...known].map(c => c.id) };
 }
 
 /**

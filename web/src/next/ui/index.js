@@ -9,7 +9,7 @@ export { IconButton } from './IconButton.jsx';
 export { Card, CardButton, CARD_VARIANTS } from './Card.jsx';
 export { List } from './List.jsx';
 export { Row, LinkRow } from './Row.jsx';
-export { Pill, PILL_TONES } from './Pill.jsx';
+export { NewPill, Pill, PILL_TONES } from './Pill.jsx';
 export { Tag } from './Tag.jsx';
 export { Chip } from './Chip.jsx';
 export { ChipRail } from './ChipRail.jsx';

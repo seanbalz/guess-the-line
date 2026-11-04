@@ -78,9 +78,10 @@ function apiCalls(page) {
 /**
  * What is left of `calls` after the shared reads (stage 11, and stage 13's `/personal` and the board's one `/wind/read`
  * for its D-45 weather chips on Lines; D-57's `/fantasy/week` for the Fantasy tile and screen, and the viewer's own gated
- * `/lines/read` for Fantasy's game context): the writes, of which browsing makes none.
+ * `/lines/read` for Fantasy's game context; `/personal/read`, the chosen week Your guesses reads now that every rule set
+ * draws the per-game cards, D-69 step 1): the writes, of which browsing makes none.
  */
-const writes = calls => calls.filter(call => !['POST /functions/v1/gtl-api/trends/week', 'GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'POST /functions/v1/gtl-api/me/preferences', 'POST /functions/v1/gtl-api/community/history', 'GET /functions/v1/gtl-api/personal', 'POST /functions/v1/gtl-api/wind/read', 'POST /functions/v1/gtl-api/social/read', 'POST /functions/v1/gtl-api/fantasy/week', 'POST /functions/v1/gtl-api/lines/read', 'POST /functions/v1/gtl-api/lines/teams', 'POST /functions/v1/gtl-api/points/read', 'POST /functions/v1/gtl-api/league/features',
+const writes = calls => calls.filter(call => !['POST /functions/v1/gtl-api/trends/week', 'GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'POST /functions/v1/gtl-api/me/preferences', 'POST /functions/v1/gtl-api/community/history', 'GET /functions/v1/gtl-api/personal', 'POST /functions/v1/gtl-api/personal/read', 'POST /functions/v1/gtl-api/wind/read', 'POST /functions/v1/gtl-api/social/read', 'POST /functions/v1/gtl-api/fantasy/week', 'POST /functions/v1/gtl-api/lines/read', 'POST /functions/v1/gtl-api/lines/teams', 'POST /functions/v1/gtl-api/points/read', 'POST /functions/v1/gtl-api/league/features',
   // The league feed reader (redesign stage 64): a read; until M-22 is applied it answers 503 and the old feed shows.
   'POST /functions/v1/gtl-api/league/feed'].includes(call));
 
@@ -144,6 +145,37 @@ test.describe('the real app', () => {
       await expect(title(page, 'Home')).toBeVisible();
       expect(writes(calls), 'browsing writes nothing').toEqual([]);
       expect(world.errors, 'no unexpected origins and no page errors').toEqual([]);
+    } finally { await world.db.close(); }
+  });
+
+  // Board item 75: a tab change moves focus to the screen title so a screen reader starts there, and that programmatic
+  // focus draws no ring, however the tab was pressed: a click, a tap that leaves focus on the page (Safari never focuses
+  // a tapped button, so Chromium then treats the title's focus as visible) or Enter. Tab still rings the next control.
+  test('a tab change focuses the title without a ring; Tab still shows the ring on the next control', async ({ page, baseURL }) => {
+    test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+    const { world } = await openNewApp(page, baseURL);
+    try {
+      const ring = () => page.evaluate(() => { const el = document.activeElement, s = getComputedStyle(el); return { visible: el.matches(':focus-visible'), outline: s.outlineStyle === 'none' ? 'none' : `${s.outlineStyle} ${s.outlineWidth}` }; });
+      // The tap runs first, on the fresh page, as on a phone where no button has ever taken focus.
+      const presses = [
+        ['tap with focus left on the page', async button => { await page.evaluate(() => document.activeElement?.blur()); await button.dispatchEvent('click'); }],
+        ['click', async button => button.click()],
+        ['Enter', async button => { await button.focus(); await page.keyboard.press('Enter'); }],
+      ];
+      for (const [how, press] of presses) {
+        for (const name of ['Play', 'Bets', 'Research', 'Home']) {
+          await press(tab(page, name));
+          await expect(title(page, name), `${how}: ${name}`).toBeFocused();
+          expect((await ring()).outline, `${how}: ${name} title has no ring`).toBe('none');
+        }
+      }
+      // Keyboard focus still shows: Tab from the focused title lands on a control with the 2px ring.
+      await tab(page, 'Research').click();
+      await expect(title(page, 'Research')).toBeFocused();
+      await page.keyboard.press('Tab');
+      expect(await page.evaluate(() => document.activeElement.closest('main') !== null && document.activeElement.tagName !== 'H1'), 'Tab moves to a control in the screen').toBe(true);
+      expect(await ring()).toEqual({ visible: true, outline: 'solid 2px' });
+      expect(world.errors).toEqual([]);
     } finally { await world.db.close(); }
   });
 

@@ -1727,9 +1727,10 @@ test('an unknown game focus keeps the complete ballot usable', async ({ page, ba
   try {
     await openLines(page);
     await page.goto('/#play/picks?market=spread&season=2026&week=6&pickGame=UNKNOWN');
-    // D-70: an address for a game not in this week shows the week's tiles, and each game still opens.
+    // D-70: an address for a game not in this week shows the week's tiles, and each game still opens. No game card is
+    // open: the week's only lip is Play's (D-69 step 1), never a lip back to the week.
     await expect(page.locator('[data-tile]')).toHaveCount(4);
-    await expect(page.locator('.gx-nest-lip')).toHaveCount(0);
+    await expect(page.locator('.gx-nest-lip')).toHaveText(['Back to Play']);
     await page.locator('[data-tile="HOU-JAX"]').click();
     await expect(page.getByRole('article', { name: 'HOU at JAX Spread', exact: true })).toContainText('Draft');
     expect(world.errors).toEqual([]);
@@ -2404,7 +2405,7 @@ test('loaded spread quotes keep the full team-name column on phones', async ({ p
       const measurements = await card(page, 'SEA-DEN').evaluate(el => {
         const teams = [...el.querySelectorAll('.gx-l-team')].map(team => team.getBoundingClientRect());
         const quote = el.querySelector('.gx-l-val').getBoundingClientRect();
-        return { below: quote.top >= Math.max(...teams.map(r => r.bottom)), quoteWidth: quote.width, nameWidth: el.querySelector('.gx-l-team .gx-truncate').clientWidth, horizontal: document.documentElement.scrollWidth <= innerWidth };
+        return { below: quote.top >= Math.max(...teams.map(r => r.bottom)), quoteWidth: quote.width, nameWidth: el.querySelector('.gx-l-tname > .gx-t-strong').clientWidth, horizontal: document.documentElement.scrollWidth <= innerWidth };
       });
       expect(measurements.below).toBe(true);
       expect(measurements.quoteWidth).toBeGreaterThan(width - 100);
