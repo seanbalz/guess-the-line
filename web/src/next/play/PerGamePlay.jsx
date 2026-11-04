@@ -285,14 +285,14 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', f
       {/* An unconfirmed save or sit-out: the check and the retry sit above either card, where the alert is. */}
       {uncertain ? checkAndSave : null}
       {open ? <Nest label="Your guesses" layer={`game:${open.id}`} title={`${open.awayCode} @ ${open.homeCode}`}
-        lips={[{ key: 'week', label: `Week ${data.week} · ${market}`, onOpen: nest.onWeek }]}
+        lips={[...(nest.root ? [nest.root] : []), { key: 'week', label: `Week ${data.week} · ${market}`, onOpen: nest.onWeek }]}
         info={<InfoButton title={`How to make a ${market} guess`} body={[GUESS_HELP[mode]]}/>}>
         {gameCard(open, true)}
         {/* Next opens the next game still to lock in this card's place; it is the primary button once Lock in is gone. */}
         {after && active ? <Button variant={lockable(open) ? 'ghost' : 'primary'} iconEnd="chevronRight" className="gx-play-next" onClick={() => nest.onOpen(after.id)}>Next to lock · <Matchup away={after.game.awayCode} home={after.game.homeCode}/></Button>
           : active ? <LockedLine id={lockedId} className="gx-t-meta gx-c-2">{progress.locked === progress.total ? 'Every game is locked in.' : 'Nothing left to lock this week.'}</LockedLine> : null}
       </Nest>
-        : <Nest label="Your guesses" layer="week" title={`Week ${data.week}`}
+        : <Nest label="Your guesses" layer="week" title={`Week ${data.week}`} lips={nest.root ? [nest.root] : []}
           info={<InfoButton title="About Your guesses" body={[`Week ${data.week} · ${data.season}. Lock one game at a time. Spread and Total are separate; a locked guess cannot change.`, GUESS_HELP[mode]]}/>}>
           <LockedLine id={lockedId} className="gx-t-meta" data-play="count">{progress.summary}</LockedLine>
           {marketControl}

@@ -124,6 +124,47 @@ These choose layouts only; no game rule changes. The spec's step 1 section recor
 approved the plan and its "Decisions for Sean" list the same day ("Approve plan"). Building step 1 waits for the
 step 0 release and his iPhone check.
 
+*Addendum, November 3, 2026 — Step 1 Play build.* Sean approved these with the step 1 plan
+([2026-11-03-design-overhaul-step1-play.md](superpowers/plans/2026-11-03-design-overhaul-step1-play.md), its
+"Decisions for Sean" section), and the build follows them:
+- **Compare (narrows D-53):** one other member at a time, chosen by face, or a last "Everyone" chip with the league
+  average. Choosing several players at once and the per-player sample table retire. Week range, full season, team and
+  matchup stay behind the filter button. The head-to-head card Sean chose shows eight numbers, over D-38's six; it is
+  kept as chosen.
+- **League:** `#play/league` opens the board (it opened the feed); the feed and History are layers. The season race
+  strip, the "Compare players in …" button and the Refresh Community and Refresh group buttons retire (the app
+  refreshes on focus and on its timer; a failed read keeps Try again). The board shows six rows plus yours, then
+  "N more on the board". History's week tiles show your rank that week.
+- **Rank moments** replace the rank toast: up is small, reaching 1st is big, a drop is quiet.
+- **Badges:** the badge sheet retires; every badge opens its layer, another member's with their account id in the
+  address.
+- **Guess the Points:** a slot is a layer, not a sheet: Back and the week lip leave it (Escape no longer does), and
+  leaving with an unsaved guess asks first. Below 360 px the slot tiles stack in one column. A slot tile's spoken name
+  no longer lists other members' guesses or the House; the slot layer has them.
+- **Picks:** the new app draws per-game cards for every rule set. Without per-game rules the cards are read-only (every
+  saved guess, draft and receipt still shows), so nothing can be saved, locked or sat out there. The old whole-market
+  editor and its Submit retire from the new app.
+- **Your score:** the rank chip is the season rank; no fair week rank exists mid-week. A receipt's "View weekly score"
+  opens that game's own layer. "Compare players" stays as a quiet button.
+- **Bullseye** plays once: the score moment and the Bullseye badge share one id.
+- **The Play landing:** the eyebrow is grey, not lime (D-38 keeps lime for the one button); the kickoff line adds "PT";
+  the reminder prompt sits under the hero. The Your score tile uses the season-score read Home already makes.
+- **Motion:** each navigation moves once (a tab change fades; a card inside a tab rises).
+These change the layout and motion only; no game rule changes.
+
+*Build decisions for Sean's review (coordinator, November 3).* Sean has not approved these yet. They were made while
+building step 1, where the plan's text and a binding rule disagreed; each is reversible:
+- **Week final** plays only once the server's clock is past the week's last kickoff and every game is scored or
+  closed unlocked (not at the last lock-in, before any game was played).
+- **First look:** a Bullseye this device first saw as Your score history (its first read) never celebrates again as a
+  badge; one exact guess still celebrates at most once.
+- **NEW is spoken:** every Play tile that shows NEW says "new" in its name (Badges, League, the other ballot).
+- **The other ballot's NEW** shows only for that market's Whole week locked.
+- **Reactions** pop only after the server confirms the write, from the chip or the popover.
+- **A refused private group** shows none of its posts until its own read answers again; Try again in its feed returns
+  to the board, which re-reads it.
+- **Picks:** the header button reads "Your score"; the picks card listens for its moment only once its cards show.
+
 ## D-68 — Premier League: Sleeper FEPL, Pick a Team and EPL moneyline (October 28, 2026)
 
 **Deployment status update — October 29, 2026:** M-30 and M-31 are applied;

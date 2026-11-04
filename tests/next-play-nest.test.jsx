@@ -103,6 +103,11 @@ describe('one game', () => {
     expect(buttons(html).some(n => nameFrom(n) === 'How to make a Total guess')).toBe(true);
     for (const sentence of surface(html)) expect(sentence.split(/\s+/).length, sentence).toBeLessThanOrEqual(12);
   });
+  it('under the Play lip: the week shows "Back to Play", and an open game shows it before its week lip', () => {
+    const root = { key: 'play', label: 'Play', onOpen() {} };
+    expect(lips(render({ ...nest(undefined), root }))).toEqual(['Back to Play']);
+    expect(lips(render({ ...nest('DEN-CAR'), root }))).toEqual(['Back to Play', 'Back to Week 9 · Total']);
+  });
   it('a locked game: its receipt, no Lock in, and Next to lock as the primary button', () => {
     const html = render(nest('JAX-BAL'));
     expect(markupProblems(html)).toEqual([]);

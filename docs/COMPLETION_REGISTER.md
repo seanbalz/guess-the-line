@@ -1,5 +1,18 @@
 # Guess The Line — current completion register
 
+## D-69 design overhaul, step 1: Play — November 3, 2026
+
+Built on `claude/overhaul-step1-play` at commit to follow, PR to follow; not released. Every Play section is a nesting
+card under a "Play" lip, with its own address: the landing's next-ballot card and six tiles (P1B), Your score and its
+game layer (P2B), Compare one member at a time (P3B), Guess the Points slot tiles and slot layers (P4A), Badges and
+awards grid first (P5A), and League board first with the feed, History and week layers (P6A). Bullseye, Week final,
+Whole week locked, Points exact, rank moments and the Pick streak play through the moments engine, never on launch, NEW
+on their landing tiles. The old picks fallback (`CommunityHome.jsx` WeekPicks) and League history
+(`CommunityHistory.jsx`) are no longer imported. Evidence: the full local suite, typecheck and build, the step 1
+browser specs and the phone, fixed-bar and accessibility sweeps (all `skipped 0`); the nine required CI checks run on
+the PR. Not yet: the Pages release and Sean's iPhone check of Play, which stands in for device acceptance (spec
+section 10).
+
 ## Supabase job alerts by phone push, M-38 — November 3, 2026
 
 Item 22, second half. A pg_cron row says `succeeded` when the dispatcher ran, not when the work happened (Points

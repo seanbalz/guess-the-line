@@ -22,7 +22,7 @@ import { WeeklyScore } from './WeeklyScore.jsx';
 import { ScoreTile } from './ScoreTile.jsx';
 import { CompareTile } from './CompareTile.jsx';
 import { PlayTile } from './PlayTile.jsx';
-import { openPlay } from './PlayLayer.jsx';
+import { CLOSED_LAYER, PLAY_ROOT, openPlay } from './PlayLayer.jsx';
 import { ballotTile, otherMarket, playHero } from './landing.js';
 import { weekLockedId } from './moments.js';
 import { useWeekLocked } from './useWeekLocked.js';
@@ -131,10 +131,11 @@ function SelectedPlay({ app, shell, current, mode, onMode }) {
   const read = useLeagueRead(`${app.accountId}:play:${season}:${week}:${mode}`, signal => cloudApi('personal/read', { season, week }, { signal }), error => { if (error.status === 401) app.requestSignIn(); });
   // D-70: the week and its games are nesting cards on one address key (`pickGame`); the editor and its drafts stay
   // mounted between them, so moving there never asks to leave unsaved guesses.
-  const { setView } = shell, { market: viewMarket, season: viewSeason, week: viewWeek } = view;
+  const { setView, go } = shell, { market: viewMarket, season: viewSeason, week: viewWeek } = view;
   const keeps = useCallback(next => next.tab === 'play' && next.views.play.section === 'picks'
     && next.views.play.market === viewMarket && next.views.play.season === viewSeason && next.views.play.week === viewWeek, [viewMarket, viewSeason, viewWeek]);
-  const nest = useMemo(() => ({ game: view.pickGame, keeps, onOpen: id => setView('play', { pickGame: id }), onWeek: () => setView('play', { pickGame: undefined }) }), [view.pickGame, keeps, setView]);
+  const nest = useMemo(() => ({ game: view.pickGame, keeps, onOpen: id => setView('play', { pickGame: id }), onWeek: () => setView('play', { pickGame: undefined }),
+    root: { key: PLAY_ROOT.key, label: PLAY_ROOT.label, onOpen: () => go('play', { section: undefined, ...CLOSED_LAYER }) } }), [view.pickGame, keeps, setView, go]);
   if (read.loading) return <PlayLoading>Loading your picks…</PlayLoading>;
   if (read.error) return <PlayFailure what="Your picks" error={read.error} onRetry={read.retry}/>;
   // Rules that are not per-game (a server without M-07) draw these same cards read-only (PerGameEditor's `active`):

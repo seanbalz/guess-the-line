@@ -67,33 +67,6 @@
   box-shadow: var(--gx-e1);
   overflow: visible;
 }
-.gx .gx-live-play .gx-play-game-head { display: grid; gap: var(--gx-space-4); }
-.gx .gx-live-play .gx-play-game-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--gx-space-2);
-  color: var(--gx-text-2);
-  font: 500 13px/18px var(--gx-font-body);
-}
-.gx .gx-live-play .gx-play-pick-state {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--gx-space-1);
-  padding: var(--gx-space-1) var(--gx-space-2);
-  border-radius: var(--gx-radius-xs);
-  background: var(--gx-surface-3);
-  color: var(--gx-text-2);
-  font: 700 12px/16px var(--gx-font-body);
-  text-transform: uppercase;
-}
-.gx .gx-live-play .gx-play-game[data-picked] .gx-play-pick-state {
-  background: var(--gx-accent-tint);
-  color: var(--gx-accent-ink);
-}
-/* D-62: the matchup as marks (ui/Matchup.jsx, stack layout) with each team's record under its code. */
-.gx .gx-live-play .gx-play-matchup { display: flex; min-width: 0; margin: 0; }
 .gx .gx-live-play .gx-play-entry {
   padding: var(--gx-space-3);
   border: 1px solid var(--gx-border);
@@ -171,37 +144,6 @@
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
-.gx .gx-live-play .gx-play-reference {
-  padding: var(--gx-space-3);
-  border-left: 2px solid var(--gx-data);
-  border-radius: var(--gx-radius-xs);
-  background: var(--gx-data-tint);
-}
-.gx .gx-live-play .gx-play-reference [class~="line-at-guess"] {
-  display: block;
-  color: var(--gx-text-2);
-  font: 500 13px/20px var(--gx-font-body);
-}
-.gx .gx-live-play .gx-play-reference strong { color: var(--gx-text-1); font: 600 18px/22px var(--gx-font-num); font-variant-numeric: tabular-nums; }
-.gx .gx-live-play .gx-play-details { border-top: 1px solid var(--gx-border); }
-.gx .gx-live-play .gx-play-details summary {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--gx-space-2);
-  min-height: var(--gx-size-touch);
-  color: var(--gx-data);
-  font: 600 16px/24px var(--gx-font-body);
-  cursor: pointer;
-  list-style: none;
-}
-.gx .gx-live-play .gx-play-details summary::-webkit-details-marker { display: none; }
-.gx .gx-live-play .gx-play-details[open] summary svg { rotate: 180deg; }
-.gx .gx-live-play .gx-play-details-body {
-  padding: var(--gx-space-3);
-  border-radius: var(--gx-radius-xs);
-  background: var(--gx-surface-2);
-}
 .gx .gx-live-play [class~="team-facts"] {
   margin: 0;
   gap: var(--gx-space-2);
@@ -209,26 +151,6 @@
   font: 500 13px/18px var(--gx-font-body);
 }
 .gx .gx-live-play [class~="team-facts"] small { color: var(--gx-text-3); font: 500 13px/18px var(--gx-font-body); }
-.gx .gx-live-play .gx-play-save-dock {
-  position: sticky;
-  bottom: calc(var(--gx-size-tabbar) + env(safe-area-inset-bottom, 0px) + var(--gx-space-2));
-  z-index: var(--gx-z-dock);
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--gx-space-2);
-  padding: var(--gx-space-3);
-  margin-top: var(--gx-space-4);
-  border: 1px solid var(--gx-border-strong);
-  border-radius: var(--gx-radius-md);
-  background: var(--gx-surface-1);
-  box-shadow: var(--gx-e2);
-}
-.gx .gx-live-play .gx-play-save-dock > :not(button) { grid-column: 1 / -1; }
-.gx .gx-live-play .gx-play-save-dock > button { min-height: var(--gx-size-primary); }
-.gx .gx-live-play .gx-play-save-dock > button:only-of-type { grid-column: 1 / -1; }
-.gx .gx-live-play .gx-play-save-dock [class~="save-status"] { gap: var(--gx-space-1); margin: 0; }
-.gx .gx-live-play .gx-play-save-dock [class~="save-status"] strong { font: 600 18px/22px var(--gx-font-num); font-variant-numeric: tabular-nums; }
-.gx .gx-live-play .gx-play-save-dock [class~="save-due"] { font: 500 13px/18px var(--gx-font-body); }
 .gx .gx-live-play :is(button, summary, input) {
   scroll-margin-top: calc(var(--gx-size-topbar) + var(--gx-space-4));
   scroll-margin-bottom: calc(var(--gx-play-dock-height) + var(--gx-size-tabbar) + var(--gx-space-6));
@@ -237,34 +159,8 @@
   .gx .gx-live-play [class~="chip-numbers"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .gx .gx-live-play [class~="trends-toggle-row"] { grid-template-columns: minmax(0, 1fr); }
   .gx .gx-live-play [class~="chip-help"] { flex-wrap: wrap; }
+  /* A game card sits two lips deep under the Play lip (D-66, 8px a side a step): keep each guess button 44px wide. */
+  .gx .gx-guess .gx-guess-nums { gap: var(--gx-space-1); }
 }
 
-.gx .gx-live-play .gx-play-help {
-  margin-block: var(--gx-space-3);
-  padding: var(--gx-space-3);
-  border: 1px solid var(--gx-border);
-  border-radius: var(--gx-radius-sm);
-  background: var(--gx-surface-2);
-}
-.gx .gx-live-play .gx-play-help summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--gx-space-2);
-  min-height: var(--gx-size-touch);
-  color: var(--gx-data);
-  font: 600 16px/24px var(--gx-font-body);
-  list-style: none;
-  cursor: pointer;
-}
-.gx .gx-live-play .gx-play-help summary::-webkit-details-marker { display: none; }
-.gx .gx-live-play .gx-play-help summary small {
-  display: block;
-  color: var(--gx-text-2);
-  font: 500 13px/18px var(--gx-font-body);
-}
-.gx .gx-live-play .gx-play-help[open] summary svg { rotate: 180deg; }
-.gx .gx-live-play .gx-play-help-body { display: grid; gap: var(--gx-space-3); padding-top: var(--gx-space-3); }
 
-/* D-55: a screen title with its ⓘ at the end. */
-.gx .gx-play-titlebar { display: flex; align-items: center; gap: var(--gx-space-2); min-width: 0; }

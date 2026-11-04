@@ -6,7 +6,7 @@ export const gameCard = (page, id) => page.locator(`.gx-per-game [data-game="${i
 
 /** Back to the week's tiles when a game's card is open. */
 export async function openWeek(page) {
-  const lip = page.locator('.gx-per-game .gx-nest-lip');
+  const lip = page.locator('.gx-per-game .gx-nest-lip', { hasText: 'Week' });
   if (await lip.count()) await lip.first().click();
   await expect(page.locator('.gx-per-game [data-tile]').first()).toBeVisible();
 }
