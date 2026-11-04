@@ -184,7 +184,7 @@ describe('the other hero states', () => {
     expect(buttons(nodes(html, attr('data-home', 'hero'))[0])).toEqual(['Explore games']);
   });
 
-  it('closed: its one headline instead of a countdown; done: "You’re in for this week"; no week: the headline says so and nothing is due', () => {
+  it('closed: its one headline instead of a countdown; done: "Week 6 locked in"; no week: the headline says so and nothing is due', () => {
     home(reply({ picksDue: { state: 'closed', opensAt: OPENS_AT, deadline: DEADLINE, week: 6, modes: [{ mode: TOTAL }], now: '2026-10-16T01:00:00Z' } }));
     let html = render();
     expect(nodes(html, attr('role', 'timer'))).toHaveLength(0);
@@ -195,7 +195,7 @@ describe('the other hero states', () => {
 
     home(reply({ due: [{ mode: SPREAD, submitted: true, satOut: false, filled: 4, games: 4 }, { mode: TOTAL, submitted: false, satOut: true, filled: 0, games: 4 }], picksDue: { state: 'done', modes: [] } }));
     html = render();
-    expect(heading(html)).toEqual([HOME_COPY.done]);
+    expect(heading(html)).toEqual([HERO_COPY.allIn(6)]);
     expect(nodes(html, attr('data-home', 'status')).map(textOf)).toEqual(['Spread sent Total sat out']);
     expect(primaries(html)).toHaveLength(1);
 
