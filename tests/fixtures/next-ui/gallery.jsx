@@ -52,6 +52,7 @@ function Gallery() {
   const [toast, setToast] = useState(null);
   const [overlay, setOverlay] = useState(false);
   const [market, setMarket] = useState('spread');
+  const [view, setView] = useState('pick');
   const [pick, setPick] = useState(2.5);
   const [live, setLive] = useState(null);
   return (
@@ -98,6 +99,15 @@ function Gallery() {
             <Button variant="ghost" iconEnd="chevronRight" onClick={record('ghost')}>See all trends</Button>
             <Button variant="ghost-2" onClick={record('ghost2')}>Not now</Button>
             <Button disabled>Lock in picks</Button>
+          </div>
+          {/* Unavailable but focusable (aria-disabled), as Profile's unchanged "Save name"; the meta line says why. */}
+          <div className="gx-vstack gx-gap-4">
+            <Button variant="primary" aria-disabled="true" onClick={record('save-name')}>Save name</Button>
+            <Text variant="meta" tone={2}>Change your name to save it.</Text>
+          </div>
+          <div className="gx-hstack gx-gap-8 gx-wrap">
+            <Button variant="ghost" disabled>Save draft</Button>
+            <Button variant="ghost-2" aria-disabled="true" onClick={record('ghost2-unavailable')}>Not yet</Button>
           </div>
           <div className="gx-hstack gx-gap-8">
             <IconButton icon="bell" label="Pick reminders" pressed={false} onClick={record('bell')}/>
@@ -229,6 +239,7 @@ function Gallery() {
           {sheet === 'sub' ? (
             <>
               <AvatarStack people={PEOPLE} label="6 are in"/>
+              <Segmented label="Play view" options={[{ value: 'pick', label: 'Pick a Team' }, { value: 'line', label: 'Guess the Line' }, { value: 'board', label: 'Leaderboard' }]} value={view} onChange={setView}/>
               <Button variant="ghost" onClick={record('see-now')}>{copy.SEE_PICKS_NOW}</Button>
             </>
           ) : (
