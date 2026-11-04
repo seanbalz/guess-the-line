@@ -94,17 +94,30 @@ after `a10d28e9` would have rolled D-77 back.
   Bets also read `/bets/recommendations`, `/lines/read` and `/trends/week`, all 200. No "CPU Time exceeded" or
   worker-limit message has been logged since the deploy. The visit did not open a Picks game card, so `/personal/read`
   from the released Play has not been exercised yet. Dark theme and a real phone were not part of this visit.
-- **Sean's phone, open question:** Sean reported that the home-screen app loaded his week after the deploy. He also
-  said it shows the new "Play" lip, which the old version did not have on Play's cards (its game card lip read
-  "Week N · market"). But no browser request reached `gtl-api`, or Supabase at all, from 05:57 to 08:15 UTC. The
-  logging itself works: a signed-out probe this session sent with a browser user agent at 08:15:01 UTC was logged
-  within a minute, with a 401, and the desktop visit above was logged too. A real load of the week reads `gtl-api`,
-  so the phone report and the logs disagree. That stays open until a phone visit shows up in the logs.
+- **Phone readback, 9 AM PT check (logs to 16:53 UTC):** an iPhone (iOS 18.7) made 211 signed-in `gtl-api` calls
+  from 13:32 to 16:26 UTC, and an Android phone 15 around 12:35 UTC. Every one returned 200, with 204 for CORS
+  preflights. None was an error. The released Play's routes on the iPhone:
+
+  | Route | 200s | Slowest |
+  | --- | --- | --- |
+  | `/points/read` | 14 | 1.9 s |
+  | `/community/history` | 11 | 1.5 s |
+  | `/league/features` | 11 | 1.0 s |
+  | `/community/read` | 10 | 2.0 s |
+  | `/personal` | 9 | 2.2 s |
+  | `/personal/read` | 6 | 1.3 s |
+  | `/league/feed` | 3 | 3.3 s |
+  | `/league/comparison` | 1 | 1.2 s |
+
+  `/personal/read`, a Picks game card in the released Play, is now exercised. No "CPU Time exceeded" or
+  worker-limit message was logged from the deploy to 16:53 UTC.
+- **Sean's 08:00 UTC visit stays unexplained:** apart from this session's 08:15 probe and the desktop visit above,
+  no browser called `gtl-api` between 06:42 and 12:34 UTC. The first phone call is at 12:34 (Android) and 13:32
+  (iPhone). The earlier visit most likely showed a copy the app already had open; it reached no server.
 
 ## Not verified
 
-- No phone visit has been logged yet, and `/personal/read` (a Picks game card) has not been exercised in the released
-  Play (see above).
+- The logs show the phone's calls succeeded. They do not show what the screens looked like.
 - No real iPhone check of Play's layers, moments or NEW pills. Sean's iPhone check stands in for device acceptance
   (spec section 10). His step 0 iPhone check is not recorded either.
 
