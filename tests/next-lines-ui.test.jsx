@@ -57,6 +57,7 @@ vi.mock('../web/src/next/lines/parts.jsx', async importOriginal => {
 const { ShellContext } = await import('../web/src/next/shell/context.js');
 const { LinesBoard } = await import('../web/src/next/lines/LinesBoard.jsx');
 const { GameSheet } = await import('../web/src/next/lines/GameSheet.jsx');
+const { GameLayer } = await import('../web/src/next/lines/GameLayer.jsx');
 const { YourPickSheet } = await import('../web/src/next/lines/YourPickSheet.jsx');
 const { AllTrendsSheet, GroupBody } = await import('../web/src/next/lines/AllTrendsSheet.jsx');
 const { ShortTrend, trendInfoBody, trendRowSub } = await import('../web/src/next/lines/parts.jsx');
@@ -226,6 +227,22 @@ describe('the game sheet pages through the week (design upgrade)', () => {
     expect(pageButtons(last).map(n => n.attrs['aria-disabled'])).toEqual([undefined, 'true']);
     // A game not on the board has no pager.
     expect(pageButtons(render(<GameSheet args={{ game: 'XX-YY' }}/>))).toHaveLength(0);
+  });
+
+  // D-69 step 3: only the League feed's kickoff rows open the sheet now; the board opens the game layer, which keeps the
+  // board-order snapshot. A board seen earlier (or a stale boardOrder argument) never orders the feed's sheet.
+  it('pages in the week’s own order, whatever board was seen before', async () => {
+    const { rememberBoard } = await import('../web/src/next/lines/boardContext.js');
+    state.lines = data();
+    const games = order();
+    const shuffled = [games[2].id, games[0].id, ...games.filter((_, i) => i !== 0 && i !== 2).map(g => g.id)];
+    const snapshot = { accountId: 'fixture-account', season: 2026, week: 6, ids: shuffled, now: NOW, results: {} };
+    try {
+      rememberBoard(snapshot);
+      for (const args of [{ game: games[0].id }, { game: games[0].id, boardOrder: snapshot }]) {
+        expect(textOf(nodes(render(<GameSheet args={args}/>), attr('aria-live', 'polite'))[0])).toMatch(new RegExp(`game 1 of ${games.length}$`));
+      }
+    } finally { rememberBoard(null); }
   });
 
   it('while its market lines load, skeleton panels stand in with the status in words', () => {
@@ -479,7 +496,8 @@ describe('the leak rule on the rendered markup, attributes included', () => {
     return out;
   };
 
-  it('the board, every game sheet and every All trends sheet, every row open, in the sat-out and after-kickoff states', () => {
+  // D-69 step 3: the game layer (Research's path) draws what the sheet drew, so it is scanned beside it.
+  it('the board, every game sheet, game layer and All trends sheet, every row open, in the sat-out and after-kickoff states', () => {
     for (const [name, { lines, secrets }] of Object.entries(STATES)) {
       state.lines = lines;
       state.openRows = true;
@@ -489,6 +507,7 @@ describe('the leak rule on the rendered markup, attributes included', () => {
       let trendItems = 0;
       for (const { id } of GAMES) {
         scan(render(<GameSheet args={{ game: id }}/>), `${id} sheet`);
+        scan(render(<GameLayer id={id}/>), `${id} layer`);
         trendItems += nodes(scan(render(<AllTrendsSheet args={{ game: id }}/>), `${id} All trends`), n => n.attrs['data-trend']).length;
       }
       expect(trendItems, 'every group body was in the markup').toBeGreaterThan(500);

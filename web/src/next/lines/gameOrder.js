@@ -1,4 +1,4 @@
-// Scoped in-memory context for Research game sheets: displayed order and recorded finals captured on opening.
+// Scoped in-memory context for Research's game layer: displayed order and recorded finals captured on opening.
 // Direct opens fall back to upcoming games then passed kickoffs, from the personal reader's server clock.
 // Pure values only; no requests, storage, market quotes or picks.
 import { gamesOf, teamOf } from '../../../../shared/lines-view.mjs';
@@ -40,8 +40,9 @@ export function openedBoardResult(personal, accountId, context, gameId) {
 }
 
 /**
- * The game sheet's pager for `gameId` in `order`: `{ index, count, unit, prevLabel, nextLabel, prev, next }`, or null
- * when the game is not on the board or is its only game. `prev` and `next` are the neighbouring game ids (null at an end).
+ * The game layer's (and the feed's game sheet's) pager for `gameId` in `order`: `{ index, count, unit, prevLabel,
+ * nextLabel, prev, next }`, or null when the game is not on the board or is its only game. `prev` and `next` are the
+ * neighbouring game ids (null at an end).
  */
 export function gamePager(order, gameId) {
   const index = Array.isArray(order) ? order.findIndex(game => game.id === gameId) : -1;
