@@ -4,6 +4,7 @@
 // would be under the 44px target each); the readout names the picked game ("Week 3 · W 24–17 vs DEN"). The plot is one
 // image with every game in words, and the same numbers are in the games list below, so nothing is only in the chart.
 import { useId } from 'react';
+import { ChartReveal } from '../ui/ChartReveal.jsx';
 import { useChartSelection } from '../charts/useChartSelection.js';
 import { marginRangeText } from './teamModel.js';
 
@@ -30,7 +31,7 @@ function barPath(x, y0, y1, width) {
 }
 
 /** `series` from teamModel.marginSeries, `extent` from marginExtent. */
-export function MarginChart({ series, extent, selection, id }) {
+export function MarginChart({ series, extent, selection, id, reveal = false }) {
   const scaleId = useId();
   const local = useChartSelection(JSON.stringify(series), series.length);
   const { index, onSelect } = selection ?? local;
@@ -51,7 +52,7 @@ export function MarginChart({ series, extent, selection, id }) {
         onPointerDown={event => { if (!event.isPrimary || event.button !== 0) return; event.currentTarget.setPointerCapture?.(event.pointerId); follow(event); }}
         onPointerMove={follow}
         onPointerUp={event => { if (event.currentTarget.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); }}>
-        <svg className="gx-team-svg" viewBox={`0 0 ${W} ${H}`} aria-hidden="true" focusable="false">
+        <ChartReveal play={reveal}><svg className="gx-team-svg" viewBox={`0 0 ${W} ${H}`} aria-hidden="true" focusable="false">
           <rect className="gx-team-band" x={round1(layout.slot * at)} y="0" width={round1(layout.slot)} height={H} rx="6"/>
           <line className="gx-team-zero" x1="0" x2={W} y1={layout.zeroY} y2={layout.zeroY}/>
           {series.map((p, i) => {
@@ -60,7 +61,7 @@ export function MarginChart({ series, extent, selection, id }) {
               ? <circle key={p.week} className={`gx-team-tie${on}`} cx={bar.x} cy={bar.y0} r={Math.min(5, layout.width / 2 + 1)}/>
               : <path key={p.week} className={`gx-team-bar gx-team-bar--${p.result === 'W' ? 'win' : 'loss'}${on}`} d={barPath(bar.x, bar.y0, bar.y1, layout.width)}/>;
           })}
-        </svg>
+        </svg></ChartReveal>
       </div>
       <div className="gx-team-weeks" aria-hidden="true">{series.map(p => <span key={p.week}>{p.week}</span>)}</div>
       <p className="gx-t-meta gx-c-2" id={scaleId}>Week by week · scale {marginRangeText(extent)}</p>

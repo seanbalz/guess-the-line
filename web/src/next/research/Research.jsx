@@ -4,6 +4,7 @@ import { useShell } from '../shell/context.js';
 import { FocusAction, FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
 import { DESTINATION_ICONS as ICON } from '../ui/destinations.js';
 import { GamesScreen } from '../lines/GamesScreen.jsx';
+import { TeamsScreen } from '../teams/TeamsScreen.jsx';
 import { FantasyPage } from '../fantasy/FantasyPage.jsx';
 
 export function Research() {
@@ -12,6 +13,7 @@ export function Research() {
   const section = shell.state.views.research.section;
   if (section === 'games') return <GamesScreen/>;
   if (section === 'trends') return <TrendsPage/>;
+  if (section === 'teams') return <TeamsScreen/>;
   if (section === 'fantasy') return <FantasyPage/>;
   return <section className="gx-screen" data-landing="research">
     <div className="gx-focus-heading"><h1 className="gx-t-title">Research</h1>{app.community.data?.week && <p className="gx-t-meta">Week {app.community.data.week.week}</p>}</div>

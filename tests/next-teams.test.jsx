@@ -2,16 +2,18 @@
 // (teamsData.js: one request for every subscriber, the bundled records on a 404 or a failure, no new request within
 // ten minutes) and the markup of the team sheet and the pick-screen headers that open it. Fixture teams and scores
 // only; nothing here reaches the network (the read is a stand-in, and SSR never subscribes).
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import fs from 'node:fs';
 import bundled from '../shared/team-records-2026.json';
-import { markupProblems, parseMarkup, walk } from './helpers/ui-markup.mjs';
+import { markupProblems, nameFrom, parseMarkup, walk } from './helpers/ui-markup.mjs';
 
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn(), linesApi: vi.fn(), readTeams: vi.fn() }));
 const model = await import('../web/src/next/teams/teamModel.js');
 const { TEAMS_TTL_MS, createTeamSeasonStore, fallbackTeamSeason, teamSeasonFrom, teamSeasonStore } = await import('../web/src/next/teams/teamsData.js');
 const { TeamSheet } = await import('../web/src/next/teams/TeamSheet.jsx');
+const { TeamsScreen } = await import('../web/src/next/teams/TeamsScreen.jsx');
+const { TeamLayer } = await import('../web/src/next/teams/TeamLayer.jsx');
 const { TeamView, NO_GAMES, teamInfo } = await import('../web/src/next/teams/TeamView.jsx');
 const { marginLayout } = await import('../web/src/next/teams/MarginChart.jsx');
 const { ShellContext } = await import('../web/src/next/shell/context.js');
@@ -322,5 +324,64 @@ describe('pick-screen headers: away @ home as marks with records, each team open
     expect([...walk(h2)].filter(n => n.tag === 'button')).toEqual([]);
     expect(textOf(h2)).toContain('Seattle Seahawks at Denver Broncos');
     expect(textOf(h2)).not.toMatch(/\d–\d/);
+  });
+});
+
+describe('D-69 step 3: Research › Teams', () => {
+  const shellOf = research => ({ state: { tab: 'research', views: { research: { section: 'teams', ...research }, lines: {} }, sheets: [] }, setView: vi.fn(), go: vi.fn(), openSheet: vi.fn() });
+  const draw = (node, shell) => renderToStaticMarkup(<ShellContext.Provider value={shell}><div className="gx">{node}</div></ShellContext.Provider>);
+  const all = html => [...walk(parseMarkup(html))];
+  const text = n => (n.text ?? (n.children ?? []).map(text).join(''));
+  const byClass = (root, cls) => [...walk(root)].filter(n => (n.attrs?.class ?? '').split(/\s+/).includes(cls));
+  // The shared store may hold an earlier test's reply; these screens are drawn on the bundled records, as before the read answers.
+  beforeEach(() => { vi.spyOn(teamSeasonStore, 'getSnapshot').mockReturnValue({ status: 'fallback', data: fallbackTeamSeason() }); });
+  afterEach(() => { vi.restoreAllMocks(); });
+
+  it('teamRows: every team by full name, its record the row’s number, the last final its word (a loss plain), the next game its meta', () => {
+    const final = (week, pf, pa, opponent, home) => ({ week, gameId: '', opponent, home, neutral: false, kickoff: '2026-09-13T20:00:00Z', final: true, pf, pa, result: pf > pa ? 'W' : pf < pa ? 'L' : 'T' });
+    const season = { season: 2026, throughWeek: 2, fallback: false, teams: {
+      SEA: { overall: { w: 1, l: 1, t: 0 }, home: null, road: null, pointsFor: 41, pointsAgainst: 37, games: [final(1, 24, 17, 'DEN', true), final(2, 17, 20, 'LAR', false),
+        { week: 3, gameId: '', opponent: 'ARI', home: true, neutral: false, kickoff: '2026-09-27T20:05:00Z', final: false, pf: null, pa: null, result: null }] },
+      ARI: { overall: { w: 2, l: 0, t: 0 }, home: null, road: null, pointsFor: 50, pointsAgainst: 20, games: [final(2, 30, 10, 'SF', true)] } } };
+    const rows = model.teamRows(season);
+    expect(rows.map(r => r.code)).toEqual(['ARI', 'SEA']);
+    const sea = rows.find(r => r.code === 'SEA');
+    expect([sea.name, sea.record, sea.word, sea.tone, sea.meta]).toEqual(['Seattle Seahawks', '1–1', 'Lost last', 'plain', 'Next vs ARI']);
+    expect(sea.ariaLabel).toBe('Seattle Seahawks, 1–1, lost 17–20 @ LAR in Week 2, next vs ARI. Open team');
+    expect(rows.find(r => r.code === 'ARI')).toMatchObject({ word: 'Won last', tone: 'good', meta: null });
+    const bundledRows = model.teamRows(fallbackTeamSeason());
+    expect(bundledRows).toHaveLength(32);
+    expect(bundledRows.every(r => r.word === null && r.meta === null)).toBe(true);
+  });
+
+  it('the list: 32 picture rows on the bundled records (it never waits for the read), each with its id, mark and record', () => {
+    const html = draw(<TeamsScreen/>, shellOf({}));
+    expect(markupProblems(html)).toEqual([]);
+    const rows = all(html).filter(n => n.tag === 'button' && n.attrs['data-team']);
+    expect(rows).toHaveLength(32);
+    for (const row of rows) expect(row.attrs.id).toBe(`gx-r-team-${row.attrs['data-team']}`);
+    expect(all(html).filter(n => n.tag === 'h1').map(text)).toEqual(['Teams']);
+    expect(all(html).filter(n => (n.attrs?.class ?? '').includes('gx-kept'))[0].attrs.hidden).toBeUndefined();
+  });
+
+  it('one team: a Teams lip, its heading, the lazy team view’s region; the list stays mounted under it, hidden', () => {
+    const html = draw(<TeamsScreen/>, shellOf({ layer: 'team', item: 'SEA' }));
+    expect(markupProblems(html)).toEqual([]);
+    const layer = all(html).find(n => n.attrs?.['data-research'] === 'team');
+    expect(layer.attrs['data-team']).toBe('SEA');
+    expect(text([...walk(layer)].find(n => n.tag === 'h2'))).toBe('Seattle Seahawks');
+    expect(byClass(layer, 'gx-nest-lip').map(nameFrom)).toEqual(['Back to Teams']);
+    expect([...walk(layer)].some(n => n.attrs?.role === 'group' && n.attrs['aria-label'] === 'Team details')).toBe(true);
+    expect(all(html).find(n => (n.attrs?.class ?? '').includes('gx-kept')).attrs.hidden).toBe('');
+    expect(draw(<TeamsScreen/>, shellOf({ layer: 'team', item: 'ZZZ' }))).not.toContain('data-research="team"');
+  });
+
+  it('the margin chart reveals only when its view mounts after a navigation', async () => {
+    const { markNavigated, markSettled, resetLaunch } = await import('../web/src/next/moments/launch.js');
+    expect(renderToStaticMarkup(<div className="gx"><TeamView season={live()} code="SEA"/></div>)).not.toContain('data-reveal');
+    markSettled(); markNavigated();
+    try {
+      expect(renderToStaticMarkup(<div className="gx"><TeamView season={live()} code="SEA"/></div>)).toMatch(/class="gx-team-plot"[^>]*><span class="gx-reveal" data-reveal="in">/);
+    } finally { resetLaunch(); }
   });
 });
