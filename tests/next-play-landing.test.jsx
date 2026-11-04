@@ -15,7 +15,7 @@ vi.mock('../web/src/next/moments/MomentsProvider.jsx', () => ({
   useNewCount: scope => (state.newMoments[scope] ?? []).length, useNewMoments: scope => state.newMoments[scope] ?? [], usePopped: () => false,
 }));
 // The hero's button and the ballot tile are the real components; these wrappers only note the props they were given.
-vi.mock('../web/src/next/ui/index.js', async importOriginal => {
+vi.mock('../web/src/next/ui/Button.jsx', async importOriginal => {
   const real = await importOriginal();
   return { ...real, Button: props => { state.buttons.push(props); return real.Button(props); } };
 });

@@ -2,10 +2,10 @@
 // tiles in two columns, each opening its own section on its first layer (openPlay). Picks are the per-game cards
 // (PerGamePlay.jsx). When the server's rules are not per-game, the same cards show the saved ballot read-only, so the old
 // whole-market editor is retired from the new app (spec test 13).
-import { useCallback, useId, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { useAppData, useSharedRead } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
-import { Button, Card, Meter } from '../ui/index.js';
+import { Button, Meter, NextMoveCard, StaleLine } from '../ui/index.js';
 import '../ui/focusLanding.css';
 import { HomeGuide } from '../home/HomeGuide.jsx';
 import { useAccountPreferences } from '../me/AccountPreferences.jsx';
@@ -53,7 +53,7 @@ function PlayLanding() {
   const app = useAppData(), shell = useShell(), data = app.community.data;
   const preferences = useAccountPreferences(app);
   useMomentScope(SCOPES.play);
-  const heroButton = useRef(null), pointsTile = useRef(null), eyebrowId = useId();
+  const heroButton = useRef(null), pointsTile = useRef(null);
   const hero = data ? playHero(data) : null, week = data?.week ?? null;
   const other = otherMarket(hero?.market ?? 'spread'), tile = ballotTile(data, other);
   const lockedId = mode => (week && Number.isInteger(week.season) ? weekLockedId(week.season, week.week, mode) : '');
@@ -69,17 +69,14 @@ function PlayLanding() {
   const onPromptGone = () => (heroButton.current ?? pointsTile.current)?.focus();
   return <div className="gx-screen gx-play-landing" data-landing="play">
     <div className="gx-focus-heading"><h1 className="gx-t-title">Play</h1>{hero?.week != null && <p className="gx-t-meta">Week {hero.week}</p>}</div>
-    {hero ? <Card as="section" variant="hero" className="gx-play-hero" aria-labelledby={eyebrowId} data-play="hero" data-hero={hero.kind}>
-      <p className="gx-t-micro gx-play-hero-eyebrow" id={eyebrowId}>{hero.eyebrow}</p>
-      <h2 className="gx-t-title">{hero.title}</h2>
-      {hero.progress ? <Meter value={hero.progress.done} max={hero.progress.of} className="gx-play-hero-meter"/> : null}
-      <p className="gx-t-meta" data-play="hero-line" data-moment={heroPop ? 'pop' : undefined}>{hero.line}</p>
-      <Button ref={heroButton} variant="primary" block onClick={() => go(hero.target)}>{hero.action}</Button>
-    </Card>
+    {hero ? <NextMoveCard className="gx-play-hero" data-play="hero" data-hero={hero.kind} eyebrow={hero.eyebrow} title={hero.title}
+      picture={hero.progress ? <Meter value={hero.progress.done} max={hero.progress.of} className="gx-play-hero-meter"/> : null}
+      line={hero.line} lineProps={{ 'data-play': 'hero-line', 'data-moment': heroPop ? 'pop' : undefined }}
+      action={{ ref: heroButton, label: hero.action, onClick: () => go(hero.target) }}/>
       : app.community.status === 'error' ? <PlayFailure what="Your picks" error={app.community.error} onRetry={() => app.refresh({ only: ['community'] })}/>
       : <PlayLoading>Loading your picks…</PlayLoading>}
     {/* A failed refresh keeps the last good copy with its error noted (data/store.js): say so under the card. */}
-    {data && (app.community.status === 'error' || app.community.error) ? <p className="gx-play-state-line gx-t-body" role="status">This week could not refresh. Showing the last loaded update. <Button variant="ghost" onClick={() => app.refresh({ only: ['community'] })}>Refresh week</Button></p> : null}
+    {data && (app.community.status === 'error' || app.community.error) ? <StaleLine className="gx-play-state-line" onRefresh={() => app.refresh({ only: ['community'] })}/> : null}
     <ReminderPrompt key={app.accountId} onGone={onPromptGone}/>
     <ul className="gx-tiles gx-play-tiles" aria-label="Play sections" data-play="tiles">
       <li data-play-tile="ballot" data-moment={tilePop ? 'pop' : undefined}><PlayTile icon="target" label={tile.label} big={tile.big} sub={tile.sub} tone={tile.tone} ariaLabel={waiting ? `${tile.ariaLabel}, new` : tile.ariaLabel} isNew={waiting} onClick={() => openPicks(other)}/></li>

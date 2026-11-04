@@ -8,6 +8,8 @@ import { cx, needLabel } from './cx.js';
 import './skeleton.css';
 
 export const SKELETON_SHAPES = Object.freeze(['lines', 'rows', 'cards', 'panels', 'block', 'tiles', 'landing']);
+/** The landing shape's card: Home's (a countdown block) or a meter card (Research's, as Play's: one bar). */
+export const SKELETON_HEROES = Object.freeze(['countdown', 'meter']);
 const WIDTHS = ['gx-skel-bar--w1', 'gx-skel-bar--w2', 'gx-skel-bar--w3'];
 
 const Bar = ({ width = 0, title = false }) => <span className={cx('gx-skel-bar', title ? 'gx-skel-bar--title' : WIDTHS[width % WIDTHS.length])}></span>;
@@ -15,7 +17,7 @@ const Bar = ({ width = 0, title = false }) => <span className={cx('gx-skel-bar',
 const SkelTile = ({ i }) => <span className="gx-skel-tile"><Bar width={2}/><Bar title/><Bar width={1 + (i % 2)}/></span>;
 const tilesOf = each => <span className="gx-skel-tiles">{each.map(i => <SkelTile key={i} i={i}/>)}</span>;
 
-function art(shape, count) {
+function art(shape, count, hero) {
   const each = Array.from({ length: count }, (_, i) => i);
   switch (shape) {
     case 'rows':
@@ -52,12 +54,19 @@ function art(shape, count) {
     case 'landing':
       return (
         <>
-          <span className="gx-skel-card gx-skel-hero">
-            <Bar width={2}/><Bar title/><Bar width={1}/>
-            <span className="gx-skel-block gx-skel-countdown"></span>
-            <Bar width={0}/>
-            <span className="gx-skel-button"></span>
-          </span>
+          {hero === 'meter' ? (
+            <span className="gx-skel-card gx-skel-hero gx-skel-hero--meter">
+              <Bar width={2}/><Bar title/><span className="gx-skel-bar gx-skel-meter"></span><Bar width={1}/>
+              <span className="gx-skel-button"></span>
+            </span>
+          ) : (
+            <span className="gx-skel-card gx-skel-hero">
+              <Bar width={2}/><Bar title/><Bar width={1}/>
+              <span className="gx-skel-block gx-skel-countdown"></span>
+              <Bar width={0}/>
+              <span className="gx-skel-button"></span>
+            </span>
+          )}
           {tilesOf(each)}
         </>
       );
@@ -68,16 +77,17 @@ function art(shape, count) {
 
 /**
  * `<Skeleton label="Loading market lines…" shape="panels" count={2}/>`. `label` (required) is the status a screen
- * reader hears; `count` is how many lines, rows or cards (1 to 6).
+ * reader hears; `count` is how many lines, rows or cards (1 to 6); `hero` is the landing shape's card (SKELETON_HEROES).
  */
-export function Skeleton({ label, shape = 'lines', count = 3, className, ...rest }) {
+export function Skeleton({ label, shape = 'lines', count = 3, hero = 'countdown', className, ...rest }) {
   const name = needLabel(label, 'Skeleton');
   const kind = SKELETON_SHAPES.includes(shape) ? shape : 'lines';
+  const look = SKELETON_HEROES.includes(hero) ? hero : 'countdown';
   const n = Math.min(6, Math.max(1, Number.isInteger(count) ? count : 3));
   return (
     <div className={cx('gx-skel', `gx-skel--${kind}`, className)} role="status" data-skeleton={kind} {...rest}>
       <span className="gx-sr-only">{name}</span>
-      <span className="gx-skel-art" aria-hidden="true">{art(kind, n)}</span>
+      <span className="gx-skel-art" aria-hidden="true">{art(kind, n, look)}</span>
     </div>
   );
 }

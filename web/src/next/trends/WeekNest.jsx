@@ -16,6 +16,7 @@ const strongest = (a, b) => a.card.strength[0] - b.card.strength[0] || a.card.st
 const short = v => `${v.away.code} @ ${v.home.code}`;
 
 export function WeekNest({ week, views, market, view, onChange, lines, onBuild }) {
+  const account = lines?.app?.accountId ?? null;
   const games = views.map(v => ({ v, cards: marketSituationCards(week, v, market).map(card => ({ ...card, share: trendShare(week, card) })) }));
   const game = games.find(g => g.v.id === view.weekGame) ?? null;
   const card = game && view.weekTrend ? game.cards.find(c => !c.locked && trendSlug(c.key) === view.weekTrend) ?? null : null;
@@ -31,13 +32,13 @@ export function WeekNest({ week, views, market, view, onChange, lines, onBuild }
     return <Nest label="Week trends" layer="all" title="All trends" lips={[toWeek]}>
       <p className="gx-t-meta">{ranked.length} {ranked.length === 1 ? 'trend' : 'trends'} · strongest first</p>
       {ranked.length ? <ul className="gx-nest-grid" aria-label="All trends this week">
-        {ranked.map(({ card: c, v }) => <TrendTile key={v.id + c.key} card={titled(c, v)} rules={v.rules} onOpen={() => openTrend(v, c)}/>)}
+        {ranked.map(({ card: c, v }) => <TrendTile key={v.id + c.key} card={titled(c, v)} rules={v.rules} account={account} onOpen={() => openTrend(v, c)}/>)}
       </ul> : <p className="gx-t-body">No qualifying trend this week.</p>}
     </Nest>;
   }
 
   if (game && card) {
-    return trendLayer({ label: 'Week trends', layer: 'trend:' + view.weekTrend, card, week, view: game.v,
+    return trendLayer({ label: 'Week trends', layer: 'trend:' + view.weekTrend, card, week, view: game.v, account,
       lips: [toWeek, { key: 'game', label: short(game.v), onOpen: () => onChange({ weekTrend: null }) }] });
   }
 
@@ -47,7 +48,7 @@ export function WeekNest({ week, views, market, view, onChange, lines, onBuild }
       <p className="gx-t-meta">{v.when}</p>
       {cards.length || !v.access[market] ? <ul className="gx-nest-list" aria-label={short(v) + ' trends'}>
         {!v.access[market] && <LineLockTile market={market} rules={v.rules}/>}
-        {cards.map(c => <TrendTile key={c.key} card={c} rules={v.rules} onOpen={() => onChange({ weekTrend: trendSlug(c.key) })}/>)}
+        {cards.map(c => <TrendTile key={c.key} card={c} rules={v.rules} account={account} onOpen={() => onChange({ weekTrend: trendSlug(c.key) })}/>)}
       </ul> : null}
       {!cards.length && <p className="gx-t-body">No qualifying trend in this market.</p>}
       <GameDetailsButton view={v}/>
@@ -62,8 +63,8 @@ export function WeekNest({ week, views, market, view, onChange, lines, onBuild }
     <SavedTrendsSummary lines={lines} onOpen={onBuild}/>
     {hero && <section className="gx-vstack gx-gap-8" aria-label="Weekly highlights">
       <h3 className="gx-t-label gx-c-2">Top trends</h3>
-      <ul className="gx-nest-list"><TrendHero card={titled(hero.card, hero.v)} rules={hero.v.rules} onOpen={() => openTrend(hero.v, hero.card)}/></ul>
-      {pair.length ? <ul className="gx-nest-grid">{pair.map(({ card: c, v }) => <TrendTile key={v.id + c.key} card={titled(c, v)} rules={v.rules} onOpen={() => openTrend(v, c)}/>)}</ul> : null}
+      <ul className="gx-nest-list"><TrendHero card={titled(hero.card, hero.v)} rules={hero.v.rules} account={account} onOpen={() => openTrend(hero.v, hero.card)}/></ul>
+      {pair.length ? <ul className="gx-nest-grid">{pair.map(({ card: c, v }) => <TrendTile key={v.id + c.key} card={titled(c, v)} rules={v.rules} account={account} onOpen={() => openTrend(v, c)}/>)}</ul> : null}
       {ranked.length > 3 && <button type="button" className="gx-nest-more" onClick={() => onChange({ weekList: 'all' })}>
         <span>All {ranked.length} trends this week</span><Icon icon="chevronRight" size={20}/></button>}
     </section>}

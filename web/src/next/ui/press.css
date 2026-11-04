@@ -1,9 +1,10 @@
 /* Press feedback (design upgrade, "game feel"): every tappable kit control dips to 0.97 and dims a little while it is
    pressed, then springs back, on the tap duration and the standard easing. components.css already scales buttons,
    chips, segments, tappable cards and rows; this adds the icon button, the menu row, the sheet's back button, the
-   nesting card's tiles, lips, hero and "All N" row, and Home's stat tiles to that scale, and the dim to all of them
-   (base.css turns off the phone's tap highlight, so without this they give no sign of a press). A nesting tile that is
-   not a button is a picture, so only the button form presses. Transform and opacity only, on the control itself.
+   nesting card's tiles, lips, hero and "All N" row, Home's stat tiles and the picture rows to that scale, and the dim
+   to all of them (base.css turns off the phone's tap highlight, so without this they give no sign of a press). A
+   nesting tile or picture row that is not a button only shows something, so only the button form presses. Transform
+   and opacity only, on the control itself.
    Reduced motion (the device setting, or data-motion="reduce" on the .gx root) keeps only the dim; base.css already
    stops the transition, so the dim lands at once. The ".gx " prefix lifts each rule over the old-app reset in base.css
    and over components.css. */
@@ -19,7 +20,8 @@
 .gx .gx-nest-lip,
 .gx .gx-nest-hero,
 .gx .gx-nest-more,
-.gx .gx-h-stat {
+.gx .gx-h-stat,
+.gx button.gx-prow {
   transition: transform var(--gx-dur-tap) var(--gx-ease-standard), opacity var(--gx-dur-tap) var(--gx-ease-standard);
 }
 .gx .gx-btn:active:not(:disabled),
@@ -34,7 +36,8 @@
 .gx .gx-nest-lip:active:not(:disabled),
 .gx .gx-nest-hero:active:not(:disabled),
 .gx .gx-nest-more:active:not(:disabled),
-.gx .gx-h-stat:active:not(:disabled) {
+.gx .gx-h-stat:active:not(:disabled),
+.gx button.gx-prow:active:not(:disabled) {
   opacity: 0.85;
 }
 .gx .gx-icon-btn:active:not(:disabled),
@@ -44,7 +47,8 @@
 .gx .gx-nest-lip:active:not(:disabled),
 .gx .gx-nest-hero:active:not(:disabled),
 .gx .gx-nest-more:active:not(:disabled),
-.gx .gx-h-stat:active:not(:disabled) {
+.gx .gx-h-stat:active:not(:disabled),
+.gx button.gx-prow:active:not(:disabled) {
   transform: scale(0.97);
 }
 /* A control drawn as unavailable (aria-disabled, which keeps it focusable) does not answer a press. */
@@ -67,7 +71,8 @@
   .gx .gx-nest-lip:active:not(:disabled),
   .gx .gx-nest-hero:active:not(:disabled),
   .gx .gx-nest-more:active:not(:disabled),
-  .gx .gx-h-stat:active:not(:disabled) {
+  .gx .gx-h-stat:active:not(:disabled),
+  .gx button.gx-prow:active:not(:disabled) {
     transform: none;
   }
 }
@@ -83,6 +88,7 @@
 .gx[data-motion="reduce"] .gx-nest-lip:active:not(:disabled),
 .gx[data-motion="reduce"] .gx-nest-hero:active:not(:disabled),
 .gx[data-motion="reduce"] .gx-nest-more:active:not(:disabled),
-.gx[data-motion="reduce"] .gx-h-stat:active:not(:disabled) {
+.gx[data-motion="reduce"] .gx-h-stat:active:not(:disabled),
+.gx[data-motion="reduce"] button.gx-prow:active:not(:disabled) {
   transform: none;
 }

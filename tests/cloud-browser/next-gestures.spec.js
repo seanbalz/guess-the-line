@@ -3,6 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { ALL } from '../migrations.mjs';
 import { SUPABASE, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 import { boardOrder } from '../../web/src/next/lines/gameOrder.js';
+import { gameName } from '../../web/src/next/research/researchNav.js';
 
 // Design upgrade ("game feel"): touch interaction in the new app at 390 x 844, on the real app (main.jsx, AuthGate, the
 // lazy NextApp) and the real handler with every migration (ALL) on local PGlite, with real pointer drags (page.mouse,
@@ -12,9 +13,9 @@ import { boardOrder } from '../../web/src/next/lines/gameOrder.js';
 // 2. swipe to close: the sheet follows a downward drag of its handle or head (transform on the sheet itself, never on
 //    an ancestor of the fixed bars), snaps back from a short drag, closes from a long one and gives focus back; the close
 //    button and Escape still work;
-// 3. swipe between games: the game sheet shows "1 of 4" and 44px previous and next buttons, follows a sideways drag,
-//    turns past the threshold, snaps back from a short drag, resists at the first and last game, leaves vertical drags and
-//    touch scrolling alone, and never scrolls the page sideways;
+// 3. swipe between games: the game layer (D-69 step 3; it was the game sheet) shows "1 of 4" and 44px previous and next
+//    buttons, follows a sideways drag, turns past the threshold, snaps back from a short drag, resists at the first and
+//    last game, leaves vertical drags and touch scrolling alone, and never scrolls the page sideways;
 // 4. skeletons: while the week or a game's market lines load, token-tinted blocks (a static tint, no loop) stand in,
 //    with the words kept as a role=status a screen reader hears.
 // Every state: no side scroll at 390 and 320, 44px targets, no text under 12px, axe clean in Dark and Light.
@@ -24,9 +25,12 @@ test.beforeEach(() => { test.skip(!pgliteAvailable, 'Local PGlite required; neve
 
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 const sheet = (page, name) => page.getByRole('dialog', { name, exact: true });
-const card = (page, id) => page.locator(`.gx-l-card[data-game="${id}"]`);
-const place = page => page.locator('.gx-sheet [aria-live="polite"]');
-const pageButton = (page, which) => page.locator('.gx-sheet .gx-sheet-page').nth(which === 'prev' ? 0 : 1);
+// D-69 step 3: the board is picture rows and one game is a layer with the sheet's pager (LayerPager).
+const card = (page, id) => page.locator(`.gx-prow[data-game="${id}"]`);
+const layer = page => page.locator('[data-research="game"]');
+const place = page => page.locator('[data-research="game"] [data-pager] [aria-live="polite"]');
+const pageButton = (page, which) => page.locator('[data-research="game"] [data-pager] .gx-sheet-page').nth(which === 'prev' ? 0 : 1);
+const gameHeading = (page, title) => layer(page).getByRole('heading', { name: title, level: 2, exact: true });
 
 async function settle(page) {
   await page.evaluate(() => Promise.all(document.getAnimations().filter(a => a.playState === 'running' && Number.isFinite(a.effect?.getComputedTiming().endTime)).map(a => a.finished.catch(() => {}))));
@@ -54,9 +58,11 @@ async function phoneChecks(page, where) {
       .filter(el => !el.closest('.gx-scrim') && el.getAttribute('aria-hidden') !== 'true')
       .map(el => { const r = el.getBoundingClientRect(); return { name: (el.getAttribute('aria-label') || el.textContent).trim().slice(0, 40), w: Math.round(r.width), h: Math.round(r.height) }; })
       .filter(r => r.w < 44 || r.h < 44);
+    // Visually hidden by a clip, like .gx-sr-only (nest.css hides a trend card's own heading inside a nesting card).
+    const srOnly = el => { for (let n = el; n && n !== scope.parentElement; n = n.parentElement) { const s = getComputedStyle(n); if (s.position === 'absolute' && s.clip === 'rect(0px, 0px, 0px, 0px)') return true; } return false; };
     const small = [], clipped = [];
     for (const el of [scope, ...scope.querySelectorAll('*')]) {
-      if (!visible(el) || el.closest('.gx-sr-only:not(.gx-skip-link:focus)') || ![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
+      if (!visible(el) || el.closest('.gx-sr-only:not(.gx-skip-link:focus)') || srOnly(el) || ![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
       if (parseFloat(getComputedStyle(el).fontSize) < 12) small.push(el.textContent.trim().slice(0, 40));
       if (!el.closest('.gx-truncate') && el.scrollWidth > el.clientWidth + 1) clipped.push(el.textContent.trim().slice(0, 40));
       const r = el.getBoundingClientRect();
@@ -130,7 +136,8 @@ async function touchDrag(page, cdp, from, dx, dy, steps = 10) {
 
 async function week(page, baseURL, options = {}) {
   const world = await communityWorld(page, baseURL, { migrations: ALL, games: 4, ...options });
-  const order = boardOrder((await world.api('luke', 'personal')).body);
+  // The game layer's names, as its rows say them ("Seahawks @ Broncos"), for its heading and pager.
+  const order = boardOrder((await world.api('luke', 'personal')).body, { title: game => gameName(game.away, game.home) });
   expect(order.map(g => g.id)).toHaveLength(4);
   return { world, order };
 }
@@ -140,12 +147,20 @@ async function openLines(page) {
   await expect(page.getByRole('navigation', { name: 'Main', exact: true })).toBeVisible();
   await page.goto('about:blank');
   await page.goto('/#lines');
-  await expect(page.getByRole('heading', { name: 'Lines', level: 1, exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Games', level: 1, exact: true })).toBeVisible();
 }
 
 async function openGame(page, game) {
   await card(page, game.id).click();
-  await expect(sheet(page, game.title)).toBeVisible();
+  await expect(gameHeading(page, game.title)).toBeVisible();
+  await settle(page);
+}
+
+/** The All trends sheet over the game layer: the tall sheet whose swipe-to-close this checks (the game is no sheet now). */
+const allTrendsRow = page => layer(page).getByRole('button', { name: /^All trends/ });
+async function openAllTrends(page) {
+  await allTrendsRow(page).click();
+  await expect(sheet(page, 'All trends')).toBeVisible();
   await settle(page);
 }
 
@@ -174,7 +189,8 @@ test('press feedback: a pressed card, button or icon button dips and dims, then 
       await expect.poll(() => moved(target), `${kind} springs back`).toMatchObject({ scale: 1 });
       await expect.poll(() => opacity(target)).toBe(1);
     }
-    // The press runs on the tap tokens (100ms, standard easing), transform and opacity only.
+    // The press runs on the tap tokens (100ms, standard easing), transform and opacity only; the card is the board's row.
+    expect(await targets.card.evaluate(el => [el.tagName, el.classList.contains('gx-prow')])).toEqual(['BUTTON', true]);
     expect(await targets.card.evaluate(el => [getComputedStyle(el).transitionProperty, getComputedStyle(el).transitionDuration])).toEqual(['transform, opacity', '0.1s, 0.1s']);
     expect(await page.evaluate(() => window.__vibrations), 'no tick for a card, a text button, a row or an icon button').toEqual([]);
 
@@ -202,9 +218,10 @@ test('press feedback: a pressed card, button or icon button dips and dims, then 
     await page.mouse.up();
     await page.evaluate(() => document.querySelector('.gx').removeAttribute('data-motion'));
 
-    // The primary action ticks once (10ms); the Research root's one lime button opens the games.
+    // The primary action ticks once (10ms): the Research landing's one lime button (its next-move card's action).
     await page.goto('/#research');
-    const primary = page.locator('.gx-btn--primary').first();
+    const primary = page.locator('[data-landing="research"] .gx-btn--primary');
+    await expect(primary).toHaveCount(1);
     await expect(primary).toBeVisible();
     await primary.click();
     expect(await page.evaluate(() => window.__vibrations)).toEqual([10]);
@@ -212,6 +229,8 @@ test('press feedback: a pressed card, button or icon button dips and dims, then 
   } finally { await world.db.close(); }
 });
 
+// D-69 step 3: the game is a layer, not a sheet, so the swipe to close is checked on the tall sheet that still opens from
+// it: All trends. Focus goes back to its row in the game layer (the opener) after every close.
 test('swipe to close: the sheet follows its handle or head down, snaps back from a short drag, closes from a long one', async ({ page, baseURL }, testInfo) => {
   test.setTimeout(90000);
   const { world, order } = await week(page, baseURL);
@@ -219,7 +238,8 @@ test('swipe to close: the sheet follows its handle or head down, snaps back from
     await openLines(page);
     const game = order[0];
     await openGame(page, game);
-    const panel = sheet(page, game.title);
+    await openAllTrends(page);
+    const panel = sheet(page, 'All trends');
     const grab = page.locator('.gx-sheet-grab');
     // A short drag: the sheet follows the finger with a transform on itself, the fixed bars stay put, then it snaps back.
     const during = await drag(page, await center(grab), 0, 40, { look: async () => ({ at: await moved(panel), traps: await barTraps(page),
@@ -232,42 +252,44 @@ test('swipe to close: the sheet follows its handle or head down, snaps back from
     // Dragging up does nothing: the sheet never rises above its place.
     expect(await drag(page, await center(grab), 0, -80, { look: () => moved(panel) })).toMatchObject({ y: 0 });
     await expect(panel).toBeVisible();
-    // A sideways drag on the head is not a close.
-    await drag(page, await center(panel.locator('.gx-sheet-title')), 120, 4);
+    // A sideways drag on the head is not a close (All trends' head holds its back button, a spacer and its close).
+    await drag(page, await center(panel.locator('.gx-sheet-head .gx-grow')), 120, 4);
     await expect(panel).toBeVisible();
-    await expect(sheet(page, game.title)).toBeVisible();
+    await expect(sheet(page, 'All trends')).toBeVisible();
 
-    // A long drag from the head (its title): the sheet follows all the way, then closes and focus goes back to the card.
-    const far = await drag(page, await center(panel.locator('.gx-sheet-title')), 0, 300, { steps: 12, look: () => moved(panel) });
+    // A long drag from the head: the sheet follows all the way, then closes and focus goes back to its opener.
+    const far = await drag(page, await center(panel.locator('.gx-sheet-head .gx-grow')), 0, 300, { steps: 12, look: () => moved(panel) });
     expect(far).toMatchObject({ x: 0, y: 300 });
-    await expect(sheet(page, game.title)).toHaveCount(0);
-    await expect(card(page, game.id)).toBeFocused();
+    await expect(sheet(page, 'All trends')).toHaveCount(0);
+    await expect(allTrendsRow(page)).toBeFocused();
+    await expect(gameHeading(page, game.title), 'the game layer stays under the sheet').toBeVisible();
     expect(await barTraps(page)).toEqual([]);
 
     // The close button and Escape still close it, and focus still returns.
-    await openGame(page, game);
-    await panel.getByRole('button', { name: 'Close', exact: true }).click();
-    await expect(sheet(page, game.title)).toHaveCount(0);
-    await expect(card(page, game.id)).toBeFocused();
-    await openGame(page, game);
+    await openAllTrends(page);
+    await panel.getByRole('button', { name: 'Close All trends', exact: true }).click();
+    await expect(sheet(page, 'All trends')).toHaveCount(0);
+    await expect(allTrendsRow(page)).toBeFocused();
+    await openAllTrends(page);
     await page.keyboard.press('Escape');
-    await expect(sheet(page, game.title)).toHaveCount(0);
-    await expect(card(page, game.id)).toBeFocused();
+    await expect(sheet(page, 'All trends')).toHaveCount(0);
+    await expect(allTrendsRow(page)).toBeFocused();
 
     // A drag that starts on the close button and moves does not also click it: the sheet snaps back and stays.
-    await openGame(page, game);
-    await drag(page, await center(panel.getByRole('button', { name: 'Close', exact: true })), 0, 30);
+    await openAllTrends(page);
+    await drag(page, await center(panel.getByRole('button', { name: 'Close All trends', exact: true })), 0, 30);
     await expect.poll(() => moved(panel)).toMatchObject({ y: 0 });
     await expect(panel).toBeVisible();
 
     // Reduced motion: the drag still follows the finger (direct manipulation), and the close lands at once.
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await drag(page, await center(grab), 0, 260, { steps: 10 });
-    await expect(sheet(page, game.title)).toHaveCount(0);
+    await expect(sheet(page, 'All trends')).toHaveCount(0);
     await page.emulateMedia({ reducedMotion: 'no-preference' });
 
-    await openGame(page, game);
-    await everyLook(page, 'game sheet with its pager', testInfo);
+    // The game layer with its pager (what the game sheet with its pager was), in every look.
+    await expect(gameHeading(page, game.title)).toBeVisible();
+    await everyLook(page, 'game layer with its pager', testInfo);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
@@ -278,7 +300,7 @@ test('swipe between games: the sheet follows a sideways drag, turns past the thr
   try {
     await openLines(page);
     await openGame(page, order[0]);
-    const body = page.locator('.gx-sheet-body');
+    const body = layer(page).locator('.gx-pager-body');
     const grip = async () => { const box = await body.boundingBox(); return { x: box.x + box.width / 2, y: box.y + 40 }; };
     await expect(place(page)).toHaveText(`${order[0].title}, game 1 of 4`);
     await expect(pageButton(page, 'prev')).toHaveAttribute('aria-disabled', 'true');
@@ -300,7 +322,7 @@ test('swipe between games: the sheet follows a sideways drag, turns past the thr
     const following = await drag(page, await grip(), -200, 0, { look: async () => ({ at: await moved(body), traps: await barTraps(page) }) });
     expect(following.at).toMatchObject({ x: -200, y: 0 });
     expect(following.traps).toEqual([]);
-    await expect(sheet(page, order[1].title)).toBeVisible();
+    await expect(gameHeading(page, order[1].title)).toBeVisible();
     await expect(place(page)).toHaveText(`${order[1].title}, game 2 of 4`);
     await settle(page);
     await expect.poll(() => moved(body)).toMatchObject({ x: 0 });
@@ -342,14 +364,15 @@ test('swipe between games: the sheet follows a sideways drag, turns past the thr
     await pageButton(page, 'prev').click();
     await expect(place(page)).toHaveText(`${order[2].title}, game 3 of 4`);
 
-    // A new game opens at its top.
-    await body.evaluate(el => { el.scrollTop = 400; });
+    // A new game opens at its top (the layer scrolls with the page; the sheet's body scrolled itself).
+    await page.evaluate(() => scrollTo(0, 400));
+    expect(await page.evaluate(() => scrollY)).toBeGreaterThan(0);
     await pageButton(page, 'prev').click();
     await expect(place(page)).toHaveText(`${order[1].title}, game 2 of 4`);
-    expect(await body.evaluate(el => el.scrollTop)).toBe(0);
+    expect(await page.evaluate(() => scrollY)).toBe(0);
 
     // Inside an ⓘ dialog the drag belongs to the dialog: the page does not turn.
-    await page.locator('.gx-sheet-body .gx-info-btn').first().click();
+    await layer(page).locator('.gx-pager-body .gx-info-btn').first().click();
     const info = page.locator('dialog.gx-info[open]');
     await expect(info).toBeVisible();
     await drag(page, await center(info.locator('.gx-info-panel')), -200, 0);
@@ -363,30 +386,31 @@ test('swipe between games: the sheet follows a sideways drag, turns past the thr
 test.describe('on a touch screen', () => {
   test.use({ hasTouch: true });
 
-  test('a vertical touch drag scrolls the game sheet natively; a sideways one turns the game; the handle closes it', async ({ page, baseURL }) => {
+  test('a vertical touch drag scrolls the game layer natively; a sideways one turns the game; Back closes it', async ({ page, baseURL }) => {
     test.setTimeout(90000);
     const { world, order } = await week(page, baseURL);
     try {
       await openLines(page);
       await openGame(page, order[0]);
       const cdp = await page.context().newCDPSession(page);
-      const body = page.locator('.gx-sheet-body');
-      const box = await body.boundingBox();
-      const from = { x: box.x + box.width / 2, y: box.y + box.height - 60 };
-      // Up the screen: the browser scrolls the body (touch-action pan-y); the game stays.
-      const before = await body.evaluate(el => el.scrollTop);
-      await touchDrag(page, cdp, from, 0, -300);
-      await expect.poll(() => body.evaluate(el => el.scrollTop)).toBeGreaterThan(before + 50);
+      const body = layer(page).locator('.gx-pager-body');
+      // Up the screen, from low on the screen over the layer: the browser scrolls the page (touch-action pan-y); the game stays.
+      const before = await page.evaluate(() => scrollY);
+      await touchDrag(page, cdp, { x: 195, y: 600 }, 0, -300);
+      await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(before + 50);
       await expect(place(page)).toHaveText(`${order[0].title}, game 1 of 4`);
       expect(await moved(body)).toMatchObject({ x: 0 });
-      // Sideways: the next game.
+      // Sideways, on the body near its top: the next game.
+      await page.evaluate(() => scrollTo(0, 0));
+      const box = await body.boundingBox();
       await touchDrag(page, cdp, { x: box.x + box.width - 40, y: box.y + 60 }, -220, 6);
       await expect(place(page)).toHaveText(`${order[1].title}, game 2 of 4`);
       await settle(page);
-      expect(await body.evaluate(el => el.scrollTop), 'the next game opens at its top').toBe(0);
-      // Down from the handle: it closes.
-      await touchDrag(page, cdp, await center(page.locator('.gx-sheet-grab')), 0, 320);
-      await expect(sheet(page, order[1].title)).toHaveCount(0);
+      expect(await page.evaluate(() => scrollY), 'the next game opens at its top').toBe(0);
+      // Back closes the layer (it has no handle; the sheet's handle closed it) to the board.
+      await page.goBack();
+      await expect(layer(page)).toHaveCount(0);
+      await expect(card(page, order[0].id)).toBeVisible();
       expect(await barTraps(page)).toEqual([]);
       expect(world.errors).toEqual([]);
     } finally { await world.db.close(); }
@@ -409,7 +433,8 @@ test('skeletons: while the week and a game\'s market lines load, static token bl
     });
     await page.goto('about:blank');
     await page.goto('/#lines');
-    const board = page.locator('.gx-skel[data-skeleton="cards"]');
+    // D-69 step 3: the board's skeleton is rows (picture rows stand in), on .gx-l-skel.
+    const board = page.locator('.gx-skel[data-skeleton="rows"]');
     await expect(board).toBeVisible();
     await expect(board).toHaveAttribute('role', 'status');
     await expect(page.getByRole('status').filter({ hasText: 'Loading this week’s games…' })).toHaveCount(1);
@@ -428,19 +453,20 @@ test('skeletons: while the week and a game\'s market lines load, static token bl
     });
     expect(tint).toEqual({ count: expect.any(Number), tinted: true, moving: 0, named: [] });
     expect(tint.count).toBeGreaterThan(6);
+    await expect(board.locator('.gx-skel-row')).toHaveCount(4);
     await everyLook(page, 'lines board skeleton', testInfo);
 
     gates.personal.open();
     await expect(card(page, order[0].id)).toBeVisible();
     await expect(board).toHaveCount(0);
-    // The game sheet's market lines are still held: skeleton panels stand in inside the sheet.
+    // The game's market lines are still held: skeleton panels stand in inside the game layer.
     await openGame(page, order[0]);
-    const market = page.getByRole('region', { name: 'Market lines', exact: true });
+    const market = layer(page).getByRole('region', { name: 'Market lines', exact: true });
     const panels = market.locator('.gx-skel[data-skeleton="panels"]');
     await expect(panels).toBeVisible();
     await expect(panels.locator('.gx-skel-card')).toHaveCount(2);
     await expect(market).toContainText('Loading market lines…');
-    await everyLook(page, 'game sheet market skeleton', testInfo);
+    await everyLook(page, 'game layer market skeleton', testInfo);
     gates['lines/game'].open();
     await expect(panels).toHaveCount(0);
     expect(world.errors).toEqual([]);

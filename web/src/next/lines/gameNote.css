@@ -7,7 +7,10 @@
 .gx .gx-game-note :where(textarea):disabled { color: var(--gx-text-2); opacity: 1; }
 .gx .gx-game-note-count { text-align: end; font-variant-numeric: tabular-nums; }
 .gx .gx-game-note-actions { display: flex; flex-wrap: wrap; gap: var(--gx-space-2); }
-.gx .gx-game-note-actions > :where(button) { flex: 1 1 120px; }
+/* The buttons share a row equally while every label fits it on one line; never narrower than its label (fit-content:
+   the label's one-line width, or the whole row for a label longer than the row), so a wide face (CI's Linux DejaVu Sans,
+   a phone whose webfonts did not load) drops "Refresh note" to its own full-width row instead of wrapping its words. */
+.gx .gx-game-note-actions > :where(button) { flex: 1 1 0; min-width: fit-content; }
 /* Below 360 px two buttons side by side would wrap "Refresh note"; each takes the full width instead. */
 @media (max-width: 359px) { .gx .gx-game-note-actions > :where(button) { flex-basis: 100%; } }
 .gx .gx-game-note-review { display: grid; gap: var(--gx-space-3); padding: var(--gx-space-3); border: 1px solid var(--gx-border-strong); border-radius: var(--gx-radius-sm); background: var(--gx-surface-2); }

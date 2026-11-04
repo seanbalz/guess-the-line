@@ -2,11 +2,15 @@
 // as the innermost card, and the trend's address. D-75: a tile is glass with one number, the win rate, and one meta
 // line; This Week's strongest trend is a hero; the opened trend is one glass chart card, its tier, sentence and
 // conditions behind ⓘ.
-import { useId } from 'react';
+import { useId, useState } from 'react';
 import { lockedRecordsText, lockedTrendText } from '../../../../shared/lines-view.mjs';
 import { sinceText } from '../../../../shared/trends-view.mjs';
 import { useShell } from '../shell/context.js';
-import { Button, Icon, InfoButton, Nest } from '../ui/index.js';
+import { gameView } from '../research/researchNav.js';
+import { rememberBoard } from '../lines/boardContext.js';
+import { Button, ChartReveal, Icon, InfoButton, Nest } from '../ui/index.js';
+import { CountUp } from '../ui/CountUp.jsx';
+import { hasNavigated } from '../moments/launch.js';
 import { linePath, signed } from '../charts/geometry.js';
 import { trendInfoBody } from '../lines/parts.jsx';
 import { INFO } from '../info.js';
@@ -23,8 +27,21 @@ export function trendSlug(key) {
 /** "712 games · since 2002": a trend's sample and the years it covers (D-75). */
 export const gamesText = card => `${(card.games ?? 0).toLocaleString('en-US')} games · ${sinceText(card.years)}`;
 
+/** A trend's count-up figure on this device: one per trend, by its slug (its key can carry a line band). */
+export const rateFigure = key => `trends.rate.${trendSlug(key)}`;
+
+/**
+ * A trend's win rate (D-75's one number), counting from the last value this device showed for that trend (D-69 4.4).
+ * The resting text is exactly winRateText's; "—" with no decided game, which never counts.
+ */
+export function TrendRate({ share, account, figure, className }) {
+  const pct = typeof share === 'number' && Number.isFinite(share) ? Number((share * 100).toFixed(1)) : null;
+  if (pct === null) return <span className={className}>{winRateText(share)}</span>;
+  return <span className={className}><CountUp value={pct} account={account} figure={figure} format={value => value.toFixed(1)}/>%</span>;
+}
+
 /** One trend in a list (D-75): a lock with its condition when the gate holds it, else a glass tile with one win rate. */
-export function TrendTile({ card, rules, onOpen }) {
+export function TrendTile({ card, rules, onOpen, account }) {
   if (card.locked) {
     return <li><div className="gx-nest-tile" data-trend="locked">
       <span className="gx-nest-tile-top"><span className="gx-nest-tile-label">{card.title}</span><Icon icon="lock" size={16}/></span>
@@ -33,19 +50,19 @@ export function TrendTile({ card, rules, onOpen }) {
   }
   return <li><button type="button" className="gx-nest-tile gx-nest-tile--glass" data-trend={card.kind} onClick={onOpen}>
     <span className="gx-nest-tile-label">{card.title}</span>
-    <span className="gx-n-m gx-nest-num">{winRateText(card.share)}</span>
+    <TrendRate className="gx-n-m gx-nest-num" share={card.share} account={account} figure={rateFigure(card.key)}/>
     <span className="gx-t-meta">{gamesText(card)}</span>
   </button></li>;
 }
 
 /** This Week's strongest trend (D-75): one larger glass card with its own line where the week file has one. */
-export function TrendHero({ card, rules, onOpen }) {
-  if (card.locked) return <TrendTile card={card} rules={rules} onOpen={onOpen}/>;
+export function TrendHero({ card, rules, onOpen, account }) {
+  if (card.locked) return <TrendTile card={card} rules={rules} onOpen={onOpen} account={account}/>;
   const spark = card.chart?.spark?.length > 1 ? linePath(card.chart.spark, { width: 120, height: 48, top: 4, bottom: 4 }) : null;
   return <li><button type="button" className="gx-nest-hero" data-trend={card.kind} data-hero="" onClick={onOpen}>
     <span className="gx-nest-tile-label">{card.title}</span>
     <span className="gx-nest-hero-row">
-      <span className="gx-vstack"><span className="gx-n-l gx-nest-num">{winRateText(card.share)}</span>
+      <span className="gx-vstack"><TrendRate className="gx-n-l gx-nest-num" share={card.share} account={account} figure={rateFigure(card.key)}/>
         <span className="gx-t-meta">win rate · {gamesText(card)}</span></span>
       {spark ? <svg className="gx-nest-hero-spark" viewBox="0 0 120 48" width="120" height="48" aria-hidden="true"><path d={spark.line}/></svg> : null}
     </span>
@@ -60,23 +77,27 @@ export function LineLockTile({ market, rules }) {
   </div></li>;
 }
 
-/** The game sheet, one tap from a game's layers. */
+/**
+ * The game's own layer in Research › Games (D-69 step 3), one tap from a game's trends; Back returns here. It is not a
+ * board row, so it clears any board an earlier row remembered and the pager follows the week's own order.
+ */
 export function GameDetailsButton({ view }) {
   const shell = useShell();
-  return <Button variant="secondary" onClick={() => shell.openSheet('sh.game', { game: view.id })}>Game details · {view.title}</Button>;
+  return <Button variant="secondary" onClick={() => { rememberBoard(null); shell.go('research', gameView(view.id)); }}>Game details · {view.title}</Button>;
 }
 
 /** The opened trend's one glass card (D-75): the win rate, one line with a soft fill, then the record and units. */
-function TrendChartCard({ card }) {
+function TrendChartCard({ card, account }) {
+  const [reveal] = useState(() => hasNavigated()); // a tap opened it; never on a load
   const id = useId().replace(/:/g, '');
   const c = card.chart, spark = c?.spark?.length > 1 ? linePath(c.spark, { width: 320, height: 120, top: 8, bottom: 8 }) : null;
   return <div className="gx-nest-chart" data-trend-chart="">
-    <p className="gx-nest-big"><span className="gx-n-xl">{winRateText(card.share)}</span><span className="gx-t-meta">win rate {sinceText(card.years)}</span></p>
-    {spark ? <svg className="gx-nest-chart-line" viewBox="0 0 320 120" preserveAspectRatio="none" role="img"
+    <p className="gx-nest-big"><TrendRate className="gx-n-xl" share={card.share} account={account} figure={rateFigure(card.key)}/><span className="gx-t-meta">win rate {sinceText(card.years)}</span></p>
+    {spark ? <ChartReveal play={reveal}><svg className="gx-nest-chart-line" viewBox="0 0 320 120" preserveAspectRatio="none" role="img"
       aria-label={`Cumulative units at −110: ${signed(c.units)} after ${(card.games ?? 0).toLocaleString('en-US')} games ${sinceText(card.years)}`}>
       <defs><linearGradient id={`fill-${id}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" className="gx-nest-chart-stop-top"/><stop offset="1" className="gx-nest-chart-stop-end"/></linearGradient></defs>
       <path d={spark.area} fill={`url(#fill-${id})`}/><path className="gx-nest-chart-stroke" d={spark.line}/>
-    </svg> : null}
+    </svg></ChartReveal> : null}
     <p className="gx-nest-chart-foot"><span className="gx-t-meta">{card.record}</span>{c ? <span className="gx-t-meta">{signed(c.units)} U at −110</span> : null}</p>
   </div>;
 }
@@ -86,10 +107,10 @@ function TrendChartCard({ card }) {
  * sheet; the tier, sentence and conditions sit behind ⓘ. Called as a function, not mounted as a component, so the
  * layer stays the same Nest element and its heading takes focus on the change.
  */
-export function trendLayer({ label, layer, card, week, view, lips }) {
+export function trendLayer({ label, layer, card, week, view, lips, account }) {
   const info = <InfoButton title="About this trend" body={trendInfoBody(card)} links={INFO.trends.links}/>;
   return <Nest label={label} layer={layer} title={card.title} info={info} lips={lips}>
-    <TrendChartCard card={card}/>
+    <TrendChartCard card={card} account={account}/>
     <WindowRecords card={card} week={week} summary="Windows and dates"/>
     <GameDetailsButton view={view}/>
   </Nest>;

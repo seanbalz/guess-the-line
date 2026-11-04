@@ -11,6 +11,8 @@ import { sendBallot, storeLines } from '../helpers/guess-week.mjs';
 const ADDRESSES = ['#home', '#home?layer=who', '#play', '#play/picks', '#play/picks?market=total', '#play/score', '#play/score?scoreGame=SEA-DEN', '#play/compare', '#play/points', '#play/features', '#play/features?layer=streaks', '#play/features?layer=awards', '#play/features?layer=season', '#play/features?layer=badge&item=bullseye', '#play/league', '#play/league?view=history&week=6',
   '#play/league?view=feed', '#play/league?view=board', '#play/league?view=history', '#bets', '#bets/active', '#bets/settled', '#bets/recommended',
   '#bets/virtual', '#bets/everyone', '#bets/add', '#groups', '#research', '#research/games', '#research/fantasy', '#research/trends',
+  // D-69 step 3: one game and one team are layers with their own addresses, and Teams is a list.
+  '#research/games?layer=game&item=SEA-DEN', '#research/teams', '#research/teams?layer=team&item=SEA',
   // Me › History (stage 73).
   '#history', '#history/bets', '#history/older'];
 const BET_VIEWS = ['feed', 'myweek', 'compare', 'history'];
@@ -79,9 +81,11 @@ test('every new-app screen, sheet and menu fits a phone: no clipped text, stray 
           }
         }
         if (address === '#research/games') {
+          // D-69 step 3: a row opens the game as a layer (it was the game sheet); All trends is still a sheet over it.
           await page.locator('[data-game]').first().click();
-          await check(`${pass} game sheet`);
-          await page.getByRole('button', { name: /^All trends/ }).click();
+          await expect(page.locator('[data-research="game"]')).toBeVisible();
+          await check(`${pass} game layer`);
+          await page.locator('[data-research="game"]').getByRole('button', { name: /^All trends/ }).click();
           await check(`${pass} all trends`);
           await open(page, address, wide);
           await page.getByRole('button', { name: 'Open weekly research', exact: true }).click();
@@ -126,12 +130,12 @@ test('a League week with games, every disclosure open, fits a phone at 320 and 3
   }
 });
 
-// Contract (design fixes, November 4, 2026): on Research › Games at 320 px with text enlarged to 200% (WCAG 1.4.4),
-// every team's whole name and record stay inside their card. A name may wrap, never spill, clip or end in "…" (AUD-01
-// kept full team names); the record wraps under it first, so a name that fits its line is never split inside a word;
-// and the two team rows never run into each other. A browser's 200% text setting doubles px
-// type, so the check doubles each card element's computed font size and line height after the quotes have settled.
-test('Research › Games keeps whole team names and records inside their cards at 320 px with 200% text', async ({ page, baseURL }) => {
+// Contract (design fixes, November 4, 2026; carried onto picture rows by D-69 step 3): on Research › Games at 320 px with
+// text enlarged to 200% (WCAG 1.4.4), everything a game row says (the matchup, the records line, the Spread and its
+// word) stays inside the row and inside the screen. Text may wrap, never spill, clip or end in "…"; the name block and
+// the number block never run into each other. A browser's 200% text setting doubles px type, so the check doubles each
+// row element's computed font size and line height after the quotes have settled.
+test('Research › Games keeps whole matchups and records inside their rows at 320 px with 200% text', async ({ page, baseURL }) => {
   const world = await communityWorld(page, baseURL, { migrations: ALL, optionalRpc: true, prepare: WEEK6 });
   try {
     await page.addInitScript(() => localStorage.setItem('gtl.app', 'next'));
@@ -141,43 +145,45 @@ test('Research › Games keeps whole team names and records inside their cards a
     await page.setViewportSize({ width: 320, height: 844 });
     for (const wide of [false, true]) {
       await open(page, '#research/games', wide);
-      await expect(page.locator('.gx-l-card')).toHaveCount(2);
-      await expect(page.locator('.gx-l-card [data-cell="loading"]')).toHaveCount(0);
+      await expect(page.locator('button.gx-prow[data-game]')).toHaveCount(2);
+      await expect(page.locator('button.gx-prow [data-cell="loading"]')).toHaveCount(0);
       const spills = await page.evaluate(() => {
-        const cards = [...document.querySelectorAll('.gx-l-card')];
-        const was = cards.flatMap(card => [card, ...card.querySelectorAll('*')]).filter(el => !el.closest('svg')).map(el => [el, getComputedStyle(el)]).map(([el, cs]) => [el, parseFloat(cs.fontSize), cs.lineHeight]);
+        const rows = [...document.querySelectorAll('button.gx-prow[data-game]')];
+        const was = rows.flatMap(row => [row, ...row.querySelectorAll('*')]).filter(el => !el.closest('svg')).map(el => [el, getComputedStyle(el)]).map(([el, cs]) => [el, parseFloat(cs.fontSize), cs.lineHeight]);
         for (const [el, size, leading] of was) {
           el.style.setProperty('font-size', `${size * 2}px`, 'important');
           if (leading !== 'normal') el.style.setProperty('line-height', `${parseFloat(leading) * 2}px`, 'important');
         }
         const out = [], inside = (r, box) => r.left >= box.left - 1 && r.right <= box.right + 1;
-        for (const card of cards) {
-          const c = card.getBoundingClientRect(), teams = [...card.querySelectorAll('.gx-l-team')];
-          if (!inside(c, { left: 0, right: document.documentElement.clientWidth })) out.push(`${card.dataset.game}: card leaves the screen`);
-          if (teams.length !== 2) out.push(`${card.dataset.game}: ${teams.length} team rows`);
-          else if (teams[0].getBoundingClientRect().bottom > teams[1].getBoundingClientRect().top + 1) out.push(`${card.dataset.game}: the team rows overlap`);
-          for (const team of teams) {
-            const t = team.getBoundingClientRect();
-            if (!inside(t, c)) out.push(`${team.textContent}: team row leaves its card`);
-            // The mark's own code letters are hidden once its logo loads; everything else with text is checked.
-            for (const el of team.querySelectorAll('*')) {
-              if (el.closest('.gx-team')) continue;
-              const r = el.getBoundingClientRect();
-              for (const node of el.childNodes) {
-                if (node.nodeType !== 3 || !node.textContent.trim()) continue;
-                const range = document.createRange();
-                range.selectNodeContents(node);
-                for (const rect of range.getClientRects()) if (rect.width && !(inside(rect, r) && inside(rect, t) && inside(rect, c))) out.push(`"${node.textContent.trim()}" leaves its box`);
-              }
-              if (el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).overflowX !== 'visible') out.push(`"${el.textContent.trim()}" is clipped`);
+        for (const row of rows) {
+          const c = row.getBoundingClientRect(), main = row.querySelector('.gx-prow-main').getBoundingClientRect(), end = row.querySelector('.gx-prow-end').getBoundingClientRect();
+          if (!inside(c, { left: 0, right: document.documentElement.clientWidth })) out.push(`${row.dataset.game}: row leaves the screen`);
+          if (main.right > end.left + 1 && main.bottom > end.top + 1) out.push(`${row.dataset.game}: the name block runs into the Spread`);
+          for (const el of row.querySelectorAll('*')) {
+            if (el.closest('.gx-team') || el.closest('svg')) continue; // the mark's own code letters are hidden once its logo loads
+            const r = el.getBoundingClientRect();
+            for (const node of el.childNodes) {
+              if (node.nodeType !== 3 || !node.textContent.trim()) continue;
+              const range = document.createRange();
+              range.selectNodeContents(node);
+              for (const rect of range.getClientRects()) if (rect.width && !(inside(rect, r) && inside(rect, c))) out.push(`"${node.textContent.trim()}" leaves its box`);
             }
-            // The record gives way first: a name that fits on one line beside the mark is never broken inside a word.
-            const name = team.querySelector('.gx-t-strong'), cs = getComputedStyle(name), measure = document.createElement('canvas').getContext('2d');
-            measure.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+            if (el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).overflowX !== 'visible') out.push(`"${el.textContent.trim()}" is clipped`);
+          }
+        }
+        // A word that fits its line is never split inside it (the title and the meta line wrap between words first).
+        const measure = document.createElement('canvas').getContext('2d');
+        for (const el of document.querySelectorAll('button.gx-prow[data-game] .gx-prow-title, button.gx-prow[data-game] .gx-prow-meta')) {
+          const cs = getComputedStyle(el), room = el.getBoundingClientRect().width - 1;
+          measure.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+          const text = el.firstChild;
+          if (!text || text.nodeType !== 3) continue;
+          for (const found of text.textContent.matchAll(/S+/g)) {
             const range = document.createRange();
-            range.selectNodeContents(name);
+            range.setStart(text, found.index);
+            range.setEnd(text, found.index + found[0].length);
             const lines = new Set([...range.getClientRects()].filter(r => r.width).map(r => Math.round(r.top))).size;
-            if (lines > 1 && measure.measureText(name.textContent).width <= name.parentElement.getBoundingClientRect().width - 1) out.push(`"${name.textContent}" breaks although it fits on one line`);
+            if (lines > 1 && measure.measureText(found[0]).width <= room) out.push(`"${found[0]}" breaks although it fits on one line`);
           }
         }
         return [...new Set(out)];
@@ -238,11 +244,12 @@ for (const reminders of [false, true]) {
   });
 }
 
-// Contract (quick win A21, November 4, 2026): in a game sheet at 320 and 390 px, every button in the action bar keeps a
+// Contract (quick win A21, November 4, 2026): in a game at 320 and 390 px, every button in the action bar keeps a
 // one-line label and the bar's buttons share one height (it said "League bets" on two lines beside one-line buttons); the
 // short "Bets" keeps its full name. Below 360 px the note's two buttons stack, each full width with a one-line label
-// ("Refresh note" wrapped beside "Save note").
-test('game sheet action bar and note buttons keep one-line labels at 320 and 390', async ({ page, baseURL }) => {
+// ("Refresh note" wrapped beside "Save note"). D-69 step 3: the game is a layer and its actions sit at the layer's end
+// (they were the sheet's footer); the contract is unchanged.
+test('game layer action bar and note buttons keep one-line labels at 320 and 390', async ({ page, baseURL }) => {
   const world = await communityWorld(page, baseURL, { migrations: ALL, optionalRpc: true, prepare: WEEK6 });
   try {
     await page.addInitScript(() => localStorage.setItem('gtl.app', 'next'));
@@ -260,7 +267,8 @@ test('game sheet action bar and note buttons keep one-line labels at 320 and 390
       await page.setViewportSize({ width, height: 844 });
       await open(page, '#research/games');
       await page.locator('[data-game="SEA-DEN"]').click();
-      const sheet = page.getByRole('dialog').last();
+      const sheet = page.locator('[data-research="game"]');
+      await expect(sheet).toBeVisible();
       const bar = sheet.getByRole('navigation', { name: 'Actions for this game', exact: true });
       await expect(bar.getByRole('button', { name: 'Open League bets for SEA at DEN', exact: true })).toHaveText('Bets');
       const dock = await bar.getByRole('button').evaluateAll(lineCount);
@@ -272,7 +280,6 @@ test('game sheet action bar and note buttons keep one-line labels at 320 and 390
       const note = await sheet.locator('.gx-game-note-actions > button').evaluateAll(lineCount);
       expect(note.filter(button => button.lines > 1), `${width}px: one-line note buttons`).toEqual([]);
       if (width < 360) expect(note.filter(button => button.width < button.parent - 1), '320px: the note buttons stack full width').toEqual([]);
-      await page.keyboard.press('Escape');
     }
   } finally {
     await world.db.close();

@@ -1,12 +1,13 @@
 import { useId, useMemo, useState } from 'react';
-import { Button, Card, Icon, InfoButton, Skeleton } from '../ui/index.js';
+import { Button, Card, ChartReveal, Icon, InfoButton, Skeleton } from '../ui/index.js';
 import { fmtNum, fmtOdds, fmtSide } from '../format.js';
 import { INFO } from '../info.js';
 import { bestRecordedBook, lineState, marketTime, marketValue, movementGeometry } from './marketDetails.js';
 import { useChartSelection } from '../charts/useChartSelection.js';
 import './marketDetails.css';
 
-export function MarketMovement({ rows, game, market }) {
+/** `reveal` turning true plays the chart's left-to-right reveal once (D-69 step 3); the table and slider never move. */
+export function MarketMovement({ rows, game, market, reveal = false }) {
   const geo = useMemo(() => movementGeometry(rows, game.kickoff), [rows, game.kickoff]);
   const chartId = useId();
   const evidenceKey = useMemo(() => JSON.stringify([game.id, market, rows.map(row => [row.capturedAt, row.value])]), [game.id, market, rows]);
@@ -31,13 +32,13 @@ export function MarketMovement({ rows, game, market }) {
       </p>
       <div className="gx-md-plot" id={chartId} onPointerDown={event => { if (event.isPrimary && event.button === 0) { event.currentTarget.setPointerCapture(event.pointerId); follow(event); } }} onPointerMove={follow}
         onPointerUp={event => { if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); }}>
-        <svg viewBox="0 0 320 140" role="img" aria-describedby={`${chartId}-scale`} aria-label={`${label}: ${geo.points.length} recorded observations.${kickoffLabel ? ` Dashed marker: ${kickoffLabel}.` : ''}`}>
+        <ChartReveal play={reveal}><svg viewBox="0 0 320 140" role="img" aria-describedby={`${chartId}-scale`} aria-label={`${label}: ${geo.points.length} recorded observations.${kickoffLabel ? ` Dashed marker: ${kickoffLabel}.` : ''}`}>
           {kickoffLabel && <line x1={geo.kickoffX} x2={geo.kickoffX} y1="0" y2="140" className="gx-md-kickoff" data-kickoff-marker="true"/>}
           <path d={geo.path} className="gx-md-path"/>
           {geo.points.map(p => <circle key={p.index} cx={p.x} cy={p.y} r={3} className="gx-md-point"/>)}
           {point.x !== geo.kickoffX && <line x1={point.x} x2={point.x} y1="0" y2="140" className="gx-md-cross"/>}
           <circle cx={point.x} cy={point.y} r={6} className="gx-md-point"/>
-        </svg>
+        </svg></ChartReveal>
       </div>
       {kickoffLabel && <p className="gx-md-kickoff-key gx-t-meta"><span aria-hidden="true"/>{kickoffLabel}</p>}
       <div className="gx-md-axis gx-t-meta"><span>{marketTime(geo.points[0].capturedAt)}</span><span>{marketTime(geo.points.at(-1).capturedAt)}</span></div>
@@ -60,6 +61,7 @@ export function MarketMovement({ rows, game, market }) {
 export function MarketPanel({ game, market, cell, now }) {
   const sideId = useId(), title = market === 'spread' ? 'Spread' : 'Total';
   const [side, setSide] = useState(market === 'spread' ? 'home' : 'over');
+  const [opened, setOpened] = useState(false);
   if (cell?.visible !== true) return <Card><p className="gx-t-body gx-md-lock"><Icon icon="lock" size={16}/>{title} lines are locked. Lock in your guess or wait for kickoff.</p></Card>;
   const books = cell.books ?? [], best = bestRecordedBook(books, market, side, now);
   const state = lineState(cell.line, now);
@@ -75,7 +77,12 @@ export function MarketPanel({ game, market, cell, now }) {
         <ul className="gx-md-books">{books.map(book => <li key={book.book} className="gx-vstack gx-gap-8"><div><strong className="gx-t-strong">{book.source}</strong>{best === book.book ? <span className="gx-md-best gx-t-meta">Best recorded</span> : null}</div>{book.standInFor ? <p className="gx-t-meta">Standing in for {book.standInFor}</p> : null}<p className="gx-t-body">{fmtSide(game.awayCode, game.homeCode, side, book.line)} · {fmtOdds(book.prices?.[side])}</p><p className="gx-t-meta">Observed {marketTime(book.observedAt)}</p></li>)}</ul>
       </div>}
     </details>
-    <details className="gx-md-disclosure"><summary><span>Line movement</span><Icon icon="chevronDown" size={16}/></summary><MarketMovement rows={cell.movement ?? []} game={game} market={market}/></details>
+    {/* D-69 step 3: the movement chart reveals left to right on this disclosure's first opening in this game. The tap
+        on the summary starts it, before the disclosure opens (toggle fires a task later, after a frame may have painted
+        the chart whole); toggle still covers an opening without a tap. */}
+    <details className="gx-md-disclosure" onToggle={event => { if (event.currentTarget.open) setOpened(true); }}>
+      <summary onClick={event => { if (!event.currentTarget.parentElement?.open) setOpened(true); }}><span>Line movement</span><Icon icon="chevronDown" size={16}/></summary>
+      <MarketMovement rows={cell.movement ?? []} game={game} market={market} reveal={opened}/></details>
     {game.started && <p className="gx-t-meta">Kickoff line: {marketValue(game, market, cell.kickoffLine?.value)} · Observed {marketTime(cell.kickoffLine?.observedAt)}</p>}
   </Card>;
 }

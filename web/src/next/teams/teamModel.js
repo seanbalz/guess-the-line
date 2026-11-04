@@ -145,3 +145,20 @@ export function teamView(season, code) {
     fallback: season.fallback === true || !(team.games?.length),
   };
 }
+
+const LAST = Object.freeze({ W: Object.freeze({ word: 'Won last', tone: 'good' }), L: Object.freeze({ word: 'Lost last', tone: 'plain' }), T: Object.freeze({ word: 'Tied last', tone: 'plain' }) });
+
+/**
+ * Research › Teams (D-69 step 3): every team in the season as a picture row, by full name: `{ code, name, record, word,
+ * tone, meta, ariaLabel }`. The record is the row's one number; its word is the last final ("Won last"; a loss stays
+ * plain, D-58: losses are quiet); the meta line is the next game ("Next @ DEN"). The bundled records give the record only.
+ */
+export function teamRows(season) {
+  return Object.keys(season?.teams ?? {}).map(code => {
+    const team = teamOf(season, code), name = teamName(code), record = teamRecordText(team?.overall);
+    const last = finals(team).at(-1) ?? null, next = nextGame(team);
+    const said = [name, record ?? 'no record', last ? `${RESULTS[last.result].verb} ${scoreText(last)} ${whereText(last)} in Week ${last.week}` : null, next ? `next ${whereText(next)}` : null];
+    return { code, name, record: record ?? '—', word: last ? LAST[last.result].word : null, tone: last ? LAST[last.result].tone : 'plain',
+      meta: next ? `Next ${whereText(next)}` : null, ariaLabel: `${said.filter(Boolean).join(', ')}. Open team` };
+  }).sort((a, b) => a.name.localeCompare(b.name));
+}

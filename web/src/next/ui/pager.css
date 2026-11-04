@@ -1,0 +1,8 @@
+/* D-69 step 3: a layer's pager (ui/LayerPager.jsx): its place over the previous and next buttons, then the body a sideways
+   drag turns (sheet.css times the motion). Tokens only. */
+.gx .gx-pager-head { display: flex; align-items: center; gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-pager-head > p { flex: 1 1 auto; min-width: 0; margin: 0; }
+/* Clips only the x axis, so the body's sideways travel never widens the page mid-turn. clip makes no scroll container
+   (vertical scroll and sticky are untouched) and is not a transform (fixed bars stay fixed). */
+.gx .gx-pager { min-width: 0; overflow-x: clip; }
+.gx .gx-pager-body { display: flex; flex-direction: column; gap: var(--gx-space-4); min-width: 0; }

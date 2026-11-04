@@ -7,11 +7,12 @@ import { matchupRecords } from './teamModel.js';
 import { useTeamSeason } from './teamsData.js';
 
 /** `<TeamMatchup away="PHI" home="JAX" season={2026} as="h2"/>`; `from` is the back label when opened over a sheet. */
-export function TeamMatchup({ away, home, season = null, size = 48, layout = 'stack', from = null, as: Heading = null, className, headingClassName }) {
+export function TeamMatchup({ away, home, season = null, size = 48, layout = 'stack', from = null, onTeam = null, as: Heading = null, className, headingClassName }) {
   const shell = useShell();
   const { data } = useTeamSeason();
   const records = matchupRecords(data, away, home, season);
-  const open = code => shell.openSheet('sh.team', from ? { team: code, from } : { team: code });
+  // D-69 step 3: inside Research a team opens its own layer (`onTeam`); elsewhere (Play's picks) its sheet.
+  const open = onTeam ?? (code => shell.openSheet('sh.team', from ? { team: code, from } : { team: code }));
   const drawn = <Matchup away={away} home={home} size={size} layout={layout} records={records} onTeam={open} className={className}/>;
   if (!Heading) return drawn;
   return <Heading className={headingClassName} aria-label={matchupWords(teamCode(away), teamCode(home), records)}>{drawn}</Heading>;

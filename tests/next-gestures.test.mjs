@@ -125,7 +125,12 @@ test('the game sheet pages in the board\'s order: games to come by kickoff, then
   ] };
   const order = boardOrder(personal);
   assert.deepEqual(order.map(g => g.id), ['HOU-JAX', 'NO-NYG', 'WAS-SF', 'SEA-DEN'], 'same kickoff by id; SEA @ DEN kicked off, so it is last');
-  assert.deepEqual(order.map(g => g.title), ['HOU @ JAX', 'NO @ NYG', 'WAS @ SF', 'SEA @ DEN']);
+  assert.deepEqual(order.map(g => g.title), ['HOU @ JAX', 'NO @ NYG', 'WAS @ SF', 'SEA @ DEN'], 'the League feed’s game sheet names games by code');
+  // Research's game layer names them as its rows do; the order is the same.
+  const named = boardOrder(personal, { title: game => `${game.away}/${game.home}` });
+  assert.deepEqual(named.map(g => g.id), order.map(g => g.id));
+  assert.deepEqual(named.map(g => g.title), ['HOU/JAX', 'NO/NYG', 'WAS/SF', 'SEA/DEN']);
+  assert.equal(gamePager(named, 'NO-NYG').prevLabel, 'Previous game, HOU/JAX');
   assert.deepEqual(boardOrder({ games: personal.games }).map(g => g.id), ['SEA-DEN', 'HOU-JAX', 'NO-NYG', 'WAS-SF'], 'without the server clock, every game is still to come');
   assert.deepEqual(boardOrder(null), []);
   const second = gamePager(order, 'NO-NYG');

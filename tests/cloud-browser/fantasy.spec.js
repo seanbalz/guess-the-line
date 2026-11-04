@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import { createHash } from 'node:crypto';
 import { ALL } from '../migrations.mjs';
 import { communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
+import { layoutProblems } from '../helpers/phone-layout.mjs';
 import { buildRankings, DEFAULT_FILTERS } from '../../shared/fantasy-rankings.mjs';
 import { snapshotFileName, reviewFileName, updateFantasyIndex, FANTASY_REPOSITORY } from '../../shared/fantasy-index.mjs';
 import { validateFantasyReview } from '../../shared/fantasy-review.mjs';
@@ -28,6 +29,16 @@ async function open(page, baseURL, app, worldOptions = {}) {
   const screen = root(page, app);
   await expect(list(screen)).toBeVisible();
   return { world, screen };
+}
+// D-69 step 3 phone rules on the report card's tiles and rows (Task 9): nothing clipped or off its box (layoutProblems), no
+// text under 12 px, also in the wide fallback face CI's Linux runner draws (October 21: wider letters than Windows).
+const WIDE_FONT = '.gx { --gx-font-body: Verdana, "DejaVu Sans", sans-serif !important; }';
+async function phoneRules(page, screen, where) {
+  await page.evaluate(() => scrollTo(0, 0));
+  const problems = [...(await page.evaluate(layoutProblems)), ...(await screen.evaluate(scope => [...scope.querySelectorAll('*')]
+    .filter(el => el.getClientRects().length && getComputedStyle(el).visibility !== 'hidden' && !el.closest('[hidden], .gx-sr-only') && [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()) && parseFloat(getComputedStyle(el).fontSize) < 12)
+    .map(el => `small text ${el.textContent.trim().slice(0, 40)}`)))];
+  expect(problems, where).toEqual([]);
 }
 async function rowsMatch(screen, filters) {
   const names = expected(filters).slice(0, 50).map(player => player.name);
@@ -257,7 +268,18 @@ test.describe('fantasy rankings', () => {
           const card = screen.getByLabel('Week 5 accuracy');
           await expect(card).toBeVisible();
           await expect(card.getByText('PROVISIONAL', { exact: true })).toBeVisible();
+          // D-69 step 3: tiles and rows; the misses one tap away.
+          for (const key of ['miss', 'baseline', 'within', 'graded']) await expect(card.locator(`[data-report="${key}"]`)).toBeVisible();
+          await expect(card.getByRole('heading', { name: 'Off by, by position', exact: true })).toBeVisible();
+          await expect(card.locator('details[data-fantasy="misses"] > summary')).toHaveText('Biggest misses');
           await layout(page, screen);
+          if (width < 1000) {
+            await phoneRules(page, screen, `report card ${theme} ${width}`);
+            const wide = await page.addStyleTag({ content: WIDE_FONT });
+            await phoneRules(page, screen, `report card ${theme} ${width} wide font`);
+            expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `report card ${theme} ${width} wide font: no sideways scroll`).toBe(true);
+            await wide.evaluate(tag => tag.remove());
+          }
           await page.screenshot({ path: testInfo.outputPath(`fantasy-report-${width}-${theme}.png`), fullPage: true });
           const results = await new AxeBuilder({ page }).include('.gx-fantasy').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
           expect(results.violations.map(issue => `${issue.id}: ${issue.nodes.map(node => node.target.join(' ')).join(', ')}`)).toEqual([]);

@@ -3,9 +3,10 @@
 // the season's games as marks with scores (the next game marked). With the bundled records only, the tiles stay and one
 // sentence says game-by-game results are not available. The nflverse credit sits behind ⓘ (rule 10). No market of any
 // kind appears here. TeamSheet owns the stable frame; this view receives its season and team code.
-import { useId } from 'react';
+import { useId, useState } from 'react';
 import { Button, Icon, InfoButton, Matchup, Pill, TeamMark } from '../ui/index.js';
 import { useChartSelection } from '../charts/useChartSelection.js';
+import { hasNavigated } from '../moments/launch.js';
 import { fmtFull } from '../format.js';
 import { TEAM_RECORDS_COUNTED } from '../info.js';
 import { MarginChart } from './MarginChart.jsx';
@@ -95,6 +96,7 @@ function Games({ rows, margins, selection, chartId }) {
 export function TeamView({ season, code }) {
   const view = teamView(season, code);
   const chartId = useId();
+  const [reveal] = useState(() => hasNavigated()); // a tap opened it; never on a load
   // Same-week games from another team/season or corrected results are different evidence.
   const selection = useChartSelection(JSON.stringify([season?.season, view?.code, view?.margins]), view?.margins.length ?? 0);
   if (!view) return <p className="gx-t-body gx-c-2" role="status">This team’s record isn’t available right now.</p>;
@@ -112,7 +114,7 @@ export function TeamView({ season, code }) {
       <Tiles tiles={view.tiles}/>
       {view.fallback ? <p className="gx-t-body gx-c-2" data-team="no-games">{NO_GAMES}</p> : <>
         {view.lastFive.length ? <LastFive items={view.lastFive}/> : null}
-        {view.margins.length ? <MarginChart series={view.margins} extent={view.extent} selection={selection} id={chartId}/> : null}
+        {view.margins.length ? <MarginChart series={view.margins} extent={view.extent} selection={selection} id={chartId} reveal={reveal}/> : null}
         {view.rows.length ? <Games rows={view.rows} margins={view.margins} selection={selection} chartId={chartId}/> : null}
       </>}
     </div>

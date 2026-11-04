@@ -17,7 +17,9 @@ import { ALL } from '../migrations.mjs';
 import { communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 
 const ADDRESSES = ['#home', '#home?layer=who', '#play', '#play/picks', '#play/score', '#play/compare', '#play/points', '#play/league', '#play/features', '#play/features?layer=streaks', '#play/features?layer=awards', '#play/features?layer=season', '#play/features?layer=badge&item=bullseye', '#play/league?view=feed', '#play/league?view=history', '#play/league?view=history&week=6', '#bets', '#bets/recommended', '#bets/active',
-  '#bets/virtual', '#bets/everyone', '#research', '#research/games', '#research/trends', '#history', '#history/bets', '#history/older'];
+  '#bets/virtual', '#bets/everyone', '#research', '#research/games', '#research/trends',
+  // D-69 step 3: one game (this world's first, Week 5's TB-DAL) and one team are layers with their own addresses; Teams is a list.
+  '#research/games?layer=game&item=TB-DAL', '#research/teams', '#research/teams?layer=team&item=SEA', '#history', '#history/bets', '#history/older'];
 const PASSES = [{ theme: 'dark', width: 390, height: 844 }, { theme: 'light', width: 320, height: 568 }];
 // Tab presses per page; enough to walk past the first screenful on every page above.
 const TAB_PRESSES = 40;
@@ -132,6 +134,9 @@ test('the tab bar stays at the bottom while every page scrolls, and nothing is l
       for (const address of ADDRESSES) {
         const label = `${theme} ${width}x${height} ${address}`;
         await open(page, address);
+        // A layer address measures the layer itself (the game on this board, the team's details), not the list it falls back to.
+        if (address.includes('layer=game&')) await expect(page.locator('[data-research="game"] .gx-pager-body'), label).toBeVisible();
+        if (address.includes('layer=team&')) await expect(page.locator('[data-research="team"] [aria-label="Team details"]'), label).toBeVisible();
         for (const where of ['top', 'middle', 'end']) {
           await scrollTo(page, where);
           note(label, (await page.evaluate(barProblems)).map(p => `${where}: ${p}`));

@@ -41,7 +41,8 @@ async function setup(page, baseURL, options) {
   await signIn(page, 'luke');
   await expect(page.getByRole('navigation', { name: 'Main', exact: true })).toBeVisible({ timeout: 30000 });
   await page.goto('about:blank'); await page.goto('/#lines');
-  await expect(page.getByRole('heading', { name: 'Lines', exact: true })).toBeVisible({ timeout: 30000 });
+  // D-69 step 3: the board's title is Games (it was Lines).
+  await expect(page.getByRole('heading', { name: 'Games', exact: true })).toBeVisible({ timeout: 30000 });
   return { world, synthetic, ids };
 }
 const sheet = page => page.getByRole('dialog', { name: 'Trends', exact: true });
@@ -285,8 +286,9 @@ test('shared weekly/matchup shortlist, full opposition, periods, chart/table, Tr
     await expect(dialog.getByText(/Original plays/)).toBeVisible();
     await expect(dialog.getByText(/Synthetic pattern/)).toHaveCount(0);
     await dialog.getByRole('button', { name: 'Close', exact: true }).click();
-    await page.locator(`.gx-l-card[data-game="${ids[0]}"]`).click();
-    const gameDialog = page.getByRole('dialog');
+    // D-69 step 3: a board row opens the game as a layer (it was the game sheet); the research sheet still opens over it.
+    await page.locator(`.gx-prow[data-game="${ids[0]}"]`).click();
+    const gameDialog = page.locator('[data-research="game"]');
     await expect(gameDialog.locator(`[data-research-card="${canonicalId}"]`)).toHaveCount(1);
     await gameDialog.getByRole('button', { name: 'Open matchup research', exact: true }).click();
     await expect(page.getByRole('dialog').locator(`[data-research-card="${canonicalId}"]`)).toHaveCount(1);
@@ -465,7 +467,7 @@ test('switching accounts cannot restore the prior account’s delayed expected-m
     await page.getByRole('button', { name: 'Sign out', exact: true }).click();
     await signIn(page, 'troy', { navigate: false });
     await page.goto('/#lines');
-    await expect(page.getByRole('heading', { name: 'Lines', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Games', exact: true })).toBeVisible();
     await openResearch(page);
     const expectedLine = sheet(page).locator('.gx-r-references > div').first();
     await expect(expectedLine).toContainText('44');
