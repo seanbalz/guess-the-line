@@ -126,6 +126,8 @@ test('before the job has run: an empty recap with no sample, streaks at 0 and th
   await expect(screen.getByRole('heading', { name: 'Week 4 awards', level: 2 })).toBeFocused();
   await expect(screen.locator('[data-features="awards"]')).toContainText('Worst beat');
   await expect(screen.locator('[data-features="awards"]')).toContainText('Lost by 12.5');
+  // Luke's own Spread winner names him "You" with the week's points (the detail Home's old award chips showed).
+  await expect(screen.locator('[data-features="awards"] li').filter({ hasText: 'Spread winner' }).first()).toContainText('You · 20 PTS');
   await phoneChecks(page, info, 'features-awards');
   await page.goBack();
   await expect(screen.getByRole('heading', { name: 'Badges and awards', level: 2 })).toBeVisible();

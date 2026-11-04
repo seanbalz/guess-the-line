@@ -42,12 +42,18 @@ const focused = page => page.evaluate(() => {
 });
 const seen = (page, account = LUKE) => page.evaluate(key => JSON.parse(localStorage.getItem(key) ?? '[]'), momentsKey(account));
 
-/** Answers `name` from the world's real handler, with `edit(body)` applied to the reply. */
+/**
+ * Answers `name` from the world's real handler, with `edit(body)` applied to a successful JSON reply. Any other reply
+ * (an empty body such as a preflight's, or one that is not JSON) passes through unchanged, as the world itself answers.
+ */
 async function rewrite(page, world, name, edit) {
   await page.route(api(name), async route => {
     const req = route.request();
     const response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), ...(req.method() === 'POST' ? { body: req.postData() } : {}) }));
-    const body = await response.json();
+    const text = await response.text();
+    let body;
+    if (text && /json/i.test(response.headers.get('content-type') ?? '')) { try { body = JSON.parse(text); } catch { body = undefined; } }
+    if (body === undefined) return route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: text });
     if (response.ok) edit(body);
     await route.fulfill({ status: response.status, headers: { 'access-control-allow-origin': '*' }, contentType: 'application/json', body: JSON.stringify(body) });
   });
@@ -359,9 +365,11 @@ test('reaching 1st from while you were away is NEW on its rank tile and plays as
 test('a waiting Whole week locked moment never plays on launch; it pops on Home’s card when the card draws after a navigation, once', async ({ page, baseURL }) => {
   const world = await draftWeek(page, baseURL);
   // The Community read says per-game rules, every Spread game locked by Luke and Total still open (a fixture reply),
-  // and this device read that source before: the Spread Whole week locked moment waits.
+  // and this device read that source before: the Spread Whole week locked moment waits. Per-game rules come only with
+  // final sent picks and the kickoff late window (the server refuses anything else, cloud/live-rules.mjs), which also
+  // reveals at kickoff.
   await rewrite(page, world, 'community/read', body => {
-    body.rules = { ...body.rules, perGameScoring: true };
+    body.rules = { ...body.rules, sentFinal: true, lateWindow: 'kickoff', revealAt: 'kickoff', perGameScoring: true };
     body.due = body.due.map(row => (row.mode === 'guess_spread' ? { ...row, locked: row.games, openGames: 0, filled: row.games } : { ...row, locked: 0, openGames: row.games }));
   });
   try {
