@@ -15,17 +15,17 @@ const community = ({ state = 'due', rows = due(), perGame = false } = {}) => ({ 
 const headline = c => heroHeadline({ hero: homeHero({ community: c }), community: c });
 const wordCount = text => String(text).split(/\s+/).filter(w => w && w !== '·').length;
 
-test('the card while picks are due: "Your next move", the action in words and the deadline; per-game names the next kickoff', () => {
-  assert.deepEqual(headline(community()), { eyebrow: 'Your next move', title: 'Lock in 4 games', sub: 'before Thu 5:15 PM PT' });
+test('the card while picks are due: "Week N · Your next move", the action in words and the deadline; per-game names the next kickoff', () => {
+  assert.deepEqual(headline(community()), { eyebrow: 'Week 9 · Your next move', title: 'Lock in 4 games', sub: 'before Thu 5:15 PM PT' });
   const perGame = community({ perGame: true, rows: due({ locked: 1, openGames: 3, nextKickoff: SUN10 }, { locked: 2, openGames: 2, nextKickoff: SUN10 }) });
-  assert.deepEqual(headline(perGame), { eyebrow: 'Your next move', title: 'Lock in 3 games', sub: 'Next kickoff Sun 10:00 AM PT' });
+  assert.deepEqual(headline(perGame), { eyebrow: 'Week 9 · Your next move', title: 'Lock in 3 games', sub: 'Next kickoff Sun 10:00 AM PT' });
 });
 
-test('nothing due: "Week N" over one plain headline; both ballots done reads "Week N locked in", every market sat out "Week N sat out"', () => {
-  assert.deepEqual(headline(community({ state: 'done', rows: due({ submitted: true, filled: 4 }, { satOut: true }) })), { eyebrow: 'Week 9', title: HERO_COPY.allIn(9), sub: null });
+test('nothing due: "Your week" over one plain headline; both ballots done reads "Week N locked in", every market sat out "Week N sat out"', () => {
+  assert.deepEqual(headline(community({ state: 'done', rows: due({ submitted: true, filled: 4 }, { satOut: true }) })), { eyebrow: 'Your week', title: HERO_COPY.allIn(9), sub: null });
   assert.equal(HERO_COPY.allIn(9), 'Week 9 locked in');
   assert.equal(headline(community({ state: 'done', rows: due({ satOut: true, filled: 0 }, { satOut: true }) })).title, 'Week 9 sat out');
-  assert.deepEqual(headline(community({ state: 'not_open' })), { eyebrow: 'Week 9', title: HERO_COPY.opensSoon, sub: null });
+  assert.deepEqual(headline(community({ state: 'not_open' })), { eyebrow: 'Week 9 · Your next move', title: HERO_COPY.opensSoon, sub: null });
   assert.deepEqual(headline(community({ state: 'closed' })), { eyebrow: 'Week 9', title: HOME_COPY.closed, sub: null });
   assert.deepEqual(headline({ picksDue: { state: 'none', modes: [] }, due: [] }), { eyebrow: null, title: HOME_COPY.noWeek, sub: null });
 });

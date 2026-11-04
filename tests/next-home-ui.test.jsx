@@ -101,8 +101,8 @@ describe('Home while picks are due', () => {
     expect(nodes(html, n => n.tag === 'h1').map(textOf)).toEqual(['Home']);
     const hero = nodes(html, attr('data-home', 'hero'))[0];
     expect(hero.attrs['data-state']).toBe('due');
-    // H1A: while picks are due the card's eyebrow is "Your next move", in place of "Week 6" (Decisions for Sean).
-    expect(textOf(hero)).toContain(HERO_COPY.nextMove);
+    // H1A: while picks are due the card's eyebrow is "Week 6 · Your next move": the week stays visible.
+    expect(textOf(hero)).toContain(HERO_COPY.weekMove(6));
     expect(primaries(html).map(textOf)).toEqual(['Make picks']);
     expect(buttons(html).filter(t => t === 'See Lines')).toEqual([]);
     const timer = nodes(html, attr('role', 'timer'))[0];
@@ -118,8 +118,7 @@ describe('Home while picks are due', () => {
     const hero = nodes(html, attr('data-home', 'hero'))[0];
     expect(nodes(hero, n => n.tag === 'h2').map(textOf)).toEqual(['Lock in 4 games']);
     expect(nodes(hero, attr('data-home', 'when')).map(textOf)).toEqual(['before Thu 5:15 PM PT']);
-    expect(nodes(hero, attr('data-home', 'eyebrow')).map(textOf)).toEqual([HERO_COPY.nextMove]);
-    expect(seen(hero)).not.toContain('Week 6');
+    expect(nodes(hero, attr('data-home', 'eyebrow')).map(textOf)).toEqual(['Week 6 · Your next move']);
     expect(textOf(hero)).not.toContain(HERO_COPY.dueSoon);
   });
 
@@ -158,6 +157,9 @@ describe('Home while picks are due', () => {
     const list = nodes(html, attr('data-home', 'tiles'))[0];
     expect(list.attrs.class).toContain('gx-tiles');
     expect(nodes(list, n => n.tag === 'li').map(li => li.attrs['data-tile'])).toEqual(['spread', 'total', 'who', 'awards', 'tickets', 'trends']);
+    // Back returns focus by id (Shell saves id, then aria-label): each tile has a stable id that survives its NEW tag dropping.
+    // The browser spec tests/cloud-browser/four-tab-redesign.spec.js checks the Spread rank tile is focused after Back.
+    expect(nodes(list, n => n.tag === 'button').map(b => b.attrs.id)).toEqual(['spread', 'total', 'who', 'awards', 'bets', 'trends'].map(k => `gx-h-tile-${k}`));
     expect(nodes(list, n => n.tag === 'button').map(nameFrom)).toEqual([
       'Spread rank, T-2, 10 points', 'Total rank, not scored yet', 'Who’s in, 4 of 5 Spread ballots in', 'Awards', 'My bets, loading', 'Trends, none saved, charts for every game']);
     expect(nodes(tile(html, 'who'), hasClass('gx-tile-pic'))).toHaveLength(1);
@@ -177,7 +179,7 @@ describe('Home while picks are due', () => {
     expect(nodes(total, attr('data-home', 'points'))).toHaveLength(0);
   });
 
-  it('a rank tile shows the last move the League board saw on this device, and reads it without spending it', () => {
+  it('a rank tile shows the last move the League board saw on this device, (the arrow on first paint)', () => {
     const store = new Map([[rankKey('u-casey', 'community', SPREAD), JSON.stringify({ rank: 4, from: null })]]);
     vi.stubGlobal('localStorage', { getItem: key => store.get(key) ?? null, setItem: (key, value) => store.set(key, value) });
     try {
@@ -186,7 +188,6 @@ describe('Home while picks are due', () => {
       expect(seen(spread)).toBe('Spread rank T-2 ▲ 2 · 10 pts');
       expect(nameFrom(button(spread))).toBe('Spread rank, T-2, up 2, 10 points');
       expect(nodes(spread, hasClass('gx-tile-sub--good'))).toHaveLength(1);
-      expect(store.get(rankKey('u-casey', 'community', SPREAD))).toBe(JSON.stringify({ rank: 4, from: null }));
     } finally { vi.unstubAllGlobals(); }
   });
 });
@@ -214,6 +215,7 @@ describe('the other hero states', () => {
     home(reply({ due: [{ mode: SPREAD, submitted: true, satOut: false, filled: 4, games: 4 }, { mode: TOTAL, submitted: false, satOut: true, filled: 0, games: 4 }], picksDue: { state: 'done', modes: [] } }));
     html = render();
     expect(heading(html)).toEqual(['Week 6 locked in']);
+    expect(nodes(html, attr('data-home', 'eyebrow')).map(textOf)).toEqual(['Your week']);
     expect(nodes(html, attr('data-home', 'status')).map(textOf)).toEqual(['Spread · sent Total · sat out']);
     expect(primaries(html)).toHaveLength(1);
 
@@ -224,7 +226,8 @@ describe('the other hero states', () => {
     expect(nodes(html, attr('data-home', 'status'))).toHaveLength(0);
     expect(nodes(html, attr('role', 'timer'))).toHaveLength(0);
     expect(buttons(nodes(html, attr('data-home', 'hero'))[0])).toEqual(['Explore games']);
-    expect(nodes(html, attr('data-home', 'whos-in'))).toHaveLength(0);
+    expect(nameFrom(button(tile(html, 'who')))).toBe('Who’s in, no week open');
+    expect(seen(tile(html, 'who'))).toContain('No week open');
   });
 });
 

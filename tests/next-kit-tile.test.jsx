@@ -31,6 +31,14 @@ describe('Tile (kit)', () => {
     expect(byClass(html, 'gx-new')).toHaveLength(1);
   });
 
+  it('an optional id reaches the button and stays the same when NEW drops and the spoken name changes (the shell refocuses by id)', () => {
+    const tile = isNew => buttons(render(<ui.Tile id="gx-h-tile-x" label="X" big="1" sub="s" isNew={isNew} ariaLabel="X, one" onClick={() => {}}/>))[0];
+    expect(tile(true).attrs.id).toBe('gx-h-tile-x');
+    expect(tile(false).attrs.id).toBe('gx-h-tile-x');
+    expect(nameFrom(tile(true))).not.toBe(nameFrom(tile(false)));
+    expect(buttons(render(<ui.Tile label="X" big="1" sub="s" ariaLabel="X" onClick={() => {}}/>))[0].attrs.id).toBeUndefined();
+  });
+
   it('a picture (faces, marks) sits under the label, hidden from screen readers because the name already says it', () => {
     const faces = <ui.AvatarStack people={[{ id: 'u-1', name: 'Avery Stone' }, { id: 'u-2', name: 'Blake Rivers' }]} max={4} size={24}/>;
     const html = render(<ui.Tile label="Who’s in" icon="people" picture={faces} big="4 / 6" sub="Spread ballots in" ariaLabel="Who’s in, 4 of 6 Spread ballots in" onClick={() => {}}/>);

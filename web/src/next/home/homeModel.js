@@ -30,6 +30,8 @@ export const GAME_TILES = 4;
 
 export const HERO_COPY = Object.freeze({
   nextMove: 'Your next move',
+  weekMove: week => `Week ${week} · Your next move`,
+  yourWeek: 'Your week',
   lockIn: n => `Lock in ${plural(n, 'game')}`,
   before: when => `before ${when}`,
   nextKickoff: when => `Next kickoff ${when}`,
@@ -71,12 +73,12 @@ export function heroHeadline({ hero, community }) {
   const eyebrow = HOME_COPY.weekTitle(week);
   if (hero.action?.primary) {
     const n = gamesToLock(community);
-    if (n === 0) return { eyebrow, title: doneTitle(community, week), sub: null };
+    if (n === 0) return { eyebrow: HERO_COPY.yourWeek, title: doneTitle(community, week), sub: null };
     const when = hero.countdownTarget ? fmtWhen(hero.countdownTarget) : null;
-    return { eyebrow: HERO_COPY.nextMove, title: HERO_COPY.lockIn(n), sub: when ? (hero.perGame ? HERO_COPY.nextKickoff(when) : HERO_COPY.before(when)) : null };
+    return { eyebrow: HERO_COPY.weekMove(week), title: HERO_COPY.lockIn(n), sub: when ? (hero.perGame ? HERO_COPY.nextKickoff(when) : HERO_COPY.before(when)) : null };
   }
-  if (hero.state === 'done') return { eyebrow, title: doneTitle(community, week), sub: null };
-  if (hero.state === 'not_open') return { eyebrow, title: HERO_COPY.opensSoon, sub: null };
+  if (hero.state === 'done') return { eyebrow: HERO_COPY.yourWeek, title: doneTitle(community, week), sub: null };
+  if (hero.state === 'not_open') return { eyebrow: HERO_COPY.weekMove(week), title: HERO_COPY.opensSoon, sub: null };
   return { eyebrow, title: HERO_COPY.locked, sub: null };
 }
 

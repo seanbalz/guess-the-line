@@ -103,7 +103,7 @@ function Hero({ app, hero, headline, meters, season, onPicks, onLines }) {
  * the season points counting up from what it last showed. It reports that board's rank moment from each fresh Community
  * read (League does the same; one id, one play), and shows NEW while the move waits for its Your score card.
  */
-function RankTile({ mode, label, tile, viewer, read, fresh, onOpen }) {
+function RankTile({ mode, tileKey, label, tile, viewer, read, fresh, onOpen }) {
   const moment = useRankMoment({ account: viewer, league: 'community', mode, rank: tile.rank, tied: tile.tied, market: MODE_LABEL[mode], read, fresh });
   // The arrow this device last saw, read without spending it; the report above moves the record on.
   const move = useMemo(() => peekMove(readRank(rankKey(viewer, 'community', mode)), { rank: tile.rank }), [viewer, mode, tile.rank, moment.id]);
@@ -115,13 +115,13 @@ function RankTile({ mode, label, tile, viewer, read, fresh, onOpen }) {
       {view.points !== null ? <span data-home="points"><CountUp value={view.points} account={viewer} figure={`community.${mode}.season.${viewer}`}/> pts</span> : null}
     </>
   );
-  return <Tile label={label} icon={HOME_TILE_ICONS[mode]} big={view.big} sub={sub} tone={view.tone} isNew={isNew} ariaLabel={view.ariaLabel} onClick={onOpen}/>;
+  return <Tile id={`gx-h-tile-${tileKey}`} label={label} icon={HOME_TILE_ICONS[mode]} big={view.big} sub={sub} tone={view.tone} isNew={isNew} ariaLabel={view.ariaLabel} onClick={onOpen}/>;
 }
 
 function WhoTile({ who, week, onOpen }) {
   const view = whoTile({ whosIn: who, week });
   const faces = view.people.length ? <AvatarStack people={view.people} max={4} size={24}/> : null;
-  return <Tile label={HOME_COPY.whosIn} icon={HOME_TILE_ICONS.who} picture={faces} big={view.big} sub={view.sub} ariaLabel={view.ariaLabel} onClick={onOpen}/>;
+  return <Tile id="gx-h-tile-who" label={HOME_COPY.whosIn} icon={HOME_TILE_ICONS.who} picture={faces} big={view.big} sub={view.sub} ariaLabel={view.ariaLabel} onClick={onOpen}/>;
 }
 
 /** Awards: reads the shared features read (M-25) like every reader, and shows NEW while a badge or award waits. */
@@ -129,18 +129,18 @@ function AwardsTile({ app, shell }) {
   const features = useFeatures(app, shell);
   const waiting = useNewMoments(SCOPES.features);
   const view = awardsTile({ model: features.model, off: features.off, waiting });
-  return <Tile label="Awards" icon={HOME_TILE_ICONS.awards} big={view.big} sub={view.sub} tone={view.tone} isNew={view.isNew} ariaLabel={view.ariaLabel} onClick={() => shell.go('play', featuresView())}/>;
+  return <Tile id="gx-h-tile-awards" label="Awards" icon={HOME_TILE_ICONS.awards} big={view.big} sub={view.sub} tone={view.tone} isNew={view.isNew} ariaLabel={view.ariaLabel} onClick={() => shell.go('play', featuresView())}/>;
 }
 
 /** My bets: the ticket read starts here, so Home reads tickets only once it has a week to show. */
 function BetsTile({ app, onOpen }) {
   const view = betsTile(useTicketSummary(app));
-  return <Tile label="My bets" icon={DESTINATION_ICONS.activeTickets} big={view.big} sub={view.sub} ariaLabel={view.ariaLabel} onClick={onOpen}/>;
+  return <Tile id="gx-h-tile-bets" label="My bets" icon={DESTINATION_ICONS.activeTickets} big={view.big} sub={view.sub} ariaLabel={view.ariaLabel} onClick={onOpen}/>;
 }
 
 function TrendsTile({ onOpen }) {
   const view = trendsTile(useSavedTrends().items);
-  return <Tile label="Trends" icon={DESTINATION_ICONS.trends} big={view.big} sub={view.sub} ariaLabel={view.ariaLabel} onClick={() => onOpen(view.open)}/>;
+  return <Tile id="gx-h-tile-trends" label="Trends" icon={DESTINATION_ICONS.trends} big={view.big} sub={view.sub} ariaLabel={view.ariaLabel} onClick={() => onOpen(view.open)}/>;
 }
 
 /** The six tiles (H1A), in the order Sean's board shows them. */
@@ -151,8 +151,8 @@ function HomeTiles({ app, shell, community, tiles, hero, week, viewer }) {
   const toScore = market => shell.go('play', { section: 'score', ...week, market, team: '', matchup: '', scoreGame: null });
   return (
     <ul className="gx-tiles gx-h-tiles" aria-label="Home sections" data-home="tiles">
-      <li data-tile="spread"><RankTile mode="guess_spread" label={HOME_COPY.spreadRank} tile={tiles.spread} viewer={viewer} read={read} fresh={fresh} onOpen={() => toScore('spread')}/></li>
-      <li data-tile="total"><RankTile mode="guess_total" label={HOME_COPY.totalRank} tile={tiles.total} viewer={viewer} read={read} fresh={fresh} onOpen={() => toScore('total')}/></li>
+      <li data-tile="spread"><RankTile mode="guess_spread" tileKey="spread" label={HOME_COPY.spreadRank} tile={tiles.spread} viewer={viewer} read={read} fresh={fresh} onOpen={() => toScore('spread')}/></li>
+      <li data-tile="total"><RankTile mode="guess_total" tileKey="total" label={HOME_COPY.totalRank} tile={tiles.total} viewer={viewer} read={read} fresh={fresh} onOpen={() => toScore('total')}/></li>
       <li data-tile="who"><WhoTile who={tiles.whosIn} week={hero.week} onOpen={() => shell.setView('home', { layer: HOME_LAYERS.who })}/></li>
       <li data-tile="awards"><AwardsTile app={app} shell={shell}/></li>
       <li data-tile="tickets"><BetsTile app={app} onOpen={() => shell.go('bets', { view: 'active', season: null, week: null, period: null })}/></li>
