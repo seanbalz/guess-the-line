@@ -134,7 +134,9 @@ test('Trends code waits for a visit, including with saved Home trends, and its l
   }
   expect(reads).toEqual([]);
   mode='ready';release();
-  await expect(page.locator('[data-trend-availability]')).toBeVisible();await expect(region).toBeFocused();
+  // D-69 step 3: with a saved trend the landing's Trends tile (Home's tile) opens the saved trends, Build; the loaded
+  // Trends content keeps focus on its region.
+  await expect(group(page,'Trends section').getByRole('button',{name:'Build',exact:true})).toHaveAttribute('aria-pressed','true');await expect(region).toBeFocused();
   await group(page,'Trends section').getByRole('button',{name:'Players',exact:true}).click();
   await expect(page.locator('[data-player]').first()).toHaveAttribute('data-player',ACCOUNTS.luke.id);
   await noSentinel(page);
@@ -270,8 +272,18 @@ test('published week, market gates, team filters, game sheets/back, player windo
   await expect(week.getByRole('heading',{level:2,name:weekTitle,exact:true})).toBeFocused();
   await expect(page).toHaveURL(/weekTrend=t[0-9a-z]+/);
   await expect(week.getByRole('button',{name:'Back to CAR @ PHI',exact:true})).toBeVisible();
+  // D-69 step 3: the opened trend's chart reveals after the tap, then rests; its win rate is a count-up at rest.
+  const chart = week.locator('.gx-nest-chart .gx-reveal');
+  await expect(chart).toHaveAttribute('data-reveal', 'in');
+  await expect.poll(() => chart.getAttribute('data-reveal')).toBeNull();
+  await expect(week.locator('.gx-nest-chart .gx-countup')).toHaveAttribute('data-count', 'rest');
   for (const width of [390,320]) {
    await page.setViewportSize({width,height:844}); await phone(page);
+   // The reveal's wrapper keeps the chart's size: the full width of its card and its 120 px height.
+   const size = await week.locator('.gx-nest-chart').evaluate(card => { const svg = card.querySelector('svg.gx-nest-chart-line').getBoundingClientRect(), cs = getComputedStyle(card);
+    return { width: Math.round(svg.width), room: Math.round(card.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)), height: Math.round(svg.height) }; });
+   expect(size.width, `the trend chart fills its card at ${width}`).toBe(size.room);
+   expect(size.height, `the trend chart keeps its height at ${width}`).toBe(120);
    expect((await new AxeBuilder({page}).include('.gx').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations.map(v=>v.id)).toEqual([]);
    await page.screenshot({path:testInfo.outputPath(`week-trend-${width}.png`),fullPage:true});
   }
@@ -310,6 +322,14 @@ test('published week, market gates, team filters, game sheets/back, player windo
   await expect(page).toHaveURL(/teamsTeam=CAR/);
   await expect(nest).toContainText('CAR @ PHI');
   await page.screenshot({path:testInfo.outputPath('nest-team-390.png'),fullPage:true});
+  // D-69 step 3 (Task 7): the team's trend tiles draw their win rates as count-ups, each a polite live region; axe on the grid.
+  await expect(nest.locator('.gx-nest-tile .gx-countup').first()).toBeVisible();
+  for (const width of [390,320]) {
+   await page.setViewportSize({width,height:844});
+   await page.evaluate(()=>Promise.all(document.getAnimations().filter(a=>a.playState==='running'&&Number.isFinite(a.effect?.getComputedTiming().endTime)).map(a=>a.finished.catch(()=>{}))));
+   expect((await new AxeBuilder({page}).include('.gx').withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze()).violations.map(v=>v.id),`axe on the team's trend tiles at ${width}`).toEqual([]);
+  }
+  await page.setViewportSize({width:390,height:844});
   // D-75: two trends, then the rest open in place behind aria-expanded.
   const moreTrends=nest.locator('button.gx-nest-more');
   if (await moreTrends.count()) {
@@ -325,6 +345,8 @@ test('published week, market gates, team filters, game sheets/back, player windo
   await expect(page).toHaveURL(/teamsTrend=t[0-9a-z]+/);
   await expect(nest.getByRole('button',{name:'Back to Carolina Panthers',exact:true})).toBeVisible();
   await expect(nest.locator('[data-trend-chart]')).toBeVisible(); // D-75: one glass chart card, the tags behind ⓘ
+  // The team trend's win rate is a count-up at rest too (this trend draws no line chart: the reveal is checked above).
+  await expect(nest.locator('.gx-nest-chart .gx-countup')).toHaveAttribute('data-count', 'rest');
   for (const width of [390,320]) {
    await page.setViewportSize({width,height:844});
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
@@ -338,14 +360,18 @@ test('published week, market gates, team filters, game sheets/back, player windo
   await nest.locator('[data-team=CAR]').click();
   await noSentinel(page);
   await nest.getByRole('button',{name:'Game details · CAR @ PHI',exact:true}).click();
-  const sheet=page.getByRole('dialog',{name:'CAR @ PHI',exact:true}); await expect(sheet).toBeVisible();
+  // D-69 step 3: Game details opens Research › Games › the game as a layer (it was the game sheet).
+  const sheet=page.locator('[data-research="game"]'); await expect(sheet.getByRole('heading',{name:'CAR @ PHI',level:2,exact:true})).toBeVisible();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(sheet.locator('[data-row=weather]')).toBeVisible();
   await expect(sheet.locator('[data-section=trends]')).toBeVisible();
   const order=await sheet.evaluate(e=>{const w=e.querySelector('[data-row=weather]'),t=e.querySelector('[data-section=trends]');return Boolean(w.compareDocumentPosition(t)&Node.DOCUMENT_POSITION_FOLLOWING);});expect(order).toBe(true);
   await expect(sheet.locator('[data-trend-availability]')).toBeVisible();
   await sheet.getByRole('button',{name:/^All trends/}).click();
   await expect(page.getByRole('dialog',{name:'All trends',exact:true}).locator('[data-trend-availability]')).toBeVisible();
-  await page.goBack(); await expect(sheet).toBeVisible(); await page.goBack(); await expect(sheet).toBeHidden();
+  // Back closes the All trends sheet over the game, then the game layer, back to Teams › CAR.
+  await page.goBack(); await expect(page.getByRole('dialog')).toHaveCount(0); await expect(sheet).toBeVisible();
+  await page.goBack(); await expect(sheet).toHaveCount(0); await expect(nest.getByRole('heading',{level:2,name:'Carolina Panthers',exact:true})).toBeVisible();
   // D-66: Players › Luke › By team › CAR › For CAR replaces the team and matchup filters.
   await group(page,'Trends section').getByRole('button',{name:'Players',exact:true}).click();
   const pl=page.getByRole('region',{name:'Player trends',exact:true});
@@ -472,7 +498,7 @@ test('populated scopes mask synchronously while private read waits; next account
   await expect(page.getByRole('heading',{level:2,name:'Carolina Panthers',exact:true})).toBeVisible();
   await page.getByRole('button',{name:'Your menu',exact:true}).click(); await page.getByRole('button',{name:'Sign out',exact:true}).click();
   await signIn(page,'sean',{navigate:false});await expect(page.getByRole('heading',{name:'Trends',level:1})).toBeVisible();
-  await nav(page).getByRole('button',{name:'Research',exact:true}).click(); await page.locator('[data-landing=research]').getByRole('button',{name:'Trends',exact:true}).click();
+  await nav(page).getByRole('button',{name:'Research',exact:true}).click(); await page.locator('#gx-r-tile-trends').click(); // D-69 step 3: the landing's Trends tile
   await group(page,'Trends section').getByRole('button',{name:'Players',exact:true}).click();
   // A new account starts at Players with itself first; the previous account's player, team and direction are gone.
   await expect(page.getByRole('heading',{level:2,name:'Players',exact:true})).toBeVisible();

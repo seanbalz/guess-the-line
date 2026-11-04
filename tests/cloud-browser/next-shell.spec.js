@@ -251,7 +251,7 @@ test.describe('the real app', () => {
       expectFragment(page, '#play/picks');
       await expect(page.getByRole('group', { name: 'Market', exact: true }).getByRole('button', { name: 'Spread', exact: true })).toHaveAttribute('aria-pressed', 'true');
       // Followed in the page (a fragment change, no new document), then on a fresh load.
-      for (const [fragment, name, hash] of [['#feed', 'League', '#play/league?view=feed'], ['#picks-total', 'Your guesses', '#play/picks?market=total'], ['#fantasy', 'Fantasy', '#research/fantasy'], ['#lines', 'Lines', '#research/games'], ['#main', 'Home', '#main']]) {
+      for (const [fragment, name, hash] of [['#feed', 'League', '#play/league?view=feed'], ['#picks-total', 'Your guesses', '#play/picks?market=total'], ['#fantasy', 'Fantasy', '#research/fantasy'], ['#lines', 'Games', '#research/games'], ['#main', 'Home', '#main']]) {
         await page.goto(`/${fragment}`);
         await expect(title(page, name)).toBeVisible();
         expectFragment(page, hash);
@@ -265,7 +265,8 @@ test.describe('the real app', () => {
           // D-66: Fantasy uses the shell's Back, like the other Research sections (no Back to Research of its own).
           await expect(page.getByRole('button', { name: 'Back', exact: true })).toBeVisible();
         }
-        if (name === 'Lines') await expect(page.locator('.gx-l-group').first()).toBeVisible();
+        // D-69 step 3: the legacy #lines lands on Research › Games, titled Games, its rows picture rows.
+        if (name === 'Games') { await expect(page.locator('.gx-l-group').first()).toBeVisible(); await expect(page.locator('.gx-prow[data-game]').first()).toBeVisible(); }
       }
       const switcher = sheet(page, 'Your leagues');
       for (const fresh of [false, true]) {

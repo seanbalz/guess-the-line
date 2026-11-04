@@ -13,8 +13,12 @@ const save = page => note(page).getByRole('button', { name: 'Save note', exact: 
 const target = world => ({ season: world.state.league.season, week: world.state.league.week, gameId: world.state.games[0].id });
 const rows = async (world, account = 'luke') => (await world.api(account, 'personal/notes', { season: target(world).season, week: target(world).week })).body.notes;
 const put = (world, text, revision, account = 'luke') => world.api(account, 'personal/note', { ...target(world), note: text, revision, requestId: randomUUID() });
-async function openSheet(page) {
-  await page.locator('.gx-l-card').first().click();
+// D-69 step 3: a board row opens the game as a layer (it was the game sheet); its lip, "Back to Games", closes it, and
+// the leave guard asks there as it asked on the sheet's Close.
+const closeGame = page => page.locator('[data-research="game"]').getByRole('button', { name: 'Back to Games', exact: true }).click();
+async function openSheet(page, { reloaded = false } = {}) {
+  // A reload keeps the game layer open (its address names the game); a row opens it otherwise.
+  if (!reloaded) await page.locator('.gx-prow[data-game]').first().click();
   await expect(textbox(page)).toBeVisible();
   await expect(note(page)).toHaveAttribute('aria-busy', 'false');
 }
@@ -110,7 +114,7 @@ test('a legacy 2,000-codepoint note reads whole, preserves an over-limit shorten
     await expect(save(page)).toBeDisabled();
     expect(calls).toEqual([]);
     await page.reload();
-    await openSheet(page);
+    await openSheet(page, { reloaded: true });
     await expect(textbox(page)).toHaveValue(shortened);
     await expect(note(page).getByText(limitMessage, { exact: true })).toBeVisible();
     await expect(save(page)).toBeDisabled();
@@ -187,10 +191,10 @@ test('an uncommitted request survives closing and reopening, retries only on dem
     await save(page).click();
     await expect(note(page).getByRole('alert')).toContainText('could not confirm');
     page.once('dialog', dialog => dialog.dismiss());
-    await page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).click();
+    await closeGame(page);
     await expect(textbox(page)).toHaveValue('Recovered exact request');
     page.once('dialog', dialog => dialog.accept());
-    await page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).click();
+    await closeGame(page);
     await openSheet(page);
     await expect(textbox(page)).toHaveValue('Recovered exact request');
     expect(calls).toHaveLength(1);
@@ -201,7 +205,7 @@ test('an uncommitted request survives closing and reopening, retries only on dem
     expect((await rows(world))[0].note).toBe('Recovered exact request');
     await textbox(page).fill('PRIVATE UNSAVED SENTINEL');
     page.once('dialog', dialog => dialog.accept());
-    await page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).click();
+    await closeGame(page);
     await page.getByRole('button', { name: 'Your menu' }).click();
     await page.getByRole('button', { name: 'Sign out', exact: true }).click();
     // Sign-out awaits the auth service. Assert the completed transition before inspecting its purge side effect.
@@ -209,7 +213,8 @@ test('an uncommitted request survives closing and reopening, retries only on dem
     expect(await page.evaluate(() => Object.keys(sessionStorage).filter(key => key.startsWith('gtl.next.draft.v1.')))).toEqual([]);
     await signIn(page, 'troy', { navigate: false });
     await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Research', exact: true }).click();
-    await page.getByRole('button', { name: 'Explore games', exact: true }).click();
+    // The Research landing's Games tile opens the board (D-69 step 3: the landing is a next-move card and four tiles).
+    await page.locator('#gx-r-tile-games').click();
     await openSheet(page);
     await expect(textbox(page)).toHaveValue('');
     await expect(page.locator('body')).not.toContainText('PRIVATE UNSAVED SENTINEL');
