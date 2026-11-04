@@ -60,7 +60,8 @@ function bookOffer(game, market, side, now) {
 /**
  * Build the Recommendations tab from two authenticated reads for the same week.
  * Never substitute an old saved scoring reference or a consensus for book terms.
- * `rows` includes every nonzero discrepancy, descending by relative gap. Each
+ * `rows` includes every nonzero discrepancy: the ones you can still act on first (D-77: a usable favorable named-book
+ * quote and no saved Virtual Units pick, `actionable`), each group descending by relative gap (D-54). Each
  * row keeps the original game/reference/offer/savedPick objects, and evaluations
  * for BOTH sides use the same consensus (away spread is the negated home line).
  * The 10% traffic-light bands are display guidance, never a win probability.
@@ -120,10 +121,12 @@ export function buildRecommendations({ personal, virtual, now = Date.now() } = {
       const key = `${game.id}:${market}`, savedPick = saved.get(key) ?? null;
       if (!offer) counts.unavailableOffer += 1;
       if (savedPick) counts.saved += 1;
-      rows.push({ key, game, market, guess, reference, gap, gapPercent, denominator, side, offer, savedPick, lockedAt, evaluations });
+      rows.push({ key, game, market, guess, reference, gap, gapPercent, denominator, side, offer, savedPick, lockedAt, evaluations,
+        actionable: Boolean(offer && !savedPick) });
     }
   }
-  rows.sort((a, b) => b.gapPercent - a.gapPercent || time(a.game.kickoff) - time(b.game.kickoff) || a.key.localeCompare(b.key));
+  rows.sort((a, b) => Number(b.actionable) - Number(a.actionable) || b.gapPercent - a.gapPercent
+    || time(a.game.kickoff) - time(b.game.kickoff) || a.key.localeCompare(b.key));
   return { status: 'ready', rows, counts };
 }
 
@@ -143,4 +146,52 @@ export function filterRecommendations(rows, market) {
 export function recommendationList(rows, { market = 'all', expanded = false } = {}) {
   const chosen = filterRecommendations(rows, market);
   return { rows: chosen, visible: expanded ? chosen : chosen.slice(0, RECOMMENDATION_PREVIEW) };
+}
+
+// D-77 (Sean, November 3, 2026: "Your gaps' paper record"). A weekly record of your gaps against the market, whether or
+// not you bet them: every locked guess that differed from the closing consensus (the newest three-book line before
+// kickoff, as /lines/read reports it for a started game) is graded on the side your guess favored, the same side
+// Recommended suggests, against the final score. Each graded gap is 1 unit at a standard -110 (win +10/11, loss -1, push
+// 0), because a consensus line has no price of its own. ROI is net over every graded unit (pushes included), as for
+// Virtual Units (shared/bets-qual.mjs). Favorable gaps are the 10%+ ones (D-54's green band and denominator). Nothing is
+// estimated: a game without a final, or without a closing line, is counted as not graded; an even guess has no side.
+export const GAP_WIN_UNITS = 10 / 11;
+const round2 = value => Math.round(value * 100) / 100;
+const tally = () => ({ wins: 0, losses: 0, pushes: 0 });
+const settle = (into, outcome) => { into[outcome === 'win' ? 'wins' : outcome === 'loss' ? 'losses' : 'pushes'] += 1; };
+// Net and ROI come from the counts once, so the rounding never drifts with the number of games.
+const totals = ({ wins, losses, pushes }) => {
+  const riskUnits = wins + losses + pushes, net = wins * GAP_WIN_UNITS - losses;
+  return { wins, losses, pushes, riskUnits, netUnits: round2(net), roi: riskUnits ? Math.round(net / riskUnits * 10000) / 100 : null };
+};
+
+/** `market` narrows to 'spread' or 'total' like Recommended's All / Spreads / Totals choice; anything else means both. */
+export function gapRecord(board, { market = 'all' } = {}) {
+  if (!board || !Array.isArray(board.games)) return null;
+  const markets = Object.keys(MODES).filter(key => recommendationMarket(market) === 'all' || key === market);
+  const all = tally(), favorable = tally(), graded = [], notGraded = { noFinal: 0, noLine: 0 };
+  let even = 0;
+  for (const game of board.games) for (const market of markets) {
+    const mine = game?.mine?.[market], guess = mine?.guess;
+    if (!mine || mine.lockedIn !== true || mine.satOut === true || !point(guess, market) || !Number.isInteger(guess * 2)) continue;
+    const final = game.final, home = final?.home, away = final?.away;
+    if (game.started !== true || String(final?.status ?? '').toLowerCase() !== 'final' || !Number.isFinite(home) || !Number.isFinite(away)) {
+      notGraded.noFinal += 1;
+      continue;
+    }
+    const line = game[market]?.visible === true ? game[market].value : null;
+    if (!point(line, market) || !Number.isInteger(line * 2)) { notGraded.noLine += 1; continue; }
+    if (guess === line) { even += 1; continue; }
+    const side = market === 'spread' ? (guess < line ? 'home' : 'away') : (guess > line ? 'over' : 'under');
+    // Spread values are signed home spreads (home covers when its margin plus the line is above zero); totals are points.
+    const result = market === 'spread' ? home - away + line : home + away - line;
+    const signedResult = side === 'home' || side === 'over' ? result : -result;
+    const outcome = signedResult > 0 ? 'win' : signedResult < 0 ? 'loss' : 'push';
+    const denominator = market === 'spread' ? Math.max(Math.abs(line), 3) : line;
+    const isFavorable = denominator > 0 && Math.abs(guess - line) / denominator >= 0.1;
+    settle(all, outcome);
+    if (isFavorable) settle(favorable, outcome);
+    graded.push({ gameId: game.id, market, guess, line, side, outcome, favorable: isFavorable });
+  }
+  return { ...totals(all), favorable: totals(favorable), graded, notGraded, even };
 }
