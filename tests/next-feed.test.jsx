@@ -53,6 +53,13 @@ describe('folding friends\' ballots (review D4)', () => {
     expect(html).toContain('Avery Fixture, Blake Fixture and Casey Fixture locked in picks');
     expect(html).toContain('Show each post (3)');
     expect(markupProblems(html)).toEqual([]);
+    expect(html).not.toContain(', new"');
+  });
+  it('says "new" in its name whenever its NEW tag shows', () => {
+    const posts = [ballot(AVERY, '2026-10-26T18:00:00Z'), ballot(BLAKE, '2026-10-26T17:00:00Z')];
+    const html = render(<DigestCard posts={posts} names={names} viewer={ME} now="2026-10-26T20:00:00Z" fresh={new Set([posts[1].id])}/>);
+    expect(html).toMatch(/aria-label="[^"]*locked in picks, [^"]*, new"/);
+    expect(html).toContain('NEW');
   });
 });
 

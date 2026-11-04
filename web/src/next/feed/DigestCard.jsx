@@ -21,7 +21,7 @@ export function DigestCard({ posts, names, viewer, now, leagueId, fresh = NONE, 
       <Button variant="ghost-2" className="gx-feed-act" onClick={() => setOpen(false)}>Fold these {posts.length} posts</Button>
     </section>;
   }
-  return <Card as="article" className="gx-feed-post gx-feed-digest" data-digest={posts.length} data-arrived={posts.some(post => arrived.has(post.id)) ? 'true' : undefined} aria-label={`${text}, ${fmtPostTime(posts[0].createdAt, now)}`}>
+  return <Card as="article" className="gx-feed-post gx-feed-digest" data-digest={posts.length} data-arrived={posts.some(post => arrived.has(post.id)) ? 'true' : undefined} aria-label={`${text}, ${fmtPostTime(posts[0].createdAt, now)}${isNew ? ', new' : ''}`}>
     <div className="gx-feed-head">
       <AvatarStack people={people} max={4} size={24}/>
       <p className="gx-grow gx-t-body">{text}</p>
