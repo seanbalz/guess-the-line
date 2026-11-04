@@ -44,6 +44,12 @@
   outline: 2px solid var(--gx-focus);
   outline-offset: 2px;
 }
+/* A heading that takes focus only so a screen reader starts there (the screen title after a tab change, a layer's
+   title) is not a control and Tab never reaches it (tabindex="-1"), so its programmatic focus draws no ring, even where
+   the browser counts it as visible (a phone tap that never focused the tab, or Enter). Board item 75. */
+.gx :where(h1, h2, h3, h4, h5, h6)[tabindex="-1"]:focus-visible {
+  outline: none;
+}
 
 .gx-sr-only {
   position: absolute;
