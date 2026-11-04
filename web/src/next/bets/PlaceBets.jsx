@@ -90,7 +90,8 @@ export function WeekCard({ week }) {
     <h2 id="gx-place-week" className="gx-t-section">Your week</h2>
     <div className="gx-place-stats">{stat('Open', week.open)}{stat('In play', week.inPlay)}{stat('To win', week.toWin)}</div>
     <div className="gx-place-stats">{stat('Record', week.record)}{stat('Units', week.units)}{stat('Return', week.ret)}</div>
-    <div className="gx-hstack gx-gap-8 gx-place-meter"><Meter value={week.meter.value} max={3} label={week.meter.text}/><span className="gx-t-meta gx-c-2 gx-grow">{week.meter.text}</span></div>
+    {/* Words above a full-width meter (design audit A2): beside it they were squeezed to one letter a line. */}
+    <div className="gx-vstack gx-gap-8 gx-place-meter"><span className="gx-t-meta gx-c-2">{week.meter.text}</span><Meter value={week.meter.value} max={3} label={week.meter.text}/></div>
   </Card>;
 }
 
