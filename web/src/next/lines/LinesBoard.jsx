@@ -45,8 +45,10 @@ function GameCard({ card, records, onOpen, focusScope }) {
   const team = (side, row, record) => (
     <span className={row === 2 ? 'gx-l-team gx-l-team--2' : 'gx-l-team'}>
       <TeamMark code={side.code} name={side.name} size={32} decorative/>
-      <span className="gx-t-strong gx-truncate">{side.nick}</span>
-      {record ? <span className="gx-l-rec">{record}</span> : null}
+      <span className="gx-l-tname">
+        <span className="gx-t-strong">{side.nick}</span>
+        {record ? <span className="gx-l-rec">{record}</span> : null}
+      </span>
     </span>
   );
   return (
