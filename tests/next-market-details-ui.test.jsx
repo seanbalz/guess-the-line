@@ -97,3 +97,13 @@ it('empty and single-point movement retain readable evidence without inactive se
     expect(markupProblems(html)).toEqual([]);
   }
 });
+it('D-69 step 3: the movement chart reveals on its disclosure’s first opening, inside its plot, never at mount', () => {
+  const rows = [41.5, 42, 43].map((value, i) => ({ value, capturedAt: new Date(now + i * 60000).toISOString() }));
+  const played = render(<MarketMovement game={game} market="total" rows={rows} reveal/>);
+  expect(markupProblems(played)).toEqual([]);
+  expect(played).toMatch(/<div class="gx-md-plot"[^>]*><span class="gx-reveal" data-reveal="in"><span class="gx-reveal-in"><svg /);
+  expect(render(<MarketMovement game={game} market="total" rows={rows}/>)).not.toContain('data-reveal');
+  const panel = render(<MarketPanel game={game} market="total" now={now} cell={{ visible: true, line: { value: 43, observedAt: new Date(now).toISOString() }, books: [], movement: rows }}/>);
+  expect(panel).toContain('Line movement');
+  expect(panel).not.toContain('data-reveal');
+});

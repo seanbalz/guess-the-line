@@ -36,7 +36,7 @@ export const LAYERS = Object.freeze({
   'sh.switcher': SwitcherSheet, // league (stage 11)
   'sh.yourPick': YourPickSheet, // stage 31: persisted owner reference and gated game guesses
   'sh.gameBets': GameBetsSheet, // stage 34: selected league's gated Virtual Units picks for one game
-  'sh.game': GameSheet, // lines (stage 13): one game, read-only
+  'sh.game': GameSheet, // lines (stage 13): one game, read-only; since D-69 step 3 only the League feed's kickoff rows open it (Research opens the game layer)
   'sh.allTrends': AllTrendsSheet, // lines (stage 13; the stage 34 All trends sheet, pulled forward for DASH-7)
   'sh.research': ResearchSheet,
   'sh.team': TeamSheet, // teams (D-62): one team's record, last five, margin chart and games; args { team, from? }

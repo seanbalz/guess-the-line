@@ -16,7 +16,7 @@ vi.mock('../web/src/next/home/homeData.js', () => ({ useHomeData: () => ({ app: 
 vi.mock('../web/src/next/league/useLeagueRead.jsx', () => ({ useLeagueRead: () => state.read, LeagueFailure: () => <p>Read failed</p> }));
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn(), meApi: vi.fn(), socialApi: vi.fn() }));
 // Research's sections are other screens with their own tests; only its landing is drawn here.
-vi.mock('../web/src/next/lines/LinesBoard.jsx', () => ({ LinesBoard: () => null }));
+vi.mock('../web/src/next/lines/GamesScreen.jsx', () => ({ GamesScreen: () => null })); // D-69 step 3: the board and its game layer
 vi.mock('../web/src/next/trends/TrendsPage.jsx', () => ({ TrendsPage: () => null }));
 vi.mock('../web/src/next/fantasy/FantasyPage.jsx', () => ({ FantasyPage: () => null }));
 vi.mock('../web/src/fantasyData.js', () => ({ fantasyWeekKey: (season, week) => `${season}-${String(week).padStart(2, '0')}`, useFantasySnapshot: () => ({ status: 'loading' }) }));

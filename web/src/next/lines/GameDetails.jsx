@@ -49,7 +49,7 @@ function Missing({ text, loading = false, shape = 'rows', count = 3 }) {
   return loading ? <Skeleton label={text} shape={shape} count={count}/> : <p className="gx-t-body gx-c-2" role="status">{text}</p>;
 }
 
-export default function GameDetails({ lines, view, result }) {
+export default function GameDetails({ lines, view, result, onTeam = null }) {
   const shell = useShell();
   const youId = useId(), trendsId = useId();
   const { app, trends, trendsWeek, shown } = lines;
@@ -68,7 +68,7 @@ export default function GameDetails({ lines, view, result }) {
   return <>
       <div className="gx-vstack gx-gap-8 gx-l-head">
         <p className="gx-t-meta">{view.when}</p>
-        <TeamMatchup away={view.away.code} home={view.home.code} season={shown?.season ?? null} from={view.title}/>
+        <TeamMatchup away={view.away.code} home={view.home.code} season={shown?.season ?? null} from={view.title} onTeam={onTeam}/>
         {recordsThroughText(teams.data) && teams.data.season === shown?.season ? <p className="gx-t-meta gx-c-2 gx-l-through">{recordsThroughText(teams.data)}</p> : null}
       </div>
 

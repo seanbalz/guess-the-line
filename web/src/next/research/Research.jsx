@@ -3,14 +3,14 @@ import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
 import { FocusAction, FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
 import { DESTINATION_ICONS as ICON } from '../ui/destinations.js';
-import { LinesBoard } from '../lines/LinesBoard.jsx';
+import { GamesScreen } from '../lines/GamesScreen.jsx';
 import { FantasyPage } from '../fantasy/FantasyPage.jsx';
 
 export function Research() {
   const shell = useShell(), app = useAppData();
   const open = section => shell.go('research', { section, season: null, week: null });
   const section = shell.state.views.research.section;
-  if (section === 'games') return <LinesBoard/>;
+  if (section === 'games') return <GamesScreen/>;
   if (section === 'trends') return <TrendsPage/>;
   if (section === 'fantasy') return <FantasyPage/>;
   return <section className="gx-screen" data-landing="research">
