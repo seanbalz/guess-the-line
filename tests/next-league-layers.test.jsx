@@ -127,7 +127,7 @@ describe('League › History (P6A)', () => {
     expect(find(root, cls('gx-nest-lip')).map(nameFrom)).toEqual(['Back to Play', 'Back to League', 'Back to History']);
     expect(games.map(g => nameFrom(find(g, n => n.tag === 'summary')[0]))).toEqual([
       'Seattle Seahawks at Denver Broncos · Line Broncos −3 · You Broncos −3 · 10 / 10', 'Buffalo Bills at Kansas City Chiefs · Line Even · You Bills −2.5 · 5 / 10']);
-    expect([readText(games[0]), readText(games[1])]).toEqual([expect.stringContaining('Final · SEA 20, DEN 17 · Fixture final'), expect.stringContaining('Commissioner-ruled line (D-25)')]);
+    expect([readText(games[0]), readText(games[1])]).toEqual([expect.stringContaining('Final · SEA 20, DEN 17 · Seahawks by 3 · Fixture final'), expect.stringContaining('Commissioner-ruled line (D-25)')]);
     expect(find(root, n => n.tag === 'button').map(nameFrom)).toContain('Every game in Your score');
   });
   it('Every game in Your score hands off the week and the market: the layer calls onScore, and the screen goes to Score', () => {

@@ -29,8 +29,36 @@ test('a withheld game is "Hidden" with no guess, line or points; a shown one kee
   assert.doesNotMatch(JSON.stringify(hidden), /\d+ \/ 10|−/);
   const shown = weekGame(week, { ...entry('a', 15), picks: [{ gameId: 'SEA-DEN', guess: -3, points: 10, reference: { basis: 'saved', status: 'available', value: -3, source: 'Fixture median' } }] }, game, 'guess_spread');
   assert.deepEqual([shown.guess, shown.line, shown.points], ['Broncos −3', 'Broncos −3', '10 / 10']);
-  assert.deepEqual(shown.notes, ['Kickoff Thu Oct 8, 5:15 PM PT', 'Line saved with guess', 'Fixture median', 'Final · SEA 20, DEN 17 · Fixture final']);
-  assert.equal(weekGame(week, { ...entry('a', 0), eligible: false, picks: [{ gameId: 'SEA-DEN', guess: 1, points: null, reference: null }] }, game, 'guess_spread').points, 'Not scored');
+  assert.deepEqual(shown.notes, ['Kickoff Thu Oct 8, 5:15 PM PT', 'Line saved with guess', 'Fixture median', 'Final · SEA 20, DEN 17 · Seahawks by 3 · Fixture final']);
+});
+// D-23: each note the old screen's Result and Points cells showed comes back with its wording and condition (table of cases).
+test('each game result note keeps the old wording: no final, the margin, Tie, the total (D-23)', () => {
+  const pick = { ...entry('a', 0), picks: [{ gameId: 'SEA-DEN', guess: -3, points: null, reference: null }] };
+  const final = (results, mode = 'guess_spread') => weekGame({ ...week, results }, pick, game, mode).notes.at(-1);
+  for (const [name, results, mode, expected] of [
+    ['no final recorded', {}, 'guess_spread', 'No final recorded'],
+    ['away margin', { 'SEA-DEN': { status: 'final', away: 20, home: 17, source: 'S' } }, 'guess_spread', 'Final · SEA 20, DEN 17 · Seahawks by 3 · S'],
+    ['home margin', { 'SEA-DEN': { status: 'final', away: 10, home: 17, source: 'S' } }, 'guess_spread', 'Final · SEA 10, DEN 17 · Broncos by 7 · S'],
+    ['tie', { 'SEA-DEN': { status: 'final', away: 17, home: 17, source: 'S' } }, 'guess_spread', 'Final · SEA 17, DEN 17 · Tie · S'],
+    ['total market', { 'SEA-DEN': { status: 'final', away: 20, home: 17, origin: 'commissioner_reported' } }, 'guess_total', 'Final · SEA 20, DEN 17 · 37 total points · Commissioner-reported final'],
+  ]) assert.equal(final(results, mode), expected, name);
+});
+test('each game points cell keeps the old reasons: Not scored practice or not eligible, Scores at kickoff, Unscored (D-23)', () => {
+  const ref = { basis: 'saved', status: 'available', value: -3, source: 'M' };
+  const cell = (entryPatch, pick, now, gate = { open: true }) => weekGame({ ...week, gate }, { ...entry('a', 0), ...entryPatch, picks: [{ gameId: 'SEA-DEN', guess: -3, reference: ref, points: null, ...pick }] }, game, 'guess_spread', now).points;
+  const before = '2026-10-08T20:00:00Z', after = '2026-10-09T03:00:00Z';
+  for (const [name, patch, pick, now, gate, expected] of [
+    ['practice ballot', { eligible: false, eligibility: 'practice' }, {}, after, undefined, 'Not scored · practice'],
+    ['ruled ineligible', { eligible: false, eligibility: 'ruled-ineligible' }, {}, after, undefined, 'Not scored · not eligible'],
+    ['ineligible with no stated reason reads practice', { eligible: false }, {}, after, undefined, 'Not scored · practice'],
+    ['sent, per-game gate live, before kickoff', {}, {}, before, undefined, 'Scores at kickoff'],
+    ['sent, past kickoff, no points', {}, {}, after, undefined, 'Unscored'],
+    ['no per-game gate', {}, {}, before, null, 'Unscored'],
+    ['no saved line', {}, { reference: null }, before, undefined, 'Unscored'],
+    ['a draft', { status: 'draft' }, {}, before, undefined, 'Unscored'],
+    ['scored', {}, { points: 7 }, after, undefined, '7 / 10'],
+  ]) assert.equal(cell(patch, pick, now, gate), expected, name);
+  assert.equal(weekGame({ ...week, gate: { open: true } }, { ...entry('b', 15), picksHidden: true, picks: [{ gameId: 'SEA-DEN', hidden: true, guess: null, reference: { value: -3 }, points: null }] }, game, 'guess_spread', '2026-10-08T20:00:00Z').points, 'Hidden');
 });
 test('a game that did not finish keeps the old screen\'s words: "Postponed" or "Cancelled", then its source (D-23)', () => {
   const pick = { ...entry('a', 0), picks: [{ gameId: 'SEA-DEN', guess: -3, points: null, reference: null }] };

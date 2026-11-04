@@ -42,7 +42,7 @@ export function LeagueHistory({ app, place, mode, parents = [], historyLip, onPl
   </>;
   if (place.layer === 'week') {
     const week = (data?.weeks ?? []).find(w => w.week === place.week) ?? null, entry = week && selected ? entryOf(week, selected.id, market) : null;
-    const summary = weekSummary(entry), games = entry && Array.isArray(entry.picks) ? (week.games ?? []).map(game => weekGame(week, entry, game, market)) : [];
+    const summary = weekSummary(entry), games = entry && Array.isArray(entry.picks) ? (week.games ?? []).map(game => weekGame(week, entry, game, market, data?.now)) : [];
     return <PlayLayer label="League history week" parents={[...parents, toHistory]} layer={`league:week:${season ?? 'latest'}:${place.week}`} title={HISTORY_COPY.weekTitle(place.week, season ?? data?.season)}
       info={summary.notes.length ? <InfoButton title={HISTORY_COPY.aboutWeek} body={summary.notes}/> : null}>
       {state ?? (!week || !selected ? <LeagueEmpty text={HISTORY_COPY.noWeek} actionLabel="Back to History" onAction={toHistory.open}/> : <>

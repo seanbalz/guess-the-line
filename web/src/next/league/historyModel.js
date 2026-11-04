@@ -2,7 +2,7 @@
 // normalizeHistory) and keeps every value the old screen (CommunityHistory.jsx HistoryLine, the first LeagueHistory)
 // showed (D-23). Another member's withheld game reads "Hidden", never a number (D-31, D-39). A week's rank is the
 // competition rank of its points (ties share).
-import { lateText, pickText, show } from '../../communityFormat.js';
+import { lateText, pickText, shortName, show } from '../../communityFormat.js';
 import { DASH, fmtFull } from '../format.js';
 import { ordinal } from './rankMoment.js';
 
@@ -11,6 +11,7 @@ const NONE_REASONS = Object.freeze({
   'guess-at-or-after-kickoff': 'Guessed at or after kickoff',
   'no-schedule-template': 'No schedule entry for this game',
 });
+const NOT_SCORED = Object.freeze({ practice: 'Not scored · practice', 'ruled-ineligible': 'Not scored · not eligible' });
 const fileName = path => path.split('/').pop();
 
 /** How long before or after the guess a line was observed: "4h 40m before the guess", "at the guess"; '' without one. */
@@ -89,14 +90,26 @@ export function seasonTiles(data) {
   return seasons.length < 2 ? null : seasons.map(season => ({ season, label: 'Season', big: String(season), sub: season === data.season ? 'Showing' : 'See weeks', on: season === data.season }));
 }
 
-/** One game's row in a week layer: `{ id, away, home, hidden, guess, line, points, notes }`. */
-export function weekGame(week, entry, game, mode) {
+/** The final's words as the old screen's Result cell read them (D-23): score, then the margin, "Tie" or the total, then the source. */
+function resultNote(result, game, mode) {
+  if (!result) return 'No final recorded';
+  if (result.status !== 'final') return `${result.status === 'postponed' ? 'Postponed' : 'Cancelled'}${result.source ? ` · ${result.source}` : ''}`;
+  const margin = result.home - result.away;
+  const detail = mode === 'guess_total' ? `${result.home + result.away} total points` : margin === 0 ? 'Tie' : `${shortName(margin > 0 ? game.homeCode : game.awayCode)} by ${Math.abs(margin)}`;
+  return `Final · ${game.awayCode} ${show(result.away)}, ${game.homeCode} ${show(result.home)} · ${detail}${result.origin === 'commissioner_reported' ? ' · Commissioner-reported final' : result.source ? ` · ${result.source}` : ''}`;
+}
+
+/**
+ * One game's row in a week layer: `{ id, away, home, hidden, guess, line, points, notes }`. `now` (the server's clock) lets a
+ * sent guess whose game has not kicked off read "Scores at kickoff" once the week's per-game gate is live (M-01), else "Unscored".
+ */
+export function weekGame(week, entry, game, mode, now) {
   const pick = (entry?.picks ?? []).find(item => item.gameId === game.id), hidden = pick?.hidden === true || (entry?.picksHidden === true && !pick);
   if (hidden) return { id: game.id, away: game.awayCode, home: game.homeCode, hidden, guess: 'Hidden', line: 'Hidden', points: 'Hidden', notes: [`Kickoff ${fmtFull(game.kickoff)}`] };
-  const line = lineWords(pick?.reference, mode, game), result = week?.results?.[game.id];
-  // A game that did not finish says what the old screen said (CommunityHistory.jsx Result): Postponed, else Cancelled.
-  const final = result ? `${result.status === 'final' ? `Final · ${game.awayCode} ${show(result.away)}, ${game.homeCode} ${show(result.home)}` : result.status === 'postponed' ? 'Postponed' : 'Cancelled'}${result.origin === 'commissioner_reported' ? ' · Commissioner-reported final' : result.source ? ` · ${result.source}` : ''}` : null;
-  return { id: game.id, away: game.awayCode, home: game.homeCode, hidden, guess: pickText(mode, game.awayCode, game.homeCode, pick?.guess), line: line.value,
-    points: entry?.eligible === false ? 'Not scored' : Number.isFinite(pick?.points) ? `${show(pick.points)} / 10` : DASH,
-    notes: [`Kickoff ${fmtFull(game.kickoff)}`, ...line.notes, ...(final ? [final] : [])] };
+  const line = lineWords(pick?.reference, mode, game), at = Date.parse(now);
+  const pending = !!week?.gate && !!pick && entry?.status === 'submitted' && Number.isFinite(pick.reference?.value) && Number.isFinite(at) && !(Date.parse(game.kickoff) <= at);
+  const points = entry?.eligible === false ? NOT_SCORED[entry.eligibility] || NOT_SCORED.practice
+    : Number.isFinite(pick?.points) ? `${show(pick.points)} / 10` : pending ? 'Scores at kickoff' : 'Unscored';
+  return { id: game.id, away: game.awayCode, home: game.homeCode, hidden, guess: pickText(mode, game.awayCode, game.homeCode, pick?.guess), line: line.value, points,
+    notes: [`Kickoff ${fmtFull(game.kickoff)}`, ...line.notes, resultNote(week?.results?.[game.id], game, mode)] };
 }
