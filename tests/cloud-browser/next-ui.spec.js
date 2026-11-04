@@ -132,6 +132,18 @@ async function layout(page) {
         }
       }
     }
+    // Every tappable label is 16px (D-38), measured on the text you see, not on the control: a 16px button can still
+    // hold a 12px label inside it (design audit A6, the nesting lip). These controls are all label.
+    for (const control of document.querySelectorAll('.gx :is(.gx-btn, .gx-seg-btn, .gx-nest-lip, .gx-sheet-back, .gx-back-btn, .gx-link-row)')) {
+      if (!visible(control)) continue;
+      const walker = document.createTreeWalker(control, NodeFilter.SHOW_TEXT);
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        const holder = node.parentElement;
+        if (!node.textContent.trim() || holder.closest('.gx-sr-only') || !visible(holder)) continue;
+        const size = parseFloat(getComputedStyle(holder).fontSize);
+        if (size < 16) problems.push(`label "${node.textContent.trim().slice(0, 30)}" in ${control.className} is ${size}px`);
+      }
+    }
     return problems;
   });
 }
@@ -417,4 +429,129 @@ test('reduced motion stops the kit\'s motion', async ({ page }) => {
   await page.getByRole('button', { name: 'Open the game sheet' }).click();
   const names = await page.evaluate(() => [...document.querySelectorAll('.gx *')].map(el => getComputedStyle(el).animationName).filter(n => n !== 'none'));
   expect(names).toEqual([]);
+});
+
+// ---------- design audit quick wins (kit), November 4, 2026 ----------
+/** A token's color as the browser computes it, for comparing with a computed style. */
+const tokenColor = (page, token) => page.evaluate(name => {
+  const probe = document.createElement('span');
+  probe.style.color = `var(${name})`;
+  document.querySelector('.gx').append(probe);
+  const value = getComputedStyle(probe).color;
+  probe.remove();
+  return value;
+}, token);
+
+for (const theme of ['dark', 'light']) {
+  test(`${theme}: an unavailable button looks unavailable, aria-disabled or disabled, and a text button keeps no fill (audit A4)`, async ({ page }) => {
+    await open(page, { theme });
+    const [surface2, text3] = [await tokenColor(page, '--gx-surface-2'), await tokenColor(page, '--gx-text-3')];
+    // Profile's unchanged "Save name": aria-disabled keeps it focusable, and it must not look like the live lime button.
+    const save = page.getByRole('button', { name: 'Save name', exact: true });
+    await expect(save).toHaveAttribute('aria-disabled', 'true');
+    await expect(save).toHaveCSS('background-color', surface2);
+    await expect(save).toHaveCSS('color', text3);
+    await expect(save).toHaveCSS('box-shadow', 'none');
+    // A disabled text button gets no grey slab, so it never looks as heavy as a disabled primary beside it.
+    for (const name of ['Save draft', 'Not yet']) {
+      await expect(page.getByRole('button', { name, exact: true })).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+      await expect(page.getByRole('button', { name, exact: true })).toHaveCSS('color', text3);
+    }
+  });
+
+  test(`${theme}: in a sheet the segmented track stands off the sheet, and switching keeps every segment's size (audit A8)`, async ({ page }) => {
+    await open(page, { theme });
+    await page.getByRole('button', { name: 'Open the game sheet' }).click();
+    await page.getByRole('button', { name: /Everyone's picks/ }).click();
+    const group = page.getByRole('dialog', { name: "Everyone's picks" }).getByRole('group', { name: 'Play view', exact: true });
+    const surface1 = await tokenColor(page, '--gx-surface-1');
+    const sheet = await page.locator('.gx-sheet').evaluate(el => getComputedStyle(el).backgroundColor);
+    await expect(group).toHaveCSS('background-color', surface1);
+    expect(surface1).not.toBe(sheet);
+    const sizes = () => group.locator('.gx-seg-btn').evaluateAll(els => els.map(el => {
+      const r = el.getBoundingClientRect();
+      return { width: Math.round(r.width * 10) / 10, height: Math.round(r.height * 10) / 10, weight: getComputedStyle(el).fontWeight };
+    }));
+    for (const width of [390, 320]) {
+      await page.setViewportSize({ width, height: 844 });
+      const first = await sizes();
+      expect(first.map(s => s.weight)).toEqual(['600', '600', '600']);
+      for (const name of ['Guess the Line', 'Leaderboard', 'Pick a Team']) {
+        const segment = group.getByRole('button', { name, exact: true });
+        await segment.click();
+        await expect(segment).toHaveAttribute('aria-pressed', 'true');
+        // The selected segment's 4px inset ring matches the track it sits in.
+        expect(await segment.evaluate(el => getComputedStyle(el).boxShadow)).toContain(`${surface1} 0px 0px 0px 4px inset`);
+        expect(await sizes(), `${width}: switching to ${name}`).toEqual(first);
+      }
+    }
+  });
+
+  test(`${theme}: the week meter draws progress, not a win: 8px pills on the track, filled in the progress color, bordered in forced colors (audit A10)`, async ({ page }) => {
+    await open(page, { theme });
+    const segments = page.getByRole('img', { name: '2 of 3 bets', exact: true }).locator('.gx-meter3-seg');
+    await expect(segments).toHaveCount(3);
+    // bar-2 is the progress bar's end color (D-55). In Light it differs from the win color; in Dark the two share a value.
+    const [track, bar] = [await tokenColor(page, '--gx-track'), await tokenColor(page, '--gx-bar-2')];
+    if (theme === 'light') expect(bar).not.toBe(await tokenColor(page, '--gx-win'));
+    const look = await segments.evaluateAll(els => els.map(el => {
+      const s = getComputedStyle(el);
+      return { height: el.getBoundingClientRect().height, radius: parseFloat(s.borderTopLeftRadius), background: s.backgroundColor, ring: s.boxShadow };
+    }));
+    expect(look.map(l => l.background)).toEqual([bar, bar, track]);
+    for (const l of look) {
+      expect(l.height).toBe(8);
+      expect(l.radius).toBeGreaterThanOrEqual(4);
+      expect(l.ring).toBe('none');
+    }
+    // Windows high contrast drops the fills' colors: each segment draws a real border, and the filled ones a solid fill.
+    await page.emulateMedia({ forcedColors: 'active' });
+    const forced = await segments.evaluateAll(els => els.map(el => {
+      const s = getComputedStyle(el);
+      return { border: `${s.borderTopWidth} ${s.borderTopStyle}`, background: s.backgroundColor };
+    }));
+    expect(forced.map(f => f.border)).toEqual(['1px solid', '1px solid', '1px solid']);
+    expect(forced[0].background).toBe(forced[1].background);
+    expect(forced[0].background).not.toBe(forced[2].background);
+  });
+
+  test(`${theme}: a nesting lip reads as the way back: the chevron first, then a 16px label that wraps rather than cut, named "Back to …" (audit A6)`, async ({ page }) => {
+    await open(page, { theme });
+    const lip = page.getByRole('button', { name: 'Back to Seattle Seahawks at Denver Broncos', exact: true });
+    await expect(page.getByRole('button', { name: 'Back to This week', exact: true })).toBeVisible();
+    const text2 = await tokenColor(page, '--gx-text-2');
+    for (const width of [390, 320]) {
+      await page.setViewportSize({ width, height: 844 });
+      await lip.scrollIntoViewIfNeeded();
+      const m = await lip.evaluate(el => {
+        const label = el.querySelector('.gx-nest-lip-label'), chevron = el.querySelector('svg');
+        const s = getComputedStyle(label), l = label.getBoundingClientRect(), c = chevron.getBoundingClientRect();
+        return { size: s.fontSize, line: s.lineHeight, weight: s.fontWeight, transform: s.textTransform, color: s.color,
+          height: l.height, chevronFirst: c.right <= l.left, cut: label.scrollWidth > label.clientWidth, lip: el.getBoundingClientRect().height };
+      });
+      expect(m, `${width}`).toMatchObject({ size: '16px', line: '24px', weight: '700', transform: 'none', color: text2, chevronFirst: true, cut: false });
+      // The long name wraps to a second line where it cannot fit (at 320, and at 390 in a wider fallback font) instead of
+      // losing its end to "…" (AUD-01); it never takes a third.
+      expect(m.height, `${width}: lines`).toBeLessThanOrEqual(48.5);
+      expect(m.lip).toBeGreaterThanOrEqual(44);
+    }
+  });
+}
+
+test('an avatar stack keeps each face\'s initials clear of the next face (audit A12)', async ({ page }) => {
+  await open(page);
+  // The covered strip is the overlap plus the next face's 2px ring. At -7px it hid most of a second initial ("LF" read
+  // "LI"); now it may reach only the glyph's own edge.
+  const covered = await page.locator('.gx-av-stack').first().evaluate(stack => {
+    const faces = [...stack.querySelectorAll('.gx-av')];
+    return faces.slice(0, -1).map((face, i) => {
+      const range = document.createRange();
+      range.selectNodeContents(face);
+      const text = range.getBoundingClientRect(), next = faces[i + 1].getBoundingClientRect();
+      const ring = parseFloat(getComputedStyle(faces[i + 1]).boxShadow.match(/(-?[\d.]+)px(?: inset)?$/)?.[1] ?? '0');
+      return { initials: face.textContent.trim(), covered: Math.round((text.right - (next.left - ring)) * 10) / 10 };
+    });
+  });
+  expect(covered.length).toBeGreaterThanOrEqual(2);
+  for (const face of covered) expect(face.covered, face.initials).toBeLessThanOrEqual(2);
 });

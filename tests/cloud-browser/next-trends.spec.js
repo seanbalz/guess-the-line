@@ -60,6 +60,27 @@ async function noSentinel(page) {
  const content=await page.locator('body').evaluate(e => e.innerText+' '+[...e.querySelectorAll('*')].flatMap(n=>[...n.attributes].filter(a=>!['class','style','d','points','viewBox'].includes(a.name)).map(a=>a.value)).join(' '));
  expect(content).not.toContain('99.125'); expect(content).not.toContain('97.625'); expect(content).not.toContain('HIDDEN SENTINEL');
 }
+test('a closed Source details draws nothing under its row, and it sits in a rounded card like the cards beside it (audit A3)',async({page,baseURL})=>{
+ const world = await ready(page,baseURL);
+ try {
+  for (const width of [390,320]) {
+   await page.setViewportSize({ width, height: 844 });
+   const row = page.getByRole('button',{ name: /^Source details/ });
+   await expect(row).toHaveAttribute('aria-expanded','false');
+   const body = page.locator(`[id="${await row.getAttribute('aria-controls')}"]`);
+   // [hidden] used to lose to the body's display: flex, so the closed body drew an empty 20px band.
+   expect(await body.evaluate(el => ({ hidden: el.hidden, boxes: el.getClientRects().length, height: el.getBoundingClientRect().height }))).toEqual({ hidden: true, boxes: 0, height: 0 });
+   const card = await row.evaluate(el => { const c = el.closest('.gx-card--flush'); return c ? getComputedStyle(c).borderTopLeftRadius : null; });
+   expect(card,'the Expander is wrapped in a flush card with rounded corners').toBe('16px');
+   await row.click(); await expect(row).toHaveAttribute('aria-expanded','true');
+   expect(await body.evaluate(el => el.getBoundingClientRect().height)).toBeGreaterThan(0);
+   await row.click(); await expect(row).toHaveAttribute('aria-expanded','false');
+   expect(await body.evaluate(el => el.getClientRects().length)).toBe(0);
+  }
+  expect(world.errors).toEqual([]);
+ } finally { await world.db.close(); }
+});
+
 test('Trends code waits for a visit, including with saved Home trends, and its loading/error states retain navigation', async ({page,baseURL}, info) => {
  test.setTimeout(120000);
  await page.addInitScript(() => { try {

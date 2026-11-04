@@ -3,7 +3,8 @@
 // top three trends (D-75: a hero, two tiles, then All trends) and a tile per published game; the trends footnote and
 // credits sit behind its ⓘ. A game whose market is closed shows a lock, never a line-based record (D-31, D-36).
 import { TRENDS_FOOTNOTE } from '../../../../shared/trends-view.mjs';
-import { Icon, InfoButton, Matchup, matchupWords, Nest } from '../ui/index.js';
+import { Icon, InfoButton, Matchup, matchupWords, MetaLine, Nest } from '../ui/index.js';
+import { SEP } from '../format.js';
 import { TrendAvailability } from '../lines/parts.jsx';
 import { INFO } from '../info.js';
 import { marketSituationCards } from './situations.js';
@@ -22,7 +23,9 @@ export function WeekNest({ week, views, market, view, onChange, lines, onBuild }
   const ranked = games.flatMap(({ v, cards }) => cards.map(card => ({ card, v }))).sort(strongest);
   const toWeek = { key: 'week', label: 'This week', onOpen: () => onChange({ weekGame: null, weekTrend: null, weekList: null }) };
   const openTrend = (v, c) => onChange({ weekList: null, weekGame: v.id, weekTrend: trendSlug(c.key) });
-  const titled = (c, v) => ({ ...c, title: short(v) + ' · ' + c.title });
+  // A20: the game, then the trend's own parts (its title joins the situation and the side with the app's separator), so
+  // a narrow tile wraps between them and never starts a line with "·". The label brings its own type.
+  const titled = (c, v) => ({ ...c, title: <MetaLine as="span" className="" parts={[short(v), ...c.title.split(SEP)]}/> });
 
   if (!game && view.weekList === 'all') {
     return <Nest label="Week trends" layer="all" title="All trends" lips={[toWeek]}>

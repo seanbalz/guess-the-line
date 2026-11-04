@@ -77,7 +77,7 @@
 .gx .gx-epl-fx-split-body { margin: var(--gx-space-1) 0 0; }
 .gx .gx-epl-fx-stand-head {
   display: grid;
-  grid-template-columns: 20px minmax(0, 1fr) auto auto;
+  grid-template-columns: 20px minmax(0, 1fr) auto auto 16px;
   align-items: center;
   gap: var(--gx-space-1) var(--gx-space-2);
   min-height: var(--gx-size-touch);
@@ -90,7 +90,10 @@
 .gx .gx-epl-fx-stand-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 16px/22px var(--gx-font-body); color: var(--gx-text-1); }
 .gx .gx-epl-fx-record { font: 700 13px/18px var(--gx-font-num); font-variant-numeric: tabular-nums; color: var(--gx-text-2); }
 .gx .gx-epl-fx-stand-bar { grid-column: 2 / -1; margin-top: 0; }
-.gx .gx-epl-fx-stand--me .gx-tc-bar-fill { background-image: none; background-color: var(--gx-accent); }
+.gx .gx-epl-fx-chev { color: var(--gx-text-3); transition: transform var(--gx-dur-quick) var(--gx-ease-standard); }
+.gx .gx-epl-fx-split[open] .gx-epl-fx-chev { transform: rotate(180deg); }
+/* Your bar is lime; in Light it takes the 1px accent-ink edge every lime fill gets (lime on the track is about 1.1:1). */
+.gx .gx-epl-fx-stand--me .gx-tc-bar-fill { background-image: none; background-color: var(--gx-accent); box-shadow: var(--gx-lime-edge); }
 .gx .gx-epl-fx-stand--me .gx-epl-fx-stand-name { color: var(--gx-accent-ink); }
 
 /* Insights tiles and the weekly line. */

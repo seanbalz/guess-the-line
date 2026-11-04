@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { gameSheet, gamesOf } from '../../../../shared/lines-view.mjs';
 import { useShell } from '../shell/context.js';
 import { useLinesData } from '../lines/linesData.js';
-import { Button, Card, Segmented, Skeleton } from '../ui/index.js';
+import { Button, Card, MetaLine, Segmented, Skeleton } from '../ui/index.js';
 import { LeagueFailure } from '../league/useLeagueRead.jsx';
 import { PlayersNest } from './PlayersNest.jsx';
 import { useTrendsHistory } from './useTrendsHistory.js';
@@ -34,7 +34,7 @@ export function TrendsScreen() {
   const evidence = trends.status === 'error' ? <Card role="alert"><p className="gx-t-body">Trends unavailable. Try again.</p><Button onClick={trends.retry}>Retry trends</Button></Card> : trends.status === 'loading' ? <Skeleton label="Loading published-week trends…" shape="panels" count={2}/> : trends.status === 'missing' ? <p className="gx-t-body" role="status">No evidence available for this published week.</p> : null;
   return <div className="gx-screen gx-trends">
     <h1 className="gx-t-title">Trends</h1>
-    <p className="gx-t-body gx-c-2">{shown ? 'Published week: ' + shown.season + ' Week ' + shown.week : 'Waiting for a published week.'} · {app.league?.name || 'Community'}</p>
+    <MetaLine parts={[shown ? 'Published week: ' + shown.season + ' Week ' + shown.week : 'Waiting for a published week.', app.league?.name || 'Community']}/>
     <Segmented label="Trends section" className="gx-tr-sections" value={section} options={sections} onChange={section => onChange({ trendSection: section })}/>
     <Segmented label="Trends market" value={market} options={markets} onChange={market => onChange({ market })}/>
     {section === 'build' ? <TrendBuilder lines={data} market={market} onMarket={market => onChange({ market })}/> : section === 'players' ? <>{history.loading ? <Skeleton label="Loading scoped player history…" shape="panels" count={2}/> : history.error ? <LeagueFailure error={history.error} onRetry={history.retry}/> : history.data && shown ? <PlayersNest history={history.data} published={shown} view={view} onChange={onChange} scopeName={app.league?.name || 'Community'}/> : <p className="gx-t-body">No published player history yet.</p>}<Button onClick={history.retry}>Refresh player history</Button></> : section === 'teams' ? <>

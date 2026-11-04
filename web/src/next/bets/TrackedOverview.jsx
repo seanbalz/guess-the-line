@@ -10,11 +10,12 @@ function Breakdown({title,rows,onChoose}) {
   const [all,setAll]=useState(false);
   const maximum=Math.max(1,...rows.map(row=>row.count));
   const shown=all?rows:rows.slice(0,6),total=rows.reduce((sum,row)=>sum+row.count,0);
+  // One row is one stat line: a lone full-width bar compares nothing (design audit A16).
   return <section className="gx-overview-card" aria-label={title}>
     <h2 className="gx-t-section">{title}</h2>
     {total?<ul className="gx-overview-bars">{shown.map(row=><li key={row.value||row.label}>
       {onChoose?<button type="button" className="gx-overview-bar-row" aria-label={`Show ${row.label}: ${row.count} ${row.count===1?'bet':'bets'}`} onClick={()=>onChoose(row)}><span>{row.label}</span><strong>{row.count}</strong></button>:<div className="gx-overview-bar-row"><span>{row.label}</span><strong>{row.count}</strong></div>}
-      <span className="gx-overview-bar-track" aria-hidden="true"><span style={{width:`${row.count/maximum*100}%`}}/></span>
+      {rows.length>1&&<span className="gx-overview-bar-track" aria-hidden="true"><span style={{width:`${row.count/maximum*100}%`}}/></span>}
     </li>)}</ul>:<p className="gx-t-body gx-c-2">No included bets match these filters.</p>}
     {rows.length>6&&<Button variant="ghost" onClick={()=>setAll(value=>!value)}>{all?'Show fewer':`Show all ${rows.length}`}</Button>}
   </section>;

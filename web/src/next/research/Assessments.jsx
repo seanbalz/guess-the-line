@@ -155,7 +155,8 @@ export default function ResearchAssessments({ onDirty, onTrack }) {
         <div className="gx-vstack gx-gap-12" role="group" aria-label="Game research">
           <h2 className="gx-t-section">Game research</h2>
           {gameId ? <ObservedGameStatistics scoring={data.statistics?.find(s => s.gameId === gameId)} plays={data.playStatistics?.find(s => s.gameId === gameId)}/> : (data.statistics ?? []).map(s => <Button key={s.gameId} variant="secondary" onClick={() => chooseGame(s.gameId)}>{s.gameId.replace('-', ' at ')} · Team statistics</Button>)}
-          {!gameId && !data.statistics?.length ? <p className="gx-t-body">Game statistics are unavailable right now. Refresh research to retry.</p> : null}
+          {/* The retry sits with the message, not 170 px above it (design audit A17). */}
+          {!gameId && !data.statistics?.length ? <><p className="gx-t-body">Game statistics are unavailable right now.</p><Button variant="secondary" onClick={read.reload}>Try again</Button></> : null}
         </div>
         <details className="gx-ra-evidence"><summary>Source availability</summary>{data.sources.map(s => <p className="gx-t-body" key={s.id}>{s.name}{s.id === 'bookitwithtrent' ? ' · separate feed' : ''}: {s.status === 'available' ? 'Source available' : 'Automatic access unavailable'}</p>)}</details>
         <ResearchLinkIntake key={lines.app.accountId} accountId={lines.app.accountId} onDirty={onDirty}/>

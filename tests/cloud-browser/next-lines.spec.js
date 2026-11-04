@@ -1426,7 +1426,7 @@ test('a direct game open checks results on demand, ignores a late reply after pa
     now = Math.max(...world.state.games.map(game => Date.parse(game.kickoff))) + 3600000;
     await openLines(page); await expect(card(page, 'SEA-DEN')).toContainText('43.5');
     // D-66: the board names its quotes' update once; no card repeats a source or update line.
-    await expect(page.locator('[data-board-quotes]')).toContainText(/Quotes (updated|from \d+ updates)/);
+    await expect(page.locator('[data-board-quotes]')).toContainText(/Quotes ((\w{3} )?\d{1,2}:\d{2} [AP]M PT|from \d+ updates)/);
     await expect(card(page, 'SEA-DEN')).not.toContainText('Updated');
     await page.goto('/#trends'); await expect(title(page, 'Trends')).toBeVisible();
     await expect(page.locator('[data-trend-availability]')).toBeVisible();
@@ -1500,6 +1500,66 @@ test('board refresh failures and wrong-week replies hide market values until ret
     await expect(card(page, 'SEA-DEN')).toContainText('43.5');
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
+});
+
+// Contract (quick wins A5 and A20, November 4, 2026). A5: at 390 x 844 the first game card sits fully above the tab bar
+// on first paint, with the week's gate card showing. The header is the title, a 44px "Refresh market lines" icon beside
+// the ⓘ and one meta line; the gate card has no fine print; "Open weekly research" is a row after the last game. The
+// refresh is busy while quotes load. A20: the meta line wraps only between its parts ("Week 6", "Due …", "Quotes …"),
+// so no part is split and no line starts with "·", at 320 and 390 in both themes, in the system fallback font and in
+// CI's wider DejaVu Sans.
+test('Research › Games puts its first game above the tab bar at 390 x 844, with one meta line that wraps between parts', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL);
+  let release = () => {};
+  try {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await openLines(page);
+    await expect(card(page, 'SEA-DEN')).toContainText('43.5');
+    await expect(page.locator('.gx-lock-card')).toBeVisible();
+    await expect(page.locator('.gx-lock-card .gx-t-meta')).toHaveCount(0);
+    const head = page.locator('.gx-l-sechead');
+    await expect(head.getByRole('button', { name: 'Refresh market lines', exact: true })).toBeVisible();
+    await expect(head.getByRole('button', { name: 'About trends', exact: true })).toBeVisible();
+    await expect(page.locator('[data-board-quotes]')).toHaveText(/^Week 6 · Due .+ · Quotes (\w{3} )?\d{1,2}:\d{2} [AP]M PT$/);
+    // The research row follows the last game card.
+    expect(await page.getByRole('button', { name: 'Open weekly research', exact: true }).evaluate(row => {
+      const cards = [...document.querySelectorAll('.gx-l-card')];
+      return cards.length > 0 && cards.every(card => card.compareDocumentPosition(row) & Node.DOCUMENT_POSITION_FOLLOWING);
+    })).toBe(true);
+    const parts = () => page.locator('[data-board-quotes]').evaluate(line => [...line.querySelectorAll('.gx-meta-part')].map(part => {
+      const range = document.createRange();
+      range.selectNodeContents(part);
+      const tops = new Set([...range.getClientRects()].filter(r => r.width).map(r => Math.round(r.top)));
+      return { text: part.textContent, lines: tops.size, fits: part.scrollWidth <= line.clientWidth };
+    }));
+    for (const font of ['fallback', 'DejaVu Sans']) {
+      if (font === 'DejaVu Sans') await ciFonts(page);
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await settle(page);
+      const first = await page.evaluate(() => ({ card: document.querySelector('.gx-l-card').getBoundingClientRect().bottom,
+        bar: document.querySelector('nav[aria-label="Main"]').getBoundingClientRect().top }));
+      expect(first.card, `${font}: the first game card ends above the tab bar (${JSON.stringify(first)})`).toBeLessThanOrEqual(first.bar);
+      for (const width of [320, 390]) for (const theme of ['light', 'dark']) {
+        await page.setViewportSize({ width, height: 844 });
+        await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, theme);
+        const meta = await parts();
+        expect(meta.length, `${font} ${width} ${theme}: the meta line is in parts`).toBe(3);
+        expect(meta.filter(part => part.text.trimStart().startsWith('·')), `${font} ${width} ${theme}: no part starts with "·"`).toEqual([]);
+        expect(meta.filter(part => part.fits && part.lines > 1), `${font} ${width} ${theme}: no part that fits is split`).toEqual([]);
+      }
+    }
+    // Busy while quotes load: the refresh says so, and keeps its name.
+    const hold = new Promise(resolve => { release = resolve; });
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/lines/read'), async route => { await hold; await route.fallback(); });
+    const refresh = head.getByRole('button', { name: 'Refresh market lines', exact: true });
+    await refresh.click();
+    await expect(refresh).toHaveAttribute('aria-busy', 'true');
+    release();
+    await expect(card(page, 'SEA-DEN')).toContainText('43.5');
+    await expect(refresh).not.toHaveAttribute('aria-busy', /.*/);
+    expect(world.errors).toEqual([]);
+  } finally { release(); await world.db.close(); }
 });
 
 test('board freshness expires from server time without polling for quotes', async ({ page, baseURL }) => {

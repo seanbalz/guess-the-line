@@ -8,10 +8,14 @@
 .gx .gx-place-market > .gx-hstack { flex-wrap: wrap; row-gap: var(--gx-space-2); min-width: 0; }
 .gx .gx-place-market .gx-tag { max-width: 100%; overflow-wrap: anywhere; }
 .gx .gx-place-sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-2); }
-.gx .gx-place-sides .gx-chip { justify-content: flex-start; min-width: 0; height: auto; min-height: 48px; padding-block: var(--gx-space-2); text-align: left; }
+/* A price chip has two lines (design audit A15): "SEA +3.5" in n-s over "−110 · BetMGM" (price n-xs, book meta). The lines
+   are the chip's own flex items, so a selected chip's check shares the first line and the price and book keep the width. */
+.gx .gx-place-sides .gx-chip { flex-wrap: wrap; justify-content: flex-start; align-content: center; gap: 0 var(--gx-space-2); min-width: 0; height: auto; min-height: 48px; padding-block: var(--gx-space-2); text-align: left; }
+.gx .gx-place-chip { display: contents; }
+.gx .gx-place-chip > span { min-width: 0; overflow-wrap: anywhere; }
+.gx .gx-place-chip > span + span { flex-basis: 100%; }
 /* Text on lime is always accent-text (brand guide), the book name included. */
 .gx .gx-place-sides .gx-chip--on .gx-c-2 { color: inherit; }
-.gx .gx-place-sides .gx-chip .gx-vstack { min-width: 0; overflow-wrap: anywhere; }
 .gx .gx-place-dock { min-width: 0; }
 .gx .gx-place-dock > .gx-grow { min-width: 0; }
 .gx .gx-place-slip { margin: 0; padding: 0; list-style: none; }
@@ -22,7 +26,6 @@
 .gx .gx-place-stepper { justify-content: center; }
 .gx .gx-place-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gx-space-2); }
 .gx .gx-place-stat { display: flex; flex-direction: column; gap: var(--gx-space-1); min-width: 0; }
-.gx .gx-place-week .gx-meter3 { flex: none; }
 .gx .gx-place-week { min-width: 0; }
 .gx .gx-place-meter { min-width: 0; }
-.gx .gx-place-meter > .gx-grow { min-width: 0; overflow-wrap: anywhere; }
+.gx .gx-place-meter > .gx-t-meta { overflow-wrap: anywhere; }

@@ -1,5 +1,5 @@
 import { appCode } from '../../../../shared/nfl-schedule.mjs';
-import { fmtWhen } from '../format.js';
+import { DASH, fmtTime, fmtWhen, pacificParts, ZONE_LABEL } from '../format.js';
 import { lineState, marketTime, marketValue } from './marketDetails.js';
 
 /** Current board values come only from the gated reader, never the saved scoring reference. */
@@ -13,7 +13,7 @@ export function boardMarket(card, row, market, read) {
   const state = lineState(cell, read.now);
   return { open: true, line: Number.isFinite(cell.value) ? marketValue(row, market, cell.value) : null,
     label: row.started && state === 'Current line' ? 'Latest recorded line' : state,
-    source: cell.source ?? 'Source unavailable', observed: marketTime(cell.observedAt) };
+    source: cell.source ?? 'Source unavailable', observed: marketTime(cell.observedAt), observedAt: cell.observedAt ?? null };
 }
 
 /** A recorded final only for this started matchup. Kickoff alone never supplies a live/final score. */
@@ -58,8 +58,8 @@ export function marketBoard(board, read) {
 }
 
 /**
- * D-66: the board says where its quotes come from once, not on every card. `{ source, observed }` when every open
- * quote shares one source and update time, `{ updates }` (how many distinct ones) when they differ, or null when no
+ * D-66: the board says where its quotes come from once, not on every card. `{ source, observed, observedAt }` when every
+ * open quote shares one source and update time, `{ updates }` (how many distinct ones) when they differ, or null when no
  * open quote has a source. Each game's sheet still lists its own source, books and times.
  */
 export function boardQuotes(board) {
@@ -67,10 +67,21 @@ export function boardQuotes(board) {
   const seen = new Map();
   for (const card of cards) for (const market of ['spread', 'total']) {
     const cell = card[market];
-    if (cell?.open && cell.source) seen.set(`${cell.source}\u0000${cell.observed}`, { source: cell.source, observed: cell.observed });
+    if (cell?.open && cell.source) seen.set(`${cell.source}\u0000${cell.observed}`, { source: cell.source, observed: cell.observed, observedAt: cell.observedAt ?? null });
   }
   if (!seen.size) return null;
   return seen.size === 1 ? [...seen.values()][0] : { updates: seen.size };
+}
+
+/**
+ * The board meta line's short quote time (quick win A20): "6:26 PM PT" on the same Pacific day as `now`, else
+ * "Mon 6:26 PM PT"; never the year (the full date and year stay behind the title's ⓘ). "—" when the time is missing.
+ */
+export function quoteTime(observedAt, now) {
+  const at = pacificParts(observedAt), today = pacificParts(now);
+  if (!at) return DASH;
+  const sameDay = today && at.year === today.year && at.month === today.month && at.day === today.day;
+  return sameDay ? `${fmtTime(observedAt)} ${ZONE_LABEL}` : fmtWhen(observedAt);
 }
 
 /** One gate per board; the M-03 reader controls whether a reveal confirmation is offered. */

@@ -10,7 +10,7 @@ import { HOME_COPY, heroProgress, homeHero, homeTiles } from '../../../../shared
 import { HOME_LOADING } from '../copy.js';
 import { useShell } from '../shell/context.js';
 import { SHELL_COPY } from '../shell/tabs.js';
-import { Avatar, Button, Card, Countdown, Meter, Move, Pill, Skeleton } from '../ui/index.js';
+import { Avatar, Button, Card, Countdown, DESTINATION_ICONS, Meter, Move, Pill, Skeleton } from '../ui/index.js';
 import { useHomeData } from './homeData.js';
 import { useTicketSummary } from '../bets/useTicketSummary.js';
 import { FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
@@ -121,8 +121,9 @@ function StatTiles({ app, tiles, viewer, onScore, onBets }) {
     <div className="gx-h-stats" data-home="tiles">
       <RankTile market="spread" mode="guess_spread" label={HOME_COPY.spreadRank} tile={tiles.spread} chase={tiles.chase} viewer={viewer} onClick={() => onScore('spread')}/>
       <RankTile market="total" mode="guess_total" label={HOME_COPY.totalRank} tile={tiles.total} chase={null} viewer={viewer} onClick={() => onScore('total')}/>
+      {/* The count has its own span, so only the word agrees with it: "1 active ticket" (design audit A22). */}
       <button type="button" className="gx-h-stat" data-tile="tickets" onClick={onBets}>
-        <span className="gx-t-meta gx-c-2">My bets</span><span className="gx-h-stat-value">{tickets.loading || tickets.error ? '—' : tickets.active}</span><span className="gx-t-meta gx-c-2">{tickets.error ? 'Open to retry' : 'active tickets'}</span>
+        <span className="gx-t-meta gx-c-2">My bets</span><span className="gx-h-stat-value">{tickets.loading || tickets.error ? '—' : tickets.active}</span><span className="gx-t-meta gx-c-2">{tickets.error ? 'Open to retry' : tickets.active === 1 ? 'active ticket' : 'active tickets'}</span>
       </button>
     </div>
   );
@@ -204,7 +205,7 @@ export function Home() {
       ) : null}
       <HomeAwards app={app}/>
       <FocusRows label="This week">
-        <FocusRow icon="chart" title="This week’s trends" sub="Charts for every game" onClick={() => shell.go('research', { section: 'trends', season: null, week: null })}/>
+        <FocusRow icon={DESTINATION_ICONS.trends} title="This week’s trends" sub="Charts for every game" onClick={() => shell.go('research', { section: 'trends', season: null, week: null })}/>
         {savedTrends.items.length ? <Suspense key="saved-trends" fallback={<span className="gx-t-meta" role="status">Checking saved trends…</span>}><SavedTrendsHomeRow onOpen={() => shell.go('research', { section: 'trends', trendSection: 'build', season: null, week: null })}/></Suspense> : null}
       </FocusRows>
     </div>

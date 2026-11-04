@@ -4,9 +4,9 @@
 // label, which makes it an image with that name. Screens import their glyphs from here, so the set stays small and
 // tree-shaken.
 import {
-  ArrowDownUp, ArrowLeftRight, Award, Bell, ChartLine, Check, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, Clock, Copy,
-  Diamond, Eye, Flame, House, Info, LogOut, Lock, MessageCircle, Minus, Palette, Pencil, Plus, Receipt, Settings, Target, Ticket,
-  TriangleAlert, Trophy, UserPlus, Users, X,
+  ArrowDownUp, ArrowLeftRight, Award, Bell, ChartLine, ChartPie, Check, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, CircleUser,
+  ClipboardCheck, Clock, Coins, Copy, Diamond, Download, Eye, Flame, House, Info, LogOut, Lock, MessageCircle, Minus, Palette, Pencil,
+  Plug, Plus, Receipt, RefreshCw, Scale, Settings, ShieldCheck, Target, Ticket, TrendingUp, TriangleAlert, Trophy, UserPlus, Users, X,
 } from 'lucide-react';
 import { cx } from './cx.js';
 
@@ -49,6 +49,17 @@ export const icons = Object.freeze({
   swap: ArrowLeftRight,
   award: Award, // Play's Badges tile (D-69 step 1)
   flame: Flame, // the Pick streak tile (D-69 step 1)
+  // Destination rows (quick win A9, ui/destinations.js) and the Lines board's refresh (A5).
+  trendingUp: TrendingUp,
+  clipboardCheck: ClipboardCheck,
+  chartPie: ChartPie,
+  scale: Scale,
+  coins: Coins,
+  download: Download,
+  shieldCheck: ShieldCheck,
+  circleUser: CircleUser,
+  plug: Plug,
+  refresh: RefreshCw,
 });
 
 /**

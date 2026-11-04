@@ -5,7 +5,7 @@
 // Pick reminders (Board i39) opens the same way, with this device's push switch; its row shows only while the server can
 // send pushes (the shell's `pushConfigured`, from the Community read's stage 2 push guard).
 import { lazy, Suspense, useState } from 'react';
-import { Avatar, Button, Card, LinkRow, List, Segmented, Sheet, Switch, Skeleton } from '../ui/index.js';
+import { Avatar, Button, Card, DESTINATION_ICONS as ICON, LinkRow, List, Segmented, Sheet, Switch, Skeleton } from '../ui/index.js';
 import { useThemePreference } from '../../Theme.jsx';
 import { useDashboardPreferences } from '../../dashboardPreferences.js';
 import { useShell } from '../shell/context.js';
@@ -34,7 +34,7 @@ export const MENU_COPY = Object.freeze({
   guidance: 'Guidance and sources',
   reduceMotion: 'Reduce motion',
   reduceMotionSub: 'Your device’s own setting also stops motion.',
-  saved: 'Saved on this device, not your account. The old app uses the same setting.',
+  saved: 'Saved on this device, not your account.',
   notSaved: 'This browser isn’t saving settings, so this lasts until you close the page.',
 });
 
@@ -115,15 +115,15 @@ export function MenuSheet({ args }) {
       </div></Card>
       <Card variant="flush">
         <List>
-          {shell.communityAdmin && <LinkRow icon="people" onClick={() => shell.setSheetArgs({ sub: 'members' })}>Community members</LinkRow>}
-          {shell.communityAdmin && <LinkRow icon="settings" onClick={() => shell.setSheetArgs({ sub: 'commissioner', tool: null })}>Commissioner tools</LinkRow>}
-          <LinkRow key="profile" icon="pencil" onClick={() => shell.setSheetArgs({ sub: 'profile' })}>{MENU_COPY.profile}</LinkRow>
-          <LinkRow key="history" icon="clock" onClick={() => shell.openPage('page.history', {})}>{MENU_COPY.history}</LinkRow>
-          <LinkRow key="export" icon="receipt" onClick={() => shell.setSheetArgs({ sub: 'export' })}>{MENU_COPY.export}</LinkRow>
-          <LinkRow key="preferences" icon="pencil" onClick={() => shell.setSheetArgs({ sub: 'preferences' })}>Settings · sportsbooks and guidance</LinkRow>
-          {shell.pushConfigured === true && <LinkRow key="reminders" icon="bell" onClick={() => shell.setSheetArgs({ sub: 'reminders' })}>{REMINDER_COPY.title}</LinkRow>}
-          <LinkRow key="guidance" icon="info" onClick={() => shell.setSheetArgs({ sub: 'guidance' })}>{MENU_COPY.guidance}</LinkRow>
-          <LinkRow key="appearance" icon="palette" onClick={() => shell.setSheetArgs({ sub: 'appearance' })}>{MENU_COPY.appearance}</LinkRow>
+          {shell.communityAdmin && <LinkRow icon={ICON.members} onClick={() => shell.setSheetArgs({ sub: 'members' })}>Community members</LinkRow>}
+          {shell.communityAdmin && <LinkRow icon={ICON.commissioner} onClick={() => shell.setSheetArgs({ sub: 'commissioner', tool: null })}>Commissioner tools</LinkRow>}
+          <LinkRow key="profile" icon={ICON.profile} onClick={() => shell.setSheetArgs({ sub: 'profile' })}>{MENU_COPY.profile}</LinkRow>
+          <LinkRow key="history" icon={ICON.history} onClick={() => shell.openPage('page.history', {})}>{MENU_COPY.history}</LinkRow>
+          <LinkRow key="export" icon={ICON.export} onClick={() => shell.setSheetArgs({ sub: 'export' })}>{MENU_COPY.export}</LinkRow>
+          <LinkRow key="preferences" icon={ICON.settings} onClick={() => shell.setSheetArgs({ sub: 'preferences' })}>Settings · sportsbooks and guidance</LinkRow>
+          {shell.pushConfigured === true && <LinkRow key="reminders" icon={ICON.reminders} onClick={() => shell.setSheetArgs({ sub: 'reminders' })}>{REMINDER_COPY.title}</LinkRow>}
+          <LinkRow key="guidance" icon={ICON.guidance} onClick={() => shell.setSheetArgs({ sub: 'guidance' })}>{MENU_COPY.guidance}</LinkRow>
+          <LinkRow key="appearance" icon={ICON.appearance} onClick={() => shell.setSheetArgs({ sub: 'appearance' })}>{MENU_COPY.appearance}</LinkRow>
         </List>
       </Card>
       <Button variant="ghost-2" icon="logOut" className="gx-menu-signout" onClick={signOut} aria-disabled={busy || undefined}>

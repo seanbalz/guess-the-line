@@ -128,6 +128,11 @@
 .gx-solo-brand { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
 /* The heading takes focus only so a screen reader starts there; it is not a control, so it draws no ring. */
 .gx-solo-brand .gx-t-title:focus { outline: none; }
+/* The same for what navigation focuses that is not a control: the page, a page in place of the tab's screen (History),
+   and a route's content region (Fantasy). No full-width ring above and below the page. */
+.gx-main:focus,
+.gx .gx-page:focus,
+.gx [role="region"][data-route-focus]:focus { outline: none; }
 .gx-solo-form { display: flex; flex-direction: column; gap: 8px; }
 .gx-solo-form > .gx-btn--primary { margin-top: 16px; }
 .gx-solo-end { align-self: center; }
@@ -216,6 +221,10 @@
   background: var(--gx-accent);
   box-shadow: var(--gx-glow-accent);
 }
+/* In Light the glow token is a solid 2px ring, a heavy slab on a 3px marker; the marker takes the 1px accent-ink edge
+   every Light lime fill gets instead. Dark keeps its glow. */
+:root[data-theme="light"] .gx:not([data-theme="dark"]) .gx-tab--on::before,
+.gx[data-theme="light"] .gx-tab--on::before { box-shadow: var(--gx-lime-edge); }
 /* The League tab's "new posts" dot (8, data color); counters use .gx-counter. */
 .gx-tab-dot {
   position: absolute;

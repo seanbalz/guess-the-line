@@ -9,7 +9,7 @@ import '../../../web/src/next/styles/base.css';
 import '../../../web/src/next/styles/components.css';
 import {
   Avatar, AvatarStack, Badge, Button, Card, CardButton, Chip, ChipRail, Countdown, Dialog, DriveMeter, FieldMark, GateBanner,
-  IconButton, LinkRow, List, LockCell, LockLine, Meter, Move, Overlay, Pill, Rank, Row, Segmented, Sheet, Strip, Tag,
+  IconButton, LinkRow, List, LockCell, LockLine, Meter, Move, Nest, Overlay, Pill, Rank, Row, Segmented, Sheet, Strip, Tag,
   TeamMark, Text, Toast,
 } from '../../../web/src/next/ui/index.js';
 import { gateBanner, weekSummary } from '../../../web/src/next/rules.js';
@@ -52,6 +52,7 @@ function Gallery() {
   const [toast, setToast] = useState(null);
   const [overlay, setOverlay] = useState(false);
   const [market, setMarket] = useState('spread');
+  const [view, setView] = useState('pick');
   const [pick, setPick] = useState(2.5);
   const [live, setLive] = useState(null);
   return (
@@ -98,6 +99,15 @@ function Gallery() {
             <Button variant="ghost" iconEnd="chevronRight" onClick={record('ghost')}>See all trends</Button>
             <Button variant="ghost-2" onClick={record('ghost2')}>Not now</Button>
             <Button disabled>Lock in picks</Button>
+          </div>
+          {/* Unavailable but focusable (aria-disabled), as Profile's unchanged "Save name"; the meta line says why. */}
+          <div className="gx-vstack gx-gap-4">
+            <Button variant="primary" aria-disabled="true" onClick={record('save-name')}>Save name</Button>
+            <Text variant="meta" tone={2}>Change your name to save it.</Text>
+          </div>
+          <div className="gx-hstack gx-gap-8 gx-wrap">
+            <Button variant="ghost" disabled>Save draft</Button>
+            <Button variant="ghost-2" aria-disabled="true" onClick={record('ghost2-unavailable')}>Not yet</Button>
           </div>
           <div className="gx-hstack gx-gap-8">
             <IconButton icon="bell" label="Pick reminders" pressed={false} onClick={record('bell')}/>
@@ -199,6 +209,13 @@ function Gallery() {
           </div>
         </Section>
 
+        <Section title="Nesting">
+          <Nest label="Example" layer="game" title="SEA @ DEN"
+            lips={[{ key: 'week', label: 'This week', onOpen: record('lip-week') }, { key: 'game', label: 'Seattle Seahawks at Denver Broncos', onOpen: record('lip-game') }]}>
+            <Text as="p" variant="body">The open layer's content.</Text>
+          </Nest>
+        </Section>
+
         <Section title="Layers">
           <CardButton variant="wait" className="gx-vstack gx-gap-4" onClick={() => setSheet('main')}>
             <Text variant="strong">SEA @ DEN</Text>
@@ -222,6 +239,7 @@ function Gallery() {
           {sheet === 'sub' ? (
             <>
               <AvatarStack people={PEOPLE} label="6 are in"/>
+              <Segmented label="Play view" options={[{ value: 'pick', label: 'Pick a Team' }, { value: 'line', label: 'Guess the Line' }, { value: 'board', label: 'Leaderboard' }]} value={view} onChange={setView}/>
               <Button variant="ghost" onClick={record('see-now')}>{copy.SEE_PICKS_NOW}</Button>
             </>
           ) : (

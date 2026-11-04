@@ -18,7 +18,7 @@ import { useAppData } from '../../data/AppData.jsx';
 import { fmtFull } from '../../format.js';
 import { useTrendWeek } from '../../lines/trendsHooks.js';
 import { useShell } from '../../shell/context.js';
-import { Button, Card, LinkRow, List, Pill, Sheet, Skeleton } from '../../ui/index.js';
+import { Button, Card, DESTINATION_ICONS as ICON, LinkRow, List, Pill, Sheet, Skeleton } from '../../ui/index.js';
 import { FinalScoresEditor, oddsScheduleText } from './LegacyTools.jsx';
 import { OddsConnection } from './OddsConnection.jsx';
 import './commissioner.css';
@@ -29,12 +29,12 @@ export const COMMISSIONER_COPY = Object.freeze({
   title: 'Commissioner tools',
   only: 'Only the Community commissioner can use these tools.',
   tools: Object.freeze([
-    { id: 'status', icon: 'clock', label: 'Schedule and settlement status' },
-    { id: 'weeks', icon: 'plus', label: 'Week opening' },
-    { id: 'referees', icon: 'people', label: 'Game referees' },
-    { id: 'results', icon: 'trophy', label: 'Final scores' },
-    { id: 'odds', icon: 'chart', label: 'Odds connection' },
-    { id: 'epl-corrections', icon: 'chart', label: 'EPL stat corrections' },
+    { id: 'status', icon: ICON.status, label: 'Schedule and settlement status' },
+    { id: 'weeks', icon: ICON.weekOpening, label: 'Week opening' },
+    { id: 'referees', icon: ICON.referees, label: 'Game referees' },
+    { id: 'results', icon: ICON.finalScores, label: 'Final scores' },
+    { id: 'odds', icon: ICON.odds, label: 'Odds connection' },
+    { id: 'epl-corrections', icon: ICON.eplCorrections, label: 'EPL stat corrections' },
   ]),
   originalOnly: 'Only the original Triple Threat commissioner can use this tool.',
 });
@@ -69,7 +69,6 @@ function Problem({ children }) {
 
 function Hub({ open }) {
   return <>
-    <p className="gx-t-body gx-c-2">Commissioner only. Each tool checks your access.</p>
     <Card variant="flush"><List>
       {COMMISSIONER_COPY.tools.map(tool => <LinkRow key={tool.id} icon={tool.icon} onClick={() => open(tool.id)}>{tool.label}</LinkRow>)}
     </List></Card>

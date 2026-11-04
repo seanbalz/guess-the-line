@@ -18,6 +18,8 @@ async function landing(page, baseURL, beforeOpen = async () => {}) {
   return world;
 }
 const open = page => page.locator('[data-landing="research"]').getByRole('button', { name: /^Fantasy/ }).click();
+// Design audit A19: one title while the code loads, when it fails and once it has loaded, so the heading never changes.
+const titled = page => expect(page.getByRole('heading', { level: 1 })).toHaveText(['Fantasy Football']);
 async function capture(page, info, state) {
   for (const theme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
     await page.evaluate(theme => { localStorage.setItem('gtl.theme', theme); window.dispatchEvent(new StorageEvent('storage', { key: 'gtl.theme', newValue: theme })); }, theme);
@@ -45,6 +47,7 @@ test('Fantasy detail code waits for a visit; Back, navigation, late failures and
     expect(codeRequests).toBe(0); expect(reads).toBe(0);
     await open(page); await expect(content(page).getByRole('status')).toHaveText('Loading Fantasy…');
     await expect(content(page)).toBeFocused();
+    await titled(page);
     await expect.poll(() => codeRequests).toBe(1); expect(reads).toBe(0);
     await capture(page, info, 'loading');
     await page.getByRole('button', { name: 'Back', exact: true }).click();
@@ -53,6 +56,7 @@ test('Fantasy detail code waits for a visit; Back, navigation, late failures and
     mode = 'fail'; release(); await failed;
     await expect(content(page)).toHaveCount(0);
     await open(page); await expect(content(page).getByRole('alert')).toContainText('Fantasy couldn’t load.');
+    await titled(page);
     await capture(page, info, 'error');
     mode = 'hold'; waiting = new Promise(resolve => { release = resolve; });
     await content(page).getByRole('button', { name: 'Try Fantasy again', exact: true }).click();
@@ -60,6 +64,7 @@ test('Fantasy detail code waits for a visit; Back, navigation, late failures and
     expect(reads).toBe(0); mode = 'ready'; release();
     const screen = page.locator('.gx-fantasy');
     await expect(screen.getByRole('list', { name: 'Ranked players', exact: true })).toBeVisible();
+    await titled(page);
     expect(reads).toBeGreaterThan(0);
     await expect(content(page)).toBeFocused();
     await screen.getByRole('combobox', { name: 'Position', exact: true }).selectOption('QB');

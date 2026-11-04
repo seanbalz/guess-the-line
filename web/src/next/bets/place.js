@@ -7,7 +7,7 @@
 // - your own bet always shows in full; editing it sends the terms you read (`expected`), so a bet changed on another
 //   device is refused with "This bet changed" instead of being overwritten;
 // - a game that has kicked off takes no new bet or edit.
-import { DASH, MINUS, fmtOdds, fmtU } from '../format.js';
+import { DASH, MINUS, fmtAmt, fmtOdds, fmtRecord, fmtU } from '../format.js';
 import { pickText, sideText } from './everyone.js';
 import { QUALIFY_PICKS, QUALIFY_UNITS, weekFromPicks } from '../../../../shared/bets-qual.mjs';
 
@@ -21,8 +21,10 @@ const finite = value => typeof value === 'number' && Number.isFinite(value);
 export const UNIT_CHIPS = Object.freeze([0.5, 1, 1.5, 2, 2.5, 3]);
 export const MAX_UNITS = 100;
 
+// The banner explains the gate once; each closed market says only what unlocks it (design audit A14).
 export const PLACE_COPY = Object.freeze({
-  locked: market => `Lock in your ${MARKET_NAME[market]} guess for this game to see its prices and place a bet.`,
+  locked: market => `Lock in your ${MARKET_NAME[market]} guess to see prices`,
+  lockedMine: market => `Lock in your ${MARKET_NAME[market]} guess to change this bet`,
   banner: 'Prices show for each game after you lock in that game’s guess.',
   started: 'Started · bets closed',
   noOffer: 'No saved price',
@@ -45,7 +47,8 @@ export function priceText(game, market, value) {
 
 /**
  * `{ published, season, week, now, closed, games }`. A game is `{ id, awayCode, homeCode, kickoff, started, faces, markets }`;
- * a market is `{ market, name, visible, locked, sides, mine }`, a side `{ side, label, offer, text }`, and `mine` your saved
+ * a market is `{ market, name, visible, locked, sides, mine }`, a side `{ side, label, offer, text, pick, price }` (the price
+ * chip's two lines: "SEA +3.5", then "−110" before the book), and `mine` your saved
  * bet `{ selection, text, units, status, moved }` (moved: the offer for your side no longer has your line and price).
  */
 export function placeBoard(data, viewer) {
@@ -70,7 +73,8 @@ export function placeBoard(data, viewer) {
         const own = bets.find(bet => bet.userId === viewer && bet.gameId === game.id && bet.market === market);
         const sides = SIDES[market].map(side => {
           const offer = visible && offerOk(market, side, cell.offers?.[side]) ? cell.offers[side] : null;
-          return { side, label: sideText(game, market, side), offer, text: offer ? priceText(game, market, offer) : null };
+          return { side, label: sideText(game, market, side), offer, text: offer ? priceText(game, market, offer) : null,
+            pick: offer ? pickText(game, market, offer) : null, price: offer ? fmtOdds(offer.odds) : null };
         });
         let mine = null;
         if (own && record(own.selection) && finite(own.selection.units)) {
@@ -78,7 +82,9 @@ export function placeBoard(data, viewer) {
           mine = { selection: own.selection, text: priceText(game, market, own.selection), units: fmtU(own.selection.units), status: own.status ?? null,
             moved: Boolean(current && (current.line !== own.selection.line || current.odds !== own.selection.odds)) };
         }
-        return { market, name: MARKET_NAME[market], visible, locked: !visible && !started ? PLACE_COPY.locked(market) : null, sides, mine };
+        // Your saved bet sits right above the lock line, so a closed market with one says how to change it.
+        const locked = !visible && !started ? (mine ? PLACE_COPY.lockedMine : PLACE_COPY.locked)(market) : null;
+        return { market, name: MARKET_NAME[market], visible, locked, sides, mine };
       });
       return { id: game.id, awayCode: game.awayCode, homeCode: game.homeCode, kickoff: game.kickoff, started, faces, markets };
     });
@@ -137,8 +143,9 @@ export function weekCard(data, viewer) {
   return {
     open: pending.filter(bet => !started(bet)).length, inPlay: pending.filter(started).length,
     toWin: fmtU(Math.round(pending.reduce((sum, bet) => sum + toWinUnits(bet.selection), 0) * 100) / 100),
-    record: `${week.wins}-${week.losses}${week.pushes ? `-${week.pushes}` : ''}`,
-    units: week.riskUnits ? `${week.netUnits > 0 ? '+' : ''}${fmtU(week.netUnits)}` : DASH,
+    // The app's one record and amount style (design audit A13): "1–1–0", "+0.75U", "−1.50U".
+    record: fmtRecord(week.wins, week.losses, week.pushes),
+    units: week.riskUnits ? fmtAmt(week.netUnits) : DASH,
     ret: week.roi === null ? DASH : `${week.roi > 0 ? '+' : week.roi < 0 ? MINUS : ''}${Math.abs(week.roi)}%`,
     picks: week.picks, qualified: week.qualified,
     meter: { value: Math.min(QUALIFY_PICKS, Math.max(week.picks, Math.floor(units / QUALIFY_UNITS * QUALIFY_PICKS))),

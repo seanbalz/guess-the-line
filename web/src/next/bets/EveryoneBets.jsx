@@ -6,7 +6,7 @@ import { betsApi } from '../../api.js';
 import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
 import { LeagueFailure, useLeagueRead } from '../league/useLeagueRead.jsx';
-import { Avatar, AvatarStack, Button, Card, GateBanner, LockLine, Matchup, Pill, cx, Skeleton } from '../ui/index.js';
+import { Avatar, Button, Card, GateBanner, LockLine, Matchup, Pill, cx, Skeleton } from '../ui/index.js';
 import { fmtWhen } from '../format.js';
 import { EVERYONE_COPY, everyoneBoard } from './everyone.js';
 import './everyone.css';
@@ -19,12 +19,15 @@ export function EveryoneBets({ onPlace }) {
   if (read.loading) return <Skeleton label="Loading everyone’s picks…" shape="rows" count={4}/>;
   if (read.error) return <LeagueFailure error={read.error} onRetry={read.retry}/>;
   return <EveryoneBoard data={read.data} viewer={app.accountId} scopeName={leagueId ? app.league.name : 'Community'}
-    onLockIn={() => shell.go('play', { section: 'picks' })} onPlace={onPlace} onRefresh={read.retry}/>;
+    onLockIn={() => shell.go('play', { section: 'picks' })} onOpenPlay={() => shell.go('play')} onPlace={onPlace} onRefresh={read.retry}/>;
 }
 
-export function EveryoneBoard({ data, viewer, scopeName, onLockIn, onPlace, onRefresh }) {
+export function EveryoneBoard({ data, viewer, scopeName, onLockIn, onOpenPlay, onPlace, onRefresh }) {
   const board = everyoneBoard(data, viewer);
-  if (!board.published) return <p className="gx-t-body" role="status">{EVERYONE_COPY.unpublished}</p>;
+  // Rule 5: an empty state is one sentence and one action (design audit A17).
+  if (!board.published) return <div className="gx-vstack gx-gap-12" data-bets="unpublished">
+    <p className="gx-t-body" role="status">{EVERYONE_COPY.unpublished}</p>{onOpenPlay ? <Button onClick={onOpenPlay}>Open Play</Button> : null}
+  </div>;
   return <div className="gx-ev gx-vstack gx-gap-24" data-bets="everyone">
     <p className="gx-t-meta gx-c-2">{scopeName} · Week {board.week}</p>
     {board.closed.length ? <GateBanner gate={{ locked: true, sentence: EVERYONE_COPY.banner, ctaLabel: 'Lock in a guess' }} onCta={onLockIn}/> : null}
@@ -60,7 +63,7 @@ export function EveryoneGame({ game }) {
         <h3 id={`gx-ev-${game.id}`} className="gx-t-strong"><Matchup away={game.awayCode} home={game.homeCode} size={32}/></h3>
         {game.kickoff ? <span className="gx-t-meta gx-c-2">{fmtWhen(game.kickoff)}</span> : null}
       </span>
-      <AvatarStack people={game.faces.map(face => ({ id: face.id, name: face.display, you: face.you }))} label={`${game.faces.map(face => face.name).join(', ')} picked this game`}/>
+      {/* No face stack here: each pick row below already leads with its face and name (design audit A12). */}
     </header>
     <ul className="gx-ev-picks">
       {game.picks.map(pick => <li key={pick.key} className={cx('gx-ev-pick', pick.you && 'gx-ev-you')} data-pick={pick.key} data-open={pick.open ? 'true' : 'false'}>

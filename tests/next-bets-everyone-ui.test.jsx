@@ -29,7 +29,7 @@ const data = {
   faces: { 'SEA-DEN': [TROY, LUKE], 'HOU-JAX': [SEAN] },
   qualification: [{ userId: TROY, picks: 3, units: 4.5, qualified: true }, { userId: LUKE, picks: 1, units: 2, qualified: false }, { userId: SEAN, picks: 1, units: 1, qualified: false }],
 };
-const render = (props = {}) => renderToStaticMarkup(<div className="gx"><EveryoneBoard data={data} viewer={LUKE} scopeName="Community" onLockIn={() => {}} onPlace={() => {}} onRefresh={() => {}} {...props}/></div>);
+const render = (props = {}) => renderToStaticMarkup(<div className="gx"><EveryoneBoard data={data} viewer={LUKE} scopeName="Community" onLockIn={() => {}} onOpenPlay={() => {}} onPlace={() => {}} onRefresh={() => {}} {...props}/></div>);
 const slice = (html, key) => {
   const start = html.indexOf(`data-pick="${key}"`);
   return html.slice(start, html.indexOf('</li>', start));
@@ -46,6 +46,9 @@ describe('everyone’s picks', () => {
     expect(troy).toContain('DEN');
     expect(troy).toContain('1.5U');
     expect(troy).toContain(EVERYONE_COPY.locked('spread'));
+    // Design audit A14: the row says only when it opens; the one banner explains why.
+    expect(troy).toContain('Opens when you lock in or at kickoff');
+    expect(troy).not.toContain(EVERYONE_COPY.banner);
     for (const secret of ['13.5', '115', 'BetMGM', '1.30', 'Win']) expect(troy).not.toContain(secret);
     expect(html).not.toContain('BetMGM');
     expect(html).not.toContain('13.5');
@@ -78,15 +81,25 @@ describe('everyone’s picks', () => {
     expect(nodes.find(n => n.attrs?.['aria-labelledby'] === 'gx-ev-SEA-DEN').attrs['data-game']).toBe('SEA-DEN');
     expect(html).not.toContain('SEA @ DEN');
   });
-  it('names each game’s pickers for screen readers', () => {
-    expect(html).toContain('You, Troy picked this game');
+  // Design audit A12: a face stack in the game header repeated the faces that lead each pick row. The pickers are named
+  // once, on their rows (face first, then the name), and the header draws no face.
+  it('names each game’s pickers once, on rows that lead with their faces; the game header draws none', () => {
+    const nodes = [...walk(parseMarkup(html))];
+    const heads = nodes.filter(n => n.attrs?.class === 'gx-ev-game-head');
+    expect(heads).toHaveLength(2);
+    for (const head of heads) expect([...walk(head)].filter(n => /\bgx-av/.test(n.attrs?.class ?? ''))).toEqual([]);
+    expect(html).not.toContain('picked this game');
+    const rows = nodes.filter(n => n.tag === 'li' && n.attrs?.['data-pick']);
+    expect(rows.map(row => /\bgx-av\b/.test(row.children[0].attrs?.class ?? ''))).toEqual([true, true, true]);
+    expect(rows.map(row => nameFrom([...walk(row)].find(n => n.attrs?.class === 'gx-t-strong')))).toEqual(['Sean', 'You', 'Troy']);
   });
 });
 
 describe('quiet weeks', () => {
-  it('an unpublished week is one sentence', () => {
+  it('an unpublished week is one sentence and one action (design audit A17)', () => {
     const html = render({ data: { season: 2026, week: 8, published: false, roster: [], games: [], bets: [], faces: {}, markets: {}, qualification: [] } });
     expect(html).toContain(EVERYONE_COPY.unpublished);
+    expect(html).toContain('Open Play');
     expect(html).not.toContain('id="gx-ev-week"');
   });
   it('a week with no picks is one sentence and one action', () => {

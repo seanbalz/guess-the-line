@@ -3,7 +3,10 @@
 // - text or an icon that leaves the control holding it, or leaves the screen (Sean's October 21 "Following" bubble);
 // - text clipped by an ancestor that hides overflow;
 // - a box wider than the screen outside a horizontal scroller (chip rails and wide tables scroll on purpose);
-// - two touchable controls that overlap in the top layer (an open sheet or dialog makes the page behind it inert).
+// - two touchable controls that overlap in the top layer (an open sheet or dialog makes the page behind it inert);
+// - text squeezed into a box narrower than about 3 characters that wraps onto more than 3 lines (design audit A2: Your
+//   picks' "1 of 3 bets · 2U of 3U" beside a full-width meter, one character per line). Such a box can be 0 px wide, so
+//   this runs before the skip for collapsed boxes.
 // Hidden content (display none, [hidden], a closed <details> body) and screen-reader-only text are skipped.
 
 export function layoutProblems() {
@@ -19,9 +22,16 @@ export function layoutProblems() {
   };
   const tiny = el => { const r = el.getBoundingClientRect(); return r.width <= 2 || r.height <= 2; };
   const ancestor = (el, test) => { for (let n = el.parentElement; n && n !== document.body; n = n.parentElement) if (test(n, getComputedStyle(n))) return n; return null; };
+  // Line boxes a text node draws: one per distinct line top.
+  const lines = node => { const range = document.createRange(); range.selectNodeContents(node); return new Set([...range.getClientRects()].filter(t => t.width).map(t => Math.round(t.top))).size; };
   for (const el of root.querySelectorAll('*')) {
-    if ((el.closest('svg') && el.tagName.toLowerCase() !== 'svg') || hidden(el) || tiny(el)) continue;
-    const r = el.getBoundingClientRect(), cs = getComputedStyle(el);
+    if ((el.closest('svg') && el.tagName.toLowerCase() !== 'svg') || hidden(el)) continue;
+    const box = el.getBoundingClientRect();
+    // "About 3 characters": 1.5em, three half-em glyphs. Screen-reader-only text is 1 px tall and never wraps.
+    if (box.height > 2 && box.width < 1.5 * parseFloat(getComputedStyle(el).fontSize)
+      && [...el.childNodes].some(node => node.nodeType === 3 && node.textContent.trim() && lines(node) > 3)) out.push(`${name(el)}: text squeezed to a few characters per line`);
+    if (tiny(el)) continue;
+    const r = box, cs = getComputedStyle(el);
     const scroller = ancestor(el, (n, s) => /(auto|scroll)/.test(s.overflowX) && n.scrollWidth > n.clientWidth + 1);
     const clipper = scroller ? null : ancestor(el, (n, s) => /(hidden|clip)/.test(s.overflowX));
     for (const node of el.childNodes) {
