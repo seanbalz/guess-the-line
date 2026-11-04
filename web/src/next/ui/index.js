@@ -8,6 +8,8 @@ export { Text, TEXT_VARIANTS, TEXT_TONES } from './Text.jsx';
 export { Button, BUTTON_VARIANTS } from './Button.jsx';
 export { IconButton } from './IconButton.jsx';
 export { Card, CardButton, CARD_VARIANTS } from './Card.jsx';
+export { NextMoveCard } from './NextMoveCard.jsx';
+export { StaleLine, STALE_COPY } from './StaleLine.jsx';
 export { List } from './List.jsx';
 export { Row, LinkRow } from './Row.jsx';
 export { NewPill, Pill, PILL_TONES } from './Pill.jsx';

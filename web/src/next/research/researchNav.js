@@ -7,6 +7,8 @@ export const RESEARCH_NAMES = Object.freeze({ title: 'Research', games: 'Games',
 export const gameRowId = id => `gx-l-row-${id}`;
 export const teamRowId = code => `gx-r-team-${code}`;
 export const tileId = key => `gx-r-tile-${key}`;
+/** The landing's one lime button, whatever its words (Open games, See results, Open trends). */
+export const HERO_ACTION_ID = 'gx-r-hero-action';
 /** "SEA @ DEN" from a game id, the layer's heading while its week loads (so the heading never changes under the reader). */
 export const layerTitle = id => (typeof id === 'string' && /^[A-Za-z]{2,4}-[A-Za-z]{2,4}$/.test(id) ? id.replace('-', ' @ ') : id);
 /** A Research section on its first layer, as the landing's card and tiles open it. */

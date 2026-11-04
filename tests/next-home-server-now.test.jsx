@@ -77,4 +77,13 @@ describe('useServerNow', () => {
     expect(rig.effects.pop()()).toBeUndefined();
     expect(vi.getTimerCount()).toBe(0);
   });
+
+  it('until 0 (a server clock with nothing timed): no interval is ever left running', () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'performance', 'Date'] });
+    const base = Date.parse('2026-11-08T17:00:00.000Z');
+    useServerNow(base, Date.now(), { until: 0 });
+    const stop = rig.effects.pop()();
+    expect(stop, 'no cleanup to run: no timer was started').toBeUndefined();
+    expect(vi.getTimerCount()).toBe(0);
+  });
 });

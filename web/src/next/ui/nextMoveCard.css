@@ -1,0 +1,8 @@
+/* The kit's next-move card and stale line (D-69, spec 5A). Tokens only. */
+.gx .gx-next-move { display: flex; flex-direction: column; gap: var(--gx-space-3); }
+/* The eyebrow is a label, not lime: lime marks only the one main button and your selections (D-38). */
+.gx .gx-next-move-eyebrow { color: var(--gx-hero-text-2); }
+.gx .gx-next-move .gx-t-title { overflow-wrap: anywhere; }
+.gx .gx-next-move .gx-meter3-seg { height: 8px; border-radius: 4px; }
+.gx .gx-next-move > .gx-btn { margin-top: var(--gx-space-1); }
+.gx .gx-stale-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gx-space-2); }

@@ -4,7 +4,7 @@
 // ever reaches the landing (D-31); and no surface line runs over twelve words.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { RESEARCH_TILES, lastKickoffOf, researchClock, researchHero, researchTiles, weekGamesOf } from '../web/src/next/research/researchModel.js';
+import { LANDING_COPY, RESEARCH_TILES, clockUntil, lastKickoffOf, researchClock, researchHero, researchTiles, weekGamesOf } from '../web/src/next/research/researchModel.js';
 import { trendsTile } from '../web/src/next/home/homeModel.js';
 
 const GAMES = [
@@ -58,6 +58,43 @@ test('four tiles in order: the next game, Home’s saved-trends tile, Fantasy an
   const none = researchTiles({ community: null })[0];
   assert.deepEqual([none.big, none.sub, none.ariaLabel], ['—', 'No week open', 'Games, no week open']);
   assert.equal(new Set(tiles.map(t => t.icon)).size, 4, 'no two tiles share a glyph');
+});
+
+test('a failed read: every tile reads a dash with neutral words, never "No week open" (the alert says the week did not load)', () => {
+  const [games, trends, fantasy, teams] = researchTiles({ community: null, failed: true });
+  assert.deepEqual([games.big, games.sub, games.ariaLabel, games.next], ['—', 'Not loaded', 'Games, not loaded', null]);
+  assert.equal(trends.ariaLabel, trendsTile([]).ariaLabel, 'the device’s own saved trends still show');
+  assert.deepEqual([fantasy.big, teams.big], ['—', '32']);
+  assert.equal(researchTiles({ community: null })[0].sub, 'No week open', 'a loaded read with no week still says so');
+});
+
+test('untimed games: the card and the Games tile agree (not "all kicked off" while a game has no time); a one-game week reads as one', () => {
+  const untimed = { week: { season: 2026, week: 9, games: [GAMES[1], { ...GAMES[0], kickoff: null }] }, picksDue: { now: '2026-11-09T02:00:00Z' } };
+  const now = ms('2026-11-09T02:00:00Z');
+  assert.equal(researchHero(untimed, now).kind, 'week');
+  assert.equal(researchHero(untimed, now).line, '1 of 2 kicked off');
+  const tile = researchTiles({ community: untimed, now })[0];
+  assert.notEqual(tile.sub, 'all kicked off');
+  assert.deepEqual([tile.big, tile.sub, tile.ariaLabel], ['—', 'Time to be set', 'Games, a kickoff time is not set']);
+  const one = { week: { season: 2026, week: 9, games: [GAMES[1]] }, picksDue: { now: '2026-11-09T02:00:00Z' } };
+  assert.equal(researchHero(one, now).line, 'The game kicked off');
+  assert.equal(researchHero(one, ms('2026-11-04T12:00:00Z')).title, '1 game');
+  assert.equal(researchTiles({ community: one, now })[0].ariaLabel, 'Games, the game kicked off');
+  assert.equal(researchHero(community(), ms('2026-11-04T12:00:00Z')).eyebrow, 'Week 9 · This week’s lines');
+});
+
+test('the clock stops: with a server clock but no timed game the landing’s timer is told to stop at once', () => {
+  assert.equal(clockUntil(community()), ms('2026-11-08T21:25:00Z'));
+  for (const none of [null, { picksDue: { now: '2026-11-08T19:00:00Z' } }, { week: { season: 2026, week: 9, games: [] }, picksDue: { now: '2026-11-08T19:00:00Z' } },
+    { week: { season: 2026, week: 9, games: [{ id: 'A-B', awayCode: 'A', homeCode: 'B', kickoff: null }] } }]) assert.equal(clockUntil(none), 0);
+});
+
+test('every landing line is twelve words or fewer, the copy and spoken labels included', () => {
+  for (const text of Object.values(LANDING_COPY)) assert.ok(words(text) <= 12, text);
+  for (const now of [ms('2026-11-04T12:00:00Z'), ms('2026-11-09T02:00:00Z'), null]) {
+    for (const tile of researchTiles({ community: community(), now })) assert.ok(words(tile.ariaLabel) <= 12, tile.ariaLabel);
+  }
+  for (const tile of researchTiles({ community: null, failed: true })) assert.ok(words(tile.ariaLabel) <= 12 && words(tile.sub) <= 12);
 });
 
 test('D-31: no line, pick or market reaches the landing, whatever the read carries; no surface line over twelve words', () => {

@@ -1,6 +1,6 @@
 // Quick win A9 (November 4, 2026): destination rows on the Research and Bets landings, and Home's tiles (D-69 step 2,
 // H1A: Home's rows became kit tiles; Research's rows became kit tiles too, D-69 step 3). Contract: no two destinations on one screen share a glyph, a destination has the
-// same glyph from every screen (Research recommendations from Bets and from every game layer, Trends and My bets from Home),
+// same glyph from every screen (drawn here: Research recommendations on Bets, Trends and My bets on Home; the game layers are not drawn in this file),
 // every glyph comes from the kit's Lucide outline set, the row icons are text-2 (lime stays for the one primary action,
 // rule 2) and the landing's action headline is in the 28 px title style, not the 40 px display line.
 // The Menu and Commissioner tools rows are checked in tests/next-commissioner-ui.test.jsx. Fixture data only.
@@ -89,11 +89,9 @@ describe('A9: one glyph per destination on the landings', () => {
 
   it('the landing headline is the title style, and only Home keeps the display line', () => {
     expect(screens.Research, 'Research').not.toContain('gx-t-display');
-    for (const name of ['Bets']) {
-      const headline = nodes(screens[name]).find(n => n.tag === 'h2' && n.parent?.attrs?.class?.includes('gx-focus-action'));
-      expect(headline.attrs.class, name).toBe('gx-t-title');
-      expect(screens[name], name).not.toContain('gx-t-display');
-    }
+    const headline = nodes(screens.Bets).find(n => n.tag === 'h2' && n.parent?.attrs?.class?.includes('gx-focus-action'));
+    expect(headline.attrs.class, 'Bets').toBe('gx-t-title');
+    expect(screens.Bets, 'Bets').not.toContain('gx-t-display');
     expect(textOf(nodes(screens.Bets).find(n => n.tag === 'h2' && n.attrs.class === 'gx-t-title'))).toBe('Your tickets. All together.');
   });
 
