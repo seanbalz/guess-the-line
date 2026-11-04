@@ -48,6 +48,16 @@ describe('the placing board', () => {
     expect(total.sides.every(side => side.offer === null)).toBe(true);
     expect(board.closed).toBe(true);
   });
+  // Design audit A14: the banner explains the gate once. A closed market's lock line only says what unlocks it, and under
+  // your saved bet it says how to change that bet instead of offering to place one. The gate is unchanged: no prices.
+  it('a closed market says what unlocks it, and how to change your saved bet when it holds one', () => {
+    expect(later.markets[1].locked).toBe('Lock in your Total guess to see prices');
+    const closed = { ...data.markets['SEA-DEN'], spread: { visible: false } };
+    const spread = placeBoard({ ...data, markets: { ...data.markets, 'SEA-DEN': closed } }, LUKE).games.find(g => g.id === 'SEA-DEN').markets[0];
+    expect(spread.mine.text).toBe('DEN −3 · −110');
+    expect(spread.locked).toBe('Lock in your Spread guess to change this bet');
+    expect(spread.sides.every(side => side.offer === null)).toBe(true);
+  });
   it('shows your saved bet with "Price moved" when your side’s offer changed', () => {
     const { mine } = later.markets[0];
     expect(mine.text).toBe('DEN −3 · −110');

@@ -46,6 +46,9 @@ describe('everyone’s picks', () => {
     expect(troy).toContain('DEN');
     expect(troy).toContain('1.5U');
     expect(troy).toContain(EVERYONE_COPY.locked('spread'));
+    // Design audit A14: the row says only when it opens; the one banner explains why.
+    expect(troy).toContain('Opens when you lock in or at kickoff');
+    expect(troy).not.toContain(EVERYONE_COPY.banner);
     for (const secret of ['13.5', '115', 'BetMGM', '1.30', 'Win']) expect(troy).not.toContain(secret);
     expect(html).not.toContain('BetMGM');
     expect(html).not.toContain('13.5');

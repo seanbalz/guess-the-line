@@ -84,9 +84,9 @@ test('a friend’s pick shows side and units until Luke’s gate opens; then onl
     await expect(row(page, 'troy', 'spread')).toHaveAttribute('data-open', 'false');
     await expect(row(page, 'troy', 'spread')).toContainText(g0.homeCode);
     await expect(row(page, 'troy', 'spread')).toContainText('1.5U');
-    await expect(row(page, 'troy', 'spread')).toContainText('Lock in your Spread guess for this game');
+    await expect(row(page, 'troy', 'spread')).toContainText('Opens when you lock in or at kickoff');
     await expect(row(page, 'sean', 'total')).toContainText('Over');
-    await expect(row(page, 'sean', 'total')).toContainText('Lock in your Total guess for this game');
+    await expect(row(page, 'sean', 'total')).toContainText('Opens when you lock in or at kickoff');
     for (const secret of [...TROY_SECRETS, ...SEAN_SECRETS]) expect(await pageText(page), `page: ${secret}`).not.toContain(secret);
     // Luke's own pick, in full.
     await expect(row(page, 'luke', 'total')).toHaveAttribute('data-open', 'true');

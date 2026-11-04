@@ -21,8 +21,10 @@ const finite = value => typeof value === 'number' && Number.isFinite(value);
 export const UNIT_CHIPS = Object.freeze([0.5, 1, 1.5, 2, 2.5, 3]);
 export const MAX_UNITS = 100;
 
+// The banner explains the gate once; each closed market says only what unlocks it (design audit A14).
 export const PLACE_COPY = Object.freeze({
-  locked: market => `Lock in your ${MARKET_NAME[market]} guess for this game to see its prices and place a bet.`,
+  locked: market => `Lock in your ${MARKET_NAME[market]} guess to see prices`,
+  lockedMine: market => `Lock in your ${MARKET_NAME[market]} guess to change this bet`,
   banner: 'Prices show for each game after you lock in that game’s guess.',
   started: 'Started · bets closed',
   noOffer: 'No saved price',
@@ -78,7 +80,9 @@ export function placeBoard(data, viewer) {
           mine = { selection: own.selection, text: priceText(game, market, own.selection), units: fmtU(own.selection.units), status: own.status ?? null,
             moved: Boolean(current && (current.line !== own.selection.line || current.odds !== own.selection.odds)) };
         }
-        return { market, name: MARKET_NAME[market], visible, locked: !visible && !started ? PLACE_COPY.locked(market) : null, sides, mine };
+        // Your saved bet sits right above the lock line, so a closed market with one says how to change it.
+        const locked = !visible && !started ? (mine ? PLACE_COPY.lockedMine : PLACE_COPY.locked)(market) : null;
+        return { market, name: MARKET_NAME[market], visible, locked, sides, mine };
       });
       return { id: game.id, awayCode: game.awayCode, homeCode: game.homeCode, kickoff: game.kickoff, started, faces, markets };
     });

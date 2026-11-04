@@ -15,7 +15,8 @@ const record = value => value !== null && typeof value === 'object' && !Array.is
 const finite = value => typeof value === 'number' && Number.isFinite(value);
 
 export const EVERYONE_COPY = Object.freeze({
-  locked: market => `Lock in your ${MARKET_NAME[market]} guess for this game, or wait for kickoff, to see the line.`,
+  // One banner explains the gate; each closed row says only when it opens (design audit A14).
+  locked: () => 'Opens when you lock in or at kickoff',
   banner: 'Friends’ lines and prices show after you lock in that game’s guess, or at kickoff.',
   empty: 'No one has a Virtual Units pick this week yet.',
   unpublished: 'This week’s games are not published yet.',
