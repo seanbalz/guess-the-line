@@ -259,6 +259,18 @@ describe('while the Community read loads or fails', () => {
     expect(primaries(html)).toHaveLength(0);
     expect(textOf(alert)).not.toContain('nope');
   });
+
+  it('a failed refresh keeps the last good copy and says so under the card, as Play’s landing does (final review M2)', () => {
+    // data/store.js: a failed refresh keeps the copy (status 'ready') and notes the error.
+    const line = 'This week could not refresh. Showing the last loaded update.';
+    home(reply(), { community: { status: 'ready', data: reply(), error: { status: 503 }, loading: false } });
+    let html = render();
+    expect(nodes(html, attr('data-home', 'hero'))).toHaveLength(1);
+    expect(nodes(html, attr('role', 'status')).map(textOf)).toContain(line);
+    home(reply());
+    html = render();
+    expect(nodes(html, attr('role', 'status')).map(textOf)).not.toContain(line);
+  });
 });
 
 // Design audit A22: the My bets tile said "1 active tickets". The count has its own span, so the word agrees with it.

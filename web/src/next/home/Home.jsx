@@ -320,7 +320,8 @@ export function Home() {
     <div className="gx-screen gx-h" data-landing="home">
       {head}
       <Hero app={app} hero={hero} headline={headline} meters={meters} season={week.season} at={community.at} onPicks={toPicks} onLines={toLines}/>
-      {community.status === 'error' && <p className="gx-t-body" role="status">This week could not refresh. Showing the last loaded update.</p>}
+      {/* A failed refresh keeps the last good copy with its error noted (data/store.js): say so under the card, as Play does. */}
+      {data && community.error ? <p className="gx-t-body" role="status">This week could not refresh. Showing the last loaded update.</p> : null}
       <HomeTiles app={app} shell={shell} community={community} tiles={tiles} hero={hero} week={week} viewer={viewer}/>
       <ThisWeek app={app} shell={shell} personal={personal} community={data}/>
     </div>
