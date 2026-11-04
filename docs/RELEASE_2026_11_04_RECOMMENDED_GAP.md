@@ -42,5 +42,9 @@ Sean's approvals (November 3, 2026 PT):
 
 - **Live bytes (executed, signed out):** the production entry `assets/index-yhey1K9m.js` lazy-loads `VirtualUnits-B067d_gi.js`. That chunk contains the D-77 strings "beat the close", "About your gaps", "Each gap, in kickoff order" and "Top 3 to act on".
 - **D-77 adds no route.** The card reads the player's own `/lines/read`, which was already live. Not checked: a signed-in view of the card on a phone.
-- **D-69 step 1:** the step 1 Play session is doing the signed-in readback of Play's reads and writing the step 1 release note.
+- **D-69 step 1:** the step 1 Play session's readback and release note are in
+  [#476](https://github.com/seanbalz/guess-the-line/pull/476) (`docs/RELEASE_2026_11_04_OVERHAUL_STEP1.md`).
+  - Step 1's markers are in the live `NextApp-btUS1fEq.js`.
+  - From 06:42:15 to 06:47 UTC, `gtl-api` saw only the deploy's signed-out 401 probes and no CPU-limit messages.
+  - The first signed-in visit after the deploy will be added to #476.
 - **#474:** the fantasy optimization session is checking the design fixes live.
