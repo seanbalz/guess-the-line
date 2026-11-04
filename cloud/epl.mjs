@@ -35,7 +35,7 @@
 // 404 "Pick a Team is coming soon." with code GTL_EPL_OFF. Every reply is rebuilt field by field.
 import { UUID_PATTERN } from './lobby.mjs';
 import { EPL_GUESS_METHODS, EPL_GUESS_RPCS, EPL_GUESS_PUBLIC_CODES, createEplGuessService, handleEplGuess } from './epl-guess.mjs';
-import { canPick, onTheClock } from '../shared/epl-draft.mjs';
+import { canPick, onTheClock, earnedEplBonusPoints } from '../shared/epl-draft.mjs';
 import { MANAGER_NAMES } from '../shared/epl-sleeper.mjs';
 import { EPL_CLUBS } from '../shared/epl-clubs.mjs';
 import { buildFantasyView, detailLabels, fantasySeason } from './epl-fantasy-view.mjs';
@@ -189,9 +189,9 @@ export function createEplService({ rpc, rest, rows, refreshForLock }) {
       return free.filter(r => !unlinked.has(r.owner_id)).map(r => ({ ownerId: r.owner_id, name: nameOf(r.owner_id) }));
     },
     async readBonus(season) {
-      const list = await rows('gtl_epl_bonus', { select: 'owner_id,week,points', season: `eq.${season}`, limit: '400' }, 400);
+      const list = await rows('gtl_epl_bonus', { select: 'owner_id,week,points,margin', season: `eq.${season}`, limit: '400' }, 400);
       return list.filter(r => record(r) && typeof r.owner_id === 'string' && OWNER_ID.test(r.owner_id) && Number.isInteger(r.week) && Number.isInteger(r.points))
-        .map(r => ({ ownerId: r.owner_id, week: r.week, points: r.points }));
+        .map(r => ({ ownerId: r.owner_id, week: r.week, points: earnedEplBonusPoints(r) }));
     },
   };
 }
@@ -244,10 +244,10 @@ function weekView(raw) {
     }
   }
   const bonus = (Array.isArray(raw.bonus) ? raw.bonus : []).filter(b => record(b) && typeof b.ownerId === 'string')
-    .map(b => ({ ownerId: b.ownerId, name: nameOf(b.ownerId), points: Number.isInteger(b.points) ? b.points : 0,
+    .map(b => ({ ownerId: b.ownerId, name: nameOf(b.ownerId), points: earnedEplBonusPoints(b),
       margin: Number.isInteger(b.margin) ? b.margin : null, club: isClub(b.club) ? b.club : null }));
   return { season: raw.season, week: raw.week, status: text(row.status), seeded: row.seeded === true, deadline: text(row.firstKickoff),
-    windowStart: text(row.windowStart), windowEnd: text(row.windowEnd), order, picks, clubs, bonus };
+    windowStart: text(row.windowStart), windowEnd: text(row.windowEnd), order, picks, clubs, bonus, queueOnTurn: raw.queueOnTurn === true };
 }
 const draftPicks = picks => picks.map(p => ({ managerId: p.ownerId, club: p.club }));
 const isOpen = (view, now) => view.status === 'open' && Number.isFinite(Date.parse(view.deadline)) && now < Date.parse(view.deadline);
@@ -333,6 +333,7 @@ async function draftRead({ body, user, service, now }) {
     onTheClock: isOpen(view, now) ? onTheClock(view.order, draftPicks(view.picks)) : null,
     clubs: view.clubs,
     myQueue: myQueue === null ? null : [...myQueue],
+    ...(view.queueOnTurn ? { queueOnTurn: true } : {}),
     bonusLastWeek: view.bonus,
     // An unlinked caller's unclaimed managers (M-31 applied); null for a linked manager or before M-31.
     claim,

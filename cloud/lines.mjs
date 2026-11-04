@@ -43,7 +43,8 @@ const invalid = () => { throw providerLinesError('GTL_LINES_INVALID'); };
 
 const MARKETS = Object.freeze(['spread', 'total']);
 const SIDES = Object.freeze({ spread: ['home', 'away'], total: ['over', 'under'] });
-const BOOKS = Object.freeze({ draftkings: 'DraftKings', fanduel: 'FanDuel', betmgm: 'BetMGM' });
+// BetRivers appears only as a backup standing in for a missing book (D-74, M-39).
+const BOOKS = Object.freeze({ draftkings: 'DraftKings', fanduel: 'FanDuel', betmgm: 'BetMGM', betrivers: 'BetRivers' });
 const GAME_ID = /^[A-Z]{2,3}-[A-Z]{2,3}$/;
 const MAX_MOVEMENT = 48;
 const record = value => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -115,6 +116,8 @@ function gameMarket(raw, market) {
   if (raw?.visible !== true) return { visible: false };
   const books = (Array.isArray(raw.books) ? raw.books : []).filter(book => record(book) && Object.hasOwn(BOOKS, book.book)).slice(0, 3).map(book => ({
     book: book.book, source: BOOKS[book.book], line: number(book.line),
+    // The selected book a backup stood in for (D-74), by name; never for a selected book itself.
+    ...(book.book === 'betrivers' && ['draftkings', 'fanduel', 'betmgm'].includes(book.standInFor) ? { standInFor: BOOKS[book.standInFor] } : {}),
     prices: Object.fromEntries(SIDES[market].map(side => [side, price(book.prices?.[side])])), observedAt: time(book.observedAt),
   }));
   const movement = (Array.isArray(raw.movement) ? raw.movement : []).filter(record).slice(-MAX_MOVEMENT)

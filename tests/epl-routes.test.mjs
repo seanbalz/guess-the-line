@@ -65,6 +65,13 @@ function fakeService({ member = ADAM, admin = false, state = weekState(), queue 
   };
 }
 const call = (route, body, service, user = USER) => handleEpl({ route, body, user, service, clock: () => NOW });
+
+test('draft read advertises turn queues only after the database capability is installed, without exposing other queues',async()=>{
+ const legacy=await call('/epl/draft/read',{},fakeService());assert.equal(legacy.queueOnTurn,undefined);
+ const service=fakeService({state:weekState({queueOnTurn:true})});const current=await call('/epl/draft/read',{},service);
+ assert.equal(current.queueOnTurn,true);assert.deepEqual(current.myQueue,['ARS','LIV']);assert.equal(current.queues,undefined);
+ assert(!service.calls.some(([name])=>name==='gtl_epl_advance_queues'),'read never assigns teams');
+});
 const rejectsWith = (promise, status, code) => assert.rejects(promise, error => {
   assert.ok(error instanceof EplError, `${error?.message}`);
   assert.equal(error.status, status, error.message);
@@ -137,6 +144,12 @@ test('draft/read gives a member the board, the clubs playing, their own queue an
   assert.deepEqual(view.bonusLastWeek, [{ ownerId: EVAN, name: 'Evan', points: 15, margin: 3, club: 'ARS' }]);
   assert.deepEqual(service.calls.find(c => c[0] === 'readQueue'), ['readQueue', 2026, 9, ADAM]);
   assert.deepEqual(service.calls.find(c => c[0] === 'gtl_epl_week_state'), ['gtl_epl_week_state', { p_season: 2026, p_week: 9 }]);
+});
+
+test('draft/read retains the earned bonus when no additional GTL points were needed', async () => {
+  const state = weekState({ bonus: [{ ownerId: EVAN, points: 0, margin: 3, club: 'ARS' }] });
+  const view = await call('/epl/draft/read', {}, fakeService({ state }));
+  assert.deepEqual(view.bonusLastWeek, [{ ownerId: EVAN, name: 'Evan', points: 15, margin: 3, club: 'ARS' }]);
 });
 
 test('draft/read reads the requested week, and the unlinked commissioner sees the board with no queue', async () => {

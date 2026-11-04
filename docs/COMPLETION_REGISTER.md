@@ -13,6 +13,107 @@ browser specs and the phone, fixed-bar and accessibility sweeps (all `skipped 0`
 the PR. Not yet: the Pages release and Sean's iPhone check of Play, which stands in for device acceptance (spec
 section 10).
 
+## Fantasy weekly estimate switches to usage, D-76 — November 3, 2026
+
+Sean: "Yes, switch to usage" (ask a19, Board item 64).
+- **Method:** "GTL usage" 2.0 replaces "GTL statistical pace" 1.1 for QB, RB, WR and TE, with the settings the
+  [backtest](FANTASY_BACKTEST_2026_11_03.md) chose on 2024 (half-life 4, K_eff 25, K_td 50). Kickers keep pace 1.1, and
+  a skill player whose usage stats are incomplete falls back to pace 1.1 instead of losing his estimate.
+- **Screen copy:** "pace" no longer appears in player-facing Fantasy wording. That covers the rankings ⓘ intro and its
+  fallback, the report card, the player detail in both apps, the profile's and comparison's "GTL estimate" and
+  "Sample", and the unregistered home tile's first sentence. The method description is 120 words.
+- **Code:** the usage pieces moved to `shared/fantasy-usage.mjs`, which both the build and the backtest import, so the
+  build ships exactly what the backtest graded. Rerunning `node scripts/fantasy-backtest.mjs --seasons 2024,2025` after the
+  move gave a `results.json` identical apart from its timestamp.
+- **Checks:** a test proves the build's weekly estimate equals `usage()` called directly on the same history, week and
+  league rates. Another proves the pace fallback. The nine named Fantasy and Points test files pass with `# skipped 0`,
+  and the kicker and fallback mutations are caught.
+- **Mockups:** `design/qa/fantasy-usage-2026-11-03/` has 390 px shots in Light and Dark, each with a before pair:
+  - the method ⓘ;
+  - the player detail ⓘ;
+  - the profile's estimate section;
+  - the comparison's this-week estimate with its Sample row.
+
+  The home tile is not mounted anywhere (`homeTiles` in `web/src/next/fantasy/index.js` is empty), so it has no shot.
+- **Status:** **not released.** It lands with the first Fantasy refresh after merge, which needs Sean's OK on the
+  mockups. Published snapshots, reviews, Points slates and Houses are never recomputed.
+
+## Trends glass tiles (D-75) — November 3, 2026
+
+Sean chose "5 · Top three, rest folded" for the Trends tiles and chart ([D-75](DECISIONS.md),
+[spec](superpowers/specs/2026-11-03-trends-glass-tiles-design.md),
+[plan](superpowers/plans/2026-11-03-trends-glass-tiles.md)). Built on `claude/trends-glass-tiles`:
+- glass tiles with one win rate (W/(W+L), one decimal) and "N games · since YYYY";
+- This Week's hero, two tiles and the All trends layer (`weekList=all`);
+- a team's two trends and a fold that opens in place, and glass Teams landing tiles;
+- one glass chart card for an opened trend, its tier and conditions behind ⓘ.
+
+Local checks pass: 676 component tests, the router, token and trends-view node tests (`# skipped 0`), typecheck,
+Brand QA, and 13 cloud-browser cases. Those are next-trends with All trends and the fold, four-tab and phone layout,
+with axe at 320 and 390px in Light and Dark. They ran on a private port because 5198 was held by another server.
+Not released: Sean's OK on the 390px captures of the built screens comes first.
+
+## BetRivers backup book, D-74 — November 3, 2026
+
+Sean: "Ship D-74 now". From 18:15 UTC the provider sent no FanDuel prices, so no three-book line could be made. BetRivers
+now stands in for a selected book the reply could not quote, in the same two-credit request, and the game sheet says
+"Standing in for FanDuel". Local checks pass: a PGlite run of the deployed handler, unit and browser tests (phone rules and
+axe in both themes), and six mutation checks. **Applied and deployed November 3–4:** M-39 by Gate M as hosted
+`20261103233404`, `gtl-api` v50 (release run 41741408404) and `gtl-odds-refresh` v8 (release run 41744806151), both from
+`49f60718`. Not yet seen live: a collection with BetRivers standing in. See the [card](PROPOSAL_2026_11_03_BACKUP_BOOK.md).
+
+## Pick a Team turn queues — November 3, 2026
+
+Sean requested immediate assignment from the highest available saved backup when
+the turn begins, confirmed an exhausted ranking waits for a manual pick, and
+requested a visible team confirmation. The
+[implementation record](EPL_TURN_QUEUES_2026_11_03.md) covers transactional server
+advancement, a persistent note and a one-time popup. **Live:** compatible API v49
+and Pages `06129739` deployed from `4cf149e7c4361547647db3573651fcd57204e36d`
+before M-40 applied as hosted `20261103232119`. The
+[release record](RELEASE_2026_11_03_EPL_TURN_QUEUE_M40.md) verifies four function
+bodies/grants, active reader capability, 129 served assets and unchanged data
+hashes. Local checks pass: 74 focused Node, 87 boundary/migration, 670 component
+checks, the M-40 rollback harness and four EPL browser scenarios, plus typecheck,
+build/privacy and Brand QA. The apply performed no pick/queue backfill; live
+signed-in/phone confirmation acceptance remains separate.
+
+## Reminder worker error answer, gtl-push-reminders v6 — November 3, 2026
+
+The `gtl-ops-alerts` review (item 22) found that `cloud/push-reminders.mjs` returned `finish(...)` inside `try` without
+`await`. A refused completion (a finished or reclaimed run, or a database outage) therefore answered a generic 500, not the
+mapped 400, 401 or 503. The run state in SQL was already right. PR #450 (merged as `067ce119`) awaits both finish paths, and a
+test written first failed before the fix and passes after it (39 reminder tests, `# skipped 0`).
+
+Released at Sean's word in the operating session ("you have full approval and permission"). The session approved both
+production gates after checking each run title:
+- check-only 41719765821;
+- readiness 41719845465, history digest `4345486d…4066`;
+- deploy 41720249887, release card on PR #450.
+
+`gtl-push-reminders` is **v6**, ACTIVE, `verify_jwt` false, bundle SHA-256 `460389e9…952b`. Nothing else was deployed. Signed
+out, the live worker refuses calls with no token or a wrong one (401). Nothing players see changed.
+
+## Signed-in production readback — November 3, 2026
+
+On Sean's request, a read-only check ran in the Mac mini's Chrome, signed in as the commissioner, against the
+frontend at `134f17c8`. Passed:
+- Home and Play › Your guesses (D-70: 15 tiles, 71 words);
+- My bets (D-72: Roomy previews, 32px gaps);
+- the Virtual Units placing screen (D-67);
+- Research Games, Trends and Fantasy;
+- Odds connection;
+- the step 0 tab fade.
+
+**Defect:** a cold load of Bets › Research recommendations (D-73) can fail with "Research is unavailable right
+now". `POST /lines/assessments` logged 546 "CPU Time exceeded" at 20:53:58 UTC. Warm loads return 200. The fix,
+PR #453, is **deployed** as `gtl-api` v48 (November 3, 22:04 UTC, release run 41726861800). The first signed-in cold load
+on v48 returned 200, with no 546 or "CPU Time exceeded"; see the
+[release record](RELEASE_2026_11_03_ASSESSMENTS_CPU.md).
+
+Not checked: the 320/390px phone widths and a real iPhone. See the
+[readback record](READBACK_2026_11_03_SIGNED_IN.md).
+
 ## Supabase job alerts by phone push, M-38 — November 3, 2026
 
 Item 22, second half. A pg_cron row says `succeeded` when the dispatcher ran, not when the work happened (Points
@@ -22,8 +123,8 @@ change to Sean's phone. The `ops-alerts` release target, `supabase/admin/ops_ale
 a findings read-back before the enable) and `ops_alerts_test.sql` are written. Local checks, executed on branch
 `claude/ops-watchdog`: the M-38 PGlite suite (boundaries, no duplicate pushes, re-alert after recovery, privacy), the
 worker suite with an end-to-end run, the release-target contract and migration/rollback registry tests, with
-`# skipped 0`. M-38 is **applied and verified** as hosted `20261103184656` (Sean's "apply M-38", SQL editor, November 3): 7 functions with the reviewed grants, 3 empty RLS tables, history unchanged before it. `gtl-ops-alerts` is **not deployed**, no schedule
-row or cron exists. See the [release card](RELEASE_2026_11_03_OPS_ALERTS_M38.md).
+`# skipped 0`. M-38 is **applied and verified** as hosted `20261103184656` (Sean's "apply M-38", SQL editor, November 3): 7 functions with the reviewed grants, 3 empty RLS tables, history unchanged before it. `gtl-ops-alerts` is **deployed** as v1 (deploy run 41699378146, Sean approved both gates), and the schedule is **enabled**
+since 20:20 UTC November 3: the findings were empty, and the test alert and its clear each pushed once (sent 1, failed 0). See the [release card](RELEASE_2026_11_03_OPS_ALERTS_M38.md).
 
 ## No refresh while a selected book is missing — November 3, 2026
 
@@ -36,7 +137,7 @@ between 18:16 UTC and the deploy of D-71. Local checks pass:
 - a PGlite run of the deployed handler;
 - two mutation checks.
 
-**Not deployed** (`api` target, Sean's approval). See the [release card](RELEASE_2026_11_03_BOOK_OUTAGE.md).
+**Deployed** November 3, 19:36 UTC as `gtl-api` v47 from `2c0c18b7` (release run 41704220392). See the [release card](RELEASE_2026_11_03_BOOK_OUTAGE.md).
 
 ## Lock-in refresh, D-71 — November 3, 2026
 
@@ -55,8 +156,9 @@ listing a game once it kicks off. Two real faults remain. A preflight race skipp
 records what it listed for a mismatched game. Local checks pass, including PGlite runs of the deployed worker and
 mutation checks. M-37 is **applied and verified** as hosted `20261103164210`. On Sean's "merge and apply" it went in
 through his SQL editor; both bodies, permissions and the earlier history rows were checked, and the score hash is unchanged.
-The provider change is **not deployed** (next `gtl-api` release and a Mac mini `gtl-odds-refresh` deploy). The first
-scheduled run after the apply is still to be read back. See the [release card](RELEASE_2026_11_03_ODDS_REFRESH_M37.md).
+The provider change is **deployed**: `gtl-api` v48 (run 41726861800), then `gtl-odds-refresh` v7 through the new
+`odds-refresh` release target (run 41735886452 from `4cf149e7`, Sean's "Yes, release it"; no Mac mini). The first
+scheduled run on v7 (06:15 UTC, November 4) is still to be read back. See the [release card](RELEASE_2026_11_03_ODDS_REFRESH_M37.md).
 
 ## Ops alerts for the data refreshes (item 22) — November 3, 2026
 
@@ -94,6 +196,86 @@ from `c6d6434` in protected run 41596638055. Independent readback matched all 12
 served files and found Overview in the live bundle. API v45, all hosted function
 summaries and migration history stayed unchanged. Signed-in production and
 physical-phone acceptance remain separate evidence states.
+
+## Sleeper owns FEPL bonus accounting — November 2, 2026
+
+Sean confirmed he adds the bonuses in Sleeper. The source fix uses finalized
+Sleeper weekly/season totals directly for draft order, standings and season
+tie-breaks; no second GTL bonus is added. Settlement retains earned margins
+with zero additional GTL points, and the API still shows the earned bonus from
+that margin. Updated screen copy explains where bonuses are applied. The
+pending M-35 correction function follows the same rule; fresh read-only hosted
+evidence confirms M-35 and its correction function are still absent, so its
+existing unapplied source was updated without applying SQL.
+
+The earlier MW10 data repair remains intact; this change does not rewrite
+picks, snapshots, cron or Sleeper data. Add bonuses before the final weekly
+capture. Later manual adjustments require order review with pick preservation;
+automatic recognition of commissioner completion is unavailable. Source checks
+passed: 405 EPL Node/SQL tests (no skips), 89 EPL component tests, typecheck,
+cloud build, bundle privacy scan and Brand QA. All four browser scenarios
+passed, including 320/390/1440px and both themes. Release status and real-phone
+limits are recorded in [the delivery card](EPL_BONUS_ACCOUNTING_2026_11_02.md).
+API, frontend and EPL worker publication remains with the release captain.
+
+## EPL Week 9 results and weekly automation — November 2, 2026
+
+Owner: Sean Balsiger · Verified hosted data maintenance; no source deployment.
+Sean subsequently confirmed that the supplied Sleeper scores already include
+the bonuses. The initial settlement added them a second time; the live correction
+at `2026-11-02T23:48:45Z` is authoritative. MW10 was still open with zero picks
+and queues. Under the week-row lock, its order was recomputed from the saved
+weekly deltas alone, with raw Sleeper season totals breaking ties. The three
+duplicate GTL additions are now zero; the bonus rows/margins remain, and their
+previous values and both orders are retained in the original settlement run's
+private `detail.commissionerBonusCorrection` audit. All picks and snapshots were
+hash-verified unchanged. The first-kickoff deadline is unchanged.
+
+The existing automation assumes bonuses are absent from Sleeper and adds them
+in GTL. That assumption is wrong for MW9; automatic bonus-accounting support
+needs its own source fix and release before it can be claimed correct for
+future commissioner-adjusted weeks. No bonus-inclusion detection is connected.
+
+The supplied FEPL screenshot agrees with all eight weekly points-for and
+points-against deltas from the stored `after-mw08` baseline to a fresh public
+Sleeper capture at `2026-11-02T23:28:21Z` (season 2026, state week 10). The six
+responses retain their raw-body SHA-256 provenance; only the existing trimmed
+form was saved through `gtl_epl_save_snapshot` as `after-mw9`. Raw captures and
+individual player data remain outside this public repository.
+
+An ordinary `gtl_epl_dispatch_jobs('settle')` run
+`13cbd5e0-7c97-4709-93a9-080c8a64ab16` collected the tenth final fixture and
+correctly stopped at `snapshot_pending` before the import. All ten fixtures are
+now final. The existing eight picks retain digest
+`f6d56eb4181d8d0430b7b4f4af97335e`; all seven earlier snapshots retain digest
+`0deee1439cb6851753964334187bb079` (MD5 of ordered complete row JSON).
+
+Live schedule/cron readback confirms seven enabled jobs. Snapshots run every
+15 minutes; settlement runs at 09:41 and 21:41 UTC; fixture collection at
+05:47 and 17:47 UTC; draft deadline resolution every five minutes. Reuse these
+jobs rather than adding a duplicate ChatGPT automation. M-33/M-35 correction
+and verified capture-interval RPCs are still absent: the current worker reports
+those optional capabilities unavailable and uses its legacy window-end path.
+This maintenance does not apply migrations, change cron, or establish future
+Tuesday correction/full-cycle acceptance.
+
+Settlement run `8b87b1b7-0ff9-4700-8427-fd3e08d432ed` succeeded after the import:
+three tied winning-margin additions were initially written and MW10 opened
+using the existing scoring/order functions. Those additions duplicated points
+already in Sleeper and were corrected as described above. MW9 is settled; its
+eight picks retain the same digest. The final draft order uses the supplied
+scores as shown and the season-total tie-break. Individual scores/picks were
+verified privately, not committed here.
+
+Fixture run `36d05e98-a65c-42eb-a07c-2b004d270a7d` then succeeded: ten MW10
+fixtures and twenty median h2h prices were stored, no unknown clubs, 485 free
+credits remaining. The real first kickoff moved the draft deadline to
+`2026-11-06T20:00:00Z` (November 6, noon Pacific). All earlier snapshots still
+match their preservation digest. MW10 is open with a usable fixture slate.
+
+Local verification: all 53 existing Sleeper math/job tests and the document
+brand check passed. Hosted readback confirmed the imported label/state and
+unchanged preservation digests; browser/phone acceptance remains separate.
 
 ## My bets spacing and entry follow-up — November 2, 2026
 

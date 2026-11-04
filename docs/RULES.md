@@ -1,5 +1,21 @@
 # Current competition rules — status updated October 19, 2026
 
+## Pick a Team backup rankings — November 3, 2026
+
+A manager with a saved ranking receives the highest-ranked available club when
+their turn begins. Consecutive ranked managers are processed in draft order. If
+no ranked club is available, their turn stays open for a manual pick; an unranked
+team is not selected before kickoff. Saving a ranking while on the clock can
+assign the club immediately. The existing first-kickoff resolution and latest
+picker change window remain in force. A recorded backup assignment shows a team
+confirmation on the board and a one-time popup on the viewer’s device.
+
+This rule is live following compatible API v49/Pages deployment and verified
+M-40 apply (`20261103232119`) on November 3, 2026. The apply did not backfill
+existing picks; future pick/queue saves advance the draft. See
+[the release record](RELEASE_2026_11_03_EPL_TURN_QUEUE_M40.md).
+
+
 D-39/D-41 and D-50 supersede D-16's edit-after-submission rule: each game's
 Spread or Total guess is final once locked in. Available personal accuracy
 points appear immediately; shared standings retain their per-game kickoff
@@ -63,6 +79,16 @@ This decision does not retroactively modify historical source files or invent
 references for old submitted records.
 
 Owner: Sean Balsiger; reconciliation: Codex, GOV-03, October 8, 2026.
+
+## EPL fantasy bonuses and draft order — D-68 (November 2, 2026)
+
+Sean adds Pick a Team bonuses in Sleeper. Use the finalized Sleeper weekly
+scores for the next draft order, lowest first, with the lower Sleeper season
+total breaking a tie. Standings use the Sleeper season total as shown. GTL
+records the earned bonus but never adds it to those totals again. Add bonuses
+before the final capture/rollover; a later adjustment requires an order review,
+preserving any entered picks. Automatic detection of manual bonus completion
+is unavailable.
 
 ## EPL Guess the Line — D-68 (October 29, 2026)
 

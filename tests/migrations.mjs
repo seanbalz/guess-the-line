@@ -184,4 +184,6 @@ export const APPLIED = [
   20261030204548, // Research assessments: hosted as 20261031131929 on October 31, 2026 (Supabase MCP); see RELEASE_2026_10_31_RESEARCH_ASSESSMENTS.md.
   20261103170000, // M-37 gtl_odds_refresh_fixes: hosted as 20261103164210 on November 3, 2026 (SQL editor, Gate M); see RELEASE_2026_11_03_ODDS_REFRESH_M37.md.
   20261103190000, // M-38 gtl_ops_alerts: hosted as 20261103184656 on November 3, 2026 (SQL editor, Gate M); see RELEASE_2026_11_03_OPS_ALERTS_M38.md.
+  20261103210000, // M-39 gtl_backup_book: hosted as 20261103233404 on November 3, 2026 (SQL editor, Gate M); see PROPOSAL_2026_11_03_BACKUP_BOOK.md.
+  20261103212932, // M-40 gtl_epl_turn_queue: hosted as 20261103232119 on November 3, 2026 (Supabase MCP, Gate M); see RELEASE_2026_11_03_EPL_TURN_QUEUE_M40.md.
 ];

@@ -192,9 +192,8 @@ test('M-26 features schedule: the dispatcher, claim and completion and its two t
     ? new Response(JSON.stringify({ code: 'NOT_FOUND' }), { status: 404 }) : denied(url, request)) }), /scheduled league features without machine token: unexpected 404/);
 });
 
-test('M-38 ops alerts: its three tables and seven functions are probed with inert fixtures; hosted, none awaits, and a not-found answer fails', async () => {
-  // 20261103190000_gtl_ops_alerts.sql (item 22) is hosted as 20261103184656 (November 3, 2026); the gtl-ops-alerts worker joins
-  // workerChecks with its deploy.
+test('M-38 ops alerts: its three tables, seven functions and the gtl-ops-alerts worker are probed with inert fixtures; hosted and deployed, none awaits, and a not-found answer fails', async () => {
+  // 20261103190000_gtl_ops_alerts.sql (item 22) is hosted as 20261103184656, and gtl-ops-alerts is deployed as v1 (November 3, 2026).
   const rpcs = ['gtl_ops_findings', 'gtl_dispatch_ops_alerts', 'gtl_claim_ops_alerts', 'gtl_mark_ops_notification', 'gtl_record_ops_delivery', 'gtl_complete_ops_alerts', 'gtl_ops_test_alert'];
   const tables = ['ops_alert_schedule', 'ops_alert_runs', 'ops_incidents'];
   for (const key of [...rpcs.map(rpc => `rpc/${rpc}`), ...tables.map(table => `table/${table}`)]) assert.ok(!Object.hasOwn(awaitingDeploy, key), key);
@@ -210,7 +209,12 @@ test('M-38 ops alerts: its three tables and seven functions are probed with iner
     ? new Response(JSON.stringify({ code: 'PGRST202' }), { status: 404 }) : denied(url, request)) }), /gtl_claim_ops_alerts RPC: unexpected 404/, 'a missing function fails the default check');
   await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (url.includes('/rest/v1/gtl_ops_incidents?')
     ? new Response(JSON.stringify({ code: 'PGRST205' }), { status: 404 }) : denied(url, request)) }), /ops_incidents table: unexpected 404/, 'a missing table fails the default check');
-  assert.ok(!captured.some(({ url }) => url.includes('/functions/v1/gtl-ops-alerts')), 'the worker joins the worker probes with its deploy');
+  // The worker is called without and with an invalid machine token, naming no run; a not-found answer fails.
+  const worker = captured.filter(({ url }) => url.endsWith('/functions/v1/gtl-ops-alerts'));
+  assert.deepEqual(worker.map(({ request }) => [request.headers.Authorization ?? null, JSON.parse(request.body)]),
+    [[null, { runId: missingId }], [`Bearer ${'0'.repeat(64)}`, { runId: missingId }]]);
+  await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: async (url, request) => (url.endsWith('/functions/v1/gtl-ops-alerts')
+    ? new Response(JSON.stringify({ code: 'NOT_FOUND' }), { status: 404 }) : denied(url, request)) }), /scheduled ops alerts without machine token: unexpected 404/);
 });
 
 test('referee probes are hosted and deployed, so they are no longer awaiting and a not-found answer fails', async t => {

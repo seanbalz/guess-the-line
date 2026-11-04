@@ -7,13 +7,20 @@ import { marketRelevant } from './situations.js';
 
 const strongest = (a, b) => a.strength[0] - b.strength[0] || a.strength[1] - b.strength[1] || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0);
 
-/** Side A's share of decided games for an open card or row (pushes left out), or null. */
+/** Side A's share of decided games for an open card or row (pushes left out), or null. Exact from the record (D-75). */
 export function trendShare(week, card) {
   if (!card || card.locked) return null;
-  if (card.kind === 'card') return typeof card.pct === 'number' ? card.pct / 100 : null;
+  if (card.kind === 'card') {
+    const r = card.chart?.record;
+    if (r && Number.isFinite(r.W) && Number.isFinite(r.L)) return r.W + r.L ? r.W / (r.W + r.L) : null;
+    return typeof card.pct === 'number' ? card.pct / 100 : null;
+  }
   const [a = 0, b = 0] = Array.isArray(lookup(week, card.id)?.entry?.split) ? lookup(week, card.id).entry.split : [];
   return a + b ? a / (a + b) : null;
 }
+
+/** A trend's one big number (D-75): the win rate to one decimal, or a dash with no decided game. */
+export const winRateText = share => (typeof share === 'number' && Number.isFinite(share) ? `${(share * 100).toFixed(1)}%` : '—');
 
 const gameOf = (week, id) => week?.games?.find(g => g.id === id) ?? null;
 

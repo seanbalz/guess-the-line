@@ -92,7 +92,7 @@ export function PlayerProfileSheet({ snapshot, playerId, settings, onClose, comp
  * The profile's content, for the sheet above and for a sheet that shows it as a sub-view (Play › Points, Board i63).
  * `estimateLocked`, a sentence, replaces GTL's pace estimate with a lock line: on the Points ballot that estimate is the
  * House (D-56), which stays hidden until the viewer locks in the player or he kicks off. The rest-of-season estimate
- * goes with it, since it is the same pace times the games left.
+ * goes with it, since it is the same weekly estimate times the games left.
  */
 export function PlayerProfileBody({ profile, snapshot, settings, compare, estimateLocked = null }) {
   const { player, weeks, summary, estimate } = profile, scoringLabel = label(SCORING_OPTIONS, settings.scoring);
@@ -116,9 +116,9 @@ export function PlayerProfileBody({ profile, snapshot, settings, compare, estima
       <Averages summary={summary}/>
     </section>
     <Card variant="s2" as="section" className="gx-vstack gx-gap-8" aria-labelledby={`${player.id}-estimate`}>
-      <h3 className="gx-t-section" id={`${player.id}-estimate`}>GTL pace estimate</h3>
+      <h3 className="gx-t-section" id={`${player.id}-estimate`}>GTL estimate</h3>
       {estimateLocked ? <LockLine>{estimateLocked}</LockLine> : <>
-      <p className="gx-t-meta">An estimate from {games(estimate.sampleGames)} of recorded pace, not an observed result or expert projection.</p>
+      <p className="gx-t-meta">An estimate from {games(estimate.sampleGames)} of recorded play, not an observed result or expert projection.</p>
       {estimate.status === 'bye' ? <p className="gx-t-body">Bye in Week {snapshot.week}.</p>
         : estimate.week ? <dl className="gx-fantasy-facts">
           <div><dt>Week {snapshot.week}{estimate.opponent ? ` ${estimate.opponent}` : ''}</dt><dd><Value value={estimate.week.points} missing="unavailable"/></dd><dd className="gx-fantasy-n">est. points</dd></div>
@@ -164,18 +164,18 @@ export function PlayerCompare({ snapshot, ids, onChange, settings, onProfile, in
     {chosen.length >= 2 && <>
       <Segmented label="Comparison scoring" options={SCORING_OPTIONS} value={scoring} onChange={setScoring}/>
       <Segmented label="Comparison period" options={COMPARE_PERIODS} value={period} onChange={setPeriod}/>
-      <p className="gx-t-meta" role="status">{scoringLabel} · {settings.passingTds}-point passing TDs · {estimate ? `Week ${snapshot.week} GTL pace estimate, not a result` : `Observed per game · ${period === 'recent' ? 'last 3 weeks, ' : ''}${weeksText(result.weeks)}`}</p>
+      <p className="gx-t-meta" role="status">{scoringLabel} · {settings.passingTds}-point passing TDs · {estimate ? `Week ${snapshot.week} GTL estimate, not a result` : `Observed per game · ${period === 'recent' ? 'last 3 weeks, ' : ''}${weeksText(result.weeks)}`}</p>
       <div className="gx-fantasy-table-wrap" role="region" aria-label="Player comparison data" tabIndex={0}><table className="gx-fantasy-table gx-fantasy-compare-table">
         <caption className="gx-sr-only">Player comparison, {scoringLabel}, {estimate ? `Week ${snapshot.week} estimate` : `per game, ${weeksText(result.weeks)}`}</caption>
         <thead><tr><th scope="col"><span className="gx-sr-only">Measure</span></th>{result.rows.map(row => <th scope="col" key={row.id}>{row.name}<span className="gx-fantasy-th-sub">{row.team} {row.position}</span></th>)}</tr></thead>
         <tbody>
           <tr><th scope="row">{estimate ? 'Est. points' : 'Points / game'}</th>{result.rows.map(row => <td key={row.id} className="gx-fantasy-pts">{estimate && row.status === 'bye' ? 'Bye' : <Value value={row.points} missing="unavailable"/>}</td>)}</tr>
-          <tr><th scope="row">{estimate ? 'Pace sample' : 'Games'}</th>{result.rows.map(row => <td key={row.id}>{games(row.games)}{!estimate && row.pointsGames !== row.games && <span className="gx-fantasy-n">pts n = {row.pointsGames}</span>}</td>)}</tr>
+          <tr><th scope="row">{estimate ? 'Sample' : 'Games'}</th>{result.rows.map(row => <td key={row.id}>{games(row.games)}{!estimate && row.pointsGames !== row.games && <span className="gx-fantasy-n">pts n = {row.pointsGames}</span>}</td>)}</tr>
           {estimate && <tr><th scope="row">Opponent</th>{result.rows.map(row => <td key={row.id}>{row.status === 'bye' ? 'Bye' : row.opponent ?? '—'}</td>)}</tr>}
           {USAGE_METRICS.map(item => <tr key={item.key}><th scope="row">{item.label}</th>{result.rows.map(row => <td key={row.id}>{metric(row, item.key)}</td>)}</tr>)}
         </tbody>
       </table></div>
-      <p className="gx-t-meta">{estimate ? 'Estimates extend recorded pace; they are not observed production.' : `Averages of recorded games only; byes and games without stats are not counted as zero.`}</p>
+      <p className="gx-t-meta">{estimate ? 'Estimates come from recorded games; they are not observed production.' : `Averages of recorded games only; byes and games without stats are not counted as zero.`}</p>
     </>}
   </Card>;
 }

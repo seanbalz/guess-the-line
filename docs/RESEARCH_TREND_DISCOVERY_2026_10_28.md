@@ -123,3 +123,15 @@ current applicability, and derived findings retain their discovery/prospective
 boundary. Source-code CI, hosted release/readback and physical-device acceptance
 remain separate. Broader search, builder extensions and automated ingestion are
 **unimplemented** in this batch; no new product-policy decision is recorded.
+
+
+## October 29 implementation follow-through
+
+Sean requested continued varied discovery. The [first offline engine](TREND_DISCOVERY_ENGINE_2026_10_29.md)
+now implements 13 team/QB/coach situations, seven explicit sample windows,
+disjoint earlier comparisons, full query audit and outcome-independent variety
+with connected overlap groups. Fresh source through October 26 reproduces the
+Bryce result above. The [current open-work index](../planning/OPEN_WORK_2026_10_29.md)
+separates this source implementation from compact publication, D-66 product
+integration, builder controls, verified current applicability and forward
+validation. No production snapshot, default lean policy or source feed changed.

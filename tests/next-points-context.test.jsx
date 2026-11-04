@@ -150,12 +150,12 @@ describe('Open profile: the Fantasy profile as the slot’s next card', () => {
     for (const state of [{ status: 'loading' }, { status: 'missing' }]) expect(sheet(SLOTS.QB, 'profile', state)).not.toMatch(/Lock in|Observed production/);
   });
 
-  it('before lock-in the pace estimate (the House) and the rest-of-season estimate stay behind a lock line', () => {
+  it('before lock-in the GTL estimate (the House) and the rest-of-season estimate stay behind a lock line', () => {
     const html = profile(SLOTS.QB);
     expect(markupProblems(html)).toEqual([]);
     const words = text(html);
     expect(words).toContain('Observed production');
-    expect(words).toContain(`GTL pace estimate ${CONTEXT_COPY.estimateLocked}`);
+    expect(words).toContain(`GTL estimate ${CONTEXT_COPY.estimateLocked}`);
     expect(words).not.toContain('19.4');
     expect(words).not.toContain('Rest of season');
     expect(words).not.toMatch(/implied/i);

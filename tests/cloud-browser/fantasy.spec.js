@@ -287,7 +287,7 @@ test.describe('fantasy rankings', () => {
           await expect(sheet.getByRole('heading', { name: 'Observed production', exact: true })).toBeVisible();
           await expect(sheet.getByRole('img', { name: /^Actual fantasy points by week\. Week 1: / })).toBeVisible();
           await expect(sheet.getByRole('table', { name: 'Usage and actual fantasy points by week' }).locator('tbody tr')).toHaveCount(snapshot.statsThroughWeek);
-          await expect(sheet.getByRole('heading', { name: 'GTL pace estimate', exact: true })).toBeVisible();
+          await expect(sheet.getByRole('heading', { name: 'GTL estimate', exact: true })).toBeVisible();
           await expect(sheet.getByText('Opponent history is not included in this snapshot.', { exact: true })).toBeVisible();
           expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'No horizontal page overflow').toBe(true);
           await page.screenshot({ path: testInfo.outputPath(`fantasy-profile-${width}-${theme}.png`) });
@@ -308,7 +308,7 @@ test.describe('fantasy rankings', () => {
           await expect(compare.getByRole('columnheader', { name: new RegExp(second.name) })).toBeVisible();
           await compare.getByRole('group', { name: 'Comparison scoring' }).getByRole('button', { name: 'Standard', exact: true }).click();
           await compare.getByRole('group', { name: 'Comparison period' }).getByRole('button', { name: 'This week', exact: true }).click();
-          await expect(compare.getByText(/Week 6 GTL pace estimate, not a result/)).toBeVisible();
+          await expect(compare.getByText(/Week 6 GTL estimate, not a result/)).toBeVisible();
           await compare.scrollIntoViewIfNeeded();
           await layout(page, screen);
           const tableScroll = compare.getByRole('region', { name: 'Player comparison data', exact: true });

@@ -1,5 +1,155 @@
 # Decision log
 
+## D-76 — The Fantasy weekly estimate switches to usage (November 3, 2026)
+
+Sean, November 3, 2026: "Yes, switch to usage" (ask a19, Board item 64), after the
+[backtest](FANTASY_BACKTEST_2026_11_03.md) (PR #466). D-75 is the Trends glass release (PR #463), so this is D-76.
+
+- **Method:** "GTL usage" version 2.0 replaces "GTL statistical pace" 1.1 for QB, RB, WR and TE.
+  - Expected targets, carries and pass attempts are a recency-weighted mean of the player's appearances before the
+    week, with a half-life of 4 weeks.
+  - Per-play rates are pulled toward the position's league rate from every prior appearance this season: K_eff 25 for
+    catch rate, yards and interceptions, K_td 50 for touchdowns. Fumbles, two-point conversions and return TDs use the
+    season average.
+  - The settings were chosen on 2024 alone. The build calls the same `usage()` the backtest graded
+    (`shared/fantasy-usage.mjs`); the settings are `USAGE_SETTINGS` in `shared/fantasy-build.mjs`.
+  - There is no opponent adjustment. It added nothing on the 2025 holdout.
+  - **Pace fallback (follow-up, same day):** `usage()` needs every used stat in every prior appearance. A QB, RB, WR or
+    TE with two or more appearances where one is unknown (a missing targets cell, say) gets pace 1.1 instead of no
+    estimate. Pace still leaves that stat null, and a missing scoring stat still means no estimate. The backtest saw 0
+    such player-weeks, so its numbers are unchanged.
+- **Screen copy:** the rankings ⓘ now says "from recent usage and statistics", and the report card says "GTL's weekly
+  estimates" instead of "statistical pace". The method description is shortened to 120 words.
+- **Evidence, 2025 holdout (4,855 player-weeks, Full PPR):** MAE 4.451 for usage, 4.542 for the season average and
+  4.600 for pace 1.1.
+  - usage − season average: −0.090, 95% CI [−0.125, −0.054] resampling player-weeks, [−0.130, −0.050] resampling players.
+  - usage − pace 1.1: −0.149, CI [−0.194, −0.104] and [−0.195, −0.104].
+  - This is a small gain, about a tenth of a point per player per week.
+- **The Board's bar was not met.** The bar was a gain of 0.15 points in 10 of 14 weeks. Against the season average the
+  gain is 0.09 overall; usage was better in 14 of the 16 graded weeks, but by 0.15 or more in only 3 (Weeks 3, 4 and 10).
+  Sean chose to switch anyway, on a gain that every interval shows.
+- **Unchanged:**
+  - Kickers keep pace 1.1. The backtest did not cover them.
+  - Fewer than two appearances still gives no estimate. Byes, unknown kickoffs, non-active rosters and Out or Doubtful
+    reports still suppress the weekly estimate.
+  - Rest of season is still the weekly estimate × remaining scheduled games.
+  - Still no injury return date, depth-chart role or matchup adjustment.
+- **Published data is never recomputed.**
+  - Snapshots, reviews, Guess the Points slates and their Houses that are already published keep their pace 1.1
+    numbers (D-23).
+  - The first usage snapshot is the first Fantasy refresh after merge. Slates built from it draw their pools and Houses
+    from the new estimate.
+- **Release:** not released. It needs Sean's OK on the phone mockups
+  (`design/qa/fantasy-usage-2026-11-03/`), then merge, then the next Fantasy refresh.
+
+## D-75 — Trends tiles and chart: glass, one number, top three first (November 3, 2026)
+
+Sean on the Trends tiles: "I don't like the graphs and charts chosen. This doesn't look good compared to the new glossy
+air Apple type nodes. Needs to be concise and useful and not overwhelming."
+
+- **Scope:** "Trends tiles + trend chart (Recommended)".
+- **Option:** from five on the private canvas
+  [GTL Trends Tiles and Chart Options](https://claude.ai/artifact/XKm5YakrtHG5JzBo11fDQf), he answered "Rec",
+  meaning **5 · Top three, rest folded**.
+- **Mockups:** after "Show mockup always", he approved the drawn screens ("Yes").
+
+The design:
+- **Tiles:** every trend tile is glass, with one big number, the win rate (W / (W + L), one decimal), and one meta
+  line, "N games · since YYYY". The W–L–P record and the meter bar leave the tiles.
+- **This Week:** it leads with the strongest trend as a hero card, with the trend's own line where it has one. Then come
+  two tiles, then "All N trends this week", which opens an All trends layer at `weekList=all`.
+- **A team:** its layer shows two trends and folds the rest under "N more" in place. The Teams landing tiles become
+  glass win-rate tiles.
+- **An opened trend:** one glass chart card, with the win rate, one line with a soft fill, and the record and units.
+  The tier, conditions and source move behind its ⓘ.
+- **Unchanged:** locks show no numbers. Frontend only: no data, route or rule changes.
+- **Scope note:** the overhaul's Research step (D-69 step 3) still adds its motion.
+
+Spec: [2026-11-03-trends-glass-tiles-design.md](superpowers/specs/2026-11-03-trends-glass-tiles-design.md). Not built
+and not released. Sean's OK on captures of the built screens comes first (his November 2 rule).
+
+## D-74 — BetRivers stands in when a selected book is missing (November 3, 2026)
+
+Sean, November 3, 2026: "Draft it, don't ship", then "Add the label" after seeing the phone mockups, then "Ship D-74 now".
+See the [card](PROPOSAL_2026_11_03_BACKUP_BOOK.md) and the [mockups](../design/backup-book-2026-11-03/README.md).
+
+At 18:15 UTC on November 3 the provider sent no FanDuel prices for any of the 15 games. A saved line needs three books, so
+no new line could be made while FanDuel was missing.
+
+- **Rule:** the line stays a three-book median.
+  - BetRivers stands in for one selected book (DraftKings, FanDuel or BetMGM) that the provider's reply could not quote.
+    This is game by game and market by market, with the same checks as the other books.
+  - It never replaces a book that was quoted. BetRivers is asked for in the same request, at no extra credits.
+- **Shown:** BetRivers is named wherever it stood in. In the game sheet it says "Standing in for FanDuel", and the revealed
+  sources table lists the missing book as missing.
+- **Unchanged:**
+  - lines already saved (D-16, D-23);
+  - Challenge selections, Virtual Units and the frozen spread benchmark;
+  - every free limit.
+- **Release:** M-39 by Gate M (Sean's Chrome SQL editor), then the `api` release, then an `odds-refresh` release. Each
+  release is approved by Sean in GitHub.
+
+## Pick a Team backups at the turn — November 3, 2026
+
+Sean requested that a saved backup ranking assign a team as soon as the manager's
+turn begins, with a confirmation naming the assigned team. He confirmed that an
+exhausted ranking leaves the turn open for a manual pick. This changes the
+pre-kickoff queue behavior in the original EPL draft decision: use the first
+available ranked club, advance consecutive queued managers in draft order, and
+stop at the first manager without an available ranked club. Existing kickoff
+resolution and the latest picker's change window are preserved. The server owns
+the assignment; confirmation requires a recorded pick. Implementation and the
+separate M-40 apply/release boundary are in
+[the turn-queue record](EPL_TURN_QUEUES_2026_11_03.md).
+
+## D-73 — Bets › Research recommendations, stage one: independent research beside Guess the Line (October 30–31, 2026)
+
+**Number.** Recorded on November 3 in the docs truth pass. The approval itself was given on October 30 and 31, after D-68
+and before D-69 to D-71 were numbered, so this entry is older than its number says. Sean approved the stage after the research and alignment discussion, then said "Merge and
+deploy" after reviewing its first-stage scope and the unapplied migration. The full contract is in
+[RESEARCH_ASSESSMENTS_STAGE_ONE.md](RESEARCH_ASSESSMENTS_STAGE_ONE.md).
+
+- **What it adds:** betting research and recommendations alongside Guess the Line. It changes no guess entry, lock,
+  reveal rule, scoring reference, points or competition settlement.
+- **Two lists:**
+  - The existing gap-based list stays at `#bets/recommended`, labelled **Your guess vs. market**.
+  - The independent list is **Research recommendations** at `#bets/research`, also reached from an eligible
+    matchup's research.
+- **Colors:**
+  - **Green** is reserved for a tested projection showing value at an available price, and stage one cannot show it.
+  - **Yellow** is a qualifying research lean with a current verified quote at the exact terms; it may oppose a
+    player's locked guess.
+  - **Red** is qualifying evidence against, with a current exact quote and no qualifying support.
+  - **Gray** means not enough usable evidence, a missing or stale quote, unresolved checks or a closed pregame window.
+- **Order:** schedule and name order, never a made-up confidence ranking. Supporting and opposing findings both show.
+- **Limits:** there is no qualified model in this stage. Outside estimates stay attributed to their source, and the
+  exact player, metric, side and threshold must match.
+- **Shipped:** released October 31 (PRs #393 and #395, API v44,
+  [release record](RELEASE_2026_10_31_RESEARCH_ASSESSMENTS.md)). The November 1 data repair (PRs #397 and #399,
+  API v45, [record](RELEASE_2026_11_01_RESEARCH_DATA.md)) populated it.
+- **Not verified:** a real-iPhone check (#398).
+
+## D-72 — My bets: Roomy cards that open in place to the selection grid (November 1, 2026)
+
+**Number.** Recorded on November 3 in the docs truth pass. Sean made both choices on November 1, before D-69 to D-71
+were numbered.
+
+- **First choice:** from [six mockups](../design/my-bets-2026-11-01/README.md), "I like the 4th one", which is
+  **04 · Selection grid**: every parlay leg as a tile in a two-column grid. Built in PR #401 and released November 1
+  as Pages `83caec6d` ([record](RELEASE_2026_11_01_MY_BETS.md)).
+- **Second choice, the same day:** from [five preview studies](../design/my-bets-previews-2026-11-01/README.md), "1 is
+  the best", which is **01 · Roomy cards**, then "Expand in place, as shown". This replaced showing every leg before a
+  ticket is opened. The rules are in [MY_BETS_ROOMY_2026_11_01.md](MY_BETS_ROOMY_2026_11_01.md).
+  - My bets starts with compact previews: source, status, the selection or parlay title, matchup marks, risk and
+    total return. Unknown amounts stay unknown.
+  - Tapping a preview replaces it in place with the full ticket, with every parlay leg in the selection grid. The
+    upward chevron collapses it, and Ticket details opens the existing details and history.
+  - Built in PR #405 and released November 1 as Pages `90a7bf99` ([record](RELEASE_2026_11_01_MY_BETS_ROOMY.md)).
+- **Spacing:** the spec set 20px padding and 24px between tickets. The November 2 follow-up (PR #408) removed a
+  legacy override that took the gap away, and now uses the existing 32px spacing token
+  ([record](RELEASE_2026_11_02_MY_BETS.md)).
+- **Not verified:** a real-iPhone check.
+
 ## D-71 — A lock-in refreshes a stale line first, as a send does (November 3, 2026)
 
 A read-only readback found that the line saved with each guess had a median age of 68 seconds in Week 7, 6.9 hours in
@@ -167,6 +317,15 @@ building step 1, where the plan's text and a binding rule disagreed; each is rev
 
 ## D-68 — Premier League: Sleeper FEPL, Pick a Team and EPL moneyline (October 28, 2026)
 
+**Bonus accounting ruling — November 2, 2026.** Sean: "I add bonuses to sleeper,
+unless I shouldn’t." Keep that workflow. Final weekly scores, season standings
+and draft tie-breaks use Sleeper totals as shown; GTL never adds the bonus again.
+The bonus record retains the winning margin for display/audit, with zero extra
+GTL points. Add bonuses before the final capture/rollover. A late adjustment
+requires review of an already-open draft; entered picks remain preserved under
+item 23. GTL cannot infer when a manual Sleeper adjustment has been completed.
+This supersedes the additive bonus wording in the initial decision below.
+
 **Deployment status update — October 29, 2026:** M-30 and M-31 are applied;
 API v42 and EPL jobs v1 are active. See the dated [M-30](RELEASE_2026_10_29_M30.md)
 and [M-31](RELEASE_2026_10_29_M31.md) release records and the fresh
@@ -196,10 +355,15 @@ is deployed: M-30 (`20261028190000_gtl_epl_pick_a_team.sql`) is written and **no
    "matchup unavailable". MW1 to MW8 have season totals only. Snapshots Sean captured outside the repo
    (`/Users/seanbalsiger/gtl-epl-snapshots/`, a SHA-256 per Sleeper response) are imported as captured. A matchweek is
    final the Monday after its last match and is checked again Tuesday for stat corrections.
-4. **Pick a Team order.** Managers pick in ascending order of last matchweek's score plus that matchweek's Pick a Team
-   bonus. A tie goes to the lower season total. MW9 is seeded by hand: order Nemo, Cullen, Adam, Sean, Evan, Mark,
+4. **Pick a Team order.** Managers pick in ascending order of last matchweek's final Sleeper score, including bonuses
+   Sean has added there. A tie goes to the lower Sleeper season total. MW9 is seeded by hand: order Nemo, Cullen, Adam, Sean, Evan, Mark,
    Steven, Darin; chat picks Man City, Aston Villa, Liverpool, Tottenham, Arsenal, Brentford, Newcastle (stored as
    source `seeded`), Darin to pick. From MW10 the order is automatic.
+   **November 2 correction:** Sean confirmed MW9's supplied Sleeper scores already
+   contain the bonus. Use those scores as shown, with no second bonus addition,
+   and raw Sleeper season totals for the tie-break. The erroneous extra GTL points
+   and MW10 order were corrected before any MW10 pick. This overrides the additive
+   assumption for MW9; future automated bonus-inclusion handling is not yet delivered.
 5. **Picking.** One club per manager per matchweek, on the manager's own turn. A club can be taken once. Any club with
    a match that matchweek can be picked. A pick can be changed until the next manager picks, then it is final. The last
    pick is final at the deadline. The board (who picked what, who is on the clock) is visible to the linked managers as
@@ -213,8 +377,8 @@ is deployed: M-30 (`20261028190000_gtl_epl_pick_a_team.sql`) is written and **no
    club's first match counts. A match moved out of the week counts as postponed.
 8. **Bonus.** Only the widest winning margin among drafted clubs scores, at `margin × 5`. Ties go to more goals scored,
    then fewer conceded; still tied, every tied manager gets the full points. No drafted winner means nobody scores. A
-   postponed or abandoned match scores 0. The bonus counts in GTL only (standings and the next order); the commissioner
-   is shown the amounts to apply in Sleeper by hand if he wants.
+   postponed or abandoned match scores 0. Sean applies the bonus in Sleeper; GTL records the earned margin and uses
+   Sleeper's totals without adding a second bonus (November 2 ruling).
 9. **EPL moneyline (plan 3).** The 8 managers guess the favorite and its 2-way "draw no bet" American price for every
    match. The score is the distance from the real price of the club chosen, where −100 and +100 are the same point
    (−110 to +120 = 30). The real price is the D-27 median (DraftKings, FanDuel, BetMGM) at lock-in, pending and never
@@ -258,7 +422,7 @@ M-30 and a `gtl-api` / `gtl-epl-jobs` deploy).
     Otherwise it says "Matchup unavailable this week", with one sentence for each case (no full repeat scored yet; you
     have no team, as the commissioner; an ambiguous or disagreeing pairing), and still shows your own projection. It
     never guesses. With tracking from MW9, the first full repeat is MW9 and MW16, so the first opponent can show at MW17.
-16. **Standings** rank Sleeper season points plus the season's Pick a Team bonus; the raw Sleeper total shows on tap.
+16. **Standings** rank Sleeper season points as shown; the bonus record shows on tap without a second addition.
     Missing weeks are an em dash and a gap in the charts, never 0.
 
 **Addendum — EPL open access and automatic linking (October 29, 2026).** Sean: "lets automatically link users to

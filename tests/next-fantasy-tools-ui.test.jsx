@@ -58,8 +58,8 @@ describe('fantasy player profile (Q12, Q14)', () => {
     expect(out).toContain('Fantasy points 11.0 11.0');
     expect(out).toContain('Targets 6.3 n = 3 4.0 n = 1');
   });
-  it('keeps the pace estimate in its own labelled section', () => {
-    expect(out).toContain('GTL pace estimate An estimate from 4 games of recorded pace, not an observed result or expert projection.');
+  it('keeps the GTL estimate in its own labelled section', () => {
+    expect(out).toContain('GTL estimate An estimate from 4 games of recorded play, not an observed result or expert projection.');
     expect(out).toContain('Week 6 @ DEN 11.0 est. points');
     expect(out).toContain('Rest of season: 121.0 est. points over 11 games scheduled.');
   });
@@ -96,9 +96,9 @@ describe('fantasy player comparison (Q13)', () => {
   });
   it('labels this week as an estimate and shows byes', () => {
     const out = text(render({ initialPeriod: 'week' }));
-    expect(out).toContain('Week 6 GTL pace estimate, not a result');
+    expect(out).toContain('Week 6 GTL estimate, not a result');
     expect(out).toContain('Est. points 6.0 Bye');
-    expect(out).toContain('Pace sample 4 games 2 games');
+    expect(out).toContain('Sample 4 games 2 games');
     expect(out).toContain('Opponent @ DEN Bye');
   });
   it('asks for a second player before comparing and stops at three', () => {

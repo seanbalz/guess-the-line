@@ -360,7 +360,7 @@ test('settle: a feed that lists a drafted match with a kickoff outside the week 
   assert.equal(body.status, 'succeeded');
   assert.deepEqual(service.args('gtl_epl_upsert_fixtures'), [{ p_rows: [{ event_id: 'e8', season: 2026, week: 9, home: 'SUN', away: 'LEE',
     commence_time: '2026-12-02T20:00:00.000Z', status: 'postponed', home_goals: null, away_goals: null }] }]);
-  assert.deepEqual(service.args('gtl_epl_settle_week')[0].p_awards, [{ owner_id: SEAN, points: 15, margin: 3, club: 'TOT' }]);
+  assert.deepEqual(service.args('gtl_epl_settle_week')[0].p_awards, [{ owner_id: SEAN, points: 0, margin: 3, club: 'TOT' }]);
 });
 
 test('settle: an event the feed lists under an unmapped team name is reported apart and never treated as missing (pre-T8 fix wave)', async () => {
@@ -456,7 +456,7 @@ test('settle: a Friday 20:00 and a Monday 20:00 drafted match settle on the 09:4
   const upserts = service.args('gtl_epl_upsert_fixtures').map(a => a.p_rows.map(r => [r.event_id, r.status, r.home_goals, r.away_goals]));
   assert.deepEqual(upserts, [[['e1', 'final', 3, 0]], [['e8', 'final', 1, 0]]]);
   const [settle] = service.args('gtl_epl_settle_week');
-  assert.deepEqual(settle.p_awards, [{ owner_id: NEMO, points: 15, margin: 3, club: 'MNC' }]);
+  assert.deepEqual(settle.p_awards, [{ owner_id: NEMO, points: 0, margin: 3, club: 'MNC' }]);
   assert.equal(settle.p_next.week, 10);
 });
 
@@ -473,7 +473,7 @@ test('settle: a finished match about to leave the feed but missing from it stays
   assert.equal(service.state.week.status, 'needs_review');
 });
 
-test('settle: every drafted result in -> bonus rows to the widest margin and the next week in pick order', async () => {
+test('settle: records the earned margin without adding it again to Sleeper scores or the next order', async () => {
   const fixtures = FIXTURES.map(f => finalFix(f, 1, 0));
   fixtures[2] = finalFix(FIXTURES[2], 4, 1); // TOT 4-1 CHE: Sean's club, margin 3
   fixtures[3] = finalFix(FIXTURES[3], 3, 0); // ARS 3-0 EVE: Evan's club, margin 3, fewer goals for -> loses the tiebreak
@@ -482,10 +482,20 @@ test('settle: every drafted result in -> bonus rows to the widest margin and the
   assert.deepEqual(service.args('gtl_epl_read_snapshots'), [{ p_run: RUN, p_claim: CLAIM, p_labels: ['after-mw08', 'after-mw9'] }]);
   const [settle] = service.args('gtl_epl_settle_week');
   assert.equal(settle.p_season, 2026); assert.equal(settle.p_week, 9);
-  assert.deepEqual(settle.p_awards, [{ owner_id: SEAN, points: 15, margin: 3, club: 'TOT' }]);
-  // Week score + bonus: Mark 50, Adam 55, Nemo 60, Evan 65, Cullen 70, Steven 75, Darin 90, Sean 80+15=95.
+  assert.deepEqual(settle.p_awards, [{ owner_id: SEAN, points: 0, margin: 3, club: 'TOT' }]);
+  // Final Sleeper scores already include bonuses: Sean 80 stays before Darin 90.
   assert.deepEqual(settle.p_next, { week: 10, window_start: END, window_end: '2026-11-11T00:00:00.000Z', first_kickoff: '2026-11-11T00:00:00.000Z',
-    pick_order: [MARK, ADAM, NEMO, EVAN, CULLEN, STEVEN, DARIN, SEAN] });
+    pick_order: [MARK, ADAM, NEMO, EVAN, CULLEN, STEVEN, SEAN, DARIN] });
+});
+
+test('settle: season ties use Sleeper totals without historical GTL bonus additions', async () => {
+  const fixtures = FIXTURES.map(f => finalFix(f, 0, 0));
+  const points = { ...WEEK_POINTS, [NEMO]: 60, [CULLEN]: 60 };
+  const state = settled(fixtures, { bonusTotals: { [NEMO]: 500 } });
+  const { service, body } = await run({ job: 'settle', state, snapshots: { ...SNAPS, 'after-mw9': snap(points) }, clock: at('2026-11-04T01:00:00Z') });
+  assert.equal(body.status, 'succeeded');
+  const order = service.args('gtl_epl_settle_week')[0].p_next.pick_order;
+  assert.ok(order.indexOf(NEMO) < order.indexOf(CULLEN), 'Nemo has the lower raw Sleeper season total');
 });
 
 test('settle: waits for the after-matchweek snapshot and fails without the previous one', async () => {
@@ -504,7 +514,7 @@ test('settle: a postponed drafted club scores 0 and does not hold up the bonus',
   fixtures[7] = { ...FIXTURES[7], status: 'postponed' };
   fixtures[0] = finalFix(FIXTURES[0], 2, 0);
   const { service } = await run({ job: 'settle', state: settled(fixtures), snapshots: SNAPS, clock: at('2026-11-04T01:00:00Z') });
-  assert.deepEqual(service.args('gtl_epl_settle_week')[0].p_awards, [{ owner_id: NEMO, points: 10, margin: 2, club: 'MNC' }]);
+  assert.deepEqual(service.args('gtl_epl_settle_week')[0].p_awards, [{ owner_id: NEMO, points: 0, margin: 2, club: 'MNC' }]);
 });
 
 test('snapshot: saves before-mw<N>-kickoff in the half hour before the first kickoff and after-mw<N> after the window', async () => {

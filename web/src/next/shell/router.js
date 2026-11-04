@@ -7,7 +7,7 @@ export function safeView(tab, view = {}) {
   const result = {};
   const routeKey = tab === 'bets' ? 'view' : 'section';
   if (SECTIONS[tab]?.includes(view[routeKey])) result[routeKey] = view[routeKey];
-  const keys = tab === 'research' && result.section === 'trends' ? [...KEYS, 'trendSection', 'window', 'player', 'weekTeam', 'playerMatchup', 'teamsTeam', 'teamsTrend', 'playerLayer', 'playerItem', 'weekGame', 'weekTrend']
+  const keys = tab === 'research' && result.section === 'trends' ? [...KEYS, 'trendSection', 'window', 'player', 'weekTeam', 'playerMatchup', 'teamsTeam', 'teamsTrend', 'playerLayer', 'playerItem', 'weekGame', 'weekTrend', 'weekList']
     : tab === 'research' && result.section === 'fantasy' ? [...KEYS, 'fantasyLayer', 'fantasyPlayer'] : KEYS;
   for (const key of keys) {
     const value = view[key];

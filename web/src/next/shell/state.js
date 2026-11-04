@@ -43,7 +43,7 @@ export const navigationPatch = (state, tab, patch) => !!patch && (
   // D-66: opening or closing a Trends nesting card is a step, so back closes one layer. The account reset in
   // TrendsScreen also clears the history window; it is not a step, so back never restores another account's choice.
   || (tab === 'fantasy' && ['fantasyLayer', 'fantasyPlayer'].some(key => Object.hasOwn(patch, key) && (patch[key] ?? null) !== (state.views.fantasy?.[key] ?? null)))
-  || (tab === 'trends' && !Object.hasOwn(patch, 'window') && ['teamsTeam', 'teamsTrend', 'player', 'playerLayer', 'playerItem', 'weekGame', 'weekTrend'].some(key => Object.hasOwn(patch, key) && (patch[key] ?? null) !== (state.views.trends?.[key] ?? null)))
+  || (tab === 'trends' && !Object.hasOwn(patch, 'window') && ['teamsTeam', 'teamsTrend', 'player', 'playerLayer', 'playerItem', 'weekGame', 'weekTrend', 'weekList'].some(key => Object.hasOwn(patch, key) && (patch[key] ?? null) !== (state.views.trends?.[key] ?? null)))
 );
 export const canGoBack = state => hasLayers(state) || state.trail.length > 0 || isDetail(state);
 export const DEFAULT_TAB = 'home';
@@ -99,7 +99,7 @@ const PLAY_LAYER_KEYS = Object.freeze(['pickGame', 'scoreGame', 'layer', 'item']
 const withView = (views, tab, patch) => (isRecord(patch) ? { ...views, [tab]: { ...views[tab], ...patch } } : views);
 
 // Origin context is reversible; newer local list/filter preferences survive returning through a root.
-const ROUTE_KEYS = ['section', 'view', 'market', 'season', 'week', 'weekId', 'leagueId', 'accountId', 'period', 'team', 'matchup', 'scoreGame', 'comparisonKind', 'pickGame', 'layer', 'item', 'teamsTeam', 'teamsTrend', 'player', 'playerLayer', 'playerItem', 'weekGame', 'weekTrend', 'fantasyLayer', 'fantasyPlayer', 'assessment'];
+const ROUTE_KEYS = ['section', 'view', 'market', 'season', 'week', 'weekId', 'leagueId', 'accountId', 'period', 'team', 'matchup', 'scoreGame', 'comparisonKind', 'pickGame', 'layer', 'item', 'teamsTeam', 'teamsTrend', 'player', 'playerLayer', 'playerItem', 'weekGame', 'weekTrend', 'weekList', 'fantasyLayer', 'fantasyPlayer', 'assessment'];
 function originView(current, prior, detail) {
   const view = { ...prior, ...current };
   for (const key of detail ? ROUTE_KEYS : ['section', 'view']) view[key] = prior?.[key];
