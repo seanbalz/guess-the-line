@@ -1,6 +1,8 @@
 // Research › Fantasy (EPL) screens (plan 2026-10-28-epl-fantasy.md, Task 3; spec sections 5 and 8): the four sub-tabs
 // drawn from one `epl/fantasy/read` reply (cloud/epl-fantasy-view.mjs). Fixture data only.
 import { describe, expect, it, vi } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { decode, markupProblems } from './helpers/ui-markup.mjs';
 
@@ -121,6 +123,22 @@ describe('Standings', () => {
     expect(head).toBe('4 — — —');
     expect(text(row.slice(0, row.indexOf('</li>')))).toContain('Sleeper — · Pick a Team bonus 5 (added in Sleeper)');
     expect(markupProblems(html)).toEqual([]);
+  });
+  // Quick win A24 (November 4, 2026): each row shows that it opens with a chevron that turns over while open (transform,
+  // quick; base.css stops it under reduced motion), instead of the "Tap a manager" fine print; in Light your lime bar
+  // carries the 1px accent-ink edge every lime fill gets (lime on the track is about 1.1:1).
+  it('every row ends in a hidden chevron that turns while open, and no fine print says to tap', () => {
+    const html = wrap(<StandingsPanel view={view()}/>);
+    const summaries = html.split('<summary').slice(1).map(s => s.slice(0, s.indexOf('</summary>')));
+    expect(summaries.length).toBe(view().standings.length);
+    for (const summary of summaries) expect(summary).toMatch(/<svg[^>]*class="lucide lucide-chevron-down gx-ic gx-ic-16 gx-epl-fx-chev"[^>]*aria-hidden="true"/);
+    expect(text(html)).not.toMatch(/tap a manager/i);
+    const css = fs.readFileSync(path.resolve(import.meta.dirname, '../web/src/next/epl/fantasy/fantasy.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+    const escape = words => words.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const rule = selector => css.match(new RegExp(`(?:^|\\})\\s*${escape(selector)}\\s*\\{([^}]*)\\}`))?.[1] ?? '';
+    expect(rule('.gx .gx-epl-fx-split[open] .gx-epl-fx-chev')).toMatch(/transform:\s*rotate\(180deg\)/);
+    expect(rule('.gx .gx-epl-fx-chev')).toMatch(/transition:\s*transform var\(--gx-dur-quick\)/);
+    expect(rule('.gx .gx-epl-fx-stand--me .gx-tc-bar-fill')).toMatch(/background-color:\s*var\(--gx-accent\);\s*box-shadow:\s*var\(--gx-lime-edge\)/);
   });
 });
 
