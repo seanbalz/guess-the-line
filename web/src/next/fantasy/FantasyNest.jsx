@@ -62,7 +62,7 @@ function PlayerRow({ player, scope, position, context, onOpen }) {
 function methodBody(snapshot, filters, scoringLabel) {
   const rules = scoringRules(filters) || scoringRules(DEFAULT_FILTERS);
   return [INTRO,
-    snapshot.method?.description || 'Estimates extend recent recorded statistical pace over the scheduled games remaining.',
+    snapshot.method?.description || 'Estimates come from recent usage and statistics over the scheduled games remaining.',
     'Sorted by estimated total points. The leading rank follows the selected position; team, player and trend filters keep ranks fixed.',
     'Overall ranks compare estimated fantasy points across positions; they are not draft value or value over replacement. Known Out or Doubtful players have no weekly estimate. Rest-of-season estimates assume a player is healthy for every remaining scheduled game.',
     'Strong trends compare recent games with the earlier sample available before the selected week. Trends describe recorded changes, not a promise about this week.',
@@ -108,7 +108,7 @@ export function FantasyNest({ navigationState, onNavigationState, view = {}, onL
     const context = contextFor(player), trends = player.trendHighlights || [];
     return <section className="gx-screen gx-fantasy" aria-label="Fantasy Football"><h1 className="gx-t-title">Fantasy Football</h1><Nest label="Fantasy layers" layer={'player:' + player.id} title={player.name} lips={[toFantasy]}
       info={<InfoButton title={`About ${player.name}’s estimate`} body={[
-        `${player.sampleGames ?? '—'} recorded games in the pace estimate. Player availability is not injury-adjusted.`,
+        `${player.sampleGames ?? '—'} recorded games in the estimate. Player availability is not injury-adjusted.`,
         ...trends.map(t => `${t.direction === 'up' ? 'Rising' : 'Falling'} · ${t.label}: ${t.detail}`),
         'Matchup and kickoff context are observed nflverse data, not predictions.']} links={sourceLinks(snapshot)}/>}>
       <p className="gx-t-meta">{player.team || 'Team unknown'} · {player.position}{player.positionRank ? ` ${player.positionRank}` : ''} · Overall {player.overallRank ?? '—'}</p>

@@ -5,7 +5,7 @@ import { Card, Pill } from './next/ui/index.js';
 const number = formatFantasyNumber;
 const percent = value => (value === null ? '—' : `${Math.round(value * 100)}%`);
 
-/** A report card for GTL's pace estimates (D-57): graded against actuals with a season-average baseline. */
+/** A report card for GTL's weekly estimates (D-57): graded against actuals with a season-average baseline. */
 export function FantasyAccuracy({ theme = 'classic', review, filters, scoringLabel, headingLevel = 3 }) {
   const c = name => `${theme === 'next' ? 'gx-' : ''}fantasy-${name}`;
   const Heading = `h${headingLevel}`, Sub = `h${Math.min(headingLevel + 1, 6)}`;

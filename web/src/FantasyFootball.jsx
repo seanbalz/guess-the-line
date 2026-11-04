@@ -163,7 +163,7 @@ export function FantasyRankingsView({ theme = 'classic', headingLevel = 1, onBac
       <Surface theme={theme} className={c('method')}>
         <details><summary>Method, scoring &amp; sources <ChevronDown size={18} aria-hidden="true"/></summary>
           <div className={c('method-content')}>
-            <p>{snapshot.method?.description || 'Estimates extend recent recorded statistical pace over the scheduled games remaining.'}</p>
+            <p>{snapshot.method?.description || 'Estimates come from recent usage and statistics over the scheduled games remaining.'}</p>
             <p>Overall ranks compare estimated fantasy points across positions; they are not draft value or value over replacement. Bye weeks and scheduled games affect totals. Known Out or Doubtful players have no weekly estimate. Rest-of-season estimates assume a player is healthy and available for every remaining scheduled game; they do not predict return dates. Depth-chart changes and matchup strength are not forecast.</p>
             <p>Strong trends compare recent games with the earlier sample available before the selected week; expand a player to see the amounts and sample sizes. Trends describe recorded changes, not a promise about this week.</p>
             <strong>{selectedScoring} scoring · {filters.passingTds}-point passing TDs</strong>
