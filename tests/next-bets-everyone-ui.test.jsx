@@ -50,6 +50,7 @@ describe('everyone’s picks', () => {
     expect(troy).toContain('Opens when you lock in or at kickoff');
     expect(troy).not.toContain(EVERYONE_COPY.banner);
     for (const secret of ['13.5', '115', 'BetMGM', '1.30', 'Win']) expect(troy).not.toContain(secret);
+    expect(troy).not.toContain('gx-prow-word');
     expect(html).not.toContain('BetMGM');
     expect(html).not.toContain('13.5');
   });
@@ -89,9 +90,23 @@ describe('everyone’s picks', () => {
     expect(heads).toHaveLength(2);
     for (const head of heads) expect([...walk(head)].filter(n => /\bgx-av/.test(n.attrs?.class ?? ''))).toEqual([]);
     expect(html).not.toContain('picked this game');
-    const rows = nodes.filter(n => n.tag === 'li' && n.attrs?.['data-pick']);
-    expect(rows.map(row => /\bgx-av\b/.test(row.children[0].attrs?.class ?? ''))).toEqual([true, true, true]);
-    expect(rows.map(row => nameFrom([...walk(row)].find(n => n.attrs?.class === 'gx-t-strong')))).toEqual(['Sean', 'You', 'Troy']);
+    const rows = nodes.filter(n => n.attrs?.['data-pick']);
+    expect(rows.map(row => /\bgx-prow-pic\b/.test(row.children[0].attrs?.class ?? '') && [...walk(row.children[0])].some(n => /\bgx-av\b/.test(n.attrs?.class ?? '')))).toEqual([true, true, true]);
+    expect(rows.map(row => nameFrom([...walk(row)].find(n => /\bgx-prow-title\b/.test(n.attrs?.class ?? ''))))).toEqual(['Sean', 'You', 'Troy']);
+  });
+  it('D-31: a closed friend’s row says no term in its name, meta, number, word or attributes; the weekly list carries none', () => {
+    const nodesOf = [...walk(parseMarkup(html))];
+    const troy = nodesOf.find(n => n.attrs?.['data-pick'] === `${TROY}:spread`);
+    const said = JSON.stringify(troy, (k, v) => (k === 'parent' ? undefined : v));
+    for (const secret of ['13.5', '115', 'BetMGM', '1.30', '1.3']) expect(said).not.toContain(secret);
+    const people = nodesOf.filter(n => n.attrs?.['data-person']);
+    expect(people.map(n => n.attrs['data-person'])).toEqual([LUKE, SEAN, TROY]);
+    for (const person of people) for (const secret of ['13.5', 'BetMGM', 'FanDuel', 'DraftKings']) expect(JSON.stringify(person, (k, v) => (k === 'parent' ? undefined : v))).not.toContain(secret);
+  });
+  it('faces first on the weekly list too; the word says Qualified', () => {
+    const people = [...walk(parseMarkup(html))].filter(n => n.attrs?.['data-person']);
+    expect(people.every(row => /\bgx-prow-pic\b/.test(row.children[0].attrs?.class ?? ''))).toBe(true);
+    expect(html).toContain('3 picks · 4.5U');
   });
 });
 

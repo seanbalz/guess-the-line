@@ -6,8 +6,8 @@ import { betsApi } from '../../api.js';
 import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
 import { LeagueFailure, useLeagueRead } from '../league/useLeagueRead.jsx';
-import { Avatar, Button, Card, GateBanner, LockLine, Matchup, Pill, cx, Skeleton } from '../ui/index.js';
-import { fmtWhen } from '../format.js';
+import { Avatar, Button, Card, GateBanner, LockLine, Matchup, PictureRow, cx, Skeleton, useEntrance } from '../ui/index.js';
+import { SEP, fmtWhen } from '../format.js';
 import { EVERYONE_COPY, everyoneBoard } from './everyone.js';
 import './everyone.css';
 
@@ -16,14 +16,14 @@ export function EveryoneBets({ onPlace }) {
   const leagueId = app.league?.community === false && !app.league.pending ? app.league.id : null;
   const key = `${app.accountId}:everyone:${leagueId ?? 'community'}`;
   const read = useLeagueRead(key, signal => betsApi('read', leagueId ? { leagueId } : {}, signal), error => { if (error.status === 401) app.requestSignIn(); });
-  if (read.loading) return <Skeleton label="Loading everyone’s picks…" shape="rows" count={4}/>;
+  if (read.loading) return <Skeleton label="Loading everyone’s picks…" shape="rows" count={4} className="gx-ev-skel"/>;
   if (read.error) return <LeagueFailure error={read.error} onRetry={read.retry}/>;
   return <EveryoneBoard data={read.data} viewer={app.accountId} scopeName={leagueId ? app.league.name : 'Community'}
     onLockIn={() => shell.go('play', { section: 'picks' })} onOpenPlay={() => shell.go('play')} onPlace={onPlace} onRefresh={read.retry}/>;
 }
 
 export function EveryoneBoard({ data, viewer, scopeName, onLockIn, onOpenPlay, onPlace, onRefresh }) {
-  const board = everyoneBoard(data, viewer);
+  const board = everyoneBoard(data, viewer), enter = useEntrance();
   // Rule 5: an empty state is one sentence and one action (design audit A17).
   if (!board.published) return <div className="gx-vstack gx-gap-12" data-bets="unpublished">
     <p className="gx-t-body" role="status">{EVERYONE_COPY.unpublished}</p>{onOpenPlay ? <Button onClick={onOpenPlay}>Open Play</Button> : null}
@@ -37,18 +37,15 @@ export function EveryoneBoard({ data, viewer, scopeName, onLockIn, onOpenPlay, o
     </Card> : <>
       <section className="gx-vstack gx-gap-12" aria-labelledby="gx-ev-week">
         <h2 id="gx-ev-week" className="gx-t-section">This week</h2>
-        <ul className="gx-ev-people">
-          {board.qualification.map(row => <li key={row.id} className={cx('gx-ev-person', row.you && 'gx-ev-you')}>
-            <Avatar id={row.id} name={row.display} you={row.you}/>
-            <span className="gx-grow gx-vstack">
-              <span className="gx-t-strong">{row.name}</span>
-              <span className="gx-t-meta gx-c-2">{row.picks} {row.picks === 1 ? 'pick' : 'picks'} · {row.units}</span>
-            </span>
-            {row.qualified ? <Pill tone="data">Qualified</Pill> : null}
-          </li>)}
-        </ul>
+        <ol className="gx-prows gx-stagger" data-enter={enter} aria-label="This week’s players">
+          {board.qualification.map(row => <li key={row.id}><PictureRow data-person={row.id} className={cx(row.you && 'gx-ev-you')}
+            picture={<Avatar id={row.id} name={row.display} you={row.you}/>} title={row.name} meta={`${row.picks} ${row.picks === 1 ? 'pick' : 'picks'}${SEP}${row.units}`}
+            word={row.qualified ? 'Qualified' : null} tone={row.qualified ? 'good' : 'plain'}/></li>)}
+        </ol>
       </section>
-      {board.games.map(game => <EveryoneGame key={game.id} game={game}/>)}
+      <ol className="gx-vstack gx-gap-24 gx-ev-games" aria-label="Picks by game">
+        {board.games.map(game => <li key={game.id}><EveryoneGame game={game}/></li>)}
+      </ol>
     </>}
     {onRefresh ? <Button variant="ghost" onClick={onRefresh}>Refresh</Button> : null}
   </div>;
@@ -65,16 +62,13 @@ export function EveryoneGame({ game }) {
       </span>
       {/* No face stack here: each pick row below already leads with its face and name (design audit A12). */}
     </header>
-    <ul className="gx-ev-picks">
-      {game.picks.map(pick => <li key={pick.key} className={cx('gx-ev-pick', pick.you && 'gx-ev-you')} data-pick={pick.key} data-open={pick.open ? 'true' : 'false'}>
-        <Avatar id={pick.userId} name={pick.display} you={pick.you}/>
-        <span className="gx-grow gx-vstack gx-gap-2">
-          <span className="gx-ev-pick-head"><span className="gx-t-strong">{pick.name}</span><span className="gx-t-meta gx-c-2">{pick.marketName}</span></span>
-          <span className="gx-ev-pick-value"><span className="gx-n-xs">{pick.open ? pick.terms.pick : pick.side}</span><span className="gx-n-xs gx-c-2">{pick.units}</span></span>
-          {pick.open ? <span className="gx-t-meta gx-c-2">{pick.terms.odds} · {pick.terms.book}</span> : <LockLine as="span" className="gx-t-meta">{pick.locked}</LockLine>}
-        </span>
-        {pick.result ? <Pill tone={pick.result.tone}>{pick.result.net ? `${pick.result.label} ${pick.result.net}` : pick.result.label}</Pill> : null}
-      </li>)}
-    </ul>
+    <ol className="gx-prows" aria-label="Picks on this game">
+      {game.picks.map(pick => <li key={pick.key}><PictureRow data-pick={pick.key} data-open={pick.open ? 'true' : 'false'} className={cx(pick.you && 'gx-ev-you')}
+        picture={<Avatar id={pick.userId} name={pick.display} you={pick.you}/>} title={pick.name}
+        meta={pick.open ? `${pick.marketName}${SEP}${pick.terms.pick}${SEP}${pick.terms.odds} · ${pick.terms.book}`
+          : <>{`${pick.marketName}${SEP}${pick.side}`} <LockLine as="span">{pick.locked}</LockLine></>}
+        value={pick.units} word={pick.result ? (pick.result.net ? `${pick.result.label} ${pick.result.net}` : pick.result.label) : null}
+        tone={pick.result?.tone === 'win' ? 'good' : 'plain'}/></li>)}
+    </ol>
   </Card>;
 }

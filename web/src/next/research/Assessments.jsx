@@ -3,7 +3,8 @@ import { ASSESSMENT_LABELS, submittedResearchLink } from '../../../../shared/res
 import { linesApi } from '../../api.js';
 import { useLinesData } from '../lines/linesData.js';
 import { useShell } from '../shell/context.js';
-import { Button, InfoButton, Skeleton } from '../ui/index.js';
+import { Button, InfoButton, PictureRow, Skeleton, TeamMark, useEntrance, useLayerFocus } from '../ui/index.js';
+import { BETS_NAMES } from '../bets/betsNav.js';
 import { Nest } from '../ui/Nest.jsx';
 import { useAssessments } from './useAssessments.js';
 import './assessments.css';
@@ -24,6 +25,8 @@ const reasons = {
   simulation_terms_unresolved: 'Simulation threshold not established', primary_source_unresolved: 'Original source not established', calculation_unverified: 'Calculation not reproduced',
 };
 const readableTime = value => Number.isFinite(Date.parse(value)) ? new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Los_Angeles' }).format(new Date(value)) + ' PT' : 'Time unavailable';
+const TONE = Object.freeze({ green: 'good', yellow: 'plain', red: 'warn', gray: 'plain' });
+const marks = gameId => { const [away, home] = String(gameId).split('-'); return <><TeamMark code={away} size={24} decorative/><TeamMark code={home} size={24} decorative/></>; };
 const odds = value => value > 0 ? `+${value}` : String(value).replace('-', '−');
 function Select({ label, value, options, onChange }) {
   const id = useId();
@@ -123,6 +126,7 @@ export function ResearchLinkIntake({ accountId, onDirty }) {
 
 export default function ResearchAssessments({ onDirty, onTrack }) {
   const lines = useLinesData(), shell = useShell(), route = shell.state.views.bets;
+  const root = useRef(null), enter = useEntrance(); useLayerFocus(root);
   const [market, setMarket] = useState(''), [color, setColor] = useState(''), [limit, setLimit] = useState(20);
   const gameId = route.matchup || undefined;
   // The server chooses the latest published account week, independently of a private league's week.
@@ -136,9 +140,8 @@ export default function ResearchAssessments({ onDirty, onTrack }) {
       ...(s.market === 'prop' ? { selection: `${s.playerName} ${s.side} ${s.line ?? ''} ${s.key.replace(/^player_/, '').replaceAll('_', ' ')}` } : {}) };
     onTrack?.({ season: data.season, week: data.week, kind: 'single', legs: [leg], odds: a.quote.odds, source: a.quote.source, quotedAt: a.quote.observedAt, stakeUnits: null });
   };
-  return <section className="gx-screen gx-ra" aria-labelledby="gx-ra-title">
-    <header className="gx-ra-heading"><h1 id="gx-ra-title" className="gx-t-title">Research recommendations</h1><InfoButton {...INFO}/></header>
-    <Button variant="secondary" onClick={() => shell.go('bets', { view: 'recommended' })}>Your guess vs. market</Button>
+  return <section ref={root} className="gx-screen gx-ra" aria-labelledby="gx-ra-title">
+    <header className="gx-ra-heading"><h1 id="gx-ra-title" className="gx-t-title" tabIndex={-1} data-route-focus>{BETS_NAMES.recommended}</h1><InfoButton {...INFO}/></header>
     {data ? <p className="gx-t-meta">{data.season} · Week {data.week}</p> : null}
     {gameId ? <Button variant="secondary" onClick={() => chooseGame('')}>All games research</Button> : null}
     {!a ? <div className="gx-ra-filters"><Select label="Market" value={market} onChange={v => { setMarket(v); setLimit(20); }} options={[[ '', 'All markets'], ['spread', 'Spreads'], ['total', 'Totals'], ['moneyline', 'Moneylines'], ['prop', 'Player props']]}/>
@@ -148,7 +151,11 @@ export default function ResearchAssessments({ onDirty, onTrack }) {
       lips={a ? [{ key: 'list', label: 'Assessed bets', onOpen: () => select(null) }] : []}>
       {a ? <AssessmentDetail assessment={a} onTrack={onTrack ? track : null}/> : <>
         <p className="gx-t-meta">Schedule order · qualitative assessments</p>
-        {!rows.length ? <p className="gx-t-body" role="status">{assessmentEmptyMessage(data, { market, color })}</p> : rows.slice(0, limit).map(a => <button className="gx-ra-tile" key={a.id} type="button" data-assessment={a.color} onClick={() => select(a.routeId)}><span className="gx-t-strong">{a.title}</span><span className="gx-t-body">{a.label}</span>{a.hasConflicts ? <span className="gx-t-meta">Opposing evidence present</span> : null}</button>)}
+        {!rows.length ? <p className="gx-t-body" role="status">{assessmentEmptyMessage(data, { market, color })}</p>
+          : <ol className="gx-prows gx-stagger" data-enter={enter} aria-label="Assessed bets">{rows.slice(0, limit).map(a => <li key={a.id}>
+            <PictureRow id={`gx-b-ra-${a.routeId}`} data-assessment={a.color} picture={marks(a.gameId)} title={a.title}
+              meta={a.hasConflicts ? 'Opposing evidence present' : null} value={a.quote ? odds(a.quote.odds) : '—'} word={a.label} tone={TONE[a.color] ?? 'plain'}
+              ariaLabel={`${a.title} ${a.label}${a.hasConflicts ? ', opposing evidence present' : ''}`} onClick={() => select(a.routeId)}/></li>)}</ol>}
         {rows.length > limit ? <Button variant="secondary" onClick={() => setLimit(n => n + 20)}>Show more assessments</Button> : null}
         <Button variant="secondary" onClick={read.reload}>Refresh research</Button>
         <ResearchCoverage data={data}/>

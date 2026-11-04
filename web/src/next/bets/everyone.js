@@ -17,7 +17,7 @@ const finite = value => typeof value === 'number' && Number.isFinite(value);
 export const EVERYONE_COPY = Object.freeze({
   // One banner explains the gate; each closed row says only when it opens (design audit A14).
   locked: () => 'Opens when you lock in or at kickoff',
-  banner: 'Friends’ lines and prices show after you lock in that game’s guess, or at kickoff.',
+  banner: 'Friends’ lines show once you lock in that game, or at kickoff.',
   empty: 'No one has a Virtual Units pick this week yet.',
   unpublished: 'This week’s games are not published yet.',
 });
