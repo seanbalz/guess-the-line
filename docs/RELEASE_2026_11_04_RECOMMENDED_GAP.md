@@ -41,10 +41,25 @@ Sean's approvals (November 3, 2026 PT):
 ## Readback
 
 - **Live bytes (executed, signed out):** the production entry `assets/index-yhey1K9m.js` lazy-loads `VirtualUnits-B067d_gi.js`. That chunk contains the D-77 strings "beat the close", "About your gaps", "Each gap, in kickoff order" and "Top 3 to act on".
-- **D-77 adds no route.** The card reads the player's own `/lines/read`, which was already live. Not checked: a signed-in view of the card on a phone.
+- **D-77 adds no route.** The card reads the player's own `/lines/read`, which was already live.
+- **Signed in (executed, November 4, 08:35 UTC):** Sean's signed-in Chrome on Windows, as narrow as the window goes. The card
+  is 488 px wide there, so this is not a real phone.
+  - Week 9 (no game final yet): "No finished games with a gap yet", then "Top 3 to act on · 27 gaps · Week 9".
+  - Week 8: **46.2%** beat the close, "12–14 · −3.09U at −110" and 26 W/L dots in kickoff order, with no sideways scroll.
+    The numbers check: 12 / 26 = 46.2%, and 12 × 10/11 − 14 = −3.09.
+  - ⓘ reads "Gaps of 10% or more: 10–11. 2 not graded yet."
+    - The two are CHI-SEA's spread and total. That game never matched at any book, so it has no closing line (see the
+      [odds release record](RELEASE_2026_11_03_ODDS_REFRESH_M37.md)).
+    - Its final (CHI 34, SEA 17) is stored. The card leaves the game ungraded rather than estimate a line.
+    - "Yet" overstates it here, because this game will never get a closing line. It is the only mismatch this season.
+  - Not checked: Dark theme, and a real phone.
+- **Hosted logs, 06:42 to 08:39 UTC:** `gtl-api` returned only 200s and 401s, and there were no CPU-limit messages.
+  - All 16 signed-in 200s came from this visit. They include `/lines/read`, `/bets/recommendations`, `/trends/week`, and,
+    on Play, `/points/read` and `/community/history`.
+  - Every other request was a signed-out 401.
 - **D-69 step 1:** the step 1 Play session's readback and release note are in
   [#476](https://github.com/seanbalz/guess-the-line/pull/476) (`docs/RELEASE_2026_11_04_OVERHAUL_STEP1.md`).
   - Step 1's markers are in the live `NextApp-btUS1fEq.js`.
   - From 06:42:15 to 06:47 UTC, `gtl-api` saw only the deploy's signed-out 401 probes and no CPU-limit messages.
-  - The first signed-in visit after the deploy will be added to #476.
+  - The signed-in visit above also opened Play: "Week 9 locked in", with every request returning 200.
 - **#474:** the fantasy optimization session is checking the design fixes live.
