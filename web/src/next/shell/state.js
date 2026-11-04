@@ -121,7 +121,9 @@ const swapsGame = (state, tab, patch) => tab === 'play' && !!state.views.play.pi
 // D-69 (spec test 8): League's layer keys. Arriving from outside League (a tile, the Play lip then a tile, a tab switch)
 // clears them, so the board shows unless the destination names a layer; a restored place brings its own (an entry
 // without them is the board, never the feed, History or week left). Inside League a step keeps them.
-const LEAGUE_LAYER_CLEARED = Object.freeze({ view: undefined, week: undefined, season: undefined });
+const LEAGUE_LAYER_CLEARED = Object.freeze({ view: undefined, week: undefined, season: undefined, market: undefined });
+// League's board market lives in the league view only (its address reads it there); the Play view keeps Picks's own market.
+const ownMarket = (view, current) => (view.section === 'league' ? { ...view, market: current.market } : view);
 const mergeAdapters = (views, adapters) => Object.fromEntries(Object.entries(adapters ?? {}).map(([tab, view]) => [tab, { ...views[tab], ...(tab === 'league' ? LEAGUE_LAYER_CLEARED : {}), ...view }]));
 const onLeague = state => state.tab === 'play' && state.views.play.section === 'league';
 
@@ -156,7 +158,7 @@ export function reduce(state, action) {
       // one, such as a receipt's scoreGame, passes it in `target.view`, which is merged after this).
       const next = target.tab === 'play' && PLAY_LAYER_KEYS.some(key => Object.hasOwn(current, key)) ? Object.fromEntries(Object.entries(current).filter(([key]) => !PLAY_LAYER_KEYS.includes(key))) : current;
       const root = { ...next, section: undefined, ...(target.tab === 'bets' ? { view: undefined } : {}) };
-      const view = action.type === 'tab' || !target.view ? root : { ...next, ...target.view };
+      const view = action.type === 'tab' || !target.view ? root : target.adapter === 'league' ? ownMarket({ ...next, ...target.view }, current) : { ...next, ...target.view };
       const adapterFrom = target.adapter === 'league' && !onLeague(state) ? { ...state.views.league, ...LEAGUE_LAYER_CLEARED } : state.views[target.adapter];
       const views = { ...state.views, [target.tab]: view, ...(target.adapter ? { [target.adapter]: { ...adapterFrom, ...target.adapterView } } : {}) };
       const changed = state.tab !== target.tab || JSON.stringify(current) !== JSON.stringify(view) || !!target.adapter;
@@ -189,7 +191,7 @@ export function reduce(state, action) {
     case 'restore': {
       const place = action.place;
       if (!isTab(place?.tab)) return state;
-      return { ...state, ...closed, tab: place.tab, views: { ...state.views, ...mergeAdapters(state.views, place.adapters), [place.tab]: { ...state.views[place.tab], section: undefined, pickGame: undefined, scoreGame: undefined, layer: undefined, item: undefined, ...(place.tab === 'bets' ? { view: undefined, assessment: undefined } : {}), ...place.view } }, trail: place.trail ?? [], nav: state.nav + 1, navMode: 'restore' };
+      return { ...state, ...closed, tab: place.tab, views: { ...state.views, ...mergeAdapters(state.views, place.adapters), [place.tab]: { ...state.views[place.tab], section: undefined, pickGame: undefined, scoreGame: undefined, layer: undefined, item: undefined, ...(place.tab === 'bets' ? { view: undefined, assessment: undefined } : {}), ...(place.tab === 'play' && place.view ? ownMarket(place.view, state.views.play) : place.view) } }, trail: place.trail ?? [], nav: state.nav + 1, navMode: 'restore' };
     }
     case 'open': {
       const kind = layerKind(action.layer?.id);

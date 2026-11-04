@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { connectHistory, fragmentFor, isLegacyFragment, placeFromFragment, startPlace } from '../web/src/next/shell/router.js';
 import { EPL_ROUTER } from '../web/src/next/epl/shellRoute.js';
-import { leagueLayer } from '../web/src/next/league/leagueModel.js';
+import { leagueLayer, leagueMode } from '../web/src/next/league/leagueModel.js';
 import { initialState, layer, reduce } from '../web/src/next/shell/state.js';
 
 const tick = () => new Promise(resolve => setTimeout(resolve, 0));
@@ -492,4 +492,29 @@ test('F1 League: browser Back from the feed or History (a restored entry) lands 
   followed.follow('#play/league'); await settle();
   assert.equal(leagueLayer(linked.state.views.league).layer, 'board');
   linked.connection.disconnect();
+});
+
+// Follow-up: League's board market and Picks's market are separate. The address and the board agree; Picks keeps its own.
+test('League market: Picks Total then the League tile shows Spread and says so; the deep link opens Total; Back and the lip keep Picks on Total', () => {
+  let state = reduce(initialState({ tab: 'play' }), { type: 'go', tab: 'play', view: { section: 'picks', market: 'total', ...CLOSED_LAYER } });
+  assert.equal(state.views.play.market, 'total');
+  const tile = reduce(state, { type: 'go', tab: 'play', view: { section: 'league', ...CLOSED_LAYER } });
+  assert.equal(leagueMode(tile.views.league.market), 'guess_spread', 'the board shows Spread');
+  assert.equal(fragmentFor('play', tile.views.play, tile.views), '#play/league', 'and the address names no market');
+  assert.equal(reduce(tile, { type: 'back' }).views.play.market, 'total', 'Back returns to Picks on Total');
+  const lip = reduce(reduce(tile, { type: 'go', tab: 'play', view: { section: undefined, ...CLOSED_LAYER } }), { type: 'go', tab: 'play', view: { section: 'picks', ...CLOSED_LAYER } });
+  assert.equal(lip.views.play.market, 'total', 'the Play lip then the Picks tile reopens Total');
+  const board = reduce(tile, { type: 'view', tab: 'league', patch: { market: 'total' } });
+  assert.equal(fragmentFor('play', board.views.play, board.views), '#play/league?market=total', "the board's own switch writes the address");
+  assert.equal(reduce(board, { type: 'tab', tab: 'home' }).views.league.market, 'total', 'a tab switch alone leaves the choice');
+  assert.equal(leagueMode(reduce(reduce(board, { type: 'tab', tab: 'home' }), { type: 'go', tab: 'play', view: { section: 'league', ...CLOSED_LAYER } }).views.league.market), 'guess_spread', 'but arriving from outside opens Spread');
+  const deep = placeFromFragment('#play/league?market=total');
+  assert.equal(leagueMode(deep.adapters.league.market), 'guess_total', 'the deep link names Total');
+  assert.equal(fragmentFor(deep.tab, deep.view, deep.adapters), '#play/league?market=total');
+  const restored = reduce(state, { type: 'restore', place: deep });
+  assert.equal(leagueMode(restored.views.league.market), 'guess_total');
+  assert.equal(restored.views.play.market, 'total', 'Picks keeps its own market');
+  const fresh = reduce(initialState({ tab: 'play' }), { type: 'restore', place: deep });
+  assert.equal(fresh.views.play.market, undefined, 'a deep link into League does not set Picks');
+  assert.equal(fragmentFor('play', tile.views.play, tile.views), '#play/league');
 });

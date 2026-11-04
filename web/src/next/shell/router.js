@@ -23,7 +23,9 @@ export function safeView(tab, view = {}) {
 const adapterFor = (tab, view) => tab === 'play' && view?.section === 'league' ? 'league' : tab === 'research' && view?.section === 'fantasy' ? 'fantasy' : tab === 'research' && view?.section === 'games' ? 'lines' : tab === 'research' && view?.section === 'trends' ? 'trends' : null;
 function routePlace(tab, view = {}, adapters = {}) {
   const adapter = adapterFor(tab, view);
-  const clean = safeView(tab, { ...view, ...(adapter ? adapters[adapter] : {}), ...(view.section ? { section: view.section } : {}) });
+  // League's market comes from the league view alone (a deep link names it in `view`); Picks's own market never shows in League's address.
+  const base = adapter === 'league' ? { ...view, market: adapters.league ? adapters.league.market : view.market } : view;
+  const clean = safeView(tab, { ...base, ...(adapter ? adapters[adapter] : {}), ...(view.section ? { section: view.section } : {}) });
   const { section, ...adapterView } = clean;
   return { tab, view: clean, ...(adapter ? { adapters: { [adapter]: adapterView } } : {}) };
 }
