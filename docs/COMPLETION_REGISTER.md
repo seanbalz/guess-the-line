@@ -14,7 +14,7 @@ only for the League feed, and the old team sheet only for Play's pick cards. Eve
 review (D-69 addendum, step 3).
 Evidence (local): `node --test` 2931 tests, 2930 pass, 1 fails (`tests/research-intake.test.mjs`, the Windows file-mode
 check on untouched code), skipped 0; Vitest 85 files, 889 tests pass; typecheck and build pass; the full browser run
-BROWSER_TOTAL passed, skipped 0.
+at `423c5c40` 378 passed, skipped 0; after the final review fixes the 17 touched specs passed 159, skipped 0.
 Not yet: the Pages release, and Sean's iPhone check of Research.
 
 ## D-69 design overhaul, step 2: Home — November 4, 2026
