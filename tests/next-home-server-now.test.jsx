@@ -1,6 +1,6 @@
 // D-69 step 2 (H1A, carry-over 1): Home's clock is the server's `now` advanced by this device's elapsed monotonic time.
 // Contract: each tick adds the time elapsed since the read, whatever the device's own date says; no usable `now`, no
-// timer; a new read restarts the base. Hooks run against a tiny state/effect stand-in (no DOM in this suite).
+// timer. Hooks run against a tiny state/effect stand-in (no DOM in this suite).
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const rig = vi.hoisted(() => ({ value: undefined, effects: [] }));

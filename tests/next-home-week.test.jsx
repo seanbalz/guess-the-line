@@ -13,7 +13,8 @@ vi.mock('../web/src/next/features/useFeatures.js', () => ({ useFeatures: () => (
 vi.mock('../web/src/next/moments/MomentsProvider.jsx', () => ({ useMoments: () => null, useMomentScope: () => {}, useNewCount: () => 0, useNewMoments: () => [], usePopped: () => false }));
 vi.mock('../web/src/next/home/useServerNow.js', async importOriginal => { const actual = await importOriginal(); return { useServerNow: base => (state.clock === null ? actual.useServerNow(base) : base + state.clock) }; });
 const { ShellContext } = await import('../web/src/next/shell/context.js');
-const { Home } = await import('../web/src/next/home/Home.jsx');
+const { weekGames } = await import('../web/src/next/home/homeModel.js');
+const { Home, openAllGames, openGameTile } = await import('../web/src/next/home/Home.jsx');
 
 const THU = '2026-11-06T01:15:00.000Z', SUN10 = '2026-11-08T18:00:00.000Z', SUN1 = '2026-11-08T21:05:00.000Z', SUN5 = '2026-11-09T01:20:00.000Z', MON = '2026-11-10T01:15:00.000Z';
 const G = (id, kickoff) => { const [away, home] = id.split('-'); return { id, awayCode: away, homeCode: home, away, home, kickoff }; };
@@ -52,7 +53,8 @@ describe('This week (H1A)', () => {
     expect(markupProblems(html)).toEqual([]);
     const week = byAttr(html, 'data-home', 'week')[0];
     expect(shown(nodes(week, n => n.tag === 'h2')[0])).toBe('This week');
-    expect(shown(week)).toContain('6 games');
+    expect(shown(week)).toContain('Week 9 · 6 games');
+    expect(nodes(week, n => n.tag === 'button' && n.attrs.id).map(b => b.attrs.id)).toEqual(['BUF-KC', 'LAC-LV', 'NYG-PHI', 'HOU-JAX'].map(id => `gx-h-game-${id}`));
     const tiles = nodes(week, n => n.tag === 'li' && n.attrs['data-game-tile']);
     expect(tiles.map(li => li.attrs['data-game-tile'])).toEqual(['BUF-KC', 'LAC-LV', 'NYG-PHI', 'HOU-JAX']);
     expect(tiles.map(li => nameFrom(nodes(li, n => n.tag === 'button')[0]))).toEqual([
@@ -84,6 +86,21 @@ describe('This week (H1A)', () => {
     html = render();
     expect(markupProblems(html)).toEqual([]);
     expect(shown(byAttr(html, 'data-home', 'week')[0])).toBe('This week This week’s games didn’t load. Try again');
+  });
+});
+
+describe('This week opens the right places (requirement 4)', () => {
+  it('a tile opens that game’s Spread picks card; All N games opens Research › Games', () => {
+    home({ personal: ready(personal()) });
+    openGameTile(state.shell, weekGames(personal()).games[0]);
+    expect(state.shell.go).toHaveBeenCalledWith('play', expect.objectContaining({ section: 'picks', market: 'spread', season: 2026, week: 9, pickGame: 'BUF-KC' }));
+    openAllGames(state.shell);
+    expect(state.shell.go).toHaveBeenLastCalledWith('research', { section: 'games', season: null, week: null });
+  });
+
+  it('the section always names the week of the games shown, even when Community is on another week', () => {
+    home({ personal: ready(personal({ week: 10 })) });
+    expect(shown(nodes(byAttr(render(), 'data-home', 'week')[0], n => (n.attrs.class ?? '').includes('gx-t-meta'))[0])).toBe('Week 10 · 6 games');
   });
 });
 
@@ -141,8 +158,12 @@ describe('This week keeps the server’s clock (carry-over 1)', () => {
     } finally { vi.useRealTimers(); }
   });
 
-  it('a malformed server now or deadline draws the week without throwing', () => {
+  it('a malformed server now or deadline draws the week without throwing; with no clock a tile never reads To pick', () => {
     home({ personal: ready(personal({ now: 'soon', deadline: 'later' })) });
-    expect(() => render()).not.toThrow();
+    let html;
+    expect(() => { html = render(); }).not.toThrow();
+    const tiles = nodes(byAttr(html, 'data-home', 'week')[0], n => n.tag === 'li' && n.attrs['data-game-tile']);
+    expect(tiles.length).toBeGreaterThan(0);
+    for (const li of tiles) expect(shown(li)).toMatch(/Closed at kickoff|Locked in|Draft/);
   });
 });

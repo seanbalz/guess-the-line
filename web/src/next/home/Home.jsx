@@ -8,7 +8,7 @@
 // Home plays only Whole week locked and the Pick streak, in place on the card. Every other result from while you were
 // away shows NEW on its tile and plays when that tile's card opens, never on launch. Every number comes from the shared
 // reads; this screen writes nothing.
-import { useId, useMemo } from 'react';
+import { useId, useLayoutEffect, useMemo, useRef } from 'react';
 import { APP_RELOAD_COPY } from '../../appView.js';
 import { MODE_LABEL } from '../../../../shared/guess-board.mjs';
 import { HOME_COPY, homeHero, homeTiles } from '../../../../shared/home-view.mjs';
@@ -34,7 +34,9 @@ import { nextGuess } from '../play/nextGuess.js';
 import { useWeekLocked } from '../play/useWeekLocked.js';
 import { useSavedTrends } from '../trends/builderData.js';
 import { useHomeData } from './homeData.js';
+import { focusLayerHeading, gameTileId, tileFocusAfterWindow } from './focusRules.js';
 import { useServerNow } from './useServerNow.js';
+import { hasNavigated } from '../moments/launch.js';
 import { HERO_COPY, HOME_LAYERS, HOME_TILE_ICONS, awardsTile, betsTile, heroHeadline, heroMeters, rankTileView, trendsTile, weekGames, whoTile } from './homeModel.js';
 import '../ui/focusLanding.css';
 import './home.css';
@@ -158,7 +160,7 @@ const WHO = Object.freeze({ in: { word: 'In', tone: 'win' }, satOut: { word: 'Sa
 /** One game: its marks, the matchup, kickoff and your own Spread word with its icon (never color alone). */
 function GameTile({ game, onOpen }) {
   return (
-    <button type="button" id={`gx-h-game-${game.id}`} className="gx-nest-tile gx-tile gx-h-game" aria-label={game.ariaLabel} onClick={onOpen}>
+    <button type="button" id={gameTileId(game.id)} className="gx-nest-tile gx-tile gx-h-game" aria-label={game.ariaLabel} onClick={onOpen}>
       <span className="gx-h-game-marks" aria-hidden="true"><TeamMark code={game.away} size={24} decorative/><TeamMark code={game.home} size={24} decorative/></span>
       <span className="gx-t-strong gx-h-game-match">{game.matchup}</span>
       <span className="gx-t-meta gx-c-2">{game.when}</span>
@@ -166,6 +168,10 @@ function GameTile({ game, onOpen }) {
     </button>
   );
 }
+
+/** A game tile opens that game's Spread picks card; "All N games" opens Research › Games. */
+export const openGameTile = (shell, game) => openPlay(shell, 'picks', game.open);
+export const openAllGames = shell => shell.go('research', { section: 'games', season: null, week: null });
 
 /**
  * This week (H1A): the viewer's own /personal week as up to four game tiles, each opening that game's picks card, then
@@ -182,6 +188,17 @@ function ThisWeek({ app, shell, personal, community }) {
     if (!data) return null;
     return weekGames(Number.isFinite(base) && Number.isFinite(now) ? { ...data, now: new Date(now).toISOString() } : data, community);
   }, [data, community, base, now]);
+  const heading = useRef(null), focused = useRef(null);
+  const idsKey = view ? view.games.map(game => game.id).join('|') : '';
+  // A tile that had focus and left the window at kickoff is unmounted; focus then drops to the page, so it goes to the
+  // first tile that remains (or the heading) instead.
+  useLayoutEffect(() => {
+    const active = document.activeElement;
+    const move = tileFocusAfterWindow({ focusedId: focused.current, ids: idsKey ? idsKey.split('|') : [], lost: !active || active === document.body || active === document.documentElement });
+    if (!move) return;
+    focused.current = move.kind === 'tile' ? move.id : null;
+    (move.kind === 'tile' ? document.getElementById(move.id) : heading.current)?.focus({ preventScroll: true });
+  }, [idsKey]);
   if (!personal) return null;
   if (!data) {
     if (personal.status !== 'error') return <Skeleton label={LINES_COPY.loading} shape="tiles" count={4}/>;
@@ -198,13 +215,13 @@ function ThisWeek({ app, shell, personal, community }) {
   return (
     <section className="gx-h-week" aria-labelledby={id} data-home="week">
       <div className="gx-h-week-head">
-        <h2 className="gx-t-section" id={id}>This week</h2>
-        <p className="gx-t-meta gx-c-2">{plural(view.count, 'game')}</p>
+        <h2 className="gx-t-section" id={id} ref={heading} tabIndex={-1}>This week</h2>
+        <p className="gx-t-meta gx-c-2">{view.week === null ? plural(view.count, 'game') : `Week ${view.week}${SEP}${plural(view.count, 'game')}`}</p>
       </div>
-      <ul className="gx-tiles" aria-label="This week’s next games">
-        {view.games.map(game => <li key={game.id} data-game-tile={game.id}><GameTile game={game} onOpen={() => openPlay(shell, 'picks', game.open)}/></li>)}
+      <ul className="gx-tiles" aria-label="This week’s next games" onFocus={event => { if (event.target.id?.startsWith('gx-h-game-')) focused.current = event.target.id; }} onBlur={event => { if (event.relatedTarget) focused.current = null; }}>
+        {view.games.map(game => <li key={game.id} data-game-tile={game.id}><GameTile game={game} onOpen={() => openGameTile(shell, game)}/></li>)}
       </ul>
-      <Button variant="secondary" block iconEnd="chevronRight" onClick={() => shell.go('research', { section: 'games', season: null, week: null })}>{`All ${plural(view.count, 'game')}`}</Button>
+      <Button variant="secondary" block iconEnd="chevronRight" onClick={() => openAllGames(shell)}>{`All ${plural(view.count, 'game')}`}</Button>
     </section>
   );
 }
@@ -241,8 +258,11 @@ function WhosInLayer({ head, app, shell, community, hero, tiles }) {
       </>
     );
   }
+  const root = useRef(null);
+  // Nest focuses its heading only when its layer changes, so on mount (the tile that opened it is gone) it is ours to do.
+  useLayoutEffect(() => { focusLayerHeading(root.current, hasNavigated()); }, []);
   return (
-    <div className="gx-screen gx-h" data-home="who-layer">
+    <div className="gx-screen gx-h" data-home="who-layer" ref={root}>
       {head}
       <Nest label={HOME_COPY.whosIn} lips={lips} layer={HOME_LAYERS.who} title={HOME_COPY.whosIn}>
         {body}
