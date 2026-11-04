@@ -9,7 +9,7 @@ import '../../../web/src/next/styles/base.css';
 import '../../../web/src/next/styles/components.css';
 import {
   Avatar, AvatarStack, Badge, Button, Card, CardButton, Chip, ChipRail, Countdown, Dialog, DriveMeter, FieldMark, GateBanner,
-  IconButton, LinkRow, List, LockCell, LockLine, Meter, Move, Overlay, Pill, Rank, Row, Segmented, Sheet, Strip, Tag,
+  IconButton, LinkRow, List, LockCell, LockLine, Meter, Move, Nest, Overlay, Pill, Rank, Row, Segmented, Sheet, Strip, Tag,
   TeamMark, Text, Toast,
 } from '../../../web/src/next/ui/index.js';
 import { gateBanner, weekSummary } from '../../../web/src/next/rules.js';
@@ -197,6 +197,13 @@ function Gallery() {
           <div className="gx-hstack gx-gap-8 gx-wrap" role="group" aria-label="Every team">
             {Object.keys(teamMarks).sort().map(code => <TeamMark key={code} code={code} size={24}/>)}
           </div>
+        </Section>
+
+        <Section title="Nesting">
+          <Nest label="Example" layer="game" title="SEA @ DEN"
+            lips={[{ key: 'week', label: 'This week', onOpen: record('lip-week') }, { key: 'game', label: 'Seattle Seahawks at Denver Broncos', onOpen: record('lip-game') }]}>
+            <Text as="p" variant="body">The open layer's content.</Text>
+          </Nest>
         </Section>
 
         <Section title="Layers">

@@ -132,6 +132,18 @@ async function layout(page) {
         }
       }
     }
+    // Every tappable label is 16px (D-38), measured on the text you see, not on the control: a 16px button can still
+    // hold a 12px label inside it (design audit A6, the nesting lip). These controls are all label.
+    for (const control of document.querySelectorAll('.gx :is(.gx-btn, .gx-seg-btn, .gx-nest-lip, .gx-sheet-back, .gx-back-btn, .gx-link-row)')) {
+      if (!visible(control)) continue;
+      const walker = document.createTreeWalker(control, NodeFilter.SHOW_TEXT);
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        const holder = node.parentElement;
+        if (!node.textContent.trim() || holder.closest('.gx-sr-only') || !visible(holder)) continue;
+        const size = parseFloat(getComputedStyle(holder).fontSize);
+        if (size < 16) problems.push(`label "${node.textContent.trim().slice(0, 30)}" in ${control.className} is ${size}px`);
+      }
+    }
     return problems;
   });
 }
@@ -418,3 +430,37 @@ test('reduced motion stops the kit\'s motion', async ({ page }) => {
   const names = await page.evaluate(() => [...document.querySelectorAll('.gx *')].map(el => getComputedStyle(el).animationName).filter(n => n !== 'none'));
   expect(names).toEqual([]);
 });
+
+// ---------- design audit quick wins (kit), November 4, 2026 ----------
+/** A token's color as the browser computes it, for comparing with a computed style. */
+const tokenColor = (page, token) => page.evaluate(name => {
+  const probe = document.createElement('span');
+  probe.style.color = `var(${name})`;
+  document.querySelector('.gx').append(probe);
+  const value = getComputedStyle(probe).color;
+  probe.remove();
+  return value;
+}, token);
+
+for (const theme of ['dark', 'light']) {
+  test(`${theme}: a nesting lip reads as the way back: the chevron first, then a 16px label on one line, named "Back to …" (audit A6)`, async ({ page }) => {
+    await open(page, { theme });
+    const lip = page.getByRole('button', { name: 'Back to Seattle Seahawks at Denver Broncos', exact: true });
+    await expect(page.getByRole('button', { name: 'Back to This week', exact: true })).toBeVisible();
+    const text2 = await tokenColor(page, '--gx-text-2');
+    for (const width of [390, 320]) {
+      await page.setViewportSize({ width, height: 844 });
+      await lip.scrollIntoViewIfNeeded();
+      const m = await lip.evaluate(el => {
+        const label = el.querySelector('.gx-nest-lip-label'), chevron = el.querySelector('svg');
+        const s = getComputedStyle(label), l = label.getBoundingClientRect(), c = chevron.getBoundingClientRect();
+        return { size: s.fontSize, line: s.lineHeight, weight: s.fontWeight, transform: s.textTransform, color: s.color, ellipsis: s.textOverflow,
+          height: l.height, chevronFirst: c.right <= l.left, cut: label.scrollWidth > label.clientWidth, lip: el.getBoundingClientRect().height };
+      });
+      expect(m, `${width}`).toMatchObject({ size: '16px', line: '24px', weight: '700', transform: 'none', color: text2, ellipsis: 'ellipsis', chevronFirst: true });
+      expect(m.height, `${width}: one line`).toBeLessThanOrEqual(24.5);
+      expect(m.lip).toBeGreaterThanOrEqual(44);
+      if (width === 320) expect(m.cut, 'a long name is cut with an ellipsis at 320').toBe(true);
+    }
+  });
+}

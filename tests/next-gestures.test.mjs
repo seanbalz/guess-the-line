@@ -181,22 +181,27 @@ const decl = (rule, prop) => rule?.body.split(';').map(d => d.split(':')).find((
 test('press feedback: every tappable kit control dips to 0.97 and dims, on the tap tokens; reduced motion keeps only the dim', () => {
   const press = cssRules('web/src/next/ui/press.css');
   const components = read('web/src/next/styles/components.css');
-  const controls = ['gx-btn', 'gx-icon-btn', 'gx-chip', 'gx-seg-btn', 'gx-card-btn', 'gx-row-btn', 'gx-link-row', 'gx-sheet-back'];
-  const pressed = cls => `.gx .${cls}:active:not(:disabled)`;
+  // Design audit A7: the nesting card's tiles, lips, hero and "All N" row and Home's stat tiles are what every first card
+  // is built from, and base.css turns off the phone's tap highlight, so without these they gave no sign of a press. A
+  // nesting tile drawn as a picture (a div) is not a control, so only the button form is listed.
+  const controls = ['gx-btn', 'gx-icon-btn', 'gx-chip', 'gx-seg-btn', 'gx-card-btn', 'gx-row-btn', 'gx-link-row', 'gx-sheet-back',
+    'button.gx-nest-tile', 'gx-nest-lip', 'gx-nest-hero', 'gx-nest-more', 'gx-h-stat'];
+  const sel = cls => (cls.includes('.') ? cls : `.${cls}`);
+  const pressed = cls => `.gx ${sel(cls)}:active:not(:disabled)`;
   for (const cls of controls) {
-    const timing = press.find(r => r.selectors.includes(`.gx .${cls}`) && decl(r, 'transition'));
+    const timing = press.find(r => r.selectors.includes(`.gx ${sel(cls)}`) && decl(r, 'transition'));
     assert.equal(decl(timing, 'transition'), 'transform var(--gx-dur-tap) var(--gx-ease-standard), opacity var(--gx-dur-tap) var(--gx-ease-standard)', cls);
     assert.ok(press.some(r => !r.inMedia && r.selectors.includes(pressed(cls)) && decl(r, 'opacity') === '0.85'), `${cls} dims`);
     const scaled = press.some(r => r.selectors.includes(pressed(cls)) && decl(r, 'transform') === 'scale(0.97)')
       || new RegExp(`\\.${cls}:active:not\\(:disabled\\)[^{]*\\{\\s*transform: scale\\(0\\.97\\)`).test(components);
     assert.ok(scaled, `${cls} dips to 0.97`);
     assert.ok(press.some(r => r.inMedia && r.selectors.includes(pressed(cls)) && decl(r, 'transform') === 'none'), `${cls}: the device's reduced motion drops the dip`);
-    assert.ok(press.some(r => r.selectors.includes(`.gx[data-motion="reduce"] .${cls}:active:not(:disabled)`) && decl(r, 'transform') === 'none'), `${cls}: the app's reduced motion drops the dip`);
+    assert.ok(press.some(r => r.selectors.includes(`.gx[data-motion="reduce"] ${sel(cls)}:active:not(:disabled)`) && decl(r, 'transform') === 'none'), `${cls}: the app's reduced motion drops the dip`);
     assert.ok(!press.some(r => r.inMedia && r.selectors.includes(pressed(cls)) && decl(r, 'opacity')), `${cls}: reduced motion keeps the dim`);
   }
   for (const cls of ['gx-btn', 'gx-chip', 'gx-seg-btn', 'gx-card-btn', 'gx-row-btn']) assert.match(components, new RegExp(`\\.${cls}:active:not\\(:disabled\\)`), `${cls} keeps its components.css dip`);
   // Every kit control that draws one of these classes loads the press styles.
-  for (const file of ['Button.jsx', 'IconButton.jsx', 'Card.jsx', 'Row.jsx', 'Chip.jsx', 'Segmented.jsx', 'Sheet.jsx']) assert.match(read(`web/src/next/ui/${file}`), /import '\.\/press\.css';/, file);
+  for (const file of ['Button.jsx', 'IconButton.jsx', 'Card.jsx', 'Row.jsx', 'Chip.jsx', 'Segmented.jsx', 'Sheet.jsx', 'Nest.jsx']) assert.match(read(`web/src/next/ui/${file}`), /import '\.\/press\.css';/, file);
 });
 
 test('sheet and skeleton styles: tokens only, transform and opacity only, a reduced-motion block for each motion, no loop', () => {
