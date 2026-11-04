@@ -4,7 +4,7 @@
 // The server and cloud/feed.mjs decide every number shown here; this component only draws it.
 import { useEffect, useRef, useState } from 'react';
 import { useShell } from '../shell/context.js';
-import { Avatar, AvatarStack, Button, Card, FieldMark, Icon, IconButton, LockLine, Matchup, Pill } from '../ui/index.js';
+import { Avatar, AvatarStack, Button, Card, FieldMark, Icon, IconButton, LockLine, Matchup, NewPill, Pill } from '../ui/index.js';
 import { fmtNum, fmtPostTime, plural } from '../format.js';
 import { MARKET, codes, commentButton, gameName, guessText, lateWords, postLine, postLink, postMeta, reactionChips, realSlipPost, systemPost } from './feedModel.js';
 import { motionReduced } from '../ui/motion.js';
@@ -97,7 +97,7 @@ export function PostCard({ post, names, viewer, now, leagueId, isNew = false, ar
         <p className="gx-t-body">{system ? <span className="gx-t-strong">{line}</span> : <><span className="gx-t-strong">{actor}{post.actorId === viewer ? ' (you)' : ''}</span> <span className="gx-c-2">{line}</span></>}</p>
         {(realSlipPost(post) || late) ? <span className="gx-hstack gx-gap-8 gx-wrap">{realSlipPost(post) ? <Pill tone="real">Real slip</Pill> : null}{late ? <Pill tone="pending">{late}</Pill> : null}</span> : null}
       </div>
-      {isNew ? <Pill tone="data" className="gx-feed-new">NEW</Pill> : null}
+      {isNew ? <NewPill/> : null}
       <time className="gx-t-meta gx-c-2 gx-none" dateTime={post.createdAt}>{fmtPostTime(post.createdAt, now)}</time>
     </div>
     {meta ? <p className="gx-t-meta gx-c-2">{meta}</p> : null}

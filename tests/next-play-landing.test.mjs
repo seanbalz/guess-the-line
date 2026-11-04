@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { WEEK_LOCKED_SOURCE, ballotTile, playHero, weekLockedMoments } from '../web/src/next/play/landing.js';
 import { weekLockedId } from '../web/src/next/play/moments.js';
 import { createMomentsEngine } from '../web/src/next/moments/engine.js';
-import { SCOPES, sizeOf } from '../web/src/next/moments/catalog.js';
+import { SCOPES, picksScope, sizeOf } from '../web/src/next/moments/catalog.js';
 
 const DEADLINE = '2026-11-06T01:15:00.000Z'; // Thu Nov 5, 5:15 PM PT (the first kickoff, D-24)
 const SUNDAY = '2026-11-08T18:00:00.000Z'; // Sun 10:00 AM PT
@@ -76,7 +76,7 @@ test('the other ballot tile: "N / 14" and one word, "All locked" in the good ton
 
 test('Whole week locked: one small moment per market at N of N on a per-game read; a missed game, a sit-out and whole-market rules stay quiet', () => {
   const all = perGame({ spread: { openGames: 0, locked: 14 } });
-  assert.deepEqual(weekLockedMoments(all), [{ id: 'weekLocked:2026:9:guess_spread', kind: 'weekLocked', scopes: [SCOPES.picks, SCOPES.play], title: 'Week 9 Spread locked', meta: '14 of 14 locked', icon: 'lock' }]);
+  assert.deepEqual(weekLockedMoments(all), [{ id: 'weekLocked:2026:9:guess_spread', kind: 'weekLocked', scopes: [picksScope('guess_spread'), SCOPES.play], title: 'Week 9 Spread locked', meta: '14 of 14 locked', icon: 'lock' }]);
   assert.equal(weekLockedId(2026, 9, 'guess_spread'), 'weekLocked:2026:9:guess_spread');
   assert.equal(sizeOf('weekLocked'), 'small');
   assert.deepEqual(weekLockedMoments(perGame({ spread: { openGames: 0, locked: 13 } })), [], 'a game that closed unlocked: quiet');
@@ -98,7 +98,7 @@ test('Whole week locked plays on the fresh read that reaches N of N while the pi
   const r = rig();
   report(r.engine, perGame()); // this device's first read of the source seeds it silently
   r.here.settled = true; r.here.navigated = true;
-  const close = r.engine.open(SCOPES.picks);
+  const close = r.engine.open(picksScope('guess_spread'));
   report(r.engine, perGame({ spread: { openGames: 1, locked: 13 } }));
   assert.deepEqual(r.small, [], '13 of 14 is not the moment');
   const all = perGame({ spread: { openGames: 0, locked: 14 } });
@@ -111,7 +111,7 @@ test('Whole week locked plays on the fresh read that reaches N of N while the pi
   const again = rig(r.storage);
   report(again.engine, all);
   again.here.settled = true; again.here.navigated = true;
-  again.engine.open(SCOPES.picks);
+  again.engine.open(picksScope('guess_spread'));
   assert.deepEqual(again.small, [], 'a later session on this device remembers it');
 });
 
@@ -122,10 +122,27 @@ test('Whole week locked never plays on launch: it waits as NEW for the landing t
   const closeLanding = later.engine.open(SCOPES.play); // the app opens on the Play landing: a launch card
   report(later.engine, perGame({ spread: { openGames: 0, locked: 14 } }));
   assert.deepEqual(later.small, [], 'nothing plays on page load');
-  assert.equal(later.engine.newCount(SCOPES.picks), 1, 'the landing\'s ballot tile shows NEW');
+  assert.equal(later.engine.newCount(picksScope('guess_spread')), 1, 'the landing\'s ballot tile shows NEW');
   closeLanding();
   later.here.settled = true; later.here.navigated = true;
-  later.engine.open(SCOPES.picks); // the member opens the picks card
+  later.engine.open(picksScope('guess_spread')); // the member opens the Spread picks card
   assert.deepEqual(later.small, ['weekLocked:2026:9:guess_spread']);
-  assert.equal(later.engine.newCount(SCOPES.picks), 0);
+  assert.equal(later.engine.newCount(picksScope('guess_spread')), 0);
+});
+
+test('M4: each market\'s picks card spends only its own Whole week locked: a waiting Total stays NEW while the Spread card is open, then plays when the Total card opens', () => {
+  const r = rig();
+  report(r.engine, perGame()); // seeded on an earlier visit
+  const later = rig(r.storage); // a new session: both markets were locked on another device meanwhile
+  report(later.engine, perGame({ spread: { openGames: 0, locked: 14 }, total: { openGames: 0, locked: 14 } }));
+  const spread = 'weekLocked:2026:9:guess_spread', total = 'weekLocked:2026:9:guess_total';
+  assert.deepEqual([later.engine.newCount(picksScope('guess_spread')), later.engine.newCount(picksScope('guess_total'))], [1, 1]);
+  later.here.settled = true; later.here.navigated = true;
+  const closeSpread = later.engine.open(picksScope('guess_spread')); // the Spread card shows its own "N of N" line
+  assert.deepEqual(later.small, [spread], 'only the Spread moment plays on the Spread card');
+  assert.deepEqual(later.engine.newMoments(picksScope('guess_total')).map(m => m.id), [total], 'the Total moment still waits as NEW');
+  closeSpread();
+  later.engine.open(picksScope('guess_total'));
+  assert.deepEqual(later.small, [spread, total], 'and plays when the Total card opens');
+  assert.equal(later.engine.newCount(picksScope('guess_total')), 0);
 });

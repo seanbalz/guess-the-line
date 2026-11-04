@@ -202,7 +202,7 @@ export function LeagueScreen() {
   const onRead = error => setRefusal(error ? { key: groupKey, error } : null);
   const gone = !community && refusal?.key === groupKey ? refusal.error : null;
   useFeedSeen(app.accountId, leagueId, feed);
-  const since = useSeenSince(app.accountId, leagueId), arrived = usePostArrivals(feed.page, `${app.accountId}:${leagueId ?? 'community'}`);
+  const since = useSeenSince(app.accountId, leagueId), arrived = usePostArrivals(feed.page, `${app.accountId}:${leagueId ?? 'community'}`, place.layer);
   const fresh = newPostIds(feed.posts, app.accountId, since);
   const set = patch => shell.setView('league', patch);
   // A lip is Back when its layer is the place underneath (D-66), else a step to it.

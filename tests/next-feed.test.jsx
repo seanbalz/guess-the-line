@@ -85,7 +85,8 @@ describe('D-69 feed moments', () => {
     const html = render(<PostCard post={post('joined', { reactions: { counts: { fire: 1 }, total: 1, mine: 'fire' } })} names={names} viewer={ME} now="2026-10-26T20:00:00Z" leagueId={null} isNew arrived/>);
     expect(markupProblems(html)).toEqual([]);
     expect(html).toContain('data-arrived="true"');
-    expect(html).toMatch(/class="gx-pill[^"]*gx-feed-new[^"]*"[^>]*>NEW</);
+    // M3: one NEW look across the app (ui/Pill.jsx NewPill), the same on a digest.
+    expect(html).toContain('class="gx-pill gx-pill--accent gx-new">NEW</span>');
     expect(html).not.toContain('data-moment');
     expect(card(post('joined'))).not.toContain('data-arrived');
   });

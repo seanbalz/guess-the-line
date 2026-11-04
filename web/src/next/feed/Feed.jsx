@@ -8,7 +8,7 @@ import { useShell } from '../shell/context.js';
 import { Button, Card, LinkRow, Skeleton } from '../ui/index.js';
 import { plural } from '../format.js';
 import { LeagueFailure } from '../league/useLeagueRead.jsx';
-import { PREVIEW_POSTS, postArrivals } from '../league/leagueModel.js';
+import { PREVIEW_POSTS, arrivalsAt, postArrivals } from '../league/leagueModel.js';
 import { foldPosts, readSeen, seenKey, writeSeen } from './feedModel.js';
 import { DigestCard } from './DigestCard.jsx';
 import { PostCard } from './PostCard.jsx';
@@ -29,16 +29,24 @@ export function useSeenSince(account, leagueId) {
   if (memo.current?.key !== key) memo.current = { key, at: readSeen(key) };
   return memo.current.at;
 }
-/** Ids of first-page posts a later read brought (they rise in); nothing on the first look or for another league. */
-export function usePostArrivals(page, key) {
-  const known = useRef(null), [arrived, setArrived] = useState(NONE);
+/**
+ * Ids of first-page posts a later read brought, rising in on the League layer that showed when they arrived; nothing on
+ * the first look. A post rises once per arrival: another layer or league spends it (leagueModel.js arrivalsAt), so
+ * board <-> feed never replays it.
+ */
+export function usePostArrivals(page, key, layer = null) {
+  const where = `${key}|${layer}`, known = useRef(null), at = useRef(where);
+  at.current = where;
+  const [held, setHeld] = useState(() => arrivalsAt(null, where));
+  const shown = arrivalsAt(held, where);
+  if (shown !== held) setHeld(shown); // a move spends what arrived (React's state-from-props adjustment)
   useEffect(() => {
     if (!page) return;
     const next = postArrivals(known.current?.key === key ? known.current.value : null, page.posts);
     known.current = { key, value: next.known };
-    if (next.arrived.size) setArrived(next.arrived);
+    if (next.arrived.size) setHeld(arrivalsAt(null, at.current, next.arrived));
   }, [page, key]);
-  return arrived;
+  return shown.ids;
 }
 
 function FeedItems({ items, names, viewer, now, leagueId, fresh, arrived }) {

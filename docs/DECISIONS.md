@@ -293,7 +293,8 @@ step 0 release and his iPhone check.
   no longer lists other members' guesses or the House; the slot layer has them.
 - **Picks:** the new app draws per-game cards for every rule set. Without per-game rules the cards are read-only (every
   saved guess, draft and receipt still shows), so nothing can be saved, locked or sat out there. The old whole-market
-  editor and its Submit retire from the new app.
+  editor and its Submit retire from the new app. (Corrected to the code; the approved text said the whole-market Save
+  draft, Submit and whole-week sit-out stay in the old app only.)
 - **Your score:** the rank chip is the season rank; no fair week rank exists mid-week. A receipt's "View weekly score"
   opens that game's own layer. "Compare players" stays as a quiet button.
 - **Bullseye** plays once: the score moment and the Bullseye badge share one id.
@@ -308,8 +309,14 @@ building step 1, where the plan's text and a binding rule disagreed; each is rev
   closed unlocked (not at the last lock-in, before any game was played).
 - **First look:** a Bullseye this device first saw as Your score history (its first read) never celebrates again as a
   badge; one exact guess still celebrates at most once.
-- **NEW is spoken:** every Play tile that shows NEW says "new" in its name (Badges, League, the other ballot).
-- **The other ballot's NEW** shows only for that market's Whole week locked.
+- **NEW is spoken:** every Play tile that shows NEW says "new" in its name (Badges, League, the other ballot, Your
+  streaks and the weekly awards): the tile adds it when its label does not already say it.
+- **The other ballot's NEW** shows only for that market's Whole week locked, and each market's picks card plays only
+  its own (opening Spread leaves a waiting Total marked NEW).
+- **One NEW look:** tiles, badges and feed posts mark NEW with the same lime-tint pill and the word "NEW" (the feed's
+  was cyan, the tiles' solid lime).
+- **League from outside** (the tile, the Play lip, a tab, browser Back to an entry with no layer) always opens the
+  board, and History then starts on the current season; an address that names the feed, History or a week opens it.
 - **Reactions** pop only after the server confirms the write, from the chip or the popover.
 - **A refused private group** shows none of its posts until its own read answers again; Try again in its feed returns
   to the board, which re-reads it.

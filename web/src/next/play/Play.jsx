@@ -31,7 +31,7 @@ import { PointsTile } from './points/PointsTile.jsx';
 import { FeaturesScreen } from '../features/FeaturesScreen.jsx';
 import { BadgesTile } from '../features/BadgesTile.jsx';
 import { ReminderPrompt } from '../me/PickReminders.jsx';
-import { SCOPES } from '../moments/catalog.js';
+import { SCOPES, picksScope } from '../moments/catalog.js';
 import { useMomentScope, useNewMoments, usePopped } from '../moments/MomentsProvider.jsx';
 
 const modeOf = value => value === 'total' || value === 'guess_total' ? 'guess_total'
@@ -57,9 +57,9 @@ function PlayLanding() {
   const hero = data ? playHero(data) : null, week = data?.week ?? null;
   const other = otherMarket(hero?.market ?? 'spread'), tile = ballotTile(data, other);
   const lockedId = mode => (week && Number.isInteger(week.season) ? weekLockedId(week.season, week.week, mode) : '');
-  // NEW on the ballot tile only when the Whole week locked moment waiting for the picks card is this tile's market; the
-  // hero's market keeps its own on the card (the picks scope holds either market's moment).
-  const tileLocked = lockedId(modeOf(other)), waitingIds = useNewMoments(SCOPES.picks), waiting = tileLocked !== '' && waitingIds.some(m => m.id === tileLocked);
+  // NEW on the ballot tile only when this week's Whole week locked moment waits for this tile's market's picks card (each
+  // market has its own picks scope, M4); the hero's market keeps its own on its card.
+  const tileLocked = lockedId(modeOf(other)), waitingIds = useNewMoments(picksScope(modeOf(other))), waiting = tileLocked !== '' && waitingIds.some(m => m.id === tileLocked);
   const heroPop = usePopped(hero?.progress ? lockedId(hero.progress.mode) : '');
   const tilePop = usePopped(tileLocked);
   const openPicks = market => openPlay(shell, 'picks', { market, season: week?.season ?? null, week: week?.week ?? null });
@@ -115,12 +115,13 @@ function PlayDetail() {
 }
 
 /**
- * The picks card holds Whole week locked (D-69): the read that reaches N of N while it is open pops its count line.
- * It renders only beside the cards that can show that line, so a waiting moment is never used up while the picks
- * still load (or fail) with nothing mounted to pop.
+ * The picks card holds its market's Whole week locked (D-69): the read that reaches N of N while it is open pops its
+ * count line. It renders only beside the cards that can show that line, so a waiting moment is never used up while the
+ * picks still load (or fail) with nothing mounted to pop, and it opens only the shown market's scope, so the other
+ * market's moment keeps waiting as NEW (M4).
  */
-function PicksScope() {
-  useMomentScope(SCOPES.picks);
+function PicksScope({ mode }) {
+  useMomentScope(picksScope(mode));
   return null;
 }
 
@@ -144,5 +145,5 @@ function SelectedPlay({ app, shell, current, mode, onMode }) {
   const community = app.community.data, members = community?.viewer?.toLowerCase() === app.accountId.toLowerCase() ? community.members ?? [] : [];
   return <><PerGameEditor key={`${app.accountId}:${season}:${week}:${mode}`} accountId={app.accountId} initialData={read.data} mode={mode} nest={nest} optOuts={app.community.data?.optOuts || []} reveal={{ members }}
     onMode={onMode} setDirty={shell.setDirty} onSignInAgain={app.requestSignIn} onSaved={() => app.refresh({ only: ['community', 'personal'] })}
-    onScore={patch => shell.setView('play', { ...patch, section: 'score' })}/><PicksScope/></>;
+    onScore={patch => shell.setView('play', { ...patch, section: 'score' })}/><PicksScope mode={mode}/></>;
 }

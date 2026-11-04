@@ -52,6 +52,7 @@ describe('PlayTile', () => {
     expect(quiet).not.toContain('NEW');
     const fresh = render(<PlayTile label="Badges" icon="trophy" big="4" sub="New: Called the Move" isNew ariaLabel="Badges, 4 earned, new badge" onClick={() => {}}/>);
     expect(fresh).toContain('NEW');
+    expect(fresh).toContain('class="gx-pill gx-pill--accent gx-new">NEW</span>'); // M3: the one NEW look
     expect(markupProblems(fresh)).toEqual([]);
   });
 

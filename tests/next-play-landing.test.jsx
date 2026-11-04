@@ -39,7 +39,8 @@ const due = (spread, total, extra = {}) => [
 ];
 const week = (rows, state = 'due') => ({ viewer: 'fixture', rules: { sentFinal: true, lateWindow: 'kickoff', revealAt: 'kickoff', perGameScoring: true },
   week: { season: 2026, week: 9, deadline: DEADLINE, games: 14 }, picksDue: { state, week: 9, deadline: DEADLINE, now: '2026-11-03T20:00:00.000Z', modes: [] }, due: rows, members: [], optOuts: [] });
-const waitingFor = (...ids) => ({ picks: ids.map(id => ({ id, kind: 'weekLocked', scopes: ['picks', 'play'], title: id })) });
+// Each Whole week locked moment waits on its own market's picks scope (M4), as the engine holds it.
+const waitingFor = (...ids) => Object.groupBy(ids.map(id => ({ id, kind: 'weekLocked', scopes: [`picks:${id.split(':').at(-1)}`, 'play'], title: id })), m => m.scopes[0]);
 let lastShell = null;
 function render(community, { newMoments = {} } = {}) {
   state.app = { accountId: 'fixture', community, league: { name: 'Community', community: true }, refresh: vi.fn(), requestSignIn: vi.fn() };

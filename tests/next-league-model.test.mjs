@@ -1,7 +1,7 @@
 // D-69 step 1 (P6A): League as plain data (web/src/next/league/leagueModel.js). Each test names the contract it guards.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { BOARD_FIRST, boardSlice, leagueLayer, leagueMode, leagueTile, lipIsBack, newPostIds, postArrivals } from '../web/src/next/league/leagueModel.js';
+import { BOARD_FIRST, arrivalsAt, boardSlice, leagueLayer, leagueMode, leagueTile, lipIsBack, newPostIds, postArrivals } from '../web/src/next/league/leagueModel.js';
 
 test('board first: no view, "board" or an unknown view is the board; a week needs History and a whole week number', () => {
   for (const view of [undefined, {}, { view: 'board', week: 8 }, { view: 'nope' }]) assert.deepEqual(leagueLayer(view), { layer: 'board', season: null, week: null });
@@ -38,6 +38,20 @@ test('a post rises in only when a later read brings one newer than every post kn
   const next = postArrivals(first.known, [p('c', '11'), p('a', '10'), p('b', '09')]);
   assert.deepEqual([...next.arrived], ['c']);
   assert.equal(postArrivals(next.known, [p('c', '11'), p('z', '01')]).arrived.size, 0);
+});
+test('M2: a post rises once per arrival; another layer or league spends it, so a return never replays it', () => {
+  const board = 'me:community|board', feed = 'me:community|feed', group = 'me:g1|board';
+  const quiet = arrivalsAt(null, board);
+  assert.equal(quiet.ids.size, 0);
+  assert.equal(arrivalsAt(quiet, board), quiet, 'nothing changes: the same record');
+  const risen = arrivalsAt(quiet, board, new Set(['c']));
+  assert.deepEqual([...risen.ids], ['c'], 'a read brings c: it rises on the board');
+  assert.equal(arrivalsAt(risen, board), risen, 'it stays marked while the board stays');
+  const moved = arrivalsAt(risen, feed);
+  assert.equal(moved.ids.size, 0, 'the feed layer does not replay it');
+  assert.equal(arrivalsAt(moved, board).ids.size, 0, 'nor does the board on return');
+  assert.deepEqual([...arrivalsAt(moved, feed, new Set(['d'])).ids], ['d'], 'a later arrival rises where it lands');
+  assert.equal(arrivalsAt(risen, group).ids.size, 0, 'another league spends it');
 });
 test('the League tile: your Spread rank (never Total), the move this device saw, "New posts"; a group shows its players', () => {
   const data = { standings: [{ userId: 'them', mode: 'guess_spread', seasonPoints: 30, seasonScored: 4 }, { userId: 'me', mode: 'guess_spread', seasonPoints: 20, seasonScored: 4 },

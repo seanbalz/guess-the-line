@@ -95,8 +95,7 @@
   .gx .gx-feed-emo--on { outline: 2px solid Highlight; }
 }
 
-/* D-69: NEW marks a post newer than this device had shown; a post a refresh brings rises in (transform only, once). */
-.gx .gx-feed-new { flex: none; }
+/* D-69: a post a refresh brings rises in (transform only, once per arrival). NEW is the shared NewPill (ui/Pill.jsx). */
 @media (prefers-reduced-motion: no-preference) {
   .gx .gx-feed-post[data-arrived="true"] { animation: gx-feed-rise var(--gx-dur-quick) var(--gx-ease-enter); }
 }

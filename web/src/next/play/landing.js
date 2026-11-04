@@ -4,7 +4,7 @@
 // heroProgress (shared/home-view.mjs) and nextGuess.js, so the landing makes no read of its own. The server's
 // `picksDue` and `due` rows decide every state, never the device clock.
 import { HOME_COPY, heroProgress, homeHero } from '../../../../shared/home-view.mjs';
-import { SCOPES } from '../moments/catalog.js';
+import { SCOPES, picksScope } from '../moments/catalog.js';
 import { fmtWhen } from '../format.js';
 import { weekLockedId } from './moments.js';
 import { nextGuess } from './nextGuess.js';
@@ -92,13 +92,13 @@ export const WEEK_LOCKED_SOURCE = 'community:weekLocked';
 /**
  * Whole week locked (D-69 moments table, small): one candidate per market whose week reads N of N locked in this
  * Community read (per-game rules only). A market that closed with a game unlocked, or was sat out, has none: it stays
- * quiet. It plays on the picks card and on the landing (SCOPES.picks, SCOPES.play).
+ * quiet. It plays on its own market's picks card and on the landing (picksScope(mode), SCOPES.play).
  */
 export function weekLockedMoments(community) {
   const week = community?.week;
   if (!Number.isInteger(week?.season) || !Number.isInteger(week?.week)) return [];
   return ['spread', 'total'].map(m => ballotProgress(community, m)).filter(allLocked).map(row => ({
-    id: weekLockedId(week.season, week.week, row.mode), kind: 'weekLocked', scopes: [SCOPES.picks, SCOPES.play],
+    id: weekLockedId(week.season, week.week, row.mode), kind: 'weekLocked', scopes: [picksScope(row.mode), SCOPES.play],
     title: `Week ${week.week} ${row.label} locked`, meta: `${row.of} of ${row.of} locked`, icon: 'lock',
   }));
 }

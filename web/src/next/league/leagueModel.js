@@ -53,6 +53,17 @@ export function postArrivals(known, posts) {
   return { known: { ids: new Set([...known.ids, ...list.map(post => post.id)]), newest: Math.max(known.newest, newest) }, arrived };
 }
 
+const NO_ARRIVALS = new Set();
+/**
+ * The posts rising in at `where` (account, league and layer): `held` is what the last call returned, `arrived` the ids a
+ * read just brought (postArrivals). A post rises once per arrival: once the place changes (another layer or league) what
+ * arrived is spent, so the cards that remount on a return never replay it. Returns `held` itself when nothing changes.
+ */
+export function arrivalsAt(held, where, arrived = null) {
+  if (arrived?.size) return { where, ids: arrived };
+  return held?.where === where ? held : { where, ids: NO_ARRIVALS };
+}
+
 /**
  * The Play landing's League tile from reads the landing already makes: the Community's Spread rank (the board League opens
  * on), the move this device last saw (read only, as Home's rank tile) and "New posts". A private group shows its player

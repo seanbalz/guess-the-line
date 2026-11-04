@@ -32,6 +32,14 @@ test('a withheld game is "Hidden" with no guess, line or points; a shown one kee
   assert.deepEqual(shown.notes, ['Kickoff Thu Oct 8, 5:15 PM PT', 'Line saved with guess', 'Fixture median', 'Final · SEA 20, DEN 17 · Fixture final']);
   assert.equal(weekGame(week, { ...entry('a', 0), eligible: false, picks: [{ gameId: 'SEA-DEN', guess: 1, points: null, reference: null }] }, game, 'guess_spread').points, 'Not scored');
 });
+test('a game that did not finish keeps the old screen\'s words: "Postponed" or "Cancelled", then its source (D-23)', () => {
+  const pick = { ...entry('a', 0), picks: [{ gameId: 'SEA-DEN', guess: -3, points: null, reference: null }] };
+  const status = result => weekGame({ ...week, results: { 'SEA-DEN': result } }, pick, game, 'guess_spread').notes.at(-1);
+  assert.equal(status({ status: 'postponed', source: 'NFL notice' }), 'Postponed · NFL notice');
+  assert.equal(status({ status: 'cancelled', source: 'NFL notice' }), 'Cancelled · NFL notice');
+  assert.equal(status({ status: 'postponed' }), 'Postponed');
+  assert.doesNotMatch(JSON.stringify(weekGame({ ...week, results: { 'SEA-DEN': { status: 'cancelled' } } }, pick, game, 'guess_spread').notes), /postponed|cancelled/);
+});
 test('week tiles: the week\'s points and its shared rank; a sit-out and no ballot are words, never 0', () => {
   assert.deepEqual([weekRank(week, 'b', 'guess_spread'), weekRank(week, 'c', 'guess_spread'), weekRank(week, 'd', 'guess_spread')], [{ rank: 1, of: 3 }, { rank: 3, of: 3 }, null]);
   const data = { weeks: [week, { ...week, week: 4, entries: [] }] };

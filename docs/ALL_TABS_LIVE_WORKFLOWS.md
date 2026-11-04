@@ -49,8 +49,10 @@ temporary; it does not approve a new brand direction or retire the prototype.
 Bets adds `web/src/liveBets.css`, scoped under
 `.gx .gx-bets`, for the existing forms and tables. League keeps comment drafts
 mounted when the reply form is collapsed.
-History reuses `HistoryLine` so pending, provisional and imported reference
-provenance remains identical to the established history screen.
+History no longer imports `HistoryLine`: `web/src/next/league/historyModel.js`
+words each line and result itself and keeps every note the established history
+screen showed (pending, provisional and imported reference provenance, and
+"Postponed" or "Cancelled"), checked by `tests/next-league-history.test.mjs`.
 Native new components continue to follow `design/tokens-next.json` and the strict
 new-app token tests. The classic app keeps its existing styles.
 

@@ -8,7 +8,7 @@ import { useId } from 'react';
 import { useAppData } from '../data/AppData.jsx';
 import { INFO } from '../info.js';
 import { useShell } from '../shell/context.js';
-import { Badge, Button, Card, DriveMeter, InfoButton, Pill, Row, Skeleton } from '../ui/index.js';
+import { Badge, Button, Card, DriveMeter, InfoButton, NewPill, Row, Skeleton } from '../ui/index.js';
 import { CountUp } from '../ui/CountUp.jsx';
 import { LeagueFailure } from '../league/useLeagueRead.jsx';
 import { PlayLayer } from '../play/PlayLayer.jsx';
@@ -46,7 +46,7 @@ function BadgeTile({ badge, isNew, onOpen }) {
         <Badge iconPath={badge.icon} rarity={badge.rarity} locked={!badge.earned}/>
         <span className="gx-t-label gx-fx-tile-name">{badge.name}</span>
         <span className="gx-t-meta gx-c-2">{badge.rarityLabel}{badge.count > 1 ? ` · ×${badge.count}` : ''}</span>
-        {isNew ? <Pill tone="accent">New</Pill> : null}
+        {isNew ? <NewPill/> : null}
       </button>
     </li>
   );

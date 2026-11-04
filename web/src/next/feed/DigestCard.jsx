@@ -2,7 +2,7 @@
 // reactions or comments is never folded (feedModel.foldPosts), and "Show each post" opens every post the card holds in
 // place, so nothing a member posted is out of reach (D-23).
 import { useState } from 'react';
-import { AvatarStack, Button, Card, Pill } from '../ui/index.js';
+import { AvatarStack, Button, Card, NewPill } from '../ui/index.js';
 import { fmtPostTime } from '../format.js';
 import { namesLine } from './feedModel.js';
 import { PostCard } from './PostCard.jsx';
@@ -25,7 +25,7 @@ export function DigestCard({ posts, names, viewer, now, leagueId, fresh = NONE, 
     <div className="gx-feed-head">
       <AvatarStack people={people} max={4} size={24}/>
       <p className="gx-grow gx-t-body">{text}</p>
-      {isNew ? <Pill tone="data" className="gx-feed-new">NEW</Pill> : null}
+      {isNew ? <NewPill/> : null}
       <time className="gx-t-meta gx-c-2 gx-none" dateTime={posts[0].createdAt}>{fmtPostTime(posts[0].createdAt, now)}</time>
     </div>
     <Button variant="ghost" className="gx-feed-act" iconEnd="chevronDown" aria-expanded="false" onClick={() => setOpen(true)}>Show each post ({posts.length})</Button>

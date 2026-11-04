@@ -60,7 +60,7 @@ describe('League, board first (P6A)', () => {
     const preview = find(root, n => n.attrs['data-league'] === 'preview')[0];
     expect(find(preview, n => n.tag === 'article').map(a => a.attrs['data-post'])).toEqual(['p1', 'p2']);
     expect(readText(preview)).toContain('1 new post');
-    expect(find(preview, cls('gx-feed-new')).map(readText)).toEqual(['NEW']);
+    expect(find(preview, cls('gx-new')).map(readText)).toEqual(['NEW']);
     expect(find(root, n => n.tag === 'button').map(nameFrom)).toEqual(expect.arrayContaining(['Back to Play', 'Your leagues', 'Open the feed', 'History · Seasons and weeks']));
   });
   it('the feed is its own layer under the League lip, with every post and no preview', () => {

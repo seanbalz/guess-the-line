@@ -76,8 +76,9 @@ describe('Badges and awards: the first card', () => {
     state.waiting = [{ id: 'score:bullseye:2026:7:guess_spread:PIT-TB', kind: 'badge', badge: 'bullseye', title: 'Bullseye' }, { id: 'streak:pick:2026:4:6', kind: 'streak', title: 'Pick streak' }];
     const html = render(<FeaturesScreen/>);
     expect(html).toContain('aria-label="Bullseye, Uncommon, earned 2 times, new"');
-    // The badge's own pill says "New"; the streak tile's tag (PlayTile) says "NEW".
+    // M3: the badge's pill and the streak tile's tag (PlayTile) are one NEW look with the text "NEW".
     expect((html.match(/>New<|>NEW</g) ?? []).length).toBe(2);
+    expect(html.split('class="gx-pill gx-pill--accent gx-new">NEW</span>').length - 1).toBe(2);
   });
   it('F2: the streak and awards tiles with NEW say "new" (PlayTile adds it to their wording)', () => {
     setup();

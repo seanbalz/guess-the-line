@@ -94,7 +94,8 @@ export function weekGame(week, entry, game, mode) {
   const pick = (entry?.picks ?? []).find(item => item.gameId === game.id), hidden = pick?.hidden === true || (entry?.picksHidden === true && !pick);
   if (hidden) return { id: game.id, away: game.awayCode, home: game.homeCode, hidden, guess: 'Hidden', line: 'Hidden', points: 'Hidden', notes: [`Kickoff ${fmtFull(game.kickoff)}`] };
   const line = lineWords(pick?.reference, mode, game), result = week?.results?.[game.id];
-  const final = result ? `${result.status === 'final' ? `Final · ${game.awayCode} ${show(result.away)}, ${game.homeCode} ${show(result.home)}` : result.status}${result.origin === 'commissioner_reported' ? ' · Commissioner-reported final' : result.source ? ` · ${result.source}` : ''}` : null;
+  // A game that did not finish says what the old screen said (CommunityHistory.jsx Result): Postponed, else Cancelled.
+  const final = result ? `${result.status === 'final' ? `Final · ${game.awayCode} ${show(result.away)}, ${game.homeCode} ${show(result.home)}` : result.status === 'postponed' ? 'Postponed' : 'Cancelled'}${result.origin === 'commissioner_reported' ? ' · Commissioner-reported final' : result.source ? ` · ${result.source}` : ''}` : null;
   return { id: game.id, away: game.awayCode, home: game.homeCode, hidden, guess: pickText(mode, game.awayCode, game.homeCode, pick?.guess), line: line.value,
     points: entry?.eligible === false ? 'Not scored' : Number.isFinite(pick?.points) ? `${show(pick.points)} / 10` : DASH,
     notes: [`Kickoff ${fmtFull(game.kickoff)}`, ...line.notes, ...(final ? [final] : [])] };
