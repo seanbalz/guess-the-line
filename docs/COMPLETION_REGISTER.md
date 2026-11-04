@@ -31,8 +31,11 @@ Sean: "Yes, switch to usage" (ask a19, Board item 64).
   - the comparison's this-week estimate with its Sample row.
 
   The home tile is not mounted anywhere (`homeTiles` in `web/src/next/fantasy/index.js` is empty), so it has no shot.
-- **Status:** **not released.** It lands with the first Fantasy refresh after merge, which needs Sean's OK on the
-  mockups. Published snapshots, reviews, Points slates and Houses are never recomputed.
+- **Status:**
+  - **Approval:** Sean OK'd the mockups ("OK, merge when clear").
+  - **Merge:** PR #468 merged as `7a10cbd3` on November 4 after #466.
+  - **Screen wording: released.** Sean said "Yes, release it". The frontend went out in check-only 41752810898, readiness 41752864340 (history digest `d40fdad9…08f1`) and deploy 41753107909 from `7a10cbd3`. The session approved both gates after checking each run title. The result is Pages `60fffc36`. A crawl of all 31 served chunks finds the new wording and no "statistical pace", "GTL pace estimate" or "Pace sample".
+  - **Numbers: not yet published.** They land with the next Fantasy refresh, which builds snapshots with method 2.0; the first one is still to be read back. Published snapshots, reviews, Points slates and Houses are never recomputed.
 
 ## Trends glass tiles (D-75) — November 3, 2026
 
