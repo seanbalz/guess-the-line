@@ -93,3 +93,43 @@ describe('Commissioner tools routes and adapter', () => {
     expect(read('web/src/next/me/MenuSheet.jsx')).toMatch(/const Commissioner = lazy\(\(\) => import\('\.\/commissioner\/CommissionerTools\.jsx'\)/);
   });
 });
+
+// Quick wins A9 and A23 (November 4, 2026). A9: no two rows on one Menu screen share a glyph (Profile and Settings were both
+// the pencil; Odds connection and EPL stat corrections both the chart), and each glyph comes from the shared destination
+// map. A23: Appearance no longer says the old app shares its setting (false since D-65 removed it), and the tools hub
+// opens on its rows, without the "Commissioner only" sentence on the surface (the Menu row is already commissioner-only).
+const { DESTINATION_ICONS, icons } = await import('../web/src/next/ui/index.js');
+const { parseMarkup, walk } = await import('./helpers/ui-markup.mjs');
+describe('Menu and Commissioner tools rows (quick wins A9, A23)', () => {
+  const glyphs = html => [...walk(parseMarkup(html))].filter(n => n.tag === 'button' && n.attrs?.class?.split(' ').includes('gx-link-row')).map(row => {
+    const svg = [...walk(row)].find(n => n.tag === 'svg');
+    const words = [...walk(row)].filter(n => n.text !== undefined).map(n => n.text).join('').trim();
+    return [words, svg.attrs.class.split(' ').find(c => c.startsWith('lucide-'))];
+  });
+  const kebab = name => `lucide-${icons[DESTINATION_ICONS[name]].displayName.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()}`;
+  const repeated = list => list.filter(([, glyph], i) => list.findIndex(([, other]) => other === glyph) !== i);
+
+  it('the commissioner’s full Menu, Pick reminders included, uses each glyph once, from the map', () => {
+    shellState.pushConfigured = true;
+    const rows = glyphs(render(<MenuSheet args={{}}/>, true));
+    delete shellState.pushConfigured;
+    expect(rows.map(([words]) => words)).toEqual(['Community members', 'Commissioner tools', 'Profile', 'History', 'Export my data', 'Settings · sportsbooks and guidance', 'Pick reminders', 'Guidance and sources', 'Appearance']);
+    expect(repeated(rows)).toEqual([]);
+    expect(rows.map(([, glyph]) => glyph)).toEqual(['members', 'commissioner', 'profile', 'history', 'export', 'settings', 'reminders', 'guidance', 'appearance'].map(kebab));
+  });
+
+  it('the tools hub uses each glyph once and opens on its rows', () => {
+    const html = render(<CommissionerTools/>, true);
+    const rows = glyphs(html);
+    expect(rows.map(([words]) => words)).toEqual(COMMISSIONER_COPY.tools.map(tool => tool.label));
+    expect(repeated(rows)).toEqual([]);
+    expect(html).not.toContain('Each tool checks your access');
+    expect(html).not.toContain('Commissioner only');
+  });
+
+  it('Appearance says the setting stays on this device, and nothing about an old app', () => {
+    const html = render(<MenuSheet args={{ sub: 'appearance' }}/>, false);
+    expect(html).toContain('Saved on this device, not your account.');
+    expect(html).not.toMatch(/old app/i);
+  });
+});

@@ -3,6 +3,7 @@
 // no fetching, storage, clocks they are not asked to keep, or rules of their own (the server and rules.js decide).
 export { cx, needLabel } from './cx.js';
 export { Icon, icons, ICON_SIZES } from './Icon.jsx';
+export { DESTINATION_ICONS } from './destinations.js';
 export { Text, TEXT_VARIANTS, TEXT_TONES } from './Text.jsx';
 export { Button, BUTTON_VARIANTS } from './Button.jsx';
 export { IconButton } from './IconButton.jsx';
