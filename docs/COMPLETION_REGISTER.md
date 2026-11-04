@@ -1,5 +1,22 @@
 # Guess The Line — current completion register
 
+## D-69 design overhaul, step 3: Research — November 4, 2026
+
+Built on `claude/overhaul-step3-research` from the
+[step 3 plan](superpowers/plans/2026-11-04-design-overhaul-step3-research.md). Not merged or released. Research's landing
+is the next-move card ("Open games", with the week meter as its picture, read from the shared `GET /personal`) and four
+kit tiles (Games, Trends, Fantasy, Teams). Games are picture rows with full team names. One game opens as a layer at
+`#research/games?layer=game&item=<id>`, with paging, the line-movement chart reveal and the Spread, Total and Bets
+actions at the end of the layer. Teams is a list of all 32 teams, and one team is a layer. Trends' win rates count up and
+its opened chart reveals. The Fantasy report card is tiles and rows, with the Track 1 owner's conditions kept. The kit
+gained PictureRow, ChartReveal, LayerPager, KeptParent, useLayerFocus, NextMoveCard and StaleLine. The old game sheet stays
+only for the League feed, and the old team sheet only for Play's pick cards. Every choice is a build decision for Sean's
+review (D-69 addendum, step 3).
+Evidence (local): `node --test` 2931 tests, 2930 pass, 1 fails (`tests/research-intake.test.mjs`, the Windows file-mode
+check on untouched code), skipped 0; Vitest 85 files, 889 tests pass; typecheck and build pass; the full browser run
+BROWSER_TOTAL passed, skipped 0.
+Not yet: the Pages release, and Sean's iPhone check of Research.
+
 ## D-69 design overhaul, step 2: Home — November 4, 2026
 
 Built on `claude/overhaul-step2-home` from the

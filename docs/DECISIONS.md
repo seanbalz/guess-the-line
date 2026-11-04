@@ -368,6 +368,26 @@ not answered before the build, so it took the recommended choices; each is rever
 - **Total rank glyph:** the Total rank tile uses the target glyph that Play's picks also use.
 - **Empty copy:** "No week open" on the tile, "No week is open yet" in the layer.
 
+*Build decisions for Sean's review (step 3 Research, November 4).* Sean has not approved these. His step 3 questions were
+not asked before the build, so it took the spec's defaults; each is reversible:
+- **Defaults:** the build took the spec's defaults, not Sean's choices.
+- **Landing card:** its picture is "K of N kicked off", read from the shared `GET /personal` (not the Community read).
+- **Games tile:** it shows the next game.
+- **Fantasy tile:** it shows "—", so the landing does not load the Fantasy read.
+- **Recommendations:** "Research recommendations" left the landing. They stay on Bets and inside every game.
+- **Full team names:** rows read "Seahawks @ Broncos" (AUD-01), and the game layer's heading matches.
+- **Codes remain:** two labels still use codes, the All trends back button and Trends' "Game details · SEA @ DEN".
+- **Game layer:** a game opens as a layer. The old sheet stays for the League feed.
+- **Game actions:** Spread, Total and Bets moved from a sticky footer to the end of the layer.
+- **Paging:** it swaps the game in place, so there is no Back step.
+- **Team from a game:** it opens Research › Teams › that team, and Back from it reloads the game's data.
+- **Trends counts:** Players' numbers stay static. Trend win rates count up and are remembered per account (spec 8 says
+  "your own numbers"; these are public stats).
+- **Fantasy ⓘ:** the rankings ⓘ shows each snapshot's own method text unchanged. Track 1 owns that text, and published
+  weeks keep "GTL statistical pace".
+- **Chart reveal:** the clip and the chart slide in opposite directions (transform only).
+- **200% text:** the picture row wraps the Spread under the name.
+
 ## D-68 — Premier League: Sleeper FEPL, Pick a Team and EPL moneyline (October 28, 2026)
 
 **Bonus accounting ruling — November 2, 2026.** Sean: "I add bonuses to sleeper,
