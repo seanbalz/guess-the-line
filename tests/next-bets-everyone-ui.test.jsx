@@ -78,8 +78,17 @@ describe('everyone’s picks', () => {
     expect(nodes.find(n => n.attrs?.['aria-labelledby'] === 'gx-ev-SEA-DEN').attrs['data-game']).toBe('SEA-DEN');
     expect(html).not.toContain('SEA @ DEN');
   });
-  it('names each game’s pickers for screen readers', () => {
-    expect(html).toContain('You, Troy picked this game');
+  // Design audit A12: a face stack in the game header repeated the faces that lead each pick row. The pickers are named
+  // once, on their rows (face first, then the name), and the header draws no face.
+  it('names each game’s pickers once, on rows that lead with their faces; the game header draws none', () => {
+    const nodes = [...walk(parseMarkup(html))];
+    const heads = nodes.filter(n => n.attrs?.class === 'gx-ev-game-head');
+    expect(heads).toHaveLength(2);
+    for (const head of heads) expect([...walk(head)].filter(n => /\bgx-av/.test(n.attrs?.class ?? ''))).toEqual([]);
+    expect(html).not.toContain('picked this game');
+    const rows = nodes.filter(n => n.tag === 'li' && n.attrs?.['data-pick']);
+    expect(rows.map(row => /\bgx-av\b/.test(row.children[0].attrs?.class ?? ''))).toEqual([true, true, true]);
+    expect(rows.map(row => nameFrom([...walk(row)].find(n => n.attrs?.class === 'gx-t-strong')))).toEqual(['Sean', 'You', 'Troy']);
   });
 });
 

@@ -6,7 +6,7 @@ import { betsApi } from '../../api.js';
 import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
 import { LeagueFailure, useLeagueRead } from '../league/useLeagueRead.jsx';
-import { Avatar, AvatarStack, Button, Card, GateBanner, LockLine, Matchup, Pill, cx, Skeleton } from '../ui/index.js';
+import { Avatar, Button, Card, GateBanner, LockLine, Matchup, Pill, cx, Skeleton } from '../ui/index.js';
 import { fmtWhen } from '../format.js';
 import { EVERYONE_COPY, everyoneBoard } from './everyone.js';
 import './everyone.css';
@@ -60,7 +60,7 @@ export function EveryoneGame({ game }) {
         <h3 id={`gx-ev-${game.id}`} className="gx-t-strong"><Matchup away={game.awayCode} home={game.homeCode} size={32}/></h3>
         {game.kickoff ? <span className="gx-t-meta gx-c-2">{fmtWhen(game.kickoff)}</span> : null}
       </span>
-      <AvatarStack people={game.faces.map(face => ({ id: face.id, name: face.display, you: face.you }))} label={`${game.faces.map(face => face.name).join(', ')} picked this game`}/>
+      {/* No face stack here: each pick row below already leads with its face and name (design audit A12). */}
     </header>
     <ul className="gx-ev-picks">
       {game.picks.map(pick => <li key={pick.key} className={cx('gx-ev-pick', pick.you && 'gx-ev-you')} data-pick={pick.key} data-open={pick.open ? 'true' : 'false'}>
