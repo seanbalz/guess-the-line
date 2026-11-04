@@ -34,7 +34,7 @@ const { betWinId } = await import('../web/src/next/bets/betMoments.js');
 const { SCOPES, ticketScope } = await import('../web/src/next/moments/catalog.js');
 
 const GAMES = [{ id: 'SEA-DEN', away: 'SEA', home: 'DEN' }];
-const entry = (account, id, outcome) => ({ id, ownerId: account, outcome, week: 9, stakeUnits: 1, source: 'BetMGM', kind: 'single', legs: [{ gameId: 'SEA-DEN', selection: 'DEN −3' }] });
+const entry = (account, id, outcome) => ({ id, ownerId: account, outcome, settledAt: outcome === 'pending' ? null : '2026-11-03T12:00:00.000Z', week: 9, stakeUnits: 1, source: 'BetMGM', kind: 'single', legs: [{ gameId: 'SEA-DEN', selection: 'DEN −3' }] });
 const summary = entries => ({ loading: false, error: null, data: { entries } });
 function Wins({ account }) { useBetWins({ accountId: account }); return null; }
 /** One render: the ticket summary read (when given) reports first, then the cards draw, as a read landing on a mounted list. */

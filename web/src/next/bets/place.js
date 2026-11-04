@@ -138,6 +138,12 @@ export function placementStep(waiting, read, viewer) {
   return { waiting: null, placed: keys.length ? { id: waiting.id, keys: new Set(keys) } : null };
 }
 
+/** A refresh failed while the last good copy is still drawn: those prices could not be refreshed, so none is placeable. */
+export const pricesStale = (read, data) => Boolean(read?.error) && !read?.data && data != null;
+
+/** A placement-moment state (waiting or placed) carries the read key it was made under; under another key (a league switch) it is nothing. */
+export const forKey = (state, key) => (state && state.key === key ? state : null);
+
 /** Half units only, from 0.5 up to MAX_UNITS. */
 export function stepUnits(units, direction) {
   const next = Math.round(((finite(units) ? units : 1) + direction * 0.5) * 2) / 2;

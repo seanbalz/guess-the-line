@@ -10,7 +10,7 @@ import { Dock } from '../shell/Frame.jsx';
 import { LeagueFailure, useLeagueRead } from '../league/useLeagueRead.jsx';
 import { AvatarStack, Button, Card, Chip, ChipRail, GateBanner, IconButton, LockLine, Matchup, Meter, Pill, Sheet, Tag, Skeleton, useEntrance } from '../ui/index.js';
 import { fmtNum, fmtU, fmtWhen } from '../format.js';
-import { PLACE_COPY, UNIT_CHIPS, placeBoard, placeRequest, placementStep, slipEntries, slipKey, stepUnits, weekCard } from './place.js';
+import { PLACE_COPY, UNIT_CHIPS, placeBoard, forKey, placeRequest, placementStep, pricesStale, slipEntries, slipKey, stepUnits, weekCard } from './place.js';
 import './place.css';
 
 export function PlaceBets({ onDirty }) {
@@ -25,17 +25,22 @@ export function PlaceBets({ onDirty }) {
   useEffect(() => { if (read.data) setLast({ key, data: read.data }); }, [read.data, key]);
   const data = read.data ?? (last?.key === key ? last.data : null);
   const refreshing = read.loading && !read.data && data !== null;
+  // A failed refresh leaves the last good copy drawn under its failure line, but those prices could not be refreshed: not placeable.
+  const stale = pricesStale(read, data);
   const board = useMemo(() => (data ? placeBoard(data, app.accountId) : null), [data, app.accountId]);
   // D-69 step 4, a placement's small moment: it waits for the read that starts after the write and pops the tags of the
   // bets that read confirms (placementStep, confirmedPlacements); a refusal, a lost reply, a read from before the write
   // or a request still on its way pops nothing.
-  const [confirming, setConfirming] = useState(null), [placed, setPlaced] = useState(null);
+  // Both carry the read key they were made under: a league switch (same account) drops them, so tags never remount popping.
+  const [confirmingAll, setConfirming] = useState(null), [placedAll, setPlaced] = useState(null);
+  const confirming = forKey(confirmingAll, key), placed = forKey(placedAll, key);
   const { loading: reading, data: replied } = read;
   useEffect(() => {
     const step = placementStep(confirming, { loading: reading, data: replied }, app.accountId);
     if (step.waiting !== confirming) setConfirming(step.waiting);
-    if (step.placed !== undefined) setPlaced(step.placed);
-  }, [confirming, reading, replied, app.accountId]);
+    if (step.placed !== undefined) setPlaced(step.placed ? { ...step.placed, key } : null);
+  }, [confirming, reading, replied, app.accountId, key]);
+  useEffect(() => { setConfirming(c => forKey(c, key)); setPlaced(p => forKey(p, key)); }, [key]);
   const [slip, setSlip] = useState({}), [review, setReview] = useState(false), [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState(null), [uncertain, setUncertain] = useState(false);
   const request = useRef(null);
@@ -64,7 +69,7 @@ export function PlaceBets({ onDirty }) {
       const count = reply?.placed?.bets?.length ?? entries.length;
       request.current = null; setUncertain(false); setSlip({}); setReview(false);
       shell.toast(`${count} ${count === 1 ? 'bet' : 'bets'} saved`, { tone: 'done' });
-      setConfirming({ id: body.requestId, bets: body.bets });
+      setConfirming({ id: body.requestId, bets: body.bets, key });
       read.retry();
     } catch (error) {
       if (error?.uncertain) { setUncertain(true); setFailure(error.message); return; }
@@ -88,7 +93,7 @@ export function PlaceBets({ onDirty }) {
     <WeekCard week={weekCard(data, app.accountId)}/>
     {board.closed ? <GateBanner gate={{ locked: true, sentence: PLACE_COPY.banner, ctaLabel: 'Lock in a guess' }} onCta={() => shell.go('play', { section: 'picks' })}/> : null}
     <ol className="gx-place-games gx-stagger" data-enter={enter} aria-label={`Week ${board.week} games`}>
-      {board.games.map(game => <li key={game.id}><PlaceGame game={game} slip={slip} disabled={busy || uncertain || refreshing} placed={placed} onToggle={toggle}/></li>)}
+      {board.games.map(game => <li key={game.id}><PlaceGame game={game} slip={slip} disabled={busy || uncertain || refreshing || stale} placed={placed} onToggle={toggle}/></li>)}
     </ol>
     <Button variant="ghost" onClick={read.retry} disabled={busy || refreshing} aria-busy={refreshing}>{refreshing ? 'Refreshing…' : 'Refresh prices'}</Button>
     {entries.length ? <Dock><div className="gx-dock-bar gx-place-dock">
@@ -97,8 +102,9 @@ export function PlaceBets({ onDirty }) {
     </div></Dock> : null}
     {review && entries.length ? <Sheet title="Your slip" onClose={() => { if (!busy) setReview(false); }} tall
       footer={<div className="gx-vstack gx-gap-8">
+        {stale ? <p className="gx-t-meta gx-c-2">These prices could not be refreshed. Close the slip and try again.</p> : null}
         {failure ? <p className="gx-t-body gx-c-loss" role="alert">{failure}</p> : null}
-        <Button variant="primary" block onClick={place} disabled={busy || refreshing}>{busy ? 'Saving…' : uncertain ? 'Retry the same save' : `Place ${entries.length} ${entries.length === 1 ? 'bet' : 'bets'} · ${fmtU(units)}`}</Button>
+        <Button variant="primary" block onClick={place} disabled={busy || refreshing || stale}>{busy ? 'Saving…' : uncertain ? 'Retry the same save' : `Place ${entries.length} ${entries.length === 1 ? 'bet' : 'bets'} · ${fmtU(units)}`}</Button>
       </div>}>
       <ul className="gx-place-slip gx-vstack gx-gap-16">
         {entries.map(entry => <SlipRow key={entry.key} entry={entry} disabled={busy || uncertain} onUnits={value => setUnits(entry.key, value)} onRemove={() => remove(entry.key)}/>)}

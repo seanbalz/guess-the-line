@@ -9,10 +9,11 @@ import assert from 'node:assert/strict';
 import { createMomentsEngine } from '../web/src/next/moments/engine.js';
 import { MOMENTS, SCOPES, ticketScope } from '../web/src/next/moments/catalog.js';
 import { BET_WIN_SOURCE, betWinId, betWinMoments } from '../web/src/next/bets/betMoments.js';
-import { confirmedPlacements, placementStep } from '../web/src/next/bets/place.js';
+import { confirmedPlacements, forKey, placementStep, pricesStale } from '../web/src/next/bets/place.js';
 
 const LUKE = '00000000-0000-4000-8000-000000000003', TROY = '00000000-0000-4000-8000-000000000002';
-const ticket = (id, outcome, ownerId = LUKE, extra = {}) => ({ id, ownerId, outcome, kind: 'single', legs: [{}], ...extra });
+const SETTLED = '2026-11-03T12:00:00.000Z';
+const ticket = (id, outcome, ownerId = LUKE, extra = {}) => ({ id, ownerId, outcome, kind: 'single', legs: [{}], settledAt: outcome === 'pending' ? null : SETTLED, ...extra });
 const memory = () => { const map = new Map(); return { getItem: k => (map.has(k) ? map.get(k) : null), setItem: (k, v) => map.set(k, String(v)), removeItem: k => map.delete(k), key: i => [...map.keys()][i] ?? null, get length() { return map.size; } }; };
 function rig(storage, { settled = false, navigated = false } = {}) {
   const small = [];
@@ -84,4 +85,55 @@ test('a placement waits for the read that starts after its write; a failed read 
   assert.deepEqual([done.waiting, done.placed.id, [...done.placed.keys]], [null, 'r1', ['SEA-DEN:spread']]);
   assert.deepEqual(placementStep(reading.waiting, { loading: false, data: null, error: { status: 0 } }, LUKE), { waiting: null, placed: null }, 'a failed read pops nothing');
   assert.deepEqual(placementStep(reading.waiting, { loading: false, data: { bets: [] } }, LUKE), { waiting: null, placed: null }, 'a read without your terms pops nothing');
+});
+
+// Review fix wave 1: the summary reads every week, but the shared seen record keeps only SEEN_CAP ids, so a win that is
+// long settled must not be a candidate (once its id aged out of the record it would replay). Reference time is the read's
+// server time, else the newest settlement among the viewer's tickets; never the device clock.
+test('candidates: only wins settled within 14 days of the read’s server time', () => {
+  const day = 86400000, now = Date.parse('2026-11-04T00:00:00.000Z');
+  const at = days => new Date(now - days * day).toISOString();
+  const entries = [ticket('old', 'win', LUKE, { settledAt: at(15) }), ticket('recent', 'win', LUKE, { settledAt: at(13) }), ticket('edge', 'win', LUKE, { settledAt: at(14) }), ticket('nodate', 'win', LUKE, { settledAt: null, updatedAt: null })];
+  assert.deepEqual(betWinMoments({ now: new Date(now).toISOString(), entries }, LUKE).map(m => m.id), [betWinId('recent'), betWinId('edge')]);
+  const viaUpdated = [ticket('u', 'win', LUKE, { settledAt: null, updatedAt: at(1) })];
+  assert.deepEqual(betWinMoments({ now: new Date(now).toISOString(), entries: viaUpdated }, LUKE).map(m => m.id), [betWinId('u')], 'updatedAt stands in for settledAt');
+});
+
+test('candidates: without server time the newest settlement among the viewer’s tickets is the reference, never the device clock', () => {
+  const day = 86400000, newest = Date.parse('2026-01-20T00:00:00.000Z'); // years before the device clock
+  const at = days => new Date(newest - days * day).toISOString();
+  const entries = [ticket('new', 'win', LUKE, { settledAt: at(0) }), ticket('week', 'win', LUKE, { settledAt: at(7) }), ticket('old', 'win', LUKE, { settledAt: at(30) }), ticket('loss', 'loss', LUKE, { settledAt: at(0) }), ticket('theirs', 'win', TROY, { settledAt: new Date(newest + 400 * day).toISOString() })];
+  assert.deepEqual(betWinMoments({ entries }, LUKE).map(m => m.id), [betWinId('new'), betWinId('week')], 'another player’s newer ticket does not move the reference');
+});
+
+test('engine: a win aged out of the candidates after being seen never replays', () => {
+  const storage = memory(), day = 86400000, now = Date.parse('2026-11-04T00:00:00.000Z');
+  const fresh = ticket('a', 'win', LUKE, { settledAt: new Date(now - day).toISOString() });
+  const first = rig(storage, { settled: true, navigated: true });
+  report(first.engine, []); // seeded empty
+  first.engine.dispose();
+  const second = rig(storage, { settled: true, navigated: true });
+  second.engine.report(betWinMoments({ now: new Date(now).toISOString(), entries: [fresh] }, LUKE), { source: BET_WIN_SOURCE });
+  second.engine.open(ticketScope('a'));
+  assert.deepEqual(second.small, [betWinId('a')]);
+  second.engine.dispose();
+  // 30 days on, the win is no longer a candidate; the record may have forgotten it, and it still plays nothing.
+  const later = rig(storage, { settled: true, navigated: true }), off = now + 30 * day;
+  const candidates = betWinMoments({ now: new Date(off).toISOString(), entries: [fresh] }, LUKE);
+  assert.deepEqual(candidates, []);
+  later.engine.report(candidates, { source: BET_WIN_SOURCE });
+  later.engine.open(ticketScope('a'));
+  assert.deepEqual(later.small, []);
+});
+
+test('place: stale prices are not placeable after a failed refresh; a scoped placement state follows its read key', () => {
+  const data = { published: true }, err = { status: 0 };
+  assert.equal(pricesStale({ error: err, data: null, loading: false }, data), true, 'failed refresh over a kept copy');
+  assert.equal(pricesStale({ error: null, data: null, loading: true }, data), false, 'refreshing is its own state');
+  assert.equal(pricesStale({ error: null, data, loading: false }, data), false, 'a fresh read clears it');
+  assert.equal(pricesStale({ error: err, data: null, loading: false }, null), false, 'nothing kept: the failure screen stands alone');
+  const held = { key: 'a:place:L1', id: 'r1', bets: [] };
+  assert.equal(forKey(held, 'a:place:L1'), held);
+  assert.equal(forKey(held, 'a:place:community'), null, 'a league switch drops the placement moment');
+  assert.equal(forKey(null, 'x'), null);
 });

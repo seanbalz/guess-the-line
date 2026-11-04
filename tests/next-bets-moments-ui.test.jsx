@@ -52,7 +52,7 @@ describe('useBetWins', () => {
   const app = { accountId: LUKE };
   it('reports a fresh ticket read’s wins under the tickets source', () => {
     const reportFn = vi.fn(); state.moments = { report: reportFn };
-    state.tickets = { loading: false, error: null, data: { entries: [{ id: 'a', ownerId: LUKE, outcome: 'win' }, { id: 'b', ownerId: LUKE, outcome: 'loss' }] } };
+    state.tickets = { loading: false, error: null, data: { entries: [{ id: 'a', ownerId: LUKE, outcome: 'win', settledAt: '2026-11-03T12:00:00.000Z' }, { id: 'b', ownerId: LUKE, outcome: 'loss' }] } };
     renderToStaticMarkup(<Probe app={app}/>);
     expect(reportFn).toHaveBeenCalledTimes(1);
     expect(reportFn.mock.calls[0][0].map(m => m.id)).toEqual([betWinId('a')]);
@@ -61,7 +61,7 @@ describe('useBetWins', () => {
   it('reports nothing while the read is on its way, after it failed, without a viewer or without an engine', () => {
     const reportFn = vi.fn(); state.moments = { report: reportFn };
     for (const tickets of [{ loading: true, data: null }, { loading: false, error: { status: 0 }, data: null }]) { state.tickets = tickets; renderToStaticMarkup(<Probe app={app}/>); }
-    state.tickets = { loading: false, data: { entries: [{ id: 'a', ownerId: LUKE, outcome: 'win' }] } };
+    state.tickets = { loading: false, data: { entries: [{ id: 'a', ownerId: LUKE, outcome: 'win', settledAt: '2026-11-03T12:00:00.000Z' }] } };
     renderToStaticMarkup(<Probe app={{ accountId: '' }}/>);
     expect(reportFn).not.toHaveBeenCalled();
     state.moments = null;
