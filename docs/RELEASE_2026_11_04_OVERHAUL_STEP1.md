@@ -75,16 +75,36 @@ after `a10d28e9` would have rolled D-77 back.
   | `/league/comparison` | 5 |
   | `/league/feed` | 1 |
 
+- **First signed-in visit, 08:34:58–08:39:09 UTC:** the release session opened production in Sean's signed-in Chrome on
+  Windows at its narrowest window (488 px column). It opened Home and Bets at 08:35 and Play at 08:39. Play showed
+  "Week 9 locked in", the nudge card and its tiles (Total 15/15, Points 5/5, Your score 85, League 1st, Badges 3,
+  Compare −6); that list comes from the release session's report. This session checked the hosted logs. Every
+  `gtl-api` call from that browser returned 200, with 204 for CORS preflights:
+
+  | Route | Calls | Slowest |
+  | --- | --- | --- |
+  | `/lobby` | 2 | 1.6 s |
+  | `/community/read` | 2 | 2.0 s |
+  | `/me/preferences` | 2 | 1.0 s |
+  | `/league/features` | 2 | 2.2 s |
+  | `/social/read` | 1 | 2.9 s |
+  | `/points/read` | 1 | 0.9 s |
+  | `/community/history` | 1 | 1.8 s |
+
+  Bets also read `/bets/recommendations`, `/lines/read` and `/trends/week`, all 200. No "CPU Time exceeded" or
+  worker-limit message has been logged since the deploy. The visit did not open a Picks game card, so `/personal/read`
+  from the released Play has not been exercised yet. Dark theme and a real phone were not part of this visit.
 - **Sean's phone, open question:** Sean reported that the home-screen app loaded his week after the deploy. He also
   said it shows the new "Play" lip, which the old version did not have on Play's cards (its game card lip read
   "Week N · market"). But no browser request reached `gtl-api`, or Supabase at all, from 05:57 to 08:15 UTC. The
   logging itself works: a signed-out probe this session sent with a browser user agent at 08:15:01 UTC was logged
-  within a minute, with a 401. A real load of the week reads `gtl-api`, so these two observations disagree. The
-  signed-in readback stays open until a visit shows up in the logs.
+  within a minute, with a 401, and the desktop visit above was logged too. A real load of the week reads `gtl-api`,
+  so the phone report and the logs disagree. That stays open until a phone visit shows up in the logs.
 
 ## Not verified
 
-- No signed-in call from the released Play has been logged yet (see the open question above).
+- No phone visit has been logged yet, and `/personal/read` (a Picks game card) has not been exercised in the released
+  Play (see above).
 - No real iPhone check of Play's layers, moments or NEW pills. Sean's iPhone check stands in for device acceptance
   (spec section 10). His step 0 iPhone check is not recorded either.
 
