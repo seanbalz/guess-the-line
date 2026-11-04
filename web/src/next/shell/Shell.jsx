@@ -307,7 +307,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
   const toTop = () => window.scrollTo({ top: 0, behavior: reduceMotion || prefersReducedMotion() ? 'auto' : 'smooth' });
   // Main tab selection opens its root; selecting the root already showing scrolls to its top.
   const onTab = tab => (tab === state.tab && !state.page && !isDetail(state) && !hasLayers(state) ? toTop() : actions.tab(tab));
-  const onHome = () => (state.tab === 'home' && !state.page && !hasLayers(state) ? toTop() : actions.go('home'));
+  const onHome = () => (state.tab === 'home' && !state.page && !isDetail(state) && !hasLayers(state) ? toTop() : actions.go('home'));
   const onRetry = () => { if (!recheckOnline()) actions.toast(SHELL_COPY.stillOffline, { tone: 'plain' }); };
 
   const tabFade = useTabFade(state.tab, state.nav);

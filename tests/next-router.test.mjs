@@ -518,3 +518,40 @@ test('League market: Picks Total then the League tile shows Spread and says so; 
   assert.equal(fresh.views.play.market, undefined, 'a deep link into League does not set Picks');
   assert.equal(fragmentFor('play', tile.views.play, tile.views), '#play/league');
 });
+
+test('D-69 step 2: Who’s in is a Home layer at #home?layer=who: a step; its lip and Back close it; a reload reopens it; the Home tab opens the root', () => {
+  const root = initialState({ tab: 'home' });
+  const who = reduce(root, { type: 'view', tab: 'home', patch: { layer: 'who' } });
+  assert.equal(who.views.home.layer, 'who');
+  assert.equal(who.trail.length, 1, 'opening the layer is a step');
+  assert.equal(who.navMode, 'go');
+  assert.equal(fragmentFor('home', who.views.home), '#home?layer=who');
+  for (const closed of [reduce(who, { type: 'back' }), reduce(who, { type: 'view', tab: 'home', patch: { layer: undefined } })]) {
+    assert.equal(closed.views.home.layer ?? null, null);
+    assert.deepEqual(closed.trail, [], 'the lip is Back, so the next Back leaves nothing open');
+  }
+  const reloaded = initialState(placeFromFragment('#home?layer=who'));
+  assert.deepEqual([reloaded.tab, reloaded.views.home.layer, reloaded.trail.length], ['home', 'who', 0], 'a reload or a shared link reopens it');
+  const back = reduce(reloaded, { type: 'back' });
+  assert.deepEqual([back.tab, back.views.home.layer ?? null, back.navMode], ['home', null, 'back'], 'Back after a reload closes the layer');
+  assert.equal(reduce(who, { type: 'tab', tab: 'home' }).views.home.layer ?? null, null, 'the Home tab opens Home’s root');
+  assert.equal(reduce(who, { type: 'go', tab: 'home' }).views.home.layer ?? null, null, 'so does the logo');
+  const away = reduce(who, { type: 'go', tab: 'play', view: { section: 'score' } });
+  assert.equal(reduce(away, { type: 'back' }).views.home.layer, 'who', 'Back from another tab returns to the layer');
+  assert.equal(placeFromFragment('#home?layer=%3Cscript%3E').view?.layer, undefined, 'only safe characters');
+});
+
+test('D-69 step 2: browser Back closes Home’s Who’s in layer, Forward reopens it, and a reload keeps it', async () => {
+  const win = fakeWindow('https://gtl.test/#home'); const shell = app(win);
+  shell.dispatch({ type: 'view', tab: 'home', patch: { layer: 'who' } });
+  assert.equal(win.location.hash, '#home?layer=who');
+  win.history.back(); await settle();
+  assert.equal(shell.state.views.home.layer ?? null, null);
+  assert.equal(win.location.hash, '#home');
+  win.history.forward(); await settle();
+  assert.equal(shell.state.views.home.layer, 'who');
+  shell.connection.disconnect();
+  const reloaded = app(win);
+  assert.equal(reloaded.state.views.home.layer, 'who');
+  reloaded.connection.disconnect();
+});
