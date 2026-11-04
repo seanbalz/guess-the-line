@@ -415,10 +415,10 @@ textarea.gx-input { min-height: 96px; padding: 12px 16px; resize: vertical; }
 .gx-dot { display: inline-block; flex: none; width: 6px; height: 6px; border-radius: 3px; background: var(--gx-data); }
 .gx-dot--pending { background: var(--gx-pending); }
 .gx-dot--8 { width: 8px; height: 8px; border-radius: 4px; }
-/* Sits on a tab icon (position: relative); one per tab at most. */
+/* Sits on a tab icon (position: relative); one per tab at most. Clear of the active tab's marker above it. */
 .gx-counter {
   position: absolute;
-  top: -7px;
+  top: -4px;
   left: 15px;
   min-width: 18px;
   height: 18px;

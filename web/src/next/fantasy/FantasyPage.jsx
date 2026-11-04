@@ -6,7 +6,9 @@ import { retryViewImport } from '../ui/retryViewImport.js';
 
 const importScreen = retryViewImport(() => import('./FantasyScreen.jsx').then(module => ({ default: module.FantasyScreen })));
 const loadScreen = () => lazy(importScreen);
-const loading = <div className="gx-screen"><h1 className="gx-t-title">Fantasy</h1><Skeleton label="Loading Fantasy…" shape="panels" count={2}/></div>;
+// One title in every state (loading, error and loaded), so the heading never changes under the reader.
+const TITLE = 'Fantasy Football';
+const loading = <div className="gx-screen"><h1 className="gx-t-title">{TITLE}</h1><Skeleton label="Loading Fantasy…" shape="panels" count={2}/></div>;
 
 export function FantasyPage() {
   const [Screen, setScreen] = useState(loadScreen), [attempt, setAttempt] = useState(0);
@@ -19,7 +21,7 @@ export function FantasyPage() {
   };
   return <div ref={region} role="region" aria-label="Fantasy content" tabIndex={-1} data-route-focus="">
     <Boundary key={attempt} fallback={() => <div className="gx-screen">
-      <h1 className="gx-t-title">Fantasy</h1>
+      <h1 className="gx-t-title">{TITLE}</h1>
       <div className="gx-vstack gx-gap-12" role="alert">
         <p className="gx-t-body">Fantasy couldn’t load. Check your connection and try again.</p>
         <Button variant="secondary" onClick={retry}>Try Fantasy again</Button>
