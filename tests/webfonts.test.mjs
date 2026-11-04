@@ -2,8 +2,9 @@
 // and IBM Plex Mono load from Google Fonts with font-display: swap; no font file is distributed, and
 // both content security policies allow exactly the two Google Fonts origins and nothing else new.
 // Redesign stage 6 (D-38): the new app adds Figtree, Big Shoulders Display and Barlow Condensed from
-// the same two origins when it mounts, so the policies stay exactly as they are. web/index.html keeps
-// the old app's fonts until the flip (stage 80).
+// the same two origins when it mounts, so the policies stay exactly as they are. Since the new app is the
+// only app (D-65), web/index.html loads that same stylesheet and nothing else (Board item 73): Inter and
+// IBM Plex Mono stay only as names in the old styling, which falls back to system fonts.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -18,15 +19,16 @@ const root = path.resolve(import.meta.dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const directives = csp => Object.fromEntries(csp.split(';').map(part => part.trim().split(/\s+/)).filter(([name]) => name).map(([name, ...values]) => [name, values]));
 
-test('index.html loads the three OFL families from Google Fonts with display=swap', () => {
+test('index.html loads only the D-58 families (Figtree, Big Shoulders Display, Barlow Condensed), the new app’s own stylesheet, display=swap', () => {
   const html = read('web/index.html');
-  const href = html.match(/<link rel="stylesheet" href="(https:\/\/fonts\.googleapis\.com\/css2\?[^"]+)"/)?.[1];
-  assert.ok(href, 'the Google Fonts stylesheet link is present');
-  const url = new URL(href.replaceAll('&amp;', '&'));
-  const families = url.searchParams.getAll('family').map(value => value.split(':')[0]);
-  assert.deepEqual(families.sort(), ['Barlow Condensed', 'IBM Plex Mono', 'Inter']);
+  const links = [...html.matchAll(/<link rel="stylesheet" href="(https:\/\/fonts\.googleapis\.com\/[^"]+)"/g)].map(m => m[1].replaceAll('&amp;', '&'));
+  assert.deepEqual(links, [NEXT_FONT_STYLESHEET], 'one Google Fonts stylesheet, the one the new app asks for, so addNextFontLinks adds no second link');
+  const url = new URL(links[0]);
+  assert.deepEqual(url.searchParams.getAll('family').map(value => value.split(':')[0]).sort(), ['Barlow Condensed', 'Big Shoulders Display', 'Figtree']);
   assert.equal(url.searchParams.get('display'), 'swap');
   assert.match(html, /<link rel="preconnect" href="https:\/\/fonts\.gstatic\.com" crossorigin\/>/);
+  // The old app's families never come back to the page shell.
+  assert.doesNotMatch(html, /\bInter\b|IBM\+Plex|IBM Plex/);
 });
 
 test('the Google Fonts stylesheet never blocks the first paint: it loads as print and the app applies it to the screen', () => {
@@ -58,8 +60,6 @@ test('the new app (D-38) loads Figtree, Big Shoulders Display and Barlow Condens
   assert.deepEqual(weights, tokens.webfonts.weights);
   assert.equal(url.searchParams.get('display'), 'swap');
   assert.equal(NEXT_FONT_ORIGIN, 'https://fonts.gstatic.com');
-  // The old app's link is unchanged until the flip.
-  assert.doesNotMatch(read('web/index.html'), /Figtree|Big\+Shoulders/);
 });
 
 test('addNextFontLinks adds the preconnect and stylesheet once', () => {
