@@ -55,9 +55,23 @@ describe('Tile (kit)', () => {
     expect(ui.TILE_TONES).toEqual(['plain', 'good', 'warn']);
   });
 
+  it('the 112 px min-height beats nest.css’s tile frame by specificity, never by import order (final review M9)', () => {
+    const classes = selector => (selector.match(/\.[\w-]+/g) ?? []).length;
+    const rules = file => [...css(file).replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}@]+)\{([^{}]*)\}/g)].map(m => ({ selector: m[1].trim(), body: m[2] }));
+    const tile = rules('ui/tile.css').filter(r => /min-height:\s*112px/.test(r.body)).map(r => r.selector);
+    expect(tile).toEqual(['.gx .gx-nest-tile.gx-tile']);
+    const frame = rules('ui/nest.css').filter(r => r.selector === '.gx .gx-nest-tile' && /min-height/.test(r.body));
+    expect(frame).toHaveLength(1);
+    expect(classes(tile[0])).toBeGreaterThan(classes(frame[0].selector));
+    // Home's game tile tops its words (flex-start) over the kit's space-between, again by specificity.
+    const game = rules('home/home.css').filter(r => /gx-h-game\b/.test(r.selector) && /justify-content:\s*flex-start/.test(r.body)).map(r => r.selector);
+    expect(game).toHaveLength(1);
+    expect(classes(game[0])).toBeGreaterThan(classes(tile[0]));
+  });
+
   it('one stylesheet owns the tile: the kit draws .gx-tile and .gx-tiles, and Play keeps no copy of them', () => {
     const kit = css('ui/tile.css');
-    expect(kit).toMatch(/\.gx \.gx-tile \{[^}]*min-height: 112px/);
+    expect(kit).toMatch(/\.gx \.gx-nest-tile\.gx-tile \{[^}]*min-height: 112px/);
     expect(kit).toMatch(/\.gx \.gx-tiles \{[^}]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
     expect(css('play/playFrame.css')).not.toMatch(/gx-play-tile/);
     expect(css('play/landing.css')).not.toMatch(/gx-play-tiles/);

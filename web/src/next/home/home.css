@@ -35,7 +35,7 @@
 .gx .gx-h-week { display: flex; flex-direction: column; gap: var(--gx-space-3); margin-top: var(--gx-space-3); min-width: 0; }
 .gx .gx-h-week-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--gx-space-2); }
 .gx .gx-h-week-head > * { margin: 0; }
-.gx .gx-tile.gx-h-game { justify-content: flex-start; }
+.gx .gx-nest-tile.gx-tile.gx-h-game { justify-content: flex-start; }
 .gx .gx-h-game-marks { display: flex; gap: var(--gx-space-1); }
 .gx .gx-h-game-match { overflow-wrap: anywhere; }
 /* The state word sits at the tile's foot with its icon; a state color always has its word (D-38). */
