@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useId, useState } from 'react';
 import { Monitor, Moon, Sun } from 'lucide-react';
 import tokens from '../../design/tokens.json';
+import { themeColor } from '../../design/tokens-next.json';
 import { themeVariables } from './themeTokens';
 
 const storageKey = 'gtl.theme';
@@ -13,6 +14,9 @@ function applyTheme(preference) {
   root.style.colorScheme = resolved;
   root.dataset.theme = resolved;
   root.dataset.themePreference = preference;
+  // The browser bar takes the canvas of the theme in use. index.html's two tags guess from the system scheme before this
+  // runs; Dark is the default, so a light system still needs the dark color here (Board item 73).
+  for (const meta of document.querySelectorAll('meta[name="theme-color"]')) meta.setAttribute('content', themeColor[resolved]);
 }
 const initialPreference = readPreference();
 applyTheme(initialPreference);

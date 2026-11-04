@@ -59,6 +59,24 @@ test('radius, spacing, motion and type-scale tokens are exported as CSS variable
   }
 });
 
+// Board item 73: the browser bar and the installed app's frame use the new app's canvas for each theme (D-38: #070B16
+// dark, #EEF1F6 light), never the old app's navy or light page color. index.html names both before the app starts, and
+// Theme.jsx sets both tags to the theme in use once it resolves the device choice (checked in a browser by
+// tests/cloud-browser/next-brand-chrome.spec.js).
+test('index.html theme-color: one tag per color scheme, the new app canvas; the old app colors never come back', () => {
+  const next = JSON.parse(fs.readFileSync(path.join(root, 'design/tokens-next.json'), 'utf8'));
+  assert.deepEqual(next.themeColor, { dark: '#070B16', light: '#EEF1F6' });
+  const html = fs.readFileSync(path.join(root, 'web/index.html'), 'utf8');
+  const metas = [...html.matchAll(/<meta name="theme-color"([^>]*)\/>/g)].map(([, attrs]) => ({ media: attrs.match(/media="([^"]+)"/)?.[1] ?? null, content: attrs.match(/content="([^"]+)"/)?.[1] }));
+  assert.deepEqual(metas, [
+    { media: '(prefers-color-scheme: light)', content: next.themeColor.light },
+    { media: '(prefers-color-scheme: dark)', content: next.themeColor.dark },
+  ]);
+  for (const old of [tokens.colors.canvas, tokens.themes.light.canvas]) assert.ok(!html.toUpperCase().includes(old.toUpperCase()), `index.html has no ${old}`);
+  const theme = fs.readFileSync(path.join(cssDir, 'Theme.jsx'), 'utf8');
+  assert.match(theme, /import \{ themeColor \} from '\.\.\/\.\.\/design\/tokens-next\.json';/, 'Theme.jsx takes the colors from the token file');
+});
+
 test('root type is 16px and no non-decorative rule declares text under 12px', () => {
   const styles = fs.readFileSync(path.join(cssDir, 'styles.css'), 'utf8');
   assert.match(styles, /:root\{[^}]*font-size:16px;line-height:1\.5\}/);

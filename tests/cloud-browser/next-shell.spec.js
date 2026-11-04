@@ -148,6 +148,37 @@ test.describe('the real app', () => {
     } finally { await world.db.close(); }
   });
 
+  // Board item 75: a tab change moves focus to the screen title so a screen reader starts there, and that programmatic
+  // focus draws no ring, however the tab was pressed: a click, a tap that leaves focus on the page (Safari never focuses
+  // a tapped button, so Chromium then treats the title's focus as visible) or Enter. Tab still rings the next control.
+  test('a tab change focuses the title without a ring; Tab still shows the ring on the next control', async ({ page, baseURL }) => {
+    test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+    const { world } = await openNewApp(page, baseURL);
+    try {
+      const ring = () => page.evaluate(() => { const el = document.activeElement, s = getComputedStyle(el); return { visible: el.matches(':focus-visible'), outline: s.outlineStyle === 'none' ? 'none' : `${s.outlineStyle} ${s.outlineWidth}` }; });
+      // The tap runs first, on the fresh page, as on a phone where no button has ever taken focus.
+      const presses = [
+        ['tap with focus left on the page', async button => { await page.evaluate(() => document.activeElement?.blur()); await button.dispatchEvent('click'); }],
+        ['click', async button => button.click()],
+        ['Enter', async button => { await button.focus(); await page.keyboard.press('Enter'); }],
+      ];
+      for (const [how, press] of presses) {
+        for (const name of ['Play', 'Bets', 'Research', 'Home']) {
+          await press(tab(page, name));
+          await expect(title(page, name), `${how}: ${name}`).toBeFocused();
+          expect((await ring()).outline, `${how}: ${name} title has no ring`).toBe('none');
+        }
+      }
+      // Keyboard focus still shows: Tab from the focused title lands on a control with the 2px ring.
+      await tab(page, 'Research').click();
+      await expect(title(page, 'Research')).toBeFocused();
+      await page.keyboard.press('Tab');
+      expect(await page.evaluate(() => document.activeElement.closest('main') !== null && document.activeElement.tagName !== 'H1'), 'Tab moves to a control in the screen').toBe(true);
+      expect(await ring()).toEqual({ visible: true, outline: 'solid 2px' });
+      expect(world.errors).toEqual([]);
+    } finally { await world.db.close(); }
+  });
+
   test('the old app\'s links: /#picks opens guesses, /#feed opens League inside Play, /#groups opens the switcher and Back closes it', async ({ page, baseURL }) => {
     test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
     const { world, calls } = await openNewApp(page, baseURL, '#picks');
