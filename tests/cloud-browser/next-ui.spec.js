@@ -515,7 +515,7 @@ for (const theme of ['dark', 'light']) {
     expect(forced[0].background).not.toBe(forced[2].background);
   });
 
-  test(`${theme}: a nesting lip reads as the way back: the chevron first, then a 16px label on one line, named "Back to …" (audit A6)`, async ({ page }) => {
+  test(`${theme}: a nesting lip reads as the way back: the chevron first, then a 16px label that wraps rather than cut, named "Back to …" (audit A6)`, async ({ page }) => {
     await open(page, { theme });
     const lip = page.getByRole('button', { name: 'Back to Seattle Seahawks at Denver Broncos', exact: true });
     await expect(page.getByRole('button', { name: 'Back to This week', exact: true })).toBeVisible();
@@ -526,13 +526,13 @@ for (const theme of ['dark', 'light']) {
       const m = await lip.evaluate(el => {
         const label = el.querySelector('.gx-nest-lip-label'), chevron = el.querySelector('svg');
         const s = getComputedStyle(label), l = label.getBoundingClientRect(), c = chevron.getBoundingClientRect();
-        return { size: s.fontSize, line: s.lineHeight, weight: s.fontWeight, transform: s.textTransform, color: s.color, ellipsis: s.textOverflow,
+        return { size: s.fontSize, line: s.lineHeight, weight: s.fontWeight, transform: s.textTransform, color: s.color,
           height: l.height, chevronFirst: c.right <= l.left, cut: label.scrollWidth > label.clientWidth, lip: el.getBoundingClientRect().height };
       });
-      expect(m, `${width}`).toMatchObject({ size: '16px', line: '24px', weight: '700', transform: 'none', color: text2, ellipsis: 'ellipsis', chevronFirst: true });
-      expect(m.height, `${width}: one line`).toBeLessThanOrEqual(24.5);
+      expect(m, `${width}`).toMatchObject({ size: '16px', line: '24px', weight: '700', transform: 'none', color: text2, chevronFirst: true, cut: false });
+      // One line at 390; at 320 the long name wraps to two lines instead of losing its end to "…" (AUD-01).
+      expect(m.height, `${width}: lines`).toBeLessThanOrEqual(width === 390 ? 24.5 : 48.5);
       expect(m.lip).toBeGreaterThanOrEqual(44);
-      if (width === 320) expect(m.cut, 'a long name is cut with an ellipsis at 320').toBe(true);
     }
   });
 }

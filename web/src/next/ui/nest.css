@@ -2,14 +2,16 @@
 .gx .gx-nest { --gx-nest-step: 8px; --gx-nest-depth: 0; display: flex; flex-direction: column; min-width: 0; }
 .gx .gx-nest-lips { display: flex; flex-direction: column; }
 /* A lip is the way back: the back chevron first, then the layer's name as a tappable label (gx-t-strong, 16/24, in
-   sentence case) on one line, cut with an ellipsis where it cannot fit (gx-truncate). Its name reads "Back to …" in full. */
+   sentence case). A name too long for one line wraps rather than being cut to "…" (AUD-01: a player or team name is
+   never cut). Its accessible name reads "Back to …" in full. */
 .gx .gx-nest-lip {
   display: flex; align-items: center; justify-content: flex-start; gap: var(--gx-space-2);
   min-height: var(--gx-size-touch); margin-inline: calc(var(--gx-nest-depth) * var(--gx-nest-step));
-  padding-inline: var(--gx-space-4); border: 1px solid var(--gx-border); border-bottom: 0;
+  padding: var(--gx-space-1) var(--gx-space-4); border: 1px solid var(--gx-border); border-bottom: 0;
   border-radius: var(--gx-radius-md) var(--gx-radius-md) 0 0; background: var(--gx-surface-1); color: var(--gx-text-2);
   font: 700 16px/16px var(--gx-font-body); text-align: left; cursor: pointer;
 }
+.gx .gx-nest-lip-label { min-width: 0; overflow-wrap: anywhere; }
 .gx .gx-nest-lip:hover { color: var(--gx-text-1); }
 .gx .gx-nest-card {
   display: flex; flex-direction: column; gap: var(--gx-space-4); min-width: 0;

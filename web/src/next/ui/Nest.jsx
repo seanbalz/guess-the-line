@@ -49,7 +49,7 @@ export function Nest({ label, lips = [], layer, title, info, children, className
           {lips.map((lip, i) => (
             <button key={lip.key} type="button" className="gx-nest-lip" style={depth(i)} onClick={lip.onOpen}>
               {i === lips.length - 1 ? <ChevronLeft size={16} aria-hidden="true"/> : null}
-              <span className="gx-sr-only">Back to </span><span className="gx-nest-lip-label gx-t-strong gx-truncate">{lip.label}</span>
+              <span className="gx-sr-only">Back to </span><span className="gx-nest-lip-label gx-t-strong">{lip.label}</span>
             </button>
           ))}
         </nav>
