@@ -10,9 +10,10 @@ assign the club immediately. The existing first-kickoff resolution and latest
 picker change window remain in force. A recorded backup assignment shows a team
 confirmation on the board and a one-time popup on the viewer’s device.
 
-This confirmed rule requires M-40 plus compatible API/frontend. They are prepared
-and locally tested, not applied/deployed; until then the hosted queue still uses
-the existing kickoff behavior. See [the rollout record](EPL_TURN_QUEUES_2026_11_03.md).
+This rule is live following compatible API v49/Pages deployment and verified
+M-40 apply (`20261103232119`) on November 3, 2026. The apply did not backfill
+existing picks; future pick/queue saves advance the draft. See
+[the release record](RELEASE_2026_11_03_EPL_TURN_QUEUE_M40.md).
 
 
 D-39/D-41 and D-50 supersede D-16's edit-after-submission rule: each game's

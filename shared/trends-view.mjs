@@ -567,7 +567,7 @@ const thousands = n => (finite(n) ? Math.round(n).toLocaleString('en-US') : '—
 export const recordText = (a, b, p = 0) => `${thousands(a)}–${thousands(b)}${p ? `–${thousands(p)}` : ''}`;
 /** "11 games", "1 game". */
 export const sampleText = n => `${thousands(n)} ${n === 1 ? 'game' : 'games'}`;
-const sinceText = years => (Array.isArray(years) && years[0] && years[1] && years[0] !== years[1] ? `since ${years[0]}` : Array.isArray(years) && years[0] ? `in ${years[0]}` : 'since 2002');
+export const sinceText = years => (Array.isArray(years) && years[0] && years[1] && years[0] !== years[1] ? `since ${years[0]}` : Array.isArray(years) && years[0] ? `in ${years[0]}` : 'since 2002');
 const pushesText = (p, word = 'push') => (p ? ` (${thousands(p)} ${p === 1 ? word : word === 'push' ? 'pushes' : `${word}s`})` : '');
 const capitalized = text => (text ? text[0].toUpperCase() + text.slice(1) : text);
 

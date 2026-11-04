@@ -4,9 +4,11 @@
 
 Implement the confirmed [turn-queue rule](../docs/EPL_TURN_QUEUES_2026_11_03.md):
 automatic highest-ranked available pick when on the clock; manual wait if all
-ranked teams are unavailable; recorded-team confirmation. M-40 and its rollback
-are prepared and local checks pass; source merge, compatible
-API/frontend deployment and the separately authorized database apply are distinct.
+ranked teams are unavailable; recorded-team confirmation. **Live:** API v49 and
+Pages `06129739` deployed before the authorized M-40 apply, hosted version
+`20261103232119`. Function bodies/grants, capability and preservation hashes
+are verified in the [release record](../docs/RELEASE_2026_11_03_EPL_TURN_QUEUE_M40.md).
+Local browser confirmation checks pass; live signed-in/phone acceptance remains separate.
 
 ## Where things stand — November 3, 2026 (truth pass)
 

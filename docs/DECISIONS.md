@@ -42,6 +42,32 @@ Sean, November 3, 2026: "Yes, switch to usage" (ask a19, Board item 64), after t
 - **Release:** not released. It needs Sean's OK on the phone mockups
   (`design/qa/fantasy-usage-2026-11-03/`), then merge, then the next Fantasy refresh.
 
+## D-75 — Trends tiles and chart: glass, one number, top three first (November 3, 2026)
+
+Sean on the Trends tiles: "I don't like the graphs and charts chosen. This doesn't look good compared to the new glossy
+air Apple type nodes. Needs to be concise and useful and not overwhelming."
+
+- **Scope:** "Trends tiles + trend chart (Recommended)".
+- **Option:** from five on the private canvas
+  [GTL Trends Tiles and Chart Options](https://claude.ai/artifact/XKm5YakrtHG5JzBo11fDQf), he answered "Rec",
+  meaning **5 · Top three, rest folded**.
+- **Mockups:** after "Show mockup always", he approved the drawn screens ("Yes").
+
+The design:
+- **Tiles:** every trend tile is glass, with one big number, the win rate (W / (W + L), one decimal), and one meta
+  line, "N games · since YYYY". The W–L–P record and the meter bar leave the tiles.
+- **This Week:** it leads with the strongest trend as a hero card, with the trend's own line where it has one. Then come
+  two tiles, then "All N trends this week", which opens an All trends layer at `weekList=all`.
+- **A team:** its layer shows two trends and folds the rest under "N more" in place. The Teams landing tiles become
+  glass win-rate tiles.
+- **An opened trend:** one glass chart card, with the win rate, one line with a soft fill, and the record and units.
+  The tier, conditions and source move behind its ⓘ.
+- **Unchanged:** locks show no numbers. Frontend only: no data, route or rule changes.
+- **Scope note:** the overhaul's Research step (D-69 step 3) still adds its motion.
+
+Spec: [2026-11-03-trends-glass-tiles-design.md](superpowers/specs/2026-11-03-trends-glass-tiles-design.md). Not built
+and not released. Sean's OK on captures of the built screens comes first (his November 2 rule).
+
 ## D-74 — BetRivers stands in when a selected book is missing (November 3, 2026)
 
 Sean, November 3, 2026: "Draft it, don't ship", then "Add the label" after seeing the phone mockups, then "Ship D-74 now".
@@ -292,6 +318,11 @@ is deployed: M-30 (`20261028190000_gtl_epl_pick_a_team.sql`) is written and **no
    Sean has added there. A tie goes to the lower Sleeper season total. MW9 is seeded by hand: order Nemo, Cullen, Adam, Sean, Evan, Mark,
    Steven, Darin; chat picks Man City, Aston Villa, Liverpool, Tottenham, Arsenal, Brentford, Newcastle (stored as
    source `seeded`), Darin to pick. From MW10 the order is automatic.
+   **November 2 correction:** Sean confirmed MW9's supplied Sleeper scores already
+   contain the bonus. Use those scores as shown, with no second bonus addition,
+   and raw Sleeper season totals for the tie-break. The erroneous extra GTL points
+   and MW10 order were corrected before any MW10 pick. This overrides the additive
+   assumption for MW9; future automated bonus-inclusion handling is not yet delivered.
 5. **Picking.** One club per manager per matchweek, on the manager's own turn. A club can be taken once. Any club with
    a match that matchweek can be picked. A pick can be changed until the next manager picks, then it is final. The last
    pick is final at the deadline. The board (who picked what, who is on the clock) is visible to the linked managers as

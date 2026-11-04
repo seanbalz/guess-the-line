@@ -9,7 +9,7 @@ vi.mock('../web/src/auth', () => ({ cloudEnabled: false, supabase: null }));
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn(), leagueApi: vi.fn(), linesApi: vi.fn(), readTeams: vi.fn(), trendsApi: vi.fn() }));
 // The saved-trends tile reads the shared lines data; these layers get theirs as props.
 vi.mock('../web/src/next/lines/linesData.js', () => ({ useLinesData: () => null }));
-const { nestTeams, nestTeamTrends, trendShare } = await import('../web/src/next/trends/teamNest.js');
+const { nestTeams, nestTeamTrends, trendShare, winRateText } = await import('../web/src/next/trends/teamNest.js');
 const { TeamsNest, trendSlug } = await import('../web/src/next/trends/TeamsNest.jsx');
 const { ShellContext } = await import('../web/src/next/shell/context.js');
 const { fragmentFor, placeFromFragment } = await import('../web/src/next/shell/router.js');
@@ -66,6 +66,13 @@ describe('teamNest: what the layers are built from', () => {
     expect(cards.map(c => c.id)).toContain(GB_ATS);
     expect(nestTeamTrends(week, gb, 'total').locks).toEqual([]);
   });
+  it('a card’s share is exact from its record, and the win rate reads to one decimal (D-75)', () => {
+    const card = { kind: 'card', locked: false, pct: 56, chart: { record: { W: 388, L: 310, P: 14 } } };
+    expect(trendShare(weekOf(), card)).toBeCloseTo(388 / 698, 10);
+    expect(winRateText(trendShare(weekOf(), card))).toBe('55.6%');
+    expect(winRateText(trendShare(weekOf(), { kind: 'card', chart: { record: { W: 0, L: 0, P: 3 } } }))).toBe('—');
+    expect(winRateText(null)).toBe('—');
+  });
   it('a missing share is null, never zero', () => {
     expect(trendShare(weekOf(), null)).toBeNull();
     expect(trendShare(weekOf(), { locked: true })).toBeNull();
@@ -74,19 +81,22 @@ describe('teamNest: what the layers are built from', () => {
 });
 
 describe('TeamsNest: one smaller layer per tap', () => {
-  it('Teams: one tile per team with its mark, one number and a meter; no lips; fine print only behind ⓘ', () => {
+  it('Teams: one glass tile per team with its mark, one win rate and its games; no lips; fine print only behind ⓘ (D-75)', () => {
     const html = render({});
     expect(markupProblems(html)).toEqual([]);
     const tiles = nodes(html).filter(n => n.tag === 'button' && n.attrs?.['data-team']);
     expect(tiles.map(n => n.attrs['data-team'])).toEqual(['CAR', 'GB']);
     expect(nameFrom(tiles[1])).toContain('Green Bay Packers');
-    expect(nameFrom(tiles[1])).toContain('5–2');
+    expect(nameFrom(tiles[1])).toContain('71.4%'); // GB at home 5–2
+    expect(nameFrom(tiles[1])).toContain('7 games');
+    expect(tiles.every(n => n.attrs.class.includes('gx-nest-tile--glass'))).toBe(true);
+    expect(html).not.toContain('gx-nest-meter');
     expect(html).not.toContain('gx-nest-lip');
     expect(nodes(html).some(n => n.tag === 'button' && nameFrom(n) === 'About team trends')).toBe(true);
     expect(html).not.toContain('Past results since 2002'); // the footnote moved behind ⓘ
     for (const sentence of surfaceSentences(html)) expect(sentence.split(/\s+/).length).toBeLessThanOrEqual(12);
   });
-  it('one team: a lip back to Teams, the game in one meta line, a tile per trend, and the game sheet one tap away', () => {
+  it('one team: a lip back to Teams, the game in one meta line, its own trends as tiles (D-75: two, then the fold), and the game sheet one tap away', () => {
     const html = render({ teamsTeam: 'GB' });
     expect(markupProblems(html)).toEqual([]);
     const lips = nodes(html).filter(n => n.tag === 'button' && n.attrs?.class?.includes('gx-nest-lip'));
@@ -94,11 +104,20 @@ describe('TeamsNest: one smaller layer per tap', () => {
     expect(nodes(html).find(n => n.tag === 'h2' && n.attrs?.['data-route-focus'] !== undefined)).toBeTruthy();
     expect(html).toContain('Green Bay Packers');
     expect(html).toContain('CAR @ GB · Thu, Oct 29, 5:15 PM PT');
-    expect(html).toContain('GB at home: ATS');
+    expect(html).toContain('1 more GB trend'); // GB's third trend, GB at home: ATS, waits behind the fold
     expect(html).not.toContain('CAR on the road: ATS');
     expect(html).toContain('Game details · CAR @ GB');
   });
-  it('one trend: two lips, the big record, the sample and tier as tags, windows behind a disclosure; the address hides the key', () => {
+  it('one team: two trends, then N more in place behind aria-expanded (D-75)', () => {
+    const html = render({ teamsTeam: 'GB' });
+    expect(markupProblems(html)).toEqual([]);
+    const shown = nodes(html).filter(n => n.tag === 'button' && n.attrs?.['data-trend'] && n.attrs['data-trend'] !== 'locked');
+    expect(shown).toHaveLength(2);
+    const more = nodes(html).find(n => n.tag === 'button' && n.attrs?.class?.includes('gx-nest-more'));
+    expect(more.attrs['aria-expanded']).toBe('false');
+    expect(nameFrom(more)).toBe('1 more GB trend');
+  });
+  it('one trend: two lips, one glass chart card with the win rate and record, the tier behind ⓘ (D-75)', () => {
     const key = `${GB_ATS}@GB`, slug = trendSlug(key);
     expect(slug).toMatch(/^t[0-9a-z]+$/);
     expect(slug).not.toContain('GB');
@@ -107,10 +126,23 @@ describe('TeamsNest: one smaller layer per tap', () => {
     const lips = nodes(html).filter(n => n.tag === 'button' && n.attrs?.class?.includes('gx-nest-lip'));
     expect(lips.map(nameFrom)).toEqual(['Back to Teams', 'Back to Green Bay Packers']);
     expect(nodes(html).find(n => n.tag === 'h2').children.map(textOf).join('')).toBe('GB at home: ATS');
-    expect(html).toContain('7 games');
-    expect(html).toContain('No proven edge');
+    const chart = nodes(html).find(n => n.attrs?.['data-trend-chart'] !== undefined);
+    expect(textOf(chart)).toContain('71.4%'); // 5 of 7 decided
+    expect(textOf(chart)).toContain('5–2');
+    expect(html).not.toContain('gx-pill'); // tags left the surface
+    expect(html).not.toContain('No proven edge'); // the tier is behind ⓘ, rendered only when it opens
     expect(html).not.toContain('since 2002.'); // the sentence is in the ⓘ, not on the card
     expect(html).not.toContain(GB_ATS);
+  });
+  it('a trend tile is glass with one win rate and no meter (D-75)', () => {
+    const html = render({ teamsTeam: 'GB' });
+    const tiles = nodes(html).filter(n => n.tag === 'button' && n.attrs?.['data-trend'] && n.attrs['data-trend'] !== 'locked');
+    expect(tiles.length).toBeGreaterThan(0);
+    for (const tile of tiles) {
+      expect(tile.attrs.class).toContain('gx-nest-tile--glass');
+      expect(textOf(tile)).toMatch(/\d+\.\d%|—/);
+    }
+    expect(html).not.toContain('gx-nest-meter');
   });
   it('a stale address falls back to the nearest layer that exists', () => {
     const lipsOf = html => nodes(html).filter(n => n.tag === 'button' && n.attrs?.class?.includes('gx-nest-lip')).map(nameFrom);
@@ -133,6 +165,17 @@ describe('addresses: each layer reloads, and back closes one layer', () => {
     expect(fragment).toContain(`teamsTrend=${slug}`);
     expect(fragment).not.toContain('guess');
     expect(placeFromFragment(fragment).adapters.trends).toMatchObject({ trendSection: 'teams', teamsTeam: 'GB', teamsTrend: slug });
+  });
+  it('the router keeps weekList and opening All trends is a step back closes (D-75)', () => {
+    const fragment = fragmentFor('research', { section: 'trends' }, { trends: { trendSection: 'week', weekList: 'all' } });
+    expect(fragment).toContain('weekList=all');
+    expect(placeFromFragment(fragment).adapters.trends).toMatchObject({ weekList: 'all' });
+    let state = reduce(initialState(), { type: 'go', tab: 'research', view: { section: 'trends' } });
+    const trail = state.trail.length;
+    state = reduce(state, { type: 'view', tab: 'trends', patch: { weekList: 'all' } });
+    expect(state.trail.length).toBe(trail + 1);
+    state = reduce(state, { type: 'back' });
+    expect(state.views.trends.weekList ?? null).toBeNull();
   });
   it('opening a team and a trend are steps; back returns to the team, then to Teams', () => {
     let state = reduce(initialState(), { type: 'go', tab: 'research', view: { section: 'trends' } });
@@ -203,7 +246,30 @@ describe('This Week layers: top trends, games, one game, one trend', async () =>
     expect(nameFrom(tile).startsWith('Carolina Panthers at Green Bay Packers')).toBe(true);
     expect(html).not.toContain('Past results since 2002');
     expect(nodes(html).some(n => n.tag === 'button' && nameFrom(n) === 'About this week’s trends')).toBe(true);
+    expect(nodes(html).some(n => n.attrs?.['data-hero'] !== undefined)).toBe(true);
+    expect(html).not.toContain('gx-nest-more'); // one trend: nothing to fold
     for (const sentence of surfaceSentences(html)) expect(sentence.split(/\s+/).length, sentence).toBeLessThanOrEqual(12);
+  });
+  const many = () => {
+    const week = weekOf();
+    week.cards = Object.fromEntries(['c1', 'c2', 'c3', 'c4'].map((id, i) => [id, { ...card, title: `Trend ${i + 1}: ATS`, score: { score: 90 - i }, record: { W: 30 - i, L: 20, P: 0 } }]));
+    week.games[0].tier2 = ['c1', 'c2', 'c3', 'c4'].map(id => ({ card: id }));
+    return week;
+  };
+  it('This week leads with one hero, then two tiles, then All N trends this week (D-75)', () => {
+    const html = show({}, { week: many() });
+    expect(markupProblems(html)).toEqual([]);
+    expect(nodes(html).filter(n => n.attrs?.['data-hero'] !== undefined)).toHaveLength(1);
+    const more = nodes(html).find(n => n.tag === 'button' && n.attrs?.class?.includes('gx-nest-more'));
+    expect(nameFrom(more)).toContain('All 4 trends this week');
+    for (const sentence of surfaceSentences(html)) expect(sentence.split(/\s+/).length, sentence).toBeLessThanOrEqual(12);
+  });
+  it('All trends: a lip back to This week and every trend as a glass tile (D-75)', () => {
+    const html = show({ weekList: 'all' }, { week: many() });
+    expect(markupProblems(html)).toEqual([]);
+    expect(lips(html)).toEqual(['Back to This week']);
+    expect(nodes(html).find(n => n.tag === 'h2').children.map(textOf).join('')).toBe('All trends');
+    expect(nodes(html).filter(n => n.tag === 'button' && n.attrs?.class?.includes('gx-nest-tile--glass') && n.attrs?.['data-trend'])).toHaveLength(4);
   });
   it('one game: a lip back to This week, its trends as tiles, and a closed market as a lock', () => {
     const open = show({ weekGame: 'CAR-GB' });
