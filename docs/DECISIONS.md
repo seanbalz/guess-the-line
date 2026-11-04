@@ -26,6 +26,27 @@ The design:
 Spec: [2026-11-03-trends-glass-tiles-design.md](superpowers/specs/2026-11-03-trends-glass-tiles-design.md). Not built
 and not released. Sean's OK on captures of the built screens comes first (his November 2 rule).
 
+## D-74 — BetRivers stands in when a selected book is missing (November 3, 2026)
+
+Sean, November 3, 2026: "Draft it, don't ship", then "Add the label" after seeing the phone mockups, then "Ship D-74 now".
+See the [card](PROPOSAL_2026_11_03_BACKUP_BOOK.md) and the [mockups](../design/backup-book-2026-11-03/README.md).
+
+At 18:15 UTC on November 3 the provider sent no FanDuel prices for any of the 15 games. A saved line needs three books, so
+no new line could be made while FanDuel was missing.
+
+- **Rule:** the line stays a three-book median.
+  - BetRivers stands in for one selected book (DraftKings, FanDuel or BetMGM) that the provider's reply could not quote.
+    This is game by game and market by market, with the same checks as the other books.
+  - It never replaces a book that was quoted. BetRivers is asked for in the same request, at no extra credits.
+- **Shown:** BetRivers is named wherever it stood in. In the game sheet it says "Standing in for FanDuel", and the revealed
+  sources table lists the missing book as missing.
+- **Unchanged:**
+  - lines already saved (D-16, D-23);
+  - Challenge selections, Virtual Units and the frozen spread benchmark;
+  - every free limit.
+- **Release:** M-39 by Gate M (Sean's Chrome SQL editor), then the `api` release, then an `odds-refresh` release. Each
+  release is approved by Sean in GitHub.
+
 ## Pick a Team backups at the turn — November 3, 2026
 
 Sean requested that a saved backup ranking assign a team as soon as the manager's
@@ -213,6 +234,15 @@ step 0 release and his iPhone check.
 
 ## D-68 — Premier League: Sleeper FEPL, Pick a Team and EPL moneyline (October 28, 2026)
 
+**Bonus accounting ruling — November 2, 2026.** Sean: "I add bonuses to sleeper,
+unless I shouldn’t." Keep that workflow. Final weekly scores, season standings
+and draft tie-breaks use Sleeper totals as shown; GTL never adds the bonus again.
+The bonus record retains the winning margin for display/audit, with zero extra
+GTL points. Add bonuses before the final capture/rollover. A late adjustment
+requires review of an already-open draft; entered picks remain preserved under
+item 23. GTL cannot infer when a manual Sleeper adjustment has been completed.
+This supersedes the additive bonus wording in the initial decision below.
+
 **Deployment status update — October 29, 2026:** M-30 and M-31 are applied;
 API v42 and EPL jobs v1 are active. See the dated [M-30](RELEASE_2026_10_29_M30.md)
 and [M-31](RELEASE_2026_10_29_M31.md) release records and the fresh
@@ -242,10 +272,15 @@ is deployed: M-30 (`20261028190000_gtl_epl_pick_a_team.sql`) is written and **no
    "matchup unavailable". MW1 to MW8 have season totals only. Snapshots Sean captured outside the repo
    (`/Users/seanbalsiger/gtl-epl-snapshots/`, a SHA-256 per Sleeper response) are imported as captured. A matchweek is
    final the Monday after its last match and is checked again Tuesday for stat corrections.
-4. **Pick a Team order.** Managers pick in ascending order of last matchweek's score plus that matchweek's Pick a Team
-   bonus. A tie goes to the lower season total. MW9 is seeded by hand: order Nemo, Cullen, Adam, Sean, Evan, Mark,
+4. **Pick a Team order.** Managers pick in ascending order of last matchweek's final Sleeper score, including bonuses
+   Sean has added there. A tie goes to the lower Sleeper season total. MW9 is seeded by hand: order Nemo, Cullen, Adam, Sean, Evan, Mark,
    Steven, Darin; chat picks Man City, Aston Villa, Liverpool, Tottenham, Arsenal, Brentford, Newcastle (stored as
    source `seeded`), Darin to pick. From MW10 the order is automatic.
+   **November 2 correction:** Sean confirmed MW9's supplied Sleeper scores already
+   contain the bonus. Use those scores as shown, with no second bonus addition,
+   and raw Sleeper season totals for the tie-break. The erroneous extra GTL points
+   and MW10 order were corrected before any MW10 pick. This overrides the additive
+   assumption for MW9; future automated bonus-inclusion handling is not yet delivered.
 5. **Picking.** One club per manager per matchweek, on the manager's own turn. A club can be taken once. Any club with
    a match that matchweek can be picked. A pick can be changed until the next manager picks, then it is final. The last
    pick is final at the deadline. The board (who picked what, who is on the clock) is visible to the linked managers as
@@ -259,8 +294,8 @@ is deployed: M-30 (`20261028190000_gtl_epl_pick_a_team.sql`) is written and **no
    club's first match counts. A match moved out of the week counts as postponed.
 8. **Bonus.** Only the widest winning margin among drafted clubs scores, at `margin × 5`. Ties go to more goals scored,
    then fewer conceded; still tied, every tied manager gets the full points. No drafted winner means nobody scores. A
-   postponed or abandoned match scores 0. The bonus counts in GTL only (standings and the next order); the commissioner
-   is shown the amounts to apply in Sleeper by hand if he wants.
+   postponed or abandoned match scores 0. Sean applies the bonus in Sleeper; GTL records the earned margin and uses
+   Sleeper's totals without adding a second bonus (November 2 ruling).
 9. **EPL moneyline (plan 3).** The 8 managers guess the favorite and its 2-way "draw no bet" American price for every
    match. The score is the distance from the real price of the club chosen, where −100 and +100 are the same point
    (−110 to +120 = 30). The real price is the D-27 median (DraftKings, FanDuel, BetMGM) at lock-in, pending and never
@@ -304,7 +339,7 @@ M-30 and a `gtl-api` / `gtl-epl-jobs` deploy).
     Otherwise it says "Matchup unavailable this week", with one sentence for each case (no full repeat scored yet; you
     have no team, as the commissioner; an ambiguous or disagreeing pairing), and still shows your own projection. It
     never guesses. With tracking from MW9, the first full repeat is MW9 and MW16, so the first opponent can show at MW17.
-16. **Standings** rank Sleeper season points plus the season's Pick a Team bonus; the raw Sleeper total shows on tap.
+16. **Standings** rank Sleeper season points as shown; the bonus record shows on tap without a second addition.
     Missing weeks are an em dash and a gap in the charts, never 0.
 
 **Addendum — EPL open access and automatic linking (October 29, 2026).** Sean: "lets automatically link users to

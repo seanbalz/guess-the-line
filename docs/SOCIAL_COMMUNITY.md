@@ -489,6 +489,17 @@ M-33/M-34/M-35 remain unapplied. The canonical applied list is `tests/migrations
 authorized moneyline activation remain separate from this additive apply. The dated commands below are not an
 operational recipe for the current project; use [the manual release process](SHARED_DEPLOYMENT.md).
 
+## November 3 M-40 apply record
+
+The [M-40 release record](RELEASE_2026_11_03_EPL_TURN_QUEUE_M40.md) maps repo
+version `20261103212932` to hosted version `20261103232119`. It was applied
+alone through Supabase MCP after compatible API v49/Pages deployment and Sean's
+"Apply m-40" instruction. History increased from 74 to 75 entries; all four
+function bodies/grants and the turn-queue capability verified, with existing
+scores, settled results, picks, queues, history, weeks and bonuses unchanged.
+M-33/M-34/M-35 remain unapplied. The registry is `tests/migrations.mjs`; no
+historical repair command or generic `db push` was run.
+
 ## Release checklist — October 9, 2026
 
 One ordered list for everything in this document (D-21, D-22, D-23, D-24) and for D-25. Source: `main` at `597ab59` (PRs #10–#26). Hosted project: `onmrgvcehkflfaizvedl`. Steps 1–4 and 9 are **done** (October 9, 2026, through the Supabase MCP and SQL editor; step 9 at 17:44 UTC from the cloud session). Steps 5–8 were Sean's, run from the machine with the Supabase and Cloudflare logins, and are **done** (steps 5–7 on October 12, step 8 on October 14). Fill the results into [RELEASE_2026_10_09.md](RELEASE_2026_10_09.md).

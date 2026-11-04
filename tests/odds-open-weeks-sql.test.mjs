@@ -58,8 +58,8 @@ function slates(now, monday) {
 
 // The Odds API V4 as cloud/odds-provider.mjs calls it, answering from the games it is given: /events is free and lists
 // every game in the requested window; /odds reports two credits (two markets, one region) however many event ids it
-// names. `priced` decides which games have three books posted; a book in `missing` is left out of every reply (FanDuel,
-// November 3, 2026). Synthetic lines only.
+// names. `priced` decides which games have the requested books posted; a book in `missing` is left out of every reply
+// (FanDuel, November 3, 2026). Synthetic lines only.
 function oddsApi(games, { priced = () => true } = {}) {
   const requests = [], missing = new Set(); let remaining = 480, used = 20;
   const event = g => ({ id: `evt_${g.id}`, sport_key: 'americanfootball_nfl', sport_title: 'NFL', home_team: g.home, away_team: g.away, commence_time: iso(Date.parse(g.kickoff)) });
@@ -74,7 +74,7 @@ function oddsApi(games, { priced = () => true } = {}) {
     const ids = u.searchParams.get('eventIds').split(','), stamp = iso(Date.now() - 30_000);
     return reply(all.filter(g => ids.includes(`evt_${g.id}`)).map(g => {
       const e = event(g), { spread, total } = g.line || OTHER_LINE;
-      return { ...e, bookmakers: !priced(g) ? [] : BOOKS.filter(key => !missing.has(key)).map(key => ({ key, title: key, last_update: stamp, markets: [
+      return { ...e, bookmakers: !priced(g) ? [] : u.searchParams.get('bookmakers').split(',').filter(key => !missing.has(key)).map(key => ({ key, title: key, last_update: stamp, markets: [
         { key: 'spreads', last_update: stamp, outcomes: [{ name: g.home, price: -110, point: spread }, { name: g.away, price: -110, point: -spread }] },
         { key: 'totals', last_update: stamp, outcomes: [{ name: 'Over', price: -110, point: total }, { name: 'Under', price: -110, point: total }] }] })) };
     }), 2);
@@ -647,7 +647,8 @@ test('a selected book missing from the newest snapshot for every game a lock-in 
   const [a, b, c] = f.week.next.games.slice(1, 4).map(g => g.id);
   const reference = async gameId => (await f.q("select ballot->'scoringReferences'->$2 ref from public.gtl_weekly_ballots where user_id=$1 and season=2026 and week=7 and mode='guess_spread'", [id(TWO), gameId]))[0]?.ref;
   const begins = () => f.results('gtl_begin_submission_odds_collection').length;
-  f.api.missing.add('fanduel');
+  // The backup book (D-74) is missing too, so nothing can stand in.
+  f.api.missing.add('fanduel'); f.api.missing.add('betrivers');
 
   // No week 7 snapshot yet, so nothing shows the gap: the first lock-in collects once, and that reply has no FanDuel.
   let res = await f.save(TWO, 7, { [a]: -3 }, false, [a]);
@@ -678,4 +679,38 @@ test('a selected book missing from the newest snapshot for every game a lock-in 
   assert.equal(res.status, 200, JSON.stringify(res.body));
   assert.equal((await reference(c)).status, 'available');
   assert.equal(f.api.of('odds').length, paid);
+});
+
+// D-74 (November 3, 2026; needs M-39): with FanDuel missing from every reply, BetRivers stands in, so a
+// lock-in's refresh makes a three-book line again instead of saving the morning's line. The deployed handler, the
+// provider adapter and every migration (with M-39) run here.
+test('D-74 draft: FanDuel missing, BetRivers stands in: the lock-in collects once and saves a fresh three-book line naming BetRivers', { skip }, async t => {
+  const f = await fixture(t);
+  const [a] = f.week.next.games.slice(1, 2).map(g => g.id);
+  f.api.missing.add('fanduel');
+  const res = await f.save(TWO, 7, { [a]: -3 }, false, [a]);
+  assert.equal(res.status, 200, JSON.stringify(res.body));
+  assert.equal(f.api.of('odds').length, 1);
+  assert.equal(f.api.of('odds')[0].searchParams.get('bookmakers'), 'draftkings,fanduel,betmgm,betrivers');
+  const [job] = (await f.collections()).filter(c => c.operation === 'collect' && c.credits === 2);
+  assert.equal(job.diagnostics.availableQuotes, 6 * 14, 'three quotes for every market, as before the gap');
+  const ref = (await f.q("select ballot->'scoringReferences'->$2 ref from public.gtl_weekly_ballots where user_id=$1 and season=2026 and week=7 and mode='guess_spread'", [id(TWO), a]))[0].ref;
+  assert.deepEqual([ref.status, ref.value, ref.bookCount, ref.snapshotId], ['available', OTHER_LINE.spread, 3, job.id]);
+  assert.deepEqual(ref.quotes.map(q => q.book), ['betmgm', 'betrivers', 'draftkings']);
+  assert(ref.ageSeconds <= 300);
+  // The book-level prices name BetRivers.
+  const [stored] = (await f.snapshots()).filter(s => s.week === 7);
+  const game = f.week.next.games.find(g => g.id === a);
+  const books = (await f.q("select public.gtl_book_quotes_from_snapshot($1::jsonb,$2::jsonb,'spread') v", [JSON.stringify(stored.payload), JSON.stringify(game)]))[0].v;
+  assert.deepEqual(books.map(b => [b.book, b.source, b.standInFor]), [['betmgm', 'BetMGM', undefined], ['betrivers', 'BetRivers', 'fanduel'], ['draftkings', 'DraftKings', undefined]]);
+  // Through the deployed /lines/game route, the game sheet's reader: BetRivers names the book it replaced.
+  const detail = await f.call(TWO, '/lines/game', { season: 2026, week: 7, gameId: a });
+  assert.equal(detail.status, 200, JSON.stringify(detail.body));
+  assert.equal(detail.body.spread.visible, true, 'a locked-in game shows its own Spread lines');
+  assert.deepEqual(detail.body.spread.books.map(b => [b.source, b.standInFor]), [['BetMGM', undefined], ['BetRivers', 'FanDuel'], ['DraftKings', undefined]]);
+  // With M-39 the snapshot makes the line; without it the same call makes none (only the three selected books count).
+  const line = sql => sql.q("select public.gtl_line_from_snapshot($1::jsonb,$2::jsonb,'spread') v", [JSON.stringify(stored.payload), JSON.stringify(game)]);
+  assert.deepEqual([(await line(f))[0].v.value, (await line(f))[0].v.bookCount], [OTHER_LINE.spread, 3]);
+  const before = await fixture(t, { files: ALL.filter(file => !file.startsWith('20261103210000')) });
+  assert.equal((await line(before))[0].v, null);
 });

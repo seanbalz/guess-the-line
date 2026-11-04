@@ -4,9 +4,11 @@
 
 Implement the confirmed [turn-queue rule](../docs/EPL_TURN_QUEUES_2026_11_03.md):
 automatic highest-ranked available pick when on the clock; manual wait if all
-ranked teams are unavailable; recorded-team confirmation. M-40 and its rollback
-are prepared and local checks pass; source merge, compatible
-API/frontend deployment and the separately authorized database apply are distinct.
+ranked teams are unavailable; recorded-team confirmation. **Live:** API v49 and
+Pages `06129739` deployed before the authorized M-40 apply, hosted version
+`20261103232119`. Function bodies/grants, capability and preservation hashes
+are verified in the [release record](../docs/RELEASE_2026_11_03_EPL_TURN_QUEUE_M40.md).
+Local browser confirmation checks pass; live signed-in/phone acceptance remains separate.
 
 ## Where things stand — November 3, 2026 (truth pass)
 
@@ -248,7 +250,7 @@ approved completion work.
 | Q18 | Operations | Reconcile private/community slate handling, settlement, corrections/voids, scheduled jobs and failure monitoring. Clearly label manual operations until automation is verified. P-03 (PR #219) and its release targets (#223) were applied and deployed October 26 ([record](../docs/RELEASE_2026_10_26_POINTS_JOBS.md)); the schedule row is disabled, so its verified run and operational verification remain open. P-01/P-02 and the UI are released; merged source does not establish automatic scoring. |
 | Q19 | Device and full-week acceptance | Actual iPhone use, both market gates, real entries/results, history/privacy and relevant jobs over a full live week. Sean's visual acceptance is separate from fixture tests. Includes Sean's phone review of the mobile formatting and visual-depth criteria from closed issue #126 (Photo 1 baseline; implemented in PR #127, Pages `fc7f3cd2`). |
 | Q20 | New-app-only transition | Source merged October 28 in PR #305 (D-65): the new app is the only cloud app, classic links/preferences no longer open it, and failures offer Reload the app. D-65 supersedes D-60's checklist timing for removing access. Commissioner tools now have Menu › Commissioner tools (PR #316, merged October 28 PT and released October 29 in the frontend from `4564fff`). Play lists an old group-screen tab draft as a retained copy (RETIRE-01, October 29). The [release record](../docs/RELEASE_2026_10_28_NEW_APP_ONLY.md), merged in #312, reports the D-65 cutover as Pages `0a4c0d25` from `91e3f51`, with 380 signed-out probes denied. This task did not repeat hosted verification. The preservation/destination matrix, remaining preview deployments and device checks remain. Player records remain subject to D-23. |
-| Q21 | Distinctive trend discovery | [October 28 example, reproduced query and work plan](../docs/RESEARCH_TREND_DISCOVERY_2026_10_28.md). The existing engine reproduces Bryce Young's latest 12 qualifying ATS covers after a Panthers loss from checked-in results through October 11; full record 17–11–2, earlier sample 5–11–2. Source-reported current +3.5 is unverified. Open: verify served-data freshness, reproduce submitted source claims, add bounded entity-plus-situation discovery and builder filters, record failed searches/selection, then use verified pregame inputs for upcoming matches under existing gates. No automatic X feed, new candidate registration or product-policy change was implemented. |
+| Q21 | Distinctive trend discovery | Open [PR #363](https://github.com/seanbalz/guess-the-line/pull/363), [First scanner implementation](../docs/TREND_DISCOVERY_ENGINE_2026_10_29.md), `codex/trend-discovery`: 13 team/QB/coach situations, seven windows, disjoint earlier comparisons, all-query audit and overlap-aware variety. Pinned free source through October 26: 4,719 queries, 33,033 windows, 312 empty queries retained. 38 targeted Node tests and typecheck passed. Open: own CI/merge, compact publication/D-66 product integration, builder/entity controls, verified current applicability and prospective validation. The committed Research snapshot still stops October 19; no production data or lean policy changed. |
 
 ## Separate later scope
 

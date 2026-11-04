@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { createHash } from 'node:crypto';
 import { seed } from '../server/store.mjs';
-import { createOddsProvider, DEFAULT_ODDS_BOOKS } from '../cloud/odds-provider.mjs';
+import { createOddsProvider, DEFAULT_BACKUP_BOOKS, DEFAULT_ODDS_BOOKS } from '../cloud/odds-provider.mjs';
 const NOW=Date.parse('2026-10-08T20:00:00Z'), STAMP='2026-10-08T19:59:00Z';
 const KEY='private-fixture-key-never-log';
 const slate=seed().games;
@@ -37,7 +37,8 @@ test('one free preflight then one bounded NFL spreads+totals US request for all 
   assert.equal(odds.url.pathname,'/v4/sports/americanfootball_nfl/odds');
   assert.equal(odds.url.searchParams.get('regions'),'us');
   assert.equal(odds.url.searchParams.get('markets'),'spreads,totals');
-  assert.equal(odds.url.searchParams.get('bookmakers'),'draftkings,fanduel,betmgm');
+  // D-74: the backup book rides in the same request; up to 10 named books cost one region (still 2 credits).
+  assert.equal(odds.url.searchParams.get('bookmakers'),'draftkings,fanduel,betmgm,betrivers');
   assert.equal(odds.url.searchParams.get('oddsFormat'),'american');
   assert.equal(odds.url.searchParams.get('dateFormat'),'iso');
   assert.equal(odds.url.searchParams.get('eventIds').split(',').length,15);
@@ -285,4 +286,43 @@ test('stage 22 (M-05): a team may appear twice only in games two days apart; a r
   assert.equal(calls,0);
   await app.preflight({games:[...slate,apart]});
   assert.equal(calls,1);
+});
+
+// D-74 (November 3, 2026): at 18:15 UTC the reply had no FanDuel prices for any game, so no three-book
+// line could be made. BetRivers, asked for in the same request, stands in only for a selected book this reply could not
+// quote, game by game and market by market.
+test('a backup book stands in only for a selected book the reply could not quote, and is recorded as a stand-in',async()=>{
+  assert.deepEqual(DEFAULT_BACKUP_BOOKS,['betrivers']);
+  const withBackup=(drop=[])=>prices().map(e=>({...e,bookmakers:[...e.bookmakers,{...structuredClone(e.bookmakers[0]),key:'betrivers'}].filter(b=>!drop.includes(b.key))}));
+  // All three selected books quoted: BetRivers is ignored and the payload is exactly as before.
+  const full=await mock({odds:withBackup()}).collect();
+  assert.deepEqual(full.games[0].markets.spread.quotes.map(q=>q.book),['draftkings','fanduel','betmgm']);
+  assert.equal(Object.hasOwn(full.games[0].markets.spread,'standIns'),false);
+  assert.deepEqual(full.backupBooks,['betrivers']);assert.deepEqual(full.selectedBooks,DEFAULT_ODDS_BOOKS);
+  // FanDuel missing everywhere: BetRivers takes its place in every game and market, and FanDuel stays recorded as missing.
+  const gap=await mock({odds:withBackup(['fanduel'])}).collect();
+  for(const g of gap.games)for(const m of Object.values(g.markets)){
+    assert.deepEqual(m.quotes.map(q=>[q.book,q.source]),[['draftkings','DraftKings'],['betmgm','BetMGM'],['betrivers','BetRivers']]);
+    assert.deepEqual(m.unavailable,[{book:'fanduel',reason:'book_missing'}]);
+    assert.deepEqual(m.standIns,[{book:'betrivers',for:'fanduel'}]);assert.equal(m.status,'available');
+  }
+  assert.equal(gap.status,'available');
+  // Two selected books missing: one backup fills one gap, so the market stays partial.
+  const two=(await mock({odds:withBackup(['fanduel','betmgm'])}).collect()).games[0].markets.total;
+  assert.deepEqual([two.quotes.map(q=>q.book),two.standIns,two.status],[['draftkings','betrivers'],[{book:'betrivers',for:'fanduel'}],'partial']);
+  // FanDuel and BetRivers both missing: nothing stands in.
+  const none=(await mock({odds:withBackup(['fanduel','betrivers'])}).collect()).games[0].markets.spread;
+  assert.deepEqual([none.quotes.length,Object.hasOwn(none,'standIns'),none.status],[2,false,'partial']);
+  // A stale BetRivers market does not stand in either.
+  const stale=withBackup(['fanduel']);stale[0].bookmakers.find(b=>b.key==='betrivers').markets[0].last_update='2026-10-08T19:50:00Z';
+  assert.equal(Object.hasOwn((await mock({odds:stale}).collect()).games[0].markets.spread,'standIns'),false);
+});
+
+test('backup books are validated: allowed free books only, none also selected, no repeats, and none means three',async()=>{
+  for(const backupBooks of [['fanduel'],['williamhill_us'],['betrivers','betrivers'],'betrivers'])
+    assert.throws(()=>createOddsProvider({apiKey:KEY,backupBooks,fetchImpl:()=>{}}),e=>e.code==='ODDS_CONFIG');
+  const requests=[];
+  const provider=createOddsProvider({apiKey:KEY,clock:()=>NOW,backupBooks:[],fetchImpl:async url=>{requests.push(new URL(url));return url.pathname.endsWith('/events')?response(events(),0,500):response(prices());}});
+  const result=await provider.collect({games:slate,remainingCredits:500});
+  assert.equal(requests[1].searchParams.get('bookmakers'),'draftkings,fanduel,betmgm');assert.equal(Object.hasOwn(result,'backupBooks'),false);
 });

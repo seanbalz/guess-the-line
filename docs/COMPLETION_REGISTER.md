@@ -15,16 +15,29 @@ Brand QA, and 13 cloud-browser cases. Those are next-trends with All trends and 
 with axe at 320 and 390px in Light and Dark. They ran on a private port because 5198 was held by another server.
 Not released: Sean's OK on the 390px captures of the built screens comes first.
 
+## BetRivers backup book, D-74 — November 3, 2026
+
+Sean: "Ship D-74 now". From 18:15 UTC the provider sent no FanDuel prices, so no three-book line could be made. BetRivers
+now stands in for a selected book the reply could not quote, in the same two-credit request, and the game sheet says
+"Standing in for FanDuel". Local checks pass: a PGlite run of the deployed handler, unit and browser tests (phone rules and
+axe in both themes), and six mutation checks. **Merged; M-39 not applied, nothing deployed yet.** See the
+[card](PROPOSAL_2026_11_03_BACKUP_BOOK.md).
+
 ## Pick a Team turn queues — November 3, 2026
 
 Sean requested immediate assignment from the highest available saved backup when
 the turn begins, confirmed an exhausted ranking waits for a manual pick, and
 requested a visible team confirmation. The
 [implementation record](EPL_TURN_QUEUES_2026_11_03.md) covers transactional server
-advancement, a persistent note and a one-time popup. M-40 is prepared, not
-applied. Local checks pass: 74 focused Node, 87 boundary/migration, 670 component
+advancement, a persistent note and a one-time popup. **Live:** compatible API v49
+and Pages `06129739` deployed from `4cf149e7c4361547647db3573651fcd57204e36d`
+before M-40 applied as hosted `20261103232119`. The
+[release record](RELEASE_2026_11_03_EPL_TURN_QUEUE_M40.md) verifies four function
+bodies/grants, active reader capability, 129 served assets and unchanged data
+hashes. Local checks pass: 74 focused Node, 87 boundary/migration, 670 component
 checks, the M-40 rollback harness and four EPL browser scenarios, plus typecheck,
-build/privacy and Brand QA. No hosted records are changed by this work.
+build/privacy and Brand QA. The apply performed no pick/queue backfill; live
+signed-in/phone confirmation acceptance remains separate.
 
 ## Reminder worker error answer, gtl-push-reminders v6 — November 3, 2026
 
@@ -144,6 +157,86 @@ from `c6d6434` in protected run 41596638055. Independent readback matched all 12
 served files and found Overview in the live bundle. API v45, all hosted function
 summaries and migration history stayed unchanged. Signed-in production and
 physical-phone acceptance remain separate evidence states.
+
+## Sleeper owns FEPL bonus accounting — November 2, 2026
+
+Sean confirmed he adds the bonuses in Sleeper. The source fix uses finalized
+Sleeper weekly/season totals directly for draft order, standings and season
+tie-breaks; no second GTL bonus is added. Settlement retains earned margins
+with zero additional GTL points, and the API still shows the earned bonus from
+that margin. Updated screen copy explains where bonuses are applied. The
+pending M-35 correction function follows the same rule; fresh read-only hosted
+evidence confirms M-35 and its correction function are still absent, so its
+existing unapplied source was updated without applying SQL.
+
+The earlier MW10 data repair remains intact; this change does not rewrite
+picks, snapshots, cron or Sleeper data. Add bonuses before the final weekly
+capture. Later manual adjustments require order review with pick preservation;
+automatic recognition of commissioner completion is unavailable. Source checks
+passed: 405 EPL Node/SQL tests (no skips), 89 EPL component tests, typecheck,
+cloud build, bundle privacy scan and Brand QA. All four browser scenarios
+passed, including 320/390/1440px and both themes. Release status and real-phone
+limits are recorded in [the delivery card](EPL_BONUS_ACCOUNTING_2026_11_02.md).
+API, frontend and EPL worker publication remains with the release captain.
+
+## EPL Week 9 results and weekly automation — November 2, 2026
+
+Owner: Sean Balsiger · Verified hosted data maintenance; no source deployment.
+Sean subsequently confirmed that the supplied Sleeper scores already include
+the bonuses. The initial settlement added them a second time; the live correction
+at `2026-11-02T23:48:45Z` is authoritative. MW10 was still open with zero picks
+and queues. Under the week-row lock, its order was recomputed from the saved
+weekly deltas alone, with raw Sleeper season totals breaking ties. The three
+duplicate GTL additions are now zero; the bonus rows/margins remain, and their
+previous values and both orders are retained in the original settlement run's
+private `detail.commissionerBonusCorrection` audit. All picks and snapshots were
+hash-verified unchanged. The first-kickoff deadline is unchanged.
+
+The existing automation assumes bonuses are absent from Sleeper and adds them
+in GTL. That assumption is wrong for MW9; automatic bonus-accounting support
+needs its own source fix and release before it can be claimed correct for
+future commissioner-adjusted weeks. No bonus-inclusion detection is connected.
+
+The supplied FEPL screenshot agrees with all eight weekly points-for and
+points-against deltas from the stored `after-mw08` baseline to a fresh public
+Sleeper capture at `2026-11-02T23:28:21Z` (season 2026, state week 10). The six
+responses retain their raw-body SHA-256 provenance; only the existing trimmed
+form was saved through `gtl_epl_save_snapshot` as `after-mw9`. Raw captures and
+individual player data remain outside this public repository.
+
+An ordinary `gtl_epl_dispatch_jobs('settle')` run
+`13cbd5e0-7c97-4709-93a9-080c8a64ab16` collected the tenth final fixture and
+correctly stopped at `snapshot_pending` before the import. All ten fixtures are
+now final. The existing eight picks retain digest
+`f6d56eb4181d8d0430b7b4f4af97335e`; all seven earlier snapshots retain digest
+`0deee1439cb6851753964334187bb079` (MD5 of ordered complete row JSON).
+
+Live schedule/cron readback confirms seven enabled jobs. Snapshots run every
+15 minutes; settlement runs at 09:41 and 21:41 UTC; fixture collection at
+05:47 and 17:47 UTC; draft deadline resolution every five minutes. Reuse these
+jobs rather than adding a duplicate ChatGPT automation. M-33/M-35 correction
+and verified capture-interval RPCs are still absent: the current worker reports
+those optional capabilities unavailable and uses its legacy window-end path.
+This maintenance does not apply migrations, change cron, or establish future
+Tuesday correction/full-cycle acceptance.
+
+Settlement run `8b87b1b7-0ff9-4700-8427-fd3e08d432ed` succeeded after the import:
+three tied winning-margin additions were initially written and MW10 opened
+using the existing scoring/order functions. Those additions duplicated points
+already in Sleeper and were corrected as described above. MW9 is settled; its
+eight picks retain the same digest. The final draft order uses the supplied
+scores as shown and the season-total tie-break. Individual scores/picks were
+verified privately, not committed here.
+
+Fixture run `36d05e98-a65c-42eb-a07c-2b004d270a7d` then succeeded: ten MW10
+fixtures and twenty median h2h prices were stored, no unknown clubs, 485 free
+credits remaining. The real first kickoff moved the draft deadline to
+`2026-11-06T20:00:00Z` (November 6, noon Pacific). All earlier snapshots still
+match their preservation digest. MW10 is open with a usable fixture slate.
+
+Local verification: all 53 existing Sleeper math/job tests and the document
+brand check passed. Hosted readback confirmed the imported label/state and
+unchanged preservation digests; browser/phone acceptance remains separate.
 
 ## My bets spacing and entry follow-up — November 2, 2026
 
