@@ -530,8 +530,9 @@ for (const theme of ['dark', 'light']) {
           height: l.height, chevronFirst: c.right <= l.left, cut: label.scrollWidth > label.clientWidth, lip: el.getBoundingClientRect().height };
       });
       expect(m, `${width}`).toMatchObject({ size: '16px', line: '24px', weight: '700', transform: 'none', color: text2, chevronFirst: true, cut: false });
-      // One line at 390; at 320 the long name wraps to two lines instead of losing its end to "…" (AUD-01).
-      expect(m.height, `${width}: lines`).toBeLessThanOrEqual(width === 390 ? 24.5 : 48.5);
+      // The long name wraps to a second line where it cannot fit (at 320, and at 390 in a wider fallback font) instead of
+      // losing its end to "…" (AUD-01); it never takes a third.
+      expect(m.height, `${width}: lines`).toBeLessThanOrEqual(48.5);
       expect(m.lip).toBeGreaterThanOrEqual(44);
     }
   });
