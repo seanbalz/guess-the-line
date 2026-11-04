@@ -11,7 +11,7 @@ import { useNewCount } from '../moments/MomentsProvider.jsx';
 import { SCOPES } from '../moments/catalog.js';
 import { useBetWins } from './useBetWins.js';
 import { BETS_COPY, betsClock, betsHero, betsTiles, clockUntil } from './betsModel.js';
-import { BETS_NAMES, HERO_ACTION_ID, openSection, openView, tileId } from './betsNav.js';
+import { BETS_NAMES, HERO_ACTION_ID, openView, tileId } from './betsNav.js';
 import '../ui/focusLanding.css';
 import './landing.css';
 
@@ -30,11 +30,11 @@ export function BetsLanding() {
   const now = useServerNow(data ? betsClock(data) : null, at, { until: clockUntil(data) });
   const hero = data || none ? betsHero({ personal: data, tickets, viewer: app.accountId, now }) : null;
   const retry = () => app.refresh({ only: ['personal'] });
-  const tiles = betsTiles({ personal: data, community: app.community?.data ?? null, tickets, now, viewer: app.accountId, communityShowing: app.league?.community !== false, waitingWins });
+  const tiles = betsTiles({ personal: data, community: app.community?.data ?? null, tickets, now, viewer: app.accountId, communityShowing: app.league?.community !== false, waitingWins, failed });
   return <section className="gx-screen gx-b-landing" data-landing="bets">
     <div className="gx-focus-heading"><h1 className="gx-t-title">{BETS_NAMES.title}</h1></div>
     {hero ? <NextMoveCard className="gx-b-hero" data-bets="hero" data-kind={hero.kind} eyebrow={hero.eyebrow} title={hero.title}
-      picture={<Meter value={hero.meter.done} max={hero.meter.of}/>} line={hero.line} lineProps={{ 'data-bets': 'hero-line' }}
+      picture={hero.meter ? <Meter value={hero.meter.done} max={hero.meter.of}/> : null} line={hero.line} lineProps={{ 'data-bets': 'hero-line' }}
       action={{ id: HERO_ACTION_ID, label: hero.action, onClick: () => openView(shell, hero.target) }}/>
       : loading ? <Skeleton label={BETS_COPY.loading} shape="landing" hero="meter" count={5} className="gx-b-skel"/>
       : <Card variant="s2" role="alert" data-bets="failed"><p className="gx-t-body">{BETS_COPY.failed}</p><Button onClick={retry}>{BETS_COPY.tryAgain}</Button></Card>}
@@ -42,7 +42,7 @@ export function BetsLanding() {
     {loading ? null : <ul className="gx-tiles gx-stagger" data-enter={enter} aria-label="Bets sections" data-bets="tiles">
       {tiles.map(tile => <li key={tile.key} data-tile={tile.key}>
         <Tile id={tileId(tile.key)} label={tile.label} icon={tile.icon} big={tile.big} sub={tile.sub} isNew={tile.isNew} ariaLabel={tile.ariaLabel}
-          picture={tile.faces?.length ? <AvatarStack people={tile.faces} max={3} size={24}/> : null} onClick={() => openSection(shell, tile.key)}/></li>)}
+          picture={tile.faces?.length ? <AvatarStack people={tile.faces} max={3} size={24}/> : null} onClick={() => openView(shell, tile.view)}/></li>)}
     </ul>}
   </section>;
 }

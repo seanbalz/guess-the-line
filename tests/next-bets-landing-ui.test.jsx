@@ -66,9 +66,20 @@ describe('the Bets landing', () => {
     const failed = render({ status: 'error', data: null, error: { status: 0 }, at: null });
     expect(textOf(byAttr(failed, 'data-bets', 'failed')[0])).toContain('This week didn’t load.');
     expect(byAttr(failed, 'data-bets', 'tiles')).toHaveLength(1);
-    const stale = render({ ...ready, status: 'error', error: { status: 0 } });
+    expect(nameFrom(tiles(failed)[1])).toBe('Your picks, not loaded');
+    expect(nameFrom(tiles(failed)[4])).toBe('Your gap, not loaded');
+    expect(textOf(tiles(failed)[1])).toContain('Not loaded');
+    const stale = render({ ...ready, error: { status: 0 } });
     expect(stale).toContain('This week could not refresh. Showing the last loaded update.');
     expect(byAttr(stale, 'data-bets', 'hero')).toHaveLength(1);
+  });
+  it('while tickets load there is no 0-of-5 meter on the Track a bet card', () => {
+    state.tickets = { loading: true, error: null, data: null };
+    const html = render({ status: 'error', data: null, error: { status: 404 }, at: null });
+    state.tickets = { loading: false, error: null, data: { entries: [] } };
+    const [hero] = byAttr(html, 'data-bets', 'hero');
+    expect([...walk(hero)].filter(n => (n.attrs?.class ?? '').includes('gx-meter3-seg'))).toHaveLength(0);
+    expect(textOf(byAttr(html, 'data-bets', 'hero-line')[0])).toBe('Loading your tickets…');
   });
   it('NEW only on My bets while a tracked win waits for its card', () => {
     state.waiting = 1;

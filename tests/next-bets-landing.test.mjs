@@ -41,7 +41,7 @@ test('once every game kicked off, or with no week: Track a bet, your last five s
     title: 'Track a bet', meter: { done: 2, of: 5 }, line: '2 of your last 5 settled tickets won', action: 'Add a bet', target: 'add' });
   for (const [read, line] of [[tickets([]), 'No settled tickets yet'], [{ loading: true, data: null }, 'Loading your tickets…'], [{ loading: false, error: { status: 0 }, data: null }, 'Your tickets didn’t load']]) {
     const hero = betsHero({ personal: null, tickets: read, viewer: LUKE });
-    assert.deepEqual([hero.kind, hero.week, hero.line, hero.meter], ['track', null, line, { done: 0, of: 5 }]);
+    assert.deepEqual([hero.kind, hero.week, hero.line, hero.meter], ['track', null, line, read.loading || read.error ? null : { done: 0, of: 5 }], 'no "0 of 5" picture while tickets load or failed');
   }
   assert.equal(betsHero({ tickets: tickets([ticket('a', 'win', '2026-11-01T00:00:00Z')]), viewer: LUKE }).line, '1 of your last 1 settled ticket won');
 });
@@ -72,6 +72,25 @@ test('five tiles in order with distinct glyphs; NEW only on My bets', () => {
   const none = betsTiles({ personal: null, community: null, tickets: { loading: true }, viewer: LUKE, communityShowing: false });
   assert.deepEqual(none.map(t => t.big), ['—', '—', '—', '—', '—']);
   assert.deepEqual([none[1].sub, none[2].sub, none[2].faces, none[4].sub], ['No week open', 'Friends’ picks', null, 'No week open']);
+});
+
+test('a failed /personal read says Not loaded on Your picks and Your gap, never "No week open"', () => {
+  const tiles = betsTiles({ personal: null, community: null, tickets: tickets([]), viewer: LUKE, failed: true });
+  assert.deepEqual([tiles[1].big, tiles[1].sub, tiles[1].ariaLabel], ['—', 'Not loaded', 'Your picks, not loaded']);
+  assert.deepEqual([tiles[4].big, tiles[4].sub, tiles[4].ariaLabel], ['—', 'Not loaded', 'Your gap, not loaded']);
+  assert.equal(betsTiles({ personal: null, community: null, tickets: tickets([]), viewer: LUKE })[1].sub, 'No week open', 'a 404 is still no week');
+});
+
+test('one player is "1 player", not "1 players"', () => {
+  const one = betsTiles({ personal: personal(), community: { ...community, members: [{ id: LUKE, displayName: 'Luke' }] }, tickets: tickets([]), now: ms('2026-11-08T19:00:00Z'), viewer: LUKE })[2];
+  assert.deepEqual([one.big, one.sub, one.ariaLabel], ['1', 'player', 'Everyone, 1 player, friends’ Virtual Units picks']);
+});
+
+test('the My bets tile opens Settled tickets while a win waits (so opening it plays the moment), else Active', () => {
+  const at = waitingWins => betsTiles({ personal: personal(), community, tickets: tickets([]), viewer: LUKE, waitingWins });
+  assert.equal(at(1)[0].view, 'settled');
+  assert.equal(at(0)[0].view, 'active');
+  assert.deepEqual(at(0).slice(1).map(t => t.view), ['virtual', 'everyone', 'research', 'recommended']);
 });
 
 test('D-31: no line, pick or market value reaches the landing; no surface line over twelve words', () => {
