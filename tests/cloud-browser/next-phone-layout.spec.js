@@ -126,12 +126,12 @@ test('a League week with games, every disclosure open, fits a phone at 320 and 3
   }
 });
 
-// Contract (design fixes, November 4, 2026): on Research › Games at 320 px with text enlarged to 200% (WCAG 1.4.4),
-// every team's whole name and record stay inside their card. A name may wrap, never spill, clip or end in "…" (AUD-01
-// kept full team names); the record wraps under it first, so a name that fits its line is never split inside a word;
-// and the two team rows never run into each other. A browser's 200% text setting doubles px
-// type, so the check doubles each card element's computed font size and line height after the quotes have settled.
-test('Research › Games keeps whole team names and records inside their cards at 320 px with 200% text', async ({ page, baseURL }) => {
+// Contract (design fixes, November 4, 2026; carried onto picture rows by D-69 step 3): on Research › Games at 320 px with
+// text enlarged to 200% (WCAG 1.4.4), everything a game row says (the matchup, the records line, the Spread and its
+// word) stays inside the row and inside the screen. Text may wrap, never spill, clip or end in "…"; the name block and
+// the number block never run into each other. A browser's 200% text setting doubles px type, so the check doubles each
+// row element's computed font size and line height after the quotes have settled.
+test('Research › Games keeps whole matchups and records inside their rows at 320 px with 200% text', async ({ page, baseURL }) => {
   const world = await communityWorld(page, baseURL, { migrations: ALL, optionalRpc: true, prepare: WEEK6 });
   try {
     await page.addInitScript(() => localStorage.setItem('gtl.app', 'next'));
@@ -141,43 +141,30 @@ test('Research › Games keeps whole team names and records inside their cards a
     await page.setViewportSize({ width: 320, height: 844 });
     for (const wide of [false, true]) {
       await open(page, '#research/games', wide);
-      await expect(page.locator('.gx-l-card')).toHaveCount(2);
-      await expect(page.locator('.gx-l-card [data-cell="loading"]')).toHaveCount(0);
+      await expect(page.locator('button.gx-prow[data-game]')).toHaveCount(2);
+      await expect(page.locator('button.gx-prow [data-cell="loading"]')).toHaveCount(0);
       const spills = await page.evaluate(() => {
-        const cards = [...document.querySelectorAll('.gx-l-card')];
-        const was = cards.flatMap(card => [card, ...card.querySelectorAll('*')]).filter(el => !el.closest('svg')).map(el => [el, getComputedStyle(el)]).map(([el, cs]) => [el, parseFloat(cs.fontSize), cs.lineHeight]);
+        const rows = [...document.querySelectorAll('button.gx-prow[data-game]')];
+        const was = rows.flatMap(row => [row, ...row.querySelectorAll('*')]).filter(el => !el.closest('svg')).map(el => [el, getComputedStyle(el)]).map(([el, cs]) => [el, parseFloat(cs.fontSize), cs.lineHeight]);
         for (const [el, size, leading] of was) {
           el.style.setProperty('font-size', `${size * 2}px`, 'important');
           if (leading !== 'normal') el.style.setProperty('line-height', `${parseFloat(leading) * 2}px`, 'important');
         }
         const out = [], inside = (r, box) => r.left >= box.left - 1 && r.right <= box.right + 1;
-        for (const card of cards) {
-          const c = card.getBoundingClientRect(), teams = [...card.querySelectorAll('.gx-l-team')];
-          if (!inside(c, { left: 0, right: document.documentElement.clientWidth })) out.push(`${card.dataset.game}: card leaves the screen`);
-          if (teams.length !== 2) out.push(`${card.dataset.game}: ${teams.length} team rows`);
-          else if (teams[0].getBoundingClientRect().bottom > teams[1].getBoundingClientRect().top + 1) out.push(`${card.dataset.game}: the team rows overlap`);
-          for (const team of teams) {
-            const t = team.getBoundingClientRect();
-            if (!inside(t, c)) out.push(`${team.textContent}: team row leaves its card`);
-            // The mark's own code letters are hidden once its logo loads; everything else with text is checked.
-            for (const el of team.querySelectorAll('*')) {
-              if (el.closest('.gx-team')) continue;
-              const r = el.getBoundingClientRect();
-              for (const node of el.childNodes) {
-                if (node.nodeType !== 3 || !node.textContent.trim()) continue;
-                const range = document.createRange();
-                range.selectNodeContents(node);
-                for (const rect of range.getClientRects()) if (rect.width && !(inside(rect, r) && inside(rect, t) && inside(rect, c))) out.push(`"${node.textContent.trim()}" leaves its box`);
-              }
-              if (el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).overflowX !== 'visible') out.push(`"${el.textContent.trim()}" is clipped`);
+        for (const row of rows) {
+          const c = row.getBoundingClientRect(), main = row.querySelector('.gx-prow-main').getBoundingClientRect(), end = row.querySelector('.gx-prow-end').getBoundingClientRect();
+          if (!inside(c, { left: 0, right: document.documentElement.clientWidth })) out.push(`${row.dataset.game}: row leaves the screen`);
+          if (main.right > end.left + 1) out.push(`${row.dataset.game}: the name block runs into the Spread`);
+          for (const el of row.querySelectorAll('*')) {
+            if (el.closest('.gx-team') || el.closest('svg')) continue; // the mark's own code letters are hidden once its logo loads
+            const r = el.getBoundingClientRect();
+            for (const node of el.childNodes) {
+              if (node.nodeType !== 3 || !node.textContent.trim()) continue;
+              const range = document.createRange();
+              range.selectNodeContents(node);
+              for (const rect of range.getClientRects()) if (rect.width && !(inside(rect, r) && inside(rect, c))) out.push(`"${node.textContent.trim()}" leaves its box`);
             }
-            // The record gives way first: a name that fits on one line beside the mark is never broken inside a word.
-            const name = team.querySelector('.gx-t-strong'), cs = getComputedStyle(name), measure = document.createElement('canvas').getContext('2d');
-            measure.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
-            const range = document.createRange();
-            range.selectNodeContents(name);
-            const lines = new Set([...range.getClientRects()].filter(r => r.width).map(r => Math.round(r.top))).size;
-            if (lines > 1 && measure.measureText(name.textContent).width <= name.parentElement.getBoundingClientRect().width - 1) out.push(`"${name.textContent}" breaks although it fits on one line`);
+            if (el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).overflowX !== 'visible') out.push(`"${el.textContent.trim()}" is clipped`);
           }
         }
         return [...new Set(out)];

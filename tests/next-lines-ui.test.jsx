@@ -89,54 +89,52 @@ const textOf = n => [...walk(n)].filter(x => x.text !== undefined).map(x => x.te
 afterEach(() => { state.lines = null; state.wind = null; state.officials = null; state.openRows = false; state.research = null; state.teams = null; });
 
 describe('the Lines board', () => {
-  it('a lock is an icon on every closed market, never "—"; your tags; current quote; at most three trend lines', () => {
+  it('picture rows: a lock and "Locked" on every closed Spread, never "—"; the Total, your tags and the trend lines said in each row’s name', () => {
     state.lines = data();
     const html = render(<LinesBoard/>);
     expect(markupProblems(html)).toEqual([]);
-    const cards = nodes(html, n => n.attrs['data-game']);
-    expect(cards).toHaveLength(14);
+    expect(nodes(html, n => n.tag === 'h1').map(textOf)).toEqual(['Games']);
+    const rows = nodes(html, n => n.tag === 'button' && n.attrs['data-game']);
+    expect(rows).toHaveLength(14);
+    for (const row of rows) expect(row.attrs.id).toBe(`gx-l-row-${row.attrs['data-game']}`);
     const locked = nodes(html, attr('data-cell', 'locked'));
     expect(locked).toHaveLength(14, 'every Spread is closed (drafts only)');
     for (const cell of locked) {
       expect(cell.children.filter(c => c.tag === 'svg')).toHaveLength(1);
       expect(textOf(cell)).toBe('');
     }
-    // Every Total is open: the reader fixture carries one quote; missing quotes are not locks.
-    expect(nodes(html, attr('data-cell', 'line')).map(textOf)).toEqual(['43.5 Current line']);
-    expect(nodes(html, attr('data-cell', 'none'))).toHaveLength(13);
-    expect(nodes(html, attr('data-cell', 'none')).every(n => textOf(n) === '— Unavailable')).toBe(true);
-    const sea = cards.find(attr('data-game', 'SEA-DEN'));
-    expect(textOf(sea)).toContain('You −4');
+    expect(nodes(html, n => (n.attrs.class ?? '').split(' ').includes('gx-prow-word')).map(textOf)).toEqual(Array(14).fill('Locked'));
+    const sea = rows.find(attr('data-game', 'SEA-DEN'));
     expect(sea.attrs['aria-label']).toContain('Spread line hidden. Total 43.5. Current line. fixture. Updated');
-    const chips = nodes(html, n => n.attrs['data-chip'] === 'trend');
-    expect(chips.length).toBeLessThanOrEqual(3);
-    for (const card of cards) expect([...walk(card)].filter(n => n.attrs?.['data-chip']).length).toBeLessThanOrEqual(1);
-    // D-55: the credits and "Line now arrives…" are behind the title's ⓘ.
+    expect(sea.attrs['aria-label']).toContain('Your spread pick');
+    expect(textOf(sea)).not.toContain('You −4'); // your saved guess is in the row's name and the game layer, not its face
+    const trends = rows.filter(row => /Trend: /.test(row.attrs['aria-label']));
+    expect(trends.length).toBeLessThanOrEqual(3);
+    for (const row of rows) expect((row.attrs['aria-label'].match(/(Trend|Kickoff weather): /g) ?? []).length).toBeLessThanOrEqual(1);
+    expect(nodes(html, n => n.attrs['data-chip'])).toHaveLength(0);
     expect(nodes(html, n => n.tag === 'button' && n.attrs['aria-label'] === 'About trends')).toHaveLength(1);
     expect(text(html)).not.toContain('Line now arrives in a later update.');
-    // The forged line under the closed Spread (−11.5) never shows.
     expect(text(html)).not.toContain('11.5');
   });
 
-  it('D-62: each team\'s record sits beside its name in text-2 numbers and is said after the matchup; the row stays one button', () => {
+  it('D-62: each row’s meta line is the two records in text-2, said after the matchup; the row stays one button', () => {
     state.lines = data();
     const record = (w, l, t = 0) => ({ overall: { w, l, t }, home: null, road: null, pointsFor: null, pointsAgainst: null, games: [] });
     const season = year => ({ status: 'ready', data: { season: year, throughWeek: 6, fallback: false, teams: { SEA: record(3, 2), DEN: record(2, 2, 1) } } });
     state.teams = season(2026);
     const html = render(<LinesBoard/>);
     expect(markupProblems(html)).toEqual([]);
-    const cards = Object.fromEntries(nodes(html, n => n.attrs['data-game']).map(n => [n.attrs['data-game'], n]));
-    const recs = card => [...walk(card)].filter(n => n.attrs?.class === 'gx-l-rec').map(textOf);
-    expect(recs(cards['SEA-DEN'])).toEqual(['3–2', '2–2–1']);
-    expect(cards['SEA-DEN'].attrs['aria-label']).toMatch(/^Seahawks at Broncos, \w{3} [^.]+ PT\. Records: Seahawks 3–2, Broncos 2–2–1\. Spread line hidden\./);
-    expect([...walk(cards['SEA-DEN'])].filter(n => n.tag === 'button'), 'no team buttons nested in the row').toHaveLength(0);
-    expect(recs(cards['HOU-JAX']), 'a team the read does not have shows no record').toEqual([]);
-    // A file for another season never labels this week's games.
+    const rows = Object.fromEntries(nodes(html, n => n.tag === 'button' && n.attrs['data-game']).map(n => [n.attrs['data-game'], n]));
+    const meta = row => [...walk(row)].filter(n => (n.attrs?.class ?? '').split(' ').includes('gx-prow-meta')).map(textOf);
+    expect(meta(rows['SEA-DEN']).join(' ')).toMatch(/3–2.*2–2–1/);
+    expect(rows['SEA-DEN'].attrs['aria-label']).toMatch(/^Seahawks at Broncos, \w{3} [^.]+ PT\. Records: Seahawks 3–2, Broncos 2–2–1\. Spread line hidden\./);
+    expect([...walk(rows['SEA-DEN'])].filter(n => n.tag === 'button'), 'no team buttons nested in the row').toHaveLength(0);
+    expect(meta(rows['HOU-JAX']), 'a team the read does not have shows no record').toEqual([]);
     state.teams = season(2025);
-    expect(render(<LinesBoard/>)).not.toContain('gx-l-rec');
+    expect(render(<LinesBoard/>)).not.toContain('3–2');
   });
 
-  it('one weather word per card from the week\'s forecasts (D-45), never digits; a trend line keeps its place; none for a dome', () => {
+  it('D-45: one weather word per game in the row’s name from the week’s forecasts, never digits; a trend keeps its place; none for a dome', () => {
     state.lines = data();
     const forecast = (id, values) => {
       const g = week.games.find(x => x.id === id), k = Date.parse(g.kickoff);
@@ -149,15 +147,15 @@ describe('the Lines board', () => {
     } } };
     const html = render(<LinesBoard/>);
     expect(markupProblems(html)).toEqual([]);
-    const cards = Object.fromEntries(nodes(html, n => n.attrs['data-game']).map(n => [n.attrs['data-game'], n]));
-    const chip = id => [...walk(cards[id])].find(n => n.attrs?.['data-chip']);
-    expect(chip('SEA-DEN').attrs['data-chip']).toBe('weather');
-    expect(textOf(chip('SEA-DEN'))).toBe('Windy');
-    expect([...walk(chip('SEA-DEN'))].filter(n => n.tag === 'svg'), 'a weather word, not the trend diamond').toHaveLength(0);
-    expect(cards['SEA-DEN'].attrs['aria-label']).toContain('Kickoff weather: Windy.');
-    expect(chip('NO-NYG').attrs['data-chip'], 'its trend line keeps the one chip').toBe('trend');
-    expect(chip('BUF-LV')).toBeUndefined();
-    for (const node of nodes(html, attr('data-chip', 'weather'))) expect(textOf(node)).not.toMatch(/\d/);
+    const name = id => nodes(html, n => n.tag === 'button' && n.attrs['data-game'] === id)[0].attrs['aria-label'];
+    expect(name('SEA-DEN')).toContain('Kickoff weather: Windy.');
+    expect(name('NO-NYG')).toMatch(/Trend: /);
+    expect(name('NO-NYG')).not.toContain('Kickoff weather');
+    expect(name('BUF-LV')).not.toContain('Kickoff weather');
+    for (const row of nodes(html, n => n.tag === 'button' && n.attrs['data-game'])) {
+      const word = row.attrs['aria-label'].match(/Kickoff weather: ([^.]+)\./)?.[1];
+      if (word) expect(word).not.toMatch(/\d/);
+    }
   });
 
   it('says what is happening while the week loads, when it is not published and when the read fails', () => {
@@ -172,18 +170,18 @@ describe('the Lines board', () => {
     expect(nodes(failed, n => n.tag === 'button').map(n => textOf(n) || n.attrs['aria-label'])).toEqual(['About trends', 'Try again', 'Reload the app']);
   });
 
-  it('design upgrade: while the week loads, skeleton game cards stand in, with the words kept as the status a screen reader hears', () => {
+  it('design upgrade: while the week loads, skeleton game rows stand in, with the words kept as the status a screen reader hears', () => {
     state.lines = { ...data(), personal: { status: 'loading', data: null, error: null } };
     const html = render(<LinesBoard/>);
     expect(markupProblems(html)).toEqual([]);
     const [status] = nodes(html, attr('role', 'status'));
-    expect(status.attrs['data-skeleton']).toBe('cards');
+    expect(status.attrs['data-skeleton']).toBe('rows');
     expect(textOf(status)).toBe('Loading this week’s games…');
     const [words] = nodes(html, attr('class', 'gx-sr-only'));
     expect(textOf(words)).toBe('Loading this week’s games…');
     const [art] = nodes(html, attr('class', 'gx-skel-art'));
     expect(art.attrs['aria-hidden']).toBe('true');
-    expect(nodes(html, attr('class', 'gx-skel-card'))).toHaveLength(3);
+    expect(nodes(html, attr('class', 'gx-skel-row'))).toHaveLength(4);
     expect(textOf(art)).toBe('');
   });
 });
@@ -491,11 +489,13 @@ describe('the leak rule on the rendered markup, attributes included', () => {
   it('the after-kickoff state shows what it may: SEA @ DEN open, HOU @ JAX\'s own Total line, no other line', () => {
     state.lines = STATES['after SEA @ DEN kicked off'].lines;
     const html = render(<LinesBoard/>);
-    const cards = Object.fromEntries(nodes(html, n => n.attrs['data-game']).map(n => [n.attrs['data-game'], n]));
-    const cells = (id, kind) => [...walk(cards[id])].filter(n => n.attrs?.['data-cell'] === kind);
+    const rows = Object.fromEntries(nodes(html, n => n.tag === 'button' && n.attrs['data-game']).map(n => [n.attrs['data-game'], n]));
+    const cells = (id, kind) => [...walk(rows[id])].filter(n => n.attrs?.['data-cell'] === kind);
     expect(cells('SEA-DEN', 'locked')).toHaveLength(0);
-    expect(cells('HOU-JAX', 'line').map(textOf)).toEqual(['44.5 Current line']);
-    expect(cells('NO-NYG', 'locked')).toHaveLength(2);
+    expect(cells('HOU-JAX', 'locked'), 'its Spread stays closed').toHaveLength(1);
+    expect(rows['HOU-JAX'].attrs['aria-label'], 'its own Total line is said in the row name').toContain('Total 44.5');
+    expect(cells('NO-NYG', 'locked')).toHaveLength(1);
+    expect(rows['NO-NYG'].attrs['aria-label']).not.toMatch(/Total \d/);
   });
 });
 
