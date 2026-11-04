@@ -104,8 +104,8 @@ test('Trends code waits for a visit, including with saved Home trends, and its l
  };
  try {
   await nav(page).getByRole('button',{name:/^Home(,|$)/}).click();
-  await expect(page.locator('[data-home="saved-trends"]')).toBeVisible();
-  await expect(page.locator('[data-home="saved-trends"]')).not.toContainText('Checking');
+  // D-69 step 2 (H1A): Home's Trends tile counts the saved trends without loading the Trends code.
+  await expect(page.locator('[data-tile="trends"]').getByRole('button')).toHaveAccessibleName('Trends, 1 saved');
   expect(requests).toBe(0);
   await open();
   await expect(page.getByRole('region',{name:'Trends content'}).getByRole('status')).toHaveText('Loading trends…');
@@ -538,12 +538,14 @@ test('trend builder: conditions, honest result card, this week’s matches, save
   await group(page,'Trends section').getByRole('button',{name:'This Week',exact:true}).click();
   await expect(page.getByRole('region',{name:'Saved trends'})).toContainText('1 of 1 saved trend matches this week');
   await nav(page).getByRole('button',{name:'Home',exact:true}).click();
-  const row=page.locator('[data-home=saved-trends]');
-  await expect(row).toContainText('Saved trends · Matches this week');
-  await expect(row).toContainText('1 of 1 saved trend matches this week');
+  // D-69 step 2 (H1A): Home's Trends tile counts this device's saved trends (how many match this week stays on Trends ›
+  // This Week, above), survives a reload and opens the builder on them.
+  const trendsTile=page.locator('[data-tile="trends"]').getByRole('button');
+  await expect(trendsTile).toHaveAccessibleName('Trends, 1 saved');
+  await expect(trendsTile.locator('.gx-nest-num')).toHaveText('1'); await expect(trendsTile.locator('.gx-tile-sub')).toHaveText('saved');
   await page.reload();
-  await expect(page.locator('[data-home=saved-trends]')).toContainText('1 of 1 saved trend matches this week');
-  await page.locator('[data-home=saved-trends]').click();
+  await expect(trendsTile).toHaveAccessibleName('Trends, 1 saved');
+  await trendsTile.click();
   await expect(page.getByRole('heading',{name:'Build a trend',exact:true})).toBeVisible();
   await page.getByRole('button',{name:'Delete saved trend: Spread · Road team · Not a divisional game',exact:true}).click();
   await expect(page.getByText('No saved trends on this device yet.')).toBeVisible();
