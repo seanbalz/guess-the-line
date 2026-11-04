@@ -38,8 +38,11 @@ Sean: "Yes, switch to usage" (ask a19, Board item 64).
   - the comparison's this-week estimate with its Sample row.
 
   The home tile is not mounted anywhere (`homeTiles` in `web/src/next/fantasy/index.js` is empty), so it has no shot.
-- **Status:** **not released.** It lands with the first Fantasy refresh after merge, which needs Sean's OK on the
-  mockups. Published snapshots, reviews, Points slates and Houses are never recomputed.
+- **Status:**
+  - **Approval:** Sean OK'd the mockups ("OK, merge when clear").
+  - **Merge:** PR #468 merged as `7a10cbd3` on November 4 after #466.
+  - **Screen wording: released.** Sean said "Yes, release it". The frontend went out in check-only 41752810898, readiness 41752864340 (history digest `d40fdad9…08f1`) and deploy 41753107909 from `7a10cbd3`. The session approved both gates after checking each run title. The result is Pages `60fffc36`. A crawl of all 31 served chunks finds the new wording and no "statistical pace", "GTL pace estimate" or "Pace sample".
+  - **Numbers: not yet published.** They land with the next Fantasy refresh, which builds snapshots with method 2.0; the first one is still to be read back. Published snapshots, reviews, Points slates and Houses are never recomputed.
 
 ## Trends glass tiles (D-75) — November 3, 2026
 
@@ -54,7 +57,9 @@ Sean chose "5 · Top three, rest folded" for the Trends tiles and chart ([D-75](
 Local checks pass: 676 component tests, the router, token and trends-view node tests (`# skipped 0`), typecheck,
 Brand QA, and 13 cloud-browser cases. Those are next-trends with All trends and the fold, four-tab and phone layout,
 with axe at 320 and 390px in Light and Dark. They ran on a private port because 5198 was held by another server.
-Not released: Sean's OK on the 390px captures of the built screens comes first.
+**Released November 4 (UTC)** after Sean's "Looks good, release": the frontend from `472acf89` as Pages `5fe72e52`
+(run 41749126731). All 129 assets matched, and a signed-in readback passed. See the
+[release record](RELEASE_2026_11_04_TRENDS_GLASS.md).
 
 ## BetRivers backup book, D-74 — November 3, 2026
 
