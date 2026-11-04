@@ -8,7 +8,9 @@ hero card: the share of your gaps that beat the closing three-book line, the rec
 gap. The fine print and the 10%+ record are behind ⓘ. Rows you can still act on rank first within D-54's order. It is frontend only (`shared/recommended-bets.mjs`,
 `web/src/VirtualUnits.jsx`) and reads your own `/lines/read`. Local checks pass: unit tests of the grading, units and
 exclusions, and a browser test with four finished games (phone rules and axe in both themes). Sean approved the
-[captures](../design/recommended-gap-record-2026-11-03/README.md): "Ok". **Not released yet.**
+[captures](../design/recommended-gap-record-2026-11-03/README.md): "Ok". **Released** November 4, 2026 06:42 UTC
+with #474 and #473 (Sean: "Ship all three"): Pages `62e6b278` from `main` at `a10d28e9`, run 41787052379; see the
+[release record](RELEASE_2026_11_04_RECOMMENDED_GAP.md).
 
 ## D-69 design overhaul, step 1: Play — November 3, 2026
 
