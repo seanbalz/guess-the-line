@@ -429,7 +429,7 @@ textarea.gx-input { min-height: 96px; padding: 12px 16px; resize: vertical; }
 /* Sits on a tab icon (position: relative); one per tab at most. Clear of the active tab's marker above it. */
 .gx-counter {
   position: absolute;
-  top: -4px;
+  top: -3px;
   left: 15px;
   min-width: 18px;
   height: 18px;
