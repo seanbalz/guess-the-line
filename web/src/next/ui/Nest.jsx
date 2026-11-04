@@ -7,6 +7,7 @@ import { useLayoutEffect, useRef } from 'react';
 import { cx } from './cx.js';
 import { hasNavigated, tabFading } from '../moments/launch.js';
 import './nest.css';
+import './press.css';
 
 /** At 320px three steps still leave the card 254px of content. */
 export const NEST_MAX_STEPS = 3;
@@ -47,8 +48,8 @@ export function Nest({ label, lips = [], layer, title, info, children, className
         <nav className="gx-nest-lips" aria-label={`${label} layers`}>
           {lips.map((lip, i) => (
             <button key={lip.key} type="button" className="gx-nest-lip" style={depth(i)} onClick={lip.onOpen}>
-              <span className="gx-sr-only">Back to </span><span className="gx-nest-lip-label">{lip.label}</span>
               {i === lips.length - 1 ? <ChevronLeft size={16} aria-hidden="true"/> : null}
+              <span className="gx-sr-only">Back to </span><span className="gx-nest-lip-label gx-t-strong">{lip.label}</span>
             </button>
           ))}
         </nav>

@@ -10,7 +10,6 @@
 .gx .gx-league-comment { display: flex; align-items: flex-start; gap: var(--gx-space-2); }
 .gx .gx-league-comment > div { min-width: 0; }
 .gx .gx-league-reply { padding: var(--gx-space-3); background: var(--gx-surface-2); border-radius: var(--gx-radius-sm); }
-.gx .gx-league-reply[hidden] { display: none; }
 .gx .gx-league-reply .gx-btn { align-self: flex-start; }
 .gx .gx-league .gx-row { min-height: 72px; height: auto; }
 .gx .gx-league .gx-row-title,

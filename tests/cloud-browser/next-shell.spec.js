@@ -179,6 +179,68 @@ test.describe('the real app', () => {
     } finally { await world.db.close(); }
   });
 
+  test('a page or a route\'s content region that takes focus after navigation draws no ring (audit A19)', async ({ page, baseURL }) => {
+    test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+    const { world } = await openNewApp(page, baseURL);
+    try {
+      // On a fresh load programmatic focus counts as visible (`visible: true` below), which is how History's capture drew
+      // a full-width ring above and below the page. The page and a content region are not controls, so no ring.
+      const focusOn = selector => page.evaluate(sel => {
+        const el = document.querySelector(sel);
+        el.focus({ preventScroll: true });
+        const s = getComputedStyle(el);
+        return { focused: document.activeElement === el, visible: el.matches(':focus-visible'), outline: s.outlineStyle };
+      }, selector);
+      await load(page, '#history');
+      await expect(page.getByRole('heading', { name: 'History' }).first()).toBeVisible({ timeout: 30000 });
+      // History is a page in place of the tab's screen: the page host takes focus when it opens, then <main> as a target.
+      await expect(page.locator('.gx-page')).toBeFocused();
+      expect(await focusOn('.gx-page')).toEqual({ focused: true, visible: true, outline: 'none' });
+      expect(await focusOn('.gx-main')).toEqual({ focused: true, visible: true, outline: 'none' });
+      await load(page, '#research/fantasy');
+      await expect(page.getByRole('region', { name: 'Fantasy content', exact: true })).toBeVisible({ timeout: 30000 });
+      expect(await focusOn('[role="region"][data-route-focus]')).toEqual({ focused: true, visible: true, outline: 'none' });
+      // Keyboard focus on a control still shows the 2px ring.
+      await page.keyboard.press('Tab');
+      expect(await page.evaluate(() => { const s = getComputedStyle(document.activeElement); return `${s.outlineStyle} ${s.outlineWidth}`; })).toBe('solid 2px');
+      expect(world.errors).toEqual([]);
+    } finally { await world.db.close(); }
+  });
+
+  test('the active tab\'s marker takes the 1px accent-ink edge in Light and keeps its glow in Dark, and the counter sits clear of it (audit A11)', async ({ page, baseURL }) => {
+    test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+    const { world } = await openNewApp(page, baseURL);
+    try {
+      for (const theme of ['dark', 'light']) {
+        await page.evaluate(value => localStorage.setItem('gtl.theme', value), theme);
+        await load(page, '#play');
+        await expect(title(page, 'Play')).toBeVisible();
+        await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+        await expect(tabBar(page).locator('.gx-counter')).toHaveCount(1);
+        const m = await page.evaluate(() => {
+          const probe = document.createElement('span');
+          document.querySelector('.gx').append(probe);
+          probe.style.boxShadow = 'var(--gx-lime-edge)';
+          const edge = getComputedStyle(probe).boxShadow;
+          probe.style.boxShadow = 'var(--gx-glow-accent)';
+          const glow = getComputedStyle(probe).boxShadow;
+          probe.remove();
+          const tab = document.querySelector('.gx-tab--on'), marker = getComputedStyle(tab, '::before');
+          const counter = tab.querySelector('.gx-counter');
+          // The counter's own 1px ring is part of what you see, so its top edge is the box minus that ring.
+          const ring = parseFloat(getComputedStyle(counter).boxShadow.match(/(-?[\d.]+)px$/)?.[1] ?? '0');
+          return { marker: marker.boxShadow, edge, glow, height: marker.height,
+            gap: Math.round((counter.getBoundingClientRect().top - ring - (tab.getBoundingClientRect().top + parseFloat(marker.height))) * 10) / 10 };
+        });
+        expect(m.height).toBe('3px');
+        expect(m.marker, theme).toBe(theme === 'light' ? m.edge : m.glow);
+        // The Play counter, ring included, starts below the marker's bar instead of running into it (top: -7px did).
+        expect(m.gap, `${theme}: gap between the marker and the counter`).toBeGreaterThan(0);
+      }
+      expect(world.errors).toEqual([]);
+    } finally { await world.db.close(); }
+  });
+
   test('the old app\'s links: /#picks opens guesses, /#feed opens League inside Play, /#groups opens the switcher and Back closes it', async ({ page, baseURL }) => {
     test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
     const { world, calls } = await openNewApp(page, baseURL, '#picks');

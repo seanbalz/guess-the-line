@@ -1,7 +1,6 @@
 .gx .gx-bets .gx-ticket-tracker .gx-tracked-feed { gap: var(--gx-space-7); border: 0; border-radius: 0; box-shadow: none; overflow: visible; }
 .gx .gx-tracked-row { min-width: 0; background: var(--gx-surface-1); border: 1px solid var(--gx-border); border-radius: var(--gx-radius-md); overflow: hidden; }
 .gx .gx-tracked-preview { display: flex; flex-direction: column; align-items: stretch; gap: var(--gx-space-4); width: 100%; min-height: var(--gx-size-touch); padding: var(--gx-space-5); border: 0; border-radius: var(--gx-radius-md); background: transparent; color: var(--gx-text-1); text-align: start; cursor: pointer; }
-.gx .gx-tracked-preview[hidden],.gx .gx-tracked-expanded[hidden] { display: none; }
 .gx .gx-tracked-preview:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: -4px; }
 .gx .gx-tracked-preview-head { display: flex; justify-content: space-between; align-items: center; gap: var(--gx-space-3); }
 .gx .gx-tracked-preview-head > span:first-child { min-width: 0; overflow-wrap: anywhere; color: var(--gx-text-2); font: 500 13px/18px var(--gx-font-body); }
