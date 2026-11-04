@@ -66,15 +66,25 @@ test('four simple roots, detail origins, reload and phone geometry', async ({ pa
     await expect(page.locator('[data-landing="research"]')).toBeVisible();
     await page.getByRole('button', { name: /^Trends/ }).click();
     await expect(page.getByRole('heading', { name: 'Trends', exact: true })).toBeVisible();
-    // D-66: This Week is nesting cards; the game sheet is one layer in, inside a game.
+    // D-66: This Week is nesting cards; a game is one layer in. D-69 step 3: its Game details opens Research › Games ›
+    // that game as a layer (no longer a dialog), and the All trends sheet still opens over it.
     await page.locator('[data-game]').first().click();
-    await page.getByRole('button', { name: /^Game details/ }).first().click();
-    await expect(page.getByRole('dialog').last()).toBeVisible();
-    await page.getByRole('button', { name: /^All trends/ }).click();
+    const details = page.getByRole('button', { name: /^Game details/ }).first();
+    await details.click();
+    const game = page.locator('[data-research="game"]');
+    await expect(game).toBeVisible();
+    await expect(page).toHaveURL(/#research\/games\?(.*&)?layer=game&item=/);
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await game.getByRole('button', { name: /^All trends/ }).click();
     await expect(page.getByRole('dialog', { name: 'All trends', exact: true })).toBeVisible();
+    // Escape closes the sheet only; the game layer stays.
     await page.keyboard.press('Escape');
-    await page.keyboard.press('Escape');
-    // Back closes the game layer first, then returns to the Research landing.
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(game).toBeVisible();
+    // Back closes one layer at a time: the game layer to Trends' game, that game to This week, then the Research landing.
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await expect(game).toHaveCount(0);
+    await expect(details).toBeVisible();
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await expect(page.getByRole('heading', { level: 2, name: 'This week', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Back', exact: true }).click();
