@@ -195,6 +195,8 @@ export function LeagueScreen() {
   const community = app.league.community === true, leagueId = community ? null : app.league.id;
   const features = useFeatures(app, shell);
   const feed = useLeagueFeed({ accountId: app.accountId, leagueId, onRefused: error => { if (error.status === 401) app.requestSignIn?.(); else app.refresh({ only: [community ? 'community' : 'lobby'] }); } });
+  // The refusal clears only when the group's own state read answers (PrivateLeague, mounted on the board), so the feed layer's
+  // "Try again" goes back to the board, where that read runs again.
   // A private group that refused its read shows none of its posts: not in the landing's preview, not in the feed layer.
   const [refusal, setRefusal] = useState(null), groupKey = `${app.accountId}:${app.league.id}`;
   const onRead = error => setRefusal(error ? { key: groupKey, error } : null);
@@ -210,7 +212,7 @@ export function LeagueScreen() {
   let body;
   if (place.layer === 'feed') {
     body = <PlayLayer label="League feed" parents={[toBoard]} layer="league:feed" title={LEAGUE_COPY.feed}>
-      {gone ? <LeagueFailure error={gone} onRetry={() => { setRefusal(null); app.refresh({ only: ['lobby'] }); feed.retry(); }}/> : waiting ?? <FeedView feed={feed} app={app} leagueId={leagueId} leagueName={app.league.name} fresh={fresh} arrived={arrived}
+      {gone ? <LeagueFailure error={gone} onRetry={() => { app.refresh({ only: ['lobby'] }); feed.retry(); set({ view: 'board', week: null }); }}/> : waiting ?? <FeedView feed={feed} app={app} leagueId={leagueId} leagueName={app.league.name} fresh={fresh} arrived={arrived}
         legacy={community ? <CommunityFeed key={app.accountId} feed={app.community.data} app={app}/> : null}/>}
     </PlayLayer>;
   } else if (community && place.layer !== 'board') {

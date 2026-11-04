@@ -247,7 +247,13 @@ test('a group whose standings read is refused shows none of its posts even thoug
     await expect(region(page).getByRole('heading', { name: 'Feed', level: 2 })).toBeVisible();
     await expect(region(page).getByRole('alert')).toContainText('This group is no longer available.');
     await expect(groupPost).toHaveCount(0);
-    refusing = false; // the group answers again: Try again clears the refusal
+    // Try again while the state read is still refused: the refusal stays and no group post comes back.
+    await region(page).getByRole('button', { name: 'Try again', exact: true }).click();
+    await expect(region(page).getByRole('alert')).toContainText('This group is no longer available.');
+    await page.waitForTimeout(500);
+    await expect(region(page).locator('.gx-feed-post')).toHaveCount(0);
+    await expect(groupPost).toHaveCount(0);
+    refusing = false; // the group answers again: Try again recovers
     await region(page).getByRole('button', { name: 'Try again', exact: true }).click();
     await expect(groupPost).toBeVisible();
     expect(world.errors).toEqual([]);

@@ -163,6 +163,12 @@ test('a first reaction from the popover pops its chip once the server confirms i
         .observe(document, { subtree: true, attributes: true, attributeFilter: ['data-moment'] });
     });
     await open(page);
+    // Another post already carries a chip (Troy's Laughing): a confirmed write on the first post must not mark it.
+    const other = await page.locator('.gx-feed-post[data-kind="joined"]').nth(1).getAttribute('data-post');
+    expect((await world.api('troy', 'league/react', { postId: other, reaction: 'laughing' })).status).toBe(200);
+    await page.reload();
+    await expect(feed(page)).toBeVisible();
+    await expect(page.locator(`.gx-feed-post[data-post="${other}"]`).getByRole('button', { name: /^Laughing/ })).toBeVisible();
     const post = page.locator('.gx-feed-post[data-kind="joined"]').first();
     const held = new Promise(resolve => { release = resolve; });
     await page.route(react, async route => { await held; await route.fallback(); }, { times: 1 });
