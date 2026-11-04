@@ -1,10 +1,11 @@
 /* D-69 step 4: the players and each game's picks are the kit's picture rows (face first); your rows keep the your-row
-   tint. A skeleton row is a picture row's height (measured in Task 8). Tokens only. Nothing here decides what is
-   hidden: a closed row simply has a lock line where the terms would be. */
+   tint. A skeleton row is a player row's height, 72 px (measured at 390 px: a title, a meta line and the row's padding,
+   above the kit's 64 px floor). Tokens only. Nothing here decides what is hidden: a closed row simply has a lock line
+   where the terms would be. */
 .gx .gx-ev { min-width: 0; }
 .gx .gx-ev-games { margin: 0; padding: 0; list-style: none; }
 .gx .gx-ev-games > li { min-width: 0; }
 .gx .gx-ev .gx-prow.gx-ev-you { background: var(--gx-accent-tint); box-shadow: inset 3px 0 0 var(--gx-accent-ink); }
-.gx .gx-ev-skel .gx-skel-row { min-height: 64px; }
+.gx .gx-ev-skel .gx-skel-row { min-height: calc(var(--gx-space-10) + var(--gx-space-2)); }
 .gx .gx-ev-game-head { display: flex; align-items: center; gap: var(--gx-space-3); min-width: 0; }
 .gx .gx-ev-game-head > .gx-grow { min-width: 0; }

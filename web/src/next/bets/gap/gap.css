@@ -14,7 +14,12 @@
 .gx .gx-gap-week { display: flex; flex-direction: column; gap: var(--gx-space-2); min-width: 0; }
 .gx .gx-gap-week select { min-height: var(--gx-size-touch); width: 100%; min-width: 0; padding: var(--gx-space-2); color: var(--gx-text-1); background: var(--gx-surface-2); border: 1px solid var(--gx-border-strong); border-radius: var(--gx-radius-sm); font: inherit; }
 .gx .gx-gap-stat { justify-content: space-between; }
-/* A skeleton row is a gap row's height, 72 px (measured in Task 8 at 390 px). */
+/* Two tiles to a row leave a value 112 px at 320 px: enough for "185.7%" at 32 px in the condensed number face, not in a
+   wide fallback face (CI's Linux DejaVu Sans, a phone whose webfonts did not load), where it leaves its tile. At 24 px it
+   keeps one line in either; the 32 px line keeps the tile's height. Measured in next-bets-layers.spec.js. */
+@media (max-width: 359px) { .gx .gx-gap-stat .gx-nest-num { font-size: 24px; } }
+/* A skeleton row is a one-line gap row's height, 72 px; measured at 390 px, a row whose meta wraps in a wider fallback
+   face is one text line taller (90 px), the jump the browser check allows. */
 .gx .gx-gap-skel .gx-skel-row { min-height: calc(var(--gx-space-10) + var(--gx-space-2)); }
 .gx .gx-gap-compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-3); margin: 0; }
 .gx .gx-gap-compare dd { margin: 0; }
