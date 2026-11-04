@@ -99,7 +99,7 @@ export function PageHost({ page, layers }) {
     shell.closePage();
   };
   return (
-    <div ref={box} className="gx-vstack" tabIndex={-1} onKeyDown={onKeyDown}>
+    <div ref={box} className="gx-vstack gx-page" tabIndex={-1} onKeyDown={onKeyDown}>
       <Boundary resetKey={page.id} fallback={reset => <FailCard title={SHELL_COPY.pageFailed} onRetry={reset} onReload={shell.reload}/>}>
         <Component id={page.id} args={page}/>
       </Boundary>

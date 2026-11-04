@@ -128,8 +128,10 @@
 .gx-solo-brand { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
 /* The heading takes focus only so a screen reader starts there; it is not a control, so it draws no ring. */
 .gx-solo-brand .gx-t-title:focus { outline: none; }
-/* The same for the page and a route's content region, focused after navigation: no full-width ring above and below. */
+/* The same for what navigation focuses that is not a control: the page, a page in place of the tab's screen (History),
+   and a route's content region (Fantasy). No full-width ring above and below the page. */
 .gx-main:focus,
+.gx .gx-page:focus,
 .gx [role="region"][data-route-focus]:focus { outline: none; }
 .gx-solo-form { display: flex; flex-direction: column; gap: 8px; }
 .gx-solo-form > .gx-btn--primary { margin-top: 16px; }

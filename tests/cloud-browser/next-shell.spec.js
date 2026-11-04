@@ -193,6 +193,9 @@ test.describe('the real app', () => {
       }, selector);
       await load(page, '#history');
       await expect(page.getByRole('heading', { name: 'History' }).first()).toBeVisible({ timeout: 30000 });
+      // History is a page in place of the tab's screen: the page host takes focus when it opens, then <main> as a target.
+      await expect(page.locator('.gx-page')).toBeFocused();
+      expect(await focusOn('.gx-page')).toEqual({ focused: true, visible: true, outline: 'none' });
       expect(await focusOn('.gx-main')).toEqual({ focused: true, visible: true, outline: 'none' });
       await load(page, '#research/fantasy');
       await expect(page.getByRole('region', { name: 'Fantasy content', exact: true })).toBeVisible({ timeout: 30000 });
