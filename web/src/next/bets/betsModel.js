@@ -74,7 +74,7 @@ export function betsTiles({ personal = null, community = null, tickets = null, n
     : { big: DASH, sub: 'Friends’ picks', ariaLabel: 'Everyone, friends’ Virtual Units picks', faces: null };
   const gap = failed ? notLoaded('Your gap') : week === null ? { big: DASH, sub: 'No week open', ariaLabel: 'Your gap, no week open' }
     : { big: String(own.locked), sub: own.locked === 1 ? 'locked guess' : 'locked guesses', ariaLabel: `Your gap, ${plural(own.locked, 'locked guess', 'locked guesses')} against the lines` };
-  const tiles = { mybets: { ...mine, isNew: waitingWins > 0, view: waitingWins > 0 ? 'settled' : 'active' }, picks, everyone, gap,
+  const tiles = { mybets: { ...mine, isNew: waitingWins > 0, ...(waitingWins > 0 ? { view: 'settled' } : { view: 'tracked', period: 'all' }) }, picks, everyone, gap,
     recommended: { big: DASH, sub: 'Research assessments', ariaLabel: 'Recommended, research assessments' } };
   return BETS_SECTIONS.map(key => ({ key, label: BETS_NAMES[key], icon: BETS_TILE_ICONS[key], faces: null, isNew: false, view: SECTION_VIEW[key], ...tiles[key] }));
 }

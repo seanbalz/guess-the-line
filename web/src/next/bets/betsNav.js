@@ -7,8 +7,8 @@ import { gameName } from '../research/researchNav.js';
 
 export const BETS_SECTIONS = Object.freeze(['mybets', 'picks', 'everyone', 'recommended', 'gap']);
 export const BETS_NAMES = Object.freeze({ title: 'Bets', mybets: 'My bets', picks: 'Your picks', everyone: 'Everyone', recommended: 'Recommended', gap: 'Your gap' });
-/** Each section's address, its `view`: My bets opens Active tickets, as Home's My bets tile does. */
-export const SECTION_VIEW = Object.freeze({ mybets: 'active', picks: 'virtual', everyone: 'everyone', recommended: 'research', gap: 'recommended' });
+/** Each section's address, its `view`: My bets opens the tracker with every result (so Overview shows them all), over all weeks. */
+export const SECTION_VIEW = Object.freeze({ mybets: 'tracked', picks: 'virtual', everyone: 'everyone', recommended: 'research', gap: 'recommended' });
 /** Each address's section: My bets has four (its three lists and Add a bet). */
 export const SECTION_OF = Object.freeze({ tracked: 'mybets', active: 'mybets', settled: 'mybets', add: 'mybets', virtual: 'picks', everyone: 'everyone', research: 'recommended', recommended: 'gap' });
 /** My bets' one meta line: the list its address opened. */
@@ -25,8 +25,8 @@ export function gapTitle(item) {
   const [id = '', market] = String(item).split(':'), [away, home] = id.split('-');
   return `${away && home ? gameName(away, home) : id} · ${market === 'spread' ? 'Spread' : 'Total'}`;
 }
-export function openView(shell, view) { shell.go('bets', { view, ...BETS_FRESH }); }
-export function openSection(shell, key) { openView(shell, SECTION_VIEW[key]); }
+export function openView(shell, view, period = null) { shell.go('bets', { view, ...BETS_FRESH, period }); }
+export function openSection(shell, key) { openView(shell, SECTION_VIEW[key], key === 'mybets' ? 'all' : null); }
 export function openGap(shell, item) { shell.setView('bets', { layer: BETS_LAYERS.recommended.layer, item }); }
 export function closeGap(shell) { shell.setView('bets', { layer: undefined, item: undefined }); }
 /**

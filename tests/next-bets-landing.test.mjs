@@ -86,10 +86,10 @@ test('one player is "1 player", not "1 players"', () => {
   assert.deepEqual([one.big, one.sub, one.ariaLabel], ['1', 'player', 'Everyone, 1 player, friends’ Virtual Units picks']);
 });
 
-test('the My bets tile opens Settled tickets while a win waits (so opening it plays the moment), else Active', () => {
+test('the My bets tile opens Settled tickets while a win waits (so opening it plays the moment), else the tracker with every result over all weeks (Overview shows them all)', () => {
   const at = waitingWins => betsTiles({ personal: personal(), community, tickets: tickets([]), viewer: LUKE, waitingWins });
   assert.equal(at(1)[0].view, 'settled');
-  assert.equal(at(0)[0].view, 'active');
+  assert.deepEqual([at(0)[0].view, at(0)[0].period], ['tracked', 'all'], 'not Active: its Pending filter would narrow Overview too');
   assert.deepEqual(at(0).slice(1).map(t => t.view), ['virtual', 'everyone', 'research', 'recommended']);
 });
 

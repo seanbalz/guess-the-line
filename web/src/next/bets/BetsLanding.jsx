@@ -42,7 +42,7 @@ export function BetsLanding() {
     {loading ? null : <ul className="gx-tiles gx-stagger" data-enter={enter} aria-label="Bets sections" data-bets="tiles">
       {tiles.map(tile => <li key={tile.key} data-tile={tile.key}>
         <Tile id={tileId(tile.key)} label={tile.label} icon={tile.icon} big={tile.big} sub={tile.sub} isNew={tile.isNew} ariaLabel={tile.ariaLabel}
-          picture={tile.faces?.length ? <AvatarStack people={tile.faces} max={3} size={24}/> : null} onClick={() => openView(shell, tile.view)}/></li>)}
+          picture={tile.faces?.length ? <AvatarStack people={tile.faces} max={3} size={24}/> : null} onClick={() => openView(shell, tile.view, tile.period)}/></li>)}
     </ul>}
   </section>;
 }
