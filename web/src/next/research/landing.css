@@ -1,0 +1,9 @@
+/* D-69 step 3 (spec 5A): Research's landing. One glow card (the kit's hero card) holds the next move; four tiles sit
+   under it in two columns on the page (the kit's .gx-tiles). Tokens only. */
+.gx .gx-r-landing { gap: var(--gx-space-3); }
+.gx .gx-r-hero { display: flex; flex-direction: column; gap: var(--gx-space-3); }
+/* The eyebrow is a label, not lime: lime marks only the one main button and your selections (D-38). */
+.gx .gx-r-hero-eyebrow { color: var(--gx-hero-text-2); }
+.gx .gx-r-hero .gx-t-title { overflow-wrap: anywhere; }
+.gx .gx-r-hero-meter .gx-meter3-seg { height: 8px; border-radius: 4px; }
+.gx .gx-r-hero > .gx-btn { margin-top: var(--gx-space-1); }
