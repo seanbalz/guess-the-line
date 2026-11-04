@@ -7,8 +7,8 @@ bad", he picked option 1, "Hit rate hero", from five on a private canvas. Bets �
 hero card: the share of your gaps that beat the closing three-book line, the record and units at −110, and a dot per
 gap. The fine print and the 10%+ record are behind ⓘ. Rows you can still act on rank first within D-54's order. It is frontend only (`shared/recommended-bets.mjs`,
 `web/src/VirtualUnits.jsx`) and reads your own `/lines/read`. Local checks pass: unit tests of the grading, units and
-exclusions, and a browser test with four finished games (phone rules and axe in both themes). **Not merged or released;
-waiting on Sean's OK of the [mockups](../design/recommended-gap-record-2026-11-03/README.md).**
+exclusions, and a browser test with four finished games (phone rules and axe in both themes). Sean approved the
+[captures](../design/recommended-gap-record-2026-11-03/README.md): "Ok". **Not released yet.**
 
 ## D-69 design overhaul, step 1: Play — November 3, 2026
 

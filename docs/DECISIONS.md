@@ -6,7 +6,7 @@ Sean picked "Recommendation card" from board item 10 (the two ideas kept from D-
 paper record" when asked what the card should count. Nothing records that a bet came from Recommended, so the card grades
 the gaps themselves rather than bets placed. The first build was "boring and bad". From five directions on the private
 canvas [GTL Recommended Gap Card Options](https://claude.ai/artifact/2Dr55M7ZxHCLNKkd52gzkz) he picked **1 · Hit rate
-hero**. [Captures](../design/recommended-gap-record-2026-11-03/README.md).
+hero**, then approved its [captures](../design/recommended-gap-record-2026-11-03/README.md): "Ok".
 
 - **Your gaps vs. closing lines:** a weekly hero card at the top of Bets › Your guess vs. market.
   - **The look:** one big number, the share of decided gaps that beat the close (W / (W + L), as D-75's win rate). Under

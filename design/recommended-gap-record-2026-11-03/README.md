@@ -1,6 +1,6 @@
 # Recommended: your gaps vs. closing lines — phone captures (D-77)
 
-Owner: Sean Balsiger · November 3, 2026 · **Built to option 1, "Hit rate hero", for Sean's OK; nothing released.**
+Owner: Sean Balsiger · November 3, 2026 · **Option 1, "Hit rate hero". Sean approved these captures: "Ok".**
 
 Sean called the first build "boring and bad". From five directions on the private canvas
 [GTL Recommended Gap Card Options](https://claude.ai/artifact/2Dr55M7ZxHCLNKkd52gzkz), he picked **1 · Hit rate hero**.
