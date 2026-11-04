@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { connectHistory, fragmentFor, isLegacyFragment, placeFromFragment, startPlace } from '../web/src/next/shell/router.js';
 import { EPL_ROUTER } from '../web/src/next/epl/shellRoute.js';
 import { leagueLayer, leagueMode } from '../web/src/next/league/leagueModel.js';
-import { HOME_LAYER_IDS, canGoBack, initialState, isDetail, layer, reduce } from '../web/src/next/shell/state.js';
+import { HOME_LAYER_IDS, RESEARCH_LAYERS, canGoBack, initialState, isDetail, layer, reduce, researchLayerOf } from '../web/src/next/shell/state.js';
 import { HOME_LAYERS } from '../web/src/next/home/homeModel.js';
 
 const tick = () => new Promise(resolve => setTimeout(resolve, 0));
@@ -585,4 +585,97 @@ test('D-69 step 2: Home’s and Play’s layers never cross tabs: Who’s in to 
   assert.equal(home.tab, 'home');
   assert.equal(home.views.home.layer, undefined, 'Play’s layer never reaches Home');
   assert.equal(fragmentFor('home', home.views.home, home.views), '#home');
+});
+
+const at = (state, tab) => fragmentFor(tab, state.views[tab], state.views);
+
+test('D-69 step 3: one game and one team are Research layers with their own addresses; unknown values draw the list', () => {
+  const game = placeFromFragment('#research/games?layer=game&item=SEA-DEN');
+  assert.deepEqual([game.tab, game.view.section, game.adapters.lines.layer, game.adapters.lines.item], ['research', 'games', 'game', 'SEA-DEN']);
+  const opened = initialState(game);
+  assert.deepEqual(researchLayerOf('games', opened.views.lines), { layer: 'game', item: 'SEA-DEN' });
+  assert.equal(opened.views.research.layer, undefined, 'the game lives in the lines view, never in Research’s own');
+  assert.equal(at(opened, 'research'), '#research/games?layer=game&item=SEA-DEN', 'a reload or a shared link reopens it');
+  const team = initialState(placeFromFragment('#research/teams?layer=team&item=SEA'));
+  assert.deepEqual([team.views.research.section, team.views.research.layer, team.views.research.item], ['teams', 'team', 'SEA']);
+  assert.equal(at(team, 'research'), '#research/teams?layer=team&item=SEA');
+  for (const fragment of ['#research/games?layer=nope&item=SEA-DEN', '#research/games?layer=team&item=SEA', '#research/games?layer=game&item=%3Cx%3E',
+    '#research/teams?layer=team&item=ZZZ', '#research/teams?layer=game&item=SEA-DEN', '#research/trends?layer=game&item=SEA-DEN']) {
+    const state = initialState(placeFromFragment(fragment));
+    const section = state.views.research.section;
+    assert.equal(researchLayerOf(section, section === 'games' ? state.views.lines : state.views.research), null, fragment);
+    assert.doesNotMatch(at(state, 'research'), /layer=|item=/, `${fragment}: the address draws the list`);
+    assert.equal(isDetail(state), true, `${fragment}: the section is still a detail (Back leaves it), with no layer open`);
+  }
+  assert.deepEqual(Object.keys(RESEARCH_LAYERS), ['games', 'teams']);
+});
+
+test('D-69 step 3: opening a game or a team is a step; the lip and Back close it; the pager swaps the game in place, no step', () => {
+  const board = initialState({ tab: 'research', view: { section: 'games' } });
+  const game = reduce(board, { type: 'view', tab: 'lines', patch: { layer: 'game', item: 'SEA-DEN' } });
+  assert.deepEqual([game.trail.length, game.navMode], [1, 'go'], 'opening the game is a step');
+  const paged = reduce(game, { type: 'view', tab: 'lines', patch: { item: 'HOU-JAX' } });
+  assert.deepEqual([paged.views.lines.item, paged.trail.length, paged.nav], ['HOU-JAX', 1, game.nav], 'the pager swaps the game in place: no step, no navigation');
+  for (const closed of [reduce(paged, { type: 'back' }), reduce(paged, { type: 'view', tab: 'lines', patch: { layer: undefined, item: undefined } })]) {
+    assert.equal(closed.views.research.section, 'games');
+    assert.equal(researchLayerOf('games', closed.views.lines), null);
+    assert.deepEqual(closed.trail, [], 'the lip is Back, so the next Back leaves the board');
+  }
+  const list = initialState({ tab: 'research', view: { section: 'teams' } });
+  const team = reduce(list, { type: 'go', tab: 'research', view: { section: 'teams', layer: 'team', item: 'SEA' } });
+  assert.equal(team.trail.length, 1);
+  assert.equal(reduce(team, { type: 'view', tab: 'research', patch: { layer: undefined, item: undefined } }).views.research.layer ?? null, null);
+  // From a game, a team opens Research › Teams › that team; Back returns to the game.
+  const fromGame = reduce(game, { type: 'go', tab: 'research', view: { section: 'teams', layer: 'team', item: 'DEN' } });
+  assert.deepEqual([fromGame.views.research.section, fromGame.views.research.item, fromGame.trail.length], ['teams', 'DEN', 2]);
+  const back = reduce(fromGame, { type: 'back' });
+  assert.deepEqual([back.views.research.section, researchLayerOf('games', back.views.lines)?.item], ['games', 'SEA-DEN']);
+});
+
+test('D-69 step 3: on a shared link or a reload, Back and the lip close one Research layer, to its list, never to the landing', () => {
+  for (const [fragment, section, key] of [['#research/games?layer=game&item=SEA-DEN', 'games', 'lines'], ['#research/teams?layer=team&item=SEA', 'teams', 'research']]) {
+    const linked = initialState(placeFromFragment(fragment));
+    assert.equal(linked.trail.length, 0);
+    for (const closed of [reduce(linked, { type: 'back' }), reduce(linked, { type: 'view', tab: key, patch: { layer: undefined, item: undefined } })]) {
+      assert.deepEqual([closed.tab, closed.views.research.section, closed.navMode], ['research', section, 'back'], fragment);
+      assert.equal(researchLayerOf(section, closed.views[key]), null, fragment);
+      assert.deepEqual(closed.trail, []);
+    }
+    assert.equal(reduce(reduce(linked, { type: 'back' }), { type: 'back' }).views.research.section, undefined, 'the next Back leaves for the landing');
+  }
+});
+
+test('D-69 step 3: a Research layer never rides into a fresh destination or another tab, and other tabs’ layers never reach Research', () => {
+  const game = initialState(placeFromFragment('#research/games?layer=game&item=SEA-DEN'));
+  const home = reduce(game, { type: 'tab', tab: 'home' });
+  assert.equal(home.views.home.layer, undefined, 'a Research layer never reaches Home');
+  assert.equal(at(reduce(home, { type: 'go', tab: 'research', view: { section: 'games' } }), 'research'), '#research/games', 'the Games tile and Home’s "All N games" open the board');
+  assert.equal(at(reduce(game, { type: 'tab', tab: 'research' }), 'research'), '#research', 'the Research tab opens the landing');
+  const who = initialState(placeFromFragment('#home?layer=who'));
+  assert.equal(at(reduce(who, { type: 'go', tab: 'research', view: { section: 'teams' } }), 'research'), '#research/teams', 'Home’s layer never reaches Research');
+  const awards = initialState(placeFromFragment('#play/features?layer=awards'));
+  assert.equal(reduce(awards, { type: 'go', tab: 'research', view: { section: 'teams' } }).views.research.layer, undefined, 'Play’s layer never reaches Research');
+  const team = initialState(placeFromFragment('#research/teams?layer=team&item=SEA'));
+  assert.equal(at(reduce(team, { type: 'go', tab: 'play', view: { section: 'score' } }), 'play'), '#play/score', 'a Research layer never reaches Play');
+  assert.equal(at(reduce(team, { type: 'go', tab: 'research', view: { section: 'teams' } }), 'research'), '#research/teams', 'the Teams tile opens the list');
+  const restored = reduce(game, { type: 'restore', place: placeFromFragment('#research/games') });
+  assert.equal(researchLayerOf('games', restored.views.lines), null, 'a restored board entry is the board, never the game left open');
+});
+
+test('D-69 step 3: browser Back closes the game layer; the pager rewrites its entry; Forward and a reload reopen the game shown', async () => {
+  const win = fakeWindow('https://gtl.test/#research/games'); const shell = app(win);
+  shell.dispatch({ type: 'view', tab: 'lines', patch: { layer: 'game', item: 'SEA-DEN' } });
+  await settle();
+  shell.dispatch({ type: 'view', tab: 'lines', patch: { item: 'HOU-JAX' } });
+  await settle();
+  assert.deepEqual(win.stack(), ['#research/games', '[#research/games?layer=game&item=HOU-JAX]']);
+  win.history.back(); await settle();
+  assert.equal(researchLayerOf('games', shell.state.views.lines), null);
+  assert.equal(win.location.hash, '#research/games');
+  win.history.forward(); await settle();
+  assert.equal(shell.state.views.lines.item, 'HOU-JAX');
+  shell.connection.disconnect();
+  const reloaded = app(win);
+  assert.deepEqual(researchLayerOf('games', reloaded.state.views.lines), { layer: 'game', item: 'HOU-JAX' });
+  reloaded.connection.disconnect();
 });

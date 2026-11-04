@@ -15,6 +15,8 @@
 //   queue too: the first shows, never over an overlay.
 // - closeTop is Escape and Back: overlay, then popover, dialog, the top sheet, the page.
 
+import { TEAM_NAMES } from '../../../../shared/nfl-schedule.mjs';
+
 export const TABS = Object.freeze(['home', 'play', 'bets', 'research']);
 export const LEGACY_TABS = Object.freeze(['league', 'lines', 'fantasy', 'trends']);
 const ALIASES = { league: ['play', 'league'], lines: ['research', 'games'], fantasy: ['research', 'fantasy'], trends: ['research', 'trends'] };
@@ -27,6 +29,33 @@ export function destination(tab, view) {
 }
 /** Home's layers by name (home/homeModel.js HOME_LAYERS): `#home?layer=who` is Who's in; any other value is Home's root. */
 export const HOME_LAYER_IDS = Object.freeze(['who']);
+/**
+ * D-69 step 3: Research's layers by section, each one layer name and its item's allowlist: one game in Research › Games
+ * (`#research/games?layer=game&item=SEA-DEN`, kept in the lines view) and one team in Research › Teams
+ * (`#research/teams?layer=team&item=SEA`, kept in Research's own view). Any other value draws the section's list.
+ */
+export const RESEARCH_LAYERS = Object.freeze({
+  games: Object.freeze({ layer: 'game', item: value => typeof value === 'string' && /^[\w-]{1,100}$/.test(value) }),
+  teams: Object.freeze({ layer: 'team', item: value => typeof value === 'string' && Object.hasOwn(TEAM_NAMES, value) }),
+});
+/** The open layer of a Research `section` in `view` (`{ layer, item }`), or null when its values are not allowlisted. */
+export function researchLayerOf(section, view) {
+  const spec = Object.hasOwn(RESEARCH_LAYERS, section ?? '') ? RESEARCH_LAYERS[section] : null;
+  return spec && view?.layer === spec.layer && spec.item(view.item) ? { layer: view.layer, item: view.item } : null;
+}
+/** Which view holds the Research layer open now ('lines' for a game, 'research' for a team), or null. */
+function researchOpenLayer(state) {
+  if (state.tab !== 'research') return null;
+  const section = state.views.research?.section;
+  if (section === 'games' && researchLayerOf('games', state.views.lines)) return 'lines';
+  if (section === 'teams' && researchLayerOf('teams', state.views.research)) return 'research';
+  return null;
+}
+/** The game layer's pager shows another game in place (the same layer, a new item): not a step. */
+const pagesGame = (state, patch) => !!researchLayerOf('games', state.views.lines) && !Object.hasOwn(patch, 'layer') && RESEARCH_LAYERS.games.item(patch.item);
+/** A patch that closes the Research layer open now. */
+const closesResearchLayer = (state, tab, patch) => researchOpenLayer(state) === tab && Object.hasOwn(patch, 'layer') && !patch.layer;
+const RESEARCH_LAYER_CLEARED = Object.freeze({ layer: undefined, item: undefined });
 // D-69 step 2: Home's layer (Who's in) is a detail too, so Back after a reload closes it and the top bar shows Back. Only
 // a known layer counts: any other value draws Home's root, which has no Back.
 export const isDetail = state => !!state.views[state.tab]?.section || (state.tab === 'bets' && !!state.views.bets.view)
@@ -47,6 +76,10 @@ export const navigationPatch = (state, tab, patch) => !!patch && (
   || (tab === 'play' && state.views.play.section !== 'compare' && ['layer', 'item'].some(key => Object.hasOwn(patch, key) && (patch[key] ?? null) !== (state.views.play[key] ?? null)))
   // D-69 step 2: opening or closing Home's layer (Who's in, `#home?layer=who`) is a step, so Back closes it and its lip goes back.
   || (tab === 'home' && Object.hasOwn(patch, 'layer') && (patch.layer ?? null) !== (state.views.home?.layer ?? null))
+  // D-69 step 3: opening or closing one game (the lines view) or one team (Research's view) is a step, so Back closes
+  // it; the game layer's pager showing another game is not (it swaps the item in place, and Back still lands on the board).
+  || (tab === 'lines' && ['layer', 'item'].some(key => Object.hasOwn(patch, key) && (patch[key] ?? null) !== (state.views.lines?.[key] ?? null)) && !pagesGame(state, patch))
+  || (tab === 'research' && ['layer', 'item'].some(key => Object.hasOwn(patch, key) && (patch[key] ?? null) !== (state.views.research?.[key] ?? null)))
   // D-66: opening or closing a Trends nesting card is a step, so back closes one layer. The account reset in
   // TrendsScreen also clears the history window; it is not a step, so back never restores another account's choice.
   || (tab === 'fantasy' && ['fantasyLayer', 'fantasyPlayer'].some(key => Object.hasOwn(patch, key) && (patch[key] ?? null) !== (state.views.fantasy?.[key] ?? null)))
@@ -106,7 +139,7 @@ const PLAY_LAYER_KEYS = Object.freeze(['pickGame', 'scoreGame', 'layer', 'item']
 /** Home's layer key (D-69 step 2): Who's in opens over Home's root. */
 const HOME_LAYER_KEYS = Object.freeze(['layer']);
 /** The view keys that open a nested layer, per tab: a fresh destination on that tab never carries one over. */
-const LAYER_KEYS = Object.freeze({ play: PLAY_LAYER_KEYS, home: HOME_LAYER_KEYS });
+const LAYER_KEYS = Object.freeze({ play: PLAY_LAYER_KEYS, home: HOME_LAYER_KEYS, research: Object.freeze(['layer', 'item']) });
 const withView = (views, tab, patch) => (isRecord(patch) ? { ...views, [tab]: { ...views[tab], ...patch } } : views);
 
 // Origin context is reversible; newer local list/filter preferences survive returning through a root.
@@ -135,7 +168,8 @@ const swapsGame = (state, tab, patch) => tab === 'play' && !!state.views.play.pi
 const LEAGUE_LAYER_CLEARED = Object.freeze({ view: undefined, week: undefined, season: undefined, market: undefined });
 // League's board market lives in the league view only (its address reads it there); the Play view keeps Picks's own market.
 const ownMarket = (view, current) => (view.section === 'league' ? { ...view, market: current.market } : view);
-const mergeAdapters = (views, adapters) => Object.fromEntries(Object.entries(adapters ?? {}).map(([tab, view]) => [tab, { ...views[tab], ...(tab === 'league' ? LEAGUE_LAYER_CLEARED : {}), ...view }]));
+const mergeAdapters = (views, adapters) => Object.fromEntries(Object.entries(adapters ?? {}).map(([tab, view]) => [tab, { ...views[tab],
+  ...(tab === 'league' ? LEAGUE_LAYER_CLEARED : tab === 'lines' ? RESEARCH_LAYER_CLEARED : {}), ...view }]));
 const onLeague = state => state.tab === 'play' && state.views.play.section === 'league';
 
 /** Every layer that is open, overlays queued behind the first one included. */
@@ -170,8 +204,12 @@ export function reduce(state, action) {
       const layerKeys = LAYER_KEYS[target.tab] ?? null;
       const next = layerKeys && layerKeys.some(key => Object.hasOwn(current, key)) ? Object.fromEntries(Object.entries(current).filter(([key]) => !layerKeys.includes(key))) : current;
       const root = { ...next, section: undefined, ...(target.tab === 'bets' ? { view: undefined } : {}) };
-      const view = action.type === 'tab' || !target.view ? root : target.adapter === 'league' ? ownMarket({ ...next, ...target.view }, current) : { ...next, ...target.view };
-      const adapterFrom = target.adapter === 'league' && !onLeague(state) ? { ...state.views.league, ...LEAGUE_LAYER_CLEARED } : state.views[target.adapter];
+      const opened = action.type === 'tab' || !target.view ? root : target.adapter === 'league' ? ownMarket({ ...next, ...target.view }, current) : { ...next, ...target.view };
+      // D-69 step 3: a game's keys live in the lines view (the address reads them there), never in Research's own.
+      const view = target.adapter === 'lines' ? { ...opened, ...RESEARCH_LAYER_CLEARED } : opened;
+      const adapterFrom = target.adapter === 'league' && !onLeague(state) ? { ...state.views.league, ...LEAGUE_LAYER_CLEARED }
+        // A fresh Research › Games destination opens the board unless it names a game itself.
+        : target.adapter === 'lines' ? { ...state.views.lines, ...RESEARCH_LAYER_CLEARED } : state.views[target.adapter];
       const views = { ...state.views, [target.tab]: view, ...(target.adapter ? { [target.adapter]: { ...adapterFrom, ...target.adapterView } } : {}) };
       const changed = state.tab !== target.tab || JSON.stringify(current) !== JSON.stringify(view) || !!target.adapter;
       if (!changed && !hasLayers(state)) return state;
@@ -184,6 +222,8 @@ export function reduce(state, action) {
         // D-66: a step that lands exactly on the previous place (a nesting card's lip to its parent) goes back, so the
         // next Back leaves the section instead of reopening the layer just closed.
         if (returnsToPrior(state, action.tab, action.patch)) return reduce(state, { type: 'back' });
+        // D-69 step 3: a Research layer reached by a shared link or a reload has nothing under it; its lip is Back.
+        if (!state.trail.length && closesResearchLayer(state, action.tab, action.patch)) return reduce(state, { type: 'back' });
         // D-70: Next swaps one game's card for another, so the trail keeps the week under it, never the previous game.
         // `replace` tells the router to rewrite the current entry instead of adding one.
         if (swapsGame(state, action.tab, action.patch)) return { ...reduce(reduce(state, { type: 'back' }), action), navMode: 'replace' };
@@ -194,7 +234,12 @@ export function reduce(state, action) {
     case 'back': {
       if (hasLayers(state)) return reduce(state, { type: 'closeTop' });
       const prior = state.trail.at(-1);
-      if (!prior) return isDetail(state) ? { ...reduce(state, { type: 'tab', tab: state.tab }), navMode: 'back' } : state;
+      if (!prior) {
+        // D-69 step 3: Back on a Research layer with nothing under it (a shared link, a reload) closes that one layer.
+        const open = researchOpenLayer(state);
+        if (open) return { ...state, ...closed, views: { ...state.views, [open]: { ...state.views[open], ...RESEARCH_LAYER_CLEARED } }, nav: state.nav + 1, navMode: 'back' };
+        return isDetail(state) ? { ...reduce(state, { type: 'tab', tab: state.tab }), navMode: 'back' } : state;
+      }
       const adapter = destination(prior.tab, prior.view).adapter;
       const adapters = adapter && prior.adapters?.[adapter] ? { [adapter]: originView(state.views[adapter], prior.adapters[adapter], true) } : {};
       const detail = !!prior.view?.section || (prior.tab === 'bets' && !!prior.view?.view);
