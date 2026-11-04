@@ -139,7 +139,11 @@ const clearOfEdges = page => page.evaluate(() => {
   return null;
 });
 
+// Every axe check in this file clears the bars first (clearOfEdges above): a CI run on PR #486 caught a third check whose
+// scroll stopped with an open disclosure's summary under the top bar.
 async function axe(page) {
+  await settle(page);
+  await clearOfEdges(page);
   await settle(page);
   const result = await new AxeBuilder({ page }).withTags(AXE_TAGS).analyze();
   return result.violations.map(issue => `${issue.id}: ${issue.nodes.map(node => node.target.join(' ')).join(', ')}`);
@@ -546,7 +550,7 @@ test('weekly trends recover inside the game and All trends sheets without changi
       await page.emulateMedia({ forcedColors, colorScheme: theme, reducedMotion: 'reduce' });
       await page.setViewportSize({ width: 320, height: 844 });
       await retry.scrollIntoViewIfNeeded();
-      await phoneChecks(page, '[data-research="game"]'); await clearOfEdges(page); expect(await axe(page)).toEqual([]);
+      await phoneChecks(page, '[data-research="game"]'); expect(await axe(page)).toEqual([]);
       await game.screenshot({ path: info.outputPath(`weekly-trend-game-error-${theme}-${forcedColors}.png`) });
     }
     const calls = apiCalls(page), before = requests;
@@ -1814,13 +1818,18 @@ test('game action bar opens the selected matchup and market without writing or d
   try {
     await openLines(page); await card(page, 'HOU-JAX').click();
     const actions = gameLayer(page, 'Texans @ Jaguars').getByRole('navigation', { name: 'Actions for this game' });
+    // On opening, the game's actions are on screen at 320 px. (Checked once: the axe helper below may shift the page to
+    // clear the bars, so later passes scroll to the note and the actions first.)
+    await page.setViewportSize({ width: 320, height: 844 });
+    await expect(actions.getByRole('button', { name: 'Open Spread for HOU at JAX' })).toBeInViewport();
     for (const theme of ['dark', 'light']) {
       await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
       await page.setViewportSize({ width: 320, height: 844 });
-      await expect(actions.getByRole('button', { name: 'Open Spread for HOU at JAX' })).toBeInViewport();
-      await gameLayer(page, 'Texans @ Jaguars').getByText('Only you see this.', { exact: false }).scrollIntoViewIfNeeded();
+      // The actions sit at the end of the layer: at the page's end they are on screen, above the tab bar.
+      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
       await expect(actions).toBeInViewport();
       await phoneChecks(page); expect(await axe(page)).toEqual([]);
+      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
       await page.screenshot({ path: testInfo.outputPath(`game-actions-${theme}.png`) });
     }
     const note = gameLayer(page, 'Texans @ Jaguars').getByRole('textbox', { name: 'Your note' });
@@ -2269,7 +2278,7 @@ test('high-contrast charts retain visible bars, stems and selected seasons', asy
       expect(await total.locator('.gx-md-point').first().evaluate(el => getComputedStyle(el).fill)).toBe(foreground);
       await total.locator('.gx-md-movement').scrollIntoViewIfNeeded();
       await page.screenshot({ path: testInfo.outputPath(`forced-movement-${theme}.png`) });
-      await phoneChecks(page); await clearOfEdges(page); expect(await axe(page)).toEqual([]);
+      await phoneChecks(page); expect(await axe(page)).toEqual([]);
     }
     await testInfo.attach('forced-color-styles', { body: JSON.stringify(observed), contentType: 'application/json' });
     for (const colors of observed) {
