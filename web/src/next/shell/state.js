@@ -25,9 +25,12 @@ export function destination(tab, view) {
   const { section, ...adapterView } = view;
   return { tab, view, adapter, adapterView };
 }
-// D-69 step 2: Home's layer (Who's in) is a detail too, so Back after a reload closes it and the top bar shows Back.
+/** Home's layers by name (home/homeModel.js HOME_LAYERS): `#home?layer=who` is Who's in; any other value is Home's root. */
+export const HOME_LAYER_IDS = Object.freeze(['who']);
+// D-69 step 2: Home's layer (Who's in) is a detail too, so Back after a reload closes it and the top bar shows Back. Only
+// a known layer counts: any other value draws Home's root, which has no Back.
 export const isDetail = state => !!state.views[state.tab]?.section || (state.tab === 'bets' && !!state.views.bets.view)
-  || (state.tab === 'home' && !!state.views.home?.layer);
+  || (state.tab === 'home' && HOME_LAYER_IDS.includes(state.views.home?.layer));
 export const navigationPatch = (state, tab, patch) => !!patch && (
   (Object.hasOwn(patch, 'section') && patch.section !== state.views[tab]?.section)
   || (['bets', 'league'].includes(tab) && Object.hasOwn(patch, 'view') && patch.view !== state.views[tab]?.view)
