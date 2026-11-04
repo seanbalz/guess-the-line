@@ -17,6 +17,9 @@ test('the new app loads NextApp and none of the optional or local-only screens',
   await expect(page.getByRole('heading', { name: 'Home', level: 1, exact: true })).toBeVisible();
   expect(loaded(fixture, 'NextApp')).toHaveLength(1);
   for (const name of ['App', 'GameHub', ...optional]) expect(loaded(fixture, name)).toHaveLength(0);
-  // Home reads the account and preferences; this fixture answers Community reads as undeployed. No writes.
-  expect(fixture.apiRequests).toEqual([{ pathname: '/functions/v1/gtl-api/lobby', method: 'GET' }, { pathname: '/functions/v1/gtl-api/me/preferences', method: 'POST' }]);
+  // Home reads the account, preferences and your own week (GET /personal, D-69 step 2: This week's game tiles); this
+  // fixture answers Community reads as undeployed and /personal as no week published. No writes. The reads start
+  // together, so their order is not part of the contract.
+  const reads = fixture.apiRequests.map(r => `${r.method} ${r.pathname}`).sort();
+  expect(reads).toEqual(['GET /functions/v1/gtl-api/lobby', 'GET /functions/v1/gtl-api/personal', 'POST /functions/v1/gtl-api/me/preferences']);
 });

@@ -40,6 +40,11 @@ export const test = base.extend({
         expect(request.postDataJSON()).toEqual({});
         return route.fulfill({ status: 404, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify({ error: 'Not found.' }) });
       }
+      // Home's This week reads your own week (D-69 step 2); this legacy fixture publishes none, so it answers as Home's
+      // no-week state does (404), and Home draws no This week section.
+      if (url.pathname === '/functions/v1/gtl-api/personal' && request.method() === 'GET') {
+        return route.fulfill({ status: 404, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify({ error: 'This week’s schedule is not available.' }) });
+      }
       if (url.pathname === '/functions/v1/gtl-api/lobby' && request.method() === 'GET') return reply({ profile: { id: user.id, displayName: 'Troy Jun' }, leagues: [{ id: 'sean-troy-luke', name: 'Triple Threat', format: 'triple-threat', role: 'player', memberCount: 3, maxMembers: 3, practice: false }], pendingInvites: [] });
       if (url.pathname === '/functions/v1/gtl-api/state' && request.method() === 'GET') {
         expect(url.searchParams.get('league')).toBe('sean-troy-luke');

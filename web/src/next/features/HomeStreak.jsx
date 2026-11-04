@@ -4,7 +4,9 @@
 import { Flame } from 'lucide-react';
 import { useShell } from '../shell/context.js';
 import { Icon } from '../ui/index.js';
+import { usePopped } from '../moments/MomentsProvider.jsx';
 import { useFeatures } from './useFeatures.js';
+import { pickStreakMoment } from './streakMoment.js';
 import { HERO_COPY } from '../home/homeModel.js';
 import './features.css';
 
@@ -16,11 +18,13 @@ export const pickStreak = model => {
 
 export function HomeStreak({ app }) {
   const shell = useShell();
-  const { model } = useFeatures(app, shell);
-  const n = pickStreak(model);
+  const features = useFeatures(app, shell);
+  const n = pickStreak(features.model);
+  // D-69 step 2: a longer streak's moment waits on Home's card too; it pops this pill in place when it plays.
+  const pop = usePopped(pickStreakMoment(features.data, app?.accountId)?.id ?? '');
   if (!n) return null;
   return (
-    <span className="gx-fx-flame" data-home="streak">
+    <span className="gx-fx-flame" data-home="streak" data-moment={pop ? 'pop' : undefined}>
       <Icon icon={Flame} size={16} className="gx-c-accent"/>
       <span className="gx-fx-flame-text">{HERO_COPY.streak(n)}</span>
     </span>

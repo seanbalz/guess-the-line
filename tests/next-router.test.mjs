@@ -6,7 +6,8 @@ import assert from 'node:assert/strict';
 import { connectHistory, fragmentFor, isLegacyFragment, placeFromFragment, startPlace } from '../web/src/next/shell/router.js';
 import { EPL_ROUTER } from '../web/src/next/epl/shellRoute.js';
 import { leagueLayer, leagueMode } from '../web/src/next/league/leagueModel.js';
-import { initialState, layer, reduce } from '../web/src/next/shell/state.js';
+import { HOME_LAYER_IDS, canGoBack, initialState, isDetail, layer, reduce } from '../web/src/next/shell/state.js';
+import { HOME_LAYERS } from '../web/src/next/home/homeModel.js';
 
 const tick = () => new Promise(resolve => setTimeout(resolve, 0));
 async function settle() { for (let i = 0; i < 6; i += 1) await tick(); }
@@ -246,7 +247,8 @@ test('EPL uses the shared sheet/history loop and restores only its own route sta
 });
 
 test('D-69 layer addresses: every section keeps a layer and an item, so a reload or a shared link reopens a card', () => {
-  for (const [tab, view] of [['play', { section: 'score' }], ['research', { section: 'games' }], ['bets', { view: 'tracked' }], ['home', {}]]) {
+  // Home is not in this list since step 2's final review: its one layer is Who's in (the M3 test below).
+  for (const [tab, view] of [['play', { section: 'score' }], ['research', { section: 'games' }], ['bets', { view: 'tracked' }]]) {
     const fragment = fragmentFor(tab, { ...view, layer: 'game', item: '2026_08_SEA_DEN' });
     assert.match(fragment, /layer=game/, tab);
     assert.match(fragment, /item=2026_08_SEA_DEN/, tab);
@@ -517,4 +519,70 @@ test('League market: Picks Total then the League tile shows Spread and says so; 
   const fresh = reduce(initialState({ tab: 'play' }), { type: 'restore', place: deep });
   assert.equal(fresh.views.play.market, undefined, 'a deep link into League does not set Picks');
   assert.equal(fragmentFor('play', tile.views.play, tile.views), '#play/league');
+});
+
+test('D-69 step 2: Who’s in is a Home layer at #home?layer=who: a step; its lip and Back close it; a reload reopens it; the Home tab opens the root', () => {
+  const root = initialState({ tab: 'home' });
+  const who = reduce(root, { type: 'view', tab: 'home', patch: { layer: 'who' } });
+  assert.equal(who.views.home.layer, 'who');
+  assert.equal(who.trail.length, 1, 'opening the layer is a step');
+  assert.equal(who.navMode, 'go');
+  assert.equal(fragmentFor('home', who.views.home), '#home?layer=who');
+  for (const closed of [reduce(who, { type: 'back' }), reduce(who, { type: 'view', tab: 'home', patch: { layer: undefined } })]) {
+    assert.equal(closed.views.home.layer ?? null, null);
+    assert.deepEqual(closed.trail, [], 'the lip is Back, so the next Back leaves nothing open');
+  }
+  const reloaded = initialState(placeFromFragment('#home?layer=who'));
+  assert.deepEqual([reloaded.tab, reloaded.views.home.layer, reloaded.trail.length], ['home', 'who', 0], 'a reload or a shared link reopens it');
+  const back = reduce(reloaded, { type: 'back' });
+  assert.deepEqual([back.tab, back.views.home.layer ?? null, back.navMode], ['home', null, 'back'], 'Back after a reload closes the layer');
+  assert.equal(reduce(who, { type: 'tab', tab: 'home' }).views.home.layer ?? null, null, 'the Home tab opens Home’s root');
+  assert.equal(reduce(who, { type: 'go', tab: 'home' }).views.home.layer ?? null, null, 'so does the logo');
+  const away = reduce(who, { type: 'go', tab: 'play', view: { section: 'score' } });
+  assert.equal(reduce(away, { type: 'back' }).views.home.layer, 'who', 'Back from another tab returns to the layer');
+  assert.equal(placeFromFragment('#home?layer=%3Cscript%3E').view?.layer, undefined, 'only safe characters');
+});
+
+test('D-69 step 2: browser Back closes Home’s Who’s in layer, Forward reopens it, and a reload keeps it', async () => {
+  const win = fakeWindow('https://gtl.test/#home'); const shell = app(win);
+  shell.dispatch({ type: 'view', tab: 'home', patch: { layer: 'who' } });
+  assert.equal(win.location.hash, '#home?layer=who');
+  win.history.back(); await settle();
+  assert.equal(shell.state.views.home.layer ?? null, null);
+  assert.equal(win.location.hash, '#home');
+  win.history.forward(); await settle();
+  assert.equal(shell.state.views.home.layer, 'who');
+  shell.connection.disconnect();
+  const reloaded = app(win);
+  assert.equal(reloaded.state.views.home.layer, 'who');
+  reloaded.connection.disconnect();
+});
+
+test('D-69 step 2: Who’s in is Home’s only layer: #home?layer=<anything else> is Home’s root, not a detail with Back (final review M3)', () => {
+  for (const fragment of ['#home?layer=anything', '#home?layer=awards', '#home?layer=']) {
+    const place = placeFromFragment(fragment);
+    assert.equal(place?.view?.layer, undefined, `${fragment}: no layer in the place`);
+    const state = initialState(place);
+    assert.equal(state.views.home.layer ?? null, null, fragment);
+    assert.equal(isDetail(state), false, `${fragment}: not a detail`);
+    assert.equal(canGoBack(state), false, `${fragment}: no Back on Home’s root`);
+  }
+  // A history entry that carries an unknown Home layer is cleaned the same way.
+  assert.equal(fragmentFor('home', { layer: 'anything' }), '#home');
+  assert.equal(isDetail(reduce(initialState({ tab: 'home' }), { type: 'view', tab: 'home', patch: { layer: 'nope' } })), false, 'an unknown layer value is never a detail');
+  assert.equal(isDetail(initialState(placeFromFragment('#home?layer=who'))), true, 'Who’s in still is');
+  assert.deepEqual(HOME_LAYER_IDS, Object.values(HOME_LAYERS), 'the shell’s list is Home’s layers');
+});
+
+test('D-69 step 2: Home’s and Play’s layers never cross tabs: Who’s in to Play › Your score, and a Play layer to the Home tab (final review M4)', () => {
+  const who = initialState(placeFromFragment('#home?layer=who'));
+  const score = reduce(who, { type: 'go', tab: 'play', view: { section: 'score' } });
+  assert.equal(score.views.play.layer, undefined, 'Home’s layer never reaches Play');
+  assert.equal(fragmentFor('play', score.views.play, score.views), '#play/score');
+  const awards = initialState(placeFromFragment('#play/features?layer=awards'));
+  assert.equal(awards.views.play.layer, 'awards');
+  const home = reduce(awards, { type: 'tab', tab: 'home' });
+  assert.equal(home.tab, 'home');
+  assert.equal(home.views.home.layer, undefined, 'Play’s layer never reaches Home');
+  assert.equal(fragmentFor('home', home.views.home, home.views), '#home');
 });

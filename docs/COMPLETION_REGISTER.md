@@ -1,5 +1,24 @@
 # Guess The Line — current completion register
 
+## D-69 design overhaul, step 2: Home — November 4, 2026
+
+Built on `claude/overhaul-step2-home` from the
+[step 2 plan](superpowers/plans/2026-11-04-design-overhaul-step2-home.md). Not merged or released. Home is layout H1A
+(the recommended board, "Tiles, then This week as game tiles"), chosen by the build because Sean's step 2 questions
+were not answered before it, with the design audit's C9; both are build decisions for Sean's review. The next-move card
+carries the week in its eyebrow, the countdown as its picture and the Spread and Total meters side by side from a
+332 px card (C9), so on a 390 px phone. Below it are six kit tiles (Spread rank, Total rank, Who's in, Awards, My bets,
+Trends) and This week as up to four game tiles in the picks card's words ("Locked in", "To pick", "Draft", "Closed at
+kickoff", "Skipped"). Who's in is a Home layer at `#home?layer=who`. The kit gained `Tile` (B0-1) and the `tiles` and
+`landing` skeletons (B0-2). Home plays only Whole week locked and the Pick streak, in place. Badges and awards leave
+Home and wait as NEW on the Awards tile. A Community rank move waits on Your score and plays once when its season rank
+chip is drawn; Play's Your score tile shows NEW for it. Home now reads `GET /personal`, the shared read Research uses.
+Evidence (local): `node --test` 2910 tests, 2909 pass, 1 fails (`tests/research-intake.test.mjs`, the Windows file-mode
+check on untouched code), skipped 0; Vitest 79 files, 834 tests pass; typecheck and build pass; the full browser run
+365 passed, skipped 0.
+Not yet: the Pages release, Sean's iPhone check of Home, and a post-release signed-in readback of `GET /personal`
+(latency and Edge CPU).
+
 ## Design audit quick wins (group A) — November 4, 2026
 
 The design audit found 24 small fixes ready to ship now (group A). Sean said "Yes, build them". They went into three PRs,

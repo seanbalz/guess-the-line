@@ -92,7 +92,7 @@ test('celebrations: every badge and award of the viewer is a moment candidate, o
   const badgeIds = ids => ids.filter(id => !id.startsWith('award:'));
   assert.deepEqual(badgeIds(M.featureMoments({ ...REPLY, leagueId: 'L2' }, YOU).map(i => i.id)), items.filter(i => i.kind === 'badge').map(i => i.id), 'a badge is one moment in every league');
   assert.deepEqual(items[0].scopes, M.FEATURE_SCOPES);
-  assert.deepEqual(M.FEATURE_SCOPES, ['features', 'home', 'league', 'play']);
+  assert.deepEqual(M.FEATURE_SCOPES, ['features', 'league', 'play']);
   assert.deepEqual(M.featureMoments(null, YOU), []);
   assert.equal(M.newCelebrations, undefined, 'the per-session baseline is gone (D-69: results from while you were away are not lost)');
 });

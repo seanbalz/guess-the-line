@@ -1,10 +1,4 @@
-/* D-69 step 1: the Play frame's shared pieces (PlayTile, WeekChips, FilterToggle). Tokens only. */
-.gx .gx-play-tile { justify-content: space-between; min-height: 112px; }
-.gx .gx-play-tile-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--gx-space-2); min-width: 0; }
-.gx .gx-play-tile-sub { min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
-.gx .gx-play-tile-sub--plain { color: var(--gx-text-2); }
-.gx .gx-play-tile-sub--good { color: var(--gx-win); }
-.gx .gx-play-tile-sub--warn { color: var(--gx-pending); }
+/* D-69 step 1: the Play frame's shared pieces (WeekChips, FilterToggle). The landing tile is the kit's (ui/tile.css). Tokens only. */
 .gx .gx-week-chips-wrap { display: flex; flex-direction: column; gap: var(--gx-space-2); min-width: 0; }
 .gx .gx-week-chips { display: flex; gap: var(--gx-space-2); min-width: 0; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
 .gx .gx-week-chips > .gx-chip { flex: none; }

@@ -76,7 +76,7 @@ test('the other ballot tile: "N / 14" and one word, "All locked" in the good ton
 
 test('Whole week locked: one small moment per market at N of N on a per-game read; a missed game, a sit-out and whole-market rules stay quiet', () => {
   const all = perGame({ spread: { openGames: 0, locked: 14 } });
-  assert.deepEqual(weekLockedMoments(all), [{ id: 'weekLocked:2026:9:guess_spread', kind: 'weekLocked', scopes: [picksScope('guess_spread'), SCOPES.play], title: 'Week 9 Spread locked', meta: '14 of 14 locked', icon: 'lock' }]);
+  assert.deepEqual(weekLockedMoments(all), [{ id: 'weekLocked:2026:9:guess_spread', kind: 'weekLocked', scopes: [picksScope('guess_spread'), SCOPES.play, SCOPES.home], title: 'Week 9 Spread locked', meta: '14 of 14 locked', icon: 'lock' }]);
   assert.equal(weekLockedId(2026, 9, 'guess_spread'), 'weekLocked:2026:9:guess_spread');
   assert.equal(sizeOf('weekLocked'), 'small');
   assert.deepEqual(weekLockedMoments(perGame({ spread: { openGames: 0, locked: 13 } })), [], 'a game that closed unlocked: quiet');

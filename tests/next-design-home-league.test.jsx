@@ -1,5 +1,5 @@
 // Design lane ("game feel" and the Home and League pass), rendered with vitest + react-dom/server: the count-up's
-// timing tokens and resting markup, Home's awards chips and Pick streak, the League board's weight (faces, the leader,
+// timing tokens and resting markup, Home's Pick streak, the League board's weight (faces, the leader,
 // week badges, the race strip, the empty state) and the recap post. The features read is stood in for, so nothing here
 // reaches the network; the counting, the toast and the arrow run in a real browser in
 // tests/cloud-browser/next-design-home-league.spec.js. Fixture people and points only.
@@ -16,7 +16,6 @@ vi.mock('../web/src/next/features/useFeatures.js', () => ({ useFeatures: () => s
 const { ShellContext } = await import('../web/src/next/shell/context.js');
 const { CountUp } = await import('../web/src/next/ui/CountUp.jsx');
 const { COUNT_UP_TOKENS, bezierEasing, countUpTiming, parseBezier } = await import('../web/src/next/moments/countUp.js');
-const { HomeAwards } = await import('../web/src/next/features/HomeAwards.jsx');
 const { HomeStreak } = await import('../web/src/next/features/HomeStreak.jsx');
 const { RecapPost, RECAP_POST_ROWS } = await import('../web/src/next/features/RecapPost.jsx');
 const { CommunityBoard, communityRows, leadLine } = await import('../web/src/next/league/LeagueBoard.jsx');
@@ -82,38 +81,7 @@ describe('CountUp', () => {
   });
 });
 
-describe('Home: the recap as award chips and the Pick streak', () => {
-  it('draws nothing before the features read has a recap (loading, off, failed, or no week posted)', () => {
-    state.features = { model: null };
-    expect(render(<HomeAwards app={{ accountId: YOU }}/>)).toBe('<div class="gx"></div>');
-    state.features = { model: model({ ...REPLY, awards: [] }) };
-    expect(render(<HomeAwards app={{ accountId: YOU }}/>)).toBe('<div class="gx"></div>');
-  });
-
-  it('one toggle chip per award in a named rail, your own award open first with its winners and value', () => {
-    state.features = { model: model() };
-    const html = render(<HomeAwards app={{ accountId: YOU }}/>);
-    expect(markupProblems(html)).toEqual([]);
-    const card = nodes(html, attr('data-home', 'awards'))[0];
-    expect(textOf(nodes(card, n => n.tag === 'h2')[0])).toBe('Week 7 awards');
-    expect(shown(card)).toContain('You won Total winner');
-    const rail = nodes(card, attr('role', 'group'))[0];
-    expect(rail.attrs['aria-label']).toBe('Week 7 awards');
-    const chips = nodes(rail, n => n.tag === 'button');
-    expect(chips.map(textOf)).toEqual(['Spread winner', 'Total winner', 'Best guess', 'Sharpest bet', 'Worst beat']);
-    expect(chips.map(c => c.attrs['aria-pressed'])).toEqual(['false', 'true', 'false', 'false', 'false']);
-    const open = nodes(card, attr('data-award', 'total_winner'))[0];
-    expect(shown(open)).toBe('Total winner CM You · 18 PTS'); // CM: the winner's face, beside the words
-    expect(nodes(card, n => n.tag === 'button' && !rail.children.includes(n)).map(textOf)).toContain('All badges and awards');
-  });
-
-  it('without an award of your own, the first award is open', () => {
-    state.features = { model: featuresModel(REPLY, { viewer: 'u-nobody', nameOf: id => NAMES[id] }) };
-    const card = nodes(render(<HomeAwards app={{ accountId: 'u-nobody' }}/>), attr('data-home', 'awards'))[0];
-    expect(nodes(card, attr('aria-pressed', 'true')).map(textOf)).toEqual(['Spread winner']);
-    expect(shown(card)).not.toContain('You won');
-  });
-
+describe('Home: the Pick streak', () => {
   it('the Pick streak: a flame and "4-week pick streak"; nothing at 0 or while the read is not there', () => {
     state.features = { model: model() };
     const html = render(<HomeStreak app={{ accountId: YOU }}/>);

@@ -17,7 +17,7 @@ import { ScoreReceipt } from './ScoreReceipt.jsx';
 import { WeekProgress, STATE_ICONS } from './WeekProgress.jsx';
 import { WeekTiles, nextAfter } from './PicksNest.jsx';
 import { RevealFailure, RevealPicks, useWeekPicks } from './RevealPicks.jsx';
-import { confirmedLockIns, revealRows, weekLockedId, weekProgress } from './moments.js';
+import { CARD_STATE, confirmedLockIns, revealRows, weekLockedId, weekProgress } from './moments.js';
 import { usePopped } from '../moments/MomentsProvider.jsx';
 import { SCORE_MARKETS, lockConfirmed, lockedAt, mergeDraft, number, perGameReady, savedPicks } from './scoring.js';
 import './scores.css';
@@ -36,8 +36,6 @@ function readDraft(key, data, mode) {
 const matchesSave = (data, request) => request.lockIn?.length ? lockConfirmed(data, request)
   : data.season === request.season && data.week === request.week && Object.entries(request.picks).every(([id, value]) => data.ballots?.[request.mode]?.picks?.[id] === value);
 
-/** Each card's state word (unchanged from before the design upgrade) and its pill tone. */
-const CARD_STATE = Object.freeze({ locked: ['Locked in', 'accent'], kicked: ['Closed at kickoff', 'neutral'], skipped: ['Skipped', 'neutral'], notopen: ['Not open', 'neutral'], draft: ['Draft', 'pending'], open: ['To pick', 'neutral'] });
 const vibrate = () => lightHaptic(undefined, motionReduced());
 
 /**

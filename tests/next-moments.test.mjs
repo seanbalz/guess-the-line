@@ -1,7 +1,7 @@
 // D-69 moments engine, the pure rules (web/src/next/moments). Each test names the contract it guards.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { MOMENTS, SCOPES, sizeOf } from '../web/src/next/moments/catalog.js';
+import { MOMENTS, SCOPES, scoreScope, sizeOf } from '../web/src/next/moments/catalog.js';
 import { SEEN_CAP, clearMomentSeen, momentsKey, readMomentSeen, writeMomentSeen } from '../web/src/next/moments/seen.js';
 import { SMALL_GAP_MS, freshMoments, planMoments } from '../web/src/next/moments/detect.js';
 
@@ -24,6 +24,11 @@ test('moments size: every moment plays at the size Sean chose (Q3, "Use PICK col
 
 test('scopes: Play cards that hold moments each have a scope, so a landing tile can show NEW for its own card', () => {
   assert.deepEqual({ ...SCOPES }, { home: 'home', play: 'play', league: 'league', features: 'features', score: 'score', picks: 'picks', points: 'points' });
+});
+
+test('scoreScope: Your score holds a scope per market, so a rank tile’s waiting move plays on its own market only', () => {
+  assert.equal(scoreScope('guess_spread'), 'score:guess_spread');
+  assert.equal(scoreScope('guess_total'), 'score:guess_total');
 });
 
 test('seen record: per account under gtl.next.moments.v1, capped, cleared on sign-out, and never trusted when broken', () => {

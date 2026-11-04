@@ -18,7 +18,7 @@ import { momentsKey } from '../../web/src/next/moments/seen.js';
 //    value; under reduced motion it shows the final value at once;
 // 2. the rank moment: nothing on page load, the arrow in your chip, then once when League opens after the launch (1st is big),
 //    a drop quiet;
-// 3. Home's one primary card, the week meter, the Pick streak and the award chips;
+// 3. Home's one primary card, the week meter, the Pick streak and the Awards tile;
 // 4. the League board's faces, leader, week badges (no race strip), the recap post, and the shared read states with retry;
 // and on every screen: no sideways scroll at 390 and 320, 44px targets, no text under 12px, nothing clipped, axe clean in
 // Dark and Light. Fixture accounts, games and numbers only; never contacts hosted data.
@@ -139,7 +139,7 @@ async function everyTheme(page, info, name) {
   await page.setViewportSize({ width: 390, height: 844 });
 }
 
-test('Home: one primary card, the week meter, the streak and the award chips; Spread points count up from what this device saw', async ({ page, baseURL }, info) => {
+test('Home: one primary card, the week meter, the streak and the Awards tile; Spread points count up from what this device saw', async ({ page, baseURL }, info) => {
   const world = await featuresWorld(page, baseURL);
   try {
     const reply = (await world.api('luke', 'community/read', {})).body;
@@ -187,16 +187,19 @@ test('Home: one primary card, the week meter, the streak and the award chips; Sp
     await expect(page.locator('.gx-app .gx-btn--primary')).toHaveCount(1);
     await expect(page.locator('.gx-app .gx-btn--primary')).toHaveText('Make picks');
 
-    // The award chips: Luke's own award is open first; choosing another opens it in place.
-    const awards = page.locator('[data-home="awards"]');
-    await expect(awards.getByRole('heading', { name: 'Week 4 awards' })).toBeVisible();
-    const rail = awards.getByRole('group', { name: 'Week 4 awards' });
-    await expect(rail.getByRole('button')).toHaveCount(7);
-    await expect(rail.getByRole('button', { pressed: true })).toHaveText('Spread winner');
-    await expect(awards.locator('[data-award]')).toContainText('You · 20 PTS');
-    await rail.getByRole('button', { name: 'Worst beat' }).click();
-    await expect(rail.getByRole('button', { pressed: true })).toHaveText('Worst beat');
-    await expect(awards.locator('[data-award="worst_beat"]')).toContainText('Troy Fixture · Lost by 12.5');
+    // The Awards tile (H1A): Week 4's seven awards counted, Luke's own named; it opens Play › Badges and awards, where
+    // every award shows (next-features.spec.js reads them there). The first read on this device seeds what Luke has
+    // seen, so nothing waits: "You won", not "New:", and no NEW.
+    const awards = page.locator('[data-tile="awards"]').getByRole('button');
+    await expect(awards).toHaveAccessibleName('Awards, 7 in Week 4, you won Spread winner');
+    await expect(awards.locator('.gx-nest-num')).toHaveText('7');
+    await expect(awards.locator('.gx-tile-sub')).toHaveText('Week 4 · You won Spread winner');
+    await expect(awards.locator('.gx-new')).toHaveCount(0);
+    await awards.click();
+    await expect(page).toHaveURL(/#play\/features/);
+    await expect(page.locator('[data-landing="features"]').getByRole('heading', { name: 'Badges and awards', level: 2 })).toBeVisible();
+    await tab(page, 'Home').click();
+    await expect(hero).toBeVisible();
 
     await everyTheme(page, info, 'home');
     expect(world.errors).toEqual([]);

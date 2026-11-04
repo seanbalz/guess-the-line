@@ -11,6 +11,9 @@ export const GAME_STATES = Object.freeze(['locked', 'draft', 'open', 'kicked', '
 /** One word per state, for the legend; the cards keep their own longer words. */
 export const STATE_WORDS = Object.freeze({ locked: 'Locked', draft: 'Draft', open: 'Open', kicked: 'Kicked off', skipped: 'Sat out', notopen: 'Not open' });
 
+/** Each game card's state word and its pill tone: what the picks card says (PerGamePlay) and what a Home game tile repeats. */
+export const CARD_STATE = Object.freeze({ locked: ['Locked in', 'accent'], kicked: ['Closed at kickoff', 'neutral'], skipped: ['Skipped', 'neutral'], notopen: ['Not open', 'neutral'], draft: ['Draft', 'pending'], open: ['To pick', 'neutral'] });
+
 const instant = value => (typeof value === 'string' || typeof value === 'number' ? Date.parse(value) : NaN);
 
 /**

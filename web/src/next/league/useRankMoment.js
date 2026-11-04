@@ -1,7 +1,9 @@
 // The League rank moment as a hook (rankMoment.js holds the rules). On each fresh confirmed read of a board it compares
 // your rank with the rank this device last saw, remembers the new one and reports the change to the D-69 engine under
-// SCOPES.league: it plays where League opens after the launch and shows NEW on the Play landing's League tile meanwhile.
-// A drop reports nothing (losses stay quiet). The old toast is gone.
+// SCOPES.league and, for the Community board, under that market's Your score too (scoreScope(mode), D-69 step 2). It
+// plays once, on whichever opens first after the launch (League, or Your score's season rank chip), and shows NEW
+// meanwhile on Play's League and Your score tiles and Home's rank tile. A drop reports nothing (losses stay quiet). The
+// old toast is gone.
 import { useEffect, useState } from 'react';
 import { useMoments } from '../moments/MomentsProvider.jsx';
 import { rankKey, rankReport, rankSource, readRank, writeRank } from './rankMoment.js';

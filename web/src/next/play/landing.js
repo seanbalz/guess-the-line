@@ -92,13 +92,13 @@ export const WEEK_LOCKED_SOURCE = 'community:weekLocked';
 /**
  * Whole week locked (D-69 moments table, small): one candidate per market whose week reads N of N locked in this
  * Community read (per-game rules only). A market that closed with a game unlocked, or was sat out, has none: it stays
- * quiet. It plays on its own market's picks card and on the landing (picksScope(mode), SCOPES.play).
+ * quiet. It plays on its own market's picks card and on the landing (picksScope(mode), SCOPES.play) and on Home's card (SCOPES.home, D-69 step 2).
  */
 export function weekLockedMoments(community) {
   const week = community?.week;
   if (!Number.isInteger(week?.season) || !Number.isInteger(week?.week)) return [];
   return ['spread', 'total'].map(m => ballotProgress(community, m)).filter(allLocked).map(row => ({
-    id: weekLockedId(week.season, week.week, row.mode), kind: 'weekLocked', scopes: [picksScope(row.mode), SCOPES.play],
+    id: weekLockedId(week.season, week.week, row.mode), kind: 'weekLocked', scopes: [picksScope(row.mode), SCOPES.play, SCOPES.home],
     title: `Week ${week.week} ${row.label} locked`, meta: `${row.of} of ${row.of} locked`, icon: 'lock',
   }));
 }

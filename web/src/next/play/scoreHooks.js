@@ -2,7 +2,7 @@
 // scoreMoments.js and yourScore.js.
 import { useEffect, useMemo } from 'react';
 import { MODES, rankTile } from '../../../../shared/guess-board.mjs';
-import { peekMove, rankKey, readRank } from '../league/rankMoment.js';
+import { peekMove, rankKey, rankMomentId, readRank } from '../league/rankMoment.js';
 import { useMoments } from '../moments/MomentsProvider.jsx';
 import { scoreReport } from './scoreMoments.js';
 import { rankChip } from './yourScore.js';
@@ -28,7 +28,10 @@ export function useSeasonRanks(app) {
     const out = { season: Number.isInteger(community?.week?.season) ? community.week.season : null };
     for (const mode of MODES) {
       const tile = community ? rankTile({ standings: community.standings, viewer, mode }) : null;
-      out[mode] = rankChip(tile, tile?.rank ? peekMove(readRank(rankKey(viewer, 'community', mode)), { rank: tile.rank }) : null);
+      const saved = readRank(rankKey(viewer, 'community', mode));
+      const chip = rankChip(tile, tile?.rank ? peekMove(saved, { rank: tile.rank }) : null);
+      // D-69 step 2: the chip carries the id of the rank move on record, so it pops when that move plays here.
+      out[mode] = chip ? { ...chip, momentId: rankMomentId(saved, 'community', mode) } : null;
     }
     return out;
   }, [community, viewer]);

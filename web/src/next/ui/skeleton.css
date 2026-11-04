@@ -80,10 +80,32 @@
   min-width: 0;
 }
 
+/* D-69 step 2 (design audit B0-2): a tab's next-move card (the glow card's padding and radius) and its two-column tiles
+   (the kit's .gx-tiles: 112 px tiles, 12 px apart). The card's height is Home's next-move card while picks are due at a
+   390 px phone (402 px measured, Task 8: eyebrow, headline, deadline, countdown, the meter row, the button), so the
+   first card does not jump when the read lands (tests/cloud-browser/next-home-layers.spec.js). */
+.gx-skel-hero { gap: 16px; min-height: 400px; padding: 24px; border-radius: var(--gx-radius-lg); }
+.gx-skel-block.gx-skel-countdown { height: 64px; }
+.gx-skel-button { display: block; height: 52px; margin-top: auto; border-radius: var(--gx-radius-sm); background: var(--gx-surface-3); }
+.gx-skel-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.gx-skel-tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 112px;
+  padding: 12px;
+  border-radius: var(--gx-radius-md);
+  background: var(--gx-surface-1);
+  box-shadow: var(--gx-e1);
+}
+
 /* Forced colors: backgrounds give way to the system's, so each block draws its outline instead. */
 @media (forced-colors: active) {
   .gx-skel-bar,
   .gx-skel-dot,
   .gx-skel-block,
+  .gx-skel-button,
+  .gx-skel-tile,
   .gx-skel-card { border: 1px solid CanvasText; }
 }

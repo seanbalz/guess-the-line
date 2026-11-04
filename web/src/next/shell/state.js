@@ -25,7 +25,12 @@ export function destination(tab, view) {
   const { section, ...adapterView } = view;
   return { tab, view, adapter, adapterView };
 }
-export const isDetail = state => !!state.views[state.tab]?.section || (state.tab === 'bets' && !!state.views.bets.view);
+/** Home's layers by name (home/homeModel.js HOME_LAYERS): `#home?layer=who` is Who's in; any other value is Home's root. */
+export const HOME_LAYER_IDS = Object.freeze(['who']);
+// D-69 step 2: Home's layer (Who's in) is a detail too, so Back after a reload closes it and the top bar shows Back. Only
+// a known layer counts: any other value draws Home's root, which has no Back.
+export const isDetail = state => !!state.views[state.tab]?.section || (state.tab === 'bets' && !!state.views.bets.view)
+  || (state.tab === 'home' && HOME_LAYER_IDS.includes(state.views.home?.layer));
 export const navigationPatch = (state, tab, patch) => !!patch && (
   (Object.hasOwn(patch, 'section') && patch.section !== state.views[tab]?.section)
   || (['bets', 'league'].includes(tab) && Object.hasOwn(patch, 'view') && patch.view !== state.views[tab]?.view)
@@ -40,6 +45,8 @@ export const navigationPatch = (state, tab, patch) => !!patch && (
   // D-69 step 1: a Play section's nested layer (the generic `layer` and `item` keys: a Points slot, a badge, the awards)
   // is a step, so Back closes one layer. Compare's `item` picks the other player in place, a choice inside one layer.
   || (tab === 'play' && state.views.play.section !== 'compare' && ['layer', 'item'].some(key => Object.hasOwn(patch, key) && (patch[key] ?? null) !== (state.views.play[key] ?? null)))
+  // D-69 step 2: opening or closing Home's layer (Who's in, `#home?layer=who`) is a step, so Back closes it and its lip goes back.
+  || (tab === 'home' && Object.hasOwn(patch, 'layer') && (patch.layer ?? null) !== (state.views.home?.layer ?? null))
   // D-66: opening or closing a Trends nesting card is a step, so back closes one layer. The account reset in
   // TrendsScreen also clears the history window; it is not a step, so back never restores another account's choice.
   || (tab === 'fantasy' && ['fantasyLayer', 'fantasyPlayer'].some(key => Object.hasOwn(patch, key) && (patch[key] ?? null) !== (state.views.fantasy?.[key] ?? null)))
@@ -96,6 +103,10 @@ const closed = { sheets: [], dialog: null, popover: null, page: null };
 /** The Play view keys that open a nested layer (D-69): Your guesses (`pickGame`), Your score (`scoreGame`) and every
  * other section's generic `layer` and `item`. */
 const PLAY_LAYER_KEYS = Object.freeze(['pickGame', 'scoreGame', 'layer', 'item']);
+/** Home's layer key (D-69 step 2): Who's in opens over Home's root. */
+const HOME_LAYER_KEYS = Object.freeze(['layer']);
+/** The view keys that open a nested layer, per tab: a fresh destination on that tab never carries one over. */
+const LAYER_KEYS = Object.freeze({ play: PLAY_LAYER_KEYS, home: HOME_LAYER_KEYS });
 const withView = (views, tab, patch) => (isRecord(patch) ? { ...views, [tab]: { ...views[tab], ...patch } } : views);
 
 // Origin context is reversible; newer local list/filter preferences survive returning through a root.
@@ -156,7 +167,8 @@ export function reduce(state, action) {
       const current = state.views[target.tab];
       // A nested layer is opened by its own address key, never carried into a fresh Play destination (a link that names
       // one, such as a receipt's scoreGame, passes it in `target.view`, which is merged after this).
-      const next = target.tab === 'play' && PLAY_LAYER_KEYS.some(key => Object.hasOwn(current, key)) ? Object.fromEntries(Object.entries(current).filter(([key]) => !PLAY_LAYER_KEYS.includes(key))) : current;
+      const layerKeys = LAYER_KEYS[target.tab] ?? null;
+      const next = layerKeys && layerKeys.some(key => Object.hasOwn(current, key)) ? Object.fromEntries(Object.entries(current).filter(([key]) => !layerKeys.includes(key))) : current;
       const root = { ...next, section: undefined, ...(target.tab === 'bets' ? { view: undefined } : {}) };
       const view = action.type === 'tab' || !target.view ? root : target.adapter === 'league' ? ownMarket({ ...next, ...target.view }, current) : { ...next, ...target.view };
       const adapterFrom = target.adapter === 'league' && !onLeague(state) ? { ...state.views.league, ...LEAGUE_LAYER_CLEARED } : state.views[target.adapter];
@@ -186,7 +198,10 @@ export function reduce(state, action) {
       const adapter = destination(prior.tab, prior.view).adapter;
       const adapters = adapter && prior.adapters?.[adapter] ? { [adapter]: originView(state.views[adapter], prior.adapters[adapter], true) } : {};
       const detail = !!prior.view?.section || (prior.tab === 'bets' && !!prior.view?.view);
-      return { ...state, ...closed, tab: prior.tab, views: { ...state.views, ...adapters, [prior.tab]: originView(state.views[prior.tab], prior.view, detail) }, trail: state.trail.slice(0, -1), nav: state.nav + 1, navMode: 'back' };
+      const view = originView(state.views[prior.tab], prior.view, detail);
+      // D-69 step 2: Home's layer is navigation, not a preference: Back puts it back as it was (closed at Home's root).
+      if (prior.tab === 'home') for (const key of HOME_LAYER_KEYS) view[key] = prior.view?.[key];
+      return { ...state, ...closed, tab: prior.tab, views: { ...state.views, ...adapters, [prior.tab]: view }, trail: state.trail.slice(0, -1), nav: state.nav + 1, navMode: 'back' };
     }
     case 'restore': {
       const place = action.place;

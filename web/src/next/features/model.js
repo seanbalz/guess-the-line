@@ -132,8 +132,9 @@ export function boardFact(model, userId, mode) {
   return row?.winners.includes(userId) ? `Won Week ${model.recap.week}` : null;
 }
 
-/** The cards that hold badge and award moments (D-69): they play when one of these opens after the launch. */
-export const FEATURE_SCOPES = Object.freeze([SCOPES.features, SCOPES.home, SCOPES.league, SCOPES.play]);
+/** The cards that hold badge and award moments (D-69): they play when one of these opens after the launch. Home is not
+ * one (D-69 step 2): a waiting badge or award shows NEW on Home's Awards tile and plays where that tile leads. */
+export const FEATURE_SCOPES = Object.freeze([SCOPES.features, SCOPES.league, SCOPES.play]);
 
 /**
  * A badge moment's id: its award key, `badge:<key>`, except a Bullseye, which celebrates the same exact guess as Your
@@ -145,6 +146,12 @@ function badgeMomentId(b, season) {
   if (b.badge !== 'bullseye' || !Number.isInteger(season) || !Number.isInteger(b.week) || !['spread', 'total'].includes(f.market) || typeof f.gameId !== 'string' || !f.gameId) return { id: own };
   return { id: `score:bullseye:${season}:${b.week}:guess_${f.market}:${f.gameId}`, aka: [own] };
 }
+
+/**
+ * An award moment's id, `award:<league>:<season>:<week>:<award>` ("community" for the community). With no `award` it
+ * is the prefix every award of that league's week shares (Home's Awards tile names a waiting one by it).
+ */
+export const awardMomentId = (league, season, week, award = '') => `award:${league ?? 'community'}:${season}:${week}:${award}`;
 
 /**
  * Every badge and award of the viewer in a features reply, as moments (moments/detect.js decides which are new):
@@ -163,7 +170,7 @@ export function featureMoments(reply, viewer) {
     .map(b => ({ ...badgeMomentId(b, season), kind: 'badge', badge: b.badge, scopes: [...FEATURE_SCOPES], title: BADGE_BY_ID[b.badge].name, meta: badgeLine(b), parts: badgeParts(b), icon: BADGE_ICONS[b.badge], rarity: BADGE_BY_ID[b.badge].rarity }));
   for (const w of reply.awards ?? []) for (const a of w.awards) {
     if (!a.winners.includes(viewer)) continue;
-    out.push({ id: `award:${league}:${season}:${w.week}:${a.id}`, kind: 'award', scopes: [...FEATURE_SCOPES], title: AWARD_BY_ID[a.id]?.name ?? a.id, meta: `Week ${w.week}${SEP}${awardValue(a)}`, icon: AWARD_ICONS[a.id], rarity: 'rare' });
+    out.push({ id: awardMomentId(league, season, w.week, a.id), kind: 'award', scopes: [...FEATURE_SCOPES], title: AWARD_BY_ID[a.id]?.name ?? a.id, meta: `Week ${w.week}${SEP}${awardValue(a)}`, icon: AWARD_ICONS[a.id], rarity: 'rare' });
   }
   return out;
 }

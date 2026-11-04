@@ -1,11 +1,12 @@
 // The League rank moment (D-69 PICK column: rank up is small, reaching 1st is big, a drop stays quiet). When your board
 // rank differs from the rank this device last saw for that league and market, the change is remembered and becomes one
-// moment for the engine, which plays it where League opens after the launch, never on page load. Pure: storage is passed in.
+// moment for the engine, which plays it where League opens after the launch, or for the Community board where that
+// market's Your score opens (scoreScope, D-69 step 2), once and never on page load. Pure: storage is passed in.
 // - Per account, league and market on this device (`gtl.next.rank.v1.…`) as `{ rank, from, n }`: the rank last seen, the
 //   one before the last change (the arrow keeps saying how it went) and how many changes this device saw (each change is
 //   its own moment, so a later move to the same rank plays again). The first look remembers and says nothing; unranked
 //   ("—") is not a rank.
-import { SCOPES } from '../moments/catalog.js';
+import { SCOPES, scoreScope } from '../moments/catalog.js';
 import { AWARD_ICONS } from '../features/icons.js';
 
 export const RANK_PREFIX = 'gtl.next.rank.v1.';
@@ -53,11 +54,16 @@ export function rankMoment(stored, current) {
 /** The engine's source for one league's market board: the first read of it on a device seeds silently. */
 export const rankSource = (league, mode) => `rank:${league || 'community'}:${mode}`;
 
+/** The id of the moment the last change in `saved` reported (rankCandidate's id), or '' when no change is on record. */
+export const rankMomentId = (saved, league, mode) => (rankOf(saved?.rank) !== null && rankOf(saved?.from) !== null ? `${rankSource(league, mode)}:${countOf(saved.n)}` : '');
+
 /** The moment for the last change in `saved` (the record after a read): up is `rankUp`, reaching 1st `rankFirst`; else null. */
 export function rankCandidate({ league, mode, saved, tied = false, market }) {
   const rank = rankOf(saved?.rank), from = rankOf(saved?.from);
   if (rank === null || from === null || rank >= from) return null;
-  return { id: `${rankSource(league, mode)}:${countOf(saved.n)}`, kind: rank === 1 ? 'rankFirst' : 'rankUp', scopes: [SCOPES.league],
+  return { id: rankMomentId(saved, league, mode), kind: rank === 1 ? 'rankFirst' : 'rankUp',
+    // A Community board move also waits on that market's Your score (its season rank chip), where Home's rank tile leads.
+    scopes: !league || league === 'community' ? [SCOPES.league, scoreScope(mode)] : [SCOPES.league],
     title: rank === 1 ? (tied ? 'Tied for 1st' : 'You’re 1st') : `Up to ${ordinal(rank)}`, meta: `${market} board · up ${from - rank}`,
     icon: AWARD_ICONS.spread_winner, rarity: 'rare' };
 }

@@ -8,7 +8,7 @@ import { communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 import { layoutProblems } from '../helpers/phone-layout.mjs';
 import { sendBallot, storeLines } from '../helpers/guess-week.mjs';
 
-const ADDRESSES = ['#home', '#play', '#play/picks', '#play/picks?market=total', '#play/score', '#play/score?scoreGame=SEA-DEN', '#play/compare', '#play/points', '#play/features', '#play/features?layer=streaks', '#play/features?layer=awards', '#play/features?layer=season', '#play/features?layer=badge&item=bullseye', '#play/league', '#play/league?view=history&week=6',
+const ADDRESSES = ['#home', '#home?layer=who', '#play', '#play/picks', '#play/picks?market=total', '#play/score', '#play/score?scoreGame=SEA-DEN', '#play/compare', '#play/points', '#play/features', '#play/features?layer=streaks', '#play/features?layer=awards', '#play/features?layer=season', '#play/features?layer=badge&item=bullseye', '#play/league', '#play/league?view=history&week=6',
   '#play/league?view=feed', '#play/league?view=board', '#play/league?view=history', '#bets', '#bets/active', '#bets/settled', '#bets/recommended',
   '#bets/virtual', '#bets/everyone', '#bets/add', '#groups', '#research', '#research/games', '#research/fantasy', '#research/trends',
   // Me › History (stage 73).

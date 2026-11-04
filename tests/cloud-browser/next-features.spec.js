@@ -50,7 +50,7 @@ async function targets44(scope) {
   }
 }
 
-test('without M-25: the Badges tile on Play says "coming soon", Home has no awards row, and the screen says "coming soon"', async ({ page, baseURL }) => {
+test('without M-25: the Badges tile on Play says "coming soon", so do Home’s Awards tile and the screen', async ({ page, baseURL }) => {
   const world = await communityWorld(page, baseURL, { migrations: BEFORE_M25 });
   expect((await world.api('luke', 'league/features', {})).status).toBe(404);
   await openNewApp(page);
@@ -59,7 +59,11 @@ test('without M-25: the Badges tile on Play says "coming soon", Home has no awar
   await expect(page.getByRole('button', { name: 'Badges, coming soon' })).toBeVisible();
   await tabs(page).getByRole('button', { name: /^Home(,|$)/ }).click();
   await expect(page.locator('[data-landing="home"]')).toBeVisible();
-  await expect(page.getByRole('button', { name: /awards$/ })).toHaveCount(0);
+  // D-69 step 2 (H1A): the Awards tile is always one of Home's six; without M-25 it says so, with no number and no NEW.
+  const awards = page.locator('[data-tile="awards"]').getByRole('button');
+  await expect(awards).toHaveAccessibleName('Awards, coming soon');
+  await expect(awards.locator('.gx-nest-num')).toHaveText('—');
+  await expect(awards.locator('.gx-new')).toHaveCount(0);
   await page.goto('/#play/features');
   await expect(page.getByText('Badges and awards are coming soon.')).toBeVisible();
   expect(world.errors).toEqual([]);
@@ -122,6 +126,8 @@ test('before the job has run: an empty recap with no sample, streaks at 0 and th
   await expect(screen.getByRole('heading', { name: 'Week 4 awards', level: 2 })).toBeFocused();
   await expect(screen.locator('[data-features="awards"]')).toContainText('Worst beat');
   await expect(screen.locator('[data-features="awards"]')).toContainText('Lost by 12.5');
+  // Luke's own Spread winner names him "You" with the week's points (the detail Home's old award chips showed).
+  await expect(screen.locator('[data-features="awards"] li').filter({ hasText: 'Spread winner' }).first()).toContainText('You · 20 PTS');
   await phoneChecks(page, info, 'features-awards');
   await page.goBack();
   await expect(screen.getByRole('heading', { name: 'Badges and awards', level: 2 })).toBeVisible();
@@ -167,19 +173,19 @@ test('reduced motion: the celebration still says what happened, with no animatio
   expect(world.errors).toEqual([]);
 });
 
-test('Home\'s recap card and the League board\'s "Won Week 4" show once the job has run, and open the screen', async ({ page, baseURL }) => {
+test('Home\'s Awards tile and the League board\'s "Won Week 4" show once the job has run, and open the screen', async ({ page, baseURL }) => {
   const world = await communityWorld(page, baseURL, { migrations: ALL });
   await seedFinishedWeek(world);
   expect((await world.api('sean', 'league/features/run', {})).status).toBe(200);
   await openNewApp(page, '#home');
   await expect(page.locator('[data-landing="home"]')).toBeVisible();
-  // The design lane's hierarchy pass turned the one-line recap row into the awards card (the chips, one award open).
-  const recap = page.locator('[data-home="awards"]');
-  await expect(recap.getByRole('heading', { name: 'Week 4 awards' })).toBeVisible();
-  await expect(recap).toContainText('You won Spread winner');
+  // D-69 step 2 (H1A): the awards card became the Awards tile (the week's award count, Luke's own award named).
+  const awards = page.locator('[data-tile="awards"]').getByRole('button');
+  await expect(awards).toHaveAccessibleName('Awards, 7 in Week 4, you won Spread winner');
+  await expect(awards).toContainText('Week 4 · You won Spread winner');
   // The first read on this device seeds what Luke has seen: no celebration on page load.
   await expect(page.getByRole('dialog', { name: 'New results' })).toHaveCount(0);
-  await recap.getByRole('button', { name: 'All badges and awards' }).click();
+  await awards.click();
   await expect(page).toHaveURL(/#play\/features/);
   await page.goto('/#play/league?view=board');
   const board = page.getByRole('list', { name: 'Spread season standings' });
@@ -211,8 +217,11 @@ test('D-69 (the review race): a scroll press on the launch screen is not a navig
   await expect(hero).toBeVisible();
   await hero.getByRole('heading', { level: 2 }).click(); // a trusted press on words (a scroll touch), not a navigation
   release();
-  const awards = page.locator('[data-home="awards"]');
-  await expect(awards.getByRole('heading', { name: 'Week 4 awards' })).toBeVisible();
+  // The away results wait as NEW on the Awards tile, with the newest of Luke's own awards named "New:".
+  const awards = page.locator('[data-tile="awards"]');
+  await expect(awards.locator('.gx-new')).toBeVisible();
+  await expect(awards.getByRole('button')).toHaveAccessibleName(/^Awards, 7 in Week 4, new: .+$/);
+  await expect(awards.locator('.gx-tile-sub')).toHaveText(/^Week 4 · New: .+$/);
   // Let the read's effects and any overlay they open commit before looking.
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(resolve, 0)))));
   const flash = page.getByRole('dialog', { name: 'New results' });

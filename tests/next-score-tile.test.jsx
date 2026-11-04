@@ -4,7 +4,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn() }));
 vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: vi.fn() }));
-vi.mock('../web/src/next/shell/context.js', () => ({ useShell: () => ({ state: { views: { play: {} } }, go: vi.fn(), setView: vi.fn() }) }));
+const view = vi.hoisted(() => ({ play: {} }));
+vi.mock('../web/src/next/shell/context.js', () => ({ useShell: () => ({ state: { views: { play: view.play } }, go: vi.fn(), setView: vi.fn() }) }));
 vi.mock('../web/src/next/league/useLeagueRead.jsx', () => ({ useLeagueRead: vi.fn() }));
 vi.mock('../web/src/next/moments/MomentsProvider.jsx', () => ({ useMoments: () => null, useNewCount: vi.fn(() => 0) }));
 // The tile's props are the contract here; PlayTile's own drawing is Task 1's test.
@@ -26,7 +27,7 @@ const tile = (read = { loading: false, error: null, data: history, retry() {} },
   return globalThis.__scoreTile;
 };
 
-afterEach(() => { delete globalThis.localStorage; useNewCount.mockImplementation(() => 0); });
+afterEach(() => { delete globalThis.localStorage; useNewCount.mockImplementation(() => 0); view.play = {}; });
 
 describe('ScoreTile (P1B)', () => {
   it('shows the latest scored week from the shared home-score read and opens Your score on that week', () => {
@@ -43,6 +44,23 @@ describe('ScoreTile (P1B)', () => {
     const props = tile();
     expect(props.isNew).toBe(true);
     expect(props.ariaLabel).toBe('Your score, Week 8 Spread, 10 points, season rank 3rd, new result');
+  });
+  it('NEW: a Community rank move waiting on the market the tile opens shows NEW and says "new" (final review I2)', () => {
+    // Rank moves wait on scoreScope(mode) as well as League (league/rankMoment.js); the tile opens Your score on Spread here.
+    useNewCount.mockImplementation(scope => (scope === 'score:guess_spread' ? 1 : 0));
+    const props = tile();
+    expect(props.isNew).toBe(true);
+    expect(props.ariaLabel).toBe('Your score, Week 8 Spread, 10 points, season rank 3rd, new result');
+  });
+  it('NEW: a rank move on the other market stays off this tile, since opening it would not play that move', () => {
+    useNewCount.mockImplementation(scope => (scope === 'score:guess_total' ? 1 : 0));
+    expect(tile()).toMatchObject({ isNew: false, ariaLabel: 'Your score, Week 8 Spread, 10 points, season rank 3rd' });
+    // Play's market is Total, but Total has no scored week, so the tile shows and opens Spread: still not Total's move.
+    view.play = { market: 'total' };
+    const onOpen = vi.fn(), props = tile(undefined, onOpen);
+    expect(props.isNew).toBe(false);
+    props.onClick();
+    expect(onOpen).toHaveBeenCalledWith(expect.objectContaining({ market: 'guess_spread' }));
   });
   it('the move the League board last showed: a rise reads "▲ 2" in the good tone, a drop "▼ 2" stays plain', () => {
     globalThis.localStorage = memory({ 'gtl.next.rank.v1.u-me.community.guess_spread': JSON.stringify({ rank: 3, from: 5 }) });

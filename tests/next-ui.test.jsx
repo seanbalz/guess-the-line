@@ -644,6 +644,21 @@ describe('design upgrade: paging sheets and loading skeletons', () => {
     expect(els(<ui.Skeleton label="Loading" shape="cards" count={9}/>, byClass('gx-skel-card'))).toHaveLength(6);
     expect(classes(one(<ui.Skeleton label="Loading" shape="nope"/>, n => n.attrs.role === 'status'))).toContain('gx-skel--lines');
   });
+
+  it('D-69 step 2 (design audit B0-2): "landing" is a tab’s first card and its two-column tiles; "tiles" is the tiles alone; both static', () => {
+    const landing = <ui.Skeleton label="Loading this week…" shape="landing" count={6}/>;
+    expect(els(landing, byClass('gx-skel-hero'))).toHaveLength(1);
+    expect(els(landing, byClass('gx-skel-button'))).toHaveLength(1);
+    expect(els(landing, byClass('gx-skel-tiles'))).toHaveLength(1);
+    expect(els(landing, byClass('gx-skel-tile'))).toHaveLength(6);
+    const tiles = <ui.Skeleton label="Loading this week’s games…" shape="tiles" count={4}/>;
+    expect(els(tiles, byClass('gx-skel-hero'))).toHaveLength(0);
+    expect(els(tiles, byClass('gx-skel-tile'))).toHaveLength(4);
+    expect(ui.SKELETON_SHAPES).toEqual(['lines', 'rows', 'cards', 'panels', 'block', 'tiles', 'landing']);
+    clean(landing); clean(tiles);
+    // The LIVE dot is the app's one loop (BRAND_GUIDE Motion): a placeholder never shimmers.
+    expect(readFileSync(join(UI_DIR, 'skeleton.css'), 'utf8')).not.toMatch(/animation|transition/);
+  });
 });
 
 describe('TeamMark (D-46 official logos, D-22 badge fallback, sized for DP-27) and the Field monogram', () => {

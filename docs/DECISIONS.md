@@ -350,6 +350,24 @@ building step 1, where the plan's text and a binding rule disagreed; each is rev
 - **Picks:** the header button reads "Your score"; the picks card listens for its moment only once its cards show.
 - **Guess grid:** four columns now reach 380px (44px targets, Play lip); the old app's per-game cards share it.
 
+*Build decisions for Sean's review (step 2 Home, November 4).* Sean has not approved these. His step 2 questions were
+not answered before the build, so it took the recommended choices; each is reversible:
+- **H1A layout:** the recommended board ("Tiles, then This week as game tiles"), chosen by the build, not by Sean.
+- **C9:** the countdown is the next-move card's picture, and the Spread and Total meters sit side by side from a
+  332 px card, so on a 390 px phone and stacked at 320.
+- **Card numbers:** the next-move card shows more numbers than D-38's six, and more than spec 5's one visual and one
+  meta line. The H1A board carries the same content. Sean to rule.
+- **Game tiles say the picks card's words** ("Locked in", "To pick", "Draft", "Closed at kickoff", "Skipped"), so a
+  tile says what its card says. (This replaces the plan's older legend list.)
+- **Eyebrow:** "Week N · Your next move", or "Your week" when there is no move.
+- **Badges and awards no longer play on Home.** They wait as NEW on the Awards tile.
+- **Rank moves** play on Your score as well as League, once, when the season rank chip is drawn.
+- **Awards and Trends tiles:** the awards card and the This week rows become these two tiles.
+- **Loading skeleton:** it holds the card's 400 px at 390.
+- **Locked colour:** the locked word on a game tile is green, while the card's locked icon is lime. Choose one.
+- **Total rank glyph:** the Total rank tile uses the target glyph that Play's picks also use.
+- **Empty copy:** "No week open" on the tile, "No week is open yet" in the layer.
+
 ## D-68 — Premier League: Sleeper FEPL, Pick a Team and EPL moneyline (October 28, 2026)
 
 **Bonus accounting ruling — November 2, 2026.** Sean: "I add bonuses to sleeper,
