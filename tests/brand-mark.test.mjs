@@ -11,6 +11,7 @@ import zlib from 'node:zlib';
 const root = path.resolve(import.meta.dirname, '..');
 const pub = path.join(root, 'web/public');
 const tokens = JSON.parse(fs.readFileSync(path.join(root, 'design/tokens.json'), 'utf8'));
+const nextTokens = JSON.parse(fs.readFileSync(path.join(root, 'design/tokens-next.json'), 'utf8'));
 const brand = fs.readFileSync(path.join(root, 'web/src/Brand.jsx'), 'utf8');
 const paths = [...brand.matchAll(/<path d="([^"]+)"/g)].map(m => m[1]);
 const viewBox = brand.match(/<svg viewBox="([^"]+)"/)[1];
@@ -90,11 +91,15 @@ test('the PNG icons (home screen 180, manifest 192 and 512, notification badge 1
     for (const hole of holes) assert.equal(png.pixel(...at(size, hole))[3], 0, `app-icon-${size}.png: nothing behind the G at ${hole}`);
     assert.ok(Math.abs(left - (size - 1 - right)) <= 1 && Math.abs(top - (size - 1 - bottom)) <= 1, `app-icon-${size}.png: the G is centered`);
   }
-  // The transparent icons are the only icons ("Transparent everywhere"); the theme and background colors stay the
-  // app's navy.
+  // The transparent icons are the only icons ("Transparent everywhere"). The installed app's theme and splash colors
+  // are the new app's dark canvas (D-38: Dark is the default theme; a manifest has one color), never the old app's navy.
   const manifest = JSON.parse(fs.readFileSync(path.join(pub, 'manifest.webmanifest'), 'utf8'));
   assert.deepEqual(manifest.icons, [192, 512].map(size => ({ src: `/app-icon-${size}.png`, sizes: `${size}x${size}`, type: 'image/png', purpose: 'any' })));
-  assert.equal(manifest.background_color, navy);
+  assert.equal(manifest.background_color, nextTokens.themeColor.dark);
+  assert.equal(manifest.theme_color, nextTokens.themeColor.dark);
+  assert.equal(nextTokens.themeColor.dark, '#070B16');
+  assert.ok(![manifest.background_color, manifest.theme_color].includes(navy), 'the old app navy does not come back');
+  assert.ok(contrast(lime, nextTokens.themeColor.dark) >= 3, 'the lime G on the splash color');
   // iOS shows a transparent home-screen icon on black.
   assert.ok(contrast(lime, '#000000') >= 3);
 });
@@ -134,6 +139,10 @@ test('favicon.svg simplifies the balanced G; app-icon.svg keeps its yard lines, 
   assert.match(favicon, new RegExp(`^<svg [^>]*color="${deepGreen}"`), 'the favicon is deep green by default (a light tab)');
   assert.ok(favicon.includes(`<style>@media (prefers-color-scheme:dark){:root{color:${tokens.themes.dark.primaryForeground}}}</style>`), 'and lime in a dark tab');
   assert.ok(contrast(deepGreen, '#FFFFFF') >= 3 && contrast(tokens.themes.dark.primaryForeground, tokens.colors.canvas) >= 3, 'each favicon green reaches 3:1 on its tab');
+  // AUD-04: in a dark browser the G is lime on the new app's dark browser bar, and deep green on its light one.
+  assert.equal(tokens.themes.dark.primaryForeground, nextTokens.themes.dark.color['accent-ink']);
+  assert.equal(deepGreen, nextTokens.themes.light.color['accent-ink']);
+  assert.ok(contrast(tokens.themes.dark.primaryForeground, nextTokens.themeColor.dark) >= 3 && contrast(deepGreen, nextTokens.themeColor.light) >= 3, 'each favicon green reaches 3:1 on the new theme colors');
   assert.match(fs.readFileSync(path.join(pub, 'app-icon.svg'), 'utf8'), new RegExp(`<svg [^>]*color="${lime}"`), 'app-icon.svg is the lime source of the PNGs');
 });
 

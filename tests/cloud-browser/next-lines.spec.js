@@ -2404,7 +2404,7 @@ test('loaded spread quotes keep the full team-name column on phones', async ({ p
       const measurements = await card(page, 'SEA-DEN').evaluate(el => {
         const teams = [...el.querySelectorAll('.gx-l-team')].map(team => team.getBoundingClientRect());
         const quote = el.querySelector('.gx-l-val').getBoundingClientRect();
-        return { below: quote.top >= Math.max(...teams.map(r => r.bottom)), quoteWidth: quote.width, nameWidth: el.querySelector('.gx-l-team .gx-truncate').clientWidth, horizontal: document.documentElement.scrollWidth <= innerWidth };
+        return { below: quote.top >= Math.max(...teams.map(r => r.bottom)), quoteWidth: quote.width, nameWidth: el.querySelector('.gx-l-tname > .gx-t-strong').clientWidth, horizontal: document.documentElement.scrollWidth <= innerWidth };
       });
       expect(measurements.below).toBe(true);
       expect(measurements.quoteWidth).toBeGreaterThan(width - 100);

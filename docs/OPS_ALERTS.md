@@ -43,7 +43,7 @@ One push per change, to the active push subscriptions of the `sean-troy-luke` co
 - `The results refresh has not run since 2:35 PM PT.`
 - Recovery: title `GTL ops alert cleared`, body `Points Week 10 is open now.` or `The results refresh is working again.`
 
-The tag is `gtl-ops-<key>`, so a recovery replaces its own alert on the lock screen. Pushes last 4 hours (the cap in `cloud/web-push.mjs`), and a tap opens Picks.
+The tag is `gtl-ops-<key>`, so a recovery replaces its own alert on the lock screen. The service worker shows `gtl-ops-` notifications with `renotify`, so a repeat alert that replaces its recovery still sounds. Pushes last 4 hours (the cap in `cloud/web-push.mjs`), and a tap opens Home (`#home`).
 
 ## How
 
