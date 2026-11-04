@@ -1,5 +1,28 @@
 # Decision log
 
+## D-77 — Recommended: your gaps vs. closing lines, and actionable rows first (November 3, 2026)
+
+Sean picked "Recommendation card" from board item 10 (the two ideas kept from D-51's closed PR #140), then "Your gaps'
+paper record" when asked what the card should count. Nothing records that a bet came from Recommended, so the card grades
+the gaps themselves rather than bets placed. [Mockups](../design/recommended-gap-record-2026-11-03/README.md).
+
+- **Your gaps vs. closing lines:** a weekly card at the top of Bets › Your guess vs. market.
+  - **What counts:** every locked guess that differed from the closing consensus. That is the newest three-book line
+    before kickoff, as `/lines/read` reports it for a started game.
+  - **Grading:** the side your guess favored (the side Recommended suggests) against the final score: W, L or P.
+  - **Units:** each graded gap is 1 unit at a standard −110 (win +10/11, loss −1, push 0), because a consensus line has
+    no price of its own. ROI is net over every graded unit, pushes included, as for Virtual Units.
+  - **10%+ gaps:** the card also shows the record of gaps at D-54's 10% green band, so you can see whether bigger gaps do
+    better.
+  - **Not graded:** a game without a final, a market without a closing line, an even guess, a draft and a sit-out. These
+    are never estimated. The not-yet-graded count is shown.
+  - It follows the All / Spreads / Totals choice. It is a paper record, not bets placed, a probability or advice. It
+    reads only your own gated `/lines/read`; there's no API or SQL change.
+- **Actionable rows first:** inside D-54's percentage ranking, rows you can still act on come first. Those have a usable
+  favorable named-book quote and no saved Virtual Units pick. The top three are the actionable ones when there are any.
+  The heading counts them ("N to act on · M gaps"). This amends D-54's "open with the three largest percentage
+  differences".
+
 ## D-76 — The Fantasy weekly estimate switches to usage (November 3, 2026)
 
 Sean, November 3, 2026: "Yes, switch to usage" (ask a19, Board item 64), after the

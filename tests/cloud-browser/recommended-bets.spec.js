@@ -54,8 +54,8 @@ const placements = calls => calls.filter(call => call.path === 'bets/recommendat
 const picksCount = async world => Number((await world.db.query('select count(*) as n from public.gtl_virtual_units_picks where user_id=$1', [ACCOUNTS.luke.id])).rows[0].n);
 const migrations = [...new Set([...HOSTED, '20261015143006_gtl_recommended_virtual_pick.sql'])].sort();
 
-async function fixture(page, baseURL, { games = 4, spread = true, total = true } = {}) {
-  const world = await communityWorld(page, baseURL, { games, groupScreens: true, virtualUnits: true, optionalRpc: true, migrations });
+async function fixture(page, baseURL, { games = 4, spread = true, total = true, clock } = {}) {
+  const world = await communityWorld(page, baseURL, { games, groupScreens: true, virtualUnits: true, optionalRpc: true, migrations, ...(clock ? { clock } : {}) });
   world.lines = {
     spread: Object.fromEntries(world.state.games.map(game => [game.id, -3.5])),
     total: Object.fromEntries(world.state.games.map(game => [game.id, 44.5])),
@@ -542,7 +542,7 @@ test('All, Spreads and Totals filter the full ranked list before the top three, 
     await expect(cards(page)).toHaveCount(3);
     expect(await percents(page)).toEqual(['185.7% gap', '100.0% gap', '42.9% gap']);
     expect(await cardMarkets(page)).toEqual(['spread', 'spread', 'spread']);
-    await expect(region(page)).toContainText('7 available');
+    await expect(region(page)).toContainText('7 gaps');
     const reads = calls.filter(call => call.path === 'bets/recommendations').length;
 
     // Totals filters the complete ranked set before the top-three limit, so its three totals appear in their order.
@@ -552,7 +552,7 @@ test('All, Spreads and Totals filter the full ranked list before the top three, 
     await expect(cards(page)).toHaveCount(3);
     expect(await cardMarkets(page)).toEqual(['total', 'total', 'total']);
     expect(await percents(page)).toEqual(['23.6% gap', '10.1% gap', '3.4% gap']);
-    await expect(region(page)).toContainText('3 available');
+    await expect(region(page)).toContainText('3 gaps');
     await expect(page.getByRole('button', { name: /Show all/i })).toHaveCount(0);
 
     // Keyboard: the segments are native buttons in one labelled group.
@@ -563,7 +563,7 @@ test('All, Spreads and Totals filter the full ranked list before the top three, 
     await expect(market(page, 'Spreads')).toHaveAttribute('aria-pressed', 'true');
     await expect(cards(page)).toHaveCount(3);
     expect(await cardMarkets(page)).toEqual(['spread', 'spread', 'spread']);
-    await expect(region(page)).toContainText('4 available');
+    await expect(region(page)).toContainText('4 gaps');
     await page.getByRole('button', { name: /Show all 4 differences/ }).click();
     await expect(cards(page)).toHaveCount(4);
     expect(await percents(page)).toEqual(['185.7% gap', '100.0% gap', '42.9% gap', '14.3% gap']);
@@ -627,7 +627,7 @@ test('a market without eligible recommendations says so, never shows draft guess
     await expect(cards(page)).toHaveCount(0);
     await expect(region(page)).toContainText('No spread differences to show yet.');
     await expect(region(page)).not.toContainText('No differences to show yet');
-    await expect(region(page)).toContainText('0 available');
+    await expect(region(page)).toContainText('0 gaps');
     for (const theme of ['dark', 'light']) {
       await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
       for (const width of [390, 320]) {
@@ -711,6 +711,53 @@ test('the chosen market stays while tracking a bet and returning to Recommended 
     expect(await cardMarkets(page)).toEqual(['total', 'total', 'total']);
     expect(calls.filter(call => call.path === 'social/create')).toEqual([]);
     expect(placements(calls)).toEqual([]);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+// D-77 (Sean, November 3, 2026: "Your gaps' paper record"). The fixture's guesses (spread -10, -7, -5, -3; total 55, 49, 43,
+// 44.5) against closing lines of -3.5 and 44.5, with finals 27-20, 20-24, 17-13 and 21-21: spreads W L W W, totals W L W and
+// one even guess. 5-2-0 is 5 x 10/11 - 2 = +2.55U over 7 units (36.4%); the 10%+ gaps are 4-2-0.
+test('D-77: your gaps vs. closing lines grade finished games on the side your guess favored, follow the market filter and fit phones', async ({ page, baseURL }, testInfo) => {
+  let at = Date.now();
+  const world = await fixture(page, baseURL, { clock: () => at });
+  try {
+    const { season, week } = world.state.league, finals = [[27, 20], [20, 24], [17, 13], [21, 21]];
+    for (const [i, game] of world.state.games.entries()) {
+      await world.db.query("insert into public.gtl_virtual_units_settlements(season,week,game_id,version,status,home,away,source,observed_at) values($1,$2,$3,1,'final',$4,$5,'Fixture final',now())",
+        [season, week, game.id, finals[i][0], finals[i][1]]);
+    }
+    // The server's clock moves past the last kickoff; the guesses and lines were saved before.
+    at = Math.max(...world.state.games.map(game => Date.parse(game.kickoff))) + 4 * 3_600_000;
+    const calls = requests(page);
+    await openRecommended(page);
+    const card = page.getByRole('region', { name: 'Your gaps vs. closing lines', exact: true });
+    await expect(card).toContainText('5–2–0');
+    await expect(card).toContainText('7 graded · 10%+ gaps 4–2–0');
+    await expect(card).toContainText('+2.55U');
+    await expect(card).toContainText('ROI 36.4%');
+    await expect(card).toContainText('A paper record, not bets placed.');
+    await market(page, 'Spreads').click();
+    await expect(card).toContainText('3–1–0');
+    await market(page, 'Totals').click();
+    await expect(card).toContainText('2–1–0');
+    await market(page, 'All').click();
+    await expect(card).toContainText('5–2–0');
+    const reads = calls.filter(call => call.path === 'lines/read');
+    expect(reads.length).toBeGreaterThan(0);
+    expect(reads.every(call => call.body.season === season && call.body.week === week)).toBe(true);
+    expect(placements(calls)).toEqual([]);
+    for (const theme of ['dark', 'light']) {
+      await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
+      for (const width of [390, 320]) {
+        await page.setViewportSize({ width, height: 844 });
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${theme} ${width}px fits`).toBe(true);
+        const scan = await new AxeBuilder({ page }).include('.gx-bets').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
+        expect(scan.violations.map(issue => ({ id: issue.id, targets: issue.nodes.map(node => node.target) }))).toEqual([]);
+        await card.scrollIntoViewIfNeeded();
+        await page.screenshot({ path: testInfo.outputPath(`gap-record-${theme}-${width}.png`) });
+      }
+    }
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

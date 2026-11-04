@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDown, ArrowUp, Check, ChevronDown, Circle, CircleCheckBig, Clock3, Eye, Lock, Minus, Plus, RefreshCw, ShieldCheck, TrendingUp } from 'lucide-react';
-import { cloudApi, date, signed } from './api';
+import { cloudApi, date, linesApi, signed } from './api';
 import { lockSentence } from './lineLock';
-import { buildRecommendations, recommendationList, recommendationMarket } from '../../shared/recommended-bets.mjs';
+import { buildRecommendations, gapRecord, recommendationList, recommendationMarket } from '../../shared/recommended-bets.mjs';
 import { RecommendationTrendDetail, useRecommendationTrends } from './RecommendationTrends.jsx';
 import './recommendedBets.css';
 
@@ -37,6 +37,21 @@ export { lockSentence };
 export const BETS_VISIBLE_NOTE = "Coming soon: everyone in the league will see each other's Virtual Units picks at any time, not only after kickoff.";
 
 function Stat({ label, value, detail }) { return <div className="stat"><span>{label}</span><strong>{value}</strong><small>{detail}</small></div>; }
+
+// D-77 (Sean, November 3, 2026: "Your gaps' paper record"): how the gaps between your locked guesses and the closing
+// lines did this week, whether or not you bet them (shared/recommended-bets.mjs gapRecord). Your own /lines/read only.
+function GapRecord({ record, week }) {
+  const graded = record.wins + record.losses + record.pushes, waiting = record.notGraded.noFinal + record.notGraded.noLine;
+  const favorable = record.favorable;
+  return <section className="recommended-gap-record" aria-label="Your gaps vs. closing lines">
+    <div className="recommended-list-heading"><h3>Your gaps vs. closing lines</h3><span>Week {week}</span></div>
+    {graded ? <div className="stats-row">
+      <Stat label="Record" value={`${record.wins}–${record.losses}–${record.pushes}`} detail={`${graded} graded · 10%+ gaps ${favorable.wins}–${favorable.losses}–${favorable.pushes}`}/>
+      <Stat label="Net units" value={units(record.netUnits)} detail={`ROI ${record.roi == null ? '—' : `${Math.round(record.roi * 10) / 10}%`} · 1U a gap at −110`}/>
+    </div> : <p className="recommended-source" role="status">No finished games with a gap yet.</p>}
+    <p className="recommended-source">Each locked guess that differed from the last three-book line before kickoff, graded on the side your guess favored. A paper record, not bets placed.{waiting ? ` ${waiting} not graded yet.` : ''}</p>
+  </section>;
+}
 function closedReviewReason(game, now, result) {
   if (!game || !Number.isFinite(Date.parse(game.kickoff))) return 'Matchup unavailable';
   if (Date.parse(game.kickoff) <= now) return 'Kickoff reached';
@@ -97,6 +112,16 @@ export default function VirtualUnits({ leagueId, accountId, onDirty, onSaved, on
     document.addEventListener('visibilitychange', update);
     return () => { clearInterval(interval); timers.forEach(clearTimeout); document.removeEventListener('visibilitychange', update); };
   }, [data]);
+  // D-77: your own lines board for the week on screen, read once per week; a failed read only hides the record.
+  const [gapBoard, setGapBoard] = useState(null);
+  const gapWeek = view === 'recommended' && currentRecommendations && data ? `${data.season}:${data.week}` : null;
+  useEffect(() => {
+    if (!gapWeek) return undefined;
+    const controller = new AbortController(), [season, week] = gapWeek.split(':').map(Number);
+    linesApi('read', { season, week }, controller.signal).then(board => { if (!controller.signal.aborted) setGapBoard({ week: gapWeek, board }); },
+      () => { if (!controller.signal.aborted) setGapBoard({ week: gapWeek, board: null }); });
+    return () => controller.abort();
+  }, [gapWeek, accountId]);
   const personal = personalRead?.scope === recommendationScope ? personalRead : null;
   const historical = currentRecommendations && (weekInfo?.current === false || data?.current === false);
   const ranked = useMemo(() => buildRecommendations({ personal: personal?.data, virtual: data, now }), [personal?.data, data, now]);
@@ -106,6 +131,8 @@ export default function VirtualUnits({ leagueId, accountId, onDirty, onSaved, on
   const market = onRecommendedMarket ? recommendationMarket(recommendedMarket) : 'all';
   const shown = useMemo(() => recommendationList(ranked.rows, { market, expanded }), [ranked.rows, market, expanded]);
   const recommendations = useMemo(() => ({ ...ranked, rows: shown.rows }), [ranked, shown.rows]);
+  const gaps = useMemo(() => (gapBoard?.week === gapWeek && gapBoard.board ? gapRecord(gapBoard.board, { market }) : null), [gapBoard, gapWeek, market]);
+  const actionableCount = recommendations.rows.filter(row => row.actionable).length;
   const marketGroup = useRef(null);
   function showAllMarkets() { onRecommendedMarket?.('all'); marketGroup.current?.querySelector('button')?.focus(); }
   // Stage 20 line lock: a market that is locked in a newer reply (the community week moved past this group's week) shows no
@@ -239,12 +266,13 @@ export default function VirtualUnits({ leagueId, accountId, onDirty, onSaved, on
       {settledCount > 0 && data.settlement?.lastSettledAt && <p className="virtual-settlement-note" role="status"><CircleCheckBig size={15}/>{settledCount} settled pick{settledCount === 1 ? '' : 's'}{data.summary.pending ? ` · ${data.summary.pending} still pending` : ''} · finals as of {date(data.settlement.lastSettledAt)} PT</p>}
       <div className="virtual-game-grid">{data.games.map(game => <GameCard key={game.id} game={game} result={data.results?.[game.id]} picks={picks} selections={selections} choose={choose} changeUnits={changeUnits} save={save} busy={busy || loading || Boolean(uncertain)} rules={data.rules}/>)}</div></>}
     {view === 'recommended' && data && !loading && <section className="recommended-bets" aria-label="Recommended bets">
+      {gaps && <GapRecord record={gaps} week={data.week}/>}
       {historical ? <p className="recommended-source" role="status">Viewing {data.season} Week {data.week}{data.picks?.length ? '' : ' · No saved virtual picks this week.'}</p>
         : !personal ? <p className="loading" role="status">Loading your saved guesses…</p>
         : recommendations.status !== 'ready' ? <div className="recommended-empty" role="status"><p>Your guesses and these lines are not available for the same week.</p><button className="secondary" onClick={refresh}>Refresh recommendations</button></div>
         : <>
           {marketControl && <div ref={marketGroup} className="recommended-market-filter">{marketControl}</div>}
-          <div className="recommended-list-heading"><h3>{expanded ? 'All differences' : 'Top 3 differences'}</h3><span>{recommendations.rows.length} available · Week {data.week}</span></div>
+          <div className="recommended-list-heading"><h3>{expanded ? 'All differences' : 'Top 3 differences'}</h3><span>{actionableCount} to act on · {recommendations.rows.length} gaps · Week {data.week}</span></div>
           {recommendations.rows.length ? <div className="recommended-bet-list">{visibleRecommendations.map(row => <RecommendationCard key={row.key} row={row} season={data.season} week={data.week} selection={selections[row.key]} pick={picks[row.key]} now={now} add={addRecommendation} track={onTrackTicket ? trackRecommendation : undefined} choose={choose} changeUnits={changeUnits} save={save} busy={busy || loading || Boolean(uncertain)} rules={data.rules}/>)}</div>
             : <div className="recommended-empty" role="status">{market === 'all' ? <p>No differences to show yet. Submit your guesses, then check back for available pregame lines.</p> : <><p>No {market} differences to show yet.</p><button className="secondary" onClick={showAllMarkets}>View all markets</button></>}</div>}
           {recommendations.rows.length > 3 && <button className="secondary recommended-expand" aria-expanded={expanded} onClick={() => setExpanded(value => !value)}>{expanded ? <><ArrowUp size={17}/>Show top 3</> : <><ArrowDown size={17}/>Show all {recommendations.rows.length} differences</>}</button>}

@@ -62,6 +62,10 @@
 .recommended-closed { display: flex; gap: 8px; align-items: flex-start; color: var(--pending); font-size: 16px; }
 .recommended-closed > svg { margin-top: 4px; }
 .recommended-saved-card { display: grid; gap: 8px; padding-top: 16px; border-top: 1px solid var(--border); }
+/* D-77: your gaps vs. closing lines, above the ranked list. */
+.recommended-gap-record { display: grid; gap: 8px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+/* Both numbers are figures; the Virtual Units row's smaller last tile is for its Qualification text. */
+.gx .gx-bets .recommended-gap-record .stat:last-child > strong { font: 700 32px/32px var(--gx-font-num); font-variant-numeric: tabular-nums; }
 .recommended-saved-card ul { display: grid; gap: 12px; padding: 0; margin: 0; list-style: none; }
 .recommended-saved-card li { display: grid; gap: 8px; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card, 12px); }
 .recommended-saved-card li > p { font-size: 16px; }
