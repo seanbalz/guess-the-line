@@ -11,7 +11,10 @@ test.use({ viewport: { width: 390, height: 844 } });
 test.setTimeout(60000);
 test.beforeEach(() => test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.'));
 const tab = (page, name) => page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name, exact: true });
-const view = (page, name) => page.getByRole('group', { name: 'Bets view' }).getByRole('button', { name, exact: true });
+// D-69 step 4: Bets' landing draws five tiles; each section is its own screen, with no view switch between them.
+const tile = (page, key) => page.locator(`#gx-b-tile-${key}`);
+const overviewButton = page => page.getByRole('group', { name: 'Tracked bets section' }).getByRole('button', { name: 'Overview', exact: true });
+const resultFilter = (page, name) => page.getByRole('group', { name: 'Result filter', exact: true }).getByRole('button', { name, exact: true });
 async function selectTracker(page,label,value){
  const control=page.getByLabel(label,{exact:true});
  if(!await control.isVisible())await page.locator('.social-filters > summary').click();
@@ -19,7 +22,7 @@ async function selectTracker(page,label,value){
 }
 
 async function openBets(page) {
-  await page.addInitScript(() => localStorage.setItem('gtl.app', 'next'));
+  await page.addInitScript(() => { try { localStorage.setItem('gtl.app', 'next'); } catch { /* about:blank */ } });
   await page.goto('/#bets/tracked');
   await signIn(page, 'luke', { navigate: false });
   await expect(page.getByRole('heading', { name: 'My bets', level: 1, exact: true })).toBeVisible();
@@ -67,7 +70,9 @@ test('tracked Overview shows owner charts, shared filters and cash, then drills 
   await seedTicket('excluded',{},'win');await seedTicket('foreign',{stakeUnits:100},'win','troy');
   const before=(await world.db.query('select state from public.gtl_social_weeks order by season,week')).rows;
   const calls=callsFrom(page);
-  await openBets(page);await tab(page,'Bets').click();await page.getByRole('button',{name:'Overview',exact:true}).click();
+  // D-69 step 4: the My bets tile opens Active tickets, and the tracker's Pending filter also narrows Overview, so all
+  // results are chosen first (the old landing's Overview row opened with none chosen).
+  await openBets(page);await tab(page,'Bets').click();await tile(page,'mybets').click();await resultFilter(page,'All').click();await overviewButton(page).click();
   const overview=page.getByRole('region',{name:'Tracked bets overview',exact:true});await expect(overview).toBeVisible();
   await expect(page.getByLabel('Competition week',{exact:true})).toHaveValue('all');
   await expect(overview.locator('.gx-tc-big')).toHaveText('+0.75U');
@@ -97,7 +102,7 @@ test('tracked Overview shows owner charts, shared filters and cash, then drills 
   await page.getByRole('button',{name:'Reset filters',exact:true}).click();await expect(overview.locator('.gx-tc-big')).toHaveText('$75.00');
   await overview.getByRole('region',{name:'Bet types'}).getByRole('button',{name:'Show Parlays: 1 bet',exact:true}).click();await expect(page.locator('.gx-tracked-row')).toHaveCount(1);
   await page.getByRole('group',{name:'Tracked bets section'}).getByRole('button',{name:'Overview',exact:true}).click();await expect(overview).toBeVisible();await expect(page.getByRole('combobox',{name:'Bet type',exact:true})).toHaveValue('parlay');
-  await tab(page,'Home').click();await tab(page,'Bets').click();await page.getByRole('button',{name:'Overview',exact:true}).click();await expect(overview).toBeVisible();await expect(overview.locator('.gx-tc-big')).toHaveText('-$25.00');
+  await tab(page,'Home').click();await tab(page,'Bets').click();await tile(page,'mybets').click();await overviewButton(page).click();await expect(overview).toBeVisible();await expect(overview.locator('.gx-tc-big')).toHaveText('-$25.00');
   expect(calls.filter(c=>/^social\/(create|settle|correct|include|tail)$/.test(c.path))).toEqual([]);
   for(const call of calls.filter(c=>c.path==='social/read'))for(const field of ['source','from','to'])expect(call.body.filters).not.toHaveProperty(field);
   expect((await world.db.query('select state from public.gtl_social_weeks order by season,week')).rows).toEqual(before);expect(world.errors).toEqual([]);
@@ -130,9 +135,10 @@ test('Bets roots open creation from fresh all-week lists and remembered Add scop
   try {
     const calls = callsFrom(page);
     await openBets(page);
-    for (const destination of ['Active tickets', 'Settled tickets']) {
-      await tab(page, 'Bets').click();
-      await page.getByRole('button', { name: destination, exact: true }).click();
+    // Active tickets from its tile; Settled tickets by its own address, a fresh document (a win waiting opens it too).
+    const settled = async () => { await page.goto('about:blank'); await page.goto('/#bets/settled'); };
+    for (const open of [async () => { await tab(page, 'Bets').click(); await tile(page, 'mybets').click(); }, settled]) {
+      await open();
       await expect(page.getByLabel('Competition week')).toHaveValue('all');
       await expect(page.getByRole('button', { name: 'Add bet', exact: true })).toBeEnabled();
       await page.getByRole('button', { name: 'Add bet', exact: true }).click();
@@ -141,14 +147,18 @@ test('Bets roots open creation from fresh all-week lists and remembered Add scop
       await expect(page.getByLabel('Competition week')).toHaveValue(`${world.state.league.season}:${world.state.league.week}`);
       await editor.getByRole('button', { name: 'Cancel', exact: true }).click();
     }
+    // My bets remembers its scope: all weeks stays across the Bets tab and the tile, and its own Add bet still opens.
     await tab(page, 'Bets').click();
-    await page.getByRole('button', { name: 'Add a bet', exact: true }).click();
+    await tile(page, 'mybets').click();
+    await page.getByRole('button', { name: 'Add bet', exact: true }).click();
     const editor = page.getByRole('dialog', { name: 'Add a tracked bet' });
     await expect(editor).toBeVisible();
     await editor.getByRole('button', { name: 'Cancel', exact: true }).click();
     await selectTracker(page,'Competition week','all');
     await tab(page, 'Bets').click();
-    await page.getByRole('button', { name: 'Add a bet', exact: true }).click();
+    await tile(page, 'mybets').click();
+    await expect(page.getByLabel('Competition week')).toHaveValue('all');
+    await page.getByRole('button', { name: 'Add bet', exact: true }).click();
     await expect(editor).toBeVisible();
     await expect(editor.getByRole('button', { name: 'Save tracked bet', exact: true })).toBeDisabled();
     expect(calls.filter(call => call.path === 'social/create')).toEqual([]);
@@ -169,10 +179,12 @@ test('Community tracked bets work without private membership; create, own week a
     await page.getByRole('button', { name: 'About tracked bets', exact: true }).click();
     await expect(page.getByRole('dialog', { name: 'About tracked bets' })).toContainText('Tracked bets are shared with all signed-in players');
     await page.getByRole('dialog', { name: 'About tracked bets' }).getByRole('button', { name: 'Close', exact: true }).click();
-    await view(page, 'Virtual Units').click();
+    await tab(page, 'Bets').click();
+    await tile(page, 'picks').click();
     await expect(page.locator('[data-bets="place"]')).toBeVisible();
     expect(calls.filter(call => call.path.startsWith('virtual-'))).toEqual([]);
-    await view(page, 'Tracked bets').click();
+    await page.goBack(); await page.goBack();
+    await expect(page).toHaveURL(/#bets\/tracked/);
     const editor = await fillTicket(page, world.state.games[0].id);
     // Choosing a matchup, side, line, price and book is entirely taps and does not write until Save.
     expect(calls.filter(call => call.path === 'social/create')).toEqual([]);
@@ -315,7 +327,8 @@ test('Your picks places two bets, confirms a lost reply without a duplicate, edi
     const calls = callsFrom(page);
     const saved = async () => (await world.db.query('select game_id,selection,audit from public.gtl_virtual_units_picks where user_id=$1 order by game_id', [ACCOUNTS.luke.id])).rows;
     await openBets(page);
-    await view(page, 'Virtual Units').click();
+    await tab(page, 'Bets').click();
+    await tile(page, 'picks').click();
     const place = page.locator('[data-bets="place"]');
     await expect(place).toBeVisible();
     expect(calls.filter(call => call.path.startsWith('virtual-'))).toEqual([]);
@@ -340,6 +353,8 @@ test('Your picks places two bets, confirms a lost reply without a duplicate, edi
     expect(writes[0].body.bets.map(bet => [bet.gameId, bet.units, bet.expected])).toEqual([[g0.id, 2, null], [g1.id, 1, null]]);
     expect((await saved()).map(row => row.audit.length)).toEqual([1, 1]);
     await expect(place.locator(`[data-game="${g0.id}"] [data-market="spread"] .gx-tag`)).toContainText('2U');
+    // D-69 step 4: the retry confirmed by the fresh read pops its tag (next-bets-layers.spec.js has the rest of the moment).
+    await expect(place.locator(`[data-game="${g0.id}"] [data-market="spread"] .gx-tag`)).toHaveAttribute('data-moment', 'pop');
 
     // Another device edits the second bet. This screen still holds the old terms, so its edit is refused and nothing is overwritten.
     const other = (await saved()).find(row => row.game_id === g1.id).selection;
@@ -391,7 +406,7 @@ test('Your picks places two bets, confirms a lost reply without a duplicate, edi
     await page.setViewportSize({ width: 390, height: 844 });
     page.once('dialog', dialog => dialog.dismiss());
     await tab(page, 'Home').click();
-    await expect(page.getByRole('heading', { name: 'Virtual Units', level: 1, exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Your picks', level: 1, exact: true })).toBeVisible();
     await expect(chip(g0, 'away')).toHaveAttribute('aria-pressed', 'true');
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
