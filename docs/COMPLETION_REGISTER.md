@@ -3,7 +3,8 @@
 ## D-69 design overhaul, step 3: Research — November 4, 2026
 
 Built on `claude/overhaul-step3-research` from the
-[step 3 plan](superpowers/plans/2026-11-04-design-overhaul-step3-research.md). Not merged or released. Research's landing
+[step 3 plan](superpowers/plans/2026-11-04-design-overhaul-step3-research.md), merged as
+[#486](https://github.com/seanbalz/guess-the-line/pull/486). Research's landing
 is the next-move card ("Open games", with the week meter as its picture, read from the shared `GET /personal`) and four
 kit tiles (Games, Trends, Fantasy, Teams). Games are picture rows with full team names. One game opens as a layer at
 `#research/games?layer=game&item=<id>`, with paging, the line-movement chart reveal and the Spread, Total and Bets
@@ -15,7 +16,12 @@ review (D-69 addendum, step 3).
 Evidence (local): `node --test` 2931 tests, 2930 pass, 1 fails (`tests/research-intake.test.mjs`, the Windows file-mode
 check on untouched code), skipped 0; Vitest 85 files, 889 tests pass; typecheck and build pass; the full browser run
 at `423c5c40` 378 passed, skipped 0; after the final review fixes the 17 touched specs passed 159, skipped 0.
-Not yet: the Pages release, and Sean's iPhone check of Research.
+Sean said "Deploy when ready" and then "Deploy". The 390 px screenshots went to him before the merge, and two CI font
+fixes landed after them.
+
+**Released** November 4, 2026, about 20:31 UTC: Pages `a73e79f7` from `main` at `87372514`, run 41906859675. See the
+[release record](RELEASE_2026_11_04_RESEARCH_STEP3.md). Live bytes were checked signed out.
+Not yet: a signed-in readback of Research (`GET /personal` and the game layer's reads), and Sean's iPhone check.
 
 ## D-69 design overhaul, step 2: Home — November 4, 2026
 
@@ -38,8 +44,9 @@ After the 390 px captures Sean said "Yes, merge #482", then "Yes, release it".
 
 **Released** November 4, 2026, about 16:35 UTC: Pages `beab6d1b` from `main` at `7bb83a5b`, run 41868177237. See the
 [release record](RELEASE_2026_11_04_HOME_STEP2.md). Live bytes were checked signed out.
-Not yet: Sean's iPhone check of Home, and a signed-in readback of `GET /personal` (latency and Edge CPU). No signed-in
-request had arrived by about 16:45 UTC.
+The signed-in readback is done (hosted logs). An iPhone visit at 17:52 UTC got 200 from Home's `GET /personal` in
+1.1 s. All 17 `gtl-api` routes in that visit returned 200, and no CPU or worker-limit message appeared.
+Not yet: Sean's iPhone check of how Home looks.
 
 ## Design audit quick wins (group A) — November 4, 2026
 
