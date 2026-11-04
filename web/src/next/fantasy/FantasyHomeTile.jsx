@@ -8,8 +8,8 @@ export function FantasyHomeTile() {
   const rankings = read.snapshot ? buildRankings(read.snapshot,{ trendsOnly: true }) : null;
   const player = rankings?.rows?.[0];
   return <Card as="section" className="gx-vstack gx-gap-12" aria-label="Fantasy preview"><h2 className="gx-t-section">Fantasy football</h2>
-    <p className="gx-t-body">Explore player usage, rankings and pace projections. Fantasy stays separate from Guess points and wager projections.</p>
-    {read.snapshot ? <><p className="gx-t-meta">Week {read.snapshot.week} · {read.snapshot.season} snapshot · as of {fmtFull(read.snapshot.asOf)}</p>{player && <p className="gx-t-body">{player.name} · {player.team} · {player.trendHighlights[0]?.label}</p>}<p className="gx-t-meta gx-c-2">{read.fallback ? 'Saved snapshot; live refresh unavailable. ' : ''}Pace estimates, not expert projections. Updated {fmtFull(read.snapshot.generatedAt)}.</p></> : read.status === 'loading' ? <Skeleton label="Loading public Fantasy snapshot…" shape="panels" count={1}/> : <p className="gx-t-body" role="status">Fantasy snapshot unavailable.</p>}
+    <p className="gx-t-body">Explore player usage, rankings and weekly estimates. Fantasy stays separate from Guess points and wager projections.</p>
+    {read.snapshot ? <><p className="gx-t-meta">Week {read.snapshot.week} · {read.snapshot.season} snapshot · as of {fmtFull(read.snapshot.asOf)}</p>{player && <p className="gx-t-body">{player.name} · {player.team} · {player.trendHighlights[0]?.label}</p>}<p className="gx-t-meta gx-c-2">{read.fallback ? 'Saved snapshot; live refresh unavailable. ' : ''}Weekly estimates, not expert projections. Updated {fmtFull(read.snapshot.generatedAt)}.</p></> : read.status === 'loading' ? <Skeleton label="Loading public Fantasy snapshot…" shape="panels" count={1}/> : <p className="gx-t-body" role="status">Fantasy snapshot unavailable.</p>}
     {read.status === 'error' && <Button onClick={read.retry}>Retry Fantasy preview</Button>}<Button onClick={() => shell.go('fantasy')}>Explore Fantasy</Button>
   </Card>;
 }

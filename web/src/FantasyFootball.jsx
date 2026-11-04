@@ -74,7 +74,7 @@ function PlayerCard({ player, theme, scope, week, position, context, tools }) {
               : context.linesNote ? <p>{context.linesNote}</p> : null}
             <p className={c('meta')}>Matchup and kickoff context are observed nflverse data, not predictions.</p>
           </div>}
-          <p>{player.sampleGames ?? '—'} recorded games in the pace estimate. Player availability is not injury-adjusted.</p>
+          <p>{player.sampleGames ?? '—'} recorded games in the estimate. Player availability is not injury-adjusted.</p>
           {player.status && <p>Roster status in source: {player.status}.</p>}
           <strong>Trends entering Week {week}</strong>
           {trends.length ? <ul className={c('trend-details')}>
@@ -121,7 +121,7 @@ export function FantasyRankingsView({ theme = 'classic', headingLevel = 1, onBac
     <div className={c('heading')}><Heading className={theme === 'next' ? 'gx-t-title' : undefined}>Fantasy Football</Heading>
       {onBack && <Action theme={theme} onClick={onBack}>{backLabel}</Action>}
     </div>
-    <p className={c('intro')}>Weekly and rest-of-season player rankings from recent statistical pace. These are GTL estimates, not expert consensus or injury-adjusted projections.</p>
+    <p className={c('intro')}>Weekly and rest-of-season player rankings from recent usage and statistics. These are GTL estimates, not expert consensus or injury-adjusted projections.</p>
     <Surface theme={theme} className={c('filters')} aria-label="Fantasy rankings filters">
       {theme === 'next' ? <Segmented label="Ranking period" options={SCOPE_OPTIONS} value={filters.scope} onChange={value => update('scope', value)}/>
         : <div className={c('period')} role="group" aria-label="Ranking period">{SCOPE_OPTIONS.map(option => <button type="button" key={option.value} aria-pressed={filters.scope === option.value} onClick={() => update('scope', option.value)}>{option.label}</button>)}</div>}
@@ -163,7 +163,7 @@ export function FantasyRankingsView({ theme = 'classic', headingLevel = 1, onBac
       <Surface theme={theme} className={c('method')}>
         <details><summary>Method, scoring &amp; sources <ChevronDown size={18} aria-hidden="true"/></summary>
           <div className={c('method-content')}>
-            <p>{snapshot.method?.description || 'Estimates extend recent recorded statistical pace over the scheduled games remaining.'}</p>
+            <p>{snapshot.method?.description || 'Estimates come from recent usage and statistics over the scheduled games remaining.'}</p>
             <p>Overall ranks compare estimated fantasy points across positions; they are not draft value or value over replacement. Bye weeks and scheduled games affect totals. Known Out or Doubtful players have no weekly estimate. Rest-of-season estimates assume a player is healthy and available for every remaining scheduled game; they do not predict return dates. Depth-chart changes and matchup strength are not forecast.</p>
             <p>Strong trends compare recent games with the earlier sample available before the selected week; expand a player to see the amounts and sample sizes. Trends describe recorded changes, not a promise about this week.</p>
             <strong>{selectedScoring} scoring · {filters.passingTds}-point passing TDs</strong>

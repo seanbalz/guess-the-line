@@ -1,11 +1,18 @@
 // Public-statistics normalization. All output fields are allowlisted; no odds, images or GTL account data.
 import { appCode, easternToUtc } from './nfl-schedule.mjs';
 import { scoreStats, validateFantasySnapshot } from './fantasy-rankings.mjs';
+import { USAGE_POSITIONS, countsTowardLeague, leagueRates, usage } from './fantasy-usage.mjs';
 
 export const FANTASY_METHOD = Object.freeze({
-  name: 'GTL statistical pace', version: '1.1',
-  description: 'For each statistic, 60% of the last three recorded appearances plus 40% of the season-to-date average, using only games before the selected week. At least two recorded appearances are required. Weekly estimates exclude byes, non-active rosters and reported Out or Doubtful players. Rest-of-season totals multiply that pace by scheduled regular-season games from the selected week through Week 18, assuming an active-roster player is available for all of them. No injury return date, depth-chart role or matchup adjustment is forecast. Overall means total fantasy points, not draft value. These are descriptive pace estimates, not published expert rankings.',
+  name: 'GTL usage', version: '2.0',
+  description: 'For quarterbacks, running backs, wide receivers and tight ends, expected targets, carries and pass attempts, with recent weeks counting more, are multiplied by per-play rates pulled toward the position average; touchdown rates are pulled harder. Kickers, and any player with incomplete usage stats, use the earlier pace method. Only this season\'s games before the selected week count; at least two appearances are required. Weekly estimates exclude byes, non-active rosters and reported Out or Doubtful players. Rest-of-season totals multiply the weekly estimate by scheduled games from the selected week through Week 18, assuming an active-roster player is available for all of them. No injury return date, depth-chart role or matchup adjustment is forecast. These are descriptive estimates, not published expert rankings.',
 });
+/**
+ * Usage settings for QB, RB, WR and TE (D-76). Chosen on 2024 alone in the Board item 64 backtest
+ * (docs/FANTASY_BACKTEST_2026_11_03.md), then MAE 4.451 on the 2025 holdout against 4.542 for the season average and
+ * 4.600 for pace 1.1. Change them only with a new backtest; the build must keep grading what the backtest measured.
+ */
+export const USAGE_SETTINGS = Object.freeze({ halfLife: 4, kEff: 25, kTd: 50 });
 const POSITIONS = new Set(['QB', 'RB', 'WR', 'TE', 'K']);
 const missing = value => value == null || value === '' || value === 'NA';
 const number = value => missing(value) ? null : Number.isFinite(Number(value)) ? Number(value) : null;
@@ -52,6 +59,7 @@ export function normalizePlayerStats(row) {
   };
 }
 
+/** Pace 1.1: per stat, 60% of the last three appearances plus 40% of all of them. The kickers' method since D-76. */
 export function estimatePace(history) {
   if (history.length < 2) return null;
   const recent = history.slice(-3);
@@ -59,6 +67,19 @@ export function estimatePace(history) {
     history.some(row => typeof row[key] !== 'number' || !Number.isFinite(row[key])) ? null
       : round(0.6 * recent.reduce((total, row) => total + row[key], 0) / recent.length + 0.4 * history.reduce((total, row) => total + row[key], 0) / history.length),
   ]));
+}
+
+/**
+ * The weekly stat line before availability rules. QB, RB, WR and TE use usage with the backtested settings; kickers keep
+ * pace 1.1 because the backtest did not cover them. usage() needs every used stat in every appearance, so a skill player
+ * with an unknown one (a missing targets cell, say) falls back to pace 1.1 rather than losing his estimate (D-76); pace
+ * still leaves that one stat null, and a missing scoring stat still means no estimate. Fewer than two appearances gives
+ * null either way.
+ */
+function weeklyEstimate(history, { week, position, league }) {
+  if (!USAGE_POSITIONS.includes(position)) return estimatePace(history);
+  const line = usage(history, { week, position, league, ...USAGE_SETTINGS });
+  return line ? Object.fromEntries(Object.entries(line).map(([key, value]) => [key, round(value)])) : estimatePace(history);
 }
 
 const MATCHUP_POSITIONS = ['QB', 'RB', 'WR', 'TE'];
@@ -144,14 +165,17 @@ export function buildFantasySnapshot({ season, week, stats, rosters, injuries, s
     if (rosterById.has(row.gsis_id)) throw new Error(`Ambiguous active roster for ${row.gsis_id}.`);
     rosterById.set(row.gsis_id, row);
   }
-  const historyById = new Map();
+  const historyById = new Map(), leagueEntries = [];
   const priorStats = seasonStats.filter(row => Number(row.week) >= 1 && Number(row.week) < week && POSITIONS.has(row.position));
   for (const row of priorStats) {
     if (!historyById.has(row.player_id)) historyById.set(row.player_id, []);
-    const history = historyById.get(row.player_id);
+    const history = historyById.get(row.player_id), stats = normalizePlayerStats(row);
     if (history.some(item => item.week === Number(row.week))) throw new Error(`Duplicate player-week ${row.player_id}.`);
-    history.push({ week: Number(row.week), ...normalizePlayerStats(row) });
+    history.push({ week: Number(row.week), ...stats });
+    // Every prior QB/RB/WR/TE appearance this season counts, rostered or not, exactly as the backtest built its rates.
+    if (countsTowardLeague(row.position, stats)) leagueEntries.push({ position: row.position, stats });
   }
+  const league = leagueRates(leagueEntries);
   const statsThroughWeek = Math.max(0, ...priorStats.map(row => Number(row.week)));
   if (statsThroughWeek !== week - 1) throw new Error('Statistics do not cover the week immediately preceding the selected week.');
   const reports = injuries.filter(row => Number(row.season) === season && Number(row.week) === week && (row.season_type || row.game_type) === 'REG');
@@ -165,17 +189,17 @@ export function buildFantasySnapshot({ season, week, stats, rosters, injuries, s
     const unavailable = ['Out', 'Doubtful'].includes(report?.report_status);
     let kickoff = null;
     if (game?.gameday && game?.gametime) { try { kickoff = easternToUtc(game.gameday, game.gametime); } catch { /* Unknown schedule time remains unavailable. */ } }
-    const pace = estimatePace(history);
-    const validPace = scoreStats(pace, { position: roster.position }) !== null ? pace : null;
+    const estimate = weeklyEstimate(history, { week, position: roster.position, league });
+    const validEstimate = scoreStats(estimate, { position: roster.position }) !== null ? estimate : null;
     const remaining = teamSchedule.filter(row => Number(row.week) >= week).length;
     return {
       id, name: roster.full_name, team, position: roster.position, sampleGames: history.length, status,
       weekly: {
         status: !game ? 'bye' : kickoff ? 'scheduled' : 'unknown',
         opponent: game ? `${appCode(game.home_team) === team ? 'vs' : '@'} ${appCode(appCode(game.home_team) === team ? game.away_team : game.home_team)}` : null,
-        kickoff, stats: game && kickoff && !unavailable ? validPace : null,
+        kickoff, stats: game && kickoff && !unavailable ? validEstimate : null,
       },
-      restOfSeason: { games: remaining, stats: validPace && remaining > 0 ? Object.fromEntries(Object.entries(validPace).map(([key, value]) => [key, value === null ? null : round(value * remaining)])) : null },
+      restOfSeason: { games: remaining, stats: validEstimate && remaining > 0 ? Object.fromEntries(Object.entries(validEstimate).map(([key, value]) => [key, value === null ? null : round(value * remaining)])) : null },
       history,
     };
   }).sort((a, b) => a.id.localeCompare(b.id));
