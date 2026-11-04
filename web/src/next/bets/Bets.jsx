@@ -11,9 +11,7 @@ import { EveryoneBets } from './EveryoneBets.jsx';
 import { PlaceBets } from './PlaceBets.jsx';
 import { Segmented } from '../ui/Segmented.jsx';
 import { TrackedBetRow } from './TrackedBetRow.jsx';
-import { FocusAction, FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
-import { DESTINATION_ICONS as ICON } from '../ui/destinations.js';
-import { useTicketSummary } from './useTicketSummary.js';
+import { BetsLanding } from './BetsLanding.jsx';
 import { draftParts, savedTicketToast } from './recommendationReview.js';
 import { recommendationMarket } from '../../../../shared/recommended-bets.mjs';
 import './bets.css';
@@ -32,25 +30,6 @@ const VIRTUAL_VIEWS = [{ value: 'virtual', label: 'Your picks' }, { value: 'ever
 export function Bets() {
   const shell = useShell();
   return ['active', 'settled', 'tracked', 'add', 'virtual', 'everyone', 'recommended', 'research'].includes(shell.state.views.bets.view) ? <BetsDetail/> : <BetsLanding/>;
-}
-
-function BetsLanding() {
-  const app = useAppData(), shell = useShell(), read = useTicketSummary(app);
-  const open = view => shell.go('bets', { view:view==='overview'?'tracked':view, trackedPane:view==='overview'?'overview':'tickets', season: null, week: null, period: view==='overview'?'all':null, matchup: null, assessment: null });
-  const count = key => read.loading ? 'Loading your tickets…' : read.error ? 'Unavailable · open to retry' : `${read[key]} ${read[key] === 1 ? 'ticket' : 'tickets'} · all weeks`;
-  return <section className="gx-screen gx-bets" data-landing="bets">
-    <h1 className="gx-t-title">Bets</h1>
-    <FocusAction title="Your tickets. All together." description="Keep a record of the bets you placed elsewhere." action="Add a bet" onAction={() => open('add')}/>
-    <FocusRows label="Your bets">
-      <FocusRow icon={ICON.overview} title="Overview" sub="Performance, bet types and sportsbooks" onClick={() => open('overview')}/>
-      <FocusRow icon={ICON.activeTickets} title="Active tickets" sub={count('active')} onClick={() => open('active')}/>
-      <FocusRow icon={ICON.settledTickets} title="Settled tickets" sub={count('settled')} onClick={() => open('settled')}/>
-      <FocusRow icon={ICON.researchPicks} title="Research recommendations" sub="Independent game and player-prop assessments" onClick={() => open('research')}/>
-      <FocusRow icon={ICON.guessGap} title="Your guess vs. market" sub="Compare your locked guesses with current lines" onClick={() => open('recommended')}/>
-      <FocusRow icon={ICON.virtualUnits} title="Virtual Units" sub="Your separate play-money picks" onClick={() => open('virtual')}/>
-      <FocusRow icon={ICON.everyone} title="Everyone’s picks" sub="Friends’ Virtual Units picks this week" onClick={() => open('everyone')}/>
-    </FocusRows>
-  </section>;
 }
 
 function BetsDetail() {

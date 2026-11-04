@@ -1,6 +1,6 @@
-// Quick win A9 (November 4, 2026): destination rows on the Research and Bets landings, and Home's tiles (D-69 step 2,
-// H1A: Home's rows became kit tiles; Research's rows became kit tiles too, D-69 step 3). Contract: no two destinations on one screen share a glyph, a destination has the
-// same glyph from every screen (drawn here: Research recommendations on Bets, Trends and My bets on Home; the game layers are not drawn in this file),
+// Quick win A9 (November 4, 2026): destination rows on the landings, and Home's tiles (D-69 step 2,
+// H1A: Home's rows became kit tiles; Research's rows became kit tiles too, D-69 step 3; Bets' rows became kit tiles, D-69 step 4). Contract: no two destinations on one screen share a glyph, a destination has the
+// same glyph from every screen (drawn here: Recommended on Bets, Trends and My bets on Home; the game layers are not drawn in this file),
 // every glyph comes from the kit's Lucide outline set, the row icons are text-2 (lime stays for the one primary action,
 // rule 2) and the landing's action headline is in the 28 px title style, not the 40 px display line.
 // The Menu and Commissioner tools rows are checked in tests/next-commissioner-ui.test.jsx. Fixture data only.
@@ -58,12 +58,13 @@ describe('A9: one glyph per destination on the landings', () => {
   it('no two rows on one screen share a glyph', () => {
     for (const [name, html] of Object.entries(screens)) {
       expect(markupProblems(html), name).toEqual([]);
-      const list = ['Home', 'Research'].includes(name) ? tiles(html) : rows(html);
+      const list = tiles(html);
       expect(list.length, `${name} has destination rows`).toBeGreaterThan(0);
       expect(list.filter(([, glyph]) => !glyph), `${name}: every row has a glyph`).toEqual([]);
       expect(duplicates(list), name).toEqual([]);
     }
-    expect(rows(screens.Bets).map(([title]) => title)).toEqual(['Overview', 'Active tickets', 'Settled tickets', 'Research recommendations', 'Your guess vs. market', 'Virtual Units', 'Everyone’s picks']);
+    expect(tiles(screens.Bets).map(([title]) => title)).toEqual(['My bets', 'Your picks', 'Everyone', 'Recommended', 'Your gap']);
+    expect(rows(screens.Bets), 'Bets’ destinations are tiles, not rows').toEqual([]);
     expect(tiles(screens.Research).map(([title]) => title)).toEqual(['Games', 'Trends', 'Fantasy', 'Teams']);
     expect(rows(screens.Research), 'Research’s destinations are tiles, not rows').toEqual([]);
     expect(tiles(screens.Home).map(([title]) => title)).toEqual(['Spread rank', 'Total rank', 'Who’s in', 'Awards', 'My bets', 'Trends']);
@@ -71,16 +72,15 @@ describe('A9: one glyph per destination on the landings', () => {
   });
 
   it('a destination keeps its glyph from every screen that links to it', () => {
-    const glyph = (html, title) => rows(html).find(([name]) => name === title)?.[1];
-    expect(glyph(screens.Bets, 'Research recommendations')).toBe(glyphOf('researchPicks'));
     const tileGlyph = (html, title) => tiles(html).find(([name]) => name === title)?.[1];
+    expect(tileGlyph(screens.Bets, 'Recommended')).toBe(glyphOf('researchPicks'));
     expect(tileGlyph(screens.Research, 'Trends')).toBe(glyphOf('trends'));
     expect(tileGlyph(screens.Research, 'Fantasy')).toBe(glyphOf('fantasy'));
     expect(tileGlyph(screens.Research, 'Games')).toBe(glyphOf('games'));
     expect(tileGlyph(screens.Research, 'Teams')).toBe(glyphOf('teams'));
     expect(tileGlyph(screens.Home, 'Trends')).toBe(glyphOf('trends'));
     expect(tileGlyph(screens.Home, 'My bets')).toBe(glyphOf('activeTickets'));
-    expect(glyph(screens.Bets, 'Active tickets')).toBe(glyphOf('activeTickets'));
+    expect(tileGlyph(screens.Bets, 'My bets')).toBe(glyphOf('activeTickets'));
   });
 
   it('every glyph in the map is one the kit draws (the Lucide outline set)', () => {
@@ -89,10 +89,10 @@ describe('A9: one glyph per destination on the landings', () => {
 
   it('the landing headline is the title style, and only Home keeps the display line', () => {
     expect(screens.Research, 'Research').not.toContain('gx-t-display');
-    const headline = nodes(screens.Bets).find(n => n.tag === 'h2' && n.parent?.attrs?.class?.includes('gx-focus-action'));
+    const headline = nodes(screens.Bets).find(n => n.tag === 'h2' && n.parent?.attrs?.['data-bets'] === 'hero');
     expect(headline.attrs.class, 'Bets').toBe('gx-t-title');
     expect(screens.Bets, 'Bets').not.toContain('gx-t-display');
-    expect(textOf(nodes(screens.Bets).find(n => n.tag === 'h2' && n.attrs.class === 'gx-t-title'))).toBe('Your tickets. All together.');
+    expect(textOf(headline)).toBe('Track a bet');
   });
 
   it('row icons are text-2, never lime (rule 2: lime is the one primary action)', () => {

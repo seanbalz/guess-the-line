@@ -1,0 +1,3 @@
+/* D-69 step 4 (spec 5A): Bets' landing. The next-move card is the kit's (ui/nextMoveCard.css); five tiles sit under it in
+   two columns on the page (the kit's .gx-tiles), the fifth alone on its row. Tokens only. */
+.gx .gx-b-landing { gap: var(--gx-space-3); }
