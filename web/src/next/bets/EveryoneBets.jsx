@@ -19,12 +19,15 @@ export function EveryoneBets({ onPlace }) {
   if (read.loading) return <Skeleton label="Loading everyone’s picks…" shape="rows" count={4}/>;
   if (read.error) return <LeagueFailure error={read.error} onRetry={read.retry}/>;
   return <EveryoneBoard data={read.data} viewer={app.accountId} scopeName={leagueId ? app.league.name : 'Community'}
-    onLockIn={() => shell.go('play', { section: 'picks' })} onPlace={onPlace} onRefresh={read.retry}/>;
+    onLockIn={() => shell.go('play', { section: 'picks' })} onOpenPlay={() => shell.go('play')} onPlace={onPlace} onRefresh={read.retry}/>;
 }
 
-export function EveryoneBoard({ data, viewer, scopeName, onLockIn, onPlace, onRefresh }) {
+export function EveryoneBoard({ data, viewer, scopeName, onLockIn, onOpenPlay, onPlace, onRefresh }) {
   const board = everyoneBoard(data, viewer);
-  if (!board.published) return <p className="gx-t-body" role="status">{EVERYONE_COPY.unpublished}</p>;
+  // Rule 5: an empty state is one sentence and one action (design audit A17).
+  if (!board.published) return <div className="gx-vstack gx-gap-12" data-bets="unpublished">
+    <p className="gx-t-body" role="status">{EVERYONE_COPY.unpublished}</p>{onOpenPlay ? <Button onClick={onOpenPlay}>Open Play</Button> : null}
+  </div>;
   return <div className="gx-ev gx-vstack gx-gap-24" data-bets="everyone">
     <p className="gx-t-meta gx-c-2">{scopeName} · Week {board.week}</p>
     {board.closed.length ? <GateBanner gate={{ locked: true, sentence: EVERYONE_COPY.banner, ctaLabel: 'Lock in a guess' }} onCta={onLockIn}/> : null}

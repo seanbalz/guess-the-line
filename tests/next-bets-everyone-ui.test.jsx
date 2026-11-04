@@ -29,7 +29,7 @@ const data = {
   faces: { 'SEA-DEN': [TROY, LUKE], 'HOU-JAX': [SEAN] },
   qualification: [{ userId: TROY, picks: 3, units: 4.5, qualified: true }, { userId: LUKE, picks: 1, units: 2, qualified: false }, { userId: SEAN, picks: 1, units: 1, qualified: false }],
 };
-const render = (props = {}) => renderToStaticMarkup(<div className="gx"><EveryoneBoard data={data} viewer={LUKE} scopeName="Community" onLockIn={() => {}} onPlace={() => {}} onRefresh={() => {}} {...props}/></div>);
+const render = (props = {}) => renderToStaticMarkup(<div className="gx"><EveryoneBoard data={data} viewer={LUKE} scopeName="Community" onLockIn={() => {}} onOpenPlay={() => {}} onPlace={() => {}} onRefresh={() => {}} {...props}/></div>);
 const slice = (html, key) => {
   const start = html.indexOf(`data-pick="${key}"`);
   return html.slice(start, html.indexOf('</li>', start));
@@ -96,9 +96,10 @@ describe('everyone’s picks', () => {
 });
 
 describe('quiet weeks', () => {
-  it('an unpublished week is one sentence', () => {
+  it('an unpublished week is one sentence and one action (design audit A17)', () => {
     const html = render({ data: { season: 2026, week: 8, published: false, roster: [], games: [], bets: [], faces: {}, markets: {}, qualification: [] } });
     expect(html).toContain(EVERYONE_COPY.unpublished);
+    expect(html).toContain('Open Play');
     expect(html).not.toContain('id="gx-ev-week"');
   });
   it('a week with no picks is one sentence and one action', () => {

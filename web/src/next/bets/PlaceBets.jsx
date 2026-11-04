@@ -58,7 +58,10 @@ export function PlaceBets({ onDirty }) {
 
   if (read.loading && !board) return <Skeleton label="Loading this week’s games and prices…" shape="cards" count={3}/>;
   if (read.error && !board) return <LeagueFailure error={read.error} onRetry={read.retry}/>;
-  if (!board.published) return <p className="gx-t-body" role="status">{PLACE_COPY.unpublished}</p>;
+  // Rule 5: an empty state is one sentence and one action (design audit A17).
+  if (!board.published) return <div className="gx-vstack gx-gap-12" data-bets="unpublished">
+    <p className="gx-t-body" role="status">{PLACE_COPY.unpublished}</p><Button onClick={() => shell.go('play')}>Open Play</Button>
+  </div>;
   const units = entries.reduce((sum, entry) => sum + entry.units, 0);
   return <div className="gx-place gx-vstack gx-gap-16" data-bets="place">
     <p className="gx-t-meta gx-c-2">Week {board.week} · Virtual Units · {PLACE_COPY.empty}</p>
