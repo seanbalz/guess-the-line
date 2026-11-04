@@ -1,3 +1,6 @@
 /* D-69 step 3 (spec 5A): Research's landing. The next-move card is the kit's (ui/nextMoveCard.css); four tiles sit
    under it in two columns on the page (the kit's .gx-tiles). Tokens only. */
 .gx .gx-r-landing { gap: var(--gx-space-3); }
+/* The Games tile's number is the next kickoff; its widest, "10:00 AM", is wider than a 320 px phone's tile in the
+   fallback number face (Task 9), so the time breaks before AM there instead of leaving the tile. */
+.gx .gx-r-landing .gx-tiles .gx-nest-num { white-space: normal; }

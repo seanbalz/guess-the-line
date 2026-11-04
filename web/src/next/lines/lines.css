@@ -67,5 +67,6 @@
 
 .gx .gx-l-pick { overflow-wrap: anywhere; }
 
-/* D-69 step 3: while the week loads, skeleton rows stand in at a picture row's height (measured in Task 9). */
-.gx .gx-l-skel .gx-skel-row { min-height: 64px; }
+/* D-69 step 3: while the week loads, skeleton rows stand in at a picture row's height (72 px at a 390 px phone, measured
+   in Task 9: tests/cloud-browser/next-research-layers.spec.js). */
+.gx .gx-l-skel .gx-skel-row { min-height: 72px; }
