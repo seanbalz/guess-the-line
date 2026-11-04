@@ -1,7 +1,7 @@
-// The week's report card for GTL’s weekly estimates as plain data (D-69 step 3: the old FantasyAccuracy.jsx's numbers as
-// tiles and rows). Every number is shared/fantasy-review.mjs summarizeReview's under the chosen scoring, formatted as
-// before; nothing is recomputed. A review grades the estimates published for its week and names no method, so the card
-// never names one (the rankings ⓘ names the shown snapshot's own).
+// The week's report card for GTL’s weekly estimates as plain data (D-69 step 3: the old app's accuracy card's numbers
+// as tiles and rows). Every number is shared/fantasy-review.mjs summarizeReview's under the chosen scoring, formatted
+// as before; nothing is recomputed. A review grades the estimates published for its week and names no method, so the
+// card never names one (the rankings ⓘ names the shown snapshot's own).
 import { formatFantasyNumber as number } from '../../../../shared/fantasy-rankings.mjs';
 import { summarizeReview } from '../../../../shared/fantasy-review.mjs';
 

@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import week from '../shared/trends/2026-week-06.json';
 import { markupProblems, nameFrom, parseMarkup, walk } from './helpers/ui-markup.mjs';
-import { gamesOf } from '../shared/lines-view.mjs';
+import { gamesOf, teamOf } from '../shared/lines-view.mjs';
 
 const state = vi.hoisted(() => ({ lines: null }));
 vi.mock('../web/src/next/lines/GameDetailsSlot.jsx', async () => ({ GameDetailsSlot: (await import('../web/src/next/lines/GameDetails.jsx')).default }));
@@ -40,6 +40,8 @@ afterEach(() => { state.lines = null; rememberBoard(null); });
 describe('the game layer', () => {
   const order = gamesOf(personal);
   const titleOf = g => `${g.away} @ ${g.home}`;
+  // The layer names a game as its board row does (nicknames); the League feed's game sheet keeps the codes (titleOf).
+  const nameOf = g => `${teamOf(g.away).nick} @ ${teamOf(g.home).nick}`;
   it('one nesting card under a Games lip: the page title, the game’s heading, its place and both neighbours, the details', () => {
     state.lines = lines();
     const html = render(<GameLayer id={order[1].id}/>);
@@ -47,10 +49,12 @@ describe('the game layer', () => {
     expect(nodes(html).filter(n => n.attrs?.['data-research'] === 'game')).toHaveLength(1);
     expect(nodes(html).filter(n => n.tag === 'h1').map(textOf)).toEqual(['Games']);
     const heading = nodes(html).find(n => n.tag === 'h2' && n.attrs['data-route-focus'] !== undefined);
-    expect(textOf(heading)).toBe(titleOf(order[1]));
+    expect(textOf(heading)).toBe(nameOf(order[1]));
+    expect(nameOf(order[1])).toMatch(/^[A-Z][a-z0-9]+ @ [A-Z][a-z0-9]+$/);
+    expect(nodes(html).find(n => n.tag === 'section' && n.attrs.class === 'gx-nest').attrs['aria-label']).toBe(nameOf(order[1]));
     expect(byClass(html, 'gx-nest-lip').map(nameFrom)).toEqual(['Back to Games']);
-    expect(textOf(nodes(html).find(n => n.attrs?.['aria-live'] === 'polite'))).toBe(`${titleOf(order[1])}, game 2 of ${order.length}`);
-    expect(byClass(html, 'gx-sheet-page').map(n => n.attrs['aria-label'])).toEqual([`Previous game, ${titleOf(order[0])}`, `Next game, ${titleOf(order[2])}`]);
+    expect(textOf(nodes(html).find(n => n.attrs?.['aria-live'] === 'polite'))).toBe(`${nameOf(order[1])}, game 2 of ${order.length}`);
+    expect(byClass(html, 'gx-sheet-page').map(n => n.attrs['aria-label'])).toEqual([`Previous game, ${nameOf(order[0])}`, `Next game, ${nameOf(order[2])}`]);
     expect(byClass(html, 'gx-pager-body')[0].attrs.class).toContain('gx-sheet-body--pager');
     // What the sheet held: the market lines, your pick, the trends and the matchup statistics, and both teams as buttons.
     // (The lazy slot is stood in for by GameDetails itself here; its "Game details" region is the browser spec's.)
@@ -91,7 +95,7 @@ describe('the game layer', () => {
     state.lines = lines({ personal: { status: 'loading', data: null, error: null } });
     const loading = render(<GameLayer id="SEA-DEN"/>);
     expect(markupProblems(loading)).toEqual([]);
-    expect(textOf(nodes(loading).find(n => n.tag === 'h2'))).toBe('SEA @ DEN');
+    expect(textOf(nodes(loading).find(n => n.tag === 'h2')), 'the row’s own names, so the heading never changes once the week lands').toBe('Seahawks @ Broncos');
     expect(nodes(loading).some(n => n.attrs?.['data-skeleton'] === 'panels')).toBe(true);
     state.lines = lines();
     const missing = render(<GameLayer id="XX-YY"/>);
@@ -99,13 +103,13 @@ describe('the game layer', () => {
     expect(byClass(missing, 'gx-nest-lip').map(nameFrom)).toEqual(['Back to Games']);
     expect(byClass(missing, 'gx-sheet-page')).toHaveLength(0);
   });
-  it('Research › Games draws the layer first and keeps the board mounted under it, hidden', () => {
+  it('Research › Games opened at a game draws the layer alone: no board under it to restore, so no hidden board reads', () => {
     state.lines = lines();
     const html = render(<GamesScreen/>, shellOf({ lines: { layer: 'game', item: 'SEA-DEN' } }));
-    const [kept] = byClass(html, 'gx-kept');
-    expect(kept.attrs.hidden).toBe('');
-    expect(nodes(html).filter(n => n.tag === 'h1').map(textOf)).toEqual(['Games', 'Games']);
-    expect(html.indexOf('data-research="game"')).toBeLessThan(html.indexOf('gx-kept'));
+    expect(byClass(html, 'gx-kept')).toHaveLength(0);
+    expect(nodes(html).filter(n => n.attrs?.['data-research'] === 'game')).toHaveLength(1);
+    expect(nodes(html).filter(n => n.tag === 'h1').map(textOf)).toEqual(['Games']);
+    // With no layer the board shows (kept from then on under any layer a row opens: tests/next-kit-research.test.jsx keptNext).
     expect(byClass(render(<GamesScreen/>, shellOf({ lines: { layer: 'nope', item: 'SEA-DEN' } })), 'gx-kept')[0].attrs.hidden).toBeUndefined();
   });
 });

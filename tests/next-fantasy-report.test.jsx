@@ -57,6 +57,16 @@ describe('the report card as tiles and rows', () => {
     expect(nodes(html).filter(n => n.tag === 'table')).toHaveLength(0);
     expect(reportModel(review, DEFAULT_FILTERS, 'Full PPR').overs.map(r => r.id)).toEqual(s.overs.map(r => r.id));
   });
+  it('the report’s outline: the misses’ two lists are h3s beside "Off by, by position", never under it (the summary is no heading)', () => {
+    state.value = ready(USAGE);
+    const html = render({ fantasyLayer: 'report' });
+    const report = nodes(html).find(n => n.attrs?.['aria-label'] === `Week ${review.week} accuracy`);
+    const headings = [...walk(report)].filter(n => /^h[1-6]$/.test(n.tag ?? '')).map(n => `${n.tag} ${textOf(n)}`);
+    expect(headings).toEqual(['h3 Off by, by position', 'h3 Estimated too high', 'h3 Estimated too low']);
+    const outline = nodes(html).filter(n => /^h[1-6]$/.test(n.tag ?? '')).map(n => Number(n.tag[1]));
+    outline.forEach((level, i) => { if (i) expect(level - outline[i - 1], `heading ${i} skips a level`).toBeLessThanOrEqual(1); });
+    expect(nodes(html).filter(n => n.tag === 'summary').flatMap(n => [...walk(n)]).filter(n => /^h[1-6]$/.test(n.tag ?? ''))).toEqual([]);
+  });
   it('the rankings card’s report tile shows the miss in points; with nothing graded, the status', () => {
     state.value = ready(USAGE);
     const html = render();

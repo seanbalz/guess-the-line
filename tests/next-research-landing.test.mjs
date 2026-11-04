@@ -6,6 +6,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { LANDING_COPY, RESEARCH_TILES, clockUntil, lastKickoffOf, researchClock, researchHero, researchTiles, weekGamesOf } from '../web/src/next/research/researchModel.js';
 import { trendsTile } from '../web/src/next/home/homeModel.js';
+import { gamesOf } from '../shared/lines-view.mjs';
 
 const GAMES = [
   { id: 'KC-BUF', awayCode: 'KC', homeCode: 'BUF', away: 'Kansas City Chiefs', home: 'Buffalo Bills', kickoff: '2026-11-08T21:25:00Z', line: -2.5 },
@@ -70,14 +71,26 @@ test('a failed read: every tile reads a dash with neutral words, never "No week 
   assert.equal(researchTiles({ personal: null })[0].sub, 'No week open', 'a loaded read with no week still says so');
 });
 
-test('untimed games: the card and the Games tile agree (not "all kicked off" while a game has no time); a one-game week reads as one', () => {
-  const untimed = { season: 2026, week: 9, games: [GAMES[1], { ...GAMES[0], kickoff: null }], now: '2026-11-09T02:00:00Z' };
+test('the landing counts the games the Games board lists: a game with no kickoff time is on neither; a one-game week reads as one', () => {
   const now = ms('2026-11-09T02:00:00Z');
-  assert.equal(researchHero(untimed, now).kind, 'week');
-  assert.equal(researchHero(untimed, now).line, '1 of 2 kicked off');
-  const tile = researchTiles({ personal: untimed, now })[0];
-  assert.notEqual(tile.sub, 'all kicked off');
-  assert.deepEqual([tile.big, tile.sub, tile.ariaLabel], ['—', 'Time to be set', 'Games, a kickoff time is not set']);
+  for (const bad of [null, undefined, '', 'TBD', 'never']) {
+    const untimed = { season: 2026, week: 9, games: [GAMES[1], { ...GAMES[0], kickoff: bad }, GAMES[2]], now: '2026-11-09T02:00:00Z' };
+    assert.deepEqual(weekGamesOf(untimed).map(g => g.id), gamesOf(untimed).map(g => g.id), `the board's games (kickoff ${bad})`);
+    assert.deepEqual(weekGamesOf(untimed).map(g => g.id), ['DAL-NYG', 'SEA-DEN']);
+    assert.equal(researchHero(untimed, now).title, 'Week 9 results', 'the two listed games both kicked off');
+    assert.equal(researchHero(untimed, now).line, 'All 2 games kicked off');
+    assert.equal(researchHero(untimed, ms('2026-11-04T12:00:00Z')).title, '2 games');
+    const tile = researchTiles({ personal: untimed, now })[0];
+    assert.deepEqual([tile.big, tile.sub, tile.ariaLabel], ['2', 'all kicked off', 'Games, all 2 kicked off'], 'the tile agrees with the card');
+  }
+  // Same kickoff: the board's tie-break (by id), so the landing's next game is the board's first row.
+  const tied = { season: 2026, week: 9, games: [{ ...GAMES[2], id: 'SEA-DEN' }, { ...GAMES[2], id: 'ARI-DEN', awayCode: 'ARI' }], now: '2026-11-04T12:00:00Z' };
+  assert.deepEqual(weekGamesOf(tied).map(g => g.id), ['ARI-DEN', 'SEA-DEN']);
+  assert.equal(researchTiles({ personal: tied, now: ms('2026-11-04T12:00:00Z') })[0].next.id, 'ARI-DEN');
+  // A week whose games have no times lists none: the card and the tile say no week is open, as the board lists none.
+  const noTimes = { season: 2026, week: 9, games: [{ ...GAMES[0], kickoff: null }], now: '2026-11-09T02:00:00Z' };
+  assert.equal(researchHero(noTimes, now).kind, 'none');
+  assert.equal(researchTiles({ personal: noTimes, now })[0].ariaLabel, 'Games, no week open');
   const one = { season: 2026, week: 9, games: [GAMES[1]], now: '2026-11-09T02:00:00Z' };
   assert.equal(researchHero(one, now).line, 'The game kicked off');
   assert.equal(researchHero(one, ms('2026-11-04T12:00:00Z')).title, '1 game');

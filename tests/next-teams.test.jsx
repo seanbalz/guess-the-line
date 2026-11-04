@@ -364,7 +364,7 @@ describe('D-69 step 3: Research › Teams', () => {
     expect(all(html).filter(n => (n.attrs?.class ?? '').includes('gx-kept'))[0].attrs.hidden).toBeUndefined();
   });
 
-  it('one team: a Teams lip, its heading, the lazy team view’s region; the list stays mounted under it, hidden', () => {
+  it('one team: a Teams lip, its heading, the lazy team view’s region; opened directly, no list under it to keep', () => {
     const html = draw(<TeamsScreen/>, shellOf({ layer: 'team', item: 'SEA' }));
     expect(markupProblems(html)).toEqual([]);
     const layer = all(html).find(n => n.attrs?.['data-research'] === 'team');
@@ -372,7 +372,9 @@ describe('D-69 step 3: Research › Teams', () => {
     expect(text([...walk(layer)].find(n => n.tag === 'h2'))).toBe('Seattle Seahawks');
     expect(byClass(layer, 'gx-nest-lip').map(nameFrom)).toEqual(['Back to Teams']);
     expect([...walk(layer)].some(n => n.attrs?.role === 'group' && n.attrs['aria-label'] === 'Team details')).toBe(true);
-    expect(all(html).find(n => (n.attrs?.class ?? '').includes('gx-kept')).attrs.hidden).toBe('');
+    // A shared link or a reload: the list mounts only once it has shown (a row's opening keeps it: keptNext, next-kit-research).
+    expect(all(html).filter(n => (n.attrs?.class ?? '').includes('gx-kept'))).toHaveLength(0);
+    expect(all(html).filter(n => n.tag === 'button' && n.attrs['data-team'])).toHaveLength(0);
     expect(draw(<TeamsScreen/>, shellOf({ layer: 'team', item: 'ZZZ' }))).not.toContain('data-research="team"');
   });
 

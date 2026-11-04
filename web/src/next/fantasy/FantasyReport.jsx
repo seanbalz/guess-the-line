@@ -3,8 +3,9 @@
 // print sits behind the layer's ⓘ (FantasyNest.jsx).
 import { PictureRow, Pill } from '../ui/index.js';
 
+/** One list of the biggest misses; its h3 sits beside "Off by, by position" (the disclosure's summary is not one). */
 function MissRows({ label, rows }) {
-  return <section className="gx-vstack gx-gap-8" aria-label={label}><h4 className="gx-t-label gx-c-2">{label}</h4>
+  return <section className="gx-vstack gx-gap-8" aria-label={label}><h3 className="gx-t-label gx-c-2">{label}</h3>
     {rows.length ? <ol className="gx-prows">{rows.map(row => <li key={row.id}><PictureRow title={row.title} meta={row.meta} value={row.value} word={row.word}/></li>)}</ol>
       : <p className="gx-t-meta">None.</p>}
   </section>;

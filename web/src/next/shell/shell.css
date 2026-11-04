@@ -261,6 +261,11 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  /* D-69 4.3: a new tab screen fades in; <main> is not an ancestor of the top bar, tab bar or dock. */
-  .gx .gx-main[data-tab-enter="fade"] > .gx-screen { animation: gx-fade-in var(--gx-dur-quick) var(--gx-ease-standard); }
+  /* D-69 4.3: a new tab screen fades in; <main> is not an ancestor of the top bar, tab bar or dock. A Research list
+     kept under its layer (.gx-kept, ui/KeptParent.jsx) is the screen too; while its layer is open it is hidden (no
+     animation runs), and its own settle-back (nest.css) plays on a later navigation, never inside a tab change. Two
+     selectors, not `> :is(.gx-screen, .gx-kept > .gx-screen)`: inside :is() the kept screen's parent would have to be
+     <main> itself. */
+  .gx .gx-main[data-tab-enter="fade"] > .gx-screen,
+  .gx .gx-main[data-tab-enter="fade"] > .gx-kept > .gx-screen { animation: gx-fade-in var(--gx-dur-quick) var(--gx-ease-standard); }
 }

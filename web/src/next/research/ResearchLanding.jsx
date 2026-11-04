@@ -1,8 +1,8 @@
 // Research (D-69 step 3, spec 5A, built for Sean's review): one next-move card, this week's games and lines (the week
 // meter its one picture, one meta line, the screen's one lime button), or the latest week's results once every game has
-// kicked off; then four tiles in two columns. It reads only the shared /personal read (the week, its games and the server's clock, as Home's This week does) and this
-// device's saved trends;
-// the server's clock, never the device's, says which games have kicked off.
+// kicked off; then four tiles in two columns. It reads only the shared /personal read (the week, its games and the
+// server's clock, as Home's This week does) and this device's saved trends; the server's clock, never the device's,
+// says which games have kicked off.
 import { useAppData, useSharedRead } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
 import { Button, Card, Meter, NextMoveCard, Skeleton, StaleLine, TeamMark, Tile, useEntrance } from '../ui/index.js';

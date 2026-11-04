@@ -361,7 +361,7 @@ test('published week, market gates, team filters, game sheets/back, player windo
   await noSentinel(page);
   await nest.getByRole('button',{name:'Game details · CAR @ PHI',exact:true}).click();
   // D-69 step 3: Game details opens Research › Games › the game as a layer (it was the game sheet).
-  const sheet=page.locator('[data-research="game"]'); await expect(sheet.getByRole('heading',{name:'CAR @ PHI',level:2,exact:true})).toBeVisible();
+  const sheet=page.locator('[data-research="game"]'); await expect(sheet.getByRole('heading',{name:'Panthers @ Eagles',level:2,exact:true})).toBeVisible();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(sheet.locator('[data-row=weather]')).toBeVisible();
   await expect(sheet.locator('[data-section=trends]')).toBeVisible();

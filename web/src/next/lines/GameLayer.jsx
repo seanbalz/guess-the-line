@@ -9,13 +9,16 @@ import { useMemo, useRef } from 'react';
 import { LINES_COPY, gameSheet } from '../../../../shared/lines-view.mjs';
 import { useShell } from '../shell/context.js';
 import { Button, LayerPager, Nest, Skeleton, useLayerFocus } from '../ui/index.js';
-import { RESEARCH_NAMES, closeGame, layerTitle, openTeam, pageGame } from '../research/researchNav.js';
+import { RESEARCH_NAMES, closeGame, gameName, layerTitle, openTeam, pageGame } from '../research/researchNav.js';
 import { actionsForGame, GameActions } from './GameActions.jsx';
 import { gamePager, openedBoardOrder, openedBoardResult } from './gameOrder.js';
 import { GameDetailsSlot } from './GameDetailsSlot.jsx';
 import { rememberedBoard } from './boardContext.js';
 import { useLinesData } from './linesData.js';
 import './lines.css';
+
+/** The pager names its neighbours as the board's rows do ("Next game, Texans @ Jaguars"). */
+const ROW_NAMES = Object.freeze({ title: game => gameName(game.away, game.home) });
 
 function Waiting({ personal, onRetry }) {
   if (personal.status === 'error' && personal.error?.status === 404) return <p className="gx-t-body gx-c-2" role="status">{LINES_COPY.unpublished}</p>;
@@ -35,9 +38,10 @@ export function GameLayer({ id }) {
   // (or another account's or week's, which gameOrder.js rejects) and the pager follows the week's own order. Other openers
   // (Trends' Game details) clear it with rememberBoard(null) before they navigate.
   const context = useMemo(() => rememberedBoard(), [personal.data, app.accountId, id]); // eslint-disable-line react-hooks/exhaustive-deps
-  const order = useMemo(() => openedBoardOrder(personal.data, app.accountId, context), [personal.data, app.accountId, context]);
+  const order = useMemo(() => openedBoardOrder(personal.data, app.accountId, context, ROW_NAMES), [personal.data, app.accountId, context]);
   const result = openedBoardResult(personal.data, app.accountId, context, id);
-  const title = view?.title ?? layerTitle(id);
+  // The row's own names ("Seahawks @ Broncos"), not the game sheet's codes: the heading says what the row said.
+  const title = view ? gameName(view.away.code, view.home.code) : layerTitle(id);
   const place = view ? gamePager(order, view.id) : null;
   const pager = place ? { ...place, onMove: step => {
     const target = step < 0 ? place.prev : place.next;
@@ -51,7 +55,7 @@ export function GameLayer({ id }) {
     <Nest label={title} lips={lips} layer="game" title={title}>
       {!personal.data ? <Waiting personal={personal} onRetry={() => app.refresh({ only: ['personal'] })}/>
         : !view ? <p className="gx-t-body gx-c-2" role="status">{LINES_COPY.notOnBoard}</p>
-        : <LayerPager title={view.title} pager={pager} page={view.id}>
+        : <LayerPager title={title} pager={pager} page={view.id}>
             <GameDetailsSlot lines={lines} view={view} result={result} onTeam={code => openTeam(shell, code)}/>
             {actions.length ? <GameActions game={actionGame} actions={actions} shell={shell}/> : null}
           </LayerPager>}

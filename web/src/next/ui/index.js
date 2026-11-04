@@ -40,9 +40,9 @@ export { FieldMark, FIELD_MARK_SIZES, YARDLINE_G_PATHS, YARDLINE_G_VIEWBOX } fro
 export { useModal, tabbables } from './useModal.js';
 export { Skeleton, SKELETON_SHAPES, SKELETON_HEROES } from './Skeleton.jsx';
 export { PictureRow, PICTURE_ROW_TONES } from './PictureRow.jsx';
-export { ChartReveal } from './ChartReveal.jsx';
+export { ChartReveal, revealOver } from './ChartReveal.jsx';
 export { LayerPager } from './LayerPager.jsx';
-export { KeptParent } from './KeptParent.jsx';
+export { KeptParent, keptNext } from './KeptParent.jsx';
 export { focusLayerHeading, useLayerFocus } from './focusLayer.js';
 export { lightHaptic, winHaptic, HAPTIC_MS, WIN_MS } from './haptics.js';
 export { motionReduced } from './motion.js';

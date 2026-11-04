@@ -1,6 +1,7 @@
 // Research's names, addresses and focus handles in one place (D-69 step 3): the sections, one game
 // (`#research/games?layer=game&item=SEA-DEN`), one team (`#research/teams?layer=team&item=SEA`), and the stable ids the
 // shell returns focus to on Back (a spoken name can change; an id does not).
+import { teamOf } from '../../../../shared/lines-view.mjs';
 import { RESEARCH_LAYERS } from '../shell/state.js';
 
 export const RESEARCH_NAMES = Object.freeze({ title: 'Research', games: 'Games', trends: 'Trends', fantasy: 'Fantasy', teams: 'Teams' });
@@ -9,8 +10,11 @@ export const teamRowId = code => `gx-r-team-${code}`;
 export const tileId = key => `gx-r-tile-${key}`;
 /** The landing's one lime button, whatever its words (Open games, See results, Open trends). */
 export const HERO_ACTION_ID = 'gx-r-hero-action';
-/** "SEA @ DEN" from a game id, the layer's heading while its week loads (so the heading never changes under the reader). */
-export const layerTitle = id => (typeof id === 'string' && /^[A-Za-z]{2,4}-[A-Za-z]{2,4}$/.test(id) ? id.replace('-', ' @ ') : id);
+/** A game's name as its board row says it, "Seahawks @ Broncos" (the nicknames of lines-view's teamOf): the game
+ *  layer's heading and its pager's words. The League feed's game sheet keeps "SEA @ DEN". */
+export const gameName = (away, home) => `${teamOf(away).nick} @ ${teamOf(home).nick}`;
+/** The game's name from its id: the layer's heading while its week loads (it never changes under the reader). */
+export const layerTitle = id => (typeof id === 'string' && /^[A-Za-z]{2,4}-[A-Za-z]{2,4}$/.test(id) ? gameName(...id.split('-')) : id);
 /** A Research section on its first layer, as the landing's card and tiles open it. */
 export function openSection(shell, section, view = {}) { shell.go('research', { section, season: null, week: null, ...view }); }
 export const gameView = id => ({ section: 'games', layer: RESEARCH_LAYERS.games.layer, item: id });

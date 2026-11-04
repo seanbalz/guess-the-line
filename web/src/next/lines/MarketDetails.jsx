@@ -77,8 +77,11 @@ export function MarketPanel({ game, market, cell, now }) {
         <ul className="gx-md-books">{books.map(book => <li key={book.book} className="gx-vstack gx-gap-8"><div><strong className="gx-t-strong">{book.source}</strong>{best === book.book ? <span className="gx-md-best gx-t-meta">Best recorded</span> : null}</div>{book.standInFor ? <p className="gx-t-meta">Standing in for {book.standInFor}</p> : null}<p className="gx-t-body">{fmtSide(game.awayCode, game.homeCode, side, book.line)} · {fmtOdds(book.prices?.[side])}</p><p className="gx-t-meta">Observed {marketTime(book.observedAt)}</p></li>)}</ul>
       </div>}
     </details>
-    {/* D-69 step 3: the movement chart reveals left to right on this disclosure's first opening in this game. */}
-    <details className="gx-md-disclosure" onToggle={event => { if (event.currentTarget.open) setOpened(true); }}><summary><span>Line movement</span><Icon icon="chevronDown" size={16}/></summary>
+    {/* D-69 step 3: the movement chart reveals left to right on this disclosure's first opening in this game. The tap
+        on the summary starts it, before the disclosure opens (toggle fires a task later, after a frame may have painted
+        the chart whole); toggle still covers an opening without a tap. */}
+    <details className="gx-md-disclosure" onToggle={event => { if (event.currentTarget.open) setOpened(true); }}>
+      <summary onClick={event => { if (!event.currentTarget.parentElement?.open) setOpened(true); }}><span>Line movement</span><Icon icon="chevronDown" size={16}/></summary>
       <MarketMovement rows={cell.movement ?? []} game={game} market={market} reveal={opened}/></details>
     {game.started && <p className="gx-t-meta">Kickoff line: {marketValue(game, market, cell.kickoffLine?.value)} · Observed {marketTime(cell.kickoffLine?.observedAt)}</p>}
   </Card>;

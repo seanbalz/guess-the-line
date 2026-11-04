@@ -13,9 +13,9 @@ import { SUPABASE, communityWorld, pgliteAvailable, sendBallot, signIn, storeBoo
 // board's scroll and no replayed rise, unknown values drawing the list); the pager swapping the game in place and never
 // widening the page mid-turn; a team from a game and back; layers never crossing tabs; Play's matchup still opening the
 // team sheet; motion (the layer's entrance, the movement chart's and the margin chart's reveal: a tap, never a load,
-// never under reduced motion, transform only; nothing moving on the first paint); and the phone rules at 320 and 390 px
-// in both themes with the wide fallback font and the widest kickoff time. Fictional accounts only; never contacts hosted
-// data.
+// never under reduced motion, transform only, a cut-off reveal never replayed; nothing moving on the first paint; a tab
+// change fading Research › Games' kept board in); and the phone rules at 320 and 390 px in both themes with the wide
+// fallback font and the widest kickoff time. Fictional accounts only; never contacts hosted data.
 test.use({ viewport: { width: 390, height: 844 } });
 test.setTimeout(240000);
 test.beforeEach(() => test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.'));
@@ -197,19 +197,21 @@ test('one game is a layer: a row, its heading focused, a reload, Back and Forwar
   try {
     await openAt(page, '#research/games');
     await expect(row(page, 'SEA-DEN')).toBeVisible({ timeout: 30000 });
+    await expect(row(page, 'SEA-DEN').locator('.gx-prow-title'), 'the row’s name, which the layer’s heading repeats').toHaveText('Seahawks @ Broncos');
     await row(page, 'SEA-DEN').click();
     await expect(page).toHaveURL(/#research\/games\?(.*&)?layer=game&item=SEA-DEN$/);
-    await expect(heading(game(page), 'SEA @ DEN'), 'a tap focuses the layer’s heading').toBeFocused();
+    await expect(heading(game(page), 'Seahawks @ Broncos'), 'a tap focuses the layer’s heading').toBeFocused();
     await expect(game(page).getByRole('button', { name: 'Back to Games', exact: true })).toBeVisible();
     await expect(page.locator('.gx-prow[data-game]').first(), 'the board stays mounted, hidden, under the layer').toBeHidden();
     await expect(page.locator('.gx-prow[data-game]')).toHaveCount(2);
     await page.reload();
-    await expect(heading(game(page), 'SEA @ DEN')).toBeVisible({ timeout: 30000 });
-    await expect(heading(game(page), 'SEA @ DEN'), 'a load never moves focus').not.toBeFocused();
+    await expect(heading(game(page), 'Seahawks @ Broncos')).toBeVisible({ timeout: 30000 });
+    await expect(heading(game(page), 'Seahawks @ Broncos'), 'a load never moves focus').not.toBeFocused();
+    await expect(page.locator('.gx-kept'), 'a reload has no board under the layer to restore').toHaveCount(0);
     await page.goBack();
     await expect(row(page, 'SEA-DEN')).toBeVisible();
     await page.goForward();
-    await expect(heading(game(page), 'SEA @ DEN')).toBeVisible();
+    await expect(heading(game(page), 'Seahawks @ Broncos')).toBeVisible();
     await game(page).getByRole('button', { name: 'Back to Games', exact: true }).click();
     await expect(row(page, 'SEA-DEN')).toBeVisible();
     await expect(game(page)).toHaveCount(0);
@@ -223,7 +225,7 @@ test('one game is a layer: a row, its heading focused, a reload, Back and Forwar
     expect(scrolled, 'the board scrolls at 390 × 480').toBeGreaterThan(40);
     const box = await row(page, 'HOU-JAX').boundingBox();
     await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-    await expect(heading(game(page), 'HOU @ JAX')).toBeFocused();
+    await expect(heading(game(page), 'Texans @ Jaguars')).toBeFocused();
     await settle(page);
     await back(page).click();
     await expect(page.locator('#gx-l-row-HOU-JAX'), 'Back returns focus to the row by its id').toBeFocused();
@@ -232,8 +234,8 @@ test('one game is a layer: a row, its heading focused, a reload, Back and Forwar
     await page.setViewportSize({ width: 390, height: 844 });
 
     await shared(page, '#research/games?layer=game&item=SEA-DEN');
-    await expect(heading(game(page), 'SEA @ DEN')).toBeVisible({ timeout: 30000 });
-    await expect(heading(game(page), 'SEA @ DEN'), 'a shared link moves no focus').not.toBeFocused();
+    await expect(heading(game(page), 'Seahawks @ Broncos')).toBeVisible({ timeout: 30000 });
+    await expect(heading(game(page), 'Seahawks @ Broncos'), 'a shared link moves no focus').not.toBeFocused();
     await back(page).click();
     await expect(row(page, 'SEA-DEN'), 'Back on a shared link closes one layer, to the board').toBeVisible();
     await expect(page).toHaveURL(/#research\/games$/);
@@ -256,7 +258,8 @@ test('the pager swaps the game in place and never widens the page: Next, Previou
     await expect(row(page, 'SEA-DEN')).toBeVisible({ timeout: 30000 });
     const first = await page.locator('.gx-prow[data-game]').first().getAttribute('data-game');
     const second = await page.locator('.gx-prow[data-game]').nth(1).getAttribute('data-game');
-    const title = id => id.replace('-', ' @ ');
+    // The layer names a game as its row does.
+    const title = id => ({ 'SEA-DEN': 'Seahawks @ Broncos', 'HOU-JAX': 'Texans @ Jaguars' })[id];
     await row(page, first).click();
     await expect(heading(game(page), title(first))).toBeFocused();
     const length = await page.evaluate(() => history.length);
@@ -326,7 +329,7 @@ test('one team is a layer: the Teams list, its address, its heading, the lip; a 
     await expect(page).toHaveURL(/#research\/teams\?(.*&)?layer=team&item=SEA$/);
     await expect(heading(team(page), 'Seattle Seahawks')).toBeFocused();
     await back(page).click();
-    await expect(heading(game(page), 'SEA @ DEN'), 'Back from a team opened in a game returns to the game').toBeVisible();
+    await expect(heading(game(page), 'Seahawks @ Broncos'), 'Back from a team opened in a game returns to the game').toBeVisible();
     await expect(page).toHaveURL(/#research\/games\?(.*&)?layer=game&item=SEA-DEN$/);
     await shared(page, '#research/teams?layer=team&item=ZZZ');
     await expect(page.locator('.gx-prow[data-team="SEA"]'), 'an unknown team draws the list').toBeVisible({ timeout: 30000 });
@@ -371,7 +374,7 @@ test('layers never cross tabs, and Play’s matchup still opens the team sheet',
     await openAt(page, '#research/games');
     await expect(row(page, 'SEA-DEN')).toBeVisible({ timeout: 30000 });
     await row(page, 'SEA-DEN').click();
-    await expect(heading(game(page), 'SEA @ DEN')).toBeVisible();
+    await expect(heading(game(page), 'Seahawks @ Broncos')).toBeVisible();
     const tabs = page.getByRole('navigation', { name: 'Main' });
     await tabs.getByRole('button', { name: /^Home(, .+)?$/ }).click();
     await expect(page).toHaveURL(/#home$/);
@@ -398,7 +401,7 @@ test('layers never cross tabs, and Play’s matchup still opens the team sheet',
   } finally { await world.db.close(); }
 });
 
-test('motion: the layer rises in after a tap; the movement chart reveals on its first opening, transform only; never on a load or under reduced motion', async ({ page, baseURL }) => {
+test('motion: the layer rises in after a tap; the movement chart reveals from the tap on its first opening, transform only, and a cut-off reveal is over; never on a load or under reduced motion; a tab change fades the kept board in', async ({ page, baseURL }) => {
   const world = await world6(page, baseURL);
   try {
     await storeBookLines(world, { spread: { 'SEA-DEN': -1.5, 'HOU-JAX': 2.5 }, total: { 'SEA-DEN': 43.5, 'HOU-JAX': 41.5 } });
@@ -420,7 +423,7 @@ test('motion: the layer rises in after a tap; the movement chart reveals on its 
     await summary.click(); await summary.click();
     await expect(reveal, 'the reveal is the first opening’s only').not.toHaveAttribute('data-reveal', /.*/);
     await page.reload();
-    await expect(heading(game(page), 'SEA @ DEN')).toBeVisible({ timeout: 30000 });
+    await expect(heading(game(page), 'Seahawks @ Broncos')).toBeVisible({ timeout: 30000 });
     expect(await game(page).locator('.gx-nest-card').getAttribute('data-enter'), 'a load draws no entrance').toBeNull();
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await expect(game(page).locator('[data-market-details="total"]')).toBeVisible({ timeout: 30000 });
@@ -428,9 +431,48 @@ test('motion: the layer rises in after a tap; the movement chart reveals on its 
     await expect(game(page).locator('[data-market-details="total"] .gx-md-plot svg')).toBeVisible();
     await expect(game(page).locator('[data-market-details="total"] .gx-reveal')).not.toHaveAttribute('data-reveal', /.*/);
     await page.emulateMedia({ reducedMotion: 'no-preference' });
+
+    // The tap starts the reveal in its own task, so the open disclosure's first frame is already clipped (toggle comes a
+    // task later); closed mid-reveal, the reveal is over: the next opening draws the chart whole and replays nothing.
+    await page.reload();
+    const panel = game(page).locator('[data-market-details="total"]');
+    await expect(panel).toBeVisible({ timeout: 30000 });
+    const movement = panel.locator('summary', { hasText: 'Line movement' });
+    const started = await movement.evaluate(async summary => {
+      summary.click();
+      await Promise.resolve();
+      const phase = summary.parentElement.querySelector('.gx-reveal')?.getAttribute('data-reveal') ?? null;
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      summary.click(); // closes it two frames into a 600 ms reveal
+      return phase;
+    });
+    expect(started, 'the reveal starts in the tap’s own task').toBe('in');
+    const cut = panel.locator('.gx-md-plot .gx-reveal');
+    await expect(cut, 'a reveal cut off is over').not.toHaveAttribute('data-reveal', /.*/);
+    await movement.click();
+    await expect(panel.locator('.gx-md-plot svg')).toBeVisible();
+    expect(await cut.getAttribute('data-reveal'), 'the next opening never replays it').toBeNull();
+    expect(await running(page), 'nothing replays').not.toContain('gx-reveal-clip');
+
     await shared(page, '#research');
     await expect(hero(page)).toBeVisible({ timeout: 30000 });
     expect(await running(page), 'nothing moves on the first paint').toEqual([]);
+
+    // A tab change fades the new tab's screen in, Research › Games' too, whose screen sits in the kept list (.gx-kept):
+    // Home's "All N games" opens it.
+    await page.addInitScript(() => {
+      window.__anims = [];
+      document.addEventListener('animationstart', event => window.__anims.push({ name: event.animationName, cls: event.target.getAttribute?.('class') ?? '',
+        kept: event.target.parentElement?.classList?.contains('gx-kept') ?? false }), true);
+    });
+    await shared(page, '#home');
+    const allGames = page.locator('[data-home="week"]').getByRole('button', { name: `All ${world.state.games.length} games`, exact: true });
+    await expect(allGames).toBeVisible({ timeout: 30000 });
+    await allGames.click();
+    await expect(row(page, 'SEA-DEN')).toBeVisible({ timeout: 30000 });
+    await expect.poll(() => page.evaluate(() => window.__anims.some(a => a.name === 'gx-fade-in' && /(^|\s)gx-screen(\s|$)/.test(a.cls) && a.kept)),
+      'the board’s screen fades in').toBe(true);
+    expect(await page.evaluate(() => window.__anims.some(a => /gx-(tabbar|topbar|dock)/.test(a.cls))), 'the bars never animate').toBe(false);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
@@ -447,7 +489,7 @@ test('phone rules on every Research address: 320 and 390 px, Dark and Light, the
     for (const { theme, width, wide = false } of [{ theme: 'dark', width: 390 }, { theme: 'light', width: 390 }, { theme: 'dark', width: 320 }, { theme: 'light', width: 320, wide: true }]) {
       await page.evaluate(value => localStorage.setItem('gtl.theme', value), theme);
       await page.setViewportSize({ width, height: 844 });
-      for (const [address, ready] of [['#research', hero], ['#research/games', p => row(p, 'SEA-DEN')], ['#research/games?layer=game&item=SEA-DEN', p => heading(game(p), 'SEA @ DEN')],
+      for (const [address, ready] of [['#research', hero], ['#research/games', p => row(p, 'SEA-DEN')], ['#research/games?layer=game&item=SEA-DEN', p => heading(game(p), 'Seahawks @ Broncos')],
         ['#research/teams', p => p.locator('#gx-r-team-SEA')], ['#research/teams?layer=team&item=SEA', p => team(p).locator('[data-chart="margin"]')]]) {
         await shared(page, address);
         await expect(ready(page)).toBeVisible({ timeout: 30000 });

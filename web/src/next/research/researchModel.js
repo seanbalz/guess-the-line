@@ -2,28 +2,29 @@
 // week's results once every game has kicked off) and four tiles (Games, Trends, Fantasy, Teams). Pure: it reads only
 // the shared /personal reply (its week, its games and the server's clock: the same read Home's This week and the Games
 // board use; /community/read carries only a count of games) and this device's saved trends, so the landing makes no
-// read of its own (no line, pick or Fantasy read: D-31, and Fantasy's chunk stays lazy). No moment kind lives on Research, so no tile shows NEW.
-import { weekOf } from '../../../../shared/lines-view.mjs';
+// read of its own (no line, pick or Fantasy read: D-31, and Fantasy's chunk stays lazy). It counts the games the board
+// lists (lines-view gamesOf: a game with no kickoff time is on neither). No moment kind lives on Research, so no tile
+// shows NEW.
+import { gamesOf, weekOf } from '../../../../shared/lines-view.mjs';
 import { TEAM_NAMES } from '../../../../shared/nfl-schedule.mjs';
 import { DESTINATION_ICONS } from '../ui/destinations.js';
-import { DASH, SEP, fmtDay, fmtTime, fmtWhen } from '../format.js';
+import { DASH, SEP, fmtDay, fmtTime, fmtWhen, toMs } from '../format.js';
 import { trendsTile } from '../home/homeModel.js';
 import { RESEARCH_NAMES } from './researchNav.js';
 
 export const RESEARCH_TILES = Object.freeze(['games', 'trends', 'fantasy', 'teams']);
 export const RESEARCH_TILE_ICONS = Object.freeze({ games: DESTINATION_ICONS.games, trends: DESTINATION_ICONS.trends, fantasy: DESTINATION_ICONS.fantasy, teams: DESTINATION_ICONS.teams });
 export const LANDING_COPY = Object.freeze({ loading: 'Loading this week’s games…', failed: 'This week didn’t load.', tryAgain: 'Try again' });
-const at = value => (typeof value === 'string' ? Date.parse(value) : NaN);
-const sortTime = game => (Number.isFinite(at(game.kickoff)) ? at(game.kickoff) : Infinity);
+// gamesOf's own reading of a kickoff, so a game it lists always has a time here.
+const at = value => toMs(value) ?? NaN;
 const kickedOff = (game, now) => Number.isFinite(now) && Number.isFinite(at(game.kickoff)) && now >= at(game.kickoff);
 
-/** The week's games from the /personal read, in kickoff order (a game without a time sorts last): ids, codes, kickoffs only (D-31). */
+/**
+ * The games the Games board lists, from the /personal read, in its kickoff order (lines-view gamesOf: a game without a
+ * kickoff time is left off both): ids, codes and kickoffs only (D-31).
+ */
 export function weekGamesOf(personal) {
-  const games = Array.isArray(personal?.games) ? personal.games : [];
-  return games.filter(g => g && typeof g.id === 'string').map(g => {
-    const [away, home] = g.id.split('-');
-    return { id: g.id, awayCode: g.awayCode || g.away || away, homeCode: g.homeCode || g.home || home, kickoff: g.kickoff ?? null };
-  }).sort((a, b) => sortTime(a) - sortTime(b));
+  return gamesOf(personal).map(g => ({ id: g.id, awayCode: g.away, homeCode: g.home, kickoff: g.kickoff }));
 }
 /** The server's clock in the /personal read (ms), or null; never the device's. */
 export function researchClock(personal) {
@@ -48,15 +49,17 @@ export function researchHero(personal, now) {
   return { kind: 'played', week, eyebrow: `Week ${week}${SEP}Results`, title: `Week ${week} results`, meter: { done: n, of: n }, line: n === 1 ? 'The game kicked off' : `All ${n} games kicked off`, action: 'See results', target: 'games' };
 }
 
-/** The four tiles. `next` is the Games tile's next game (its marks are the tile's picture); `open` the section view it opens. */
+/**
+ * The four tiles. `next` is the Games tile's next game (its marks are the tile's picture); `open` the section view it
+ * opens. Every game counted has a kickoff time (weekGamesOf), so with no next game every game has kicked off.
+ */
 export function researchTiles({ personal = null, now = null, saved = [], failed = false } = {}) {
   const games = weekGamesOf(personal), week = weekOf(personal)?.week ?? null;
-  const next = games.find(g => Number.isFinite(at(g.kickoff)) && !kickedOff(g, now)) ?? null;
+  const next = games.find(g => !kickedOff(g, now)) ?? null;
   const gamesTile = failed ? { big: DASH, sub: 'Not loaded', ariaLabel: 'Games, not loaded', next: null }
     : week === null || !games.length ? { big: DASH, sub: 'No week open', ariaLabel: 'Games, no week open', next: null }
     : next ? { big: fmtTime(next.kickoff), sub: `${fmtDay(next.kickoff)}${SEP}next game`, ariaLabel: `Games, next game ${next.awayCode} at ${next.homeCode}, ${fmtWhen(next.kickoff)}`, next }
-    : games.every(g => kickedOff(g, now)) ? { big: String(games.length), sub: games.length === 1 ? 'kicked off' : 'all kicked off', ariaLabel: games.length === 1 ? 'Games, the game kicked off' : `Games, all ${games.length} kicked off`, next: null }
-    : { big: DASH, sub: 'Time to be set', ariaLabel: 'Games, a kickoff time is not set', next: null };
+    : { big: String(games.length), sub: games.length === 1 ? 'kicked off' : 'all kicked off', ariaLabel: games.length === 1 ? 'Games, the game kicked off' : `Games, all ${games.length} kicked off`, next: null };
   const trends = trendsTile(saved), teams = Object.keys(TEAM_NAMES).length;
   return [
     { key: 'games', label: RESEARCH_NAMES.games, icon: RESEARCH_TILE_ICONS.games, ...gamesTile, open: { section: 'games' } },

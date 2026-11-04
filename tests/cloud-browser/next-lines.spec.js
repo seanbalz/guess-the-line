@@ -8,7 +8,7 @@ import { createOpenMeteoProvider } from '../../cloud/open-meteo.mjs';
 import { windNextDue } from '../../cloud/wind.mjs';
 import { forecastFetch } from '../fixtures/open-meteo/build.mjs';
 import { assertNoLeak, lineSecrets, pickSecrets } from '../helpers/leak-scan.mjs';
-import { kickoffGroups, gamesOf } from '../../shared/lines-view.mjs';
+import { kickoffGroups, gamesOf, teamOf } from '../../shared/lines-view.mjs';
 import { randomUUID } from 'node:crypto';
 
 // Redesign build plan stage 13 (with DASH-7's All trends sheet from stage 34): the read-only Lines tab and game sheet at
@@ -60,6 +60,8 @@ const sheet = (page, name) => page.getByRole('dialog', { name, exact: true });
 const card = (page, id) => page.locator(`.gx-prow[data-game="${id}"]`);
 /** D-69 step 3: one game is a layer in Research › Games (it was the game sheet). */
 const gameLayer = (page, name) => page.locator('[data-research="game"]').filter({ has: page.getByRole('heading', { name, level: 2, exact: true }) });
+/** The game layer's name for a game id, as its board row says it ("Seahawks @ Broncos"). */
+const layerName = id => id.split('-').map(code => teamOf(code).nick).join(' @ ');
 /** D-69 step 3: the game layer's lip, "Back to Games" (it was the sheet's Close; Escape was its other close). */
 const lip = (page, name) => gameLayer(page, name).getByRole('button', { name: 'Back to Games', exact: true });
 /** D-69 step 3: a team from a game is Research › Teams › that team (it was the team sheet). */
@@ -240,7 +242,7 @@ test('season records stay readable on narrow phones and every column is reachabl
     });
     const calls = apiCalls(page);
     await openLines(page); await card(page, 'HOU-JAX').click();
-    const trend = gameLayer(page, 'HOU @ JAX').locator('[data-trend-detail]').first();
+    const trend = gameLayer(page, 'Texans @ Jaguars').locator('[data-trend-detail]').first();
     await trend.getByRole('button', { name: 'By season', exact: true }).click();
     const name = await trend.locator('h4').innerText();
     const table = trend.locator('.gx-tc-table'), region = trend.locator('.gx-tc-table-wrap');
@@ -311,7 +313,7 @@ test('team season results and margin bars share selection without new reads or f
     } }));
     await openLines(page);
     await card(page, 'SEA-DEN').click();
-    await gameLayer(page, 'SEA @ DEN').getByRole('button', { name: /^Seattle Seahawks, .*Open team$/ }).click();
+    await gameLayer(page, 'Seahawks @ Broncos').getByRole('button', { name: /^Seattle Seahawks, .*Open team$/ }).click();
     const team = teamLayer(page, 'Seattle Seahawks'), range = team.getByRole('slider', { name: 'Move across the games' });
     const first = team.getByRole('button', { name: /^Show Week 1.*in margin chart$/ });
     const last = team.getByRole('button', { name: /^Show Week 4.*in margin chart$/ });
@@ -383,7 +385,7 @@ test('team chart keeps its plot steady when enlarged game labels wrap', async ({
     } }));
     await openLines(page);
     await card(page, 'SEA-DEN').click();
-    await gameLayer(page, 'SEA @ DEN').getByRole('button', { name: /^Seattle Seahawks, .*Open team$/ }).click();
+    await gameLayer(page, 'Seahawks @ Broncos').getByRole('button', { name: /^Seattle Seahawks, .*Open team$/ }).click();
     const team = teamLayer(page, 'Seattle Seahawks'), chart = team.locator('.gx-team-chart');
     const range = team.getByRole('slider', { name: 'Move across the games' });
     // User text enlargement: keep the containing layout at phone width while doubling the readout's font and leading.
@@ -429,17 +431,17 @@ test('game details wait for opening and keep their frame, pager, close and expli
     const calls = apiCalls(page), gameReads = () => calls.filter(call => call === 'POST /lines/game').length;
     const opener = card(page, 'SEA-DEN');
     await opener.click();
-    const sea = gameLayer(page, 'SEA @ DEN'), hou = gameLayer(page, 'HOU @ JAX');
+    const sea = gameLayer(page, 'Seahawks @ Broncos'), hou = gameLayer(page, 'Texans @ Jaguars');
     await expect(sea.getByRole('status')).toHaveText('Loading game details…');
     await expect.poll(() => requests).toBe(1);
     expect(gameReads()).toBe(0);
     // The frame while the details download: the layer's lip, its heading and its pager.
-    await expect(lip(page, 'SEA @ DEN')).toBeVisible();
-    await expect(sea.getByRole('heading', { name: 'SEA @ DEN', level: 2, exact: true })).toBeVisible();
-    await sea.getByRole('button', { name: 'Next game, HOU @ JAX', exact: true }).click();
+    await expect(lip(page, 'Seahawks @ Broncos')).toBeVisible();
+    await expect(sea.getByRole('heading', { name: 'Seahawks @ Broncos', level: 2, exact: true })).toBeVisible();
+    await sea.getByRole('button', { name: 'Next game, Texans @ Jaguars', exact: true }).click();
     await expect(hou.getByRole('status')).toHaveText('Loading game details…');
     expect(requests).toBe(1);
-    await lip(page, 'HOU @ JAX').click(); await expect(opener).toBeFocused();
+    await lip(page, 'Texans @ Jaguars').click(); await expect(opener).toBeFocused();
     const failed = page.waitForEvent('requestfailed', request => /\/assets\/GameDetails-[^/]+\.js$/.test(request.url()));
     mode = 'fail'; release(); await failed;
     await expect(hou).not.toBeVisible(); await expect(opener).toBeFocused();
@@ -470,7 +472,7 @@ test('game details wait for opening and keep their frame, pager, close and expli
     await expect(sea.getByRole('group', { name: 'Game details', exact: true })).toBeFocused();
     await expect.poll(gameReads).toBe(1);
     const loadedRequests = requests;
-    await lip(page, 'SEA @ DEN').click(); await expect(opener).toBeFocused();
+    await lip(page, 'Seahawks @ Broncos').click(); await expect(opener).toBeFocused();
     await opener.click();
     await expect(sea.getByRole('heading', { name: 'You on this game', exact: true })).toBeVisible();
     expect(requests).toBe(loadedRequests); expect(styles).toBe(1);
@@ -486,7 +488,7 @@ test('game details recover a failed stylesheet before showing their market and r
       requests++; return allowStyle ? route.continue() : route.abort('failed');
     });
     await openLines(page); await card(page, 'SEA-DEN').click();
-    const game = gameLayer(page, 'SEA @ DEN');
+    const game = gameLayer(page, 'Seahawks @ Broncos');
     await expect(game.getByRole('alert')).toContainText('Game details couldn’t load.');
     await expect(game.getByRole('heading', { name: 'You on this game', exact: true })).toHaveCount(0);
     await game.getByRole('button', { name: 'Try game details again' }).click();
@@ -516,7 +518,7 @@ test('weekly trends recover inside the game and All trends sheets without changi
       await route.fulfill({ status: reply.status, headers: Object.fromEntries(reply.headers), body: await reply.text() });
     });
     await openLines(page); await card(page, 'SEA-DEN').click();
-    const game = gameLayer(page, 'SEA @ DEN');
+    const game = gameLayer(page, 'Seahawks @ Broncos');
     await expect(game.locator('[data-section="trends"]')).toContainText('Trends didn’t load.');
     const retry = game.getByRole('button', { name: 'Retry weekly trends', exact: true });
     await expect(retry).toBeVisible();
@@ -593,7 +595,7 @@ test('team details load only on opening; closing, failed download and explicit r
     });
     await openLines(page);
     await card(page, 'SEA-DEN').click();
-    const game = gameLayer(page, 'SEA @ DEN');
+    const game = gameLayer(page, 'Seahawks @ Broncos');
     const opener = game.getByRole('button', { name: /^Seattle Seahawks, .*Open team$/ });
     await expect(opener).toBeVisible();
     expect(requests).toBe(0);
@@ -669,7 +671,7 @@ test('the team view draws styled on its first opening, with no stylesheet of its
     } }));
     page.on('request', request => { if (/\/assets\/TeamView-[^/]+\.css$/.test(request.url())) styleRequests += 1; });
     await openLines(page); await card(page, 'SEA-DEN').click();
-    await gameLayer(page, 'SEA @ DEN').getByRole('button', { name: /^Seattle Seahawks, .*Open team$/ }).click();
+    await gameLayer(page, 'Seahawks @ Broncos').getByRole('button', { name: /^Seattle Seahawks, .*Open team$/ }).click();
     const team = teamLayer(page, 'Seattle Seahawks');
     await expect(team.locator('.gx-team-view')).toBeVisible();
     await expect(team.getByRole('alert')).toHaveCount(0);
@@ -733,7 +735,7 @@ test('the board: kickoff groups, YOU tags, a lock icon on each closed market (ne
     expect(fake.calls).toHaveLength(1);
     // Your guesses on the game itself: the draft and the sent Total.
     await sea.click();
-    const you = gameLayer(page, 'SEA @ DEN').getByRole('list', { name: 'You on this game' });
+    const you = gameLayer(page, 'Seahawks @ Broncos').getByRole('list', { name: 'You on this game' });
     await expect(you.getByRole('listitem').nth(0)).toContainText('Draft SEA −4');
     await expect(you.getByRole('listitem').nth(1)).toContainText('Submitted 41');
     expect(calls.filter(call => !READS.includes(call)), 'opening a game writes nothing').toEqual([]);
@@ -749,7 +751,7 @@ test('the game layer and the All trends sheet open and close with Back; trends i
     const calls = apiCalls(page);
     await openLines(page);
     await card(page, 'SEA-DEN').click();
-    const game = gameLayer(page, 'SEA @ DEN');
+    const game = gameLayer(page, 'Seahawks @ Broncos');
     await expect(game).toBeVisible();
     // D-62: the matchup as marks with each record, each team a button to its sheet, and one "Records through" line.
     // (Until this gtl-api serves /lines/teams, the bundled records stand in.)
@@ -819,7 +821,7 @@ test('the game layer and the All trends sheet open and close with Back; trends i
 
     // HOU @ JAX: the referee row with that referee's records; the wind read is shared, not repeated.
     await card(page, 'HOU-JAX').click();
-    const london = gameLayer(page, 'HOU @ JAX');
+    const london = gameLayer(page, 'Texans @ Jaguars');
     await expect(london).toBeVisible();
     await expect(london).toContainText('London');
     const referee = london.locator('[data-row="referee"]');
@@ -861,7 +863,7 @@ test('the game sheet keeps its weekly top trends after matchup research answers;
     // NO @ NYG: research answers 200 with nothing for this game.
     let answered = answer('NO-NYG');
     await card(page, 'NO-NYG').click();
-    const nyg = gameLayer(page, 'NO @ NYG');
+    const nyg = gameLayer(page, 'Saints @ Giants');
     const nygTrends = nyg.locator('[data-section="trends"]');
     const nygTop = nygTrends.getByRole('list', { name: 'Top trends for this game' });
     await expect(nygTop).toBeVisible();
@@ -883,7 +885,7 @@ test('the game sheet keeps its weekly top trends after matchup research answers;
     // HOU @ JAX: research has two candidates for this game. They join below the same trends as compact rows.
     answered = answer('HOU-JAX');
     await card(page, 'HOU-JAX').click();
-    const hou = gameLayer(page, 'HOU @ JAX');
+    const hou = gameLayer(page, 'Texans @ Jaguars');
     const houTrends = hou.locator('[data-section="trends"]');
     const houTop = houTrends.getByRole('list', { name: 'Top trends for this game' });
     expect((await (await answered).json()).shortlist).toEqual(['synthetic-a', 'synthetic-b']);
@@ -978,7 +980,7 @@ test('a 404 from either route: the weather row says "No current forecast" (D-45)
     }
     await openLines(page);
     await card(page, 'SEA-DEN').click();
-    const game = gameLayer(page, 'SEA @ DEN');
+    const game = gameLayer(page, 'Seahawks @ Broncos');
     await expect(game).toBeVisible();
     await expect(game.getByRole('button', { name: /^All trends/ })).toBeVisible();
     await expect(game.locator('[data-row="weather"]')).toHaveText(/^Weather at kickoff\s*No current forecast$/);
@@ -1013,7 +1015,7 @@ test('axe in Light and Dark at 390, 320 and 1440 on the board, the game layer an
         found[`board ${theme} ${width}`] = await axe(page);
         if (width === 390) await page.screenshot({ path: testInfo.outputPath(`next-lines-board-390-${theme}.png`), fullPage: true });
         await card(page, 'SEA-DEN').click();
-        const game = gameLayer(page, 'SEA @ DEN');
+        const game = gameLayer(page, 'Seahawks @ Broncos');
         await expect(game).toBeVisible();
         await game.locator('[data-row="weather"]').getByRole('button').click();
         await phoneChecks(page);
@@ -1043,7 +1045,7 @@ test('chart dragging stays on the nearest endpoint outside the plot and keyboard
   const { world } = await lukesWeek(page, baseURL);
   try {
     await openLines(page); await card(page, 'HOU-JAX').click();
-    const trend = gameLayer(page, 'HOU @ JAX').locator('[data-trend-detail]').first();
+    const trend = gameLayer(page, 'Texans @ Jaguars').locator('[data-trend-detail]').first();
     await expect(trend).toBeVisible();
     for (const seasons of [false, true]) {
       if (seasons) await trend.getByRole('button', { name: 'By season', exact: true }).click();
@@ -1097,7 +1099,7 @@ test('season table selection stays in sync with the chart and survives view swit
   const { world } = await lukesWeek(page, baseURL);
   try {
     await openLines(page); await card(page, 'HOU-JAX').click();
-    const trend = gameLayer(page, 'HOU @ JAX').locator('[data-trend-detail]').first();
+    const trend = gameLayer(page, 'Texans @ Jaguars').locator('[data-trend-detail]').first();
     const lineScrub = trend.getByRole('slider', { name: 'Move along the line' });
     const trendTitle = await trend.locator('h4').innerText();
     await expect(lineScrub).toHaveAccessibleName(`Move along the line · ${trendTitle}`);
@@ -1156,7 +1158,7 @@ test('season table selection stays in sync with the chart and survives view swit
     await trend.getByRole('button', { name: 'Since 2002', exact: true }).click();
     await expect(lineScrub).toHaveValue('0');
     await expect(trend.getByRole('slider')).toHaveCount(1); // The hidden view adds no extra controls.
-    await lip(page, 'HOU @ JAX').click();
+    await lip(page, 'Texans @ Jaguars').click();
     await card(page, 'HOU-JAX').click();
     await expect(lineScrub).toHaveValue(await lineScrub.getAttribute('max')); // A newly opened detail starts fresh.
     expect(world.errors).toEqual([]);
@@ -1171,7 +1173,7 @@ test('game market details preserve saved references, gate quotes and show record
     await openLines(page);
     expect(calls.filter(call => call === 'POST /lines/game')).toHaveLength(0);
     await card(page, 'SEA-DEN').click();
-    const game = gameLayer(page, 'SEA @ DEN'), markets = game.getByRole('region', { name: 'Market lines', exact: true });
+    const game = gameLayer(page, 'Seahawks @ Broncos'), markets = game.getByRole('region', { name: 'Market lines', exact: true });
     await expect(markets).toContainText('Spread lines are locked');
     const total = markets.locator('[data-market-details="total"]');
     await expect(total).toContainText('Current line'); await expect(total).toContainText('45.5');
@@ -1209,7 +1211,7 @@ test('D-74 draft: a BetRivers stand-in shows by name and says "Standing in for F
     await storeBookLines(world, { ...LINES, total: { ...LINES.total, 'SEA-DEN': 45.5 } }, { capturedAt: Date.now() - 1000, standIn: true });
     await openLines(page);
     await card(page, 'SEA-DEN').click();
-    const game = gameLayer(page, 'SEA @ DEN'), markets = game.getByRole('region', { name: 'Market lines', exact: true });
+    const game = gameLayer(page, 'Seahawks @ Broncos'), markets = game.getByRole('region', { name: 'Market lines', exact: true });
     const total = markets.locator('[data-market-details="total"]');
     await expect(total).toContainText('Current line'); await expect(total).toContainText('45.5');
     await expect(total).toContainText('Consensus from 3 books');
@@ -1237,7 +1239,7 @@ test('market details hide previous quotes on refresh failure and recover from th
   const { world } = await lukesWeek(page, baseURL);
   try {
     await openLines(page); await card(page, 'SEA-DEN').click();
-    const markets = gameLayer(page, 'SEA @ DEN').getByRole('region', { name: 'Market lines', exact: true });
+    const markets = gameLayer(page, 'Seahawks @ Broncos').getByRole('region', { name: 'Market lines', exact: true });
     await expect(markets.locator('[data-market-details="total"]')).toContainText('43.5');
     const matcher = url => url.origin === SUPABASE && url.pathname.endsWith('/lines/game');
     await page.route(matcher, route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Unavailable' }) }));
@@ -1264,10 +1266,10 @@ test('a delayed market reply for a closed game cannot populate a different game'
       await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: payload }).catch(() => {});
     });
     await openLines(page); await card(page, 'SEA-DEN').click();
-    await expect(gameLayer(page, 'SEA @ DEN').getByRole('region', { name: 'Market lines', exact: true })).toContainText('Loading market lines');
-    await lip(page, 'SEA @ DEN').click();
+    await expect(gameLayer(page, 'Seahawks @ Broncos').getByRole('region', { name: 'Market lines', exact: true })).toContainText('Loading market lines');
+    await lip(page, 'Seahawks @ Broncos').click();
     await card(page, 'HOU-JAX').click();
-    const markets = gameLayer(page, 'HOU @ JAX').getByRole('region', { name: 'Market lines', exact: true });
+    const markets = gameLayer(page, 'Texans @ Jaguars').getByRole('region', { name: 'Market lines', exact: true });
     await expect(markets.locator('[data-market-details="total"]')).toContainText(String(LINES.total['HOU-JAX']));
     release();
     await expect(markets.locator('[data-market-details="total"]')).not.toContainText('43.5');
@@ -1293,12 +1295,12 @@ test('switching accounts cannot restore a delayed market reply with the previous
       await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: payload }).catch(() => {});
     });
     await card(page, 'SEA-DEN').click(); await expect.poll(() => held).toBe(true);
-    await lip(page, 'SEA @ DEN').click();
+    await lip(page, 'Seahawks @ Broncos').click();
     await page.getByRole('button', { name: 'Your menu', exact: true }).click();
     await page.getByRole('button', { name: 'Sign out', exact: true }).click();
     await signIn(page, 'luke', { navigate: false }); await page.goto('/#lines');
     await card(page, 'SEA-DEN').click();
-    const markets = gameLayer(page, 'SEA @ DEN').getByRole('region', { name: 'Market lines', exact: true });
+    const markets = gameLayer(page, 'Seahawks @ Broncos').getByRole('region', { name: 'Market lines', exact: true });
     await expect(markets).toContainText('Spread lines are locked'); release();
     await expect(markets.locator('[data-market-details="spread"]')).toHaveCount(0);
     await noLeak(page, world, 'market lines after account switch');
@@ -1320,7 +1322,7 @@ test('market freshness expires using server time without another odds read', asy
       await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: JSON.stringify(body) });
     });
     await openLines(page); await card(page, 'SEA-DEN').click();
-    const total = gameLayer(page, 'SEA @ DEN').locator('[data-market-details="total"]');
+    const total = gameLayer(page, 'Seahawks @ Broncos').locator('[data-market-details="total"]');
     await expect(total).toContainText('Current line');
     // Deliberately wrong device wall clock must not extend freshness.
     await page.evaluate(() => { Date.now = () => 0; });
@@ -1355,7 +1357,7 @@ test('the market board shows latest quotes separately from saved receipts and se
       await page.screenshot({ path: testInfo.outputPath(`market-board-${theme}.png`), fullPage: true });
     }
     await sea.click();
-    await expect(gameLayer(page, 'SEA @ DEN')).toContainText('Line at your guess 43.5');
+    await expect(gameLayer(page, 'Seahawks @ Broncos')).toContainText('Line at your guess 43.5');
     await page.goBack(); await expect(sea).toBeVisible();
     const calls = apiCalls(page);
     await expect(page.getByRole('button', { name: 'See picks now', exact: true })).toHaveCount(0); // M-03 is absent in this fixture.
@@ -1402,8 +1404,8 @@ test('recorded finals have their own section and result provenance while incompl
     const displayedOrder = await page.locator('.gx-prow[data-game]').evaluateAll(cards => cards.map(card => card.dataset.game));
     expect(displayedOrder).toEqual(['HOU-JAX', 'NO-NYG', 'WAS-SF', 'SEA-DEN']);
     const resultReads = apiCalls(page);
-    await card(page, 'SEA-DEN').click(); await expect(gameLayer(page, 'SEA @ DEN')).toBeVisible();
-    const recorded = gameLayer(page, 'SEA @ DEN').getByRole('region', { name: 'Recorded result', exact: true });
+    await card(page, 'SEA-DEN').click(); await expect(gameLayer(page, 'Seahawks @ Broncos')).toBeVisible();
+    const recorded = gameLayer(page, 'Seahawks @ Broncos').getByRole('region', { name: 'Recorded result', exact: true });
     await expect(recorded).toContainText('Final · SEA 0–DEN 7');
     await expect(recorded).toContainText('Commissioner-reported result');
     await expect(recorded).toContainText('Recorded when opened');
@@ -1413,13 +1415,13 @@ test('recorded finals have their own section and result provenance while incompl
       await phoneChecks(page); expect(await axe(page)).toEqual([]);
       await page.screenshot({ path: info.outputPath(`recorded-sheet-${theme}-${forcedColors}.png`) });
     }
-    await expect(gameLayer(page, 'SEA @ DEN')).toContainText('4 of 4');
-    await expect(gameLayer(page, 'SEA @ DEN').getByRole('button', { name: 'Next game', exact: true })).toBeDisabled();
-    await gameLayer(page, 'SEA @ DEN').getByRole('button', { name: 'Previous game, WAS @ SF', exact: true }).click();
-    await expect(gameLayer(page, 'WAS @ SF')).toContainText('3 of 4');
-    await expect(gameLayer(page, 'WAS @ SF').getByRole('region', { name: 'Recorded result', exact: true })).toHaveCount(0);
-    await gameLayer(page, 'WAS @ SF').getByRole('button', { name: 'Next game, SEA @ DEN', exact: true }).click();
-    await expect(gameLayer(page, 'SEA @ DEN')).toContainText('4 of 4');
+    await expect(gameLayer(page, 'Seahawks @ Broncos')).toContainText('4 of 4');
+    await expect(gameLayer(page, 'Seahawks @ Broncos').getByRole('button', { name: 'Next game', exact: true })).toBeDisabled();
+    await gameLayer(page, 'Seahawks @ Broncos').getByRole('button', { name: 'Previous game, Commanders @ 49ers', exact: true }).click();
+    await expect(gameLayer(page, 'Commanders @ 49ers')).toContainText('3 of 4');
+    await expect(gameLayer(page, 'Commanders @ 49ers').getByRole('region', { name: 'Recorded result', exact: true })).toHaveCount(0);
+    await gameLayer(page, 'Commanders @ 49ers').getByRole('button', { name: 'Next game, Seahawks @ Broncos', exact: true }).click();
+    await expect(gameLayer(page, 'Seahawks @ Broncos')).toContainText('4 of 4');
     await expect(recorded).toContainText('Final · SEA 0–DEN 7');
     expect(resultReads.filter(call => call === 'POST /lines/read')).toEqual([]);
     expect(await page.evaluate(() => JSON.stringify(history.state))).not.toContain('Fixture commissioner');
@@ -1440,9 +1442,9 @@ test('recorded finals have their own section and result provenance while incompl
       await phoneChecks(page); expect(await axe(page)).toEqual([]);
       await page.screenshot({ path: info.outputPath(`checked-result-${theme}-${forcedColors}.png`) });
     }
-    await lip(page, 'SEA @ DEN').click(); await expect(card(page, 'SEA-DEN')).toBeFocused();
+    await lip(page, 'Seahawks @ Broncos').click(); await expect(card(page, 'SEA-DEN')).toBeFocused();
     await card(page, 'SEA-DEN').click();
-    await expect(gameLayer(page, 'SEA @ DEN').getByRole('region', { name: 'Recorded result', exact: true })).toContainText('Final · SEA 0–DEN 14');
+    await expect(gameLayer(page, 'Seahawks @ Broncos').getByRole('region', { name: 'Recorded result', exact: true })).toContainText('Final · SEA 0–DEN 14');
     await page.goBack(); await expect(card(page, 'SEA-DEN')).toBeFocused();
     fail = true; await page.getByRole('button', { name: 'Refresh market lines' }).click();
     await expect(page.getByRole('button', { name: 'Retry market lines' })).toBeVisible();
@@ -1468,11 +1470,10 @@ test('a direct game open checks results on demand, ignores a late reply after pa
     await expect(page.locator('[data-trend-availability]')).toBeVisible();
     const directCalls = apiCalls(page);
     await page.locator('[data-game="SEA-DEN"]').click(); // D-66: Trends' game; its Game details opens Research › Games › the game
-    // D-69 step 3: Game details opens the game layer with the board kept (hidden) under it, which reads its own quotes once.
-    // The game's recorded result still waits for Check: it reads nothing for that until then (counted from here).
-    const boardRead = page.waitForResponse(response => new URL(response.url()).pathname.endsWith('/lines/read'));
-    await page.getByRole('button', { name: 'Game details · SEA @ DEN', exact: true }).click();
-    await boardRead;
+    // D-69 step 3: Game details opens the game layer alone: no board was shown under it, so none is kept, and nothing
+    // reads the week's quotes (no hidden /lines/read, nor its focus, visibility, online or 60 s reloads). The game's
+    // recorded result waits for Check: it reads nothing for that until then (counted by the route from the tap).
+    const opened = page.getByRole('button', { name: 'Game details · SEA @ DEN', exact: true });
     await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/lines/read'), async route => {
       requests++;
       const chosen = mode;
@@ -1484,21 +1485,30 @@ test('a direct game open checks results on demand, ignores a late reply after pa
       if (chosen === 'hold') await waiting;
       await route.fulfill({ status: 200, json: body }).catch(() => {});
     });
-    const sea = gameLayer(page, 'SEA @ DEN'), recorded = dialog => dialog.getByRole('region', { name: 'Recorded result', exact: true });
+    await opened.click();
+    const sea = gameLayer(page, 'Seahawks @ Broncos'), recorded = dialog => dialog.getByRole('region', { name: 'Recorded result', exact: true });
     await expect(recorded(sea)).toContainText('No recorded result checked yet.');
+    await expect(page.locator('.gx-kept'), 'no board under a layer that no row opened').toHaveCount(0);
     expect(requests).toBe(0);
     expect(directCalls.filter(call => call === 'POST /lines/game')).toHaveLength(1);
-    expect(directCalls.filter(call => call === 'POST /lines/read'), 'only the kept board’s own read').toHaveLength(1);
+    expect(directCalls.filter(call => call === 'POST /lines/read'), 'no hidden board reads its quotes').toHaveLength(0);
+    // Focus, visibility and online reload the layer's own market lines (the control: the events arrived); no hidden board
+    // reloads with them.
+    await page.evaluate(() => { window.dispatchEvent(new Event('focus')); document.dispatchEvent(new Event('visibilitychange')); window.dispatchEvent(new Event('online')); });
+    await expect.poll(() => directCalls.filter(call => call === 'POST /lines/game').length).toBeGreaterThan(1);
+    await expect(sea.getByRole('region', { name: 'Market lines', exact: true })).not.toContainText('Loading market lines');
+    expect(requests, 'no board reload on focus, visibility or online').toBe(0);
+    expect(directCalls.filter(call => call === 'POST /lines/read')).toHaveLength(0);
     const check = recorded(sea).getByRole('button', { name: 'Check recorded result', exact: true });
     await check.click(); await expect(check).toBeDisabled(); await expect(recorded(sea).getByRole('status')).toHaveText('Checking recorded result…');
     await check.evaluate(button => { button.click(); button.click(); }); expect(requests).toBe(1);
-    await sea.getByRole('button', { name: 'Next game, HOU @ JAX', exact: true }).click();
-    const hou = gameLayer(page, 'HOU @ JAX'); await expect(recorded(hou)).toContainText('No recorded result checked yet.');
+    await sea.getByRole('button', { name: 'Next game, Texans @ Jaguars', exact: true }).click();
+    const hou = gameLayer(page, 'Texans @ Jaguars'); await expect(recorded(hou)).toContainText('No recorded result checked yet.');
     release(); await expect(recorded(hou)).not.toContainText('LATE RESULT');
-    await hou.getByRole('button', { name: 'Previous game, SEA @ DEN', exact: true }).click();
+    await hou.getByRole('button', { name: 'Previous game, Seahawks @ Broncos', exact: true }).click();
     await expect(recorded(sea).getByRole('button', { name: 'Check recorded result', exact: true })).toBeEnabled();
     await expect(recorded(sea).getByRole('status')).toHaveCount(0);
-    await sea.getByRole('button', { name: 'Next game, HOU @ JAX', exact: true }).click();
+    await sea.getByRole('button', { name: 'Next game, Texans @ Jaguars', exact: true }).click();
     mode = 'error'; await recorded(hou).getByRole('button', { name: 'Check recorded result', exact: true }).click();
     await expect(recorded(hou).getByRole('alert')).toContainText('Couldn’t check the result.');
     mode = 'missing'; await recorded(hou).getByRole('button', { name: 'Try result again', exact: true }).click();
@@ -1510,8 +1520,8 @@ test('a direct game open checks results on demand, ignores a late reply after pa
     await expect(recorded(hou)).toContainText('Final · HOU 0–JAX 0');
     await expect(recorded(hou)).toContainText('Fixture checked final');
     await expect(recorded(hou).getByRole('button', { name: 'Check recorded result', exact: true })).toBeFocused();
-    await hou.getByRole('button', { name: 'Previous game, SEA @ DEN', exact: true }).click();
-    await sea.getByRole('button', { name: 'Next game, HOU @ JAX', exact: true }).click();
+    await hou.getByRole('button', { name: 'Previous game, Seahawks @ Broncos', exact: true }).click();
+    await sea.getByRole('button', { name: 'Next game, Texans @ Jaguars', exact: true }).click();
     await expect(recorded(hou)).toContainText('Final · HOU 0–JAX 0'); expect(requests).toBe(5);
     expect(await page.evaluate(() => JSON.stringify(history.state))).not.toContain('Fixture checked final');
     expect(world.errors).toEqual([]);
@@ -1653,7 +1663,7 @@ test('a delayed board reply cannot restore another account’s unlocked markets'
 const guesses = page => page.getByRole('region', { name: 'Everyone’s guesses', exact: true });
 async function openGuesses(page, game = 'HOU-JAX') {
   await card(page, game).click();
-  await gameLayer(page, game.replace('-', ' @ ')).getByRole('button', { name: /Everyone’s guesses/ }).click();
+  await gameLayer(page, layerName(game)).getByRole('button', { name: /Everyone’s guesses/ }).click();
   await expect(guesses(page).getByRole('list', { name: 'Community Spread guesses' })).toBeVisible();
 }
 
@@ -1670,9 +1680,9 @@ test('community guesses load on demand, keep drafts private, switch independent 
       await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: JSON.stringify(body) });
     });
     await openLines(page); await card(page, 'HOU-JAX').click();
-    await expect(gameLayer(page, 'HOU @ JAX').getByRole('button', { name: /Everyone’s guesses/ })).toHaveAttribute('aria-expanded', 'false');
+    await expect(gameLayer(page, 'Texans @ Jaguars').getByRole('button', { name: /Everyone’s guesses/ })).toHaveAttribute('aria-expanded', 'false');
     expect(requests).toHaveLength(0);
-    await gameLayer(page, 'HOU @ JAX').getByRole('button', { name: /Everyone’s guesses/ }).click();
+    await gameLayer(page, 'Texans @ Jaguars').getByRole('button', { name: /Everyone’s guesses/ }).click();
     const section = guesses(page);
     await expect(section).toContainText(longName); await expect(section).toContainText('Your draft');
     await expect(section).toContainText('JAX −9'); await expect(section).toContainText('Guess hidden');
@@ -1689,7 +1699,7 @@ test('community guesses load on demand, keep drafts private, switch independent 
     }
     await section.getByRole('button', { name: 'About community guesses' }).click();
     await expect(page.getByRole('dialog', { name: 'About community guesses' })).toContainText('regardless of the private league selected');
-    await page.keyboard.press('Escape'); await expect(gameLayer(page, 'HOU @ JAX')).toBeVisible();
+    await page.keyboard.press('Escape'); await expect(gameLayer(page, 'Texans @ Jaguars')).toBeVisible();
     expect(calls.filter(call => !READS.includes(call))).toEqual([]); expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
@@ -1755,7 +1765,7 @@ test('a delayed guesses reply cannot restore the previous account’s revealed p
       await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body }).catch(() => {});
     });
     await guesses(page).getByRole('button', { name: 'Total', exact: true }).click(); await expect.poll(() => held).toBe(true);
-    await lip(page, 'HOU @ JAX').click();
+    await lip(page, 'Texans @ Jaguars').click();
     await page.getByRole('button', { name: 'Your menu', exact: true }).click(); await page.getByRole('button', { name: 'Sign out', exact: true }).click();
     await signIn(page, 'luke', { navigate: false }); await page.goto('/#lines'); await openGuesses(page);
     await expect(guesses(page)).toContainText('Guess hidden'); release();
@@ -1785,17 +1795,17 @@ test('game action bar opens the selected matchup and market without writing or d
   const calls = apiCalls(page);
   try {
     await openLines(page); await card(page, 'HOU-JAX').click();
-    const actions = gameLayer(page, 'HOU @ JAX').getByRole('navigation', { name: 'Actions for this game' });
+    const actions = gameLayer(page, 'Texans @ Jaguars').getByRole('navigation', { name: 'Actions for this game' });
     for (const theme of ['dark', 'light']) {
       await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
       await page.setViewportSize({ width: 320, height: 844 });
       await expect(actions.getByRole('button', { name: 'Open Spread for HOU at JAX' })).toBeInViewport();
-      await gameLayer(page, 'HOU @ JAX').getByText('Only you see this.', { exact: false }).scrollIntoViewIfNeeded();
+      await gameLayer(page, 'Texans @ Jaguars').getByText('Only you see this.', { exact: false }).scrollIntoViewIfNeeded();
       await expect(actions).toBeInViewport();
       await phoneChecks(page); expect(await axe(page)).toEqual([]);
       await page.screenshot({ path: testInfo.outputPath(`game-actions-${theme}.png`) });
     }
-    const note = gameLayer(page, 'HOU @ JAX').getByRole('textbox', { name: 'Your note' });
+    const note = gameLayer(page, 'Texans @ Jaguars').getByRole('textbox', { name: 'Your note' });
     await note.fill('A private unsaved note');
     page.once('dialog', dialog => dialog.dismiss());
     await actions.getByRole('button', { name: 'Open Spread for HOU at JAX' }).click();
@@ -1815,7 +1825,7 @@ test('game action bar opens the selected matchup and market without writing or d
     await expect(page.locator('[data-tile="SEA-DEN"]')).toHaveAttribute('data-state', 'draft');
     await expect(page.locator('[data-tile="HOU-JAX"]')).toHaveAttribute('data-state', 'draft');
     await page.goto('/#research/games'); await card(page, 'HOU-JAX').click();
-    await gameLayer(page, 'HOU @ JAX').getByRole('button', { name: 'Open Total for HOU at JAX' }).click();
+    await gameLayer(page, 'Texans @ Jaguars').getByRole('button', { name: 'Open Total for HOU at JAX' }).click();
     const total = page.getByRole('article', { name: 'HOU at JAX Total', exact: true });
     await expect(page.getByRole('heading', { name: 'HOU @ JAX', exact: true })).toBeFocused(); await expect(total).toContainText('Locked in');
     await expect(total.getByRole('button', { name: 'Lock in Total', exact: true })).toHaveCount(0);
@@ -1844,14 +1854,14 @@ test('your pick sheet separates draft and locked references and returns focus to
   const calls = apiCalls(page);
   try {
     await openLines(page); await card(page, 'SEA-DEN').click();
-    const spreadRow = gameLayer(page, 'SEA @ DEN').getByRole('button', { name: /^Open your Spread pick\./ });
+    const spreadRow = gameLayer(page, 'Seahawks @ Broncos').getByRole('button', { name: /^Open your Spread pick\./ });
     await spreadRow.click();
     const spread = sheet(page, 'Your Spread pick');
     await expect(spread).toContainText('Draft SEA −4'); await expect(spread).toContainText('No locked-in scoring line');
     await expect(spread.getByRole('list', { name: 'Community Spread guesses' })).toBeVisible();
     await noLeak(page, world, 'draft pick sheet');
     await page.keyboard.press('Escape'); await expect(spreadRow).toBeFocused();
-    await gameLayer(page, 'SEA @ DEN').getByRole('button', { name: /^Open your Total pick\./ }).click();
+    await gameLayer(page, 'Seahawks @ Broncos').getByRole('button', { name: /^Open your Total pick\./ }).click();
     const total = sheet(page, 'Your Total pick');
     await expect(total).toContainText('Line at your guess'); await expect(total).toContainText('43.5');
     await expect(total.getByRole('list', { name: 'Community Total guesses' })).toBeVisible();
@@ -1901,7 +1911,7 @@ test('your saved pick keeps pending and first-after labels and survives independ
     contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(fail ? { error: 'Fixture unavailable' } : saved) }));
   try {
     await openLines(page); await card(page, 'SEA-DEN').click();
-    await gameLayer(page, 'SEA @ DEN').getByRole('button', { name: /^Open your Total pick\./ }).click();
+    await gameLayer(page, 'Seahawks @ Broncos').getByRole('button', { name: /^Open your Total pick\./ }).click();
     const pick = sheet(page, 'Your Total pick');
     await expect(pick).toContainText('Line pending'); await expect(pick).not.toContainText('99.5'); await expect(pick).toContainText('Late · 12');
     ballot.scoringReferences['SEA-DEN'] = { status: 'available', basis: 'first_line_after_submission', value: 44.5, source: 'Saved first-after fixture', observedAt: saved.now };
@@ -1932,7 +1942,7 @@ async function seedGameBets(world) {
 const betsRoute = url => url.origin === SUPABASE && url.pathname.endsWith('/bets/read');
 async function openGameBets(page, game = 'SEA-DEN') {
   await card(page, game).click();
-  await gameLayer(page, game.replace('-', ' @ ')).getByRole('button', { name: /^Open League bets for / }).click();
+  await gameLayer(page, layerName(game)).getByRole('button', { name: /^Open League bets for / }).click();
   return sheet(page, 'League bets');
 }
 
@@ -1961,7 +1971,7 @@ test('League bets loads one game on demand with protected terms, phone layout an
       await page.screenshot({ path: testInfo.outputPath(`game-bets-${theme}.png`) });
     }
     await page.keyboard.press('Escape');
-    const action = gameLayer(page, 'SEA @ DEN').getByRole('button', { name: /^Open League bets for / });
+    const action = gameLayer(page, 'Seahawks @ Broncos').getByRole('button', { name: /^Open League bets for / });
     await expect(action).toBeFocused(); await phoneChecks(page); expect(await axe(page)).toEqual([]);
     await action.click(); await bets.getByRole('button', { name: 'Open Spread in Play', exact: true }).click();
     await expect(page.getByRole('article', { name: 'SEA at DEN Spread', exact: true })).toBeVisible();
@@ -2063,7 +2073,7 @@ test('Research reveal warns before writing, keeps locked scores and drafts, then
       revision: initial.revision, weeklyRevision: initial.weeklyRevision, requestId: randomUUID() })).status).toBe(200);
     const before = (await world.api('luke', 'personal')).body;
     await openLines(page); await card(page, 'HOU-JAX').click();
-    const game = gameLayer(page, 'HOU @ JAX');
+    const game = gameLayer(page, 'Texans @ Jaguars');
     const note = game.getByRole('textbox', { name: 'Your note' }); await note.fill('Private unsaved fixture note');
     await game.getByRole('button', { name: /Everyone’s guesses/ }).click();
     await game.getByRole('button', { name: 'See picks now', exact: true }).click();
@@ -2193,7 +2203,7 @@ test('high-contrast charts retain visible bars, stems and selected seasons', asy
   try {
     await storeBookLines(world, { ...LINES, total: { ...LINES.total, 'HOU-JAX': 44.5 } }, { capturedAt: Date.now() - 1000 });
     await openLines(page); await card(page, 'HOU-JAX').click();
-    const game = gameLayer(page, 'HOU @ JAX'), trend = game.locator('[data-trend-detail]').first();
+    const game = gameLayer(page, 'Texans @ Jaguars'), trend = game.locator('[data-trend-detail]').first();
     const total = game.locator('[data-market-details="total"]');
     await total.locator('summary', { hasText: 'Line movement' }).click();
     for (const theme of ['light', 'dark']) {
@@ -2269,7 +2279,7 @@ test('movement marks kickoff without adding a quote or opening a closed market',
       await route.fulfill({ status: res.status, headers: Object.fromEntries(res.headers), body: JSON.stringify(body) });
     });
     await openLines(page); await card(page, 'HOU-JAX').click();
-    const game = gameLayer(page, 'HOU @ JAX'), total = game.locator('[data-market-details="total"]');
+    const game = gameLayer(page, 'Texans @ Jaguars'), total = game.locator('[data-market-details="total"]');
     await total.locator('summary', { hasText: 'Line movement' }).click();
     const marker = total.locator('[data-kickoff-marker]'), slider = total.getByRole('slider', { name: 'Move along total movement' });
     await expect(marker).toHaveAttribute('x1', '160');
@@ -2319,7 +2329,7 @@ test('recent trend tiles distinguish grouped wins losses and pushes in both char
       await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: JSON.stringify(body) });
     });
     await openLines(page); await card(page, 'HOU-JAX').click();
-    const trend = gameLayer(page, 'HOU @ JAX').locator('[data-trend-detail]').first();
+    const trend = gameLayer(page, 'Texans @ Jaguars').locator('[data-trend-detail]').first();
     const recent = trend.locator('.gx-tc-tile').filter({ has: page.locator('.gx-tc-tile-label', { hasText: 'Last 10' }) });
     for (const theme of ['light', 'dark']) {
       await page.setViewportSize({ width: 320, height: 844 });
@@ -2369,7 +2379,7 @@ test('season stems mark break-even without inflating small gains or losses', asy
       await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: JSON.stringify(body) });
     });
     await openLines(page); await card(page, 'HOU-JAX').click();
-    const trend = gameLayer(page, 'HOU @ JAX').locator('[data-trend-detail]').first();
+    const trend = gameLayer(page, 'Texans @ Jaguars').locator('[data-trend-detail]').first();
     for (const theme of ['light', 'dark']) {
       await page.setViewportSize({ width: 320, height: 844 });
       await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
@@ -2436,7 +2446,7 @@ test('recorded movement timestamps select chart observations while missing rows 
     });
     const calls = apiCalls(page);
     await openLines(page); await card(page, 'HOU-JAX').click();
-    const game = gameLayer(page, 'HOU @ JAX'), total = game.locator('[data-market-details="total"]');
+    const game = gameLayer(page, 'Texans @ Jaguars'), total = game.locator('[data-market-details="total"]');
     const disclosure = total.locator('summary', { hasText: 'Line movement' });
     await disclosure.click();
     const slider = total.getByRole('slider', { name: 'Move along total movement' });

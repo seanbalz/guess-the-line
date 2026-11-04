@@ -5,12 +5,18 @@ import { gamesOf, teamOf } from '../../../../shared/lines-view.mjs';
 import { toMs } from '../format.js';
 import { recordedFinal } from './boardMarkets.js';
 
-/** `[{ id, title }]` ("SEA @ DEN") for the week in `personal`, in board order; empty without a week. */
-export function boardOrder(personal) {
+const codes = game => `${teamOf(game.away).code} @ ${teamOf(game.home).code}`;
+
+/**
+ * `[{ id, title }]` for the week in `personal`, in board order; empty without a week. `title(game)` names each game
+ * (`game` is lines-view gamesOf's): "SEA @ DEN" unless told otherwise (the League feed's game sheet); Research's game
+ * layer passes its rows' own names (researchNav.js gameName).
+ */
+export function boardOrder(personal, { title = codes } = {}) {
   const games = gamesOf(personal), now = toMs(personal?.now);
   const upcoming = games.filter(game => now === null || now < toMs(game.kickoff));
   const started = games.filter(game => now !== null && now >= toMs(game.kickoff));
-  return [...upcoming, ...started].map(game => ({ id: game.id, title: `${teamOf(game.away).code} @ ${teamOf(game.home).code}` }));
+  return [...upcoming, ...started].map(game => ({ id: game.id, title: title(game) }));
 }
 
 function matchingSnapshot(personal, accountId, context, games) {
@@ -20,9 +26,9 @@ function matchingSnapshot(personal, accountId, context, games) {
   return context.ids.every(id => ids.has(id));
 }
 
-/** The displayed board order is a scoped, in-memory snapshot; labels always come from the current week. */
-export function openedBoardOrder(personal, accountId, context) {
-  const fallback = boardOrder(personal);
+/** The displayed board order: a scoped, in-memory snapshot; labels from the current week (`options`: boardOrder's). */
+export function openedBoardOrder(personal, accountId, context, options) {
+  const fallback = boardOrder(personal, options);
   if (!matchingSnapshot(personal, accountId, context, fallback)) return fallback;
   const byId = new Map(fallback.map(game => [game.id, game]));
   return context.ids.map(id => byId.get(id));

@@ -65,6 +65,18 @@ describe('ChartReveal (spec 4.3: charts reveal left to right)', () => {
     expect(sheet).toMatch(/@media \(prefers-reduced-motion: no-preference\) \{\n {2}\.gx:not\(\[data-motion="reduce"\]\) \.gx-reveal\[data-reveal="in"\] \{ overflow: hidden; animation: gx-reveal-clip var\(--gx-dur-big\) var\(--gx-ease-enter\) both; \}/);
     expect(sheet).not.toMatch(/\.gx \.gx-reveal \{[^}]*overflow/);
   });
+  it('a reveal is over when its own clip ends or is cancelled (a hidden chart), or its disclosure closes; a child’s event or an opening never ends it', () => {
+    const element = { tag: 'span' }, inner = { tag: 'span' }, details = { open: false }, other = { open: false };
+    expect(ui.revealOver({ type: 'animationend', target: element }, element)).toBe(true);
+    expect(ui.revealOver({ type: 'animationcancel', target: element }, element)).toBe(true);
+    expect(ui.revealOver({ type: 'animationcancel', target: inner }, element), 'the content’s own hold animation').toBe(false);
+    expect(ui.revealOver({ type: 'animationstart', target: element }, element)).toBe(false);
+    expect(ui.revealOver({ type: 'toggle', target: details }, element, details), 'closed mid-reveal').toBe(true);
+    expect(ui.revealOver({ type: 'toggle', target: other }, element, details), 'another disclosure').toBe(false);
+    expect(ui.revealOver({ type: 'toggle', target: details }, element, null)).toBe(false);
+    const opening = { open: true };
+    expect(ui.revealOver({ type: 'toggle', target: opening }, element, opening), 'the opening itself').toBe(false);
+  });
 });
 
 describe('LayerPager (spec 4.1: the game sheet’s paging, inside the game layer)', () => {
@@ -90,11 +102,27 @@ describe('LayerPager (spec 4.1: the game sheet’s paging, inside the game layer
 
 describe('KeptParent (a list stays mounted under its layer, as it stayed under the sheet)', () => {
   const list = <ol className="gx-prows" aria-label="Games"><li>row</li></ol>;
-  it('with no layer the list shows; with one, the layer comes first and the list stays, hidden', () => {
+  it('with no layer the list shows; a layer opened directly (a shared link, a reload) has no list under it at all', () => {
     expect(byClass(render(<ui.KeptParent>{list}</ui.KeptParent>), 'gx-kept')[0].attrs.hidden).toBeUndefined();
-    const layered = render(<ui.KeptParent layer={<section className="gx-nest" aria-label="SEA @ DEN">layer</section>}>{list}</ui.KeptParent>);
-    expect(nodes(layered).filter(n => ['gx-nest', 'gx-kept'].includes(n.attrs?.class)).map(n => n.attrs.class)).toEqual(['gx-nest', 'gx-kept']);
-    expect(byClass(layered, 'gx-kept')[0].attrs.hidden).toBe('');
+    const direct = render(<ui.KeptParent layer={<section className="gx-nest" aria-label="SEA @ DEN">layer</section>}>{list}</ui.KeptParent>);
+    expect(byClass(direct, 'gx-nest')).toHaveLength(1);
+    expect(byClass(direct, 'gx-kept'), 'no hidden list, so none of its reads or timers').toHaveLength(0);
+    expect(byClass(direct, 'gx-prows')).toHaveLength(0);
+  });
+  it('a list that has shown stays mounted under every later layer and settles back on a close after a navigation', () => {
+    // From a row: shown, then a layer (kept, hidden, the layer first), then Back (shown, settling back).
+    const shown = ui.keptNext(null, false, true);
+    expect(shown).toEqual({ open: false, enter: undefined, seen: true });
+    const layered = ui.keptNext(shown, true, true);
+    expect(layered).toEqual({ open: true, enter: undefined, seen: true });
+    expect(ui.keptNext(layered, true, true), 'a re-render (a read landing) keeps the same state').toBe(layered);
+    expect(ui.keptNext(layered, false, true)).toEqual({ open: false, enter: 'back', seen: true });
+    expect(ui.keptNext(layered, false, false).enter, 'on the launch screen nothing settles').toBeUndefined();
+    // A direct open: nothing to keep until the layer closes; the list then mounts and settles back like a restored parent.
+    const direct = ui.keptNext(null, true, true);
+    expect(direct).toEqual({ open: true, enter: undefined, seen: false });
+    expect(ui.keptNext(direct, true, true)).toBe(direct);
+    expect(ui.keptNext(direct, false, true)).toEqual({ open: false, enter: 'back', seen: true });
   });
 });
 
@@ -153,6 +181,14 @@ describe('D-69 step 3 fix wave 1: stylesheet contracts', () => {
     const block = sheet.slice(sheet.indexOf('@media (prefers-reduced-motion: no-preference)'));
     expect(block.indexOf(kill)).toBeGreaterThan(0);
     expect(block.indexOf(kill)).toBeLessThan(block.indexOf('@keyframes'));
+  });
+  it('a tab change fades a list kept under its layer too (Research › Games, Teams): its screen sits inside .gx-kept', () => {
+    const sheet = bare('shell/shell.css');
+    const block = sheet.slice(sheet.indexOf('@media (prefers-reduced-motion: no-preference)'));
+    for (const sel of ['.gx .gx-main[data-tab-enter="fade"] > .gx-screen,', '.gx .gx-main[data-tab-enter="fade"] > .gx-kept > .gx-screen']) expect(block, sel).toContain(sel);
+    expect(declarations(block, '.gx .gx-main[data-tab-enter="fade"] > .gx-kept > .gx-screen')).toMatch(/^animation: gx-fade-in /);
+    // Inside :is() a complex selector matches the subject alone, so `> :is(.gx-kept > .gx-screen)` would need <main> to be .gx-kept.
+    expect(sheet).not.toMatch(/data-tab-enter="fade"\] > :is\(/);
   });
   it('the pager wrapper clips the x axis (no scroll container, no transform) so a turn never widens the page', () => {
     const rules = declarations(bare('ui/pager.css'), '.gx .gx-pager');

@@ -3,6 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { ALL } from '../migrations.mjs';
 import { SUPABASE, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 import { boardOrder } from '../../web/src/next/lines/gameOrder.js';
+import { gameName } from '../../web/src/next/research/researchNav.js';
 
 // Design upgrade ("game feel"): touch interaction in the new app at 390 x 844, on the real app (main.jsx, AuthGate, the
 // lazy NextApp) and the real handler with every migration (ALL) on local PGlite, with real pointer drags (page.mouse,
@@ -135,7 +136,8 @@ async function touchDrag(page, cdp, from, dx, dy, steps = 10) {
 
 async function week(page, baseURL, options = {}) {
   const world = await communityWorld(page, baseURL, { migrations: ALL, games: 4, ...options });
-  const order = boardOrder((await world.api('luke', 'personal')).body);
+  // The game layer's names, as its rows say them ("Seahawks @ Broncos"), for its heading and pager.
+  const order = boardOrder((await world.api('luke', 'personal')).body, { title: game => gameName(game.away, game.home) });
   expect(order.map(g => g.id)).toHaveLength(4);
   return { world, order };
 }
