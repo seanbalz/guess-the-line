@@ -13,8 +13,9 @@ export const TILE_TONES = Object.freeze(['plain', 'good', 'warn']);
 export const spokenName = (ariaLabel, isNew) => (isNew && typeof ariaLabel === 'string' && !/\bnew\b/i.test(ariaLabel) ? `${ariaLabel}, new` : ariaLabel);
 
 /**
- * `ref` (a React 19 ref prop) reaches the button, so a screen can return focus to a tile. `ariaLabel` is the whole
- * stable `id` (optional) is the shell's handle for focus return, since the name changes when NEW drops; spoken name; the tile says "new" in it whenever its NEW tag shows (spokenName). `icon` is an `Icon` name or a Lucide
+ * `ref` (a React 19 ref prop) reaches the button, so a screen can return focus to a tile. A stable `id` (optional) is
+ * the shell's handle for focus return on Back, since the spoken name changes when NEW drops. `ariaLabel` is the whole
+ * spoken name; the tile says "new" in it whenever its NEW tag shows (spokenName). `icon` is an `Icon` name or a Lucide
  * component. `picture` (faces, marks) is drawn under the label and hidden from assistive technology: the name says it.
  */
 export function Tile({ ref, id, label, icon, picture, big, sub, tone = 'plain', isNew = false, onClick, ariaLabel }) {
