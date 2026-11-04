@@ -13,7 +13,9 @@ exclusions, and a browser test with four finished games (phone rules and axe in 
 ## D-69 design overhaul, step 1: Play — November 3, 2026
 
 Built on `claude/overhaul-step1-play`, verified at `9ebb2056c2589160b03a4cd2fd3ba254371ca31a`,
-[PR #473](https://github.com/seanbalz/guess-the-line/pull/473); not released. Every Play section is a nesting
+[PR #473](https://github.com/seanbalz/guess-the-line/pull/473), merged by Sean as `59a2a2ef`. **Released** November 4,
+06:42 UTC, in the frontend from `a10d28e9` (Pages `62e6b278`) on Sean's "Release step 1"; see the
+[step 1 release note](RELEASE_2026_11_04_OVERHAUL_STEP1.md). Every Play section is a nesting
 card under a "Play" lip, with its own address: the landing's next-ballot card and six tiles (P1B), Your score and its
 game layer (P2B), Compare one member at a time (P3B), Guess the Points slot tiles and slot layers (P4A), Badges and
 awards grid first (P5A), and League board first with the feed, History and week layers (P6A). Bullseye, Week final,
@@ -24,8 +26,8 @@ later change merged two release records from `main`): `node --test` 2877 tests, 
 one is `tests/research-intake.test.mjs`, a Windows file-mode check that also fails on untouched code here and is
 unrelated to step 1; CI runs Linux); Vitest 67 files, 763 tests pass; typecheck and build pass; the 16 step 1 browser
 specs, the phone, fixed-bar and scroll sweeps among them, 69 passed, skipped 0, at `9ebb2056`. Axe ran inside those step 1 specs; `npm run test:accessibility` covers the legal links only. The nine
-required CI checks run on the PR. Not yet: the Pages release and Sean's iPhone check of Play, which stands in for
-device acceptance (spec section 10).
+required CI checks run on the PR. Not yet: a signed-in readback of the released Play and Sean's iPhone check of Play,
+which stands in for device acceptance (spec section 10).
 
 ## Fantasy weekly estimate switches to usage, D-76 — November 3, 2026
 
