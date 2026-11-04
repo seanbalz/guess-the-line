@@ -26,10 +26,11 @@ deployment evidence, fixture-based save checks and remaining real-phone acceptan
 This is a functional bridge, not completion of stages 29–81. No database migration,
 collector schedule, odds budget, default-app setting or reveal rule changes here.
 M-02 is still unapplied: live Week 6 ballots use full-market Submit and remain
-editable until the configured deadline. The old app has no per-game Lock in
-action; the new app's Play section offers one only when the server reports
-per-game rules (see the November 3 note below), and nothing promises late
-picking. The server remains authoritative in both apps.
+editable until the configured deadline. Both apps offer a per-game Lock in
+only when the server reports per-game rules (see the November 3 note below).
+Otherwise the old app keeps full-market Submit and the new app shows the saved
+ballot read-only. Nothing promises late picking. The server remains
+authoritative in both apps.
 
 `DEFAULT_APP` remains `classic`; **Try the new app** opens the five-tab shell and
 the device remembers that choice. **Use the old app** remains in the menu.
