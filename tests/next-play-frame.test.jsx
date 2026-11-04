@@ -48,7 +48,7 @@ describe('PlayTile', () => {
     const quiet = render(<PlayTile label="Your score" icon="chart" big="32" sub="Week 8 · ▲ 2" tone="good" ariaLabel="Your score, 32 points, Week 8, up 2" onClick={() => {}}/>);
     const [tile] = buttons(quiet);
     expect(nameFrom(tile)).toBe('Your score, 32 points, Week 8, up 2');
-    expect(quiet).toContain('gx-play-tile-sub--good');
+    expect(quiet).toContain('gx-tile-sub--good');
     expect(quiet).not.toContain('NEW');
     const fresh = render(<PlayTile label="Badges" icon="trophy" big="4" sub="New: Called the Move" isNew ariaLabel="Badges, 4 earned, new badge" onClick={() => {}}/>);
     expect(fresh).toContain('NEW');
@@ -69,7 +69,7 @@ describe('PlayTile', () => {
 
   it('an unknown tone falls back to plain, so a state color never appears without its word', () => {
     const html = render(<PlayTile label="League" icon="trophy" big="3rd" sub="4 new posts" tone="loud" ariaLabel="League, 3rd" onClick={() => {}}/>);
-    expect(html).toContain('gx-play-tile-sub--plain');
+    expect(html).toContain('gx-tile-sub--plain');
   });
 });
 

@@ -29,6 +29,7 @@ export { Dialog } from './Dialog.jsx';
 export { InfoButton } from './InfoButton.jsx';
 export { MetaLine } from './MetaLine.jsx';
 export { Nest, NestMeter, NestSpark, NEST_MAX_STEPS } from './Nest.jsx';
+export { Tile, spokenName, TILE_TONES } from './Tile.jsx';
 export { Toast, toastDuration, TOAST_TONES, TOAST_MS } from './Toast.jsx';
 export { Overlay } from './Overlay.jsx';
 export { TeamMark, teamCode, TEAM_MARK_SIZES } from './TeamMark.jsx';

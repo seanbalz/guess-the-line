@@ -81,7 +81,7 @@ function PlayLanding() {
     {/* A failed refresh keeps the last good copy with its error noted (data/store.js): say so under the card. */}
     {data && (app.community.status === 'error' || app.community.error) ? <p className="gx-play-state-line gx-t-body" role="status">This week could not refresh. Showing the last loaded update. <Button variant="ghost" onClick={() => app.refresh({ only: ['community'] })}>Refresh week</Button></p> : null}
     <ReminderPrompt key={app.accountId} onGone={onPromptGone}/>
-    <ul className="gx-nest-grid gx-play-tiles" aria-label="Play sections" data-play="tiles">
+    <ul className="gx-tiles gx-play-tiles" aria-label="Play sections" data-play="tiles">
       <li data-play-tile="ballot" data-moment={tilePop ? 'pop' : undefined}><PlayTile icon="target" label={tile.label} big={tile.big} sub={tile.sub} tone={tile.tone} ariaLabel={waiting ? `${tile.ariaLabel}, new` : tile.ariaLabel} isNew={waiting} onClick={() => openPicks(other)}/></li>
       <li data-play-tile="points"><PointsTile ref={pointsTile} onOpen={() => openPlay(shell, 'points')}/></li>
       <li data-play-tile="score"><ScoreTile onOpen={patch => openPlay(shell, 'score', patch)}/></li>

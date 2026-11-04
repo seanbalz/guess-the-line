@@ -1,0 +1,15 @@
+/* D-69 (design audit B0-1): the kit tile and the two-column tile list of a tab's first card. The frame is the nesting
+   tile's (nest.css .gx-nest-tile), so a tile inside a layer takes that layer's surface; in a .gx-tiles list on a page it
+   sits on surface-1. Tokens only. */
+.gx .gx-tile { justify-content: space-between; min-height: 112px; }
+.gx .gx-tile-pic { display: flex; align-items: center; min-width: 0; }
+.gx .gx-tile-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-tile-sub { min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+.gx .gx-tile-sub--plain { color: var(--gx-text-2); }
+.gx .gx-tile-sub--good { color: var(--gx-win); }
+.gx .gx-tile-sub--warn { color: var(--gx-pending); }
+.gx .gx-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-3); margin: 0; padding: 0; list-style: none; }
+.gx .gx-tiles > li { display: flex; min-width: 0; }
+/* A tile that has nothing to show yet (its own read loading or off) leaves no empty cell. */
+.gx .gx-tiles > li:empty { display: none; }
+.gx .gx-tiles .gx-nest-tile { background: var(--gx-surface-1); }

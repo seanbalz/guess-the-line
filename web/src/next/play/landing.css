@@ -7,7 +7,3 @@
 .gx .gx-play-hero .gx-t-title { overflow-wrap: anywhere; }
 .gx .gx-play-hero-meter .gx-meter3-seg { height: 8px; border-radius: 4px; }
 .gx .gx-play-hero > .gx-btn { margin-top: var(--gx-space-1); }
-.gx .gx-play-tiles > li { display: flex; min-width: 0; }
-/* A tile that has nothing to show yet (its own read loading or off) leaves no empty cell. */
-.gx .gx-play-tiles > li:empty { display: none; }
-.gx .gx-play-tiles .gx-nest-tile { background: var(--gx-surface-1); }
