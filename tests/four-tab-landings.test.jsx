@@ -44,6 +44,7 @@ describe('One thing first roots', () => {
     expect(markupProblems(html)).toEqual([]);
     expect(html).toContain('Guess the Total');
     expect(html).toContain('Guess the Spread');
+    expect(html).not.toContain('community-week-picks'); // the landing never embeds the old editor (until Task 7b)
     for (const name of ['ballot', 'score', 'league']) expect(html).toContain(`data-play-tile="${name}"`);
     expect((html.match(/gx-btn--primary/g) || [])).toHaveLength(1);
   });

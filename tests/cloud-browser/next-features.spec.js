@@ -50,7 +50,7 @@ async function targets44(scope) {
   }
 }
 
-test('without M-25: no new row on Play or Home, and the screen says "coming soon"', async ({ page, baseURL }) => {
+test('without M-25: the Badges tile on Play says "coming soon", Home has no awards row, and the screen says "coming soon"', async ({ page, baseURL }) => {
   const world = await communityWorld(page, baseURL, { migrations: BEFORE_M25 });
   expect((await world.api('luke', 'league/features', {})).status).toBe(404);
   await openNewApp(page);
@@ -69,6 +69,10 @@ test('before the job has run: an empty recap with no sample, streaks at 0 and th
   const world = await communityWorld(page, baseURL, { migrations: ALL });
   await seedFinishedWeek(world);
   await openNewApp(page);
+  // The landing's Your score tile makes this device's first read of the score source, which seeds Luke's plain Bullseye
+  // moments as seen (a Bullseye badge shares Your score's Bullseye id). Wait for its loaded name, so that seeding has
+  // happened before the landing unmounts; otherwise the overlay's count below depends on which reply came first.
+  await expect(page.locator('[data-play-tile="score"]').getByRole('button')).toHaveAccessibleName(/^Your score, (?!loading)/);
   const row = page.getByRole('button', { name: /^Badges, 0 earned/ });
   await expect(row).toBeVisible();
   await row.click();
@@ -90,10 +94,12 @@ test('before the job has run: an empty recap with no sample, streaks at 0 and th
   await screen.getByRole('button', { name: 'Refresh', exact: true }).click();
   const flash = page.getByRole('dialog', { name: 'New results' });
   await expect(flash).toBeVisible();
-  await expect(flash).toContainText('Bullseye');
+  await expect(flash).toContainText('Double Bullseye');
+  // Luke's three plain Bullseye moments were seeded by Your score's first look: none plays, so no line is exactly "Bullseye".
+  await expect(flash.locator('.gx-fx-lines li').filter({ hasText: /^\s*Bullseye(?!\w)/ })).toHaveCount(0);
   // One overlay however many arrived (Luke has 7 badges and 4 awards): three lines and the count of the rest. The Play
   // landing (P1B) now mounts Your score, whose first read on this device saw three of the finished week's moments
-  // (shared ids) before the job ran, so they are not new here: 11 less 3 leaves 3 lines and 5 more.
+  // (shared ids) before the job ran, so they are not new here: 11 less 3 is 8, which is 3 lines and 5 more.
   await expect(flash.locator('.gx-fx-lines li')).toHaveCount(3);
   await expect(flash).toContainText('and 5 more');
   expect(await flash.locator('.gx-fx-burst').evaluate(el => getComputedStyle(el).animationName)).toBe('gx-fx-burst');

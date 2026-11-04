@@ -75,7 +75,9 @@ test('without P-01 the routes answer 404 and Play and the League board say "Poin
   expect((await world.api('luke', 'points/read', {})).status).toBe(404);
   await openNewApp(page);
   const row = page.getByRole('button', { name: 'Guess the Points, Points is coming soon', exact: true });
-  await expect(row).not.toHaveClass(/gx-card--hero/); // P1B: Points is a tile; the one glow card is the next move
+  // P1B: Points is a tile; the landing holds one glow card, and it is the next move.
+  await expect(page.locator('[data-landing="play"] .gx-card--hero')).toHaveCount(1);
+  await expect(page.locator('[data-landing="play"] .gx-card--hero')).toHaveAttribute('data-play', 'hero');
   await row.click();
   await expect(page).toHaveURL(/#play\/points/);
   await expect(page.getByRole('heading', { name: 'Points is coming soon' })).toBeVisible();
@@ -95,7 +97,9 @@ test('a fixture week: draft, lock in with a confirm, then Everyone and the House
   // D-69 P1B: Points is a tile with a big "0 / 5" and "Next locks …"; the one glow card is the next move.
   const landing = page.getByRole('button', { name: /^Guess the Points, / });
   await expect(landing).toHaveAccessibleName(/^Guess the Points, 0 of 5 locked, Next locks /);
-  await expect(landing).not.toHaveClass(/gx-card--hero/);
+  // P1B: Points is a tile; the landing holds one glow card, and it is the next move.
+  await expect(page.locator('[data-landing="play"] .gx-card--hero')).toHaveCount(1);
+  await expect(page.locator('[data-landing="play"] .gx-card--hero')).toHaveAttribute('data-play', 'hero');
   await expect(landing).toContainText('0 / 5');
   await landing.click();
   await expect(page.getByRole('heading', { name: 'Week 7 Points', exact: true })).toBeVisible();

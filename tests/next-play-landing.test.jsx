@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { markupProblems, nameFrom, parseMarkup, readText, walk } from './helpers/ui-markup.mjs';
 
-const state = vi.hoisted(() => ({ app: null, newCounts: {}, scopes: [] }));
+const state = vi.hoisted(() => ({ app: null, newMoments: {}, scopes: [], buttons: [], tiles: [] }));
 // Task 7b retires Play's use of the old editor; until then its module needs a browser, so it is a stand-in.
 vi.mock('../web/src/CommunityHome.jsx', () => ({ WeekPicks: () => null }));
 vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: () => state.app, useSharedRead: () => ({ status: 'loading', data: null }) }));
@@ -14,8 +14,17 @@ vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn(), 
 vi.mock('../web/src/fantasyData.js', () => ({ fantasyWeekKey: (season, week) => `${season}-${String(week).padStart(2, '0')}`, useFantasySnapshot: () => ({ status: 'loading' }) }));
 vi.mock('../web/src/next/moments/MomentsProvider.jsx', () => ({
   useMoments: () => null, useMomentScope: scope => { state.scopes.push(scope); },
-  useNewCount: scope => state.newCounts[scope] ?? 0, usePopped: () => false,
+  useNewCount: scope => (state.newMoments[scope] ?? []).length, useNewMoments: scope => state.newMoments[scope] ?? [], usePopped: () => false,
 }));
+// The hero's button and the ballot tile are the real components; these wrappers only note the props they were given.
+vi.mock('../web/src/next/ui/index.js', async importOriginal => {
+  const real = await importOriginal();
+  return { ...real, Button: props => { state.buttons.push(props); return real.Button(props); } };
+});
+vi.mock('../web/src/next/play/PlayTile.jsx', async importOriginal => {
+  const real = await importOriginal();
+  return { PlayTile: props => { state.tiles.push(props); return real.PlayTile(props); } };
+});
 const stub = (name, label) => ({ [name]: ({ onOpen }) => <button type="button" className="gx-stub-tile" onClick={onOpen}>{label}</button> });
 vi.mock('../web/src/next/play/ScoreTile.jsx', () => stub('ScoreTile', 'Your score'));
 vi.mock('../web/src/next/play/CompareTile.jsx', () => stub('CompareTile', 'Compare'));
@@ -32,10 +41,12 @@ const due = (spread, total, extra = {}) => [
 ];
 const week = (rows, state = 'due') => ({ viewer: 'fixture', rules: { sentFinal: true, lateWindow: 'kickoff', revealAt: 'kickoff', perGameScoring: true },
   week: { season: 2026, week: 9, deadline: DEADLINE, games: 14 }, picksDue: { state, week: 9, deadline: DEADLINE, now: '2026-11-03T20:00:00.000Z', modes: [] }, due: rows, members: [], optOuts: [] });
-function render(community, { newCounts = {} } = {}) {
+const waitingFor = (...ids) => ({ picks: ids.map(id => ({ id, kind: 'weekLocked', scopes: ['picks', 'play'], title: id })) });
+let lastShell = null;
+function render(community, { newMoments = {} } = {}) {
   state.app = { accountId: 'fixture', community, league: { name: 'Community', community: true }, refresh: vi.fn(), requestSignIn: vi.fn() };
-  state.newCounts = newCounts; state.scopes = [];
-  const shell = { state: { views: { play: {} }, trail: [] }, go: vi.fn(), setView: vi.fn(), tab: vi.fn(), reload: vi.fn() };
+  state.newMoments = newMoments; state.scopes = []; state.buttons = []; state.tiles = [];
+  const shell = lastShell = { state: { views: { play: {} }, trail: [] }, go: vi.fn(), setView: vi.fn(), tab: vi.fn(), reload: vi.fn() };
   return renderToStaticMarkup(<ShellContext.Provider value={shell}><div className="gx"><Play/></div></ShellContext.Provider>);
 }
 const ready = data => ({ status: 'ready', data, error: null });
@@ -102,10 +113,45 @@ describe('the first card in its other states', () => {
 });
 
 describe('Whole week locked on the landing', () => {
-  it('NEW shows on the ballot tile while the moment waits for the picks card, and not otherwise', () => {
-    const waiting = render(ready(week(due(3, 14))), { newCounts: { picks: 1 } });
+  const ballotButton = html => nameFrom([...walk(byAttr(html, 'data-play-tile', 'ballot')[0])].find(n => n.tag === 'button'));
+  it('NEW shows on the ballot tile while the moment of its own market waits for the picks card, and not otherwise', () => {
+    // Spread is next (3 of 14), so the tile is Total.
+    const waiting = render(ready(week(due(3, 14))), { newMoments: waitingFor('weekLocked:2026:9:guess_total') });
     expect(readText(byAttr(waiting, 'data-play-tile', 'ballot')[0])).toContain('NEW');
-    expect(nameFrom([...walk(byAttr(waiting, 'data-play-tile', 'ballot')[0])].find(n => n.tag === 'button'))).toBe('Guess the Total, all 14 locked, new');
-    expect(readText(byAttr(render(ready(week(due(3, 14)))), 'data-play-tile', 'ballot')[0])).not.toContain('NEW');
+    expect(ballotButton(waiting)).toBe('Guess the Total, all 14 locked, new');
+    const quiet = render(ready(week(due(3, 14))));
+    expect(readText(byAttr(quiet, 'data-play-tile', 'ballot')[0])).not.toContain('NEW');
+    expect(ballotButton(quiet)).toBe('Guess the Total, all 14 locked');
+  });
+  it('a waiting moment that belongs to the hero market puts no NEW and no "new" on the tile of the other ballot', () => {
+    // Spread is the hero's market (the next move); its Whole week locked moment is waiting, the tile's (Total) is not.
+    const html = render(ready(week(due(3, 14))), { newMoments: waitingFor('weekLocked:2026:9:guess_spread') });
+    expect(byAttr(html, 'data-play', 'hero')).toHaveLength(1);
+    expect(readText(byAttr(html, 'data-play-tile', 'ballot')[0])).not.toContain('NEW');
+    expect(ballotButton(html)).toBe('Guess the Total, all 14 locked');
+    expect(html).not.toMatch(/, new/);
+  });
+  it('a moment from another week shows no NEW either', () => {
+    const html = render(ready(week(due(3, 14))), { newMoments: waitingFor('weekLocked:2026:8:guess_total') });
+    expect(readText(byAttr(html, 'data-play-tile', 'ballot')[0])).not.toContain('NEW');
+  });
+});
+
+describe('where the hero and the ballot tile open', () => {
+  // The week's address: its section, the market, the season and the week, and no per-game card (CLOSED_LAYER's keys).
+  const address = market => ({ section: 'picks', layer: undefined, item: undefined, scoreGame: undefined, market, season: 2026, week: 9 });
+  it('the hero action opens the Spread picks card for Week 9 on its first layer', () => {
+    render(ready(week(due(3, 14))));
+    const action = state.buttons.find(b => b.variant === 'primary');
+    action.onClick();
+    expect(lastShell.go).toHaveBeenCalledTimes(1);
+    expect(lastShell.go).toHaveBeenCalledWith('play', address('spread'));
+    expect(Object.keys(lastShell.go.mock.calls[0][1])).not.toContain('pickGame');
+  });
+  it('the ballot tile opens the other market (Total) the same way', () => {
+    render(ready(week(due(3, 14))));
+    expect(state.tiles).toHaveLength(1);
+    state.tiles[0].onClick();
+    expect(lastShell.go).toHaveBeenCalledWith('play', address('total'));
   });
 });

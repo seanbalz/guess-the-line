@@ -35,7 +35,7 @@ import { FeaturesScreen } from '../features/FeaturesScreen.jsx';
 import { BadgesTile } from '../features/BadgesTile.jsx';
 import { ReminderPrompt } from '../me/PickReminders.jsx';
 import { SCOPES } from '../moments/catalog.js';
-import { useMomentScope, useNewCount, usePopped } from '../moments/MomentsProvider.jsx';
+import { useMomentScope, useNewMoments, usePopped } from '../moments/MomentsProvider.jsx';
 
 const modeOf = value => value === 'total' || value === 'guess_total' ? 'guess_total'
   : value === 'spread' || value === 'guess_spread' ? 'guess_spread' : null;
@@ -63,11 +63,12 @@ function PlayLanding() {
   const heroButton = useRef(null), pointsTile = useRef(null), eyebrowId = useId();
   const hero = data ? playHero(data) : null, week = data?.week ?? null;
   const other = otherMarket(hero?.market ?? 'spread'), tile = ballotTile(data, other);
-  // NEW: a Whole week locked moment waits for the picks card (while a ballot is open it can only be the tile's market).
-  const waiting = useNewCount(SCOPES.picks) > 0;
   const lockedId = mode => (week && Number.isInteger(week.season) ? weekLockedId(week.season, week.week, mode) : '');
+  // NEW on the ballot tile only when the Whole week locked moment waiting for the picks card is this tile's market; the
+  // hero's market keeps its own on the card (the picks scope holds either market's moment).
+  const tileLocked = lockedId(modeOf(other)), waitingIds = useNewMoments(SCOPES.picks), waiting = tileLocked !== '' && waitingIds.some(m => m.id === tileLocked);
   const heroPop = usePopped(hero?.progress ? lockedId(hero.progress.mode) : '');
-  const tilePop = usePopped(lockedId(modeOf(other)));
+  const tilePop = usePopped(tileLocked);
   const openPicks = market => openPlay(shell, 'picks', { market, season: week?.season ?? null, week: week?.week ?? null });
   const go = target => (target.section === 'picks' ? openPicks(target.market) : openPlay(shell, target.section));
   // The reminder prompt sits under the first card until it is answered; when it leaves, focus returns to that card's

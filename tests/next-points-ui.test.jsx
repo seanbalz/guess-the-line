@@ -11,7 +11,6 @@ import { teamMarks } from '../web/src/teamLogoRegistry.js';
 
 const state = vi.hoisted(() => ({ app: null }));
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn(), meApi: vi.fn(), socialApi: vi.fn(), pointsApi: vi.fn() }));
-vi.mock('../web/src/CommunityHome.jsx', () => ({ WeekPicks: () => <div className="community-week-picks"/> }));
 vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: () => state.app, useSharedRead: () => ({ data: null }) }));
 // Board i63: a Points slot sheet reads the week's Fantasy snapshot; these renders leave it loading.
 vi.mock('../web/src/fantasyData.js', () => ({ fantasyWeekKey: (season, week) => `${season}-${String(week).padStart(2, '0')}`, useFantasySnapshot: () => ({ status: 'loading' }) }));
@@ -19,7 +18,6 @@ const { PointsBallotView } = await import('../web/src/next/play/points/PointsBal
 const { PointsBoardView } = await import('../web/src/next/play/points/PointsBoard.jsx');
 const model = await import('../web/src/next/play/points/pointsModel.js');
 const { ShellContext } = await import('../web/src/next/shell/context.js');
-const { Play } = await import('../web/src/next/play/Play.jsx');
 
 const ME = '11111111-1111-4111-8111-111111111111', TROY = '22222222-2222-4222-8222-222222222222', LUKE = '33333333-3333-4333-8333-333333333333';
 const face = (userId, displayName) => ({ userId, displayName });

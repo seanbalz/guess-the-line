@@ -93,3 +93,20 @@ test('one exact guess, one celebration: a Bullseye badge shares Your score\'s Bu
   assert.deepEqual(old.big, [], 'celebrated under its award key before the ids were shared: never replays');
   assert.ok(JSON.parse(old.storage.getItem(momentsKey(YOU))).includes('score:bullseye:2026:6:guess_total:SEA-DEN'), 'and the shared id is remembered');
 });
+
+test('a Bullseye seeded by Your score\'s first look stays quiet when its badge arrives', () => {
+  const m = memory();
+  m.setItem(momentsKey(YOU), JSON.stringify(['source:features:community']));
+  const data = { ...reply(0), badges: [{ userId: YOU, badge: 'bullseye', key: 'bullseye:u-you:2026:6:SEA-DEN:total', week: 6, visibleAt: '2026-10-16T00:15:00Z', facts: { gameId: 'SEA-DEN', market: 'total', guess: 41, points: 10 } }] };
+  // The features source has been read on this device before; Your score has not (the Play landing mounts it first).
+  const r = rig(m);
+  r.settled.value = true;
+  r.engine.open(SCOPES.play);
+  r.engine.report([{ id: 'score:bullseye:2026:6:guess_total:SEA-DEN', kind: 'bullseye', scopes: ['score'], title: 'Bullseye' }], { source: 'score' });
+  assert.equal(r.big.length, 0, 'the first read of Your score on this device seeds the Bullseye: it does not play');
+  r.engine.open(SCOPES.features);
+  r.read(data);
+  assert.deepEqual(r.big, [], 'the badge carries the same id: nothing plays');
+  assert.deepEqual(r.small, []);
+  assert.equal(r.engine.newCount(SCOPES.features), 0, 'and nothing waits as NEW');
+});
