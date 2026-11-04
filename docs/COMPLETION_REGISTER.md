@@ -1,5 +1,19 @@
 # Guess The Line — current completion register
 
+## Design audit quick wins (group A) — November 4, 2026
+
+The design audit found 24 small fixes ready to ship now (group A). Sean said "Yes, build them". They went into three PRs,
+each with 320 and 390 px before/after captures in Light and Dark:
+- [#479](https://github.com/seanbalz/guess-the-line/pull/479), the shared kit.
+- [#480](https://github.com/seanbalz/guess-the-line/pull/480), Research and Menu.
+- [#478](https://github.com/seanbalz/guess-the-line/pull/478), Bets and Home.
+
+Every new check fails with its fix reverted, and each batch passed review. Sean then said "Yes, merge and release".
+
+**Released** November 4, 2026, about 09:50 UTC: Pages `010cca04` from `main` at `68019b3e`, run 41810080997. See the
+[release record](RELEASE_2026_11_04_QUICK_WINS.md). Live bytes were checked signed out; a signed-in phone check is
+still open. The record lists two small leftovers.
+
 ## Recommended: your gaps vs. closing lines, D-77 — November 3, 2026
 
 Board item 10. Sean chose "Recommendation card", then "Your gaps' paper record". After calling the first build "boring and
