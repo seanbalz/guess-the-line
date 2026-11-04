@@ -7,6 +7,7 @@ import { planReminders, reminderPayload, pointsReminderPayload, pacificClock, cr
 import { handlePush, providerPushError, PUSH_METHODS } from '../cloud/push.mjs';
 import { b64uDecode, b64uEncode, encryptPayload, importVapid, validPushEndpoint, vapidAuthorization, sendWebPush } from '../cloud/web-push.mjs';
 import { createCloudHandler } from '../cloud/handler.mjs';
+import { opsAlertPayload } from '../cloud/ops-alerts.mjs';
 import { weekOpenAt } from '../shared/nfl-schedule.mjs';
 
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -408,6 +409,51 @@ test('notification click: an open app window is focused and moved to the screen;
   const none = workerScope({ windows: [other] });
   await none.click({ tag: 'gtl-points-2026-9' });
   assert.deepEqual(none.opened, [POINTS_URL]);
+});
+
+// Item 22 ops alerts (cloud/ops-alerts.mjs): an alert and its recovery share the tag gtl-ops-<key>, so a recovery replaces
+// its alert. A later alert with the same tag must still sound (renotify), and a tap opens Home, not Picks: the alert is
+// about the app's jobs, not the commissioner's ballot. Every other tag keeps its own behavior.
+const HOME_URL = `${ORIGIN}/#home`;
+const OPS_NOTE = { id: 1, key: 'failed:odds', kind: 'failed', family: 'odds', phase: 'opened', at: '2026-11-03T20:20:00Z' };
+test('ops alerts: a gtl-ops- push renotifies, so a repeat alert after its recovery alerts again; no other tag does', async () => {
+  const worker = workerScope();
+  const opened = opsAlertPayload(OPS_NOTE, '2026-11-03T21:00:00Z'), cleared = opsAlertPayload({ ...OPS_NOTE, phase: 'cleared' }, '2026-11-03T21:15:00Z');
+  assert.equal(opened.tag, cleared.tag, 'a recovery replaces its alert');
+  assert.match(opened.tag, /^gtl-ops-/);
+  for (const payload of [opened, cleared, opened]) await worker.push(payload);
+  for (const { options } of worker.shown) {
+    assert.deepEqual(Object.keys(options).sort(), ['badge', 'body', 'icon', 'renotify', 'tag']);
+    assert.equal(options.renotify, true);
+    assert.equal(options.tag, opened.tag);
+  }
+  // Reminders, the default tag and look-alikes keep exactly the fields they had: no renotify. (A tag padded with spaces is
+  // shown trimmed, so ' gtl-ops-…' is the ops tag itself, not a look-alike.)
+  const others = workerScope();
+  const tags = [pointsReminderPayload({ season: 2026, week: 9, open: 2, nextKickoff: '2026-11-08T18:00:00Z' }).tag, reminderPayload({ season: 2026, week: 6, deadline: DEADLINE, modes: ['guess_spread'] }).tag,
+    undefined, 'GTL-OPS-failed:odds', 'x-gtl-ops-failed:odds', 'gtl-ops', 'gtl-op-failed:odds'];
+  for (const tag of tags) await others.push({ title: 'Guess The Line', body: 'Reminder.', ...(tag === undefined ? {} : { tag }) });
+  assert.equal(others.shown.length, tags.length);
+  for (const { options } of others.shown) assert.deepEqual(Object.keys(options).sort(), ['badge', 'body', 'icon', 'tag'], `${options.tag}: no renotify`);
+  assert.equal(others.shown[2].options.tag, 'gtl-reminder');
+});
+
+test('ops alerts: a tap opens Home, through an open window or a new one; look-alike tags still open Picks', async () => {
+  const { tag } = opsAlertPayload(OPS_NOTE, '2026-11-03T21:00:00Z');
+  const worker = workerScope();
+  assert.equal(await worker.click({ tag }), true, 'the notification closes');
+  await worker.click({ tag: opsAlertPayload({ ...OPS_NOTE, phase: 'cleared' }, '2026-11-03T21:15:00Z').tag });
+  await worker.click({ tag: 'gtl-ops-test:test' });
+  const lookalikes = ['GTL-OPS-failed:odds', 'x-gtl-ops-failed:odds', ' gtl-ops-failed:odds', 'gtl-ops', 'gtl-op-failed:odds', '/#home'];
+  for (const lookalike of lookalikes) await worker.click({ tag: lookalike });
+  assert.deepEqual(worker.opened, [HOME_URL, HOME_URL, HOME_URL, ...lookalikes.map(() => PICKS_URL)]);
+  // Home is the new app's real Home route (web/src/next/shell/router.js).
+  assert.deepEqual(placeFromFragment(new URL(HOME_URL).hash), { tab: 'home' });
+  const app = appWindow(`${ORIGIN}/#play/picks`);
+  const open = workerScope({ windows: [app] });
+  await open.click({ tag });
+  assert.deepEqual(app.calls, ['focus', ['navigate', HOME_URL]]);
+  assert.deepEqual(open.opened, []);
 });
 
 // P-02 (D-56): the one weekly Points reminder, sent after the Spread/Total pass of the same run.
