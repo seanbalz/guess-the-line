@@ -450,7 +450,7 @@ test('a tracked win waits on My bets, which opens Settled; it pops once on its o
     await expect(won, 'it never plays again').not.toHaveAttribute('data-moment', 'pop');
     await back(page).click();
     await tile(page, 'mybets').click();
-    await expect(page, 'nothing waits: My bets opens Active').toHaveURL(/#bets\/active/);
+    await expect(page, 'nothing waits: My bets opens every result over all weeks').toHaveURL(/#bets\/tracked/);
     // A failed ticket read reports nothing: the next win waits for a read that succeeds.
     await settleTicket(world, later.id, 'win');
     const summary = JSON.stringify({ allHistory: true, filters: { playerId: ACCOUNTS.luke.id, origin: 'tracked' } });
@@ -460,7 +460,7 @@ test('a tracked win waits on My bets, which opens Settled; it pops once on its o
     await shared(page, '#bets');
     await expect(tile(page, 'mybets')).toHaveAccessibleName(/could not load/, { timeout: 30000 });
     await tile(page, 'mybets').click();
-    await expect(page, 'no win known: My bets opens Active').toHaveURL(/#bets\/active/);
+    await expect(page, 'no win known: My bets opens every result over all weeks').toHaveURL(/#bets\/tracked/);
     await resultFilter(page, 'Settled').click();
     await expect(page.locator(`[data-ticket="${later.id}"]`)).toBeVisible({ timeout: 30000 });
     await expect(page.locator('[data-moment]'), 'never after a failed read').toHaveCount(0);
