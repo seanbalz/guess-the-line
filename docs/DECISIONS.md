@@ -1,5 +1,41 @@
 # Decision log
 
+## D-76 — The Fantasy weekly estimate switches to usage (November 3, 2026)
+
+Sean, November 3, 2026: "Yes, switch to usage" (ask a19, Board item 64), after the
+[backtest](FANTASY_BACKTEST_2026_11_03.md) (PR #466). D-75 is the Trends glass release (PR #463), so this is D-76.
+
+- **Method:** "GTL usage" version 2.0 replaces "GTL statistical pace" 1.1 for QB, RB, WR and TE.
+  - Expected targets, carries and pass attempts are a recency-weighted mean of the player's appearances before the
+    week, with a half-life of 4 weeks.
+  - Per-play rates are pulled toward the position's league rate from every prior appearance this season: K_eff 25 for
+    catch rate, yards and interceptions, K_td 50 for touchdowns. Fumbles, two-point conversions and return TDs use the
+    season average.
+  - The settings were chosen on 2024 alone. The build calls the same `usage()` the backtest graded
+    (`shared/fantasy-usage.mjs`); the settings are `USAGE_SETTINGS` in `shared/fantasy-build.mjs`.
+  - There is no opponent adjustment. It added nothing on the 2025 holdout.
+- **Evidence, 2025 holdout (4,855 player-weeks, Full PPR):** MAE 4.451 for usage, 4.542 for the season average and
+  4.600 for pace 1.1.
+  - usage − season average: −0.090, 95% CI [−0.125, −0.054] resampling player-weeks, [−0.130, −0.050] resampling players.
+  - usage − pace 1.1: −0.149, CI [−0.194, −0.104] and [−0.195, −0.104].
+  - This is a small gain, about a tenth of a point per player per week.
+- **The Board's bar was not met.** The bar was a gain of 0.15 points in 10 of 14 weeks. Against the season average the
+  gain is 0.09 overall; usage was better in 14 of the 16 graded weeks, but by 0.15 or more in only 3 (Weeks 3, 4 and 10).
+  Sean chose to switch anyway, on a gain that every interval shows.
+- **Unchanged:**
+  - Kickers keep pace 1.1. The backtest did not cover them.
+  - Fewer than two appearances still gives no estimate. Byes, unknown kickoffs, non-active rosters and Out or Doubtful
+    reports still suppress the weekly estimate.
+  - Rest of season is still the weekly estimate × remaining scheduled games.
+  - Still no injury return date, depth-chart role or matchup adjustment.
+- **Published data is never recomputed.**
+  - Snapshots, reviews, Guess the Points slates and their Houses that are already published keep their pace 1.1
+    numbers (D-23).
+  - The first usage snapshot is the first Fantasy refresh after merge. Slates built from it draw their pools and Houses
+    from the new estimate.
+- **Release:** not released. It needs Sean's OK on the phone mockups
+  (`design/qa/fantasy-usage-2026-11-03/`), then merge, then the next Fantasy refresh.
+
 ## D-74 — BetRivers stands in when a selected book is missing (November 3, 2026)
 
 Sean, November 3, 2026: "Draft it, don't ship", then "Add the label" after seeing the phone mockups, then "Ship D-74 now".

@@ -30,12 +30,36 @@ there is no automatic refresh, expert feed, roster import or league integration.
 
 ## Model and scoring
 
-For every stat, use **60% of the last three recorded appearances + 40% of the
-season-to-date average**, strictly before the selected week. At least two recorded
-appearances are required. These are labelled **GTL statistical pace estimates**.
-The model has not been validated as a forecast. It makes no matchup, depth-chart,
-rookie/prior-season, injury-recovery or playing-time adjustment. Games without a
-player statistics row are not imputed as zero appearances.
+**Method "GTL usage" 2.0 (D-76, November 3, 2026).** It uses only this season's
+appearances strictly before the selected week, and at least two of them are required.
+
+- **QB, RB, WR and TE:** `usage()` in `shared/fantasy-usage.mjs`, with
+  `USAGE_SETTINGS` from `shared/fantasy-build.mjs`.
+  - **Opportunities:** targets, carries and pass attempts are a recency-weighted
+    mean, each appearance weighted 0.5^(weeks ago ÷ 4).
+  - **Rates:** catch rate, yards per target, carry and attempt, and interception
+    rate are the player's season-to-date rates, pulled toward his position's league
+    rate with weight n ÷ (n + 25), where n is his opportunities.
+  - **Touchdown rates:** pulled the same way with K = 50.
+  - **League rates:** from every prior QB/RB/WR/TE appearance in the season's
+    stats, rostered or not.
+  - **Other stats:** fumbles lost, two-point conversions and return TDs use the
+    season average.
+  - **Line:** the stat line is opportunities × rates. A history with any unknown
+    stat gives no estimate rather than a partial one.
+- **Kickers:** keep pace 1.1 (`estimatePace`): per stat, 60% of the last three
+  recorded appearances plus 40% of the season-to-date average. The backtest did
+  not cover kickers.
+- **Evidence:** the settings were chosen on 2024 alone in the
+  [November 3 backtest](FANTASY_BACKTEST_2026_11_03.md). On the 2025 holdout,
+  usage's MAE was 4.451 Full PPR points, against 4.542 for the season average and
+  4.600 for pace 1.1. That is a small gain, not a validated forecast.
+- **No adjustment for:** matchup, depth chart, rookie or prior season, injury
+  recovery or playing time.
+- **Missing games:** games without a player statistics row are not imputed as
+  zero appearances.
+- **Published data:** snapshots, reviews and Points slates published under pace
+  1.1 (method version 1.0 or 1.1) are never recomputed.
 
 Weekly estimates exclude non-active roster players, byes, unknown kickoff times,
 and players reported Out or Doubtful. An active-roster designation is not proof
@@ -44,7 +68,7 @@ Bye teams have no weekly roster rows in nflverse; those teams use their most
 recent prior roster, with the roster week displayed. Other teams require a roster
 for the selected week.
 
-ROS multiplies per-game pace by scheduled regular-season games from the selected
+ROS multiplies the weekly estimate by scheduled regular-season games from the selected
 week through Week 18, including the selected week's game. It assumes the
 active-roster player is available for every one of those games; it does not
 estimate return dates or remove games already played within that same week.
@@ -82,7 +106,7 @@ statistical-significance claims. Changing scoring can change scoring trends.
 
 [nflverse data](https://github.com/nflverse/nflverse-data) is published under
 [CC BY 4.0](https://github.com/nflverse/nflverse-data/blob/main/LICENSE.md).
-GTL selects columns, normalizes team codes, aggregates statistics, computes pace
+GTL selects columns, normalizes team codes, aggregates statistics, computes estimates
 and ranks, and applies its disclosed scoring rules. Attribution, exact release
 URLs, source update/retrieval times and SHA-256 checksums travel with each snapshot.
 No photos, team marks, betting lines or private GTL data enter this pipeline.
@@ -161,7 +185,7 @@ publish instead of failing. Overdue PROVISIONAL reviews of earlier weeks are
 finalized, not only the newest week's, and a missing freeze time is never treated as
 frozen. Publishing refuses an index that drops a published week.
 
-**Builder rules (method version 1.1, schema 2).** Partial current-week stats are
+**Builder rules (method version 2.0, schema 2).** Partial current-week stats are
 ignored. Stats for later weeks, or a completed selected week, fail the build. A team
 with no roster rows for the week may use the prior week's roster once; the count is
 `rosterFallbackTeams` and each player's status names the roster week. Schema 2 adds
