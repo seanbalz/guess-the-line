@@ -53,9 +53,9 @@ Copied from the spec and the brief. Each task's requirements include these.
   when there are saved trends); a game tile → Play › Picks on that game's card
   (`openPlay(shell, 'picks', { market: 'spread', season, week, pickGame })`); "All N games" → Research › Games.
 - **C9:** the countdown is the card's one picture. The card's padding is 24 px (`--gx-space-6`). The meter row is
-  `grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr))` with a 12 px gap: two columns exactly when the
-  card is at least 360 px wide (150 + 12 + 150 + 2 × 24), else stacked. At a 390 px phone the card is 358 px, so it stacks;
-  from a 392 px phone (iPhone 15/16 at 393) the two meters sit side by side. Each meter's words:
+  `grid-template-columns: repeat(auto-fit, minmax(min(100%, 136px), 1fr))` with a 12 px gap: two columns exactly when the
+  card is at least 332 px wide (136 + 12 + 136 + 2 × 24), else stacked. At a 390 px phone the card is 358 px, so the two
+  meters sit side by side; at 320 px (a 288 px card) they stack. Each meter's words:
   `"<Market> · <done> of <of> locked|picked"`, `"<Market> · sent"`, `"<Market> · sat out"`.
 - **Tiles:** the kit tile (`gx-nest-tile gx-tile`): label 13/18 600, an icon (20 px) or a small picture, one number in
   `gx-n-l`, one meta line, NEW; min-height 112 px; `.gx-tiles` is two `minmax(0, 1fr)` columns with a 12 px gap and sits on
@@ -112,7 +112,7 @@ changes something a player sees, so each is listed. Task 9 records H1A and C9 as
 - **H1A (layout):** next-move card, six tiles, This week as game tiles; Who's in becomes a Home layer; the awards card and
   the "This week" rows (trends and saved trends) become the Awards and Trends tiles.
 - **C9 (the card's one picture):** the countdown is the picture; the two meters share one row when the card is at least
-  360 px wide. At 390 px phones they still stack; Task 9 adds a 393 px capture so Sean sees the side-by-side row.
+  332 px wide, so they sit side by side on a 390 px phone and stack at 320 px.
 - **Rank moves play on Your score.** A Community board rank move now waits on its market's Your score card as well as on
   League, and plays (the season rank chip pops; reaching 1st is the big card) on whichever opens first, once.
 - **Badges and awards no longer play on Home.** They wait as NEW on the Awards tile and play on Play or Badges and awards
@@ -1505,7 +1505,7 @@ export function HomeStreak({ app }) {
 // in two columns, each opening its own card:
 // - the card (spec section 5): "Your next move" (or "Week N" when nothing is due) with the Pick streak beside it, the
 //   action in words ("Lock in 9 games" over "before Thu 5:15 PM PT"), the countdown (the card's one picture), the Spread
-//   and Total meters (side by side once the card is 360 px wide, C9) and the screen's one lime button;
+//   and Total meters (side by side once the card is 332 px wide, C9) and the screen's one lime button;
 // - the tiles: the Spread and Total ranks (Play › Your score), Who's in (its Home layer), Awards (Play › Badges and
 //   awards), My bets (Bets › My bets) and Trends (Research › Trends).
 // Home plays only Whole week locked and the Pick streak, in place on the card. Every other result from while you were
@@ -1718,7 +1718,7 @@ export function Home() {
 .gx .gx-h { gap: var(--gx-space-3); }
 
 /* ----- the next-move card ----- */
-/* 24 px padding, as the focus-landing card gives it, set here because C9's 360 px rule below counts on it. */
+/* 24 px padding, as the focus-landing card gives it, set here because C9's 332 px rule below counts on it. */
 .gx .gx-h-hero { display: flex; flex-direction: column; align-items: stretch; gap: var(--gx-space-4); padding: var(--gx-space-6); }
 .gx .gx-h-hero > .gx-btn { margin-top: var(--gx-space-1); }
 /* The eyebrow, "Due soon" while urgent, and the Pick streak. Nothing to show, no line. */
@@ -1731,9 +1731,9 @@ export function Home() {
 /* A wider fallback font wraps the last countdown tile under the others instead of pushing it out of the card. */
 .gx .gx-h-cd .gx-cd { flex-wrap: wrap; }
 /* C9: the two markets as one status row of half-width meters with their words when the card's content box is at least
-   312 px (a 360 px card less 2 x 24 px padding: 150 + 12 + 150), else stacked. auto-fit decides from the card's own
+   284 px (a 332 px card less 2 x 24 px padding: 136 + 12 + 136), else stacked. auto-fit decides from the card's own
    width, not the viewport's; a long word wraps inside its column. */
-.gx .gx-h-meters { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: var(--gx-space-3); margin: 0; padding: 0; list-style: none; }
+.gx .gx-h-meters { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 136px), 1fr)); gap: var(--gx-space-3); margin: 0; padding: 0; list-style: none; }
 .gx .gx-h-meter { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .gx .gx-h-meter > .gx-t-label { overflow-wrap: anywhere; }
 /* The week meter on the glow card: empty segments on the track, filled ones in the bar's end color; the words beside it
@@ -2099,7 +2099,7 @@ import { momentsKey } from '../../web/src/next/moments/seen.js';
 // D-69 step 2 (Home, H1A with C9) on the real app and handler with every migration on local PGlite. Checked: Who's in's
 // address (tile, reload, lip, Back, Forward, the Home tab); This week's game tiles and where they lead; a rank move from
 // while you were away is NEW on its tile and plays when its card opens, never on launch; C9's meter row and the phone
-// rules at 320, 390 and 393 px with the wide fallback font. Fictional accounts only; never contacts hosted data.
+// rules at 320 and 390 px with the wide fallback font. Fictional accounts only; never contacts hosted data.
 test.use({ viewport: { width: 390, height: 844 } });
 test.setTimeout(240000);
 test.beforeEach(() => test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.'));
@@ -2227,13 +2227,14 @@ test('a rank move from while you were away is NEW on its rank tile and plays whe
   } finally { await world.db.close(); }
 });
 
-test('C9 and the phone rules: the meters share a row on a 393 px phone and stack at 390 and 320, in both themes and the wide font', async ({ page, baseURL }) => {
+test('C9 and the phone rules: the meters share a row on a 390 px phone and stack at 320, in both themes and the wide font', async ({ page, baseURL }) => {
   const world = await draftWeek(page, baseURL);
   try {
     await openHome(page);
     const rows = () => page.locator('[data-home="status"] > li').evaluateAll(items => new Set(items.map(li => Math.round(li.getBoundingClientRect().top))).size);
-    for (const { theme, width, wide = false, columns } of [{ theme: 'dark', width: 393, columns: 1 }, { theme: 'light', width: 393, wide: true, columns: 1 },
-      { theme: 'light', width: 390, columns: 2 }, { theme: 'dark', width: 320, columns: 2 }, { theme: 'light', width: 320, wide: true, columns: 2 }]) {
+    // `columns` counts distinct row tops: 1 = the two meters share a row, 2 = stacked.
+    for (const { theme, width, wide = false, columns } of [{ theme: 'dark', width: 390, columns: 1 }, { theme: 'light', width: 390, columns: 1 },
+      { theme: 'light', width: 390, wide: true, columns: 1 }, { theme: 'dark', width: 320, columns: 2 }, { theme: 'light', width: 320, wide: true, columns: 2 }]) {
       await page.evaluate(value => localStorage.setItem('gtl.theme', value), theme);
       await page.setViewportSize({ width, height: 844 });
       for (const address of ['#home', '#home?layer=who']) {
@@ -2415,7 +2416,7 @@ test('step 2 Home screenshots', async ({ page, baseURL }) => {
     await page.goto('/#home');
     await signIn(page, 'luke', { navigate: false });
     await expect(page.locator('[data-landing="home"]')).toBeVisible();
-    for (const [width, themes] of [[390, ['dark', 'light']], [393, ['dark']], [320, ['light']]]) {
+    for (const [width, themes] of [[390, ['dark', 'light']], [320, ['light']]]) {
       await page.setViewportSize({ width, height: 844 });
       for (const theme of themes) {
         await page.evaluate(value => localStorage.setItem('gtl.theme', value), theme);
@@ -2443,8 +2444,8 @@ ls "$SHOTS/step2-shots"
 
 Expected: 1 passed; `git status` shows nothing under `tests/cloud-browser`; eight PNGs in
 `C:\Users\sbals\AppData\Local\Temp\claude\C--Users-sbals-betting-repo--claude-worktrees-guess-the-points-design-0bfb1f\e86e4bf8-003c-4c44-b10c-b3127309473f\scratchpad\step2-shots\`
-(`390-dark-home.png`, `390-dark-who.png`, `390-light-home.png`, `390-light-who.png`, `393-dark-home.png` (C9 side by
-side), `393-dark-who.png`, `320-light-home.png`, `320-light-who.png`). Look at each before handing them over.
+(`390-dark-home.png`, `390-dark-who.png`, `390-light-home.png`, `390-light-who.png`, `320-light-home.png`,
+`320-light-who.png`). Look at each before handing them over.
 
 - [ ] **Step 4: The register entry.** Insert at the top of `docs/COMPLETION_REGISTER.md`, under the title, filling every
 `<…>` from Steps 1–3 (evidence only exists at build time):
@@ -2456,14 +2457,14 @@ Built on `claude/overhaul-step2-home` from the
 [step 2 plan](superpowers/plans/2026-11-04-design-overhaul-step2-home.md), verified at `<full commit SHA>`,
 [PR #<n>](https://github.com/seanbalz/guess-the-line/pull/<n>). Not merged or released. Home is layout H1A (Sean's
 recommended board, "Tiles, then This week as game tiles") with the design audit's C9, both build decisions for Sean's
-review: the next-move card (countdown as its one picture, the Spread and Total meters side by side from a 360 px card),
+review: the next-move card (countdown as its one picture, the Spread and Total meters side by side from a 332 px card, so on a 390 px phone),
 six kit tiles (Spread rank, Total rank, Who's in, Awards, My bets, Trends), This week as up to four game tiles with your
 own Spread word, and Who's in as a Home layer (`#home?layer=who`). Home plays only Whole week locked and the Pick streak,
 in place; rank moves are NEW on their tile and play on Your score; badges and awards are NEW on the Awards tile. The kit
 gained `Tile` (B0-1) and the `tiles` and `landing` skeletons (B0-2). Home now reads the shared `/personal`.
 Evidence (local, at that commit): `node --test` <N> tests, <N> pass, 1 fails (`tests/research-intake.test.mjs`, the
 Windows file-mode check on untouched code), skipped 0; Vitest <F> files, <T> tests pass; typecheck and build pass; the
-full browser run <P> passed, skipped 0. Screenshots for Sean: 390 px Dark and Light, 393 px Dark (C9), 320 px Light.
+full browser run <P> passed, skipped 0. Screenshots for Sean: 390 px Dark and Light, 320 px Light.
 Not yet: Sean's review of H1A and C9, the nine CI checks, the release and his iPhone check (spec section 10).
 ```
 
@@ -2474,8 +2475,8 @@ Not yet: Sean's review of H1A and C9, the nine CI checks, the release and his iP
 recommended Home board on the canvas, **H1A** ("Tiles, then This week as game tiles"): the next-move card, six tiles
 (Spread rank, Total rank, Who's in, Awards, My bets, Trends) and up to four This week game tiles with your own Spread
 word; Who's in is a Home layer; the awards card and the trends rows become the Awards and Trends tiles. **C9** (design
-audit): the countdown is the card's one picture, and the Spread and Total meters share one row once the card is 360 px
-wide. Sean has chosen neither; both wait for his review of the step 2 screenshots. Layout only; no game rule changes.
+audit): the countdown is the card's one picture, and the Spread and Total meters share one row once the card is 332 px
+wide (a 390 px phone). Sean has chosen neither; both wait for his review of the step 2 screenshots. Layout only; no game rule changes.
 Plan: [2026-11-04-design-overhaul-step2-home.md](superpowers/plans/2026-11-04-design-overhaul-step2-home.md).
 ```
 
