@@ -260,6 +260,23 @@ test('published week, market gates, team filters, game sheets/back, player windo
   await week.getByRole('button',{name:'Back to This week',exact:true}).click();
   await page.screenshot({path:testInfo.outputPath('week-390.png'),fullPage:true});
   await noSentinel(page);
+  // D-75: This week leads with one hero; more than three trends fold into All trends, its own layer and address.
+  await expect(week.locator('[data-hero]')).toHaveCount(1);
+  const allTrends=week.locator('button.gx-nest-more');
+  if (await allTrends.count()) {
+   await allTrends.click();
+   await expect(week.getByRole('heading',{level:2,name:'All trends',exact:true})).toBeFocused();
+   await expect(page).toHaveURL(/weekList=all/);
+   for (const width of [390,320]) {
+    await page.setViewportSize({width,height:844});
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    expect((await new AxeBuilder({page}).include('.gx').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations.map(v=>v.id)).toEqual([]);
+   }
+   await page.setViewportSize({width:390,height:844});
+   await page.screenshot({path:testInfo.outputPath('week-all-390.png'),fullPage:true});
+   await week.getByRole('button',{name:'Back to This week',exact:true}).click();
+   await expect(week.getByRole('heading',{level:2,name:'This week',exact:true})).toBeVisible();
+  }
   // D-66 nesting cards: Teams › team › trend, one smaller layer per tap; lips and back return one layer at a time.
   await group(page,'Trends section').getByRole('button',{name:'Teams',exact:true}).click();
   const nest=page.getByRole('region',{name:'Team trends',exact:true});
@@ -272,13 +289,21 @@ test('published week, market gates, team filters, game sheets/back, player windo
   await expect(page).toHaveURL(/teamsTeam=CAR/);
   await expect(nest).toContainText('CAR @ PHI');
   await page.screenshot({path:testInfo.outputPath('nest-team-390.png'),fullPage:true});
+  // D-75: two trends, then the rest open in place behind aria-expanded.
+  const moreTrends=nest.locator('button.gx-nest-more');
+  if (await moreTrends.count()) {
+   await expect(moreTrends).toHaveAttribute('aria-expanded','false');
+   await moreTrends.click();
+   await expect(moreTrends).toHaveAttribute('aria-expanded','true');
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  }
   const tile=nest.locator('button.gx-nest-tile').first();
   const trendTitle=(await tile.locator('.gx-nest-tile-label').textContent()).trim();
   await tile.click();
   await expect(nest.getByRole('heading',{level:2,name:trendTitle,exact:true})).toBeFocused();
   await expect(page).toHaveURL(/teamsTrend=t[0-9a-z]+/);
   await expect(nest.getByRole('button',{name:'Back to Carolina Panthers',exact:true})).toBeVisible();
-  await expect(nest.locator('.gx-pill').first()).toBeVisible();
+  await expect(nest.locator('[data-trend-chart]')).toBeVisible(); // D-75: one glass chart card, the tags behind ⓘ
   for (const width of [390,320]) {
    await page.setViewportSize({width,height:844});
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);

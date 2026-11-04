@@ -1,5 +1,20 @@
 # Guess The Line — current completion register
 
+## Trends glass tiles (D-75) — November 3, 2026
+
+Sean chose "5 · Top three, rest folded" for the Trends tiles and chart ([D-75](DECISIONS.md),
+[spec](superpowers/specs/2026-11-03-trends-glass-tiles-design.md),
+[plan](superpowers/plans/2026-11-03-trends-glass-tiles.md)). Built on `claude/trends-glass-tiles`:
+- glass tiles with one win rate (W/(W+L), one decimal) and "N games · since YYYY";
+- This Week's hero, two tiles and the All trends layer (`weekList=all`);
+- a team's two trends and a fold that opens in place, and glass Teams landing tiles;
+- one glass chart card for an opened trend, its tier and conditions behind ⓘ.
+
+Local checks pass: 676 component tests, the router, token and trends-view node tests (`# skipped 0`), typecheck,
+Brand QA, and 13 cloud-browser cases. Those are next-trends with All trends and the fold, four-tab and phone layout,
+with axe at 320 and 390px in Light and Dark. They ran on a private port because 5198 was held by another server.
+Not released: Sean's OK on the 390px captures of the built screens comes first.
+
 ## BetRivers backup book, D-74 — November 3, 2026
 
 Sean: "Ship D-74 now". From 18:15 UTC the provider sent no FanDuel prices, so no three-book line could be made. BetRivers

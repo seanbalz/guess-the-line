@@ -32,6 +32,26 @@
 .gx .gx-nest[data-depth="0"] .gx-nest-tile { background: var(--gx-surface-2); }
 .gx .gx-nest-tile-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--gx-space-2); min-width: 0; }
 .gx .gx-nest-num { white-space: nowrap; }
+/* D-75 glass trend tiles, hero and chart card: one number each; the glass and data tokens carry both themes. */
+.gx .gx-nest .gx-nest-tile.gx-nest-tile--glass { border-color: transparent; background: var(--gx-glass); box-shadow: var(--gx-glass-shadow); }
+.gx .gx-nest-hero {
+  display: flex; flex-direction: column; gap: var(--gx-space-3); width: 100%; min-height: var(--gx-size-touch);
+  padding: var(--gx-space-4); border: 0; border-radius: var(--gx-radius-lg); cursor: pointer;
+  background: var(--gx-glass); box-shadow: var(--gx-glass-shadow); color: var(--gx-text-1); font: inherit; text-align: left;
+}
+.gx .gx-nest-hero-row { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--gx-space-3); min-width: 0; }
+.gx .gx-nest-hero-spark { flex: none; }
+.gx .gx-nest-hero-spark path, .gx .gx-nest-chart-stroke { fill: none; stroke: var(--gx-data); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.gx .gx-nest-chart { display: flex; flex-direction: column; gap: var(--gx-space-2); padding: var(--gx-space-4); border-radius: var(--gx-radius-lg); background: var(--gx-glass); box-shadow: var(--gx-glass-shadow); }
+.gx .gx-nest-chart-line { display: block; width: 100%; height: 120px; }
+.gx .gx-nest-chart-stop-top { stop-color: var(--gx-data); stop-opacity: 0.32; }
+.gx .gx-nest-chart-stop-end { stop-color: var(--gx-data); stop-opacity: 0; }
+.gx .gx-nest-chart-foot { display: flex; justify-content: space-between; gap: var(--gx-space-2); margin: 0; }
+.gx .gx-nest-more {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--gx-space-2); width: 100%;
+  min-height: 48px; padding: 0 var(--gx-space-4); border: 0; border-radius: var(--gx-radius-md); cursor: pointer;
+  background: var(--gx-surface-2); color: var(--gx-text-1); font: 700 15px/20px var(--gx-font-body); text-align: left;
+}
 .gx .gx-nest-tile-label { min-width: 0; color: var(--gx-text-2); font: 600 13px/18px var(--gx-font-body); overflow-wrap: anywhere; }
 .gx .gx-nest-tags { display: flex; flex-wrap: wrap; gap: var(--gx-space-2); }
 .gx .gx-nest-meter { position: relative; display: block; height: 6px; border-radius: 3px; background: var(--gx-surface-1); }
