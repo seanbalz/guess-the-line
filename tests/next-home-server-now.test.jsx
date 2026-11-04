@@ -22,10 +22,10 @@ describe('useServerNow', () => {
     expect(useServerNow(base, Date.now())).toBe(base);
     const stop = rig.effects.pop()();
     vi.advanceTimersByTime(3000);
-    expect(rig.value).toBe(base + 3000);
+    expect(rig.value?.value).toBe(base + 3000);
     stop();
     vi.advanceTimersByTime(5000);
-    expect(rig.value, 'a stopped timer no longer moves it').toBe(base + 3000);
+    expect(rig.value?.value, 'a stopped timer no longer moves it').toBe(base + 3000);
   });
 
   it('a read that landed 3 minutes before mount: the clock starts at the server now plus 3 minutes, then ticks on', () => {
@@ -34,9 +34,9 @@ describe('useServerNow', () => {
     const base = Date.parse('2026-11-08T17:00:00.000Z'), landed = Date.now() - 180_000;
     expect(useServerNow(base, landed), 'at mount, before any tick').toBe(base + 180_000);
     const stop = rig.effects.pop()();
-    expect(rig.value, 'the effect keeps the read’s age').toBe(base + 180_000);
+    expect(rig.value?.value, 'the effect keeps the read’s age').toBe(base + 180_000);
     vi.advanceTimersByTime(2000);
-    expect(rig.value).toBe(base + 182_000);
+    expect(rig.value?.value).toBe(base + 182_000);
     stop();
   });
 
@@ -46,7 +46,7 @@ describe('useServerNow', () => {
     const base = Date.parse('2026-11-08T17:00:00.000Z');
     expect(useServerNow(base, Date.now() + 60_000)).toBe(base);
     const stop = rig.effects.pop()();
-    expect(rig.value).toBe(base);
+    expect(rig.value?.value).toBe(base);
     stop();
     rig.value = undefined;
     expect(useServerNow(base, undefined), 'no read time: no age').toBe(base);
@@ -59,10 +59,10 @@ describe('useServerNow', () => {
     useServerNow(base, Date.now(), { until: base + 2000 });
     const stop = rig.effects.pop()();
     vi.advanceTimersByTime(2000);
-    expect(rig.value).toBe(base + 2000);
+    expect(rig.value?.value).toBe(base + 2000);
     expect(vi.getTimerCount(), 'no timer once the clock is past the last change').toBe(0);
     vi.advanceTimersByTime(5000);
-    expect(rig.value).toBe(base + 2000);
+    expect(rig.value?.value).toBe(base + 2000);
     stop();
     // Mounted already past it: one value, no timer at all.
     rig.value = undefined; rig.effects = [];
@@ -85,5 +85,27 @@ describe('useServerNow', () => {
     const stop = rig.effects.pop()();
     expect(stop, 'no cleanup to run: no timer was started').toBeUndefined();
     expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('a new server now is the value of the SAME render it arrives in (null before the first read, then a fresh read), not the next', () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'performance', 'Date'] });
+    vi.setSystemTime(new Date('2031-01-01T00:00:00Z'));
+    const first = Date.parse('2026-11-08T17:00:00.000Z'), second = first + 600_000;
+    expect(useServerNow(null, null), 'no read yet').toBeNull();
+    rig.effects.pop()();
+    expect(useServerNow(first, Date.now()), 'the render the first read lands in').toBe(first);
+    const stop = rig.effects.pop()();
+    vi.advanceTimersByTime(4000);
+    stop();
+    expect(useServerNow(second, Date.now()), 'a refreshed read replaces the ticked value at once').toBe(second);
+    expect(useServerNow(second, Date.now() - 90_000), 'a read older than its arrival counts its age at once').toBe(second + 90_000);
+  });
+
+  it('a non-finite server now (a missing or bad personal.now) is no clock, never a usable value', () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'performance', 'Date'] });
+    expect(useServerNow(NaN, Date.now())).toBeNull();
+    expect(rig.effects.pop()()).toBeUndefined();
+    expect(vi.getTimerCount(), 'no timer on NaN').toBe(0);
+    expect(rig.value?.value).toBeNull();
   });
 });

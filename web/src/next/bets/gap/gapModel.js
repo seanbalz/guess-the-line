@@ -11,7 +11,7 @@ export const GAP_COPY = Object.freeze({
   top: 'Top 3 to act on', topDiff: 'Top 3 differences', all: 'All differences', showTop: 'Show top 3',
   none: 'No differences to show yet. Lock in guesses, then check back.', viewAll: 'View all markets',
   mismatch: 'Your guesses and these lines are not available for the same week.', refreshRecs: 'Refresh recommendations',
-  historical: 'View only · older week', leftOut: 'Drafts, locked markets and started games are left out.',
+  historical: 'View only · older week', leftOut: 'Drafts, locked markets, started games and missing lines are left out.',
   added: 'Added to your card. Check the terms, then place it.', saved: 'Virtual pick saved with its book, line, odds and unit stake.',
   confirmed: 'Your saved Virtual Units pick is confirmed.', recheck: 'Saved picks refreshed. Review your selection before saving again.',
   closedNotice: 'This game is closed. Your selected terms stay on your card.', refresh: 'Refresh lines', refreshing: 'Refreshing…',

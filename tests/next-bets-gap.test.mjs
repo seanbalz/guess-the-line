@@ -77,3 +77,8 @@ test('trends are the market’s own from the published week; D-77’s units keep
   assert.deepEqual([gapUnits(2.55), gapUnits(-1), gapUnits(0), gapUnits(2.5)], ['+2.55U', '−1U', '0U', '+2.5U']);
   for (const [key, text] of Object.entries(GAP_COPY)) if (typeof text === 'string') assert.ok(words(text) <= 12, key);
 });
+
+test('the left-out note names every reason a market is not ranked, in at most 12 words', () => {
+  assert.equal(GAP_COPY.leftOut, 'Drafts, locked markets, started games and missing lines are left out.');
+  assert.ok(GAP_COPY.leftOut.split(/s+/).length <= 12);
+});

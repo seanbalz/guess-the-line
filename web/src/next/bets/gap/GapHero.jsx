@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import { Icon } from '../../ui/index.js';
 import { gapUnits } from './gapModel.js';
+import './gap.css';
 
 const GAP_WORDS = Object.freeze({ win: ['W', 'Win'], loss: ['L', 'Loss'], push: ['P', 'Push'] });
 

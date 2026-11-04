@@ -6,7 +6,7 @@
 import { useRef } from 'react';
 import { Button, InfoButton, PictureRow, Segmented, Skeleton, useEntrance, useLayerFocus } from '../../ui/index.js';
 import { INFO } from '../../info.js';
-import { SEP } from '../../format.js';
+import { SEP, plural } from '../../format.js';
 import { BETS_NAMES, gapRowId } from '../betsNav.js';
 import { GAP_COPY, GAP_FINE_PRINT, gapRow, gapTiles, noneForMarket, pendingRows, savedRows, showAllLabel, weekOptions } from './gapModel.js';
 import { GapMessages, marks } from './GapParts.jsx';
@@ -39,7 +39,7 @@ export function GapList({ gap, market, messages = true, onMarket, onOpen }) {
           <div ref={group}><Segmented label="Recommendation market" value={market} onChange={onMarket} options={MARKETS}/></div>
           <ul className="gx-tiles" aria-label="Your gaps in numbers" data-gap="tiles">{gapTiles({ rows: shown.rows, picks: data.picks || [] }).map(t => <li key={t.key}>
             <div className="gx-nest-tile gx-gap-stat" data-gap-tile={t.key}><span className="gx-nest-tile-label">{t.label}</span><span className="gx-n-l gx-nest-num">{t.big}</span><span className="gx-t-meta gx-tile-sub">{t.sub}</span></div></li>)}</ul>
-          <div className="gx-gap-head"><h2 className="gx-t-section">{expanded ? GAP_COPY.all : actionable ? GAP_COPY.top : GAP_COPY.topDiff}</h2><span className="gx-t-meta">{`${shown.rows.length} gaps${SEP}Week ${data.week}`}</span></div>
+          <div className="gx-gap-head"><h2 className="gx-t-section">{expanded ? GAP_COPY.all : actionable ? GAP_COPY.top : GAP_COPY.topDiff}</h2><span className="gx-t-meta">{`${plural(shown.rows.length, 'gap')}${SEP}Week ${data.week}`}</span></div>
           {visible.length ? <ol className="gx-prows gx-stagger" data-enter={enter} aria-label="Gaps">{visible.map(row => { const r = gapRow(row, { selection: gap.selections[row.key], now: gap.now });
             return <li key={r.item}><PictureRow id={gapRowId(r.item)} data-gap-row={r.item} data-market={r.market} picture={marks(r.away, r.home)} title={r.title} meta={r.meta}
               value={r.value} word={r.word} tone={r.tone} ariaLabel={r.ariaLabel} onClick={() => onOpen(r.item)}/></li>; })}</ol>

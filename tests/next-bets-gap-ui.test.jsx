@@ -35,7 +35,9 @@ describe('Your gap', () => {
     const h1 = nodes(html).find(n => n.tag === 'h1');
     expect([textOf(h1), h1.attrs.tabindex, 'data-route-focus' in h1.attrs]).toEqual(['Your gap', '-1', true]);
     // The title's ⓘ is named for the screen it explains (the old "About your guess vs. market" named the old row).
-    expect(nodes(html).find(n => n.tag === 'button' && n.attrs['aria-haspopup'] === 'dialog').attrs['aria-label']).toBe('About your gap');
+    expect(nodes(html).find(n => n.tag === 'button' && n.attrs['aria-haspopup'] === 'dialog').attrs['aria-label']).toBe('About gap ranking');
+    // ...and never the near twin of D-77's fixed "About your gaps" toggle a few elements below.
+    expect(nodes(html).filter(n => n.tag === 'button' && /^About your gaps?$/.test(nameFrom(n) ?? '')).map(nameFrom)).toEqual(['About your gaps']);
   });
   it('D-77’s hero is the first card: the rate, the record, one dot per gap, the About toggle', () => {
     const list = nodes(html).find(n => n.attrs?.['data-gap'] === 'list');
@@ -56,6 +58,12 @@ describe('Your gap', () => {
     expect(html).toContain('Top 3 to act on');
     expect(html).toContain('4 gaps · Week 5');
     expect(nodes(html).some(n => n.tag === 'button' && textOf(n) === 'Show all 4 differences')).toBe(true);
+  });
+  it('one gap says "1 gap", never "1 gaps"; a left-out note names missing lines too', () => {
+    const one = draw(gap({ shown: { rows: rows.slice(0, 1), visible: rows.slice(0, 1) }, ranked: { status: 'ready', rows, counts: { locked: 0, missingReference: 2 } } }));
+    expect(one).toContain('1 gap · Week 5');
+    expect(one).not.toContain('1 gaps');
+    expect(one).toContain('Drafts, locked markets, started games and missing lines are left out.');
   });
   it('your card lists an unsaved selection whose row is not shown; your virtual card counts its picks', () => {
     const card = nodes(html).find(n => n.attrs?.['data-gap'] === 'your-card');

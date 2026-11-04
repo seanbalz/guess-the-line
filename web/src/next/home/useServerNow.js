@@ -4,30 +4,35 @@
 // `now` plus the read's age, not at `now`. The age is the device's own elapsed time (a read time ahead of it counts as
 // none); the ticks after mount are performance.now (monotonic). Null until the read has a usable `now`. One tick a
 // second, until `until` (a server time after which nothing on screen can change, such as the week's last kickoff).
+// A read's clock is derived in the render the read arrives in (the state remembers which read its value belongs to), so
+// no render ever shows the previous read's value, or null, for a read that has landed. A non-finite `now` is no clock.
 import { useEffect, useState } from 'react';
 
 const ageOf = at => (Number.isFinite(at) ? Math.max(0, Date.now() - at) : 0);
-const usable = value => value !== null && value !== undefined;
+const usable = value => Number.isFinite(value);
+const keyOf = (serverNow, at) => `${serverNow}|${at}`;
 
 export function useServerNow(serverNow, at, { until } = {}) {
-  const [now, setNow] = useState(usable(serverNow) ? serverNow + ageOf(at) : serverNow);
+  const key = keyOf(serverNow, at);
+  const [state, setState] = useState(() => ({ key, value: usable(serverNow) ? serverNow + ageOf(at) : null }));
   useEffect(() => {
     if (!usable(serverNow)) {
-      setNow(serverNow);
+      setState({ key, value: null });
       return undefined;
     }
     const start = performance.now() - ageOf(at);
     const read = () => serverNow + (performance.now() - start);
     const done = value => Number.isFinite(until) && value >= until;
     const first = read();
-    setNow(first);
+    setState({ key, value: first });
     if (done(first)) return undefined;
     const timer = setInterval(() => {
       const value = read();
-      setNow(value);
+      setState({ key, value });
       if (done(value)) clearInterval(timer);
     }, 1000);
     return () => clearInterval(timer);
   }, [serverNow, at, until]);
-  return now;
+  if (state.key === key) return state.value;
+  return usable(serverNow) ? serverNow + ageOf(at) : null;
 }

@@ -97,7 +97,7 @@ export const INFO = Object.freeze({
     ],
   },
   recommended: {
-    title: 'About your gap',
+    title: 'About gap ranking',
     body: [
       'Compare your locked guesses with current lines. Track a ticket placed elsewhere, or play with Virtual Units.',
       'Differences are compared as a percentage of the line; they are not win probabilities.',
