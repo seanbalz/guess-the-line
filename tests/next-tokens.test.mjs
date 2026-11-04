@@ -342,6 +342,21 @@ test('colors come from tokens: no hex, rgb or named colors outside tokens.css', 
   for (const value of ['var()', 'none', 'transparent', 'currentColor', 'inset 0 0 0 1px var()']) assert.doesNotMatch(value, literal, value);
 });
 
+// Design audit A3: a class that sets `display` outranks the browser's own [hidden] rule, so a closed Expander drew its
+// empty body. One guard in base.css ends that kind of bug, so no stylesheet needs its own `[hidden] { display: none }`.
+const HIDDEN_GUARD = '.gx [hidden]:not([hidden="until-found"])';
+test('the hidden attribute always hides inside .gx: one base.css guard, and no per-file copies of it', () => {
+  const guard = allRules.filter(rule => rule.selector === HIDDEN_GUARD);
+  assert.equal(guard.length, 1, 'one [hidden] guard');
+  assert.equal(guard[0].file, `${stylesDir}/base.css`);
+  assert.deepEqual(guard[0].context, [], 'the guard applies everywhere, not inside a media block');
+  assert.deepEqual(guard[0].decls, [{ prop: 'display', value: 'none', important: true }]);
+  // A rule that only re-hides a [hidden] element is the guard's job now.
+  const copies = styleRules.filter(rule => rule !== guard[0] && rule.selectors.every(s => /\[hidden\]$/.test(s)) && rule.decls.every(d => d.prop === 'display' && d.value === 'none'));
+  // Play's copy belongs to the D-69 step 1 branch, which owns web/src/next/play/; it is the only one left.
+  assert.deepEqual(copies.map(rule => `${rule.file}: ${rule.selector}`), ['web/src/next/play/playFrame.css: .gx .gx-week-chips[hidden], .gx .gx-filter-panel[hidden]']);
+});
+
 test('motion: keyframes animate only transform and opacity, and reduced motion stops everything', () => {
   for (const [name, { frames }] of allKeyframes) for (const frame of frames) for (const { prop } of frame.decls) assert.ok(['transform', 'opacity'].includes(prop), `@keyframes ${name} animates ${prop}`);
   for (const rule of allRules) for (const decl of rule.decls) {
@@ -353,8 +368,9 @@ test('motion: keyframes animate only transform and opacity, and reduced motion s
       const name = decl.value.split(/\s+/).find(token => /^[a-z]/i.test(token) && !/^(ease|linear|infinite|alternate|forwards|backwards|both|step|var)/.test(token));
       assert.ok(allKeyframes.has(name), `${rule.file}: ${rule.selector} runs @keyframes ${name}, which is not defined`);
     }
-    // !important belongs only to the reduced-motion blocks.
-    if (decl.important) assert.ok(rule.context.some(c => c.includes('prefers-reduced-motion: reduce')) || rule.selector.includes('[data-motion="reduce"]'), `${rule.file}: ${rule.selector} uses !important`);
+    // !important belongs only to the reduced-motion blocks, and to base.css's one [hidden] guard (its own test below).
+    if (decl.important) assert.ok(rule.context.some(c => c.includes('prefers-reduced-motion: reduce')) || rule.selector.includes('[data-motion="reduce"]')
+      || (rule.file === `${stylesDir}/base.css` && rule.selector === HIDDEN_GUARD && decl.prop === 'display' && decl.value === 'none'), `${rule.file}: ${rule.selector} uses !important`);
   }
   const stops = rule => ['animation', 'transition'].every(prop => rule.decls.some(d => d.prop === prop && d.value === 'none' && d.important));
   const media = allRules.filter(rule => rule.file === `${stylesDir}/base.css` && rule.context.includes('@media (prefers-reduced-motion: reduce)'));

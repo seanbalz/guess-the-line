@@ -31,4 +31,3 @@
 .gx .gx-epl-moneyline-rank { display: flex; justify-content: space-between; gap: var(--gx-space-3); }
 .gx .gx-epl-moneyline-rank strong:first-child { overflow-wrap: anywhere; }
 .gx .gx-epl-moneyline-ranks meter { display: block; width: 100%; height: 12px; accent-color: var(--gx-data); }
-.gx .gx-epl-moneyline-ranks meter[hidden] { display: none; }

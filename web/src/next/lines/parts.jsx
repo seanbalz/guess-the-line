@@ -202,7 +202,7 @@ export const Meta = ({ text, className }) => (text ? <p className={cx('gx-t-meta
 export { LockLine };
 
 export function TrendAvailability({ week }) {
-  return week ? <div className="gx-vstack gx-gap-4"><p className="gx-t-meta gx-c-2" data-trend-availability>{trendAvailabilitySummary(week)}</p><Expander title="Source details"><p className="gx-t-meta gx-c-2">{trendAvailabilityText(week)}</p></Expander></div> : null;
+  return week ? <div className="gx-vstack gx-gap-4"><p className="gx-t-meta gx-c-2" data-trend-availability>{trendAvailabilitySummary(week)}</p><Card variant="flush"><Expander title="Source details"><p className="gx-t-meta gx-c-2">{trendAvailabilityText(week)}</p></Expander></Card></div> : null;
 }
 
 /** Retry only this view's weekly evidence read; keep the control mounted and focusable during loading. */
