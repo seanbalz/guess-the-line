@@ -123,7 +123,7 @@ function WhoTile({ who, week, onOpen }) {
 function AwardsTile({ app, shell }) {
   const features = useFeatures(app, shell);
   const waiting = useNewMoments(SCOPES.features);
-  const view = awardsTile({ model: features.model, off: features.off, waiting });
+  const view = awardsTile({ model: features.model, off: features.off, waiting, league: features.leagueId, season: features.data?.season });
   return <Tile id="gx-h-tile-awards" label="Awards" icon={HOME_TILE_ICONS.awards} big={view.big} sub={view.sub} tone={view.tone} isNew={view.isNew} ariaLabel={view.ariaLabel} onClick={() => shell.go('play', featuresView())}/>;
 }
 

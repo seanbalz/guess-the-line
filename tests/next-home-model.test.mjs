@@ -62,11 +62,17 @@ test('Awards: the newest week’s count; your award named, "New:" only while its
   const model = { recap: { week: 8, rows: [{ id: 'spread_winner' }, { id: 'total_winner' }, { id: 'best_guess' }], mine: { name: 'Sharpshooter' } } };
   assert.deepEqual(awardsTile({ model }), { big: '3', sub: 'Week 8 · You won Sharpshooter', tone: 'good', isNew: false, ariaLabel: 'Awards, 3 in Week 8, you won Sharpshooter' });
   const waiting = [{ id: 'award:community:2026:8:sharpshooter', kind: 'award', title: 'Sharpshooter' }];
-  assert.deepEqual(awardsTile({ model, waiting }), { big: '3', sub: 'Week 8 · New: Sharpshooter', tone: 'good', isNew: true, ariaLabel: 'Awards, 3 in Week 8, new: Sharpshooter' });
+  assert.deepEqual(awardsTile({ model, waiting, season: 2026 }), { big: '3', sub: 'Week 8 · New: Sharpshooter', tone: 'good', isNew: true, ariaLabel: 'Awards, 3 in Week 8, new: Sharpshooter' });
+  // An award moment's whole id prefix (award:<league>:<season>:<week>:) names it, never the week alone (final review M1).
+  const elsewhere = id => awardsTile({ model, waiting: [{ id, kind: 'award', title: 'Best guess' }], league: 'community', season: 2026 });
+  for (const [id, why] of [['award:lg-7:2026:8:best_guess', 'another league’s Week 8'], ['award:community:2025:8:best_guess', 'last season’s Week 8']]) {
+    assert.deepEqual([elsewhere(id).sub, elsewhere(id).isNew], ['Week 8 · You won Sharpshooter', true], `${why} award is NEW but never named as this one`);
+  }
+  assert.equal(awardsTile({ model, waiting: [{ id: 'award:lg-7:2026:8:best_guess', kind: 'award', title: 'Best guess' }], league: 'lg-7', season: 2026 }).sub, 'Week 8 · New: Best guess', 'a league’s own award is named on its Home');
   assert.deepEqual(awardsTile({ model: { recap: { ...model.recap, mine: null } }, waiting: [{ id: 'badge:x', kind: 'badge', title: 'Bullseye' }] }),
     { big: '3', sub: 'Week 8 awards', tone: 'plain', isNew: true, ariaLabel: 'Awards, 3 in Week 8' });
   assert.equal(awardsTile({ model, waiting: [{ id: 'streak:pick:2026:5:5', kind: 'streak', title: 'Pick streak' }] }).isNew, false, 'a waiting streak belongs to the card, not the Awards tile');
-  assert.equal(awardsTile({ model, waiting: [{ id: 'award:community:2026:7:best_guess', kind: 'award', title: 'Best guess' }] }).sub, 'Week 8 · You won Sharpshooter', 'an older week’s award is NEW but never named as this week’s');
+  assert.equal(awardsTile({ model, waiting: [{ id: 'award:community:2026:7:best_guess', kind: 'award', title: 'Best guess' }], season: 2026 }).sub, 'Week 8 · You won Sharpshooter', 'an older week’s award is NEW but never named as this week’s');
   assert.deepEqual(awardsTile({ model: null, off: true }), { big: '—', sub: 'Coming soon', tone: 'plain', isNew: false, ariaLabel: 'Awards, coming soon' });
   assert.deepEqual(awardsTile({ model: null }), { big: '—', sub: 'Badges and awards', tone: 'plain', isNew: false, ariaLabel: 'Awards' });
   assert.deepEqual(awardsTile({ model: { recap: null } }), { big: '—', sub: 'None posted yet', tone: 'plain', isNew: false, ariaLabel: 'Awards, none posted yet' });
@@ -135,7 +141,7 @@ test('no surface sentence over twelve words in anything Home says (D-66)', () =>
   const said = [
     ...[community(), community({ state: 'done', rows: due({ submitted: true, filled: 4 }, { satOut: true }) }), community({ state: 'not_open' })].flatMap(c => [...Object.values(headline(c)), ...heroMeters(c).map(m => m.words)]),
     rankTileView({ label: 'Spread rank', tile: { rank: 3, tied: false, label: '3', points: 41, scored: 6, of: 6 }, move: 2 }).ariaLabel,
-    awardsTile({ model: { recap: { week: 8, rows: [{}], mine: { name: 'Best guess' } } }, waiting: [{ id: 'award:community:2026:8:best_guess', kind: 'award', title: 'Best guess' }] }).ariaLabel,
+    awardsTile({ model: { recap: { week: 8, rows: [{}], mine: { name: 'Best guess' } } }, waiting: [{ id: 'award:community:2026:8:best_guess', kind: 'award', title: 'Best guess' }], season: 2026 }).ariaLabel,
     ...weekGames(personal(SUNDAY_MORNING)).games.flatMap(g => [g.ariaLabel, g.when, g.word]),
   ].filter(Boolean);
   for (const line of said) assert.ok(wordCount(line) <= 12, line);

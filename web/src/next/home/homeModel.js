@@ -17,6 +17,7 @@ import { gamesOf, optOutsFor, teamOf } from '../../../../shared/lines-view.mjs';
 import { weekOpenAt } from '../../../../shared/nfl-schedule.mjs';
 import { show } from '../../communityFormat.js';
 import { DASH, SEP, fmtWhen, plural, toMs } from '../format.js';
+import { awardMomentId } from '../features/model.js';
 import { ballotProgress } from '../play/landing.js';
 import { CARD_STATE, gameState } from '../play/moments.js';
 import { rankChip } from '../play/yourScore.js';
@@ -111,9 +112,11 @@ export function whoTile({ whosIn, week }) {
 /**
  * Awards: the newest week's award count (features model `recap`), your own award named ("New:" only while its moment
  * waits, as the Badges tile does), and NEW while any award or badge moment waits for Badges and awards (`waiting` is
- * useNewMoments(SCOPES.features)). A waiting Pick streak is the card's, not this tile's.
+ * useNewMoments(SCOPES.features)). A waiting Pick streak is the card's, not this tile's. `league` (useFeatures'
+ * leagueId, null for the community) and `season` (the features reply's) name the week's awards by their whole id
+ * prefix, so another league's or season's award of the same week number is never named here.
  */
-export function awardsTile({ model = null, off = false, waiting = [] } = {}) {
+export function awardsTile({ model = null, off = false, waiting = [], league = null, season = null } = {}) {
   const fresh = (Array.isArray(waiting) ? waiting : []).filter(m => m?.kind === 'award' || m?.kind === 'badge');
   const isNew = fresh.length > 0;
   const recap = model?.recap ?? null;
@@ -123,8 +126,8 @@ export function awardsTile({ model = null, off = false, waiting = [] } = {}) {
       : { big: DASH, sub: 'Badges and awards', tone: 'plain', isNew, ariaLabel: 'Awards' };
   }
   const week = HOME_COPY.weekTitle(recap.week), n = recap.rows.length;
-  // An award moment's id is award:<league>:<season>:<week>:<award> (features/model.js featureMoments).
-  const named = fresh.filter(m => m.kind === 'award' && String(m.id).split(':')[3] === String(recap.week)).at(-1)?.title ?? null;
+  const prefix = awardMomentId(league, season, recap.week);
+  const named = fresh.filter(m => m.kind === 'award' && String(m.id).startsWith(prefix)).at(-1)?.title ?? null;
   const mine = recap.mine?.name ?? null;
   const sub = named ? `${week}${SEP}New: ${named}` : mine ? `${week}${SEP}You won ${mine}` : `${week} awards`;
   const said = named ? `new: ${named}` : mine ? `you won ${mine}` : null;

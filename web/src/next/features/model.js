@@ -148,6 +148,12 @@ function badgeMomentId(b, season) {
 }
 
 /**
+ * An award moment's id, `award:<league>:<season>:<week>:<award>` ("community" for the community). With no `award` it
+ * is the prefix every award of that league's week shares (Home's Awards tile names a waiting one by it).
+ */
+export const awardMomentId = (league, season, week, award = '') => `award:${league ?? 'community'}:${season}:${week}:${award}`;
+
+/**
  * Every badge and award of the viewer in a features reply, as moments (moments/detect.js decides which are new):
  * `{ id, kind: 'badge' | 'award', scopes, title, meta, icon, rarity }`; a badge also carries `badge` (its catalog id, so the
  * grid marks it NEW while it waits) and `parts` (badgeParts) so the overlay draws its game as marks; a Bullseye's id is
@@ -164,7 +170,7 @@ export function featureMoments(reply, viewer) {
     .map(b => ({ ...badgeMomentId(b, season), kind: 'badge', badge: b.badge, scopes: [...FEATURE_SCOPES], title: BADGE_BY_ID[b.badge].name, meta: badgeLine(b), parts: badgeParts(b), icon: BADGE_ICONS[b.badge], rarity: BADGE_BY_ID[b.badge].rarity }));
   for (const w of reply.awards ?? []) for (const a of w.awards) {
     if (!a.winners.includes(viewer)) continue;
-    out.push({ id: `award:${league}:${season}:${w.week}:${a.id}`, kind: 'award', scopes: [...FEATURE_SCOPES], title: AWARD_BY_ID[a.id]?.name ?? a.id, meta: `Week ${w.week}${SEP}${awardValue(a)}`, icon: AWARD_ICONS[a.id], rarity: 'rare' });
+    out.push({ id: awardMomentId(league, season, w.week, a.id), kind: 'award', scopes: [...FEATURE_SCOPES], title: AWARD_BY_ID[a.id]?.name ?? a.id, meta: `Week ${w.week}${SEP}${awardValue(a)}`, icon: AWARD_ICONS[a.id], rarity: 'rare' });
   }
   return out;
 }
