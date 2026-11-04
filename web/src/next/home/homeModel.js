@@ -2,9 +2,9 @@
 // This week's game tiles, from the replies Home already reads (the normalized /community/read reply and its shared hero,
 // shared/home-view.mjs; the viewer's own /personal week; the features, tickets and saved-trends reads). Pure: no React,
 // storage, network or clock of its own; every count and time is the server's.
-// - The card: "Your next move" over "Lock in 9 games" and "before Thu 5:15 PM PT" while picks are due ("Next kickoff
-//   Sun 10:00 AM PT" with per-game lock-in); otherwise "Week N" over one plain headline ("Week N locked in" once nothing
-//   is left). Each market's meter carries its own words ("Spread · 3 of 14 locked").
+// - The card: "Week N · Your next move" over "Lock in 9 games" and "before Thu 5:15 PM PT" while picks are due ("Next
+//   kickoff Sun 10:00 AM PT" with per-game lock-in); "Your week" over "Week N locked in" (or "sat out") once nothing is
+//   left; otherwise "Week N" over one plain headline. Each market's meter carries its own words ("Spread · 3 of 14 locked").
 // - The count is the games still to lock in the market with the most left: a per-game market's `openGames` (open and
 //   not yet locked by you), a whole-market ballot's games until it is sent or sat out.
 // - A game tile says only the viewer's own Spread state, in the picks card's words (play/moments.js gameState, CARD_STATE), never a
@@ -30,7 +30,6 @@ export const HOME_TILE_ICONS = Object.freeze({ guess_spread: 'chart', guess_tota
 export const GAME_TILES = 4;
 
 export const HERO_COPY = Object.freeze({
-  nextMove: 'Your next move',
   weekMove: week => `Week ${week} · Your next move`,
   yourWeek: 'Your week',
   lockIn: n => `Lock in ${plural(n, 'game')}`,

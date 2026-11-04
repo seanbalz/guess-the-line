@@ -1,6 +1,7 @@
 // The League rank moment (D-69 PICK column: rank up is small, reaching 1st is big, a drop stays quiet). When your board
 // rank differs from the rank this device last saw for that league and market, the change is remembered and becomes one
-// moment for the engine, which plays it where League opens after the launch, never on page load. Pure: storage is passed in.
+// moment for the engine, which plays it where League opens after the launch, or for the Community board where that
+// market's Your score opens (scoreScope, D-69 step 2), once and never on page load. Pure: storage is passed in.
 // - Per account, league and market on this device (`gtl.next.rank.v1.…`) as `{ rank, from, n }`: the rank last seen, the
 //   one before the last change (the arrow keeps saying how it went) and how many changes this device saw (each change is
 //   its own moment, so a later move to the same rank plays again). The first look remembers and says nothing; unranked

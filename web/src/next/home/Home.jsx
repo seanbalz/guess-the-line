@@ -1,6 +1,6 @@
 // Home (D-69 step 2, layout H1A, built for Sean's review with the design audit's C9). One next-move card, then six tiles
 // in two columns, each opening its own card:
-// - the card (spec section 5): "Your next move" (or "Week N" when nothing is due) with the Pick streak beside it, the
+// - the card (spec section 5): "Week N · Your next move" ("Your week" once all is in) with the Pick streak beside it, the
 //   action in words ("Lock in 9 games" over "before Thu 5:15 PM PT"), the countdown (the card's one picture), the Spread
 //   and Total meters (side by side once the card is 332 px wide, C9) and the screen's one lime button;
 // - the tiles: the Spread and Total ranks (Play › Your score), Who's in (its Home layer), Awards (Play › Badges and
