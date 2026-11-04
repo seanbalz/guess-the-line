@@ -213,7 +213,7 @@ test('an uncommitted request survives closing and reopening, retries only on dem
     expect(await page.evaluate(() => Object.keys(sessionStorage).filter(key => key.startsWith('gtl.next.draft.v1.')))).toEqual([]);
     await signIn(page, 'troy', { navigate: false });
     await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Research', exact: true }).click();
-    // The Research landing's Games tile opens the board (D-69 step 3: the landing is a next-move card and four tiles).
+    // The landing's Games tile opens the board.
     await page.locator('#gx-r-tile-games').click();
     await openSheet(page);
     await expect(textbox(page)).toHaveValue('');

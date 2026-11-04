@@ -37,19 +37,6 @@ const WEEK6_TEN_AM = state => {
   state.games[0].kickoff = pacificToUtc(day, '10:00');
   state.games[1].kickoff = pacificToUtc(day, '13:25');
 };
-// The landing reads `week.games` from the Community read as the week's games (researchModel.js weekGamesOf), but the
-// handler's read (gtl_read_community through cloud/community.mjs) carries only their count, so on the real read the first
-// card always says "No week is open yet" (a Task 6 defect, task-9-report.md; its own test below is marked failing). The
-// card and tile tests stand the designed shape in: the same read, with `week.games` as the week's ids, codes and kickoffs.
-async function weekGamesInRead(page, world) {
-  await page.route(`${SUPABASE}/functions/v1/gtl-api/community/read`, async route => {
-    const request = route.request();
-    const response = await world.handler(new Request(request.url(), { method: request.method(), headers: request.headers(), ...(request.method() === 'POST' ? { body: request.postData() } : {}) }));
-    const body = await response.json();
-    if (body?.week) body.week.games = world.state.games.map(g => ({ id: g.id, awayCode: g.awayCode, homeCode: g.homeCode, kickoff: g.kickoff }));
-    await route.fulfill({ status: response.status, headers: { 'access-control-allow-origin': '*' }, contentType: 'application/json', body: JSON.stringify(body) });
-  });
-}
 // /lines/teams with game-by-game finals (fictional scores) for SEA and DEN over the bundled records, so a team's margin
 // chart draws; without the route the bundled records stand in and a team has no chart.
 const RECORDS = JSON.parse(fs.readFileSync(new URL('../../shared/team-records-2026.json', import.meta.url), 'utf8'));
@@ -124,7 +111,6 @@ async function phoneProblems(page) {
 test('the landing: one next-move card for this week’s games, four tiles, and no read of its own', async ({ page, baseURL }) => {
   const world = await world6(page, baseURL);
   try {
-    await weekGamesInRead(page, world);
     await signInOnHome(page);
     // Only the requests of a fresh Research load (Home's own reads before it do not count).
     const calls = gtlCalls(page);
@@ -138,7 +124,7 @@ test('the landing: one next-move card for this week’s games, four tiles, and n
     await expect(page.locator('[data-research="tiles"] > li')).toHaveCount(4);
     for (const [key, name] of [['games', /^Games, /], ['trends', /^Trends, /], ['fantasy', 'Fantasy, player rankings'], ['teams', 'Teams, all 32, records and margins']]) await expect(tile(page, key)).toHaveAccessibleName(name);
     await page.waitForLoadState('networkidle');
-    expect(calls.filter(call => /\/(personal|lines\/|fantasy\/|research)/.test(call)), 'the landing reads only what the shell already reads').toEqual([]);
+    expect(calls.filter(call => /\/(lines\/|fantasy\/|research)/.test(call)), 'the landing reads only /personal, the read Home and the board share').toEqual([]);
     for (const [key, address] of [['teams', /#research\/teams(\?season=&week=)?$/], ['games', /#research\/games(\?season=&week=)?$/]]) {
       await tile(page, key).click();
       await expect(page).toHaveURL(address);
@@ -153,8 +139,7 @@ test('the landing: one next-move card for this week’s games, four tiles, and n
   } finally { await world.db.close(); }
 });
 
-test('the first card counts this week’s games from the real Community read', async ({ page, baseURL }) => {
-  test.fail(true, 'Known Task 6 defect: the Community read carries the week’s game count, not its games, so the card says "No week is open yet" (task-9-report.md).');
+test('the first card counts this week’s games from the real /personal read (the Community read carries only a count)', async ({ page, baseURL }) => {
   const world = await world6(page, baseURL);
   try {
     await openAt(page);
@@ -167,20 +152,19 @@ test('the first card counts this week’s games from the real Community read', a
 test('loading in the final shape: the landing card’s skeleton and the board’s skeleton rows hold the real heights at 390 px', async ({ page, baseURL }) => {
   const world = await world6(page, baseURL);
   try {
-    await weekGamesInRead(page, world);
     await openAt(page);
     await expect(hero(page)).toBeVisible({ timeout: 30000 });
     await expect(hero(page)).toHaveAttribute('data-kind', 'week');
     await settle(page);
     const card = await hero(page).evaluate(el => el.getBoundingClientRect().height);
     let release; const held = new Promise(resolve => { release = resolve; });
-    await page.route(`${SUPABASE}/functions/v1/gtl-api/community/read`, async route => { await held; await route.fallback(); });
+    await page.route(`${SUPABASE}/functions/v1/gtl-api/personal`, async route => { await held; await route.fallback(); });
     await page.reload();
     const skeleton = page.locator('[data-skeleton="landing"] .gx-skel-hero');
     await expect(skeleton).toBeVisible();
     const drawn = await skeleton.evaluate(el => el.getBoundingClientRect().height);
     await expect(page.locator('[data-skeleton="landing"] .gx-skel-tile')).toHaveCount(4);
-    release(); await page.unroute(`${SUPABASE}/functions/v1/gtl-api/community/read`);
+    release(); await page.unroute(`${SUPABASE}/functions/v1/gtl-api/personal`);
     await expect(hero(page)).toBeVisible();
     // Step 2's rule for a next-move card (next-home-layers.spec.js): the test world blocks webfonts, so the card is drawn
     // in fallback faces that differ by platform; no jump larger than one title line (64 px), never a skeleton taller than
@@ -454,7 +438,6 @@ test('motion: the layer rises in after a tap; the movement chart reveals on its 
 test('phone rules on every Research address: 320 and 390 px, Dark and Light, the wide fallback font, 44 px targets, 12 px text, fixed bars, axe', async ({ page, baseURL }) => {
   const world = await world6(page, baseURL, WEEK6_TEN_AM);
   try {
-    await weekGamesInRead(page, world);
     await teamGames(page);
     await openAt(page);
     await expect(hero(page)).toBeVisible({ timeout: 30000 });

@@ -1,13 +1,13 @@
 // D-69 step 3 (spec 5A): the Research landing drawn. Contracts: one glow card labelled by its eyebrow with the week meter,
-// one meta line and the screen's one lime button; four tiles with stable ids; while the Community read loads, the meter
+// one meta line and the screen's one lime button; four tiles with stable ids; while the /personal read loads, the meter
 // card's skeleton with four tiles; a failed read says one sentence with Try again and keeps the tiles; a failed refresh
-// keeps the last copy and says so. Fixture data only; Research's sections are stood in for.
+// keeps the last copy and says so; a week with nothing published (404) is the no-week card. The only read is /personal. Fixture data only; Research's sections are stood in for.
 import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { markupProblems, nameFrom, parseMarkup, walk } from './helpers/ui-markup.mjs';
 
-const state = vi.hoisted(() => ({ community: null }));
-vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: () => ({ accountId: 'fixture', community: state.community, refresh: vi.fn(), requestSignIn: vi.fn() }), useSharedRead: () => ({ data: null }) }));
+const state = vi.hoisted(() => ({ personal: null, community: { status: 'ready', data: { week: { season: 2026, week: 9, games: 3 } }, error: null, at: null } }));
+vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: () => ({ accountId: 'fixture', community: state.community, refresh: vi.fn(), requestSignIn: vi.fn() }), useSharedRead: name => (name === 'personal' ? state.personal : { data: null }) }));
 vi.mock('../web/src/next/lines/GamesScreen.jsx', () => ({ GamesScreen: () => null }));
 vi.mock('../web/src/next/teams/TeamsScreen.jsx', () => ({ TeamsScreen: () => null }));
 vi.mock('../web/src/next/trends/TrendsPage.jsx', () => ({ TrendsPage: () => null }));
@@ -15,13 +15,13 @@ vi.mock('../web/src/next/fantasy/FantasyPage.jsx', () => ({ FantasyPage: () => n
 const { ShellContext } = await import('../web/src/next/shell/context.js');
 const { Research } = await import('../web/src/next/research/Research.jsx');
 
-const week = { season: 2026, week: 9, games: [
+const games = [
   { id: 'DAL-NYG', awayCode: 'DAL', homeCode: 'NYG', kickoff: '2026-11-06T01:15:00Z' },
   { id: 'SEA-DEN', awayCode: 'SEA', homeCode: 'DEN', kickoff: '2026-11-08T18:00:00Z' },
-  { id: 'KC-BUF', awayCode: 'KC', homeCode: 'BUF', kickoff: '2026-11-08T21:25:00Z' }] };
-const ready = { status: 'ready', data: { week, picksDue: { state: 'due', week: 9, now: '2026-11-08T19:00:00Z' } }, error: null, at: null };
+  { id: 'KC-BUF', awayCode: 'KC', homeCode: 'BUF', kickoff: '2026-11-08T21:25:00Z' }];
+const ready = { status: 'ready', data: { season: 2026, week: 9, now: '2026-11-08T19:00:00Z', games }, error: null, at: null };
 const shell = { state: { views: { research: {}, lines: {} } }, go: vi.fn(), setView: vi.fn() };
-const render = community => { state.community = community; return renderToStaticMarkup(<ShellContext.Provider value={shell}><div className="gx"><Research/></div></ShellContext.Provider>); };
+const render = personal => { state.personal = personal; return renderToStaticMarkup(<ShellContext.Provider value={shell}><div className="gx"><Research/></div></ShellContext.Provider>); };
 const nodes = html => [...walk(parseMarkup(html))];
 const textOf = n => (n.text ?? (n.children ?? []).map(textOf).join(''));
 const byAttr = (html, name, value) => nodes(html).filter(n => n.attrs?.[name] === value);
@@ -74,5 +74,17 @@ describe('the Research landing', () => {
     expect(stale).toContain('This week could not refresh. Showing the last loaded update.');
     expect(nodes(stale).filter(n => n.tag === 'button' && textOf(n) === 'Refresh week')).toHaveLength(1);
     expect(byAttr(stale, 'data-research', 'hero')).toHaveLength(1);
+  });
+});
+
+describe('a week with nothing published', () => {
+  it('a 404 from /personal is the no-week card (not the failed alert), with its tiles and one lime button that opens Trends', () => {
+    const html = render({ status: 'error', data: null, error: { status: 404 }, at: null });
+    expect(markupProblems(html)).toEqual([]);
+    expect(byAttr(html, 'data-research', 'failed')).toHaveLength(0);
+    expect(textOf([...walk(byAttr(html, 'data-research', 'hero')[0])].find(n => n.tag === 'h2'))).toBe('No week is open yet');
+    expect(nodes(html).filter(n => n.tag === 'button' && (n.attrs.class ?? '').includes('gx-btn--primary')).map(textOf)).toEqual(['Open trends']);
+    expect(nodes(html).filter(n => n.tag === 'button' && (n.attrs.class ?? '').includes('gx-tile')).map(n => nameFrom(n))[0]).toBe('Games, no week open');
+    expect(html).not.toContain('could not refresh');
   });
 });

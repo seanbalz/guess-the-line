@@ -10,12 +10,12 @@ import path from 'node:path';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { markupProblems, parseMarkup, walk } from './helpers/ui-markup.mjs';
 
-const state = vi.hoisted(() => ({ app: null, personal: { data: null }, read: { loading: true, data: null, error: null } }));
+const state = vi.hoisted(() => ({ app: null, personal: { status: 'error', data: null, error: { status: 404 } }, read: { loading: true, data: null, error: null } }));
 vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: () => state.app, useSharedRead: () => state.personal }));
 vi.mock('../web/src/next/home/homeData.js', () => ({ useHomeData: () => ({ app: state.app, community: state.app.community, viewer: 'fixture', preferences: {} }) }));
 vi.mock('../web/src/next/league/useLeagueRead.jsx', () => ({ useLeagueRead: () => state.read, LeagueFailure: () => <p>Read failed</p> }));
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn(), meApi: vi.fn(), socialApi: vi.fn() }));
-// Research's sections are other screens with their own tests; only its landing is drawn here.
+// Research's sections are other screens with their own tests; only its landing is drawn here (its read, /personal, is a week with nothing published: the no-week card and the four tiles).
 vi.mock('../web/src/next/teams/TeamsScreen.jsx', () => ({ TeamsScreen: () => null })); // D-69 step 3: the team list and its layer
 vi.mock('../web/src/next/lines/GamesScreen.jsx', () => ({ GamesScreen: () => null })); // D-69 step 3: the board and its game layer
 vi.mock('../web/src/next/trends/TrendsPage.jsx', () => ({ TrendsPage: () => null }));
