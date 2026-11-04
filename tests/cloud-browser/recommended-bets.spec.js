@@ -717,7 +717,7 @@ test('the chosen market stays while tracking a bet and returning to Recommended 
 
 // D-77 (Sean, November 3, 2026: "Your gaps' paper record"). The fixture's guesses (spread -10, -7, -5, -3; total 55, 49, 43,
 // 44.5) against closing lines of -3.5 and 44.5, with finals 27-20, 20-24, 17-13 and 21-21: spreads W L W W, totals W L W and
-// one even guess. 5-2-0 is 5 x 10/11 - 2 = +2.55U over 7 units (36.4%); the 10%+ gaps are 4-2-0.
+// one even guess. 5 of 7 decided gaps is 71.4%; 5 x 10/11 - 2 = +2.55U; the 10%+ gaps are 4-2.
 test('D-77: your gaps vs. closing lines grade finished games on the side your guess favored, follow the market filter and fit phones', async ({ page, baseURL }, testInfo) => {
   let at = Date.now();
   const world = await fixture(page, baseURL, { clock: () => at });
@@ -732,17 +732,29 @@ test('D-77: your gaps vs. closing lines grade finished games on the side your gu
     const calls = requests(page);
     await openRecommended(page);
     const card = page.getByRole('region', { name: 'Your gaps vs. closing lines', exact: true });
-    await expect(card).toContainText('5–2–0');
-    await expect(card).toContainText('7 graded · 10%+ gaps 4–2–0');
-    await expect(card).toContainText('+2.55U');
-    await expect(card).toContainText('ROI 36.4%');
-    await expect(card).toContainText('A paper record, not bets placed.');
+    // Option 1, "Hit rate hero": 5 of 7 decided gaps beat the close, one dot per gap in kickoff order.
+    await expect(card).toContainText('71.4%');
+    await expect(card).toContainText('beat the close');
+    await expect(card).toContainText('5–2 · +2.55U at −110');
+    const dots = card.getByRole('list', { name: 'Each gap, in kickoff order' }).getByRole('listitem');
+    await expect(dots).toHaveCount(7);
+    expect(await dots.evaluateAll(list => list.map(dot => dot.dataset.outcome))).toEqual(['win', 'win', 'loss', 'loss', 'win', 'win', 'win']);
+    await expect(dots.first()).toHaveAttribute('aria-label', /^\w+ at \w+ spread: Win$/);
+    // The fine print opens from the info button.
+    await expect(card).not.toContainText('a paper record, not bets placed');
+    await card.getByRole('button', { name: 'About your gaps', exact: true }).click();
+    await expect(card).toContainText('a paper record, not bets placed');
+    await expect(card).toContainText('Gaps of 10% or more: 4–2.');
+    await card.getByRole('button', { name: 'About your gaps', exact: true }).click();
+    await expect(card).not.toContainText('a paper record, not bets placed');
     await market(page, 'Spreads').click();
-    await expect(card).toContainText('3–1–0');
+    await expect(card).toContainText('75.0%');
+    await expect(card).toContainText('3–1 ·');
     await market(page, 'Totals').click();
-    await expect(card).toContainText('2–1–0');
+    await expect(card).toContainText('66.7%');
+    await expect(card).toContainText('2–1 ·');
     await market(page, 'All').click();
-    await expect(card).toContainText('5–2–0');
+    await expect(card).toContainText('71.4%');
     const reads = calls.filter(call => call.path === 'lines/read');
     expect(reads.length).toBeGreaterThan(0);
     expect(reads.every(call => call.body.season === season && call.body.week === week)).toBe(true);

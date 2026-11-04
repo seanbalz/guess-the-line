@@ -2,9 +2,10 @@
 
 ## Recommended: your gaps vs. closing lines, D-77 — November 3, 2026
 
-Board item 10. Sean chose "Recommendation card", then "Your gaps' paper record". Bets › Your guess vs. market now opens
-with a weekly record of your gaps against the closing three-book lines: W–L–P, net units at a standard −110, ROI and the
-10%+ gaps' record. Rows you can still act on rank first within D-54's order. It is frontend only (`shared/recommended-bets.mjs`,
+Board item 10. Sean chose "Recommendation card", then "Your gaps' paper record". After calling the first build "boring and
+bad", he picked option 1, "Hit rate hero", from five on a private canvas. Bets › Your guess vs. market now opens with one
+hero card: the share of your gaps that beat the closing three-book line, the record and units at −110, and a dot per
+gap. The fine print and the 10%+ record are behind ⓘ. Rows you can still act on rank first within D-54's order. It is frontend only (`shared/recommended-bets.mjs`,
 `web/src/VirtualUnits.jsx`) and reads your own `/lines/read`. Local checks pass: unit tests of the grading, units and
 exclusions, and a browser test with four finished games (phone rules and axe in both themes). **Not merged or released;
 waiting on Sean's OK of the [mockups](../design/recommended-gap-record-2026-11-03/README.md).**

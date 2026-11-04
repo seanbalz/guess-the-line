@@ -4,9 +4,13 @@
 
 Sean picked "Recommendation card" from board item 10 (the two ideas kept from D-51's closed PR #140), then "Your gaps'
 paper record" when asked what the card should count. Nothing records that a bet came from Recommended, so the card grades
-the gaps themselves rather than bets placed. [Mockups](../design/recommended-gap-record-2026-11-03/README.md).
+the gaps themselves rather than bets placed. The first build was "boring and bad". From five directions on the private
+canvas [GTL Recommended Gap Card Options](https://claude.ai/artifact/2Dr55M7ZxHCLNKkd52gzkz) he picked **1 · Hit rate
+hero**. [Captures](../design/recommended-gap-record-2026-11-03/README.md).
 
-- **Your gaps vs. closing lines:** a weekly card at the top of Bets › Your guess vs. market.
+- **Your gaps vs. closing lines:** a weekly hero card at the top of Bets › Your guess vs. market.
+  - **The look:** one big number, the share of decided gaps that beat the close (W / (W + L), as D-75's win rate). Under
+    it come the record and units at −110 and one W/L/P dot per gap. The fine print opens from ⓘ.
   - **What counts:** every locked guess that differed from the closing consensus. That is the newest three-book line
     before kickoff, as `/lines/read` reports it for a started game.
   - **Grading:** the side your guess favored (the side Recommended suggests) against the final score: W, L or P.
