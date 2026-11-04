@@ -58,11 +58,12 @@ const WEEK = 'weekLocked:2026:9:guess_spread', STREAK = 'streak:pick:2026:5:5', 
 const app = { accountId: YOU, refresh: vi.fn() };
 const shell = { state: { tab: 'home', views: { home: {} }, sheets: [] }, go: vi.fn(), setView: vi.fn(), tab: vi.fn(), reload: vi.fn() };
 /** Draws Home with the Community read in `read` (`{ status, data, error }`) and the features read showing `reply`. */
-function draw(read, reply = null) {
+function draw(read, reply = null, layer = undefined, account = YOU) {
   rig.made = false;
+  shell.state.views.home = layer ? { layer } : {};
   rig.home = { app, viewer: YOU, community: { loading: read.status === 'loading', ...read } };
   rig.features = reply ? { model: featuresModel(reply, { viewer: YOU, nameOf: () => 'Casey Moore' }), data: reply } : { model: null };
-  return renderToStaticMarkup(<MomentsProvider account={YOU} showOverlay={() => {}}><ShellContext.Provider value={shell}><div className="gx"><Home/></div></ShellContext.Provider></MomentsProvider>);
+  return renderToStaticMarkup(<MomentsProvider account={account} showOverlay={() => {}}><ShellContext.Provider value={shell}><div className="gx"><Home/></div></ShellContext.Provider></MomentsProvider>);
 }
 
 describe('Home’s card holds Home’s moments, with the real engine', () => {
@@ -90,5 +91,22 @@ describe('Home’s card holds Home’s moments, with the real engine', () => {
     expect(rig.engine.newCount(SCOPES.home)).toBe(0);
     expect(rig.engine.newMoments(SCOPES.features).filter(m => m.kind === 'award').map(m => m.id), 'the award still waits for Badges and awards').toEqual([AWARD_ID]);
     expect(rig.engine.newCount(scoreScope('guess_spread')), 'the rank move still waits for Your score').toBe(1);
+  });
+  it('with Who’s in open the next-move card is unmounted: Home’s scope is closed and nothing plays behind the layer', () => {
+    draw({ status: 'loading', data: null, error: null }, null, undefined, 'u-other');
+    readAll();
+    readAll({ locked: 14, streak: 5 });
+    expect(rig.engine.newCount(SCOPES.home)).toBe(2);
+
+    const layer = draw({ status: 'ready', data: community(14), error: null }, features(5, false), 'who', 'u-other');
+    expect(layer).toContain('data-home="who-layer"');
+    expect(layer).not.toContain('data-home="hero"');
+    expect([rig.small, rig.big], 'no Home moment plays or is spent behind the layer').toEqual([[], []]);
+    expect(rig.engine.newCount(SCOPES.home)).toBe(2);
+
+    const landing = draw({ status: 'ready', data: community(14), error: null }, features(5, false), undefined, 'u-other'); // the lip closes the layer
+    expect(landing).toContain('data-home="hero"');
+    expect(rig.small.toSorted()).toEqual([STREAK, WEEK].toSorted());
+    expect(rig.engine.newCount(SCOPES.home)).toBe(0);
   });
 });

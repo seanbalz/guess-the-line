@@ -31,6 +31,18 @@
   .gx .gx-h-hero .gx-meter3-seg--on { forced-color-adjust: none; background: CanvasText; }
 }
 
+/* ----- This week: up to four game tiles, then "All N games" ----- */
+.gx .gx-h-week { display: flex; flex-direction: column; gap: var(--gx-space-3); margin-top: var(--gx-space-3); min-width: 0; }
+.gx .gx-h-week-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--gx-space-2); }
+.gx .gx-h-week-head > * { margin: 0; }
+.gx .gx-tile.gx-h-game { justify-content: flex-start; }
+.gx .gx-h-game-marks { display: flex; gap: var(--gx-space-1); }
+.gx .gx-h-game-match { overflow-wrap: anywhere; }
+/* The state word sits at the tile's foot with its icon; a state color always has its word (D-38). */
+.gx .gx-h-game-state { display: inline-flex; align-items: center; gap: var(--gx-space-1); margin-top: auto; font-weight: 600; color: var(--gx-text-2); }
+.gx .gx-h-game-state--locked { color: var(--gx-win); }
+.gx .gx-h-game-state--draft { color: var(--gx-pending); }
+
 /* ----- Who's in (the layer, Task 7): faces first, one status word each, then Standings and Invite ----- */
 .gx .gx-h-people { display: flex; flex-direction: column; gap: var(--gx-space-2); margin: 0; padding: 0; list-style: none; }
 .gx .gx-h-person { display: flex; align-items: center; gap: 10px; min-width: 0; }

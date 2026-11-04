@@ -8,15 +8,16 @@
 // Home plays only Whole week locked and the Pick streak, in place on the card. Every other result from while you were
 // away shows NEW on its tile and plays when that tile's card opens, never on launch. Every number comes from the shared
 // reads; this screen writes nothing.
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useId, useMemo } from 'react';
 import { APP_RELOAD_COPY } from '../../appView.js';
 import { MODE_LABEL } from '../../../../shared/guess-board.mjs';
 import { HOME_COPY, homeHero, homeTiles } from '../../../../shared/home-view.mjs';
+import { LINES_COPY } from '../../../../shared/lines-view.mjs';
 import { HOME_LOADING } from '../copy.js';
-import { SEP } from '../format.js';
+import { SEP, plural } from '../format.js';
 import { useShell } from '../shell/context.js';
 import { SHELL_COPY } from '../shell/tabs.js';
-import { AvatarStack, Button, Card, Countdown, DESTINATION_ICONS, Meter, Pill, Skeleton, Tile } from '../ui/index.js';
+import { Avatar, AvatarStack, Button, Card, Countdown, DESTINATION_ICONS, Icon, Meter, MetaLine, Nest, Pill, Skeleton, TeamMark, Tile, cx } from '../ui/index.js';
 import { CountUp } from '../ui/CountUp.jsx';
 import { useTicketSummary } from '../bets/useTicketSummary.js';
 import { HomeStreak } from '../features/HomeStreak.jsx';
@@ -26,26 +27,17 @@ import { peekMove, rankKey, readRank } from '../league/rankMoment.js';
 import { useRankMoment } from '../league/useRankMoment.js';
 import { SCOPES, scoreScope } from '../moments/catalog.js';
 import { useMomentScope, useNewCount, useNewMoments, usePopped } from '../moments/MomentsProvider.jsx';
+import { openPlay } from '../play/PlayLayer.jsx';
+import { STATE_ICONS } from '../play/WeekProgress.jsx';
 import { weekLockedId } from '../play/moments.js';
 import { nextGuess } from '../play/nextGuess.js';
 import { useWeekLocked } from '../play/useWeekLocked.js';
 import { useSavedTrends } from '../trends/builderData.js';
 import { useHomeData } from './homeData.js';
-import { HERO_COPY, HOME_LAYERS, HOME_TILE_ICONS, awardsTile, betsTile, heroHeadline, heroMeters, rankTileView, trendsTile, whoTile } from './homeModel.js';
+import { useServerNow } from './useServerNow.js';
+import { HERO_COPY, HOME_LAYERS, HOME_TILE_ICONS, awardsTile, betsTile, heroHeadline, heroMeters, rankTileView, trendsTile, weekGames, whoTile } from './homeModel.js';
 import '../ui/focusLanding.css';
 import './home.css';
-
-function useServerNow(serverNow) {
-  const [now, setNow] = useState(serverNow);
-  useEffect(() => {
-    setNow(serverNow);
-    if (serverNow === null || serverNow === undefined) return undefined;
-    const start = performance.now();
-    const timer = setInterval(() => setNow(serverNow + (performance.now() - start)), 1000);
-    return () => clearInterval(timer);
-  }, [serverNow]);
-  return now;
-}
 
 /** One market's half of the card's status row (C9): its words and its meter; it pops when that market's week locks here. */
 function MeterColumn({ meter, season, week }) {
@@ -161,9 +153,111 @@ function HomeTiles({ app, shell, community, tiles, hero, week, viewer }) {
   );
 }
 
+const WHO = Object.freeze({ in: { word: 'In', tone: 'win' }, satOut: { word: 'Sat out', tone: 'neutral' }, out: { word: 'Not yet', tone: 'pending' } });
+
+/** One game: its marks, the matchup, kickoff and your own Spread word with its icon (never color alone). */
+function GameTile({ game, onOpen }) {
+  return (
+    <button type="button" id={`gx-h-game-${game.id}`} className="gx-nest-tile gx-tile gx-h-game" aria-label={game.ariaLabel} onClick={onOpen}>
+      <span className="gx-h-game-marks" aria-hidden="true"><TeamMark code={game.away} size={24} decorative/><TeamMark code={game.home} size={24} decorative/></span>
+      <span className="gx-t-strong gx-h-game-match">{game.matchup}</span>
+      <span className="gx-t-meta gx-c-2">{game.when}</span>
+      <span className={cx('gx-t-meta', 'gx-h-game-state', `gx-h-game-state--${game.state}`)}><Icon icon={STATE_ICONS[game.state]} size={16}/>{game.word}</span>
+    </button>
+  );
+}
+
+/**
+ * This week (H1A): the viewer's own /personal week as up to four game tiles, each opening that game's picks card, then
+ * "All N games". The clock is the server's `now` advanced by this device's elapsed time (never the device's own date),
+ * so a game that kicks off while Home stays open flips to its kickoff word and leaves the window. It draws nothing for
+ * a week with no slate (404), placeholders while it loads, and one sentence with Try again when it fails.
+ */
+function ThisWeek({ app, shell, personal, community }) {
+  const id = useId();
+  const data = personal?.data ?? null;
+  const base = Date.parse(data?.now ?? '');
+  const now = useServerNow(Number.isFinite(base) ? base : null);
+  const view = useMemo(() => {
+    if (!data) return null;
+    return weekGames(Number.isFinite(base) && Number.isFinite(now) ? { ...data, now: new Date(now).toISOString() } : data, community);
+  }, [data, community, base, now]);
+  if (!personal) return null;
+  if (!data) {
+    if (personal.status !== 'error') return <Skeleton label={LINES_COPY.loading} shape="tiles" count={4}/>;
+    if (personal.error?.status === 404) return null;
+    return (
+      <section className="gx-h-week" aria-labelledby={id} data-home="week">
+        <h2 className="gx-t-section" id={id}>This week</h2>
+        <p className="gx-t-body" role="status">{LINES_COPY.failed}</p>
+        <Button variant="secondary" onClick={() => app.refresh({ only: ['personal'] })}>{SHELL_COPY.tryAgain}</Button>
+      </section>
+    );
+  }
+  if (!view) return null;
+  return (
+    <section className="gx-h-week" aria-labelledby={id} data-home="week">
+      <div className="gx-h-week-head">
+        <h2 className="gx-t-section" id={id}>This week</h2>
+        <p className="gx-t-meta gx-c-2">{plural(view.count, 'game')}</p>
+      </div>
+      <ul className="gx-tiles" aria-label="This week’s next games">
+        {view.games.map(game => <li key={game.id} data-game-tile={game.id}><GameTile game={game} onOpen={() => openPlay(shell, 'picks', game.open)}/></li>)}
+      </ul>
+      <Button variant="secondary" block iconEnd="chevronRight" onClick={() => shell.go('research', { section: 'games', season: null, week: null })}>{`All ${plural(view.count, 'game')}`}</Button>
+    </section>
+  );
+}
+
+/**
+ * Who's in (`#home?layer=who`): a nesting card under a "Home" lip with every member's Spread ballot state, faces first,
+ * then Standings and Invite. It has its own loading and failure, so a reload at its address never shows Home's card.
+ * While it is open the next-move card is not mounted, so Home's moment scope is closed.
+ */
+function WhosInLayer({ head, app, shell, community, hero, tiles }) {
+  const league = shell.league?.name ?? app.league?.name ?? 'Community';
+  const lips = [{ key: 'home', label: HOME_COPY.title, onOpen: () => shell.setView('home', { layer: undefined }) }];
+  const who = tiles?.whosIn ?? null;
+  let body;
+  if (!hero) {
+    body = community.status === 'error'
+      ? <><p className="gx-t-body" role="status">{SHELL_COPY.tabFailed}</p><Button variant="secondary" onClick={() => app.refresh({ only: ['community'] })}>{SHELL_COPY.tryAgain}</Button></>
+      : <Skeleton label={HOME_LOADING} shape="rows" count={4}/>;
+  } else if (hero.week === null || !(who?.of > 0)) {
+    body = <p className="gx-t-body">{HOME_COPY.noWeek}.</p>;
+  } else {
+    body = (
+      <>
+        <MetaLine parts={[league, HOME_COPY.weekTitle(hero.week), `Spread ballots ${who.in} of ${who.of} in`]}/>
+        <ul className="gx-h-people">
+          {who.people.map(person => (
+            <li key={person.id} className="gx-h-person">
+              <Avatar id={person.id} name={person.name} size={32} you={person.you}/>
+              <span className="gx-t-body gx-grow">{person.you ? `${person.name} · You` : person.name}</span>
+              <Pill tone={WHO[person.status].tone}>{WHO[person.status].word}</Pill>
+            </li>
+          ))}
+        </ul>
+      </>
+    );
+  }
+  return (
+    <div className="gx-screen gx-h" data-home="who-layer">
+      {head}
+      <Nest label={HOME_COPY.whosIn} lips={lips} layer={HOME_LAYERS.who} title={HOME_COPY.whosIn}>
+        {body}
+        <div className="gx-h-who-actions">
+          <Button variant="secondary" onClick={() => shell.go('league', { view: 'board' })}>Standings</Button>
+          <Button variant="ghost" icon="userPlus" onClick={() => shell.openSheet('sh.switcher')}>Invite</Button>
+        </div>
+      </Nest>
+    </div>
+  );
+}
+
 export function Home() {
   const shell = useShell();
-  const { app, community } = useHomeData();
+  const { app, community, personal } = useHomeData();
   // D-69: Whole week locked reads the shared Community read here too, and plays on Home's card (SCOPES.home).
   useWeekLocked(app);
   const data = community.data ?? null;
@@ -174,6 +268,8 @@ export function Home() {
   const tiles = useMemo(() => (data ? homeTiles({ community: data, viewer }) : null), [data, viewer]);
   // The tab bar names this screen; the title stays for screen readers and the page outline.
   const head = <h1 className="gx-t-title gx-sr-only">{HOME_COPY.title}</h1>;
+  // The layer replaces the landing: the next-move card is unmounted, so Home's moment scope is closed behind it.
+  if (shell.state?.views?.home?.layer === HOME_LAYERS.who) return <WhosInLayer head={head} app={app} shell={shell} community={community} hero={hero} tiles={tiles}/>;
   if (!hero) {
     // A read that failed with no copy to show; a refusal (403) or a 401 is covered by the app gate before Home draws.
     const failed = community.status === 'error';
@@ -202,6 +298,7 @@ export function Home() {
       <Hero app={app} hero={hero} headline={headline} meters={meters} season={week.season} onPicks={toPicks} onLines={toLines}/>
       {community.status === 'error' && <p className="gx-t-body" role="status">This week could not refresh. Showing the last loaded update.</p>}
       <HomeTiles app={app} shell={shell} community={community} tiles={tiles} hero={hero} week={week} viewer={viewer}/>
+      <ThisWeek app={app} shell={shell} personal={personal} community={data}/>
     </div>
   );
 }
