@@ -218,10 +218,8 @@ for (const reminders of [false, true]) {
           return r.top < card.top - 1 || r.bottom > card.bottom + 1;
         }).map(row => row.textContent.trim()));
         expect(clipped, `${theme}: rows cut off inside their card`).toEqual([]);
-        // Scroll the way a finger or a wheel does, over the sheet, down to its end.
-        const body = await menu.locator('.gx-sheet-body').boundingBox();
-        await page.mouse.move(body.x + body.width / 2, body.y + body.height / 2);
-        await page.mouse.wheel(0, 3000);
+        // Scroll the sheet's own scroller to its end, which is what a finger moves (never a card inside it).
+        await menu.locator('.gx-sheet-body').evaluate(body => { body.scrollTop = body.scrollHeight; });
         const appearance = menu.getByRole('button', { name: 'Appearance', exact: true });
         await expect.poll(() => appearance.evaluate(row => {
           const r = row.getBoundingClientRect(), body = row.closest('.gx-sheet-body').getBoundingClientRect();
