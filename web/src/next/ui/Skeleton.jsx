@@ -2,14 +2,18 @@
 // bare "Loading…" sentence. The sentence stays as the status text a screen reader announces (role=status, visually
 // hidden); the blocks are decoration, hidden from assistive technology. A static tint, never a shimmer: the LIVE dot is
 // the app's one loop (brand guide, Motion). Shapes: `lines` (text), `rows` (a list of rows with a face), `cards` (game
-// cards), `panels` (cards with a heading and two lines) and `block` (one field, such as a note).
+// cards), `panels` (cards with a heading and two lines), `block` (one field, such as a note), `tiles` (a tab's two-column
+// tiles) and `landing` (a tab's next-move card, then its tiles).
 import { cx, needLabel } from './cx.js';
 import './skeleton.css';
 
-export const SKELETON_SHAPES = Object.freeze(['lines', 'rows', 'cards', 'panels', 'block']);
+export const SKELETON_SHAPES = Object.freeze(['lines', 'rows', 'cards', 'panels', 'block', 'tiles', 'landing']);
 const WIDTHS = ['gx-skel-bar--w1', 'gx-skel-bar--w2', 'gx-skel-bar--w3'];
 
 const Bar = ({ width = 0, title = false }) => <span className={cx('gx-skel-bar', title ? 'gx-skel-bar--title' : WIDTHS[width % WIDTHS.length])}></span>;
+
+const SkelTile = ({ i }) => <span className="gx-skel-tile"><Bar width={2}/><Bar title/><Bar width={1 + (i % 2)}/></span>;
+const tilesOf = each => <span className="gx-skel-tiles">{each.map(i => <SkelTile key={i} i={i}/>)}</span>;
 
 function art(shape, count) {
   const each = Array.from({ length: count }, (_, i) => i);
@@ -43,6 +47,20 @@ function art(shape, count) {
       ));
     case 'block':
       return <span className="gx-skel-block"></span>;
+    case 'tiles':
+      return tilesOf(each);
+    case 'landing':
+      return (
+        <>
+          <span className="gx-skel-card gx-skel-hero">
+            <Bar width={2}/><Bar title/><Bar width={1}/>
+            <span className="gx-skel-block gx-skel-countdown"></span>
+            <Bar width={0}/>
+            <span className="gx-skel-button"></span>
+          </span>
+          {tilesOf(each)}
+        </>
+      );
     default:
       return each.map(i => <Bar key={i} width={i}/>);
   }
