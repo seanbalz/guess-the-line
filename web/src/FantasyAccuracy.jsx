@@ -34,7 +34,7 @@ export function FantasyAccuracy({ theme = 'classic', review, filters, scoringLab
         <Sub>Estimated too low</Sub>
         {s.unders.length ? <ol>{s.unders.map(row => <li key={row.id}>{row.name} ({row.team} {row.position}): est. {number(row.estimate)}, actual {number(row.actual)}</li>)}</ol> : <p>None.</p>}
         <p className={c('meta')}>Listed available, no stats row: {s.noStatsRow} · Played without an estimate: {s.playedWithoutEstimate}. Neither is scored as zero.</p>
-        <p className={c('meta')}>A report card for GTL's statistical pace estimates, not a forecast or betting claim.</p>
+        <p className={c('meta')}>A report card for GTL's weekly estimates, not a forecast or betting claim.</p>
       </details>
     </> : <p>No graded players for Week {review.week} under these settings.</p>}
   </>;

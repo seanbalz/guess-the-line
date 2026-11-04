@@ -4,12 +4,16 @@
 
 Sean: "Yes, switch to usage" (ask a19, Board item 64).
 - **Method:** "GTL usage" 2.0 replaces "GTL statistical pace" 1.1 for QB, RB, WR and TE, with the settings the
-  [backtest](FANTASY_BACKTEST_2026_11_03.md) chose on 2024 (half-life 4, K_eff 25, K_td 50). Kickers keep pace 1.1.
+  [backtest](FANTASY_BACKTEST_2026_11_03.md) chose on 2024 (half-life 4, K_eff 25, K_td 50). Kickers keep pace 1.1, and
+  a skill player whose usage stats are incomplete falls back to pace 1.1 instead of losing his estimate.
+- **Screen copy:** the rankings ⓘ intro, the report card and the old app's player detail no longer say "pace". The
+  method description is 120 words.
 - **Code:** the usage pieces moved to `shared/fantasy-usage.mjs`, which both the build and the backtest import, so the
   build ships exactly what the backtest graded. Rerunning `node scripts/fantasy-backtest.mjs --seasons 2024,2025` after the
   move gave a `results.json` identical apart from its timestamp.
 - **Checks:** a test proves the build's weekly estimate equals `usage()` called directly on the same history, week and
-  league rates. The nine named Fantasy and Points test files pass with `# skipped 0`, and the kicker mutation is caught.
+  league rates. Another proves the pace fallback. The nine named Fantasy and Points test files pass with `# skipped 0`,
+  and the kicker and fallback mutations are caught.
 - **Mockups:** the method ⓘ at 390 px in Light and Dark, before and after, are in `design/qa/fantasy-usage-2026-11-03/`.
 - **Status:** **not released.** It lands with the first Fantasy refresh after merge, which needs Sean's OK on the
   mockups. Published snapshots, reviews, Points slates and Houses are never recomputed.

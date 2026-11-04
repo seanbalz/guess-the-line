@@ -14,6 +14,12 @@ Sean, November 3, 2026: "Yes, switch to usage" (ask a19, Board item 64), after t
   - The settings were chosen on 2024 alone. The build calls the same `usage()` the backtest graded
     (`shared/fantasy-usage.mjs`); the settings are `USAGE_SETTINGS` in `shared/fantasy-build.mjs`.
   - There is no opponent adjustment. It added nothing on the 2025 holdout.
+  - **Pace fallback (follow-up, same day):** `usage()` needs every used stat in every prior appearance. A QB, RB, WR or
+    TE with two or more appearances where one is unknown (a missing targets cell, say) gets pace 1.1 instead of no
+    estimate. Pace still leaves that stat null, and a missing scoring stat still means no estimate. The backtest saw 0
+    such player-weeks, so its numbers are unchanged.
+- **Screen copy:** the rankings ⓘ now says "from recent usage and statistics", and the report card says "GTL's weekly
+  estimates" instead of "statistical pace". The method description is shortened to 120 words.
 - **Evidence, 2025 holdout (4,855 player-weeks, Full PPR):** MAE 4.451 for usage, 4.542 for the season average and
   4.600 for pace 1.1.
   - usage − season average: −0.090, 95% CI [−0.125, −0.054] resampling player-weeks, [−0.130, −0.050] resampling players.

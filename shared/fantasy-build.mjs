@@ -5,7 +5,7 @@ import { USAGE_POSITIONS, countsTowardLeague, leagueRates, usage } from './fanta
 
 export const FANTASY_METHOD = Object.freeze({
   name: 'GTL usage', version: '2.0',
-  description: 'Quarterbacks, running backs, wide receivers and tight ends start from expected targets, carries and pass attempts, averaged over this season\'s games before the selected week with recent weeks counting more. Those are multiplied by the player\'s per-play rates, such as catches per target and yards per carry, each pulled toward the position average, more so when his sample is small; touchdown rates are pulled harder. Fumbles, two-point conversions and return touchdowns use the season average. Kickers keep the earlier pace method: for each statistic, 60% of the last three recorded appearances plus 40% of the season-to-date average. At least two recorded appearances are required. Weekly estimates exclude byes, non-active rosters and reported Out or Doubtful players. Rest-of-season totals multiply the weekly estimate by scheduled regular-season games from the selected week through Week 18, assuming an active-roster player is available for all of them. No injury return date, depth-chart role or matchup adjustment is forecast. Overall means total fantasy points, not draft value. These are descriptive estimates, not published expert rankings.',
+  description: 'For quarterbacks, running backs, wide receivers and tight ends, expected targets, carries and pass attempts, with recent weeks counting more, are multiplied by per-play rates pulled toward the position average; touchdown rates are pulled harder. Kickers, and any player with incomplete usage stats, use the earlier pace method. Only this season\'s games before the selected week count; at least two appearances are required. Weekly estimates exclude byes, non-active rosters and reported Out or Doubtful players. Rest-of-season totals multiply the weekly estimate by scheduled games from the selected week through Week 18, assuming an active-roster player is available for all of them. No injury return date, depth-chart role or matchup adjustment is forecast. These are descriptive estimates, not published expert rankings.',
 });
 /**
  * Usage settings for QB, RB, WR and TE (D-76). Chosen on 2024 alone in the Board item 64 backtest
@@ -71,12 +71,15 @@ export function estimatePace(history) {
 
 /**
  * The weekly stat line before availability rules. QB, RB, WR and TE use usage with the backtested settings; kickers keep
- * pace 1.1 because the backtest did not cover them. Fewer than two appearances gives null either way.
+ * pace 1.1 because the backtest did not cover them. usage() needs every used stat in every appearance, so a skill player
+ * with an unknown one (a missing targets cell, say) falls back to pace 1.1 rather than losing his estimate (D-76); pace
+ * still leaves that one stat null, and a missing scoring stat still means no estimate. Fewer than two appearances gives
+ * null either way.
  */
 function weeklyEstimate(history, { week, position, league }) {
   if (!USAGE_POSITIONS.includes(position)) return estimatePace(history);
   const line = usage(history, { week, position, league, ...USAGE_SETTINGS });
-  return line && Object.fromEntries(Object.entries(line).map(([key, value]) => [key, round(value)]));
+  return line ? Object.fromEntries(Object.entries(line).map(([key, value]) => [key, round(value)])) : estimatePace(history);
 }
 
 const MATCHUP_POSITIONS = ['QB', 'RB', 'WR', 'TE'];

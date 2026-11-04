@@ -15,7 +15,7 @@ import { Button, InfoButton, LockLine, Nest, Pill, Segmented, Switch, Skeleton }
 import { PlayerCompare, PlayerProfileSheet, PlayerToolButtons } from './FantasyTools.jsx';
 
 export const FANTASY_PAGE = 50;
-const INTRO = 'Weekly and rest-of-season player rankings from recent statistical pace. These are GTL estimates, not expert consensus or injury-adjusted projections.';
+const INTRO = 'Weekly and rest-of-season player rankings from recent usage and statistics. These are GTL estimates, not expert consensus or injury-adjusted projections.';
 const date = value => (!value || !Number.isFinite(Date.parse(value)) ? 'time unavailable'
   : new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/Los_Angeles', timeZoneName: 'short' }).format(new Date(value)));
 const httpLink = value => (/^https?:\/\//.test(value || '') ? value : undefined);
@@ -143,7 +143,7 @@ export function FantasyNest({ navigationState, onNavigationState, view = {}, onL
   // Fantasy › the week's report card.
   if (snapshot && view.fantasyLayer === 'report' && filters.scope === 'weekly' && state.review) {
     return <section className="gx-screen gx-fantasy" aria-label="Fantasy Football"><h1 className="gx-t-title">Fantasy Football</h1><Nest label="Fantasy layers" layer="report" title={`Week ${state.review.week} report card`} lips={[toFantasy]}
-      info={<InfoButton title="About the report card" body={['A report card for GTL’s statistical pace estimates, not a forecast or betting claim. Each estimate is graded against the recorded result, beside a season-average baseline.']} links={sourceLinks(snapshot)}/>}>
+      info={<InfoButton title="About the report card" body={['A report card for GTL’s weekly estimates, not a forecast or betting claim. Each estimate is graded against the recorded result, beside a season-average baseline.']} links={sourceLinks(snapshot)}/>}>
       <FantasyAccuracy theme="next" review={state.review} filters={filters} scoringLabel={scoringLabel} headingLevel={3}/>
     </Nest></section>;
   }

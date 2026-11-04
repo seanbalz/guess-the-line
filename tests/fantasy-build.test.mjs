@@ -271,8 +271,30 @@ test('snapshots carry method GTL usage 2.0, which validation accepts, and its de
   assert.ok(Object.isFrozen(FANTASY_METHOD));
   assert.equal(validateFantasySnapshot(snapshot, { now: GENERATED }).valid, true);
   for (const phrase of [/expected targets, carries and pass attempts/, /recent weeks counting more/, /pulled toward the position average/,
-    /touchdown rates are pulled harder/, /Kickers keep the earlier pace method/, /At least two recorded appearances are required/,
-    /No injury return date, depth-chart role or matchup adjustment/]) assert.match(snapshot.method.description, phrase);
+    /touchdown rates are pulled harder/, /Kickers, and any player with incomplete usage stats, use the earlier pace method/,
+    /at least two appearances are required/, /No injury return date, depth-chart role or matchup adjustment/]) assert.match(snapshot.method.description, phrase);
+  const words = snapshot.method.description.split(/\s+/).length;
+  assert.ok(words >= 100 && words <= 120, `fine print stays about 100-120 words (${words})`);
+});
+
+test('a skill player with an unknown usage stat falls back to pace instead of losing his estimate; under two appearances is still null', () => {
+  const input = fixture();
+  input.stats.find(row => row.player_id === playerId('GB') && row.week === '2').targets = '';
+  input.stats = input.stats.filter(row => row.player_id !== playerId('DEN') || row.week === '5');
+  input.stats.find(row => row.player_id === playerId('DEN')).targets = '';
+  const snapshot = buildFantasySnapshot(input), gb = find(snapshot, 'GB'), sea = find(snapshot, 'SEA');
+  assert.equal(gb.history.find(row => row.week === 2).targets, null);
+  assert.equal(usage(gb.history, { week: WEEK, position: 'RB', league: leagueFrom(input.stats), ...USAGE_SETTINGS }), null, 'usage() cannot use this history');
+  assert.deepEqual(gb.weekly.stats, estimatePace(gb.history), 'the estimate is pace 1.1');
+  assert.equal(gb.weekly.stats.rushingYards, 36, 'pace, not usage (30)');
+  assert.equal(gb.weekly.stats.targets, null, 'the unknown stat stays unknown, never zero');
+  assert.equal(gb.restOfSeason.stats.rushingYards, round(36 * gb.restOfSeason.games));
+  assert.equal(gb.restOfSeason.stats.targets, null);
+  // Complete histories still use usage. The incomplete GB and DEN rows leave the league rates, so SEA is not exactly 30.
+  assert.deepEqual(sea.weekly.stats, usageFor(sea, leagueFrom(input.stats)), 'complete histories still use usage');
+  assert.equal(find(snapshot, 'DEN').sampleGames, 1);
+  assert.equal(find(snapshot, 'DEN').weekly.stats, null, 'one appearance still gives no estimate');
+  assert.equal(find(snapshot, 'DEN').restOfSeason.stats, null);
 });
 
 test('non-active roster, fewer than two appearances, and missing required scoring stats never get invented estimates', () => {

@@ -74,7 +74,7 @@ function PlayerCard({ player, theme, scope, week, position, context, tools }) {
               : context.linesNote ? <p>{context.linesNote}</p> : null}
             <p className={c('meta')}>Matchup and kickoff context are observed nflverse data, not predictions.</p>
           </div>}
-          <p>{player.sampleGames ?? '—'} recorded games in the pace estimate. Player availability is not injury-adjusted.</p>
+          <p>{player.sampleGames ?? '—'} recorded games in the estimate. Player availability is not injury-adjusted.</p>
           {player.status && <p>Roster status in source: {player.status}.</p>}
           <strong>Trends entering Week {week}</strong>
           {trends.length ? <ul className={c('trend-details')}>
@@ -121,7 +121,7 @@ export function FantasyRankingsView({ theme = 'classic', headingLevel = 1, onBac
     <div className={c('heading')}><Heading className={theme === 'next' ? 'gx-t-title' : undefined}>Fantasy Football</Heading>
       {onBack && <Action theme={theme} onClick={onBack}>{backLabel}</Action>}
     </div>
-    <p className={c('intro')}>Weekly and rest-of-season player rankings from recent statistical pace. These are GTL estimates, not expert consensus or injury-adjusted projections.</p>
+    <p className={c('intro')}>Weekly and rest-of-season player rankings from recent usage and statistics. These are GTL estimates, not expert consensus or injury-adjusted projections.</p>
     <Surface theme={theme} className={c('filters')} aria-label="Fantasy rankings filters">
       {theme === 'next' ? <Segmented label="Ranking period" options={SCOPE_OPTIONS} value={filters.scope} onChange={value => update('scope', value)}/>
         : <div className={c('period')} role="group" aria-label="Ranking period">{SCOPE_OPTIONS.map(option => <button type="button" key={option.value} aria-pressed={filters.scope === option.value} onClick={() => update('scope', option.value)}>{option.label}</button>)}</div>}

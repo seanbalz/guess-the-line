@@ -45,8 +45,10 @@ appearances strictly before the selected week, and at least two of them are requ
     stats, rostered or not.
   - **Other stats:** fumbles lost, two-point conversions and return TDs use the
     season average.
-  - **Line:** the stat line is opportunities × rates. A history with any unknown
-    stat gives no estimate rather than a partial one.
+  - **Line:** the stat line is opportunities × rates.
+  - **Pace fallback:** usage needs every used stat in every appearance. A history
+    with an unknown one (a missing targets cell, say) falls back to pace 1.1, which
+    leaves that stat null. A missing scoring stat still means no estimate.
 - **Kickers:** keep pace 1.1 (`estimatePace`): per stat, 60% of the last three
   recorded appearances plus 40% of the season-to-date average. The backtest did
   not cover kickers.
