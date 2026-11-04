@@ -62,7 +62,7 @@ describe('ChartReveal (spec 4.3: charts reveal left to right)', () => {
     const sheet = css('ui/chartReveal.css');
     expect(sheet).toMatch(/@keyframes gx-reveal-clip \{ from \{ transform: translateX\(-100%\); \} to \{ transform: none; \} \}/);
     expect(sheet).toMatch(/@keyframes gx-reveal-hold \{ from \{ transform: translateX\(100%\); \} to \{ transform: none; \} \}/);
-    expect(sheet).toMatch(/@media \(prefers-reduced-motion: no-preference\) \{\n {2}\.gx \.gx-reveal\[data-reveal="in"\] \{ overflow: hidden; animation: gx-reveal-clip var\(--gx-dur-big\) var\(--gx-ease-enter\) both; \}/);
+    expect(sheet).toMatch(/@media \(prefers-reduced-motion: no-preference\) \{\n {2}\.gx:not\(\[data-motion="reduce"\]\) \.gx-reveal\[data-reveal="in"\] \{ overflow: hidden; animation: gx-reveal-clip var\(--gx-dur-big\) var\(--gx-ease-enter\) both; \}/);
     expect(sheet).not.toMatch(/\.gx \.gx-reveal \{[^}]*overflow/);
   });
 });
@@ -133,5 +133,36 @@ describe('kit moves and names', () => {
     expect(sheet).toMatch(/\.gx \.gx-stagger \{ --gx-nest-stagger: 30ms; \}/);
     expect(sheet).toMatch(/\.gx \.gx-kept\[data-enter="back"\] \{ animation: gx-nest-back var\(--gx-dur-exit\) var\(--gx-ease-standard\); \}/);
     expect(ui.useEntrance).toBeTypeOf('function');
+  });
+});
+
+describe('D-69 step 3 fix wave 1: stylesheet contracts', () => {
+  const bare = file => css(file).replace(/\/\*[\s\S]*?\*\//g, '');
+  // The declarations of the first rule whose selector text is exactly `sel`.
+  const declarations = (sheet, sel) => {
+    const at = sheet.indexOf(`${sel} {`);
+    return at < 0 ? null : sheet.slice(at + sel.length + 2, sheet.indexOf('}', at)).trim();
+  };
+  const weight = sel => (sel.match(/\.[\w-]+|\[[^\]]+\]|:nth-child\([^)]*\)/g) ?? []).length;
+  it('a kept list that settles back does not replay its rows’ rise, and the rule out-specifies the stagger rule', () => {
+    const sheet = bare('ui/nest.css');
+    const stagger = '.gx .gx-stagger[data-enter="in"] > :nth-child(-n+6)';
+    const kill = '.gx .gx-kept[data-enter="back"] .gx-stagger[data-enter="in"] > :nth-child(-n+6)';
+    expect(declarations(sheet, kill)).toBe('animation: none;');
+    expect(weight(kill)).toBeGreaterThan(weight(stagger));
+    const block = sheet.slice(sheet.indexOf('@media (prefers-reduced-motion: no-preference)'));
+    expect(block.indexOf(kill)).toBeGreaterThan(0);
+    expect(block.indexOf(kill)).toBeLessThan(block.indexOf('@keyframes'));
+  });
+  it('the pager wrapper clips the x axis (no scroll container, no transform) so a turn never widens the page', () => {
+    const rules = declarations(bare('ui/pager.css'), '.gx .gx-pager');
+    expect(rules).toMatch(/overflow-x: clip;/);
+    expect(rules).not.toMatch(/transform|overflow: hidden|overflow-y/);
+    expect(render(<ui.LayerPager title="Game" pager={{ index: 1, count: 3 }} page="a">x</ui.LayerPager>)).toContain('class="gx-pager"');
+  });
+  it('the chart reveal clip is off under the app-level reduce setting too', () => {
+    const sheet = bare('ui/chartReveal.css');
+    expect(declarations(sheet, '.gx:not([data-motion="reduce"]) .gx-reveal[data-reveal="in"]')).toMatch(/^overflow: hidden;/);
+    expect(sheet).not.toContain('  .gx .gx-reveal[data-reveal="in"] {');
   });
 });

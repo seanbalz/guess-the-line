@@ -4,8 +4,8 @@
 .gx .gx-reveal { display: block; min-width: 0; }
 .gx .gx-reveal-in { display: block; }
 @media (prefers-reduced-motion: no-preference) {
-  .gx .gx-reveal[data-reveal="in"] { overflow: hidden; animation: gx-reveal-clip var(--gx-dur-big) var(--gx-ease-enter) both; }
-  .gx .gx-reveal[data-reveal="in"] > .gx-reveal-in { animation: gx-reveal-hold var(--gx-dur-big) var(--gx-ease-enter) both; }
+  .gx:not([data-motion="reduce"]) .gx-reveal[data-reveal="in"] { overflow: hidden; animation: gx-reveal-clip var(--gx-dur-big) var(--gx-ease-enter) both; }
+  .gx:not([data-motion="reduce"]) .gx-reveal[data-reveal="in"] > .gx-reveal-in { animation: gx-reveal-hold var(--gx-dur-big) var(--gx-ease-enter) both; }
 }
 @keyframes gx-reveal-clip { from { transform: translateX(-100%); } to { transform: none; } }
 @keyframes gx-reveal-hold { from { transform: translateX(100%); } to { transform: none; } }

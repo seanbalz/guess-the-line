@@ -84,6 +84,8 @@
   .gx .gx-nest-card[data-enter="in"] .gx-nest-grid > :nth-child(4), .gx .gx-nest-card[data-enter="in"] .gx-nest-list > :nth-child(4), .gx .gx-stagger[data-enter="in"] > :nth-child(4) { animation-delay: calc(var(--gx-nest-stagger) * 3); }
   .gx .gx-nest-card[data-enter="in"] .gx-nest-grid > :nth-child(5), .gx .gx-nest-card[data-enter="in"] .gx-nest-list > :nth-child(5), .gx .gx-stagger[data-enter="in"] > :nth-child(5) { animation-delay: calc(var(--gx-nest-stagger) * 4); }
   .gx .gx-nest-card[data-enter="in"] .gx-nest-grid > :nth-child(6), .gx .gx-nest-card[data-enter="in"] .gx-nest-list > :nth-child(6), .gx .gx-stagger[data-enter="in"] > :nth-child(6) { animation-delay: calc(var(--gx-nest-stagger) * 5); }
+  /* Re-showing a kept list from display:none restarts its rows' animations; its rows already rose when it first opened. */
+  .gx .gx-kept[data-enter="back"] .gx-stagger[data-enter="in"] > :nth-child(-n+6) { animation: none; }
 }
 /* A short slide only: a scale would shrink 44px targets and a fade would leave text below its contrast while the
    card enters, and checks (or a quick reader) can land mid-animation. */

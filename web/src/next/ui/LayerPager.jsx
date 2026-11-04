@@ -3,7 +3,8 @@
 // card; a sideways drag of its body turns the page with the sheet's own gesture and thresholds (useSheetGestures.js
 // usePagerSwipe, sheet.css's motion classes). The body moves with an inline transform on itself only, never on an
 // ancestor of the fixed bars. Turning a page is not a navigation: the owner swaps the item in place, so focus stays on
-// the button, and the page scrolls back to the top when the item (`page`) changes.
+// the button, and the page scrolls back to the top when the item (`page`) changes. It must sit inside a Nest whose
+// `layer` stays the same across pages: a per-page layer key would remount the pager and move focus to the heading.
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import { pagerPlace } from './gesture.js';
@@ -31,6 +32,6 @@ export function LayerPager({ title, pager, page, children }) {
       {button(-1, ChevronLeft, pager.prevLabel ?? 'Previous', place.canPrev)}
       {button(1, ChevronRight, pager.nextLabel ?? 'Next', place.canNext)}
     </div> : null}
-    <div ref={body} className={cx('gx-pager-body', place && 'gx-sheet-body--pager')} onPointerDown={place ? paging.onPointerDown : undefined}>{children}</div>
+    <div className="gx-pager"><div ref={body} className={cx('gx-pager-body', place && 'gx-sheet-body--pager')} onPointerDown={place ? paging.onPointerDown : undefined}>{children}</div></div>
   </>;
 }
