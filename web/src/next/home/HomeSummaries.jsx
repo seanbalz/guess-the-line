@@ -1,13 +1,12 @@
-import { communityApi } from '../../api.js';
 import { show } from '../../communityFormat.js';
-import { useLeagueRead } from '../league/useLeagueRead.jsx';
 import { useTicketSummary } from '../bets/useTicketSummary.js';
 import { FocusRow } from '../ui/FocusLanding.jsx';
 import { ownEntry, scoreRows, scoreSummary, SCORE_MARKETS } from '../play/scoring.js';
+import { useHomeScoreRead } from '../play/useHomeScoreRead.js';
 
 export function ScoreSummaryRow({ app, onClick }) {
   const current = app.community.data?.week;
-  const read = useLeagueRead(`${app.accountId}:home-score:${current?.season}:${current?.week}`, signal => communityApi('history', current?.season ? { season: current.season } : {}, signal), error => { if (error.status === 401) app.requestSignIn(); }, { shared: true });
+  const read = useHomeScoreRead(app);
   const week = read.data?.weeks?.find(row => row.season === current?.season && row.week === current?.week);
   const sub = read.loading ? 'Loading your scores…' : read.error ? 'Scores unavailable · open to retry' : !week ? 'No scoring record this week yet' : SCORE_MARKETS.map(({ value, label }) => {
     const entry = ownEntry(week, read.data.viewer, value), summary = scoreSummary(scoreRows(week, entry));
