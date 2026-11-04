@@ -1,0 +1,18 @@
+/* D-69 step 4: Bets › Your gap. D-77's hero keeps the look Sean approved (moved from recommendedBets.css with the same
+   tokens); the rows are the kit's picture rows; the gap layer's comparison, sides and actions. Tokens only. */
+.gx .gx-gap-hero { display: flex; flex-direction: column; gap: var(--gx-space-3); color: var(--gx-text-1); }
+.gx .gx-gap-hero .gx-t-micro, .gx .gx-gap-hero .gx-t-meta, .gx .gx-gap-rate .gx-t-body { margin: 0; color: var(--gx-text-2); }
+.gx .gx-gap-hero-top { display: flex; align-items: center; justify-content: space-between; gap: var(--gx-space-2); }
+.gx .gx-gap-about { display: grid; place-items: center; width: var(--gx-size-touch); height: var(--gx-size-touch); margin: calc(var(--gx-space-3) * -1) calc(var(--gx-space-3) * -1) calc(var(--gx-space-3) * -1) 0; padding: 0; border: 0; border-radius: var(--gx-radius-pill); background: none; color: var(--gx-text-2); cursor: pointer; }
+.gx .gx-gap-about:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
+.gx .gx-gap-rate { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--gx-space-2); }
+.gx .gx-gap-dots { display: flex; flex-wrap: wrap; gap: var(--gx-space-2); margin: 0; padding: 0; list-style: none; }
+.gx .gx-gap-dots li { display: grid; place-items: center; width: var(--gx-space-7); height: var(--gx-space-7); border-radius: var(--gx-radius-pill); background: var(--gx-win); color: var(--gx-on-state); font: 700 13px/1 var(--gx-font-body); }
+.gx .gx-gap-dots li[data-outcome="loss"] { background: var(--gx-loss); }
+.gx .gx-gap-dots li[data-outcome="push"] { background: var(--gx-pending); }
+.gx .gx-gap-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-gap-week { display: flex; flex-direction: column; gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-gap-week select { min-height: var(--gx-size-touch); width: 100%; min-width: 0; padding: var(--gx-space-2); color: var(--gx-text-1); background: var(--gx-surface-2); border: 1px solid var(--gx-border-strong); border-radius: var(--gx-radius-sm); font: inherit; }
+.gx .gx-gap-stat { justify-content: space-between; }
+/* A skeleton row is a gap row's height, 72 px (measured in Task 8 at 390 px). */
+.gx .gx-gap-skel .gx-skel-row { min-height: calc(var(--gx-space-10) + var(--gx-space-2)); }

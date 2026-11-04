@@ -97,7 +97,7 @@ export const INFO = Object.freeze({
     ],
   },
   recommended: {
-    title: 'About your guess vs. market',
+    title: 'About your gap',
     body: [
       'Compare your locked guesses with current lines. Track a ticket placed elsewhere, or play with Virtual Units.',
       'Differences are compared as a percentage of the line; they are not win probabilities.',
