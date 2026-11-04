@@ -1,11 +1,14 @@
 import { Button, Card, Icon, List, Row } from './index.js';
 import './focusLanding.css';
 
-/** Shared hierarchy for the four roots: one action, then quiet destinations. */
+/**
+ * Shared hierarchy for the four roots: one action, then quiet destinations. The action's headline is in the title style
+ * (28 px), never the 40 px display line, which is Home's hero alone (quick win A9).
+ */
 export function FocusAction({ title, eyebrow, description, action, onAction, children, ...rest }) {
   return <Card as="section" variant="hero" className="gx-focus-action" {...rest}>
     {eyebrow && <p className="gx-t-label gx-c-2">{eyebrow}</p>}
-    <h2 className="gx-t-display">{title}</h2>
+    <h2 className="gx-t-title">{title}</h2>
     {description && <p className="gx-t-body gx-c-2">{description}</p>}
     {children}
     <Button variant="primary" block iconEnd="chevronRight" onClick={onAction}>{action}</Button>

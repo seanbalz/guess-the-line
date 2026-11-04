@@ -7,14 +7,13 @@ import { Button } from './Button.jsx';
 import { LockLine } from './LockLine.jsx';
 import { cx } from './cx.js';
 
-export function GateBanner({ gate, onCta, onSkip, note, className, ...rest }) {
+export function GateBanner({ gate, onCta, onSkip, className, ...rest }) {
   if (!gate || !gate.locked || !gate.sentence) return null;
   const cta = gate.ctaLabel && typeof onCta === 'function';
   const skip = gate.canSkip && gate.skipLabel && typeof onSkip === 'function';
   return (
     <div className={cx('gx-lock-card', className)} {...rest}>
       <LockLine>{gate.sentence}</LockLine>
-      {note ? <p className="gx-t-meta">{note}</p> : null}
       {cta || skip ? (
         <div className="gx-gate-acts">
           {cta ? <Button variant="ghost" iconEnd={ChevronRight} onClick={onCta}>{gate.ctaLabel}</Button> : null}

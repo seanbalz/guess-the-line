@@ -10,7 +10,7 @@ import { HOME_COPY, heroProgress, homeHero, homeTiles } from '../../../../shared
 import { HOME_LOADING } from '../copy.js';
 import { useShell } from '../shell/context.js';
 import { SHELL_COPY } from '../shell/tabs.js';
-import { Avatar, Button, Card, Countdown, Meter, Move, Pill, Skeleton } from '../ui/index.js';
+import { Avatar, Button, Card, Countdown, DESTINATION_ICONS, Meter, Move, Pill, Skeleton } from '../ui/index.js';
 import { useHomeData } from './homeData.js';
 import { useTicketSummary } from '../bets/useTicketSummary.js';
 import { FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
@@ -205,7 +205,7 @@ export function Home() {
       ) : null}
       <HomeAwards app={app}/>
       <FocusRows label="This week">
-        <FocusRow icon="chart" title="This week’s trends" sub="Charts for every game" onClick={() => shell.go('research', { section: 'trends', season: null, week: null })}/>
+        <FocusRow icon={DESTINATION_ICONS.trends} title="This week’s trends" sub="Charts for every game" onClick={() => shell.go('research', { section: 'trends', season: null, week: null })}/>
         {savedTrends.items.length ? <Suspense key="saved-trends" fallback={<span className="gx-t-meta" role="status">Checking saved trends…</span>}><SavedTrendsHomeRow onOpen={() => shell.go('research', { section: 'trends', trendSection: 'build', season: null, week: null })}/></Suspense> : null}
       </FocusRows>
     </div>

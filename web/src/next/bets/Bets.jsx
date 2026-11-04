@@ -1,5 +1,4 @@
 import { lazy, useCallback, useEffect, useMemo, useState } from 'react';
-import { Coins, Users } from 'lucide-react';
 import { Deferred } from '../ui/Deferred.jsx';
 import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
@@ -13,6 +12,7 @@ import { PlaceBets } from './PlaceBets.jsx';
 import { Segmented } from '../ui/Segmented.jsx';
 import { TrackedBetRow } from './TrackedBetRow.jsx';
 import { FocusAction, FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
+import { DESTINATION_ICONS as ICON } from '../ui/destinations.js';
 import { useTicketSummary } from './useTicketSummary.js';
 import { draftParts, savedTicketToast } from './recommendationReview.js';
 import { recommendationMarket } from '../../../../shared/recommended-bets.mjs';
@@ -42,13 +42,13 @@ function BetsLanding() {
     <h1 className="gx-t-title">Bets</h1>
     <FocusAction title="Your tickets. All together." description="Keep a record of the bets you placed elsewhere." action="Add a bet" onAction={() => open('add')}/>
     <FocusRows label="Your bets">
-      <FocusRow icon="chart" title="Overview" sub="Performance, bet types and sportsbooks" onClick={() => open('overview')}/>
-      <FocusRow icon="ticket" title="Active tickets" sub={count('active')} onClick={() => open('active')}/>
-      <FocusRow icon="check" title="Settled tickets" sub={count('settled')} onClick={() => open('settled')}/>
-      <FocusRow icon="chart" title="Research recommendations" sub="Independent game and player-prop assessments" onClick={() => open('research')}/>
-      <FocusRow icon="chart" title="Your guess vs. market" sub="Compare your locked guesses with current lines" onClick={() => open('recommended')}/>
-      <FocusRow icon={Coins} title="Virtual Units" sub="Your separate play-money picks" onClick={() => open('virtual')}/>
-      <FocusRow icon={Users} title="Everyone’s picks" sub="Friends’ Virtual Units picks this week" onClick={() => open('everyone')}/>
+      <FocusRow icon={ICON.overview} title="Overview" sub="Performance, bet types and sportsbooks" onClick={() => open('overview')}/>
+      <FocusRow icon={ICON.activeTickets} title="Active tickets" sub={count('active')} onClick={() => open('active')}/>
+      <FocusRow icon={ICON.settledTickets} title="Settled tickets" sub={count('settled')} onClick={() => open('settled')}/>
+      <FocusRow icon={ICON.researchPicks} title="Research recommendations" sub="Independent game and player-prop assessments" onClick={() => open('research')}/>
+      <FocusRow icon={ICON.guessGap} title="Your guess vs. market" sub="Compare your locked guesses with current lines" onClick={() => open('recommended')}/>
+      <FocusRow icon={ICON.virtualUnits} title="Virtual Units" sub="Your separate play-money picks" onClick={() => open('virtual')}/>
+      <FocusRow icon={ICON.everyone} title="Everyone’s picks" sub="Friends’ Virtual Units picks this week" onClick={() => open('everyone')}/>
     </FocusRows>
   </section>;
 }

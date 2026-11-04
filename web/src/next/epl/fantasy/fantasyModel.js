@@ -37,7 +37,7 @@ export const FANTASY_COPY = Object.freeze({
   actual: 'Actual',
   gapNote: '— means no saved Sleeper snapshot for that matchweek.',
   standings: 'Standings',
-  standingsNote: 'Sleeper season points. Bonuses are added in Sleeper. Tap a manager for the bonus record.',
+  standingsNote: 'Sleeper season points. Bonuses are added in Sleeper.',
   split: (sleeper, bonus) => `Sleeper ${sleeper} · Pick a Team bonus ${bonus} (added in Sleeper)`,
   starter: 'Starters',
   bench: 'Bench',

@@ -1,7 +1,8 @@
 // Research › Fantasy › Standings: every manager as a bar of Sleeper season points, including commissioner-added bonuses, ranked,
 // with W–L (a missing name, record or total is an em dash, never empty or 0); your bar is lime and your row aria-current. Tapping a row opens the split: Sleeper's raw total and the bonus.
+// Each row ends in a chevron that turns over while it is open, so the rows show that they open (quick win A24).
 import { useId } from 'react';
-import { Card } from '../../ui/index.js';
+import { Card, Icon } from '../../ui/index.js';
 import { DASH, FANTASY_COPY, fmtPts } from './fantasyModel.js';
 
 const finite = x => typeof x === 'number' && Number.isFinite(x);
@@ -22,6 +23,7 @@ export function StandingsPanel({ view }) {
               <span className="gx-epl-fx-stand-name">{r.name || DASH}</span>
               <span className="gx-epl-fx-record">{finite(r.wins) && finite(r.losses) ? `${r.wins}–${r.losses}` : DASH}</span>
               <span className="gx-epl-fx-num">{fmtPts(r.total)}</span>
+              <Icon icon="chevronDown" size={16} className="gx-epl-fx-chev"/>
               <span className="gx-tc-bar gx-epl-fx-stand-bar" aria-hidden="true"><span className="gx-tc-bar-fill" style={{ width: `${finite(r.total) ? Math.round((Math.max(0, r.total) / widest) * 100) : 0}%` }}></span></span>
             </summary>
             <p className="gx-t-meta gx-c-2 gx-epl-fx-split-body">{FANTASY_COPY.split(fmtPts(r.sleeperTotal), fmtPts(r.bonus))}</p>

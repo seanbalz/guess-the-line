@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { boardMarket, boardGate, boardQuotes, marketBoard, recordedFinal } from '../web/src/next/lines/boardMarkets.js';
+import { boardMarket, boardGate, boardQuotes, marketBoard, quoteTime, recordedFinal } from '../web/src/next/lines/boardMarkets.js';
 import { SIX_HOURS } from '../web/src/next/lines/marketDetails.js';
 
 const now = Date.parse('2026-10-26T20:00:00Z');
@@ -87,14 +87,30 @@ test('final sections retain each card once and vanish while refreshing without r
 });
 
 test('D-66: the board names one quote source and update once, counts distinct updates, and ignores closed cells', () => {
-  const cell = (source, observed, open = true) => ({ open, line: '1', label: 'Current line', source, observed });
+  const at = '2026-10-28T18:12:00.000Z';
+  const cell = (source, observed, open = true) => ({ open, line: '1', label: 'Current line', source, observed, observedAt: at });
   const board = cards => ({ groups: [{ cards }], started: null, finals: null });
   const a = { spread: cell('The Odds API · 3-book median', 'Wed 11:12 AM PT'), total: cell('The Odds API · 3-book median', 'Wed 11:12 AM PT') };
-  assert.deepEqual(boardQuotes(board([a, a])), { source: 'The Odds API · 3-book median', observed: 'Wed 11:12 AM PT' });
+  assert.deepEqual(boardQuotes(board([a, a])), { source: 'The Odds API · 3-book median', observed: 'Wed 11:12 AM PT', observedAt: at });
   const later = { ...a, total: cell('The Odds API · 3-book median', 'Wed 5:12 PM PT') };
   assert.deepEqual(boardQuotes(board([a, later])), { updates: 2 });
   // A closed market never contributes its (hidden) source; a board with no open quote says nothing.
-  assert.deepEqual(boardQuotes(board([{ spread: cell('hidden', 'x', false), total: { open: false } }, a])), { source: 'The Odds API · 3-book median', observed: 'Wed 11:12 AM PT' });
+  assert.deepEqual(boardQuotes(board([{ spread: cell('hidden', 'x', false), total: { open: false } }, a])), { source: 'The Odds API · 3-book median', observed: 'Wed 11:12 AM PT', observedAt: at });
   assert.equal(boardQuotes(board([{ spread: { open: false }, total: { open: false } }])), null);
   assert.equal(boardQuotes(null), null);
+});
+
+// Quick win A20 (November 4, 2026): the board's one meta line says when its quotes were updated in a few characters and
+// never splits a date from its time: the Pacific clock time with PT on the same Pacific day as the server's now, the
+// day and time otherwise, never the year (the full date and year stay behind the title's ⓘ), and "—" when missing.
+test('A20: the meta line’s quote time is short, Pacific, and never carries the year', () => {
+  const now = Date.parse('2026-11-04T02:30:00Z'); // Tue Nov 3, 6:30 PM PT
+  assert.equal(quoteTime('2026-11-04T02:26:00Z', now), '6:26 PM PT');
+  assert.equal(quoteTime('2026-11-03T07:59:00Z', now), 'Mon 11:59 PM PT');
+  assert.equal(quoteTime('2026-11-03T08:01:00Z', now), '12:01 AM PT');
+  // Pacific days, not UTC ones: both instants are November 4 in UTC, but 11:59 PM PT is the day before 12:30 AM PT.
+  assert.equal(quoteTime('2026-11-04T07:59:00Z', Date.parse('2026-11-04T08:30:00Z')), 'Tue 11:59 PM PT');
+  assert.doesNotMatch(quoteTime('2026-10-28T18:12:00Z', now), /2026/);
+  assert.equal(quoteTime(null, now), '—');
+  assert.equal(quoteTime('2026-11-04T02:26:00Z', null), 'Tue 6:26 PM PT');
 });

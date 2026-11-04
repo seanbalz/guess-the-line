@@ -723,6 +723,9 @@ textarea.gx-input { min-height: 96px; padding: 12px 16px; resize: vertical; }
   scrollbar-width: none;
 }
 .gx-sheet-body::-webkit-scrollbar { display: none; }
+/* The body scrolls; its blocks keep their own height. A flush card hides its overflow, so it could otherwise shrink to
+   fit and cut off its last rows on a short phone, leaving nothing to scroll to (the Menu at 320 x 640). */
+.gx-sheet-body > * { flex-shrink: 0; }
 .gx-sheet-foot {
   flex: none;
   display: flex;
