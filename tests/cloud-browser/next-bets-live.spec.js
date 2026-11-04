@@ -3,6 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 import fs from 'node:fs';
 import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, signIn, sendBallot, storeBookLines } from './community-world.mjs';
 import { ALL } from '../migrations.mjs';
+import { layoutProblems } from '../helpers/phone-layout.mjs';
 
 // The new Bets tab on the schema players have today, using the existing social and virtual routes.
 // All accounts, tickets, prices and writes are local fixtures. No hosted account or provider is contacted.
@@ -366,6 +367,17 @@ test('Your picks places two bets, confirms a lost reply without a duplicate, edi
       await page.setViewportSize({ width, height: 844 });
       await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${theme} ${width}px board fits`).toBe(true);
+      expect(await page.evaluate(layoutProblems), `${theme} ${width}px board layout`).toEqual([]);
+      // Design audit A15: a price chip is two lines. The price starts the second line (never left alone after a wrapped
+      // "SEA +3.5 ·"), and a selected chip's check shares the first line so the price and book keep the chip's width.
+      expect(await place.locator('[data-market="spread"] .gx-chip').evaluateAll(chips => chips.flatMap(chip => {
+        const [first, second] = chip.querySelectorAll('.gx-place-chip > span'), price = second.querySelector('.gx-n-xs'), check = chip.querySelector('svg');
+        const top = el => el.getBoundingClientRect().top, bottom = el => el.getBoundingClientRect().bottom;
+        return [...(top(second) < bottom(first) - 1 ? [`${first.textContent}: second line overlaps the first`] : []),
+          ...(price && Math.abs(top(price) - top(second)) > 4 ? [`${price.textContent}: not first on the second line`] : []),
+          ...(check && bottom(check) > top(second) + 1 ? [`${first.textContent}: check below the first line`] : [])];
+      })), `${theme} ${width}px price chips`).toEqual([]);
+      expect(await place.locator('[data-market="spread"] .gx-chip--on svg').count(), 'a selected chip').toBe(1);
       await page.screenshot({ path: `.local/previews/next-bets-place-${theme}-${width}.png` });
       await page.getByRole('button', { name: 'Review slip', exact: true }).click();
       await expect(sheet).toBeVisible();

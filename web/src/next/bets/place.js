@@ -47,7 +47,8 @@ export function priceText(game, market, value) {
 
 /**
  * `{ published, season, week, now, closed, games }`. A game is `{ id, awayCode, homeCode, kickoff, started, faces, markets }`;
- * a market is `{ market, name, visible, locked, sides, mine }`, a side `{ side, label, offer, text }`, and `mine` your saved
+ * a market is `{ market, name, visible, locked, sides, mine }`, a side `{ side, label, offer, text, pick, price }` (the price
+ * chip's two lines: "SEA +3.5", then "−110" before the book), and `mine` your saved
  * bet `{ selection, text, units, status, moved }` (moved: the offer for your side no longer has your line and price).
  */
 export function placeBoard(data, viewer) {
@@ -72,7 +73,8 @@ export function placeBoard(data, viewer) {
         const own = bets.find(bet => bet.userId === viewer && bet.gameId === game.id && bet.market === market);
         const sides = SIDES[market].map(side => {
           const offer = visible && offerOk(market, side, cell.offers?.[side]) ? cell.offers[side] : null;
-          return { side, label: sideText(game, market, side), offer, text: offer ? priceText(game, market, offer) : null };
+          return { side, label: sideText(game, market, side), offer, text: offer ? priceText(game, market, offer) : null,
+            pick: offer ? pickText(game, market, offer) : null, price: offer ? fmtOdds(offer.odds) : null };
         });
         let mine = null;
         if (own && record(own.selection) && finite(own.selection.units)) {

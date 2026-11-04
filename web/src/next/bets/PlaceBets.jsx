@@ -113,11 +113,14 @@ export function PlaceGame({ game, slip, disabled, onToggle }) {
       {market.locked ? <LockLine as="p" className="gx-t-meta">{market.locked}</LockLine>
         : game.started ? null
           : <ChipRail label={`${game.awayCode} at ${game.homeCode} ${market.name.toLowerCase()} prices`} className="gx-place-sides">
-            {market.sides.map(side => <Chip key={side.side} text tall selected={slip[slipKey(game.id, market.market)]?.side === side.side}
+            {/* Two lines (design audit A15): "SEA +3.5", then "−110 · BetMGM". */}
+            {market.sides.map(side => <Chip key={side.side} tall selected={slip[slipKey(game.id, market.market)]?.side === side.side}
               disabled={disabled || !side.offer}
               label={side.offer ? `${side.text}, ${side.offer.source}` : `${side.label}, ${PLACE_COPY.noOffer}`}
               onClick={() => side.offer && onToggle(game, market, side)}>
-              <span className="gx-vstack"><span>{side.offer ? side.text : side.label}</span><span className="gx-t-meta gx-c-2">{side.offer ? side.offer.source : PLACE_COPY.noOffer}</span></span>
+              <span className="gx-place-chip"><span className="gx-n-s">{side.offer ? side.pick : side.label}</span>
+                {side.offer ? <span><span className="gx-n-xs">{side.price}</span><span className="gx-t-meta gx-c-2">{` · ${side.offer.source}`}</span></span>
+                  : <span className="gx-t-meta gx-c-2">{PLACE_COPY.noOffer}</span>}</span>
             </Chip>)}
           </ChipRail>}
     </div>)}

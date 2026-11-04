@@ -4,7 +4,7 @@
 // the offered terms, `expected: null` for a new bet and your saved terms for an edit; units step in halves.
 import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { markupProblems } from './helpers/ui-markup.mjs';
+import { markupProblems, nameFrom, parseMarkup, walk } from './helpers/ui-markup.mjs';
 
 vi.mock('../web/src/api.js', () => ({ betsApi: vi.fn() }));
 vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: vi.fn() }));
@@ -106,6 +106,19 @@ describe('a game card', () => {
     const startedGame = html.slice(html.indexOf('data-game="HOU-JAX"'), html.indexOf('data-game="SEA-DEN"'));
     expect(startedGame).toContain(PLACE_COPY.started);
     expect(startedGame).not.toContain('gx-chip');
+  });
+  // Design audit A15: a price chip is two lines, side and line in n-s over the price in n-xs and the book in meta, instead
+  // of one run of body text that wrapped mid-term ("SEA +3.5 ·" / "−110"). Its name still reads all three.
+  it('draws each price chip as side and line over price and book', () => {
+    const chips = [...walk(parseMarkup(html))].filter(n => n.tag === 'button');
+    const lines = chip => [...walk(chip)].find(n => n.attrs?.class === 'gx-place-chip').children.filter(n => n.tag);
+    const parts = line => [...walk(line)].filter(n => n.tag).map(n => [n.attrs.class, nameFrom(n)]);
+    expect(chips.map(chip => lines(chip).map(line => [line.attrs.class ?? '', nameFrom(line), parts(line)]))).toEqual([
+      [['gx-n-s', 'SEA +3.5', []], ['', '−105 · FanDuel', [['gx-n-xs', '−105'], ['gx-t-meta gx-c-2', ' · FanDuel']]]],
+      [['gx-n-s', 'DEN −3.5', []], ['', '−110 · DraftKings', [['gx-n-xs', '−110'], ['gx-t-meta gx-c-2', ' · DraftKings']]]],
+    ]);
+    expect(chips.map(chip => chip.attrs['aria-label'])).toEqual(['SEA +3.5 · −105, FanDuel', 'DEN −3.5 · −110, DraftKings']);
+    expect(chips.some(chip => /gx-chip--text/.test(chip.attrs.class))).toBe(false);
   });
 });
 
