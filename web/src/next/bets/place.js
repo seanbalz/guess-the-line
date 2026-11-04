@@ -7,7 +7,7 @@
 // - your own bet always shows in full; editing it sends the terms you read (`expected`), so a bet changed on another
 //   device is refused with "This bet changed" instead of being overwritten;
 // - a game that has kicked off takes no new bet or edit.
-import { DASH, MINUS, fmtOdds, fmtU } from '../format.js';
+import { DASH, MINUS, fmtAmt, fmtOdds, fmtRecord, fmtU } from '../format.js';
 import { pickText, sideText } from './everyone.js';
 import { QUALIFY_PICKS, QUALIFY_UNITS, weekFromPicks } from '../../../../shared/bets-qual.mjs';
 
@@ -143,8 +143,9 @@ export function weekCard(data, viewer) {
   return {
     open: pending.filter(bet => !started(bet)).length, inPlay: pending.filter(started).length,
     toWin: fmtU(Math.round(pending.reduce((sum, bet) => sum + toWinUnits(bet.selection), 0) * 100) / 100),
-    record: `${week.wins}-${week.losses}${week.pushes ? `-${week.pushes}` : ''}`,
-    units: week.riskUnits ? `${week.netUnits > 0 ? '+' : ''}${fmtU(week.netUnits)}` : DASH,
+    // The app's one record and amount style (design audit A13): "1–1–0", "+0.75U", "−1.50U".
+    record: fmtRecord(week.wins, week.losses, week.pushes),
+    units: week.riskUnits ? fmtAmt(week.netUnits) : DASH,
     ret: week.roi === null ? DASH : `${week.roi > 0 ? '+' : week.roi < 0 ? MINUS : ''}${Math.abs(week.roi)}%`,
     picks: week.picks, qualified: week.qualified,
     meter: { value: Math.min(QUALIFY_PICKS, Math.max(week.picks, Math.floor(units / QUALIFY_UNITS * QUALIFY_PICKS))),

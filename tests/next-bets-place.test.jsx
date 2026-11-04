@@ -136,9 +136,11 @@ describe('your week (stage 45)', async () => {
     expect(toWinUnits({ units: 2, odds: -110 })).toBeCloseTo(1.818, 3);
     expect(week.toWin).toBe('3.02U');
   });
+  // Design audit A13: the record is the app's "W–L–P" with en dashes and all three parts, and net units use the amount
+  // style (real minus, no space, two decimals), as the tracked tickets and Everyone's result pills do.
   it('takes record, units and return from settled bets only, and qualifies at 3 bets or 3 units', () => {
-    expect(week.record).toBe('0-1');
-    expect(week.units).toBe('−1.5U');
+    expect(week.record).toBe('0–1–0');
+    expect(week.units).toBe('−1.50U');
     expect(week.ret).toBe('−100%');
     expect(week.picks).toBe(3);
     expect(week.qualified).toBe(true);
@@ -148,7 +150,7 @@ describe('your week (stage 45)', async () => {
     const one = weekCard({ ...data, bets: [data.bets[0]] }, LUKE);
     expect(one.meter.text).toBe('1 of 3 bets · 2U of 3U');
     expect(one.meter.value).toBe(2);
-    expect(one.record).toBe('0-0');
+    expect(one.record).toBe('0–0–0');
     expect(one.units).toBe('—');
     expect(one.ret).toBe('—');
   });

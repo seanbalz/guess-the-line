@@ -5,6 +5,7 @@ import { lockSentence } from './lineLock';
 import { buildRecommendations, gapRecord, recommendationList, recommendationMarket } from '../../shared/recommended-bets.mjs';
 import { RecommendationTrendDetail, useRecommendationTrends } from './RecommendationTrends.jsx';
 import './recommendedBets.css';
+import { fmtOdds, fmtU } from './next/format.js';
 
 const STAKES = [0.5, 1, 1.5, 2, 2.5, 3];
 const money = value => value == null ? '—' : Number(value) > 0 ? `+${value}` : `−${Math.abs(value)}`;
@@ -298,7 +299,7 @@ export default function VirtualUnits({ leagueId, accountId, onDirty, onSaved, on
       {data.picks?.length > 0 && <section className="recommended-saved-card" aria-label="Your virtual card"><div className="recommended-list-heading"><h3>Your virtual card</h3><span>{data.picks.length} saved · Week {data.week}</span></div><p className="recommended-source">Saved picks stay here when a line changes or a game starts.</p><ul>{data.picks.map(pick => {
         const game = data.games.find(item => item.id === pick.gameId) || { id: pick.gameId, away: pick.gameId, home: '', awayCode: '', homeCode: '' };
         const outcome = settledLabel(pick, game), final = finalLine(game, pick.result || data.results?.[pick.gameId]);
-        return <li key={`${pick.gameId}:${pick.market}`}><div className="recommended-list-heading"><strong>{game.home ? `${game.away} at ${game.home}` : game.id} · {pick.market === 'spread' ? 'Spread' : 'Total'}</strong><span>{pick.status === 'pending' ? 'Pending' : outcome ? OUTCOMES[pick.status][1] : pick.status}</span></div><p>{sideName(game, pick.market, pick.selection.side)} {marketNumber(pick.market, pick.selection.line)} ({money(pick.selection.odds)}) · {pick.selection.units}U</p><p className="recommended-source">{pick.selection.source || 'Source unavailable'} · quoted {date(pick.selection.quotedAt)} PT</p>{outcome && <p className="recommended-saved-result">{outcome}</p>}{!outcome && final && <p className="recommended-source">{final}</p>}</li>;
+        return <li key={`${pick.gameId}:${pick.market}`}><div className="recommended-list-heading"><strong>{game.home ? `${game.away} at ${game.home}` : game.id} · {pick.market === 'spread' ? 'Spread' : 'Total'}</strong><span>{pick.status === 'pending' ? 'Pending' : outcome ? OUTCOMES[pick.status][1] : pick.status}</span></div><p>{sideName(game, pick.market, pick.selection.side)} {marketNumber(pick.market, pick.selection.line)} ({fmtOdds(pick.selection.odds)}) · {fmtU(pick.selection.units)}</p><p className="recommended-source">{pick.selection.source || 'Source unavailable'} · quoted {date(pick.selection.quotedAt)} PT</p>{outcome && <p className="recommended-saved-result">{outcome}</p>}{!outcome && final && <p className="recommended-source">{final}</p>}</li>;
       })}</ul></section>}
     </section>}
     {loading && <p className="loading" role="status">Loading saved lines and virtual picks…</p>}

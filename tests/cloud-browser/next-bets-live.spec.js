@@ -70,7 +70,7 @@ test('tracked Overview shows owner charts, shared filters and cash, then drills 
   await openBets(page);await tab(page,'Bets').click();await page.getByRole('button',{name:'Overview',exact:true}).click();
   const overview=page.getByRole('region',{name:'Tracked bets overview',exact:true});await expect(overview).toBeVisible();
   await expect(page.getByLabel('Competition week',{exact:true})).toHaveValue('all');
-  await expect(overview.locator('.gx-tc-big')).toHaveText('+0.75 U');
+  await expect(overview.locator('.gx-tc-big')).toHaveText('+0.75U');
   await expect(overview.getByRole('slider',{name:'Move along the line · Net units',exact:true})).toBeVisible();
   await expect(overview.getByRole('region',{name:'Bet activity'}).getByText('Tracked bets',{exact:true}).locator('..')).toContainText('3');
   await expect(overview.getByRole('region',{name:'Bet types'}).getByRole('button',{name:'Show Parlays: 1 bet',exact:true})).toBeVisible();
