@@ -11,8 +11,8 @@ import { useShell } from '../shell/context.js';
 import { Button, InfoButton, Matchup, Move, Pill, Segmented, Skeleton, cx, matchupWords } from '../ui/index.js';
 import { CountUp } from '../ui/CountUp.jsx';
 import { useLeagueRead } from '../league/useLeagueRead.jsx';
-import { useMomentScope } from '../moments/MomentsProvider.jsx';
-import { SCOPES } from '../moments/catalog.js';
+import { useMomentScope, usePopped } from '../moments/MomentsProvider.jsx';
+import { SCOPES, scoreScope } from '../moments/catalog.js';
 import { INFO } from '../info.js';
 import { fmtFull } from '../format.js';
 import { FilterToggle } from './FilterToggle.jsx';
@@ -30,6 +30,8 @@ import './yourScore.css';
 export function WeeklyScore() {
   const app = useAppData(), shell = useShell(), view = shell.state.views.play;
   useMomentScope(SCOPES.score);
+  // D-69 step 2: the shown market's own scope, where a Community rank move from Home's rank tile plays (its chip pops).
+  useMomentScope(scoreScope(modeOf(view.market)));
   const season = Number.isInteger(view.season) ? view.season : null;
   const key = `${app.accountId}:score:${season ?? 'latest'}`;
   const read = useLeagueRead(key, signal => communityApi('history', season ? { season } : {}, signal), error => { if (error.status === 401) app.requestSignIn(); });
@@ -109,6 +111,7 @@ function ScoreList({ data, mode, weeks, weekNumber, week, entry, all, rows, filt
 
 /** The week's hero (Q1-B): the total counting up from what this device last showed, the season rank chip, the bar. */
 function ScoreHero({ hero, rank, account, figure }) {
+  const pop = usePopped(rank?.momentId ?? '');
   return <section className="gx-ys-hero" aria-label="Personal score summary">
     <div className="gx-ys-hero-top">
       <div className="gx-ys-hero-head">
@@ -119,7 +122,7 @@ function ScoreHero({ hero, rank, account, figure }) {
           {' '}<span className="gx-t-body gx-c-2">points</span>
         </p>
       </div>
-      {rank ? <p className="gx-ys-rank"><span className="gx-t-micro gx-c-2">Season</span> <span className="gx-n-s">{rank.label}</span>{rank.move ? <> <Move by={rank.move}/></> : null}</p> : null}
+      {rank ? <p className="gx-ys-rank" data-moment={pop ? 'pop' : undefined}><span className="gx-t-micro gx-c-2">Season</span> <span className="gx-n-s">{rank.label}</span>{rank.move ? <> <Move by={rank.move}/></> : null}</p> : null}
     </div>
     {hero.bar !== null ? <span className="gx-ys-meter" role="img" aria-label={hero.meterLabel}><span style={{ width: `${hero.bar}%` }}></span></span> : null}
     {hero.line ? <p className="gx-t-meta gx-c-2">{hero.line}</p> : null}

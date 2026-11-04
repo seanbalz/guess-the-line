@@ -132,8 +132,9 @@ export function boardFact(model, userId, mode) {
   return row?.winners.includes(userId) ? `Won Week ${model.recap.week}` : null;
 }
 
-/** The cards that hold badge and award moments (D-69): they play when one of these opens after the launch. */
-export const FEATURE_SCOPES = Object.freeze([SCOPES.features, SCOPES.home, SCOPES.league, SCOPES.play]);
+/** The cards that hold badge and award moments (D-69): they play when one of these opens after the launch. Home is not
+ * one (D-69 step 2): a waiting badge or award shows NEW on Home's Awards tile and plays where that tile leads. */
+export const FEATURE_SCOPES = Object.freeze([SCOPES.features, SCOPES.league, SCOPES.play]);
 
 /**
  * A badge moment's id: its award key, `badge:<key>`, except a Bullseye, which celebrates the same exact guess as Your

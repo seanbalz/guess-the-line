@@ -17,3 +17,6 @@ export const SCOPES = Object.freeze({ home: 'home', play: 'play', league: 'leagu
 /** The picks card of one market ('guess_spread', 'guess_total'): Whole week locked waits on its own market's card, so
  * opening the Spread card never spends the Total one ("picks:guess_total"). */
 export const picksScope = mode => `${SCOPES.picks}:${mode}`;
+/** Your score of one market ('guess_spread', 'guess_total'), D-69 step 2: a Community rank move waits on its market's
+ * Your score card as well as on League, so Home's rank tile that opens it plays it there ("score:guess_total"). */
+export const scoreScope = mode => `${SCOPES.score}:${mode}`;

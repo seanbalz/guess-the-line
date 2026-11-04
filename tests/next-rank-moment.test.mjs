@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as R from '../web/src/next/league/rankMoment.js';
 import { createMomentsEngine } from '../web/src/next/moments/engine.js';
-import { SCOPES, sizeOf } from '../web/src/next/moments/catalog.js';
+import { SCOPES, scoreScope, sizeOf } from '../web/src/next/moments/catalog.js';
 
 // Design lane, item 2: the rank-change moment's rules (web/src/next/league/rankMoment.js). D-69 P6A: the toast became
 // engine moments. The arrow and the moment in a real browser are in tests/cloud-browser/next-design-home-league.spec.js.
@@ -34,7 +34,7 @@ test('the first look remembers the rank and says nothing; each change after it i
 });
 test('candidates: rank up is small, reaching 1st is big, a drop or no change is none; each change has its own id', () => {
   const up = R.rankCandidate({ ...board, saved: { rank: 2, from: 3, n: 1 } });
-  assert.deepEqual([up.id, up.kind, up.scopes, up.title, up.meta, sizeOf(up.kind)], ['rank:community:guess_spread:1', 'rankUp', [SCOPES.league], 'Up to 2nd', 'Spread board · up 1', 'small']);
+  assert.deepEqual([up.id, up.kind, up.scopes, up.title, up.meta, sizeOf(up.kind)], ['rank:community:guess_spread:1', 'rankUp', [SCOPES.league, scoreScope('guess_spread')], 'Up to 2nd', 'Spread board · up 1', 'small']);
   const first = R.rankCandidate({ ...board, saved: { rank: 1, from: 4, n: 5 } });
   assert.deepEqual([first.kind, sizeOf(first.kind), first.title], ['rankFirst', 'big', 'You’re 1st']);
   assert.equal(R.rankCandidate({ ...board, saved: { rank: 1, from: 2, n: 6 }, tied: true }).title, 'Tied for 1st');
