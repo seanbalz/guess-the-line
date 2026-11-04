@@ -394,7 +394,7 @@ test('an account the commissioner removed from the Community sees why, keeps its
     await phoneChecks(page);
     await page.getByRole('button', { name: 'Your leagues' }).click();
     await leagueRow(page, 'Triple Threat').click();
-    await page.getByRole('button', { name: 'My league', exact: true }).click();
+    await page.locator('[data-play-tile="league"]').getByRole('button').click();
     await expect(title(page, 'League')).toBeVisible();
     await expect(pill(page)).toHaveAccessibleName('League: Triple Threat. Switch league');
     await expect(page.getByRole('list', { name: 'Private group members' })).toContainText('Troy Jun');

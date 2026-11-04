@@ -1,0 +1,56 @@
+/* D-69 Play › Your score (mockup Q1-B) and its game layer (P2B). Tokens only. Lime marks only you: your total's bar,
+   your dot, your Bullseye. Only transform moves, and only when the layer entered after the launch. */
+.gx .gx-ys-meta { margin: 0; }
+.gx .gx-ys-hero { display: flex; flex-direction: column; gap: var(--gx-space-2); min-width: 0; margin: 0; padding: var(--gx-space-3) var(--gx-space-4); border-radius: var(--gx-radius-md); background: var(--gx-surface-3); }
+.gx .gx-ys-hero-top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-ys-hero-head { display: flex; flex-direction: column; gap: var(--gx-space-1); min-width: 0; }
+.gx .gx-ys-hero-head > h3 { margin: 0; }
+.gx .gx-ys-total, .gx .gx-ys-points { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--gx-space-2); margin: 0; }
+.gx .gx-ys-rank { display: inline-flex; align-items: center; gap: var(--gx-space-2); margin: 0; padding: var(--gx-space-1) var(--gx-space-3); border-radius: var(--gx-radius-pill); background: var(--gx-surface-2); }
+.gx .gx-ys-meter { display: block; height: 8px; overflow: hidden; border-radius: var(--gx-radius-pill); background: var(--gx-surface-1); }
+.gx .gx-ys-meter > span { display: block; height: 100%; border-radius: var(--gx-radius-pill); background: var(--gx-accent-ink); transform-origin: left center; }
+.gx .gx-ys-rows { display: flex; flex-direction: column; gap: var(--gx-space-2); margin: 0; padding: 0; list-style: none; }
+.gx .gx-ys-row {
+  display: flex; flex-direction: column; gap: var(--gx-space-1); width: 100%; min-width: 0; min-height: var(--gx-size-touch);
+  padding: var(--gx-space-3); border: 1px solid var(--gx-border); border-radius: var(--gx-radius-md);
+  background: var(--gx-surface-3); color: var(--gx-text-1); font: inherit; text-align: left; cursor: pointer;
+}
+.gx .gx-ys-row-top { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-ys-row-top > .gx-ys-pill { margin-left: auto; }
+.gx .gx-ys-row-meta { min-width: 0; overflow-wrap: anywhere; }
+.gx .gx-ys-pill, .gx .gx-ys-bull { display: inline-flex; align-items: center; min-height: 24px; padding: 0 var(--gx-space-2); border-radius: var(--gx-radius-xs); white-space: nowrap; }
+.gx .gx-ys-pill { background: var(--gx-surface-2); color: var(--gx-text-1); }
+.gx .gx-ys-pill[data-tier="exact"], .gx .gx-ys-bull { background: var(--gx-accent-tint); color: var(--gx-accent-ink); }
+.gx .gx-ys-pill[data-tier="good"] { background: var(--gx-win-tint); color: var(--gx-win); }
+.gx .gx-ys-pill[data-tier="none"] { color: var(--gx-text-2); }
+.gx .gx-ys-bar { display: block; height: 4px; overflow: hidden; border-radius: var(--gx-radius-pill); background: var(--gx-surface-1); }
+.gx .gx-ys-bar > span { display: block; height: 100%; border-radius: var(--gx-radius-pill); background: var(--gx-border-strong); transform-origin: left center; }
+.gx .gx-ys-bar[data-tier="exact"] > span { background: var(--gx-accent-ink); }
+.gx .gx-ys-bar[data-tier="good"] > span { background: var(--gx-win); }
+.gx .gx-ys-filters label { display: grid; gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-ys-filters select { width: 100%; min-width: 0; }
+.gx .gx-ys-game-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--gx-space-2); }
+/* The number line (P2B): the saved line as a sky tick, your guess as a lime dot, the gap between them filled. */
+.gx .gx-ys-line { display: flex; flex-direction: column; gap: var(--gx-space-2); margin: 0; }
+.gx .gx-ys-axis { position: relative; height: 104px; margin: 0 var(--gx-space-4); }
+.gx .gx-ys-axis-track { position: absolute; top: 38px; left: 0; right: 0; height: 4px; border-radius: var(--gx-radius-pill); background: var(--gx-surface-3); }
+.gx .gx-ys-axis-gap { position: absolute; top: 34px; height: 12px; border-radius: var(--gx-radius-pill); background: var(--gx-accent-ink); opacity: 0.35; }
+.gx .gx-ys-axis-tick { position: absolute; top: 26px; width: 3px; height: 28px; border-radius: var(--gx-radius-xs); background: var(--gx-data); translate: -50% 0; }
+.gx .gx-ys-axis-you { position: absolute; top: 32px; width: 16px; height: 16px; border-radius: var(--gx-radius-pill); background: var(--gx-accent-ink); box-shadow: 0 0 0 3px var(--gx-surface-2); translate: -50% 0; }
+.gx .gx-ys-axis-label { position: absolute; white-space: nowrap; translate: -50% 0; }
+.gx .gx-ys-axis-label[data-align="start"] { translate: none; }
+.gx .gx-ys-axis-label[data-align="end"] { translate: -100% 0; }
+.gx .gx-ys-axis-label--line { top: 0; color: var(--gx-data); }
+.gx .gx-ys-axis-label--you { top: 58px; color: var(--gx-accent-ink); }
+.gx .gx-ys-axis-num { position: absolute; top: 84px; translate: -50% 0; }
+.gx .gx-ys-caption { margin: 0; text-align: center; }
+@media (prefers-reduced-motion: no-preference) {
+  /* D-69 4.3: charts reveal by a transform on the drawn part (scaleX), only when the layer entered after the launch. */
+  .gx .gx-nest-card[data-enter="in"] .gx-ys-axis-gap, .gx .gx-nest-card[data-enter="in"] .gx-ys-meter > span, .gx .gx-nest-card[data-enter="in"] .gx-ys-bar > span { animation: gx-ys-grow var(--gx-dur-base) var(--gx-ease-standard) var(--gx-dur-quick) both; }
+}
+@keyframes gx-ys-grow { from { transform: scaleX(0); } to { transform: none; } }
+@media (forced-colors: active) {
+  .gx .gx-ys-row, .gx .gx-ys-hero, .gx .gx-ys-pill, .gx .gx-ys-bull { border: 1px solid CanvasText; }
+  .gx .gx-ys-meter > span, .gx .gx-ys-bar > span, .gx .gx-ys-axis-gap, .gx .gx-ys-axis-you { background: Highlight; }
+  .gx .gx-ys-axis-track, .gx .gx-ys-axis-tick { background: CanvasText; }
+}

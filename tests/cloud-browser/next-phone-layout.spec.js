@@ -6,8 +6,9 @@ import { test, expect } from '@playwright/test';
 import { ALL } from '../migrations.mjs';
 import { communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 import { layoutProblems } from '../helpers/phone-layout.mjs';
+import { sendBallot, storeLines } from '../helpers/guess-week.mjs';
 
-const ADDRESSES = ['#home', '#play', '#play/picks', '#play/picks?market=total', '#play/score', '#play/compare', '#play/features', '#play/league',
+const ADDRESSES = ['#home', '#play', '#play/picks', '#play/picks?market=total', '#play/score', '#play/score?scoreGame=SEA-DEN', '#play/compare', '#play/points', '#play/features', '#play/features?layer=streaks', '#play/features?layer=awards', '#play/features?layer=season', '#play/features?layer=badge&item=bullseye', '#play/league', '#play/league?view=history&week=6',
   '#play/league?view=feed', '#play/league?view=board', '#play/league?view=history', '#bets', '#bets/active', '#bets/settled', '#bets/recommended',
   '#bets/virtual', '#bets/everyone', '#bets/add', '#groups', '#research', '#research/games', '#research/fantasy', '#research/trends',
   // Me › History (stage 73).
@@ -87,6 +88,37 @@ test('every new-app screen, sheet and menu fits a phone: no clipped text, stray 
           await check(`${pass} weekly research`);
         }
       }
+    }
+    expect(found).toEqual({});
+  } finally {
+    await world.db.close();
+  }
+});
+
+// A populated League week (Week 6 · 2026): Luke's submitted Spread ballot gives the week layer real game rows. layoutProblems skips
+// the body of a closed <details>, so each game disclosure is opened and its notes measured. A world of its own, because stored
+// lines and a ballot change what Research shows, and that screen has its own measurement above.
+test('a League week with games, every disclosure open, fits a phone at 320 and 390 in both themes and the wide font', async ({ page, baseURL }) => {
+  const world = await communityWorld(page, baseURL, { migrations: ALL, optionalRpc: true, prepare: WEEK6 });
+  try {
+    await storeLines(world.db, world.state, { spread: { 'SEA-DEN': -3.5, 'HOU-JAX': 6.5 }, total: { 'SEA-DEN': 41.5, 'HOU-JAX': 44.5 } });
+    await sendBallot(world, 'luke', 'guess_spread', { 'SEA-DEN': -1.5, 'HOU-JAX': 4.5 });
+    await page.addInitScript(() => localStorage.setItem('gtl.app', 'next'));
+    await page.goto('/#home');
+    await signIn(page, 'luke', { navigate: false });
+    await expect(page.locator('[data-landing="home"]')).toBeVisible();
+    const found = {};
+    for (const { theme, width, wide = false } of PASSES) {
+      await page.evaluate(value => localStorage.setItem('gtl.theme', value), theme);
+      await page.setViewportSize({ width, height: 844 });
+      const pass = `${theme} ${width}${wide ? ' wide font' : ''}`;
+      await open(page, '#play/league?view=history&week=6', wide);
+      const games = page.locator('.gx-lg-game');
+      await expect(games, `${pass}: the Week 6 layer lists Luke's two games`).toHaveCount(2);
+      await games.evaluateAll(details => details.forEach(detail => { detail.open = true; }));
+      await expect(page.locator('.gx-lg-notes li').first(), `${pass}: the opened notes show`).toBeVisible();
+      const problems = await page.evaluate(layoutProblems);
+      if (problems.length) found[`${pass} games open`] = problems;
     }
     expect(found).toEqual({});
   } finally {

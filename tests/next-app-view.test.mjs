@@ -164,7 +164,8 @@ test('the apps keep separate shells and allow only documented workflow and pick-
   // The retained Fantasy adapter also reuses the week-key formatter for reloadable Research addresses.
   // The NBA section (docs/superpowers/plans/2026-10-21-nba-section.md) shares only the sport-switch draft guard, the
   // accepted-route signal and the old app's selector slot, so unsaved work in either app is confirmed before the sport changes.
-  const namedOnly = { 'trendsWeekHook.js': ['useTrendWeek'], 'Theme.jsx': ['useThemePreference'], 'dashboardPreferences.js': ['useDashboardPreferences'], 'CommunityHome.jsx': ['WeekPicks'], 'CommunityHistory.jsx': ['HistoryLine'], 'fantasyData.js': ['FANTASY_INITIAL', 'useFantasySnapshot', 'fantasyWeekKey'], 'sportNavigation.js': ['noteSportRoute', 'SportSlotContext', 'useSportGuard'] };
+  // D-69 step 1 (spec test 13): Play no longer imports CommunityHome.jsx; its WeekPicks is gone from the new app.
+  const namedOnly = { 'trendsWeekHook.js': ['useTrendWeek'], 'Theme.jsx': ['useThemePreference'], 'dashboardPreferences.js': ['useDashboardPreferences'], 'fantasyData.js': ['FANTASY_INITIAL', 'useFantasySnapshot', 'fantasyWeekKey'], 'sportNavigation.js': ['noteSportRoute', 'SportSlotContext', 'useSportGuard'] };
   // Sean's all-tabs request uses today's hosted editors until the later redesign migrations can ship. These exact
   // adapters are documented in ALL_TABS_LIVE_WORKFLOWS.md; GameHub/App/CommunityHome's default shell stays forbidden.
   const adapters = {
@@ -185,8 +186,6 @@ test('the apps keep separate shells and allow only documented workflow and pick-
       const target = path.relative(path.join(root, 'web/src'), path.resolve(path.join(root, path.dirname(file)), spec));
       if (adapters[file]?.includes(target)) continue;
       if (namedOnly[target]) {
-        if (target === 'CommunityHome.jsx') assert.equal(file, 'web/src/next/play/Play.jsx');
-        if (target === 'CommunityHistory.jsx') assert.equal(file, 'web/src/next/league/LeagueHistory.jsx');
         assertNamedAccess(text, spec, namedOnly[target], file);
         continue;
       }
@@ -225,6 +224,8 @@ test('the apps keep separate shells and allow only documented workflow and pick-
     }
   }
   assert.doesNotMatch(read('web/src/next/play/PerGameLegacy.jsx'), /from ['"][^'"]*(NextApp|shell\/context|AppData)/, 'the compatibility wrapper never mounts or depends on the new shell');
+  // Spec test 13: the rebuilt Play pages no longer import the old screens they replace.
+  for (const file of filesUnder('web/src/next')) for (const spec of importsOf(read(file))) assert.doesNotMatch(spec, /CommunityHome|PlayPresentation/, `${file} imports ${spec}`);
 });
 
 test('no screen offers the old app: failure screens reload, the Menu has no old-app row', () => {

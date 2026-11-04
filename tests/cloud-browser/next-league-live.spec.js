@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { randomUUID } from 'node:crypto';
-import { HOSTED } from '../migrations.mjs';
+import { ALL, HOSTED } from '../migrations.mjs';
 import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 
 // The League's Community feed path on HOSTED as it was before the October 27, 2026 feed applies (M-21 onward), the path the
@@ -11,7 +11,7 @@ const BEFORE_FEED = HOSTED.filter(file => file < '20261026131000_gtl_feed_reacti
 // The fixtures never contact hosted data. These checks cover privacy, actual writes and mobile access.
 test.use({ viewport: { width: 390, height: 844 } });
 test.setTimeout(60_000);
-const section = (page, name) => page.getByRole('group', { name: 'League sections' }).getByRole('button', { name, exact: true });
+const toBoard = page => page.getByRole('button', { name: 'Back to League', exact: true });
 const spreadPost = page => page.locator('.gx-league-post').filter({ hasText: 'submitted Week 5 Spread picks.' });
 const region = page => page.locator('.gx-league');
 const apiPath = name => url => url.origin === SUPABASE && url.pathname === `/functions/v1/gtl-api/${name}`;
@@ -67,7 +67,7 @@ test('Community feed hides unrevealed guesses, saves likes and comments, and boa
         await page.setViewportSize({ width, height: 844 });
         await phone(page);
         if (width === 390) await page.screenshot({ path: testInfo.outputPath(`league-feed-${theme}.png`), fullPage: true });
-        await section(page, 'Boards').click();
+        await toBoard(page).click();
         await page.getByRole('group', { name: 'Standings market' }).getByRole('button', { name: 'Spread', exact: true }).click();
         await expect(page.getByRole('list', { name: 'Spread season standings' })).toContainText('Troy Fixture');
         await expect(region(page).getByText('Not ranked', { exact: true })).toHaveCount(3);
@@ -75,7 +75,7 @@ test('Community feed hides unrevealed guesses, saves likes and comments, and boa
         await expect(page.getByRole('list', { name: 'Total season standings' })).toBeVisible();
         await phone(page);
         if (width === 390) await page.screenshot({ path: testInfo.outputPath(`league-board-${theme}.png`), fullPage: true });
-        await section(page, 'Feed').click();
+        await page.getByRole('button', { name: 'Open the feed', exact: true }).click();
       }
     }
     expect(world.errors).toEqual([]);
@@ -125,11 +125,14 @@ test('history obeys each market reveal and refreshes when the browser comes back
   const world = await communityWorld(page, baseURL, { migrations: BEFORE_FEED, optionalRpc: true });
   try {
     await open(page);
-    await section(page, 'History').click();
-    await page.getByRole('combobox', { name: 'Player', exact: true }).selectOption(ACCOUNTS.troy.id);
+    await toBoard(page).click(); await page.getByRole('button', { name: /^History/ }).click();
+    await page.getByRole('group', { name: 'Player' }).getByRole('button', { name: /Troy Fixture/ }).click();
     await expect(region(page)).not.toContainText('2.5');
     await expect(region(page)).not.toContainText('47.5');
     const { season, week } = world.state.league;
+    await page.getByRole('button', { name: new RegExp(`^Week ${week},`) }).click();
+    await expect(page.getByRole('heading', { name: `Week ${week} · ${season}`, level: 2 })).toBeVisible();
+    await expect(region(page)).not.toContainText('2.5');
     expect((await world.api('luke', 'community/sit-out', { season, week, mode: 'guess_spread' })).status).toBe(200);
     const refreshed = page.waitForResponse(response => new URL(response.url()).pathname.endsWith('/community/history'));
     await page.evaluate(() => window.dispatchEvent(new Event('online')));
@@ -159,6 +162,37 @@ test('history obeys each market reveal and refreshes when the browser comes back
   } finally { await page.unrouteAll({ behavior: 'wait' }); await page.close(); await world.db.close(); }
 });
 
+test('League never reopens a stale layer: the tile after a History week opens the board, and browser Back from the feed lands on it', async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite required.');
+  const world = await communityWorld(page, baseURL, { migrations: BEFORE_FEED, optionalRpc: true });
+  const board = () => page.getByRole('button', { name: 'Open the feed', exact: true });
+  const hash = () => new URL(page.url()).hash;
+  try {
+    await open(page);
+    await toBoard(page).click(); await page.getByRole('button', { name: /^History/ }).click();
+    const { season, week } = world.state.league;
+    await page.getByRole('button', { name: new RegExp(`^Week ${week},`) }).click();
+    await expect(page.getByRole('heading', { name: `Week ${week} · ${season}`, level: 2 })).toBeVisible();
+    await page.getByRole('button', { name: 'Back to Play', exact: true }).click();
+    await page.locator('[data-play-tile="league"]').getByRole('button').click();
+    await expect(board()).toBeVisible();
+    await expect(page.getByRole('heading', { name: `Week ${week} · ${season}`, level: 2 })).toHaveCount(0);
+    expect(hash()).toBe('#play/league');
+    // The canonical board address: the feed, then browser Back (a restored entry), lands on the board again.
+    await page.goto('/#play/league');
+    await expect(board()).toBeVisible();
+    await board().click();
+    await expect(toBoard(page)).toBeVisible();
+    await page.goBack();
+    await expect(board()).toBeVisible();
+    expect(hash()).toBe('#play/league');
+    await page.goForward();
+    await expect(toBoard(page)).toBeVisible();
+    expect(hash()).toBe('#play/league?view=feed');
+    expect(world.errors).toEqual([]);
+  } finally { await page.unrouteAll({ behavior: 'wait' }); await page.close(); await world.db.close(); }
+});
+
 test('private standings stay membership-scoped on rapid switching and discard data after a 403', async ({ page, baseURL }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required.');
   const world = await communityWorld(page, baseURL, { migrations: BEFORE_FEED, groupScreens: true, optionalRpc: true });
@@ -166,6 +200,7 @@ test('private standings stay membership-scoped on rapid switching and discard da
   try {
     const alpha = await group(world, 'Fixture Alpha'), beta = await group(world, 'Fixture Beta');
     await open(page);
+    await toBoard(page).click(); // #feed opens the feed layer; a group's standings are the board (the landing)
     const released = new Promise(resolve => { release = resolve; });
     let reached;
     const reaching = new Promise(resolve => { reached = resolve; });
@@ -183,12 +218,77 @@ test('private standings stay membership-scoped on rapid switching and discard da
     await expect(region(page).getByText('Not ranked', { exact: true })).toHaveCount(1);
     await phone(page);
     await page.route(url => apiPath('state')(url) && url.searchParams.get('league') === beta, route => route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ error: 'This group is no longer available.' }) }));
-    await page.getByRole('button', { name: 'Refresh group' }).click();
+    await page.evaluate(() => window.dispatchEvent(new Event('online')));
     await expect(region(page).getByRole('alert')).toContainText('This group is no longer available.');
     await expect(page.getByRole('list', { name: 'Private group members' })).toHaveCount(0);
     await expect(region(page)).not.toContainText('Luke Fixture');
     expect(world.errors).toEqual([]);
   } finally { release?.(); await page.unrouteAll({ behavior: 'wait' }); await page.close(); await world.db.close(); }
+});
+
+// Runs with the feed reader on (ALL): BEFORE_FEED has no group posts. The group answers 403 to its feed and its standings.
+test('a private group that refuses shows none of its posts, on the board or in the feed layer', async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite required.');
+  const world = await communityWorld(page, baseURL, { migrations: ALL, groupScreens: true, optionalRpc: true });
+  try {
+    const gamma = await group(world, 'Fixture Gamma'), { season, week, deadline } = world.state.league;
+    const post = (await world.db.query("insert into public.gtl_feed_posts(actor_id,kind,season,week,payload,dedupe_key,league_id) values($1,'week_published',$2,$3,$4,$5,$6) returning id",
+      [ACCOUNTS.sean.id, season, week, { games: 2, deadline }, `week_published:${randomUUID()}`, gamma])).rows[0].id;
+    await open(page);
+    const groupPost = page.locator(`.gx-feed-post[data-post="${post}"]`);
+    await choose(page, 'Fixture Gamma');
+    await expect(groupPost).toBeVisible(); // the feed layer of the group shows its post
+    const refuse = (name, match) => page.route(url => apiPath(name)(url) && match(url), route => route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ error: 'This group is no longer available.' }) }));
+    await page.route(url => apiPath('league/feed')(url), route => (route.request().postDataJSON()?.leagueId === gamma
+      ? route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ error: 'This group is no longer available.' }) }) : route.fallback()));
+    await refuse('state', url => url.searchParams.get('league') === gamma);
+    await page.evaluate(() => window.dispatchEvent(new Event('online')));
+    await expect(region(page).getByRole('alert')).toContainText('This group is no longer available.');
+    await expect(groupPost).toHaveCount(0);
+    await expect(region(page).locator('.gx-feed-post')).toHaveCount(0);
+    await toBoard(page).click();
+    await expect(region(page).getByRole('alert')).toContainText('This group is no longer available.');
+    await expect(groupPost).toHaveCount(0);
+    await expect(region(page).locator('.gx-feed-post')).toHaveCount(0);
+    await expect(region(page).locator('[data-league="preview"]')).toHaveCount(0);
+    expect(world.errors).toEqual([]);
+  } finally { await page.unrouteAll({ behavior: 'wait' }); await page.close(); await world.db.close(); }
+});
+
+// Only the group's standings read is refused; its feed read keeps answering. Without the `gone` guard the group's posts would stay.
+test('a group whose standings read is refused shows none of its posts even though its feed answers; Try again recovers', async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite required.');
+  const world = await communityWorld(page, baseURL, { migrations: ALL, groupScreens: true, optionalRpc: true });
+  try {
+    const delta = await group(world, 'Fixture Delta'), { season, week, deadline } = world.state.league;
+    const post = (await world.db.query("insert into public.gtl_feed_posts(actor_id,kind,season,week,payload,dedupe_key,league_id) values($1,'week_published',$2,$3,$4,$5,$6) returning id",
+      [ACCOUNTS.sean.id, season, week, { games: 2, deadline }, `week_published:${randomUUID()}`, delta])).rows[0].id;
+    await open(page);
+    const groupPost = page.locator(`.gx-feed-post[data-post="${post}"]`);
+    await choose(page, 'Fixture Delta');
+    await expect(groupPost).toBeVisible(); // the feed answers for this group
+    let refusing = true;
+    await page.route(url => apiPath('state')(url) && url.searchParams.get('league') === delta, route => (refusing
+      ? route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ error: 'This group is no longer available.' }) }) : route.fallback()));
+    await toBoard(page).click();
+    await expect(region(page).getByRole('alert')).toContainText('This group is no longer available.');
+    await expect(region(page).locator('.gx-feed-post')).toHaveCount(0);
+    await expect(region(page).locator('[data-league="preview"]')).toHaveCount(0);
+    await page.evaluate(() => { location.hash = '#play/league?view=feed'; });
+    await expect(region(page).getByRole('heading', { name: 'Feed', level: 2 })).toBeVisible();
+    await expect(region(page).getByRole('alert')).toContainText('This group is no longer available.');
+    await expect(groupPost).toHaveCount(0);
+    // Try again while the state read is still refused: the refusal stays and no group post comes back.
+    await region(page).getByRole('button', { name: 'Try again', exact: true }).click();
+    await expect(region(page).getByRole('alert')).toContainText('This group is no longer available.');
+    await page.waitForTimeout(500);
+    await expect(region(page).locator('.gx-feed-post')).toHaveCount(0);
+    await expect(groupPost).toHaveCount(0);
+    refusing = false; // the group answers again: Try again recovers
+    await region(page).getByRole('button', { name: 'Try again', exact: true }).click();
+    await expect(groupPost).toBeVisible();
+    expect(world.errors).toEqual([]);
+  } finally { await page.unrouteAll({ behavior: 'wait' }); await page.close(); await world.db.close(); }
 });
 
 test('an older-feed refusal immediately removes loaded activity while the main refresh is pending', async ({ page, baseURL }) => {

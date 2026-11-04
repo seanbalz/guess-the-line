@@ -5,7 +5,7 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { ALL } from '../migrations.mjs';
-import { ACCOUNTS, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
+import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 import { layoutProblems } from '../helpers/phone-layout.mjs';
 import { sendBallot, storeLines } from '../helpers/guess-week.mjs';
 
@@ -104,4 +104,80 @@ test('Luke shares his own scored guess from his picks; the result shows in the f
     expect(troy.embed).toEqual({ gameId: 'TB-DAL', visible: false });
     expect(world.errors).toEqual([]);
   } finally { await page.unrouteAll({ behavior: 'wait' }); await page.close(); await world.db.close(); }
+});
+
+test('your reaction pops only after the server confirms it: not on the change that shows at once, not on a refusal, never under reduced motion', async ({ page, baseURL }) => {
+  const world = await communityWorld(page, baseURL, { migrations: ALL, optionalRpc: true });
+  const react = url => url.origin === SUPABASE && url.pathname.endsWith('/gtl-api/league/react');
+  let release;
+  try {
+    // Record every time a chip gains data-moment, from before the page loads.
+    await page.addInitScript(() => {
+      window.__pops = [];
+      new MutationObserver(list => list.forEach(m => { if (m.target.getAttribute?.('data-moment') === 'pop' && m.target.classList.contains('gx-feed-chip')) window.__pops.push(m.target.getAttribute('aria-label')); }))
+        .observe(document, { subtree: true, attributes: true, attributeFilter: ['data-moment'] });
+    });
+    await open(page);
+    const post = page.locator('.gx-feed-post[data-kind="joined"]').first();
+    const postId = await post.getAttribute('data-post');
+    expect((await world.api('troy', 'league/react', { postId, reaction: 'thumbs_up' })).status).toBe(200);
+    await page.reload();
+    await expect(feed(page)).toBeVisible();
+    const chip = page.locator(`.gx-feed-post[data-post="${postId}"]`).getByRole('button', { name: /^Thumbs up/ });
+    const pops = () => page.evaluate(() => window.__pops.length);
+    // 1. A refusal: the change shows, then the old state comes back; no pop.
+    await page.route(react, route => route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ error: 'Reactions are closed.' }) }), { times: 1 });
+    await chip.click();
+    await expect(page.getByText('Reactions are closed.')).toBeVisible();
+    await expect(chip).toHaveAttribute('aria-pressed', 'false');
+    expect(await pops()).toBe(0);
+    // 2. A held answer: the optimistic change shows and nothing pops until the server answers.
+    const held = new Promise(resolve => { release = resolve; });
+    await page.route(react, async route => { await held; await route.fallback(); }, { times: 1 });
+    await chip.click();
+    await expect(chip).toHaveAttribute('aria-pressed', 'true');
+    await page.waitForTimeout(300);
+    expect(await pops()).toBe(0);
+    release();
+    await expect.poll(pops).toBe(1);
+    // 3. Reduced motion (the app setting): a confirmed write never leaves data-moment on the chip.
+    await chip.click(); // takes it back (no pop)
+    await expect(chip).toHaveAttribute('aria-pressed', 'false');
+    await page.locator('.gx').first().evaluate(root => root.setAttribute('data-motion', 'reduce'));
+    await chip.click();
+    await expect(chip).toHaveAttribute('aria-pressed', 'true');
+    await page.waitForTimeout(500);
+    expect(await pops()).toBe(1);
+    expect(await chip.getAttribute('data-moment')).toBeNull();
+  } finally { release?.(); await page.unrouteAll({ behavior: 'wait' }); await page.close(); await world.db.close(); }
+});
+
+test('a first reaction from the popover pops its chip once the server confirms it, not before', async ({ page, baseURL }) => {
+  const world = await communityWorld(page, baseURL, { migrations: ALL, optionalRpc: true });
+  const react = url => url.origin === SUPABASE && url.pathname.endsWith('/gtl-api/league/react');
+  let release;
+  try {
+    await page.addInitScript(() => {
+      window.__pops = [];
+      new MutationObserver(list => list.forEach(m => { if (m.target.getAttribute?.('data-moment') === 'pop' && m.target.classList.contains('gx-feed-chip')) window.__pops.push(m.target.getAttribute('aria-label')); }))
+        .observe(document, { subtree: true, attributes: true, attributeFilter: ['data-moment'] });
+    });
+    await open(page);
+    // Another post already carries a chip (Troy's Laughing): a confirmed write on the first post must not mark it.
+    const other = await page.locator('.gx-feed-post[data-kind="joined"]').nth(1).getAttribute('data-post');
+    expect((await world.api('troy', 'league/react', { postId: other, reaction: 'laughing' })).status).toBe(200);
+    await page.reload();
+    await expect(feed(page)).toBeVisible();
+    await expect(page.locator(`.gx-feed-post[data-post="${other}"]`).getByRole('button', { name: /^Laughing/ })).toBeVisible();
+    const post = page.locator('.gx-feed-post[data-kind="joined"]').first();
+    const held = new Promise(resolve => { release = resolve; });
+    await page.route(react, async route => { await held; await route.fallback(); }, { times: 1 });
+    await post.getByRole('button', { name: 'Add a reaction' }).click();
+    await page.getByRole('dialog', { name: 'Choose a reaction' }).getByRole('button', { name: 'Fire' }).click();
+    await expect(post.getByRole('button', { name: /^Fire/ })).toHaveAttribute('aria-pressed', 'true'); // shown at once
+    await page.waitForTimeout(300);
+    expect(await page.evaluate(() => window.__pops.length), 'no pop on the unconfirmed change').toBe(0);
+    release();
+    await expect.poll(() => page.evaluate(() => window.__pops)).toEqual([expect.stringMatching(/^Fire/)]);
+  } finally { release?.(); await page.unrouteAll({ behavior: 'wait' }); await page.close(); await world.db.close(); }
 });

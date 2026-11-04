@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { HOSTED } from '../migrations.mjs';
 import { SUPABASE, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
-import { gameCard, openGame, openWeek } from './play-nest.mjs';
+import { chooseMarket, gameCard, openGame, openWeek } from './play-nest.mjs';
 
 // D-70 Play › Your guesses as nesting cards (docs/superpowers/specs/2026-11-02-play-picks-nesting-cards-design.md):
 // the week's game tiles, then one game's card, on the real shell and router. Fictional /personal reads and writes over
@@ -14,7 +14,7 @@ const routeName = name => `${SUPABASE}/functions/v1/gtl-api/${name}`;
 const tabs = page => page.getByRole('navigation', { name: 'Main' });
 const reply = (route, body) => route.fulfill({ status: 200, headers: { 'access-control-allow-origin': '*' }, contentType: 'application/json', body: JSON.stringify(body) });
 
-async function fixture(page, baseURL) {
+async function fixture(page, baseURL, { beforeSignIn } = {}) {
   const world = await communityWorld(page, baseURL, { migrations: HOSTED, optionalRpc: true, games: 4 });
   const personal = structuredClone((await world.api('luke', 'personal')).body);
   personal.rules = { sentFinal: true, lateWindow: 'kickoff', revealAt: 'kickoff', perGameScoring: true };
@@ -33,9 +33,10 @@ async function fixture(page, baseURL) {
   });
   const dialogs = [];
   page.on('dialog', dialog => { dialogs.push(dialog.message()); return dialog.dismiss(); });
+  await beforeSignIn?.({ world, personal });
   await signIn(page, 'luke');
   await tabs(page).getByRole('button', { name: /^Play(,|$)/ }).click();
-  await page.getByRole('button', { name: 'Continue guessing', exact: true }).click();
+  await page.getByRole('button', { name: 'Make picks', exact: true }).click();
   await expect(page.locator('.gx-per-game [data-tile]').first()).toBeVisible();
   return { ...world, personal, writes, dialogs };
 }
@@ -106,7 +107,7 @@ test('the week is one tile per game; a tile opens its card; Lock in then Next sw
     await expect(page.locator('[data-play="count"]')).toHaveText(`2 of ${world.personal.games.length} locked`);
     await expect(page.locator(`[data-tile="${first.id}"]`)).toHaveAttribute('data-state', 'locked');
     await page.goBack();
-    await expect(page.getByRole('button', { name: 'Continue guessing', exact: true })).toBeVisible();
+    await expect(page.locator('[data-landing="play"] [data-play="hero"]').getByRole('button', { name: 'Make picks', exact: true })).toBeVisible();
     expect(world.dialogs).toEqual([]);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
@@ -137,6 +138,129 @@ test('a reload reopens the game; moving inside Your guesses keeps a draft quietl
     await expect.poll(() => world.dialogs).toEqual(['Leave without saving your changes?']);
     await expect(gameCard(page, game.id)).toBeVisible(); // dismissed: still on the game, draft kept
     expect(world.writes).toEqual([]);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+// D-69 step 1, Whole week locked (small): the shared Community read that confirms the last lock-in plays it once, in
+// place, on the line that says so. Going back to the week and a reload show the words without the pop (never replays).
+test('Whole week locked pops once on the read that confirms the last lock; Back and a reload never replay it', async ({ page, baseURL }) => {
+  const world = await fixture(page, baseURL, { beforeSignIn: async ({ world, personal }) => {
+    // The fixture's /personal writes live in this page, so the Community read's per-game counts follow them.
+    await page.route(routeName('community/read'), async route => {
+      const request = route.request();
+      const response = await world.handler(new Request(request.url(), { method: request.method(), headers: request.headers(), body: request.postData() }));
+      const body = await response.json();
+      body.due = body.due.map(row => {
+        const locked = Object.keys(personal.ballots[row.mode]?.lockedAt ?? {}).length;
+        return { ...row, locked, openGames: personal.games.length - locked, games: personal.games.length };
+      });
+      return reply(route, body);
+    });
+  } });
+  try {
+    const games = world.personal.games;
+    for (const [i, game] of games.entries()) {
+      const card = await openGame(page, game.id);
+      await card.locator('[data-side="home"]').click();
+      await card.locator('.gx-guess-num[data-value="3"]').click();
+      await card.getByRole('button', { name: 'Lock in Spread', exact: true }).click();
+      await page.getByRole('alertdialog', { name: 'Lock in Spread?' }).getByRole('button', { name: 'Confirm lock-in' }).click();
+      await expect(card.getByRole('region', { name: /Spread receipt/ })).toBeVisible();
+      if (i < games.length - 1) await expect(page.locator('[data-moment="pop"]'), `${i + 1} of ${games.length} is not the moment`).toHaveCount(0);
+    }
+    await expect(page.locator('.gx-per-game p', { hasText: 'Every game is locked in.' })).toHaveAttribute('data-moment', 'pop');
+    await openWeek(page);
+    await expect(page.locator('[data-play="count"]')).toHaveText(`${games.length} of ${games.length} locked`);
+    await expect(page.locator('[data-moment="pop"]')).toHaveCount(0);
+    await page.reload();
+    await expect(page.locator('[data-play="count"]')).toHaveText(`${games.length} of ${games.length} locked`);
+    await expect(page.locator('[data-moment="pop"]')).toHaveCount(0);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+// D-69 step 1, Whole week locked: the moment can wait (the last lock was confirmed while the player was on Your score).
+// The picks card holds it, so it must not play while "Loading your picks…" shows with no line mounted to pop.
+test('a waiting Whole week locked moment plays on the picks card once its cards mount, not while the picks load', async ({ page, baseURL }) => {
+  let holdCommunity = null, holdPicks = null, communityAnswered = false;
+  const world = await fixture(page, baseURL, { beforeSignIn: async ({ world, personal }) => {
+    await page.route(routeName('community/read'), async route => {
+      await holdCommunity;
+      const request = route.request();
+      const response = await world.handler(new Request(request.url(), { method: request.method(), headers: request.headers(), body: request.postData() }));
+      const body = await response.json();
+      body.due = body.due.map(row => {
+        const locked = Object.keys(personal.ballots[row.mode]?.lockedAt ?? {}).length;
+        return { ...row, locked, openGames: personal.games.length - locked, games: personal.games.length };
+      });
+      await reply(route, body);
+      communityAnswered = true;
+    });
+    // Delays only the picks read the remount makes (set below); the first mount's read is not held.
+    await page.route(routeName('personal/read'), async route => { await holdPicks; return route.fallback(); });
+  } });
+  try {
+    const games = world.personal.games;
+    for (const [i, game] of games.entries()) {
+      let release;
+      if (i === games.length - 1) { holdCommunity = new Promise(resolve => { release = resolve; }); communityAnswered = false; }
+      const card = await openGame(page, game.id);
+      await card.locator('[data-side="home"]').click();
+      await card.locator('.gx-guess-num[data-value="3"]').click();
+      await card.getByRole('button', { name: 'Lock in Spread', exact: true }).click();
+      await page.getByRole('alertdialog', { name: 'Lock in Spread?' }).getByRole('button', { name: 'Confirm lock-in' }).click();
+      await expect(card.getByRole('region', { name: /Spread receipt/ })).toBeVisible();
+      if (release) {
+        // The last lock is saved but the confirming Community read has not arrived: leave for Your score, then let it land.
+        await page.getByRole('button', { name: 'Your score', exact: true }).click();
+        await expect(page.getByRole('heading', { name: /score/i }).first()).toBeVisible();
+        release();
+        await expect.poll(() => communityAnswered).toBe(true);
+      }
+    }
+    // Back to the picks with the picks read held: the moment waits while the loading line shows.
+    let letPicks;
+    holdPicks = new Promise(resolve => { letPicks = resolve; });
+    await page.goBack();
+    await expect(page.getByText('Loading your picks…')).toBeVisible();
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    await expect(page.locator('[data-moment="pop"]')).toHaveCount(0);
+    letPicks();
+    await expect(page.locator('.gx-per-game')).toBeVisible();
+    await expect(page.locator('[data-moment="pop"]')).toHaveCount(1);
+    await expect(page.locator('[data-moment="pop"]')).toContainText(/locked/i);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+// Final fix wave F4: a game's card sits two lips deep under the Play lip, so its guess grid narrows. Every guess button
+// keeps a 44px layout width (the used CSS width, not the rounded offsetWidth or a painted transform) from 320 to 390px,
+// in both markets, with the row gap still 8px.
+test('every guess button on a game card is at least 44px wide at 320, 360, 375, 380, 381 and 390px, Spread and Total', async ({ page, baseURL }) => {
+  const world = await fixture(page, baseURL);
+  try {
+    const [game] = world.personal.games;
+    for (const market of ['Spread', 'Total']) {
+      if (market === 'Total') await chooseMarket(page, 'Total');
+      const card = await openGame(page, game.id);
+      expect(new URL(page.url()).hash).toBe(`#play/picks?market=${market.toLowerCase()}&season=${world.personal.season}&week=${world.personal.week}&pickGame=${game.id}`);
+      if (market === 'Spread') await card.locator('[data-side="home"]').click();
+      for (const width of [320, 360, 375, 380, 381, 390]) {
+        await page.setViewportSize({ width, height: 844 });
+        await settled(page);
+        const row = await card.locator('.gx-guess-nums').evaluate(el => {
+          const style = getComputedStyle(el);
+          const chips = [...el.querySelectorAll('.gx-guess-num, .gx-guess-more')].filter(chip => chip.getClientRects().length);
+          return { rowGap: style.rowGap, count: chips.length, narrow: chips.map(chip => [chip.textContent.trim(), parseFloat(getComputedStyle(chip).width)]).filter(([, w]) => w < 44) };
+        });
+        expect(row.count, `${market} ${width}`).toBeGreaterThan(4);
+        expect(row.narrow, `${market} ${width}`).toEqual([]);
+        expect(row.rowGap, `${market} ${width}`).toBe('8px');
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${market} ${width}`).toBe(true);
+      }
+      await page.setViewportSize({ width: 390, height: 844 });
+    }
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

@@ -6,12 +6,17 @@
 //   is a launch card, whatever was pressed, so every number shows its final value and nothing waiting plays.
 let settled = false;
 let navigated = false;
+let fading = false;
 const listeners = new Set();
 
 export const isSettled = () => settled;
 export const hasNavigated = () => navigated;
 /** True until the member's first navigation: what a card showing now counts as a launch. */
 export const onLaunchScreen = () => !hasNavigated();
+
+/** True while the shell renders a tab change's fade (shell/tabFade.js sets it each render, before the screen renders). */
+export const tabFading = () => fading;
+export function setTabFading(value) { fading = value === true; }
 
 /** Marks the launch over and tells each listener once. */
 export function markSettled() {
@@ -41,4 +46,4 @@ export function armLaunch(target) {
 }
 
 /** A new sign-in (and tests): the next screen is a launch, and a launch screen, again. */
-export function resetLaunch() { settled = false; navigated = false; listeners.clear(); }
+export function resetLaunch() { settled = false; navigated = false; fading = false; listeners.clear(); }

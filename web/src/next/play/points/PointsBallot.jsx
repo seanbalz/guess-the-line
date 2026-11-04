@@ -1,30 +1,34 @@
-// Play › Points (D-56 spec section 5; the D-56 addenda: ballot card option D "Glow card", and Sean's October 23 screen
-// decisions 2A, 3B, 4A and 5B). Five full glow cards in kickoff order: a glass pill "POS · Player", a status word and the
-// matchup and kickoff line; then "You N" once locked in, "Draft N" for a draft, or the You / Actual / Points tiles once
-// scored. Before the gate opens, the faces of who locked in with no numbers; after it, a number line of everyone's guesses
-// and the House. A tap opens a sheet with the big stepper (− / number / +, hold to move by 5), Save draft and the one lime
-// "Lock in N" with a confirm dialog, as PerGamePlay.jsx does.
-//
-// Every slot card is a glow card (gx-card--hero, glass pills and tiles): Sean's D-56 addendum of October 23 lets any number
-// of glow cards be on screen, replacing D-55's two-card limit. The open sheet repeats the slot as a glow card too.
-// The server decides every gate (cloud/points.mjs): this screen only draws what /points/read returned. Until P-01 is
-// applied the read answers 404 and the screen says "Points is coming soon".
-// Board i63: the slot's sheet adds the player's context from the week's public Fantasy snapshot (SlotContext.jsx) and
-// opens his Fantasy profile in place, its code loaded on that tap (PointsProfile.jsx); GTL's weekly estimate there is
-// the House, so it stays locked until the read carries the House (D-56). The ballot is keyed by account, so an account
+// Play › Guess the Points (D-56 spec section 5 and its addenda; D-69 step 1, Sean's P4A of November 3, 2026). Play
+// layers (D-66 nesting cards):
+// - The week card, "Week N Points": a five-part bar (one part per slot), one meta line, then five glow slot tiles in two
+//   columns (position, status word, player, one value line) and a sixth tile, the Points board, which opens the League
+//   board on the Points market.
+// - A slot's layer (address `item` = the slot code): everything the slot sheet held (decisions 2A, 3B, 4A, 5B): the big
+//   stepper, Save draft, the one lime "Lock in N" with its confirm dialog, Retry same save, the locked-in faces, the number
+//   line with the House tick, the You / Actual / Points tiles and the closest line, then the player's context.
+// - The player's profile (`layer` 'profile' on the slot's address, Board i63), in the same card so the guess being edited
+//   stays.
+// The server decides every gate (cloud/points.mjs): these layers draw only what /points/read returned. Until P-01 is
+// applied the read answers 404 and the card says "Points is coming soon". A fresh read reports a slot guessed exactly as a
+// big moment (pointsMoments.js); this card holds the Points moments' scope. The ballot is keyed by account, so an account
 // switch starts it, and the context, empty.
 import { useEffect, useRef, useState } from 'react';
 import { pointsApi } from '../../../api.js';
 import { fantasyWeekKey, useFantasySnapshot } from '../../../fantasyData.js';
 import { useAppData } from '../../data/AppData.jsx';
 import { useShell } from '../../shell/context.js';
+import { useMomentScope, useMoments } from '../../moments/MomentsProvider.jsx';
+import { SCOPES } from '../../moments/catalog.js';
 import { PlayEmpty, PlayFailure, PlayLoading } from '../PlayStates.jsx';
-import { Avatar, AvatarStack, Button, Card, CardButton, Dialog, Icon, InfoButton, Matchup, Sheet } from '../../ui/index.js';
+import { PlayLayer } from '../PlayLayer.jsx';
+import { PlayTile } from '../PlayTile.jsx';
+import { Avatar, AvatarStack, Button, Card, CardButton, Dialog, Icon, InfoButton, Matchup, Pill, Skeleton } from '../../ui/index.js';
 import { INFO } from '../../info.js';
-import { GUESS_MAX, GUESS_MIN, SLOT_NAMES, closestLine, comingSoon, editable, kickoffText, landingCard, lineWords, matchupCodes, matchupText, numberLine, publishTarget, pts, resultTiles, slotStatus, step, summaryLine } from './pointsModel.js';
+import { GUESS_MAX, GUESS_MIN, SLOT_NAMES, boardTile, closestLine, comingSoon, editable, isExact, kickoffText, matchupCodes, matchupText, numberLine, publishTarget, pts, resultTiles, slotStatus, slotTile, step, weekBar, weekLine } from './pointsModel.js';
+import { pointsMoments, pointsSource } from './pointsMoments.js';
 import { PointsPublish } from './PointsPublish.jsx';
 import { ProfileView, SlotContext } from './SlotContext.jsx';
-import { contextSettings } from './pointsContext.js';
+import { CONTEXT_COPY, contextSettings } from './pointsContext.js';
 import './points.css';
 
 /** The slot's game as marks (D-62), or the player's team as text when the game key has another form. */
@@ -33,8 +37,8 @@ function SlotGame({ codes, text }) {
 }
 
 /**
- * The week's read, shared by the ballot, the Play landing row and the League board: `{ loading, data, error, retry }`.
- * A refresh after a save keeps the last good reply on screen (an open sheet stays open); a new account or group starts
+ * The week's read, shared by the ballot, the Play landing tile and the League board: `{ loading, data, error, retry }`.
+ * A refresh after a save keeps the last good reply on screen (an open slot stays open); a new account or group starts
  * empty, so another scope's guesses never flash.
  */
 export function usePointsRead(app, groupId = null) {
@@ -59,55 +63,86 @@ export function usePointsRead(app, groupId = null) {
   return { loading: current.loading, data: current.data, error: current.error, retry: () => setRevision(n => n + 1) };
 }
 
-/** Decision 1C: the Play landing's Points row, a glow card with a glass pill, a big "2/5" (locked of five) and one meta line. */
-export function PointsLandingCard({ ref, read, onOpen }) {
-  const card = landingCard(read.data, read.error);
-  return <CardButton ref={ref} variant="hero" className="gx-pt-landing gx-vstack gx-gap-8" aria-label={card.label} data-points-landing onClick={onOpen}>
-    <span className="gx-pt-landing-top"><span className="gx-pt-pill gx-t-strong">Guess the Points</span>{card.progress && <span className="gx-n-l gx-t-strong">{card.progress}</span>}</span>
-    <span className="gx-t-meta gx-pt-sub">{card.meta}</span>
-  </CardButton>;
+/**
+ * D-69: each fresh /points/read reply reports the viewer's exact slots to the moments engine. It runs on a new reply only:
+ * a refresh in flight keeps the last reply, and a save's own answer is not a read, so nothing pending ever plays.
+ */
+export function usePointsMoments(read, groupId = null) {
+  const report = useMoments()?.report;
+  const data = read.data;
+  useEffect(() => { if (data && report) report(pointsMoments(data), { source: pointsSource(groupId) }); }, [data, report, groupId]);
 }
 
 export function PointsComingSoon() {
   return <Card className="gx-vstack gx-gap-12 gx-pt-soon" role="status"><h2 className="gx-t-section">Points is coming soon</h2><p className="gx-t-body gx-c-2">Guess five players’ fantasy points each week. It opens here when it is ready; nothing is needed from you now.</p></Card>;
 }
 
+const PointsInfo = () => <InfoButton title={INFO.points.title} body={INFO.points.body} links={INFO.points.links}/>;
+
 export function PointsBallot() {
   const app = useAppData(), shell = useShell();
   return <PointsBallotView key={app.accountId} app={app} shell={shell} read={usePointsRead(app)}/>;
 }
 
-/** The ballot for one read state; `initialSlot` opens that slot's sheet (tests render it statically). */
-export function PointsBallotView({ app, shell, read, initialSlot = null }) {
-  const [open, setOpen] = useState(initialSlot);
-  const heading = <div className="gx-play-titlebar"><h1 className="gx-t-title gx-grow">{read.data?.status === 'open' ? `WEEK ${read.data.week} POINTS` : 'Guess the Points'}</h1><InfoButton title={INFO.points.title} body={INFO.points.body} links={INFO.points.links}/></div>;
-  if (read.loading) return <div className="gx-screen gx-vstack gx-gap-16">{heading}<PlayLoading>Loading Points…</PlayLoading></div>;
-  if (read.error) return <div className="gx-screen gx-vstack gx-gap-16">{heading}{comingSoon(read.error) ? <PointsComingSoon/> : <PlayFailure what="Points" error={read.error} onRetry={read.retry}/>}</div>;
+/**
+ * The ballot for one read state, as one Play layer whose card is the week, one slot, or that slot's profile, as the
+ * address says (`item`, `layer`). Every state draws in the same layer, so a change of card moves focus to its heading.
+ */
+export function PointsBallotView({ app, shell, read }) {
+  useMomentScope(SCOPES.points);
+  usePointsMoments(read);
+  const place = shell.state?.views?.play ?? {};
   const data = read.data;
-  // The commissioner alone sees a drafted week's preview and Publish now; gtl-api checks the grant again.
-  const target = shell.communityAdmin === true ? publishTarget(data, app.community?.data?.week) : null;
-  const published = week => { shell.toast?.(`Week ${week} is open for everyone.`); read.retry(); };
-  const publish = target && <PointsPublish key={`${target.season}:${target.week}`} target={target} quiet={data.status === 'open'} onPublished={published}/>;
-  if (data.status !== 'open') return <div className="gx-screen gx-vstack gx-gap-16">{heading}<PlayEmpty>No Points week is open. A new week opens Tuesdays at 12:00 AM PT.</PlayEmpty>{publish}</div>;
-  const selected = data.slots.find(slot => slot.slot === open);
-  return <div className="gx-screen gx-vstack gx-gap-16 gx-pt" data-screen="points">
-    {heading}
-    {publish}
-    <p className="gx-t-strong gx-n-s" data-points-summary>{summaryLine(data)}</p>
-    <ol className="gx-pt-slots" aria-label={`Week ${data.week} Points players`}>
-      {data.slots.map(slot => <li key={slot.slot}><SlotCard slot={slot} viewer={app.accountId} weekStatus={data.result?.status} onOpen={() => setOpen(slot.slot)}/></li>)}
-    </ol>
-    <Button variant="ghost" onClick={() => shell.go('league', { view: 'board', market: 'points' })}>Points board</Button>
-    {selected && <SlotSheet key={selected.slot} data={data} weekStatus={data.result?.status} slot={selected} viewer={app.accountId} setDirty={shell.setDirty} onClose={() => setOpen(null)} onSaved={read.retry} onSignInAgain={app.requestSignIn}/>}
+  const open = !read.loading && !read.error && data?.status === 'open';
+  const selected = open ? data.slots.find(slot => slot.slot === place.item) ?? null : null;
+  const profile = Boolean(selected) && place.layer === 'profile';
+  const week = open ? `Week ${data.week} Points` : 'Guess the Points';
+  const toWeek = { key: 'points', label: week, open: () => shell.setView('play', { item: undefined, layer: undefined }) };
+  const named = selected ? `${selected.slot} · ${selected.name}` : null;
+  const frame = !selected ? { layer: 'points', title: week, parents: [], info: <PointsInfo/> }
+    : profile ? { layer: `points:${selected.slot}`, title: selected.name, parents: [toWeek, { key: 'slot', label: named, open: () => shell.setView('play', { item: selected.slot, layer: undefined }) }], info: null }
+    : { layer: `points:${selected.slot}`, title: named, parents: [toWeek], info: <PointsInfo/> };
+  let body;
+  if (read.loading) body = <PlayLoading>Loading Points…</PlayLoading>;
+  else if (read.error) body = comingSoon(read.error) ? <PointsComingSoon/> : <PlayFailure what="Points" error={read.error} onRetry={read.retry}/>;
+  else {
+    // The commissioner alone sees a drafted week's preview and Publish now; gtl-api checks the grant again.
+    const target = shell.communityAdmin === true ? publishTarget(data, app.community?.data?.week) : null;
+    const published = n => { shell.toast?.(`Week ${n} is open for everyone.`); read.retry(); };
+    const publish = target && <PointsPublish key={`${target.season}:${target.week}`} target={target} quiet={open} onPublished={published}/>;
+    body = !open ? <><PlayEmpty>No Points week is open. A new week opens Tuesdays at 12:00 AM PT.</PlayEmpty>{publish}</>
+      : selected ? <SlotLayer key={selected.slot} data={data} slot={selected} viewer={app.accountId} profile={profile} setDirty={shell.setDirty}
+        onProfile={() => shell.setView('play', { item: selected.slot, layer: 'profile' })} onSaved={read.retry} onSignInAgain={app.requestSignIn}/>
+      : <><WeekCard data={data} viewer={app.accountId} onSlot={code => shell.setView('play', { item: code })} onBoard={() => shell.go('league', { view: 'board', market: 'points' })}/>{publish}</>;
+  }
+  return <div className="gx-screen" data-screen="points">
+    <PlayLayer label="Guess the Points" parents={frame.parents} layer={frame.layer} title={frame.title} info={frame.info} className="gx-pt">{body}</PlayLayer>
   </div>;
 }
 
-/** Decision 2A: the glass pill "POS · Player" and the status word. */
-function SlotHead({ slot, weekStatus }) {
-  return <span className="gx-pt-head">
-    <span className="gx-pt-pill gx-t-strong">{slot.slot} · {slot.name}</span>
-    <span className="gx-pt-word gx-t-micro">{slotStatus(slot, weekStatus)}</span>
-  </span>;
+/** P4A: the bar and the meta line, then the five slot tiles and the board tile, two columns (one under 360px). */
+function WeekCard({ data, viewer, onSlot, onBoard }) {
+  const bar = weekBar(data), board = boardTile(data, viewer);
+  return <>
+    <span className="gx-pt-bar" role="img" aria-label={bar.label} data-points-bar>
+      {bar.parts.map(part => <span key={part.slot} className={`gx-pt-bar-part gx-pt-bar-part--${part.state}`}></span>)}
+    </span>
+    <p className="gx-t-meta" data-points-summary>{weekLine(data)}</p>
+    <ul className="gx-nest-grid gx-pt-grid" aria-label={`Week ${data.week} Points players`}>
+      {data.slots.map(slot => <li key={slot.slot}><SlotTile slot={slot} weekStatus={data.result?.status} onOpen={() => onSlot(slot.slot)}/></li>)}
+      <li><PlayTile label="Points board" icon="trophy" big={board.big} sub={board.sub} ariaLabel={board.label} onClick={onBoard}/></li>
+    </ul>
+  </>;
+}
+
+/** One glow tile (P4A): the position, its status word, the player and one value line. Its id lets Back return focus to it. */
+function SlotTile({ slot, weekStatus, onOpen }) {
+  const tile = slotTile(slot, weekStatus);
+  return <CardButton variant="hero" id={`gx-pt-slot-${slot.slot}`} className="gx-pt-slot gx-vstack gx-gap-8" aria-label={tile.label} data-slot={slot.slot} onClick={onOpen}>
+    <span className="gx-pt-slot-top"><span className="gx-t-section">{tile.code}</span><span className="gx-pt-word gx-t-micro">{tile.word}</span></span>
+    <span className="gx-t-strong gx-pt-slot-name">{tile.name}</span>
+    <span className={tile.number ? 'gx-n-s' : 'gx-t-meta gx-pt-sub'}>{tile.value}</span>
+  </CardButton>;
 }
 
 function Tiles({ slot }) {
@@ -129,9 +164,9 @@ function LockedInFaces({ slot }) {
 }
 
 /**
- * Decision 5B: everyone's guesses on a number line with the House as a tick. `interactive` (the sheet) makes each face and the
- * tick a 44px button that shows its exact number on tap and names it for keyboard and screen readers; on a card (itself one
- * button) the line is a picture and the card's accessible name carries the exact values.
+ * Decision 5B: everyone's guesses on a number line with the House as a tick. `interactive` (the slot layer) makes each face and the
+ * tick a 44px button that shows its exact number on tap and names it for keyboard and screen readers; otherwise the line is a
+ * picture whose holder names the exact values.
  */
 export function NumberLine({ slot, viewer, interactive = false }) {
   const [shown, setShown] = useState(null);
@@ -155,24 +190,6 @@ export function NumberLine({ slot, viewer, interactive = false }) {
     </Marker>}
     <span className="gx-pt-line-axis gx-t-meta" aria-hidden="true"><span>0</span><span>{line.max / 2}</span><span>{line.max}</span></span>
   </span>;
-}
-
-/** A slot card (decision 2A, every card a glow card). At most six data numbers: three tiles and the House label, or one value. */
-function SlotCard({ slot, viewer, weekStatus, onOpen }) {
-  // After kickoff the card turns to results: tiles with "—" until stats land, and "—" for a slot never locked in.
-  const settled = slot.state === 'scored' || slot.closed && slot.state === 'pending';
-  const closest = closestLine(slot, viewer);
-  const line = slot.revealed && !settled && slot.state !== 'void' && (slot.own?.locked || slot.guesses.length) ? numberLine(slot, viewer) : null;
-  const label = [`${SLOT_NAMES[slot.slot]}, ${slot.name}, ${matchupText(slot)}, ${kickoffText(slot.kickoff)}, ${slotStatus(slot, weekStatus)}`,
-    ...(line ? [lineWords(line)] : !slot.revealed && slot.lockedIn.length ? [`${slot.lockedIn.length} locked in, guesses open at kickoff`] : [])].join('. ');
-  return <CardButton variant="hero" className="gx-pt-card gx-vstack gx-gap-12" aria-label={label} data-slot={slot.slot} onClick={onOpen}>
-    <SlotHead slot={slot} weekStatus={weekStatus}/>
-    <span className="gx-t-meta gx-pt-sub"><SlotGame codes={matchupCodes(slot)} text={matchupText(slot)}/> · {kickoffText(slot.kickoff)}</span>
-    {slot.state === 'void' ? <span className="gx-t-body gx-pt-sub">Void for everyone · no points</span>
-      : settled ? <><Tiles slot={slot}/>{closest && <span className="gx-t-body">{closest}</span>}{slot.revealed && slot.house && <span className="gx-t-meta gx-pt-sub">House {pts(slot.house.estimate)}</span>}</>
-      : <>{slot.own?.locked ? <ValueRow label="You" value={slot.own.guess}/> : slot.own ? <ValueRow label="Draft" value={slot.own.guess}/> : null}
-        {line ? <NumberLine slot={slot} viewer={viewer}/> : !slot.revealed ? <LockedInFaces slot={slot}/> : null}</>}
-  </CardButton>;
 }
 
 /**
@@ -217,23 +234,31 @@ function Stepper({ value, onChange, disabled }) {
 }
 
 /**
- * The slot's sheet: the stepper while it is open, and the number line or the locked-in faces after lock-in or kickoff;
- * under it the player's context, whose "Open profile" shows his Fantasy profile as this sheet's sub-view (the guess
- * being edited stays as it is). `initialView` 'profile' opens on the profile (tests render it statically).
+ * One slot's card: the stepper, Save draft and the one lime "Lock in N" while it is open; the number line or the locked-in
+ * faces after lock-in or kickoff; the results once scored (an exact guess says so); then the player's context. With
+ * `profile` it shows his Fantasy profile instead, and the guess being edited stays (this card stays mounted). Leaving
+ * the slot with an unsaved guess asks first (setDirty; the profile keeps it, so it does not ask).
  */
-export function SlotSheet({ data, slot, viewer, weekStatus, setDirty, onClose, onSaved, onSignInAgain, initialView = 'slot' }) {
+export function SlotLayer({ data, slot, viewer, profile = false, setDirty, onProfile, onSaved, onSignInAgain }) {
   const fantasy = useFantasySnapshot(fantasyWeekKey(data.season, data.week));
-  const [view, setView] = useState(initialView);
   const settings = contextSettings(data);
   const [value, setValue] = useState(Number.isInteger(slot.own?.guess) ? slot.own.guess : null);
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState(''), [confirm, setConfirm] = useState(false);
   const [pending, setPending] = useState(null);
-  const alive = useRef(true), running = useRef(false);
+  const alive = useRef(true), running = useRef(false), wasProfile = useRef(profile);
   const can = editable(data, slot);
   const dirty = can && value !== null && value !== slot.own?.guess;
   const dirtyKey = `points.${data.season}.${data.week}.${slot.slot}`;
+  const code = slot.slot;
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
-  useEffect(() => { setDirty?.(dirtyKey, dirty || busy || Boolean(pending)); return () => setDirty?.(dirtyKey, false); }, [dirtyKey, dirty, busy, pending, setDirty]);
+  useEffect(() => {
+    const keeps = next => next.tab === 'play' && next.views.play.section === 'points' && next.views.play.item === code;
+    setDirty?.(dirtyKey, dirty || busy || Boolean(pending), keeps);
+    return () => setDirty?.(dirtyKey, false);
+  }, [dirtyKey, dirty, busy, pending, setDirty, code]);
+  // The profile takes focus when it opens here (not on a page load at its address); Back returns focus to "Open profile".
+  const focusProfile = profile && !wasProfile.current;
+  useEffect(() => { wasProfile.current = profile; });
   async function send(action, retry = false) {
     if (running.current || (!retry && (!can || value === null))) return;
     const request = retry ? pending : { action, body: { season: data.season, week: data.week, slot: slot.slot, guess: value, requestId: crypto.randomUUID() } };
@@ -254,36 +279,43 @@ export function SlotSheet({ data, slot, viewer, weekStatus, setDirty, onClose, o
     } finally { running.current = false; if (alive.current) setBusy(false); }
   }
   const choose = update => { setValue(update); setNotice(''); };
-  const title = `${slot.slot} · ${slot.name}`;
-  if (view === 'profile' && fantasy.status === 'ready') {
-    return <Sheet title={slot.name} back={{ label: title, onBack: () => setView('slot') }} onClose={() => { if (!busy) onClose(); }} tall className="gx-pt-sheet gx-fantasy-profile">
-      <ProfileView snapshot={fantasy.snapshot} slot={slot} settings={settings}/>
-    </Sheet>;
-  }
-  const footer = can ? <Button variant="primary" block disabled={busy || value === null || Boolean(pending)} onClick={() => setConfirm(true)}>{value === null ? 'Choose a guess to lock in' : `Lock in ${value}`}</Button> : null;
-  return <Sheet title={title} onClose={() => { if (!busy) onClose(); }} footer={footer} className="gx-pt-sheet">
+  if (profile) return <SlotProfile fantasy={fantasy} slot={slot} settings={settings} week={data.week} focus={focusProfile}/>;
+  const status = slotStatus(slot, data.result?.status);
+  const settled = (slot.state === 'scored' || slot.closed) && slot.state !== 'void';
+  const closest = closestLine(slot, viewer);
+  return <>
     <Card variant="hero" className="gx-vstack gx-gap-12 gx-pt-card">
-      <SlotHead slot={slot} weekStatus={weekStatus}/>
+      <span className="gx-pt-word gx-t-micro">{status}</span>
       <p className="gx-t-meta gx-pt-sub">{SLOT_NAMES[slot.slot]} · <SlotGame codes={matchupCodes(slot)} text={matchupText(slot)}/> · {can ? 'locks ' : ''}{kickoffText(slot.kickoff)}</p>
-      {(slot.state === 'scored' || slot.closed) && slot.state !== 'void' && <><Tiles slot={slot}/>{closestLine(slot, viewer) && <p className="gx-t-body">{closestLine(slot, viewer)}</p>}</>}
+      {settled && <><Tiles slot={slot}/>{isExact(slot) && <Pill tone="win" className="gx-pt-exact">Exact · 10 points</Pill>}{closest && <p className="gx-t-body">{closest}</p>}</>}
       {slot.state === 'void' && <p className="gx-t-body">Void for everyone. This week’s maximum drops by 10.</p>}
+      {!can && !settled && slot.own?.locked && slot.state !== 'void' && <ValueRow label="You" value={slot.own.guess}/>}
       {can ? <section className="gx-vstack gx-gap-12" aria-label="Your guess">
         <Stepper value={value} onChange={choose} disabled={busy || Boolean(pending)}/>
-        <Button disabled={busy || !dirty || Boolean(pending)} onClick={() => send('draft')}>{busy ? 'Saving…' : 'Save draft'}</Button>
+        <Button block disabled={busy || !dirty || Boolean(pending)} onClick={() => send('draft')}>{busy ? 'Saving…' : 'Save draft'}</Button>
+        <Button variant="primary" block disabled={busy || value === null || Boolean(pending)} onClick={() => setConfirm(true)}>{value === null ? 'Choose a guess to lock in' : `Lock in ${value}`}</Button>
+        <LockedInFaces slot={slot}/>
       </section> : <Revealed slot={slot} viewer={viewer}/>}
     </Card>
-    <SlotContext week={data.week} slot={slot} snapshot={fantasy} settings={settings} onProfile={() => setView('profile')}/>
-    {can && <p className="gx-t-body gx-c-2">Guess his Full PPR fantasy points, a whole number from 0 to 60. A locked guess is final.</p>}
-    {can && slot.own && !slot.own.locked && <p className="gx-t-meta gx-c-2">Saved draft: {slot.own.guess}. A draft does not score unless you lock it in before kickoff.</p>}
-    {can && <LockedInFaces slot={slot}/>}
+    <SlotContext week={data.week} slot={slot} snapshot={fantasy} settings={settings} onProfile={onProfile}/>
     {pending && <Card className="gx-vstack gx-gap-12"><p className="gx-t-body">Your last save is unconfirmed.</p><Button disabled={busy} onClick={() => send(pending.action, true)}>Retry same save</Button></Card>}
     {error && <p className="gx-t-body gx-c-loss" role="alert">{error}</p>}
     <p className="gx-t-body" role="status">{notice}</p>
-    <Dialog open={confirm} title={`Lock in ${value}?`} text={`${slot.name} (${slot.slot}): ${value} fantasy points. This guess is final. Other members’ guesses and the House for this player open to you once it is locked.`} onClose={() => { if (!busy) setConfirm(false); }}>
+    {can && <Dialog open={confirm} title={`Lock in ${value}?`} text={`${slot.name} (${slot.slot}): ${value} fantasy points. This guess is final. Everyone’s guesses and the House open to you.`} onClose={() => { if (!busy) setConfirm(false); }}>
       <Button onClick={() => setConfirm(false)}>Keep editing</Button>
       <Button variant="primary" disabled={busy} onClick={() => send('lock')}>Confirm lock-in</Button>
-    </Dialog>
-  </Sheet>;
+    </Dialog>}
+  </>;
+}
+
+/** The profile card (Board i63): its code loads on the first visit; until the week's player data is ready, its state. */
+function SlotProfile({ fantasy, slot, settings, week, focus }) {
+  if (fantasy?.status === 'ready' && fantasy.snapshot) return <ProfileView snapshot={fantasy.snapshot} slot={slot} settings={settings} focus={focus}/>;
+  if (!fantasy || fantasy.status === 'loading') return <Skeleton label={CONTEXT_COPY.profileLoading} shape="lines" count={3}/>;
+  return <div className="gx-vstack gx-gap-8" role="alert">
+    <p className="gx-t-body">{fantasy.status === 'error' ? CONTEXT_COPY.failed : CONTEXT_COPY.unavailable(week)}</p>
+    {fantasy.status === 'error' && fantasy.retry ? <Button variant="ghost" onClick={fantasy.retry}>{CONTEXT_COPY.retry}</Button> : null}
+  </div>;
 }
 
 /** After lock-in or kickoff: the number line (5B) once the gate opens; before it, the faces of who locked in (4A). */

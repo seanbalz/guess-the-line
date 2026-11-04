@@ -18,14 +18,17 @@ export function onFeedChange(listener) {
 
 /**
  * Sets (a key) or takes back (null) the member's reaction on a post. The change shows at once; the server's summary
- * replaces it, a refusal puts the old one back with a toast, and a lost answer reads the feed again.
+ * replaces it, a refusal puts the old one back with a toast, and a lost answer reads the feed again. The result is the
+ * confirmation: `{ ok: true, mine }` carries the reaction the server saved (null when taken back), and the same answer goes out
+ * on the feed channel with `confirmed: true`, so a chip reacts only to a write the server accepted, never to the change that showed at once.
  */
 export async function react({ postId, current, next, toast }) {
   feedChanged({ type: 'reactions', postId, reactions: withReaction(current, next) });
   try {
     const saved = await leagueApi('react', { postId, reaction: next });
-    feedChanged({ type: 'reactions', postId, reactions: { counts: saved.counts, total: saved.total, mine: saved.mine } });
-    return { ok: true };
+    // `confirmed` marks the server's answer to a write made here (from a chip or the popover): the chip pops on it, never on the optimistic patch.
+    feedChanged({ type: 'reactions', postId, reactions: { counts: saved.counts, total: saved.total, mine: saved.mine }, confirmed: true });
+    return { ok: true, mine: saved.mine ?? null };
   } catch (error) {
     const problem = writeProblem(error);
     if (problem.kind === 'uncertain') feedChanged({ type: 'reload' });

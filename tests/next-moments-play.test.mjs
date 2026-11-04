@@ -1,7 +1,7 @@
 // D-69 big moments: what the player sees and feels, and when motion counts as reduced. Pure code, no DOM.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { flashItem, playBig } from '../web/src/next/moments/play.js';
+import { flashDestination, flashItem, playBig, popLatch } from '../web/src/next/moments/play.js';
 import { motionReduced } from '../web/src/next/ui/motion.js';
 
 const moment = (id, extra = {}) => ({ id, title: `T${id}`, meta: `M${id}`, parts: [id], icon: 'trophy', rarity: 'rare', ...extra });
@@ -49,4 +49,26 @@ test('motionReduced: the app setting on an ancestor, the device setting, or neit
   } finally {
     if (had) Object.defineProperty(globalThis, 'window', had); else delete globalThis.window;
   }
+});
+
+test('flash destination: the card\'s second button goes where the moment lives; a mix of places offers none', () => {
+  assert.equal(flashItem(moment('a', { kind: 'bullseye' })).kind, 'bullseye');
+  assert.equal('kind' in flashItem(moment('b')), false, 'a moment without a kind adds none');
+  assert.deepEqual(flashDestination([{ kind: 'badge' }, { kind: 'award' }]), { label: 'See badges', section: 'features' });
+  assert.deepEqual(flashDestination([{ kind: 'bullseye' }, { kind: 'weekFinal' }]), { label: 'See your score', section: 'score' });
+  assert.deepEqual(flashDestination([{ kind: 'pointsExact' }]), { label: 'See Points', section: 'points' });
+  assert.deepEqual(flashDestination([{ kind: 'rankFirst' }]), { label: 'See the board', section: 'league', view: { view: 'board' } });
+  assert.equal(flashDestination([{ kind: 'badge' }, { kind: 'bullseye' }]), null, 'two places: no second button');
+  assert.deepEqual(flashDestination([{}]), { label: 'See badges', section: 'features' }, 'an item with no kind keeps today\'s button');
+});
+
+test('pop latch: a small moment pops the element on screen when it plays, and never again for an element mounted later', () => {
+  let step = popLatch(null, 'rank:1', false);
+  assert.equal(step.show, false, 'nothing has played');
+  step = popLatch(step.latch, 'rank:1', true);
+  assert.equal(step.show, true, 'it played while this element was mounted');
+  assert.equal(popLatch(null, 'rank:1', true).show, false, 'an element mounted after the pop stays still (going back never replays)');
+  const other = popLatch(step.latch, 'rank:2', false);
+  assert.equal(other.show, false);
+  assert.equal(popLatch(other.latch, 'rank:2', true).show, true, 'a new id starts its own latch');
 });

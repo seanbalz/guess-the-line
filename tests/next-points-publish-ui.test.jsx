@@ -14,15 +14,20 @@ vi.mock('../web/src/fantasyData.js', () => ({ fantasyWeekKey: (season, week) => 
 const { PointsBallotView } = await import('../web/src/next/play/points/PointsBallot.jsx');
 const { PointsPublishView } = await import('../web/src/next/play/points/PointsPublish.jsx');
 const { Button } = await import('../web/src/next/ui/index.js');
+const { ShellContext } = await import('../web/src/next/shell/context.js');
 
 const ME = '11111111-1111-4111-8111-111111111111';
 const UNOPENED = { season: null, week: null, status: 'unopened', groupId: null, slots: [], result: null, standings: { week: [], season: [] } };
 const OPEN = { season: 2026, week: 7, status: 'open', groupId: null, opensAt: '2026-10-20T07:00:00Z', finalizeAt: null, scoringRules: {},
   result: { status: null, maximum: 50, points: null, finalizedAt: null, house: { points: null, complete: false } }, slots: [], standings: { week: [], season: [] } };
 const app = week => ({ accountId: ME, league: { name: 'Community', community: true }, community: { status: 'ready', data: week ? { week: { season: 2026, week } } : null }, requestSignIn: vi.fn() });
-const shell = admin => ({ state: { views: { play: {}, league: {} } }, go: vi.fn(), setDirty: vi.fn(), toast: vi.fn(), communityAdmin: admin });
+const shell = admin => ({ state: { views: { play: { section: 'points' }, league: {} } }, go: vi.fn(), setView: vi.fn(), setDirty: vi.fn(), toast: vi.fn(), communityAdmin: admin });
 const ready = data => ({ loading: false, data, error: null, retry: vi.fn() });
-const ballot = ({ admin, data = UNOPENED, week = 8 }) => renderToStaticMarkup(<div className="gx"><PointsBallotView app={app(week)} shell={shell(admin)} read={ready(data)}/></div>);
+// The ballot is a Play layer: its lips read the shell from context (PlayLayer.jsx).
+const ballot = ({ admin, data = UNOPENED, week = 8 }) => {
+  const value = shell(admin);
+  return renderToStaticMarkup(<ShellContext.Provider value={value}><div className="gx"><PointsBallotView app={app(week)} shell={value} read={ready(data)}/></div></ShellContext.Provider>);
+};
 
 const DRAFT = { season: 2026, week: 8, status: 'draft', opensAt: '2026-10-27T07:00:00.000Z', house: { QB: 19.4, RB: 14.2 },
   slots: [
@@ -71,7 +76,7 @@ describe('Play › Points, Publish now visibility', () => {
   it('on an open week the commissioner’s check is quiet until a draft is found, and adds no lime button', () => {
     for (const week of [7, 8]) {
       const html = ballot({ admin: true, data: OPEN, week });
-      expect(html).toContain('WEEK 7 POINTS');
+      expect(html).toContain('Week 7 Points');
       expect(html).not.toContain('Checking Week');
       expect(html).not.toContain('gx-btn--primary');
     }

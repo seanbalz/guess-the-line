@@ -1,0 +1,18 @@
+/* D-69 step 1: the Play frame's shared pieces (PlayTile, WeekChips, FilterToggle). Tokens only. */
+.gx .gx-play-tile { justify-content: space-between; min-height: 112px; }
+.gx .gx-play-tile-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-play-tile-sub { min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+.gx .gx-play-tile-sub--plain { color: var(--gx-text-2); }
+.gx .gx-play-tile-sub--good { color: var(--gx-win); }
+.gx .gx-play-tile-sub--warn { color: var(--gx-pending); }
+.gx .gx-week-chips-wrap { display: flex; flex-direction: column; gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-week-chips { display: flex; gap: var(--gx-space-2); min-width: 0; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
+.gx .gx-week-chips > .gx-chip { flex: none; }
+.gx .gx-filter-toggle { display: flex; flex-direction: column; align-items: flex-end; gap: var(--gx-space-3); }
+.gx .gx-filter-panel { align-self: stretch; }
+/* A class that sets display outranks the browser's [hidden] rule, so closed panels need their own. */
+.gx .gx-week-chips[hidden], .gx .gx-filter-panel[hidden] { display: none; }
+.gx .gx-filter-toggle-on { box-shadow: inset 0 0 0 2px var(--gx-accent-ink); }
+@media (forced-colors: active) {
+  .gx .gx-filter-toggle-on { outline: 2px solid Highlight; }
+}

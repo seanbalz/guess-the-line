@@ -22,6 +22,10 @@ test('moments size: every moment plays at the size Sean chose (Q3, "Use PICK col
   assert.equal(sizeOf('toString'), 'quiet', 'only own keys count');
 });
 
+test('scopes: Play cards that hold moments each have a scope, so a landing tile can show NEW for its own card', () => {
+  assert.deepEqual({ ...SCOPES }, { home: 'home', play: 'play', league: 'league', features: 'features', score: 'score', picks: 'picks', points: 'points' });
+});
+
 test('seen record: per account under gtl.next.moments.v1, capped, cleared on sign-out, and never trusted when broken', () => {
   const store = memory();
   assert.equal(momentsKey('acct-1'), 'gtl.next.moments.v1.acct-1');

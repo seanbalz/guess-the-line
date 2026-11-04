@@ -16,7 +16,7 @@ import { test, expect } from '@playwright/test';
 import { ALL } from '../migrations.mjs';
 import { communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 
-const ADDRESSES = ['#home', '#play', '#play/picks', '#play/features', '#play/league?view=feed', '#play/league?view=history', '#bets', '#bets/recommended', '#bets/active',
+const ADDRESSES = ['#home', '#play', '#play/picks', '#play/score', '#play/compare', '#play/points', '#play/league', '#play/features', '#play/features?layer=streaks', '#play/features?layer=awards', '#play/features?layer=season', '#play/features?layer=badge&item=bullseye', '#play/league?view=feed', '#play/league?view=history', '#play/league?view=history&week=6', '#bets', '#bets/recommended', '#bets/active',
   '#bets/virtual', '#bets/everyone', '#research', '#research/games', '#research/trends', '#history', '#history/bets', '#history/older'];
 const PASSES = [{ theme: 'dark', width: 390, height: 844 }, { theme: 'light', width: 320, height: 568 }];
 // Tab presses per page; enough to walk past the first screenful on every page above.
@@ -95,7 +95,7 @@ function focusProblem() {
   if (r.width < 2 || r.height < 2) return null;
   const above = document.querySelector('.gx-topbar').getBoundingClientRect().bottom;
   const below = Math.min(document.querySelector('.gx-tabbar').getBoundingClientRect().top,
-    ...[...document.querySelectorAll('.gx-dock-bar, .gx-play-save-dock')].filter(d => d !== el && !d.contains(el)).map(d => d.getBoundingClientRect().top));
+    ...[...document.querySelectorAll('.gx-dock-bar')].filter(d => d !== el && !d.contains(el)).map(d => d.getBoundingClientRect().top));
   // A control taller than the space between the bars cannot show whole; its top must then show.
   const room = below - above;
   if (r.height > room) return r.top >= above - 1 && r.top < below ? null : `${label(el)} (taller than the screen) starts outside it`;

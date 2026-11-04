@@ -5,7 +5,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { createMomentsEngine } from './engine.js';
 import { isSettled } from './launch.js';
-import { playBig } from './play.js';
+import { playBig, popLatch } from './play.js';
 import { motionReduced } from '../ui/motion.js';
 import './moments.css';
 
@@ -60,8 +60,23 @@ export function useNewCount(scope) {
   return useSyncExternalStore(engine ? engine.subscribe : none, () => (engine ? engine.newCount(scope) : 0), () => 0);
 }
 
-/** True once the small moment `id` has played: render `data-moment="pop"` on its element. */
+/** The moments waiting (NEW) for `scope`, in the order they arrived (a tile names the newest: "New: Bullseye"). */
+export function useNewMoments(scope) {
+  const ctx = useContext(MomentsContext);
+  const engine = ctx?.engine ?? null;
+  // The snapshot is the waiting ids as one string, so it only changes when the moments do.
+  const ids = useSyncExternalStore(engine ? engine.subscribe : none, () => (engine ? engine.newMoments(scope).map(m => m.id).join('|') : ''), () => '');
+  return useMemo(() => (engine && ids ? engine.newMoments(scope) : []), [engine, scope, ids]);
+}
+
+/**
+ * True once the small moment `id` has played while the calling element was on screen: render `data-moment="pop"` on
+ * it. An element that mounts after the pop stays still, so going back to a card never replays it (spec 4.2 rule 2).
+ */
 export function usePopped(id) {
   const ctx = useContext(MomentsContext);
-  return Boolean(ctx?.popped.has(id));
+  const latch = useRef(null);
+  const step = popLatch(latch.current, id, Boolean(ctx?.popped.has(id)));
+  latch.current = step.latch;
+  return step.show;
 }

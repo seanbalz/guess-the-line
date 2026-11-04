@@ -5,6 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { connectHistory, fragmentFor, isLegacyFragment, placeFromFragment, startPlace } from '../web/src/next/shell/router.js';
 import { EPL_ROUTER } from '../web/src/next/epl/shellRoute.js';
+import { leagueLayer, leagueMode } from '../web/src/next/league/leagueModel.js';
 import { initialState, layer, reduce } from '../web/src/next/shell/state.js';
 
 const tick = () => new Promise(resolve => setTimeout(resolve, 0));
@@ -254,4 +255,266 @@ test('D-69 layer addresses: every section keeps a layer and an item, so a reload
     assert.equal(place.view.item, '2026_08_SEA_DEN', tab);
   }
   assert.equal(placeFromFragment('#play/score?layer=%3Cscript%3E').view?.layer, undefined, 'only safe characters');
+});
+
+test('D-69: a game in Your score is its own layer: opening it is a step, the lip and Back close it, and its address reopens it', () => {
+  const start = initialState({ tab: 'play', view: { section: 'score', market: 'guess_spread', season: 2026, week: 8 } });
+  const game = reduce(start, { type: 'view', tab: 'play', patch: { scoreGame: 'SEA-DEN' } });
+  assert.equal(game.views.play.scoreGame, 'SEA-DEN');
+  assert.equal(game.trail.length, 1);
+  const place = placeFromFragment(fragmentFor('play', game.views.play)); // a reload or a shared link reopens it
+  assert.deepEqual([place.view.section, place.view.scoreGame, place.view.week, place.view.market], ['score', 'SEA-DEN', 8, 'guess_spread']);
+  for (const list of [reduce(game, { type: 'back' }), reduce(game, { type: 'view', tab: 'play', patch: { scoreGame: undefined } })]) {
+    assert.equal(list.views.play.section, 'score');
+    assert.equal(list.views.play.scoreGame ?? null, null);
+    assert.equal(list.views.play.week, 8);
+    assert.deepEqual(list.trail, [], 'the lip back to the list is Back, so the next Back leaves Your score');
+  }
+  // Week chips, the market and the filters change the list in place: no step.
+  for (const patch of [{ week: 7 }, { market: 'guess_total' }, { team: 'DEN' }, { season: 2025, week: null }]) assert.equal(reduce(start, { type: 'view', tab: 'play', patch }).trail.length, 0, JSON.stringify(patch));
+  // A pick's "View weekly score" lands on the game layer; Back returns to the picks.
+  const picks = initialState({ tab: 'play', view: { section: 'picks', market: 'spread', season: 2026, week: 8 } });
+  const linked = reduce(picks, { type: 'view', tab: 'play', patch: { section: 'score', season: 2026, week: 8, market: 'guess_spread', scoreGame: 'SEA-DEN' } });
+  assert.equal(linked.views.play.scoreGame, 'SEA-DEN');
+  assert.equal(reduce(linked, { type: 'back' }).views.play.section, 'picks');
+});
+
+test('D-69: the browser Back button closes the Your score game layer and keeps the list', async () => {
+  const win = fakeWindow('https://gtl.test/#play/score?market=guess_spread&season=2026&week=8');
+  const shell = app(win);
+  shell.dispatch({ type: 'view', tab: 'play', patch: { scoreGame: 'SEA-DEN' } });
+  await settle();
+  assert.deepEqual(win.stack(), ['#play/score?market=guess_spread&season=2026&week=8', '[#play/score?market=guess_spread&season=2026&week=8&scoreGame=SEA-DEN]']);
+  win.history.back();
+  await settle();
+  assert.equal(shell.state.views.play.section, 'score');
+  assert.equal(shell.state.views.play.scoreGame ?? null, null);
+  assert.equal(win.location.hash, '#play/score?market=guess_spread&season=2026&week=8');
+});
+
+test('D-69: an open Your score game follows Back but never rides into the Play tab or a fresh Your score link', () => {
+  let state = initialState({ tab: 'play', view: { section: 'score', season: 2026, week: 8, scoreGame: 'SEA-DEN' } });
+  state = reduce(state, { type: 'go', tab: 'research', view: { section: 'games' } });
+  assert.equal(reduce(state, { type: 'back' }).views.play.scoreGame, 'SEA-DEN');
+  assert.equal(reduce(state, { type: 'tab', tab: 'play' }).views.play.scoreGame, undefined);
+  assert.equal(reduce(state, { type: 'go', tab: 'play', view: { section: 'score', week: 8 } }).views.play.scoreGame, undefined, 'the Play tile opens the list');
+  assert.equal(reduce(state, { type: 'restore', place: { tab: 'play', view: { section: 'score' } } }).views.play.scoreGame, undefined);
+});
+
+test('D-69: any nested Play layer (layer, item) is a step Back closes and never rides into a fresh destination; Compare\'s player choice is not a step', () => {
+  const grid = initialState({ tab: 'play', view: { section: 'features' } });
+  const badge = reduce(grid, { type: 'view', tab: 'play', patch: { layer: 'badge', item: 'bullseye' } });
+  assert.equal(badge.trail.length, 1, 'opening the badge is a step');
+  const back = reduce(badge, { type: 'back' });
+  assert.equal(back.views.play.section, 'features');
+  assert.equal(back.views.play.layer ?? null, null);
+  assert.equal(back.views.play.item ?? null, null);
+  assert.equal(reduce(badge, { type: 'go', tab: 'play', view: { section: 'points' } }).views.play.layer, undefined, 'a tile opens its section on its first layer');
+  assert.equal(reduce(badge, { type: 'restore', place: { tab: 'play', view: { section: 'features' } } }).views.play.item, undefined);
+  const compare = initialState({ tab: 'play', view: { section: 'compare' } });
+  assert.equal(reduce(compare, { type: 'view', tab: 'play', patch: { item: 'u-2' } }).trail.length, 0, 'choosing the other player is not a step');
+});
+
+test('D-69 Compare: the opponent is the item on section compare; a face is not a step, a reload reopens it, Back leaves', async () => {
+  const troy = '00000000-0000-4000-8000-000000000002', sean = '00000000-0000-4000-8000-000000000003';
+  assert.deepEqual(placeFromFragment(`#play/compare?market=total&season=2026&week=8&item=${troy}`).view, { section: 'compare', market: 'total', season: 2026, week: 8, item: troy });
+  const win = fakeWindow('https://gtl.test/#home');
+  let shell = app(win);
+  shell.dispatch({ type: 'go', tab: 'play', view: { section: 'compare', item: troy, week: 8 } });
+  shell.dispatch({ type: 'view', tab: 'play', patch: { item: sean } });
+  assert.match(win.location.hash, new RegExp(`^#play/compare\\?.*item=${sean}$`));
+  assert.equal(win.history.length, 2, 'choosing a face rewrites the entry; it adds no Back step');
+  shell.connection.disconnect();
+  shell = app(win);
+  assert.equal(shell.state.views.play.item, sean, 'a reload reopens the same head-to-head');
+  win.history.back(); await settle();
+  assert.equal(shell.state.tab, 'home', 'Back closes Compare');
+});
+
+test('D-69 Guess the Points: a slot and its profile are steps with their own address; Back and a lip close one layer', () => {
+  const list = initialState({ tab: 'play', view: { section: 'points' } });
+  const slot = reduce(list, { type: 'view', tab: 'play', patch: { item: 'QB' } });
+  assert.deepEqual([slot.views.play.section, slot.views.play.item, slot.trail.length], ['points', 'QB', 1]);
+  assert.equal(fragmentFor('play', slot.views.play), '#play/points?item=QB');
+  assert.deepEqual(placeFromFragment('#play/points?item=QB'), { tab: 'play', view: { section: 'points', item: 'QB' } }); // a reload or a shared link reopens it
+  // PointsBallot.jsx sends these exact patches (the profile names its slot, since a go drops `item`).
+  const profile = reduce(slot, { type: 'view', tab: 'play', patch: { item: 'QB', layer: 'profile' } });
+  assert.deepEqual([profile.views.play.item, profile.views.play.layer, profile.trail.length], ['QB', 'profile', 2]);
+  assert.equal(fragmentFor('play', profile.views.play), '#play/points?layer=profile&item=QB');
+  for (const back of [reduce(profile, { type: 'back' }), reduce(profile, { type: 'view', tab: 'play', patch: { item: 'QB', layer: undefined } })]) {
+    assert.deepEqual([back.views.play.item, back.views.play.layer ?? null, back.trail.length], ['QB', null, 1]);
+  }
+  for (const back of [reduce(slot, { type: 'back' }), reduce(slot, { type: 'view', tab: 'play', patch: { item: undefined, layer: undefined } })]) {
+    assert.deepEqual([back.views.play.section, back.views.play.item ?? null, back.trail], ['points', null, []]);
+  }
+  // A fresh Play destination never reopens the slot or profile it last showed.
+  assert.equal(reduce(slot, { type: 'tab', tab: 'play' }).views.play.item, undefined);
+  assert.equal(reduce(reduce(slot, { type: 'tab', tab: 'home' }), { type: 'go', tab: 'play', view: { section: 'points' } }).views.play.item, undefined);
+  const restored = reduce(profile, { type: 'restore', place: { tab: 'play', view: { section: 'points' } } }).views.play;
+  assert.deepEqual([restored.item ?? null, restored.layer ?? null], [null, null]);
+  assert.equal(placeFromFragment('#play/points?item=%3Cscript%3E').view.item, undefined);
+});
+
+test('D-69 Guess the Points: browser Back closes the slot layer, then leaves Points', async () => {
+  const win = fakeWindow('https://gtl.test/#play/points');
+  const shell = app(win);
+  shell.dispatch({ type: 'view', tab: 'play', patch: { item: 'RB' } });
+  await settle();
+  assert.equal(win.location.hash, '#play/points?item=RB');
+  win.history.back();
+  await settle();
+  assert.equal(shell.state.views.play.section, 'points');
+  assert.equal(shell.state.views.play.item, undefined);
+});
+
+test('D-69 Badges and awards: a shared badge link reopens it; each layer is one browser step; Back closes one layer', async () => {
+  const win = fakeWindow('https://gtl.test/#play/features?layer=badge&item=bullseye');
+  let shell = app(win);
+  assert.deepEqual([shell.state.views.play.section, shell.state.views.play.layer, shell.state.views.play.item], ['features', 'badge', 'bullseye']);
+  shell.connection.disconnect();
+  const away = fakeWindow('https://gtl.test/#play/league?view=board');
+  shell = app(away);
+  shell.dispatch({ type: 'go', tab: 'play', view: { section: 'features', layer: 'badge', item: 'sharp@u-troy' } });
+  assert.equal(away.location.hash, '#play/features?layer=badge&item=sharp%40u-troy');
+  shell.dispatch({ type: 'view', tab: 'play', patch: { layer: undefined, item: undefined } });
+  shell.dispatch({ type: 'view', tab: 'play', patch: { layer: 'streaks', item: undefined } });
+  assert.deepEqual(away.stack(), ['#play/league?view=board', '#play/features?layer=badge&item=sharp%40u-troy', '#play/features', '[#play/features?layer=streaks]']);
+  away.history.back(); await settle();
+  assert.deepEqual([shell.state.views.play.section, shell.state.views.play.layer], ['features', undefined], 'Back closes the streaks layer');
+  away.history.back(); await settle();
+  assert.deepEqual([shell.state.views.play.layer, shell.state.views.play.item], ['badge', 'sharp@u-troy']);
+  away.history.back(); await settle();
+  assert.equal(shell.state.views.play.section, 'league', 'and then the board the badge was opened from');
+  shell.connection.disconnect();
+});
+
+test('D-69 League layers: board first, #feed opens the feed, and a History week is its own step that browser Back closes', async () => {
+  assert.equal(leagueLayer(placeFromFragment('#play/league').adapters.league).layer, 'board');
+  assert.equal(leagueLayer(placeFromFragment('#feed').adapters.league).layer, 'feed');
+  const fragment = fragmentFor('play', { section: 'league', view: 'history', season: 2026, week: 8 });
+  assert.equal(fragment, '#play/league?season=2026&week=8&view=history');
+  assert.deepEqual(leagueLayer(placeFromFragment(fragment).adapters.league), { layer: 'week', season: 2026, week: 8 }, 'a reload reopens it');
+  let state = initialState(placeFromFragment('#play/league'));
+  state = reduce(state, { type: 'view', tab: 'league', patch: { view: 'history', week: null } });
+  state = reduce(state, { type: 'view', tab: 'league', patch: { week: 8 } });
+  assert.equal(state.trail.length, 2);
+  const lip = reduce(state, { type: 'view', tab: 'league', patch: { week: null } });
+  assert.deepEqual([leagueLayer(lip.views.league).layer, lip.trail.length], ['history', 1], 'the History lip lands on the place under it: Back');
+  assert.equal(reduce(lip, { type: 'view', tab: 'league', patch: { season: 2025 } }).trail.length, 1, 'a season tile is a filter, not a step');
+  const win = fakeWindow('https://gtl.test/#play/league?view=history'), shell = app(win);
+  shell.dispatch({ type: 'view', tab: 'league', patch: { week: 8 } }); await settle();
+  assert.match(win.location.hash, /week=8/);
+  win.history.back(); await settle();
+  assert.equal(leagueLayer(shell.state.views.league).layer, 'history', 'an entry without a week restores History, not the week left');
+  win.history.forward(); await settle();
+  assert.equal(shell.state.views.league.week, 8);
+  shell.connection.disconnect();
+});
+
+// play/PlayLayer.jsx CLOSED_LAYER (a .jsx module, so its value is restated here): what openPlay clears.
+const CLOSED_LAYER = Object.freeze({ layer: undefined, item: undefined, scoreGame: undefined });
+test('D-69 step 1: the Play landing opens each section on its first layer, a reload reopens it, and Back returns to the landing', () => {
+  // A game card left open earlier, then the landing.
+  let state = initialState({ tab: 'play', view: { section: 'picks', market: 'total', season: 2026, week: 9, pickGame: 'DEN-CAR' } });
+  state = reduce(state, { type: 'go', tab: 'play', view: { section: undefined, ...CLOSED_LAYER } });
+  assert.equal(placeFromFragment(fragmentFor('play', state.views.play)).view.section, undefined, 'the landing is Play with no section');
+  assert.equal(state.views.play.pickGame, undefined);
+  // "Make picks" and the ballot tile (openPlay with the week the landing shows): the week's card, never the old game.
+  const picks = reduce(state, { type: 'go', tab: 'play', view: { section: 'picks', ...CLOSED_LAYER, market: 'spread', season: 2026, week: 9 } });
+  assert.equal(picks.views.play.pickGame, undefined);
+  assert.equal(fragmentFor('play', picks.views.play), '#play/picks?market=spread&season=2026&week=9');
+  assert.deepEqual(placeFromFragment(fragmentFor('play', picks.views.play)), { tab: 'play', view: { section: 'picks', market: 'spread', season: 2026, week: 9 } });
+  assert.equal(reduce(picks, { type: 'back' }).views.play.section, undefined, 'Back from a section returns to the landing');
+  // "View your results" and the other tiles open their section the same way.
+  for (const section of ['score', 'compare', 'points', 'features', 'league']) {
+    const opened = reduce(state, { type: 'go', tab: 'play', view: { section, ...CLOSED_LAYER } });
+    assert.equal(placeFromFragment(fragmentFor('play', opened.views.play)).view.section, section);
+  }
+});
+
+// Final fix wave F1 (spec test 8): League never reopens a stale layer. Every arrival from outside League (the landing's
+// tile, the Play lip then the tile, a tab switch, a restored entry that names no League layer) lands on the board;
+// Back from the feed or History lands on the board; an address that names a layer still opens it.
+test('F1 League: the tile after a History week opens the board, also after the Play lip and a tab switch', () => {
+  const tile = state => reduce(state, { type: 'go', tab: 'play', view: { section: 'league', ...CLOSED_LAYER } });
+  const playLip = state => reduce(state, { type: 'go', tab: 'play', view: { section: undefined, ...CLOSED_LAYER } });
+  let state = tile(initialState({ tab: 'play' }));
+  state = reduce(state, { type: 'view', tab: 'league', patch: { view: 'history', week: null } });
+  state = reduce(state, { type: 'view', tab: 'league', patch: { season: 2025 } });
+  state = reduce(state, { type: 'view', tab: 'league', patch: { week: 6 } });
+  assert.equal(leagueLayer(state.views.league).layer, 'week');
+  const again = tile(playLip(state));
+  assert.deepEqual(leagueLayer(again.views.league), { layer: 'board', season: null, week: null }, 'the tile opens the board, not Week 6');
+  assert.equal(fragmentFor('play', again.views.play, again.views), '#play/league', 'and its address is the canonical board');
+  const switched = tile(reduce(reduce(state, { type: 'tab', tab: 'home' }), { type: 'tab', tab: 'play' }));
+  assert.equal(leagueLayer(switched.views.league).layer, 'board', 'the same after a tab switch');
+  // History from that board starts fresh: no week and no season left from the last visit.
+  const history = reduce(again, { type: 'view', tab: 'league', patch: { view: 'history', week: null } });
+  assert.deepEqual(leagueLayer(history.views.league), { layer: 'history', season: null, week: null });
+  // Inside League a step keeps its own keys: the History lip from a week returns to that season's History.
+  const inside = reduce(state, { type: 'view', tab: 'league', patch: { week: null } });
+  assert.deepEqual(leagueLayer(inside.views.league), { layer: 'history', season: 2025, week: null });
+  // Openers that name their layer still get it.
+  assert.equal(leagueLayer(reduce(playLip(state), { type: 'go', tab: 'league', view: { view: 'feed' } }).views.league).layer, 'feed');
+});
+
+test('F1 League: browser Back from the feed or History (a restored entry) lands on the board; deep links and Forward still open the layer', async () => {
+  for (const patch of [{ view: 'feed' }, { view: 'history', week: null }]) {
+    const win = fakeWindow('https://gtl.test/#play/league'), shell = app(win);
+    shell.dispatch({ type: 'view', tab: 'league', patch }); await settle();
+    const opened = win.location.hash;
+    assert.notEqual(opened, '#play/league');
+    win.history.back(); await settle();
+    assert.equal(leagueLayer(shell.state.views.league).layer, 'board', `Back from ${patch.view} lands on the board`);
+    assert.equal(win.location.hash, '#play/league', 'and the address stays the board');
+    win.history.forward(); await settle();
+    assert.equal(leagueLayer(shell.state.views.league).layer, patch.view, 'Forward reopens the layer');
+    assert.equal(win.location.hash, opened);
+    shell.connection.disconnect();
+  }
+  // A History week restored, then Back to an entry without a week or season: History, then the board.
+  const win = fakeWindow('https://gtl.test/#play/league'), shell = app(win);
+  shell.dispatch({ type: 'view', tab: 'league', patch: { view: 'history', week: null } });
+  shell.dispatch({ type: 'view', tab: 'league', patch: { season: 2025 } });
+  shell.dispatch({ type: 'view', tab: 'league', patch: { week: 6 } }); await settle();
+  win.history.back(); await settle();
+  assert.deepEqual(leagueLayer(shell.state.views.league), { layer: 'history', season: 2025, week: null });
+  win.history.back(); await settle();
+  assert.deepEqual(leagueLayer(shell.state.views.league), { layer: 'board', season: null, week: null });
+  shell.connection.disconnect();
+  for (const [fragment, layer] of [['#play/league?view=feed', 'feed'], ['#play/league?view=history', 'history'], ['#play/league?season=2026&week=6&view=history', 'week']]) {
+    const deep = fakeWindow(`https://gtl.test/${fragment}`), linked = app(deep);
+    assert.equal(leagueLayer(linked.state.views.league).layer, layer, `${fragment} opens ${layer}`);
+    linked.connection.disconnect();
+  }
+  // A followed #play/league link from History (popstate with no saved entry) lands on the board too.
+  const followed = fakeWindow('https://gtl.test/#play/league?view=history'), linked = app(followed);
+  followed.follow('#play/league'); await settle();
+  assert.equal(leagueLayer(linked.state.views.league).layer, 'board');
+  linked.connection.disconnect();
+});
+
+// Follow-up: League's board market and Picks's market are separate. The address and the board agree; Picks keeps its own.
+test('League market: Picks Total then the League tile shows Spread and says so; the deep link opens Total; Back and the lip keep Picks on Total', () => {
+  let state = reduce(initialState({ tab: 'play' }), { type: 'go', tab: 'play', view: { section: 'picks', market: 'total', ...CLOSED_LAYER } });
+  assert.equal(state.views.play.market, 'total');
+  const tile = reduce(state, { type: 'go', tab: 'play', view: { section: 'league', ...CLOSED_LAYER } });
+  assert.equal(leagueMode(tile.views.league.market), 'guess_spread', 'the board shows Spread');
+  assert.equal(fragmentFor('play', tile.views.play, tile.views), '#play/league', 'and the address names no market');
+  assert.equal(reduce(tile, { type: 'back' }).views.play.market, 'total', 'Back returns to Picks on Total');
+  const lip = reduce(reduce(tile, { type: 'go', tab: 'play', view: { section: undefined, ...CLOSED_LAYER } }), { type: 'go', tab: 'play', view: { section: 'picks', ...CLOSED_LAYER } });
+  assert.equal(lip.views.play.market, 'total', 'the Play lip then the Picks tile reopens Total');
+  const board = reduce(tile, { type: 'view', tab: 'league', patch: { market: 'total' } });
+  assert.equal(fragmentFor('play', board.views.play, board.views), '#play/league?market=total', "the board's own switch writes the address");
+  assert.equal(reduce(board, { type: 'tab', tab: 'home' }).views.league.market, 'total', 'a tab switch alone leaves the choice');
+  assert.equal(leagueMode(reduce(reduce(board, { type: 'tab', tab: 'home' }), { type: 'go', tab: 'play', view: { section: 'league', ...CLOSED_LAYER } }).views.league.market), 'guess_spread', 'but arriving from outside opens Spread');
+  const deep = placeFromFragment('#play/league?market=total');
+  assert.equal(leagueMode(deep.adapters.league.market), 'guess_total', 'the deep link names Total');
+  assert.equal(fragmentFor(deep.tab, deep.view, deep.adapters), '#play/league?market=total');
+  const restored = reduce(state, { type: 'restore', place: deep });
+  assert.equal(leagueMode(restored.views.league.market), 'guess_total');
+  assert.equal(restored.views.play.market, 'total', 'Picks keeps its own market');
+  const fresh = reduce(initialState({ tab: 'play' }), { type: 'restore', place: deep });
+  assert.equal(fresh.views.play.market, undefined, 'a deep link into League does not set Picks');
+  assert.equal(fragmentFor('play', tile.views.play, tile.views), '#play/league');
 });

@@ -1,53 +1,71 @@
-// Read the existing Community history endpoint; hidden guesses and references remain hidden.
+// League › History (D-69 step 1, Sean's P6A: season tiles › week tiles › a week's game rows). One component draws both
+// layers so they share one read. History (`view: history`, `season` a filter) shows the player chips, the market, season
+// tiles once there is a second season, and week tiles; a week (`week` set) is its own layer, each game a disclosure
+// holding the line's fine print. Another member's withheld guesses and lines stay hidden (D-31, D-39), and every value the
+// old screen showed is still here (D-23). It no longer imports the old CommunityHistory.jsx (spec test 13).
 import { useState } from 'react';
-import { communityApi, date } from '../../api.js';
-import { HistoryLine } from '../../CommunityHistory.jsx';
-import { MODE, lateText, pickText, show } from '../../communityFormat.js';
-import { Button, Card, Matchup, Segmented } from '../ui/index.js';
-import { useShell } from '../shell/context.js';
+import { communityApi } from '../../api.js';
+import { MODE } from '../../communityFormat.js';
+import { Avatar, Chip, ChipRail, InfoButton, LinkRow, Matchup, Segmented } from '../ui/index.js';
+import { PlayLayer } from '../play/PlayLayer.jsx';
 import { LeagueEmpty, LeagueFailure, LeagueLoading, useLeagueRead } from './useLeagueRead.jsx';
+import { entryOf, seasonTiles, weekGame, weekSummary, weekTiles } from './historyModel.js';
 
-export function LeagueHistory({ app }) {
-  const shell = useShell();
-  const [season, setSeason] = useState(null), [player, setPlayer] = useState(app.accountId), [mode, setMode] = useState('guess_spread');
+const MARKETS = Object.entries(MODE).map(([value, label]) => ({ value, label }));
+export const HISTORY_COPY = Object.freeze({
+  title: 'History', player: 'Player', market: 'History market', seasons: 'Seasons', empty: 'No history yet.', noWeek: 'No record for this week.',
+  hidden: 'Picks hidden until your submission or each game\'s kickoff.', score: 'Every game in Your score', about: 'About history', aboutWeek: 'About this week',
+  aboutBody: 'Saved guesses and their original references. Games the server withholds stay hidden.', weekTitle: (week, season) => `Week ${week}${season ? ` · ${season}` : ''}`,
+});
+
+function Tile({ tile, onClick, ...rest }) {
+  return <li><button type="button" className="gx-nest-tile gx-lg-tile" onClick={onClick} {...rest}>
+    <span className="gx-nest-tile-label">{tile.label}</span><span className="gx-n-m">{tile.big}</span><span className="gx-t-meta gx-c-2">{tile.sub}</span></button></li>;
+}
+
+export function LeagueHistory({ app, place, mode, parents = [], historyLip, onPlace, onScore }) {
+  const [player, setPlayer] = useState(app.accountId);
+  const season = place.season;
   const read = useLeagueRead(`${app.accountId}:history:${season || 'latest'}`, signal => communityApi('history', season ? { season } : {}, signal), error => {
     if (error.status === 401) app.requestSignIn?.(); else app.refresh({ only: ['community'] });
   });
-  if (read.loading) return <LeagueLoading label="Loading history…"/>;
-  if (read.error) return <LeagueFailure error={read.error} onRetry={read.retry}/>;
-  const data = read.data, members = data.members || [], selected = members.find(member => member.id === player) || members.find(member => member.id === data.viewer) || members[0];
-  return <section className="gx-vstack gx-gap-16" aria-label="Community history">
-    <h2 className="gx-t-section">Community history</h2>
-    <Button variant="ghost" onClick={() => shell.go('play', { section: 'score', season: data.season, week: null })}>Your weekly score</Button>
-    <p className="gx-t-body gx-c-2">Saved guesses and their original references. Games the server withholds stay hidden.</p>
-    {(data.seasons || []).length > 1 && <label className="gx-vstack gx-gap-8 gx-t-body">Season<select className="gx-input" value={data.season} onChange={event => setSeason(Number(event.target.value))}>{data.seasons.map(value => <option key={value} value={value}>{value}</option>)}</select></label>}
-    {selected && <label className="gx-vstack gx-gap-8 gx-t-body">Player<select className="gx-input" value={selected.id} onChange={event => setPlayer(event.target.value)}>{members.map(member => <option key={member.id} value={member.id}>{member.displayName}{member.removed ? ' · Removed' : ''}</option>)}</select></label>}
-    <Segmented label="History market" options={Object.entries(MODE).map(([value, label]) => ({ value, label }))} value={mode} onChange={setMode}/>
-    {(data.weeks || []).map(week => {
-      const entries = (week.entries || []).filter(entry => entry.userId === selected?.id && entry.mode === mode), entry = entries.find(item => item.status === 'sat_out') || entries[0];
-      return <Card as="section" key={`${week.season}:${week.week}`} className="gx-vstack gx-gap-12" aria-label={`Week ${week.week} ${MODE[mode]} history`}>
-        <h3 className="gx-t-strong">Week {week.week} · {MODE[mode]}</h3>
-        <p className="gx-t-body gx-c-2">{!entry ? 'No ballot.' : entry.status === 'sat_out' ? 'Sat out. Recorded as sat out, not zero.' : entry.status === 'draft' ? 'Draft · not submitted' : `Submitted${entry.submittedAt ? ` · ${date(entry.submittedAt)} PT` : ''}${entry.late ? ` · ${lateText(entry.late)}` : ''}`}</p>
-        {entry?.submittedAtKnown === false && <p className="gx-t-meta gx-c-2">Original submission time was not recorded; the stored time is shown.</p>}
-        {entry?.ruling && <p className="gx-t-meta gx-c-2">Commissioner ruling · {entry.ruling.decision || 'recorded'}</p>}
-        {entry?.status === 'submitted' && <p className="gx-t-body">{entry.eligible === false ? 'Not eligible for scoring' : entry.weekScored ? `${show(entry.weekPoints)} pts · ${entry.weekScored} games scored` : 'No scored result yet'}</p>}
-        {entry?.picksHidden && !entry.picks && <p className="gx-t-body gx-c-2">Picks hidden until your submission or each game's kickoff.</p>}
-        {entry && Array.isArray(entry.picks) && (week.games || []).map(game => {
-          const pick = entry.picks.find(item => item.gameId === game.id), hidden = pick?.hidden === true || (entry.picksHidden && !pick), reference = hidden ? null : pick?.reference;
-          const result = week.results?.[game.id];
-          return <details key={game.id} className="gx-league-history-game">
-            <summary className="gx-t-body"><Matchup away={game.awayCode} home={game.homeCode}/> · {hidden ? 'Hidden' : pickText(mode, game.awayCode, game.homeCode, pick?.guess)}</summary>
-            <div className="gx-vstack gx-gap-8"><p className="gx-t-meta gx-c-2">Kickoff {date(game.kickoff)} PT</p>
-              <p className="gx-t-body">Guess: {hidden ? 'Hidden' : pickText(mode, game.awayCode, game.homeCode, pick?.guess)}</p>
-              <div className="gx-live-workflow gx-league-reference gx-vstack gx-gap-8"><span className="gx-t-body">Line at guess</span>{hidden ? <span className="gx-t-body">Hidden</span> : <HistoryLine reference={reference} mode={mode} game={game}/>}</div>
-              <p className="gx-t-body">Points: {hidden ? 'Hidden' : entry.eligible === false ? 'Not scored' : show(pick?.points)}</p>
-              {result && <p className="gx-t-meta gx-c-2">{result.status === 'final' ? `Final · ${game.awayCode} ${show(result.away)}, ${game.homeCode} ${show(result.home)}` : result.status}{result.origin === 'commissioner_reported' ? ' · Commissioner-reported final' : result.source ? ` · ${result.source}` : ''}</p>}
-            </div>
-          </details>;
-        })}
-        {entry?.updatedAt && <p className="gx-t-meta gx-c-2">Last saved {date(entry.updatedAt)} PT{entry.revisions ? ` · ${entry.revisions} revisions` : ''}</p>}
-      </Card>;
-    })}
-    {!(data.weeks || []).length && <LeagueEmpty text="No history yet." actionLabel="Refresh" onAction={read.retry}/>}
-  </section>;
+  const market = mode === 'guess_total' ? 'guess_total' : 'guess_spread', data = read.data, viewer = data?.viewer;
+  const members = data?.members ?? [], selected = members.find(m => m.id === player) ?? members.find(m => m.id === viewer) ?? members[0] ?? null;
+  const own = !!selected && selected.id === viewer, who = own ? 'You' : selected?.displayName ?? '';
+  const toHistory = historyLip ?? { key: 'history', label: HISTORY_COPY.title, open: () => onPlace({ week: null }) };
+  const state = read.loading ? <LeagueLoading label="Loading history…"/> : read.error ? <LeagueFailure error={read.error} onRetry={read.retry}/> : null;
+  const people = [...members].sort((a, b) => Number(b.id === viewer) - Number(a.id === viewer) || String(a.displayName).localeCompare(String(b.displayName)));
+  const filters = <>
+    <ChipRail label={HISTORY_COPY.player}>{people.map(m => <Chip key={m.id} text selected={m.id === selected?.id} onClick={() => setPlayer(m.id)}>
+      <Avatar id={m.id} name={m.displayName} size={24}/>{m.id === viewer ? 'You' : m.displayName}{m.removed ? ' · Removed' : ''}</Chip>)}</ChipRail>
+    <Segmented label={HISTORY_COPY.market} options={MARKETS} value={market} onChange={value => onPlace({ market: value })}/>
+  </>;
+  if (place.layer === 'week') {
+    const week = (data?.weeks ?? []).find(w => w.week === place.week) ?? null, entry = week && selected ? entryOf(week, selected.id, market) : null;
+    const summary = weekSummary(entry), games = entry && Array.isArray(entry.picks) ? (week.games ?? []).map(game => weekGame(week, entry, game, market, data?.now)) : [];
+    return <PlayLayer label="League history week" parents={[...parents, toHistory]} layer={`league:week:${season ?? 'latest'}:${place.week}`} title={HISTORY_COPY.weekTitle(place.week, season ?? data?.season)}
+      info={summary.notes.length ? <InfoButton title={HISTORY_COPY.aboutWeek} body={summary.notes}/> : null}>
+      {state ?? (!week || !selected ? <LeagueEmpty text={HISTORY_COPY.noWeek} actionLabel="Back to History" onAction={toHistory.open}/> : <>
+        {filters}
+        <p className="gx-t-meta gx-c-2">{[who, MODE[market], summary.points].filter(Boolean).join(' · ')}</p>
+        <p className="gx-t-body">{summary.status}</p>
+        {entry?.picksHidden && !entry.picks ? <p className="gx-t-body gx-c-2">{HISTORY_COPY.hidden}</p> : null}
+        {games.length ? <ul className="gx-lg-games" aria-label={`${who} · Week ${week.week} ${MODE[market]} games`}>{games.map(game => <li key={game.id}>
+          <details className="gx-lg-game"><summary><Matchup away={game.away} home={game.home}/>
+            {game.hidden ? <span className="gx-grow">{' · Hidden'}</span> : <><span className="gx-grow">{` · Line ${game.line} · ${who} ${game.guess}`}</span><span className="gx-n-s">{` · ${game.points}`}</span></>}</summary>
+            <ul className="gx-lg-notes">{game.notes.map(note => <li key={note} className="gx-t-meta gx-c-2">{note}</li>)}</ul></details>
+        </li>)}</ul> : null}
+        {own ? <LinkRow icon="chart" onClick={() => onScore(week.season, week.week, market)}>{HISTORY_COPY.score}</LinkRow> : null}
+      </>)}
+    </PlayLayer>;
+  }
+  const seasons = data ? seasonTiles(data) : null, weeks = data && selected ? weekTiles(data, selected.id, market) : [];
+  return <PlayLayer label="League history" parents={parents} layer="league:history" title={`${HISTORY_COPY.title} · ${MODE[market]}`} info={<InfoButton title={HISTORY_COPY.about} body={[HISTORY_COPY.aboutBody]}/>}>
+    {state ?? <>
+      {filters}
+      {seasons ? <ul className="gx-nest-grid" aria-label={HISTORY_COPY.seasons}>{seasons.map(tile => <Tile key={tile.season} tile={tile} aria-pressed={tile.on} aria-label={tile.on ? `Season ${tile.season}, showing` : `Season ${tile.season}`} onClick={() => onPlace({ season: tile.season, week: null })}/>)}</ul> : null}
+      {weeks.length ? <ul className="gx-nest-grid" aria-label={`${own ? 'Your' : `${who}’s`} weeks`}>{weeks.map(tile => <Tile key={tile.week} tile={tile} aria-label={tile.aria} onClick={() => onPlace({ week: tile.week })}/>)}</ul>
+        : <LeagueEmpty text={HISTORY_COPY.empty} actionLabel="Refresh" onAction={read.retry}/>}
+    </>}
+  </PlayLayer>;
 }

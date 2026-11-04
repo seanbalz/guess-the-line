@@ -13,7 +13,6 @@ import { ForfeitDialog } from '../play/ForfeitDialog.jsx';
 import { Bets } from '../bets/Bets.jsx';
 import { GameBetsSheet } from '../bets/GameBetsSheet.jsx';
 import { Research } from '../research/Research.jsx';
-import { BadgeSheet } from '../features/BadgeSheet.jsx';
 import { FlashOverlay } from '../features/FlashOverlay.jsx';
 import { CommentsSheet } from '../feed/CommentsSheet.jsx';
 import { ReactorsSheet } from '../feed/ReactorsSheet.jsx';
@@ -41,7 +40,6 @@ export const LAYERS = Object.freeze({
   'sh.allTrends': AllTrendsSheet, // lines (stage 13; the stage 34 All trends sheet, pulled forward for DASH-7)
   'sh.research': ResearchSheet,
   'sh.team': TeamSheet, // teams (D-62): one team's record, last five, margin chart and games; args { team, from? }
-  'sh.badge': BadgeSheet, // play (stage 71): one badge's detail
   'ov.flash': FlashOverlay, // play (stage 71): a new badge or award of your own, one at a time
   'page.history': HistoryPage, // me (stages 73 and 74): Me › History, its code loaded when it opens
   'sh.comments': CommentsSheet, // league feed (stage 64): a post's comments or a kickoff post's game thread

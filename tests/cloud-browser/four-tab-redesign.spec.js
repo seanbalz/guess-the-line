@@ -48,7 +48,7 @@ test('four simple roots, detail origins, reload and phone geometry', async ({ pa
     await tab(page, 'Home').click();
     // D-55 round 3: Home's Spread rank tile opens the weekly score.
     await page.getByRole('button', { name: /^Spread rank/ }).click();
-    await expect(page.getByRole('heading', { name: 'Your weekly score', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Your score', exact: true })).toBeVisible();
     await expect(tab(page, 'Play')).toHaveAttribute('aria-current', 'page');
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await expect(page.locator('[data-landing="home"]')).toBeVisible();

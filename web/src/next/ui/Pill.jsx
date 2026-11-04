@@ -15,3 +15,11 @@ export function Pill({ tone = 'neutral', dot, className, children, ...rest }) {
     </span>
   );
 }
+
+/**
+ * NEW (D-69): the one look for a result that waits on its tile (moments) and a post newer than this device had shown
+ * (the feed). The text is the word itself; the control or card around it says "new" in its accessible name.
+ */
+export function NewPill({ className }) {
+  return <Pill tone="accent" className={cx('gx-new', className)}>NEW</Pill>;
+}

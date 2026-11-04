@@ -15,6 +15,18 @@ export const LEGACY_STATUSES = Object.freeze([404, 503]);
 let readerKnown = null;
 export const feedReaderKnown = () => readerKnown;
 
+const isRefusal = error => [401, 403].includes(error?.status);
+
+/**
+ * The state after a read or a page of older posts failed. A refusal (401, 403) from a private group (`group` true) takes
+ * every loaded post away with it: a group that says no shows none of what it showed before. The Community, and any other
+ * failure, keeps the posts on screen with the error.
+ */
+export function failedState(previous, key, error, group = false) {
+  if (previous.key === key && !(group && isRefusal(error))) return { ...previous, key, status: previous.page ? 'ready' : 'error', error, busy: false };
+  return { key, status: 'error', page: null, older: [], next: null, error, busy: false };
+}
+
 export function useLeagueFeed({ accountId, leagueId = null, onRefused }) {
   const key = `${accountId}:${leagueId ?? 'community'}`;
   const [state, setState] = useState({ key, status: 'loading', page: null, older: [], next: null, error: null, busy: false });
@@ -33,8 +45,8 @@ export function useLeagueFeed({ accountId, leagueId = null, onRefused }) {
     }).catch(error => {
       if (controller.signal.aborted || error?.name === 'AbortError') return;
       if (LEGACY_STATUSES.includes(error?.status)) { readerKnown = false; setState({ key, status: 'legacy', page: null, older: [], next: null, error: null, busy: false }); return; }
-      setState(previous => ({ ...(previous.key === key ? previous : { page: null, older: [], next: null, busy: false }), key, status: previous.key === key && previous.page ? 'ready' : 'error', error }));
-      if ([401, 403].includes(error?.status)) refused.current?.(error);
+      setState(previous => failedState(previous, key, error, Boolean(leagueId)));
+      if (isRefusal(error)) refused.current?.(error);
     }).finally(() => { if (!controller.signal.aborted) running.current = false; });
     return () => { controller.abort(); running.current = false; };
   }, [key, leagueId, revision]);
@@ -65,8 +77,8 @@ export function useLeagueFeed({ accountId, leagueId = null, onRefused }) {
       const page = await leagueApi('feed', { ...(leagueId ? { leagueId } : {}), before: current.next });
       setState(previous => (previous.key !== key ? previous : { ...previous, busy: false, older: [...previous.older, ...page.posts], next: page.next }));
     } catch (error) {
-      setState(previous => ({ ...previous, busy: false, error }));
-      if ([401, 403].includes(error?.status)) refused.current?.(error);
+      setState(previous => (previous.key !== key ? previous : failedState(previous, key, error, Boolean(leagueId))));
+      if (isRefusal(error)) refused.current?.(error);
     }
   }, [state, key, leagueId]);
 
