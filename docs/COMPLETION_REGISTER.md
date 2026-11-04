@@ -20,8 +20,9 @@ Not released: Sean's OK on the 390px captures of the built screens comes first.
 Sean: "Ship D-74 now". From 18:15 UTC the provider sent no FanDuel prices, so no three-book line could be made. BetRivers
 now stands in for a selected book the reply could not quote, in the same two-credit request, and the game sheet says
 "Standing in for FanDuel". Local checks pass: a PGlite run of the deployed handler, unit and browser tests (phone rules and
-axe in both themes), and six mutation checks. **Merged; M-39 not applied, nothing deployed yet.** See the
-[card](PROPOSAL_2026_11_03_BACKUP_BOOK.md).
+axe in both themes), and six mutation checks. **Applied and deployed November 3–4:** M-39 by Gate M as hosted
+`20261103233404`, `gtl-api` v50 (release run 41741408404) and `gtl-odds-refresh` v8 (release run 41744806151), both from
+`49f60718`. Not yet seen live: a collection with BetRivers standing in. See the [card](PROPOSAL_2026_11_03_BACKUP_BOOK.md).
 
 ## Pick a Team turn queues — November 3, 2026
 
