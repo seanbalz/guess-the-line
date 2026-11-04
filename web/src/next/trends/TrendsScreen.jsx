@@ -38,7 +38,7 @@ export function TrendsScreen() {
     <Segmented label="Trends section" className="gx-tr-sections" value={section} options={sections} onChange={section => onChange({ trendSection: section })}/>
     <Segmented label="Trends market" value={market} options={markets} onChange={market => onChange({ market })}/>
     {section === 'build' ? <TrendBuilder lines={data} market={market} onMarket={market => onChange({ market })}/> : section === 'players' ? <>{history.loading ? <Skeleton label="Loading scoped player history…" shape="panels" count={2}/> : history.error ? <LeagueFailure error={history.error} onRetry={history.retry}/> : history.data && shown ? <PlayersNest history={history.data} published={shown} view={view} onChange={onChange} scopeName={app.league?.name || 'Community'}/> : <p className="gx-t-body">No published player history yet.</p>}<Button onClick={history.retry}>Refresh player history</Button></> : section === 'teams' ? <>
-      {evidence ?? <TeamsNest week={trendsWeek} views={views} market={market} view={view} onChange={onChange}/>}
+      {evidence ?? <TeamsNest week={trendsWeek} views={views} market={market} view={view} onChange={onChange} account={app.accountId}/>}
     </> : <>
       {evidence ?? <WeekNest week={trendsWeek} views={views} market={market} view={view} onChange={onChange} lines={data} onBuild={() => onChange({ trendSection: 'build' })}/>}
       <Button variant="secondary" onClick={trends.retry}>Refresh trends</Button>

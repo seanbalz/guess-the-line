@@ -7,15 +7,15 @@ import { sinceText } from '../../../../shared/trends-view.mjs';
 import { trendAvailabilityText } from '../../trendsAvailability.js';
 import { Icon, InfoButton, Nest, TeamMark } from '../ui/index.js';
 import { INFO } from '../info.js';
-import { nestTeams, nestTeamTrends, trendShare, winRateText } from './teamNest.js';
-import { GameDetailsButton, LineLockTile, trendSlug, trendLayer, TrendTile } from './TrendLayer.jsx';
+import { nestTeams, nestTeamTrends, trendShare } from './teamNest.js';
+import { GameDetailsButton, LineLockTile, rateFigure, trendSlug, trendLayer, TrendRate, TrendTile } from './TrendLayer.jsx';
 
 export { trendSlug };
 
 /** A team layer shows this many trends before the fold (D-75). */
 const SHOWN = 2;
 
-export function TeamsNest({ week, views, market, view, onChange }) {
+export function TeamsNest({ week, views, market, view, onChange, account = null }) {
   const [openFor, setOpenFor] = useState(null), restId = useId();
   const teams = nestTeams(week, views, market);
   const team = teams.find(t => t.code === view.teamsTeam) ?? null;
@@ -25,13 +25,13 @@ export function TeamsNest({ week, views, market, view, onChange }) {
   const toTeams = { key: 'teams', label: 'Teams', onOpen: () => onChange({ teamsTeam: null, teamsTrend: null }) };
 
   if (team && card) {
-    return trendLayer({ label: 'Team trends', layer: 'trend:' + view.teamsTrend, card, week, view: team.view,
+    return trendLayer({ label: 'Team trends', layer: 'trend:' + view.teamsTrend, card, week, view: team.view, account,
       lips: [toTeams, { key: 'team', label: team.name, onOpen: () => onChange({ teamsTrend: null }) }] });
   }
 
   if (team) {
     const v = team.view, more = shown.length - SHOWN, open = openFor === team.code;
-    const tile = c => <TrendTile key={c.key} card={c} rules={v.rules} onOpen={() => onChange({ teamsTrend: trendSlug(c.key) })}/>;
+    const tile = c => <TrendTile key={c.key} card={c} rules={v.rules} account={account} onOpen={() => onChange({ teamsTrend: trendSlug(c.key) })}/>;
     return <Nest label="Team trends" layer={'team:' + team.code} title={team.name} lips={[toTeams]}>
       <p className="gx-t-meta">{v.title} · {v.when}</p>
       {shown.length || locks.length ? <ul className="gx-nest-grid" aria-label={team.name + ' trends'}>
@@ -55,7 +55,7 @@ export function TeamsNest({ week, views, market, view, onChange }) {
         const known = t.headline && !t.headline.locked;
         return <li key={t.code}><button type="button" className="gx-nest-tile gx-nest-tile--glass" data-team={t.code} onClick={() => onChange({ teamsTeam: t.code, teamsTrend: null })}>
           <span className="gx-nest-tile-top"><TeamMark code={t.code} name={t.name} size={32}/><span className="gx-t-meta">{t.role === 'home' ? 'Home' : 'Road'}</span></span>
-          <span className="gx-n-m gx-nest-num">{known ? winRateText(t.share) : '—'}</span>
+          {known ? <TrendRate className="gx-n-m gx-nest-num" share={t.share} account={account} figure={rateFigure(t.headline.key)}/> : <span className="gx-n-m gx-nest-num">—</span>}
           <span className="gx-t-meta">{known ? `${(t.headline.games ?? 0).toLocaleString('en-US')} games` : 'No record'}</span>
         </button></li>;
       })}
