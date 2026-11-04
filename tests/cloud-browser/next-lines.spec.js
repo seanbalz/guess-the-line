@@ -1727,9 +1727,10 @@ test('an unknown game focus keeps the complete ballot usable', async ({ page, ba
   try {
     await openLines(page);
     await page.goto('/#play/picks?market=spread&season=2026&week=6&pickGame=UNKNOWN');
-    // D-70: an address for a game not in this week shows the week's tiles, and each game still opens.
+    // D-70: an address for a game not in this week shows the week's tiles, and each game still opens. No game card is
+    // open: the week's only lip is Play's (D-69 step 1), never a lip back to the week.
     await expect(page.locator('[data-tile]')).toHaveCount(4);
-    await expect(page.locator('.gx-nest-lip')).toHaveCount(0);
+    await expect(page.locator('.gx-nest-lip')).toHaveText(['Back to Play']);
     await page.locator('[data-tile="HOU-JAX"]').click();
     await expect(page.getByRole('article', { name: 'HOU at JAX Spread', exact: true })).toContainText('Draft');
     expect(world.errors).toEqual([]);

@@ -78,9 +78,10 @@ function apiCalls(page) {
 /**
  * What is left of `calls` after the shared reads (stage 11, and stage 13's `/personal` and the board's one `/wind/read`
  * for its D-45 weather chips on Lines; D-57's `/fantasy/week` for the Fantasy tile and screen, and the viewer's own gated
- * `/lines/read` for Fantasy's game context): the writes, of which browsing makes none.
+ * `/lines/read` for Fantasy's game context; `/personal/read`, the chosen week Your guesses reads now that every rule set
+ * draws the per-game cards, D-69 step 1): the writes, of which browsing makes none.
  */
-const writes = calls => calls.filter(call => !['POST /functions/v1/gtl-api/trends/week', 'GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'POST /functions/v1/gtl-api/me/preferences', 'POST /functions/v1/gtl-api/community/history', 'GET /functions/v1/gtl-api/personal', 'POST /functions/v1/gtl-api/wind/read', 'POST /functions/v1/gtl-api/social/read', 'POST /functions/v1/gtl-api/fantasy/week', 'POST /functions/v1/gtl-api/lines/read', 'POST /functions/v1/gtl-api/lines/teams', 'POST /functions/v1/gtl-api/points/read', 'POST /functions/v1/gtl-api/league/features',
+const writes = calls => calls.filter(call => !['POST /functions/v1/gtl-api/trends/week', 'GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'POST /functions/v1/gtl-api/me/preferences', 'POST /functions/v1/gtl-api/community/history', 'GET /functions/v1/gtl-api/personal', 'POST /functions/v1/gtl-api/personal/read', 'POST /functions/v1/gtl-api/wind/read', 'POST /functions/v1/gtl-api/social/read', 'POST /functions/v1/gtl-api/fantasy/week', 'POST /functions/v1/gtl-api/lines/read', 'POST /functions/v1/gtl-api/lines/teams', 'POST /functions/v1/gtl-api/points/read', 'POST /functions/v1/gtl-api/league/features',
   // The league feed reader (redesign stage 64): a read; until M-22 is applied it answers 503 and the old feed shows.
   'POST /functions/v1/gtl-api/league/feed'].includes(call));
 

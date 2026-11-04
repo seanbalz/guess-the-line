@@ -143,7 +143,11 @@
 /* A row must fit 320 wide even before the webfonts load (wider fallback faces): the name may break anywhere and the
    guess may wrap between team and number, so neither sets the row's minimum width and nothing overlaps. */
 .gx .gx-play-reveal .gx-row-title { overflow-wrap: anywhere; }
-.gx .gx-play-reveal .gx-row-end { flex: 0 1 auto; }
+/* Under the Play lip the game card sits two steps in, so at 320 a name, its guess and a Late pill cannot share a line
+   in the wider fallback faces: the end drops under the name, at the right (the League board row's rule). */
+.gx .gx-play-reveal .gx-row { flex-wrap: wrap; row-gap: var(--gx-space-1); }
+.gx .gx-play-reveal .gx-row-main { flex: 1 1 88px; }
+.gx .gx-play-reveal .gx-row-end { flex: 0 1 auto; margin-inline-start: auto; }
 .gx .gx-play-reveal-end { display: flex; flex-direction: column; align-items: flex-end; gap: var(--gx-space-1); text-align: right; }
 .gx .gx-play-reveal-in {
   animation: gx-rise-in var(--gx-dur-base) var(--gx-ease-enter) both;
