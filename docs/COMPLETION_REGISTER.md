@@ -6,16 +6,15 @@ Built on `claude/overhaul-step1-play` at commit to follow, PR to follow; not rel
 card under a "Play" lip, with its own address: the landing's next-ballot card and six tiles (P1B), Your score and its
 game layer (P2B), Compare one member at a time (P3B), Guess the Points slot tiles and slot layers (P4A), Badges and
 awards grid first (P5A), and League board first with the feed, History and week layers (P6A). Bullseye, Week final,
-Whole week locked, Points exact, rank moments and the Pick streak play through the moments engine, never on launch, NEW
-on their landing tiles. The old picks fallback (`CommunityHome.jsx` WeekPicks) and League history
+Whole week locked, Points exact, rank moments and the Pick streak play through the moments engine, never on launch,
+NEW on their landing tiles. The old picks fallback (`CommunityHome.jsx` WeekPicks) and League history
 (`CommunityHistory.jsx`) are no longer imported. Evidence, from the local runs after the final fix wave: `node --test`
 2874 tests, 2873 pass and 1 fails, skipped 0 (the one is `tests/research-intake.test.mjs`, a Windows file-mode check
 that also fails on untouched code here and is unrelated to step 1; CI runs Linux); Vitest 67 files, 762 tests pass;
 typecheck and build pass; the 16 step 1 browser specs, the phone, fixed-bar and scroll sweeps among them, 69 passed,
-skipped 0. Axe
-ran inside those step 1 specs; `npm run test:accessibility` covers the legal links only. The nine required CI checks
-run on the PR. Not yet: the Pages release and Sean's iPhone check of Play, which stands in for device acceptance (spec
-section 10).
+skipped 0. Axe ran inside those step 1 specs; `npm run test:accessibility` covers the legal links only. The nine
+required CI checks run on the PR. Not yet: the Pages release and Sean's iPhone check of Play, which stands in for
+device acceptance (spec section 10).
 
 ## Fantasy weekly estimate switches to usage, D-76 — November 3, 2026
 

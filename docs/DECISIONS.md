@@ -321,6 +321,7 @@ building step 1, where the plan's text and a binding rule disagreed; each is rev
 - **A refused private group** shows none of its posts until its own read answers again; Try again in its feed returns
   to the board, which re-reads it.
 - **Picks:** the header button reads "Your score"; the picks card listens for its moment only once its cards show.
+- **Guess grid:** four columns now reach 380px (44px targets, Play lip); the old app's per-game cards share it.
 
 ## D-68 — Premier League: Sleeper FEPL, Pick a Team and EPL moneyline (October 28, 2026)
 

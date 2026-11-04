@@ -237,7 +237,7 @@ test('a waiting Whole week locked moment plays on the picks card once its cards 
 // Final fix wave F4: a game's card sits two lips deep under the Play lip, so its guess grid narrows. Every guess button
 // keeps a 44px layout width (the used CSS width, not the rounded offsetWidth or a painted transform) from 320 to 390px,
 // in both markets, with the row gap still 8px.
-test('every guess button on a game card is at least 44px wide at 320, 360, 375, 380 and 390px, Spread and Total', async ({ page, baseURL }) => {
+test('every guess button on a game card is at least 44px wide at 320, 360, 375, 380, 381 and 390px, Spread and Total', async ({ page, baseURL }) => {
   const world = await fixture(page, baseURL);
   try {
     const [game] = world.personal.games;
@@ -246,7 +246,7 @@ test('every guess button on a game card is at least 44px wide at 320, 360, 375, 
       const card = await openGame(page, game.id);
       expect(new URL(page.url()).hash).toBe(`#play/picks?market=${market.toLowerCase()}&season=${world.personal.season}&week=${world.personal.week}&pickGame=${game.id}`);
       if (market === 'Spread') await card.locator('[data-side="home"]').click();
-      for (const width of [320, 360, 375, 380, 390]) {
+      for (const width of [320, 360, 375, 380, 381, 390]) {
         await page.setViewportSize({ width, height: 844 });
         await settled(page);
         const row = await card.locator('.gx-guess-nums').evaluate(el => {
