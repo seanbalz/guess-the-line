@@ -11,8 +11,10 @@ import { rankKey } from '../web/src/next/league/rankMoment.js';
 
 vi.mock('../web/src/api.js', () => ({ meApi: vi.fn() }));
 vi.mock('../web/src/next/home/HomeSummaries.jsx', () => ({ ScoreSummaryRow: () => <p>Your scores</p>, BetsSummaryRow: () => <p>My bets</p> }));
-const state = vi.hoisted(() => ({ home: null }));
+const state = vi.hoisted(() => ({ home: null, tickets: { loading: true, error: null, active: null } }));
 vi.mock('../web/src/next/home/homeData.js', () => ({ useHomeData: () => state.home }));
+// The tickets tile's read, held loading (its real first render) unless a test sets a count.
+vi.mock('../web/src/next/bets/useTicketSummary.js', () => ({ useTicketSummary: () => state.tickets }));
 
 const { ShellContext } = await import('../web/src/next/shell/context.js');
 const { Home } = await import('../web/src/next/home/Home.jsx');
@@ -228,5 +230,18 @@ describe('while the Community read loads or fails', () => {
     expect(buttons(html)).toEqual(['Try again', 'Reload the app']);
     expect(primaries(html)).toHaveLength(0);
     expect(textOf(alert)).not.toContain('nope');
+  });
+});
+
+// Design audit A22: the My bets tile said "1 active tickets". The count has its own span, so the word agrees with it.
+describe('the My bets tile', () => {
+  it('names one active ticket in the singular and any other count in the plural', () => {
+    home(reply());
+    const words = active => { state.tickets = { loading: false, error: null, active }; return seen(tile(render(), 'tickets')); };
+    try {
+      expect(words(1)).toBe('My bets 1 active ticket');
+      expect(words(0)).toBe('My bets 0 active tickets');
+      expect(words(3)).toBe('My bets 3 active tickets');
+    } finally { state.tickets = { loading: true, error: null, active: null }; }
   });
 });

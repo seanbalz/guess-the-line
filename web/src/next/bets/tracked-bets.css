@@ -18,7 +18,8 @@
 .gx .gx-tracked-preview-money > span { display: grid; min-width: 0; gap: var(--gx-space-1); }
 .gx .gx-tracked-preview-money > span:last-child { text-align: end; }
 .gx .gx-tracked-preview-money small { color: var(--gx-text-2); font: 500 13px/18px var(--gx-font-body); }
-.gx .gx-tracked-preview-money strong { overflow-wrap: anywhere; font: 600 28px/32px var(--gx-font-num); font-variant-numeric: tabular-nums; }
+/* Amounts use the kit's n-m number style (gx-n-m in the markup; design audit A13). */
+.gx .gx-tracked-preview-money strong { overflow-wrap: anywhere; }
 .gx .gx-tracked-preview-money > svg { align-self: center; color: var(--gx-text-3); margin-top: var(--gx-space-3); }
 .gx .gx-tracked-preview-flags,.gx .gx-tracked-tags { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gx-space-2); color: var(--gx-text-2); font: 500 13px/18px var(--gx-font-body); }
 .gx .gx-tracked-head { display: flex; gap: var(--gx-space-2); align-items: center; padding: var(--gx-space-2) var(--gx-space-3) 0 var(--gx-space-5); }
@@ -45,7 +46,7 @@
 .gx .gx-tracked-money > div { min-width: 0; display: grid; gap: var(--gx-space-1); }
 .gx .gx-tracked-money > div:last-child { text-align: end; }
 .gx .gx-tracked-money dt,.gx .gx-tracked-money small { color: var(--gx-text-2); font: 500 13px/18px var(--gx-font-body); }
-.gx .gx-tracked-money dd { display: grid; gap: var(--gx-space-1); margin: 0; font: 600 28px/32px var(--gx-font-num); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.gx .gx-tracked-money dd { display: grid; gap: var(--gx-space-1); margin: 0; overflow-wrap: anywhere; }
 .gx .gx-tracked-money > span { color: var(--gx-text-3); }
 .gx .gx-tracked-context { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--gx-space-2); padding: 0 var(--gx-space-3) var(--gx-space-2) var(--gx-space-5); color: var(--gx-text-3); font: 500 13px/18px var(--gx-font-body); }
 .gx .gx-tracked-detail { padding: 0 var(--gx-space-3) var(--gx-space-3); }

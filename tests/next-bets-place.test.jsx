@@ -4,7 +4,7 @@
 // the offered terms, `expected: null` for a new bet and your saved terms for an edit; units step in halves.
 import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { markupProblems } from './helpers/ui-markup.mjs';
+import { markupProblems, nameFrom, parseMarkup, walk } from './helpers/ui-markup.mjs';
 
 vi.mock('../web/src/api.js', () => ({ betsApi: vi.fn() }));
 vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: vi.fn() }));
@@ -47,6 +47,16 @@ describe('the placing board', () => {
     expect(total.locked).toBe(PLACE_COPY.locked('total'));
     expect(total.sides.every(side => side.offer === null)).toBe(true);
     expect(board.closed).toBe(true);
+  });
+  // Design audit A14: the banner explains the gate once. A closed market's lock line only says what unlocks it, and under
+  // your saved bet it says how to change that bet instead of offering to place one. The gate is unchanged: no prices.
+  it('a closed market says what unlocks it, and how to change your saved bet when it holds one', () => {
+    expect(later.markets[1].locked).toBe('Lock in your Total guess to see prices');
+    const closed = { ...data.markets['SEA-DEN'], spread: { visible: false } };
+    const spread = placeBoard({ ...data, markets: { ...data.markets, 'SEA-DEN': closed } }, LUKE).games.find(g => g.id === 'SEA-DEN').markets[0];
+    expect(spread.mine.text).toBe('DEN −3 · −110');
+    expect(spread.locked).toBe('Lock in your Spread guess to change this bet');
+    expect(spread.sides.every(side => side.offer === null)).toBe(true);
   });
   it('shows your saved bet with "Price moved" when your side’s offer changed', () => {
     const { mine } = later.markets[0];
@@ -97,6 +107,19 @@ describe('a game card', () => {
     expect(startedGame).toContain(PLACE_COPY.started);
     expect(startedGame).not.toContain('gx-chip');
   });
+  // Design audit A15: a price chip is two lines, side and line in n-s over the price in n-xs and the book in meta, instead
+  // of one run of body text that wrapped mid-term ("SEA +3.5 ·" / "−110"). Its name still reads all three.
+  it('draws each price chip as side and line over price and book', () => {
+    const chips = [...walk(parseMarkup(html))].filter(n => n.tag === 'button');
+    const lines = chip => [...walk(chip)].find(n => n.attrs?.class === 'gx-place-chip').children.filter(n => n.tag);
+    const parts = line => [...walk(line)].filter(n => n.tag).map(n => [n.attrs.class, nameFrom(n)]);
+    expect(chips.map(chip => lines(chip).map(line => [line.attrs.class ?? '', nameFrom(line), parts(line)]))).toEqual([
+      [['gx-n-s', 'SEA +3.5', []], ['', '−105 · FanDuel', [['gx-n-xs', '−105'], ['gx-t-meta gx-c-2', ' · FanDuel']]]],
+      [['gx-n-s', 'DEN −3.5', []], ['', '−110 · DraftKings', [['gx-n-xs', '−110'], ['gx-t-meta gx-c-2', ' · DraftKings']]]],
+    ]);
+    expect(chips.map(chip => chip.attrs['aria-label'])).toEqual(['SEA +3.5 · −105, FanDuel', 'DEN −3.5 · −110, DraftKings']);
+    expect(chips.some(chip => /gx-chip--text/.test(chip.attrs.class))).toBe(false);
+  });
 });
 
 describe('your week (stage 45)', async () => {
@@ -113,9 +136,11 @@ describe('your week (stage 45)', async () => {
     expect(toWinUnits({ units: 2, odds: -110 })).toBeCloseTo(1.818, 3);
     expect(week.toWin).toBe('3.02U');
   });
+  // Design audit A13: the record is the app's "W–L–P" with en dashes and all three parts, and net units use the amount
+  // style (real minus, no space, two decimals), as the tracked tickets and Everyone's result pills do.
   it('takes record, units and return from settled bets only, and qualifies at 3 bets or 3 units', () => {
-    expect(week.record).toBe('0-1');
-    expect(week.units).toBe('−1.5U');
+    expect(week.record).toBe('0–1–0');
+    expect(week.units).toBe('−1.50U');
     expect(week.ret).toBe('−100%');
     expect(week.picks).toBe(3);
     expect(week.qualified).toBe(true);
@@ -125,7 +150,7 @@ describe('your week (stage 45)', async () => {
     const one = weekCard({ ...data, bets: [data.bets[0]] }, LUKE);
     expect(one.meter.text).toBe('1 of 3 bets · 2U of 3U');
     expect(one.meter.value).toBe(2);
-    expect(one.record).toBe('0-0');
+    expect(one.record).toBe('0–0–0');
     expect(one.units).toBe('—');
     expect(one.ret).toBe('—');
   });

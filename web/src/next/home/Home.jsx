@@ -121,8 +121,9 @@ function StatTiles({ app, tiles, viewer, onScore, onBets }) {
     <div className="gx-h-stats" data-home="tiles">
       <RankTile market="spread" mode="guess_spread" label={HOME_COPY.spreadRank} tile={tiles.spread} chase={tiles.chase} viewer={viewer} onClick={() => onScore('spread')}/>
       <RankTile market="total" mode="guess_total" label={HOME_COPY.totalRank} tile={tiles.total} chase={null} viewer={viewer} onClick={() => onScore('total')}/>
+      {/* The count has its own span, so only the word agrees with it: "1 active ticket" (design audit A22). */}
       <button type="button" className="gx-h-stat" data-tile="tickets" onClick={onBets}>
-        <span className="gx-t-meta gx-c-2">My bets</span><span className="gx-h-stat-value">{tickets.loading || tickets.error ? '—' : tickets.active}</span><span className="gx-t-meta gx-c-2">{tickets.error ? 'Open to retry' : 'active tickets'}</span>
+        <span className="gx-t-meta gx-c-2">My bets</span><span className="gx-h-stat-value">{tickets.loading || tickets.error ? '—' : tickets.active}</span><span className="gx-t-meta gx-c-2">{tickets.error ? 'Open to retry' : tickets.active === 1 ? 'active ticket' : 'active tickets'}</span>
       </button>
     </div>
   );

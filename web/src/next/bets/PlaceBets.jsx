@@ -58,7 +58,10 @@ export function PlaceBets({ onDirty }) {
 
   if (read.loading && !board) return <Skeleton label="Loading this week’s games and prices…" shape="cards" count={3}/>;
   if (read.error && !board) return <LeagueFailure error={read.error} onRetry={read.retry}/>;
-  if (!board.published) return <p className="gx-t-body" role="status">{PLACE_COPY.unpublished}</p>;
+  // Rule 5: an empty state is one sentence and one action (design audit A17).
+  if (!board.published) return <div className="gx-vstack gx-gap-12" data-bets="unpublished">
+    <p className="gx-t-body" role="status">{PLACE_COPY.unpublished}</p><Button onClick={() => shell.go('play')}>Open Play</Button>
+  </div>;
   const units = entries.reduce((sum, entry) => sum + entry.units, 0);
   return <div className="gx-place gx-vstack gx-gap-16" data-bets="place">
     <p className="gx-t-meta gx-c-2">Week {board.week} · Virtual Units · {PLACE_COPY.empty}</p>
@@ -90,7 +93,8 @@ export function WeekCard({ week }) {
     <h2 id="gx-place-week" className="gx-t-section">Your week</h2>
     <div className="gx-place-stats">{stat('Open', week.open)}{stat('In play', week.inPlay)}{stat('To win', week.toWin)}</div>
     <div className="gx-place-stats">{stat('Record', week.record)}{stat('Units', week.units)}{stat('Return', week.ret)}</div>
-    <div className="gx-hstack gx-gap-8 gx-place-meter"><Meter value={week.meter.value} max={3} label={week.meter.text}/><span className="gx-t-meta gx-c-2 gx-grow">{week.meter.text}</span></div>
+    {/* Words above a full-width meter (design audit A2): beside it they were squeezed to one letter a line. */}
+    <div className="gx-vstack gx-gap-8 gx-place-meter"><span className="gx-t-meta gx-c-2">{week.meter.text}</span><Meter value={week.meter.value} max={3} label={week.meter.text}/></div>
   </Card>;
 }
 
@@ -112,11 +116,14 @@ export function PlaceGame({ game, slip, disabled, onToggle }) {
       {market.locked ? <LockLine as="p" className="gx-t-meta">{market.locked}</LockLine>
         : game.started ? null
           : <ChipRail label={`${game.awayCode} at ${game.homeCode} ${market.name.toLowerCase()} prices`} className="gx-place-sides">
-            {market.sides.map(side => <Chip key={side.side} text tall selected={slip[slipKey(game.id, market.market)]?.side === side.side}
+            {/* Two lines (design audit A15): "SEA +3.5", then "−110 · BetMGM". */}
+            {market.sides.map(side => <Chip key={side.side} tall selected={slip[slipKey(game.id, market.market)]?.side === side.side}
               disabled={disabled || !side.offer}
               label={side.offer ? `${side.text}, ${side.offer.source}` : `${side.label}, ${PLACE_COPY.noOffer}`}
               onClick={() => side.offer && onToggle(game, market, side)}>
-              <span className="gx-vstack"><span>{side.offer ? side.text : side.label}</span><span className="gx-t-meta gx-c-2">{side.offer ? side.offer.source : PLACE_COPY.noOffer}</span></span>
+              <span className="gx-place-chip"><span className="gx-n-s">{side.offer ? side.pick : side.label}</span>
+                {side.offer ? <span><span className="gx-n-xs">{side.price}</span><span className="gx-t-meta gx-c-2">{` · ${side.offer.source}`}</span></span>
+                  : <span className="gx-t-meta gx-c-2">{PLACE_COPY.noOffer}</span>}</span>
             </Chip>)}
           </ChipRail>}
     </div>)}
