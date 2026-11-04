@@ -22,6 +22,10 @@
 .gx-tc-row[aria-expanded="true"] { background: var(--gx-data-tint); }
 .gx-tc-row:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: -2px; }
 .gx-tc-row-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+/* The name and its line wrap inside the column the spark and the value leave them (63 px in the game layer at 390 px
+   when the face is wide: CI's Linux DejaVu Sans, a phone whose webfonts did not load); a word longer than the column
+   breaks rather than running under the spark ("Totals reversion", "Rarely covering this season"). */
+.gx-tc-row-main > * { min-width: 0; overflow-wrap: break-word; }
 .gx-tc-row-sub { font: 500 13px/18px var(--gx-font-body); letter-spacing: 0.01em; color: var(--gx-text-2); }
 .gx-tc-mini { flex: none; width: 80px; height: 30px; }
 .gx-tc-mini-area { fill: var(--gx-data); fill-opacity: 0.2; }
@@ -215,6 +219,11 @@
   .gx-tc-big { font-size: 48px; line-height: 48px; }
   .gx-tc-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .gx-tc-tile:last-child:nth-child(3) { grid-column: 1 / -1; }
+  /* Two tiles to a row leave a value 79 px in the game layer (its nest insets the card 8 px a side): enough for
+     "55.1%" at 24 px in the condensed number face, not in a wide fallback face (CI's Linux DejaVu Sans needs 83 px, a
+     phone whose webfonts did not load as much), which broke "55.1" from "%". At 20 px it keeps one line in either; the
+     28 px line keeps the tile's height. */
+  .gx-tc-tile-value { font-size: 20px; }
   .gx-tc-table th,
   .gx-tc-table td { padding-inline: var(--gx-space-1); }
 }

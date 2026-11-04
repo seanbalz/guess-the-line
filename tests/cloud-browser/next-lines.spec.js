@@ -121,6 +121,24 @@ async function phoneChecks(page, root = '.gx') {
 /** D-69 step 3: the game layer scrolls with the page under the fixed top bar; bring `locator`'s top to 120 px down the screen. */
 const clearOfBars = locator => locator.evaluate(el => { scrollTo(0, scrollY + el.getBoundingClientRect().top - 120); });
 
+/**
+ * D-69 step 3: the layer scrolls under the sticky top bar and the fixed tab bar, and axe's target-size reads a control
+ * half under a bar's button as an obscured target (on CI a 44 px "Line movement" summary sat under the top bar's league
+ * pill, 16 px of it showing: where a scroll stops follows the fallback face, and CI's Linux DejaVu Sans is wider than
+ * Windows'). Before axe, move the page at most 120 px to the nearest spot where no control straddles a bar's edge, so
+ * the check measures the controls, not where the scroll happened to stop. Returns the shift (null: no clear spot).
+ */
+const clearOfEdges = page => page.evaluate(() => {
+  const edges = [document.querySelector('.gx-topbar')?.getBoundingClientRect().bottom, document.querySelector('.gx-tabbar')?.getBoundingClientRect().top].filter(Number.isFinite);
+  const controls = [...document.querySelectorAll('.gx-main :is(button, a[href], summary, input, select, textarea, [role="button"])')]
+    .map(el => el.getBoundingClientRect()).filter(r => r.height > 0);
+  const room = document.documentElement.scrollHeight - innerHeight;
+  const clear = shift => scrollY + shift >= 0 && scrollY + shift <= room
+    && controls.every(r => edges.every(edge => r.bottom - shift <= edge || r.top - shift >= edge));
+  for (let d = 0; d <= 120; d += 4) for (const shift of d ? [d, -d] : [0]) if (clear(shift)) { scrollBy(0, shift); return shift; }
+  return null;
+});
+
 async function axe(page) {
   await settle(page);
   const result = await new AxeBuilder({ page }).withTags(AXE_TAGS).analyze();
@@ -528,7 +546,7 @@ test('weekly trends recover inside the game and All trends sheets without changi
       await page.emulateMedia({ forcedColors, colorScheme: theme, reducedMotion: 'reduce' });
       await page.setViewportSize({ width: 320, height: 844 });
       await retry.scrollIntoViewIfNeeded();
-      await phoneChecks(page, '[data-research="game"]'); expect(await axe(page)).toEqual([]);
+      await phoneChecks(page, '[data-research="game"]'); await clearOfEdges(page); expect(await axe(page)).toEqual([]);
       await game.screenshot({ path: info.outputPath(`weekly-trend-game-error-${theme}-${forcedColors}.png`) });
     }
     const calls = apiCalls(page), before = requests;
@@ -2251,7 +2269,7 @@ test('high-contrast charts retain visible bars, stems and selected seasons', asy
       expect(await total.locator('.gx-md-point').first().evaluate(el => getComputedStyle(el).fill)).toBe(foreground);
       await total.locator('.gx-md-movement').scrollIntoViewIfNeeded();
       await page.screenshot({ path: testInfo.outputPath(`forced-movement-${theme}.png`) });
-      await phoneChecks(page); expect(await axe(page)).toEqual([]);
+      await phoneChecks(page); await clearOfEdges(page); expect(await axe(page)).toEqual([]);
     }
     await testInfo.attach('forced-color-styles', { body: JSON.stringify(observed), contentType: 'application/json' });
     for (const colors of observed) {

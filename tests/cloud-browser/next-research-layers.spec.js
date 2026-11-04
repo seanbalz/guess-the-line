@@ -185,7 +185,12 @@ test('loading in the final shape: the landing card’s skeleton and the board’
     await expect(page.locator('[data-skeleton="rows"] .gx-skel-row')).toHaveCount(4);
     const rowDrawn = await skel.evaluate(el => el.getBoundingClientRect().height);
     test.info().annotations.push({ type: 'heights', description: `board skeleton row ${rowDrawn}px, row ${real}px` });
-    expect(Math.abs(rowDrawn - real), `the skeleton row is ${rowDrawn}px, a row ${real}px`).toBeLessThanOrEqual(8);
+    // The skeleton holds a one-line row's height (72 px at 390 px, lines.css). A row grows by one text line when its words
+    // wrap: the test world blocks webfonts, and CI's Linux faces (DejaVu Sans) are wider than Windows' fallbacks, so the
+    // same row is 72 px here and 96 px there. Step 2's rule for the Home card (above): never a skeleton taller than the
+    // real thing, and no jump larger than one wrapped line (a 20 px line and its 4 px gap, with room to 28 px).
+    expect(rowDrawn, `the skeleton row (${rowDrawn}px) is never taller than a row (${real}px)`).toBeLessThanOrEqual(real + 2);
+    expect(real - rowDrawn, `the skeleton row is ${rowDrawn}px, a row ${real}px: within one wrapped line`).toBeLessThanOrEqual(28);
     open(); await page.unroute(`${SUPABASE}/functions/v1/gtl-api/personal`);
     await expect(row(page, 'SEA-DEN')).toBeVisible();
     expect(world.errors).toEqual([]);
