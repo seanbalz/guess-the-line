@@ -16,7 +16,7 @@ import { test, expect } from '@playwright/test';
 import { ALL } from '../migrations.mjs';
 import { communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 
-const ADDRESSES = ['#home', '#play', '#play/picks', '#play/score', '#play/compare', '#play/points', '#play/league', '#play/features', '#play/features?layer=streaks', '#play/features?layer=awards', '#play/features?layer=season', '#play/features?layer=badge&item=bullseye', '#play/league?view=feed', '#play/league?view=history', '#play/league?view=history&week=6', '#bets', '#bets/recommended', '#bets/active',
+const ADDRESSES = ['#home', '#home?layer=who', '#play', '#play/picks', '#play/score', '#play/compare', '#play/points', '#play/league', '#play/features', '#play/features?layer=streaks', '#play/features?layer=awards', '#play/features?layer=season', '#play/features?layer=badge&item=bullseye', '#play/league?view=feed', '#play/league?view=history', '#play/league?view=history&week=6', '#bets', '#bets/recommended', '#bets/active',
   '#bets/virtual', '#bets/everyone', '#research', '#research/games', '#research/trends', '#history', '#history/bets', '#history/older'];
 const PASSES = [{ theme: 'dark', width: 390, height: 844 }, { theme: 'light', width: 320, height: 568 }];
 // Tab presses per page; enough to walk past the first screenful on every page above.
