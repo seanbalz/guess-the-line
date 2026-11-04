@@ -26,8 +26,9 @@ later change merged two release records from `main`): `node --test` 2877 tests, 
 one is `tests/research-intake.test.mjs`, a Windows file-mode check that also fails on untouched code here and is
 unrelated to step 1; CI runs Linux); Vitest 67 files, 763 tests pass; typecheck and build pass; the 16 step 1 browser
 specs, the phone, fixed-bar and scroll sweeps among them, 69 passed, skipped 0, at `9ebb2056`. Axe ran inside those step 1 specs; `npm run test:accessibility` covers the legal links only. The nine
-required CI checks run on the PR. Not yet: a signed-in readback of the released Play and Sean's iPhone check of Play,
-which stands in for device acceptance (spec section 10).
+required CI checks run on the PR. A signed-in desktop visit on November 4 returned 200 for every call the released Play
+made (see the release note). Not yet: a logged phone visit, a Picks game card (`/personal/read`) in the released Play,
+and Sean's iPhone check of Play, which stands in for device acceptance (spec section 10).
 
 ## Fantasy weekly estimate switches to usage, D-76 — November 3, 2026
 
