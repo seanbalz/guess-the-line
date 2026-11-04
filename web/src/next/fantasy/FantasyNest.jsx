@@ -10,7 +10,8 @@ import { MATCHUP_POSITIONS, describePlayerContext, matchupTable } from '../../..
 import { MAX_COMPARE } from '../../../../shared/fantasy-tools.mjs';
 import { FANTASY_AVAILABLE, FANTASY_INITIAL, useFantasySnapshot } from '../../fantasyData.js';
 import { useFantasyGameContext } from '../../fantasyContext.js';
-import { FantasyAccuracy } from '../../FantasyAccuracy.jsx';
+import { FantasyReport } from './FantasyReport.jsx';
+import { reportModel, reportTile } from './fantasyReport.js';
 import { Button, InfoButton, LockLine, Nest, Pill, Segmented, Switch, Skeleton } from '../ui/index.js';
 import { PlayerCompare, PlayerProfileSheet, PlayerToolButtons } from './FantasyTools.jsx';
 
@@ -58,16 +59,17 @@ function PlayerRow({ player, scope, position, context, onOpen }) {
   </li>;
 }
 
-/** The method, scoring rules and sources, one tap away behind the rankings card's ⓘ. */
-function methodBody(snapshot, filters, scoringLabel) {
+/** The method (its name and version from the snapshot's own data), scoring rules and sources, behind the rankings ⓘ. */
+export function methodBody(snapshot, filters, scoringLabel) {
   const rules = scoringRules(filters) || scoringRules(DEFAULT_FILTERS);
-  return [INTRO,
+  const method = snapshot.method?.name && snapshot.method?.version ? `Method: ${snapshot.method.name} ${snapshot.method.version}.` : null;
+  return [INTRO, method,
     snapshot.method?.description || 'Estimates come from recent usage and statistics over the scheduled games remaining.',
     'Sorted by estimated total points. The leading rank follows the selected position; team, player and trend filters keep ranks fixed.',
     'Overall ranks compare estimated fantasy points across positions; they are not draft value or value over replacement. Known Out or Doubtful players have no weekly estimate. Rest-of-season estimates assume a player is healthy for every remaining scheduled game.',
     'Strong trends compare recent games with the earlier sample available before the selected week. Trends describe recorded changes, not a promise about this week.',
     `${scoringLabel} scoring · ${filters.passingTds}-point passing TDs: ${[...(rules.offense || []), ...(rules.kicker || [])].map(rule => `${rule.label} ${rule.points}`).join(', ')}.`,
-    `Snapshot generated ${date(snapshot.generatedAt)}. Source updated ${date(snapshot.asOf)}.`];
+    `Snapshot generated ${date(snapshot.generatedAt)}. Source updated ${date(snapshot.asOf)}.`].filter(Boolean);
 }
 const sourceLinks = snapshot => (snapshot.sources || []).flatMap(source => [
   httpLink(source.url) ? { text: source.name, url: source.url } : null,
@@ -140,11 +142,12 @@ export function FantasyNest({ navigationState, onNavigationState, view = {}, onL
     </Nest></section>;
   }
 
-  // Fantasy › the week's report card.
+  // Fantasy › the week's report card (D-69 step 3: tiles and rows; the fine print behind ⓘ).
   if (snapshot && view.fantasyLayer === 'report' && filters.scope === 'weekly' && state.review) {
+    const report = reportModel(state.review, filters, scoringLabel);
     return <section className="gx-screen gx-fantasy" aria-label="Fantasy Football"><h1 className="gx-t-title">Fantasy Football</h1><Nest label="Fantasy layers" layer="report" title={`Week ${state.review.week} report card`} lips={[toFantasy]}
-      info={<InfoButton title="About the report card" body={['A report card for GTL’s weekly estimates, not a forecast or betting claim. Each estimate is graded against the recorded result, beside a season-average baseline.']} links={sourceLinks(snapshot)}/>}>
-      <FantasyAccuracy theme="next" review={state.review} filters={filters} scoringLabel={scoringLabel} headingLevel={3}/>
+      info={<InfoButton title="About the report card" body={report.fine} links={sourceLinks(snapshot)}/>}>
+      <FantasyReport report={report}/>
     </Nest></section>;
   }
 
@@ -161,6 +164,7 @@ export function FantasyNest({ navigationState, onNavigationState, view = {}, onL
   const origin = state?.fallback ? `Showing saved Week ${snapshot?.week} · live refresh unavailable`
     : state?.origin === 'hosted' && snapshot ? `Updated ${date(snapshot.generatedAt)}${state.indexStale ? ' · refresh check delayed' : ''}` : null;
   const seasons = [...new Set(entries.map(entry => entry.season))];
+  const reportCard = snapshot && filters.scope === 'weekly' && state.review ? reportTile(state.review, filters) : null;
   return <section className="gx-screen gx-fantasy" aria-label="Fantasy Football"><h1 className="gx-t-title">Fantasy Football</h1><Nest label="Fantasy layers" layer="fantasy" title="Rankings"
     info={snapshot ? <InfoButton title="About Fantasy rankings" body={methodBody(snapshot, filters, scoringLabel)} links={sourceLinks(snapshot)}/> : <InfoButton title="About Fantasy rankings" body={[INTRO]}/>}>
     {snapshot ? <p className="gx-t-meta">Week {snapshot.week} · {filters.scope === 'ros' ? 'Rest of season' : 'Weekly'} · {scoringLabel} · Stats through Week {snapshot.statsThroughWeek ?? '—'}</p> : null}
@@ -192,9 +196,9 @@ export function FantasyNest({ navigationState, onNavigationState, view = {}, onL
     {state?.status === 'error' && <div className="gx-vstack gx-gap-8"><p className="gx-t-body" role="alert">Week {selectedWeek} rankings could not be loaded.</p><Button variant="secondary" onClick={state.retry}>Try again</Button></div>}
     {snapshot && <>
       <ul className="gx-nest-grid" aria-label="Fantasy tools">
-        {filters.scope === 'weekly' && state.review ? <li><button type="button" className="gx-nest-tile" data-fantasy="report" onClick={() => onLayer({ fantasyLayer: 'report', fantasyPlayer: null })}>
-          <span className="gx-nest-tile-label">Week {state.review.week} report card</span><span className="gx-n-m gx-nest-num">{state.review.status}</span>
-          <span className="gx-t-meta">How close the estimates were</span></button></li> : null}
+        {reportCard ? <li><button type="button" className="gx-nest-tile" data-fantasy="report" onClick={() => onLayer({ fantasyLayer: 'report', fantasyPlayer: null })}>
+          <span className="gx-nest-tile-label">Week {state.review.week} report card</span><span className="gx-n-m gx-nest-num">{reportCard.big}</span>
+          <span className="gx-t-meta">{reportCard.sub}</span></button></li> : null}
         <li><button type="button" className="gx-nest-tile" data-fantasy="compare" onClick={() => onLayer({ fantasyLayer: 'compare', fantasyPlayer: null })}>
           <span className="gx-nest-tile-label">Compare players</span><span className="gx-n-m gx-nest-num">{compareIds.length}</span>
           <span className="gx-t-meta">of {MAX_COMPARE} chosen</span></button></li>

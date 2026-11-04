@@ -257,6 +257,10 @@ test.describe('fantasy rankings', () => {
           const card = screen.getByLabel('Week 5 accuracy');
           await expect(card).toBeVisible();
           await expect(card.getByText('PROVISIONAL', { exact: true })).toBeVisible();
+          // D-69 step 3: tiles and rows; the misses one tap away.
+          for (const key of ['miss', 'baseline', 'within', 'graded']) await expect(card.locator(`[data-report="${key}"]`)).toBeVisible();
+          await expect(card.getByRole('heading', { name: 'Off by, by position', exact: true })).toBeVisible();
+          await expect(card.locator('details[data-fantasy="misses"] > summary')).toHaveText('Biggest misses');
           await layout(page, screen);
           await page.screenshot({ path: testInfo.outputPath(`fantasy-report-${width}-${theme}.png`), fullPage: true });
           const results = await new AxeBuilder({ page }).include('.gx-fantasy').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();

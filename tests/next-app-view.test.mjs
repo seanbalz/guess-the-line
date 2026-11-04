@@ -169,8 +169,8 @@ test('the apps keep separate shells and allow only documented workflow and pick-
   // Sean's all-tabs request uses today's hosted editors until the later redesign migrations can ship. These exact
   // adapters are documented in ALL_TABS_LIVE_WORKFLOWS.md; GameHub/App/CommunityHome's default shell stays forbidden.
   const adapters = {
-    // D-66: the Fantasy nesting cards reuse the snapshot and game-context reads and the report card, not the old screen.
-    'web/src/next/fantasy/FantasyNest.jsx': ['fantasyData.js', 'fantasyContext.js', 'FantasyAccuracy.jsx'],
+    // D-66: the Fantasy nesting cards reuse the snapshot and game-context reads; D-69 step 3: not the old report card.
+    'web/src/next/fantasy/FantasyNest.jsx': ['fantasyData.js', 'fantasyContext.js'],
     'web/src/next/NextApp.jsx': ['liveWorkflows.css'],
     'web/src/next/bets/Bets.jsx': ['SocialBetTracker.jsx', 'VirtualUnits.jsx', 'DeferredScreen.jsx', 'liveBets.css'],
     // D-65 follow-up: Menu › Commissioner tools reuses the old Final scores editor and the pure odds-schedule formatter
@@ -225,7 +225,7 @@ test('the apps keep separate shells and allow only documented workflow and pick-
   }
   assert.doesNotMatch(read('web/src/next/play/PerGameLegacy.jsx'), /from ['"][^'"]*(NextApp|shell\/context|AppData)/, 'the compatibility wrapper never mounts or depends on the new shell');
   // Spec test 13: the rebuilt Play pages no longer import the old screens they replace.
-  for (const file of filesUnder('web/src/next')) for (const spec of importsOf(read(file))) assert.doesNotMatch(spec, /CommunityHome|PlayPresentation/, `${file} imports ${spec}`);
+  for (const file of filesUnder('web/src/next')) for (const spec of importsOf(read(file))) assert.doesNotMatch(spec, /CommunityHome|PlayPresentation|FantasyAccuracy/, `${file} imports ${spec}`);
 });
 
 test('no screen offers the old app: failure screens reload, the Menu has no old-app row', () => {
