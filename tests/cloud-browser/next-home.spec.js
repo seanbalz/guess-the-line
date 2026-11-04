@@ -5,20 +5,21 @@ import { ALL } from '../migrations.mjs';
 import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, signIn, storeBookLines } from './community-world.mjs';
 import { assertNoLeak, lineSecrets, pickSecrets } from '../helpers/leak-scan.mjs';
 import { HOME_COPY, homeHero } from '../../shared/home-view.mjs';
-import { heroHeadline } from '../../web/src/next/home/homeModel.js';
+import { heroHeadline, heroMeters } from '../../web/src/next/home/homeModel.js';
 
 // Redesign build plan stage 12: the read-only Home at 390 x 844 (section 4.1), on the real app (main.jsx, AuthGate, the
 // lazy NextApp) and the real handler with every migration (ALL) on local PGlite. The fixture week is open: Troy has sent
 // both markets, Sean has sat out Spread, Luke keeps a Spread draft of two picks and no Total ballot. Checked: Home is the
 // default screen when a member signs in (D-60); exactly one primary "Make picks" action opens the retained editor;
-// compact score/ticket/league shortcuts; the rendered-page leak scan; no writes; axe in Dark and Light at 390 and 320
-// with CI's fallback font. Score missing/zero semantics are separately covered in four-tab-landings.test.jsx.
+// the six tiles (D-69 step 2, H1A), This week's game tiles and the Who's in layer; the rendered-page leak scan; no
+// writes; axe in Dark and Light at 390 and 320 with CI's fallback font, on Home and on the Who's in layer. Score missing/zero semantics are separately covered in four-tab-landings.test.jsx.
 // Fictional accounts only; never contacts hosted data.
 test.use({ viewport: { width: 390, height: 844 } });
 
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
-// Stage 71: Home's recap row reads POST /league/features (badges and awards; nothing is written).
-const READS = ['GET /lobby', 'POST /community/read', 'POST /social/read', 'POST /community/history', 'POST /me/preferences', 'POST /league/features'];
+// Stage 71: Home's Awards tile reads POST /league/features (badges and awards; nothing is written). D-69 step 2: This
+// week's game tiles read GET /personal, the viewer's own week (the shared read Play's picks and Research use).
+const READS = ['GET /lobby', 'POST /community/read', 'POST /social/read', 'POST /community/history', 'POST /me/preferences', 'POST /league/features', 'GET /personal'];
 // Luke's own draft (whole numbers: his own picks are never secrets, and whole numbers collide with counts in the scan).
 const LUKE_SPREAD_DRAFT = [4, -9];
 // Stored book lines for the week (fixture values, never live odds), half-points so the scan can tell them from counts.
@@ -144,7 +145,9 @@ test('Home has one primary task and compact shortcuts, with no writes or hidden-
     const reply = (await world.api('luke', 'community/read', {})).body;
     const expectedHero = homeHero({ community: reply });
     expect(expectedHero.state).toBe('due');
-    expect(expectedHero.statusLines).toEqual([`Spread ${LUKE_SPREAD_DRAFT.length} of ${world.state.games.length} picked`, `Total 0 of ${world.state.games.length} picked`]);
+    // C9: one meter per market, each with its own words.
+    const expectedMeters = heroMeters(reply).map(m => m.words);
+    expect(expectedMeters).toEqual([`Spread · ${LUKE_SPREAD_DRAFT.length} of ${world.state.games.length} picked`, `Total · 0 of ${world.state.games.length} picked`]);
     await expect(hero(page)).toHaveAttribute('data-state', 'due');
     // The design lane's hierarchy pass: the headline names the games left and the deadline, the week sits above it.
     const expectedHeadline = heroHeadline({ hero: expectedHero, community: reply });
@@ -152,7 +155,7 @@ test('Home has one primary task and compact shortcuts, with no writes or hidden-
     await expect(hero(page).getByRole('heading', { level: 2 })).toHaveText(expectedHeadline.title);
     await expect(hero(page).locator('[data-home="when"]')).toHaveText(expectedHeadline.sub);
     expect(expectedHeadline.sub).toMatch(/^before (Sun|Mon|Tue|Wed|Thu|Fri|Sat) \d{1,2}:\d{2} (AM|PM) PT$/);
-    await expect(hero(page).locator('[data-home="status"] li')).toHaveText(expectedHero.statusLines);
+    await expect(hero(page).locator('[data-home="status"] li')).toHaveText(expectedMeters);
 
     // The countdown: a timer named with its words and the time left, digits in tiles, not read every tick.
     const timer = hero(page).getByRole('timer');
@@ -169,13 +172,12 @@ test('Home has one primary task and compact shortcuts, with no writes or hidden-
     await expect(page.locator('.gx .gx-btn--primary:visible')).toHaveCount(1);
     await expect(page.getByRole('button', { name: HOME_COPY.seeLines })).toHaveCount(0);
 
-    // D-55 round 3 (approved October 21): three stat tiles, who's in for the league with Standings and Invite, and
-    // the week meter (one segment per game) under each market's status words.
-    for (const market of ['spread', 'total', 'tickets']) await expect(rankTile(page, market)).toBeVisible();
-    await expect(whosIn(page)).toHaveCount(1);
-    await expect(whosIn(page).getByRole('button', { name: 'Standings', exact: true })).toBeVisible();
-    await expect(whosIn(page).getByRole('button', { name: 'Invite', exact: true })).toBeVisible();
-    await expect(hero(page).locator('[data-home="status"] .gx-meter3')).toHaveCount(expectedHero.statusLines.length);
+    // D-69 step 2 (H1A): six tiles, Who's in as a tile (its layer holds Standings and Invite), the week's game tiles,
+    // and one meter per market.
+    for (const name of ['spread', 'total', 'who', 'awards', 'tickets', 'trends']) await expect(rankTile(page, name)).toBeVisible();
+    await expect(whosIn(page)).toHaveCount(0);
+    await expect(page.locator('[data-home="week"] [data-game-tile]')).toHaveCount(Math.min(4, world.state.games.length));
+    await expect(hero(page).locator('[data-home="status"] .gx-meter3')).toHaveCount(expectedMeters.length);
 
     await phoneChecks(page);
     await noLeak(page, world, lines, 'Home');
@@ -219,7 +221,7 @@ test('"Make picks" opens the live Play tab without leaving the new app; "See Lin
   } finally { await world.db.close(); }
 });
 
-test('axe in Dark and Light at 390 and 320 on Home; 390 screenshots', async ({ page, baseURL }, testInfo) => {
+test('axe in Dark and Light at 390 and 320 on Home and its Who’s in layer; 390 screenshots', async ({ page, baseURL }, testInfo) => {
   test.setTimeout(90000);
   const { world } = await lukesWeek(page, baseURL);
   try {
@@ -236,6 +238,13 @@ test('axe in Dark and Light at 390 and 320 on Home; 390 screenshots', async ({ p
         await phoneChecks(page);
         found[`home ${theme} ${width}`] = await axe(page);
         if (width === 390) await page.screenshot({ path: testInfo.outputPath(`next-home-390-${theme}.png`), fullPage: true });
+        await page.goto('/#home?layer=who');
+        await expect(page.locator('[data-home="who-layer"]')).toBeVisible();
+        await phoneChecks(page);
+        found[`who ${theme} ${width}`] = await axe(page);
+        if (width === 390) await page.screenshot({ path: testInfo.outputPath(`next-home-who-390-${theme}.png`), fullPage: true });
+        await page.goto('/#home');
+        await expect(hero(page)).toBeVisible();
       }
       await page.setViewportSize({ width: 390, height: 844 });
     }
