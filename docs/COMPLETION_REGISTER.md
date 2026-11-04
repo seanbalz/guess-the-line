@@ -15,7 +15,7 @@ Home and wait as NEW on the Awards tile. A Community rank move waits on Your sco
 chip is drawn; Play's Your score tile shows NEW for it. Home now reads `GET /personal`, the shared read Research uses.
 Evidence (local): `node --test` 2910 tests, 2909 pass, 1 fails (`tests/research-intake.test.mjs`, the Windows file-mode
 check on untouched code), skipped 0; Vitest 79 files, 834 tests pass; typecheck and build pass; the full browser run
-BROWSER_TOTAL passed, skipped 0.
+365 passed, skipped 0.
 Not yet: the Pages release, Sean's iPhone check of Home, and a post-release signed-in readback of `GET /personal`
 (latency and Edge CPU).
 
