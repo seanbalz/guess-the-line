@@ -38,7 +38,9 @@ Sean chose "5 · Top three, rest folded" for the Trends tiles and chart ([D-75](
 Local checks pass: 676 component tests, the router, token and trends-view node tests (`# skipped 0`), typecheck,
 Brand QA, and 13 cloud-browser cases. Those are next-trends with All trends and the fold, four-tab and phone layout,
 with axe at 320 and 390px in Light and Dark. They ran on a private port because 5198 was held by another server.
-Not released: Sean's OK on the 390px captures of the built screens comes first.
+**Released November 4 (UTC)** after Sean's "Looks good, release": the frontend from `472acf89` as Pages `5fe72e52`
+(run 41749126731). All 129 assets matched, and a signed-in readback passed. See the
+[release record](RELEASE_2026_11_04_TRENDS_GLASS.md).
 
 ## BetRivers backup book, D-74 — November 3, 2026
 
