@@ -60,7 +60,8 @@ export const rankMomentId = (saved, league, mode) => (rankOf(saved?.rank) !== nu
 export function rankCandidate({ league, mode, saved, tied = false, market }) {
   const rank = rankOf(saved?.rank), from = rankOf(saved?.from);
   if (rank === null || from === null || rank >= from) return null;
-  return { id: `${rankSource(league, mode)}:${countOf(saved.n)}`, kind: rank === 1 ? 'rankFirst' : 'rankUp',     // A Community board move also waits on that market's Your score (its season rank chip), where Home's rank tile leads.
+  return { id: rankMomentId(saved, league, mode), kind: rank === 1 ? 'rankFirst' : 'rankUp',
+    // A Community board move also waits on that market's Your score (its season rank chip), where Home's rank tile leads.
     scopes: !league || league === 'community' ? [SCOPES.league, scoreScope(mode)] : [SCOPES.league],
     title: rank === 1 ? (tied ? 'Tied for 1st' : 'You’re 1st') : `Up to ${ordinal(rank)}`, meta: `${market} board · up ${from - rank}`,
     icon: AWARD_ICONS.spread_winner, rarity: 'rare' };

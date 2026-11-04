@@ -30,8 +30,6 @@ import './yourScore.css';
 export function WeeklyScore() {
   const app = useAppData(), shell = useShell(), view = shell.state.views.play;
   useMomentScope(SCOPES.score);
-  // D-69 step 2: the shown market's own scope, where a Community rank move from Home's rank tile plays (its chip pops).
-  useMomentScope(scoreScope(modeOf(view.market)));
   const season = Number.isInteger(view.season) ? view.season : null;
   const key = `${app.accountId}:score:${season ?? 'latest'}`;
   const read = useLeagueRead(key, signal => communityApi('history', season ? { season } : {}, signal), error => { if (error.status === 401) app.requestSignIn(); });
@@ -97,7 +95,7 @@ function ScoreList({ data, mode, weeks, weekNumber, week, entry, all, rows, filt
       seasons={data.seasons || []} season={data.season} onSeason={year => onChange({ season: year, week: null, matchup: '' })}/>
     <Segmented label="Score market" options={SCORE_MARKETS} value={mode} onChange={market => onChange({ market })}/>
     <FilterToggle label="Filter games" active={filtered}><ScoreFilters week={week} filters={filters} onChange={onChange}/></FilterToggle>
-    <ScoreHero hero={hero} rank={filtered ? null : rank} account={data.viewer} figure={`score.${mode}.${data.season}.${weekNumber}`}/>
+    <ScoreHero hero={hero} rank={filtered ? null : rank} mode={mode} account={data.viewer} figure={`score.${mode}.${data.season}.${weekNumber}`}/>
     {!week ? <PlayEmpty>No scoring record for this week. Choose another week.</PlayEmpty>
       : !rows.length ? <PlayEmpty>No games match both filters. Clear filters to see this week.</PlayEmpty>
         : <ul className="gx-ys-rows" aria-label={`Week ${weekNumber} games`}>{rows.map(item => <ScoreRow key={`${week.season}:${week.week}:${mode}:${item.game.id}`} row={item} mode={mode} onOpen={() => onChange({ scoreGame: item.game.id })}/>)}</ul>}
@@ -110,8 +108,7 @@ function ScoreList({ data, mode, weeks, weekNumber, week, entry, all, rows, filt
 }
 
 /** The week's hero (Q1-B): the total counting up from what this device last showed, the season rank chip, the bar. */
-function ScoreHero({ hero, rank, account, figure }) {
-  const pop = usePopped(rank?.momentId ?? '');
+function ScoreHero({ hero, rank, mode, account, figure }) {
   return <section className="gx-ys-hero" aria-label="Personal score summary">
     <div className="gx-ys-hero-top">
       <div className="gx-ys-hero-head">
@@ -122,12 +119,23 @@ function ScoreHero({ hero, rank, account, figure }) {
           {' '}<span className="gx-t-body gx-c-2">points</span>
         </p>
       </div>
-      {rank ? <p className="gx-ys-rank" data-moment={pop ? 'pop' : undefined}><span className="gx-t-micro gx-c-2">Season</span> <span className="gx-n-s">{rank.label}</span>{rank.move ? <> <Move by={rank.move}/></> : null}</p> : null}
+      {rank ? <SeasonRankChip rank={rank} mode={mode}/> : null}
     </div>
     {hero.bar !== null ? <span className="gx-ys-meter" role="img" aria-label={hero.meterLabel}><span style={{ width: `${hero.bar}%` }}></span></span> : null}
     {hero.line ? <p className="gx-t-meta gx-c-2">{hero.line}</p> : null}
     {hero.note ? <p className="gx-t-body">{hero.note}</p> : null}
   </section>;
+}
+
+/**
+ * The season rank chip. It opens the shown market's score scope, where a Community rank move from Home's rank tile plays,
+ * and so exists only while the chip is drawn: a waiting move is never spent while the history still loads with nothing
+ * mounted to pop (the same rule as Play's PicksScope), and the other market's move keeps waiting as NEW.
+ */
+function SeasonRankChip({ rank, mode }) {
+  useMomentScope(scoreScope(mode));
+  const pop = usePopped(rank.momentId ?? '');
+  return <p className="gx-ys-rank" data-moment={pop ? 'pop' : undefined}><span className="gx-t-micro gx-c-2">Season</span> <span className="gx-n-s">{rank.label}</span>{rank.move ? <> <Move by={rank.move}/></> : null}</p>;
 }
 
 /** One picture row (Q1-B): the matchup as marks, BULLSEYE, the points pill, "Line · You · off by" and the bar. */

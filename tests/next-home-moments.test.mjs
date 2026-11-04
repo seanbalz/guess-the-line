@@ -67,6 +67,12 @@ test('never on launch: results from while you were away wait as NEW even with Ho
   assert.deepEqual(r.big, [[AWARD_ID]], 'the award plays big there, once');
   score(); home(); r.engine.open(SCOPES.home); r.engine.open(scoreScope('guess_spread'));
   assert.equal(r.small.length, 3, 'nothing replays');
+  // The real board re-reports the same candidate on every read: after Your score played it, League opens and sees it again.
+  r.engine.open(SCOPES.league);
+  r.engine.report([rankUp(1)], { source: rankSource('community', 'guess_spread') });
+  assert.equal(r.small.length, 3, 'League does not replay the played rank move');
+  assert.deepEqual(r.big, [[AWARD_ID]], 'and nothing big plays');
+  assert.deepEqual([r.engine.newCount(SCOPES.league), r.engine.newCount(scoreScope('guess_spread'))], [0, 0], 'nothing waits');
 });
 
 test('Home holds no badge or award, and a private group’s rank move never waits on Your score', () => {
