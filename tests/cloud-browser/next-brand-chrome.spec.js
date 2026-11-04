@@ -48,12 +48,14 @@ test('System follows the device, live, and a chosen Light stays light on a dark 
   expect(await themeColors(page)).toEqual([next.themeColor.light, next.themeColor.light]);
 });
 
-test('the page asks Google Fonts only for Figtree, Big Shoulders Display and Barlow Condensed', async ({ page, baseURL }) => {
+test('signed out, the page shell asks Google Fonts only for the old app’s families', async ({ page, baseURL }) => {
+  // web/index.html keeps the old app's fonts: old screens such as the group ballot are laid out for Inter, and dropping it
+  // wrapped team names onto three lines at 1024 px (tests/browser/experience.spec.js). The new app adds its D-58 stylesheet
+  // when it mounts (tests/webfonts.test.mjs, addNextFontLinks); the signed-out sign-in screen never mounts it.
   const fonts = await open(page, baseURL, { system: 'dark' });
   await expect.poll(() => fonts.length).toBeGreaterThan(0);
   const families = [...new Set(fonts.flatMap(href => new URL(href).searchParams.getAll('family').map(value => value.split(':')[0])))].sort();
-  expect(families).toEqual(Object.keys(next.webfonts.weights).sort());
-  expect(fonts.every(href => href === next.webfonts.stylesheet), 'one stylesheet, the new app’s').toBe(true);
+  expect(families).toEqual(['Barlow Condensed', 'IBM Plex Mono', 'Inter']);
 });
 
 test('AUD-04: the favicon G is deep green in a light browser and lime in a dark one (Chromium)', async ({ page }) => {
