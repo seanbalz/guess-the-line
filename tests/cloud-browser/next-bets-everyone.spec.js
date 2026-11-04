@@ -5,7 +5,7 @@
 // - Luke's own pick always shows in full;
 // - after Luke sends his Spread guesses, Troy's Spread terms show and Sean's Total stays closed;
 // - a private league sends its id, and the screen names it;
-// - the landing row and the Your picks / Everyone switch reach the screen; nothing is written while browsing;
+// - the landing's tiles reach Everyone and Your picks (D-69 step 4: no switch between them); nothing is written while browsing;
 // - the phone rules (layoutProblems) hold at 320 Light and 390 Dark, and axe passes in both themes.
 // Fixture values only (never live odds); never contacts hosted data.
 import { test, expect } from '@playwright/test';
@@ -52,7 +52,7 @@ async function openEveryone(page) {
   await page.goto('about:blank');
   await page.goto('/#bets/everyone');
   const response = await reply;
-  await expect(page.getByRole('heading', { name: 'Everyone’s picks', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Everyone', level: 1, exact: true })).toBeVisible();
   await expect(page.locator('[data-bets="everyone"]')).toBeVisible();
   return { response, body: await response.text(), request: response.request().postDataJSON() };
 }
@@ -92,7 +92,7 @@ test('a friend’s pick shows side and units until Luke’s gate opens; then onl
     await expect(row(page, 'luke', 'total')).toHaveAttribute('data-open', 'true');
     await expect(row(page, 'luke', 'total')).toContainText('Under 51.5');
     await expect(row(page, 'luke', 'total')).toContainText('−110 · DraftKings');
-    await expect(page.getByText('Friends’ lines and prices show after you lock in that game’s guess, or at kickoff.')).toHaveCount(1);
+    await expect(page.getByText('Friends’ lines show once you lock in that game, or at kickoff.')).toHaveCount(1);
 
     // Luke sends his Spread guesses: every Spread market opens for him; Totals stay closed.
     await sendBallot(world, 'luke', 'guess_spread', { [g0.id]: -3, [g1.id]: 2 });
@@ -110,19 +110,25 @@ test('a friend’s pick shows side and units until Luke’s gate opens; then onl
   } finally { await world.db.close(); }
 });
 
-test('the landing row and the Virtual switch reach Everyone; a private league sends its id', async ({ page, baseURL }) => {
+test('the landing’s tiles reach Everyone and Your picks, Back returns to each tile; a private league sends its id', async ({ page, baseURL }) => {
   const world = await communityWorld(page, baseURL, { migrations: ALL, optionalRpc: true, troyBallots: false });
   try {
     await seedPicks(world);
     await page.addInitScript(() => { try { localStorage.setItem('gtl.app', 'next'); } catch { /* about:blank has no storage */ } });
     await page.goto('/#bets');
     await signIn(page, 'luke', { navigate: false });
-    await page.getByRole('button', { name: /Everyone’s picks/ }).click();
-    await expect(page.getByRole('heading', { name: 'Everyone’s picks', level: 1 })).toBeVisible();
+    const everyone = page.locator('#gx-b-tile-everyone'), picks = page.locator('#gx-b-tile-picks'), back = page.getByRole('button', { name: 'Back', exact: true });
+    await everyone.click();
+    await expect(page.getByRole('heading', { name: 'Everyone', level: 1, exact: true })).toBeVisible();
     expect(new URL(page.url()).hash).toMatch(/^#bets\/everyone(\?|$)/);
-    await page.getByRole('group', { name: 'Virtual Units view' }).getByRole('button', { name: 'Your picks' }).click();
-    await expect(page.getByRole('heading', { name: 'Virtual Units', level: 1 })).toBeVisible();
-    await page.getByRole('group', { name: 'Virtual Units view' }).getByRole('button', { name: 'Everyone' }).click();
+    await back.click();
+    await expect(page.locator('[data-landing="bets"]')).toBeVisible();
+    await expect(everyone, 'Back returns focus to its tile').toBeFocused();
+    await picks.click();
+    await expect(page.getByRole('heading', { name: 'Your picks', level: 1, exact: true })).toBeVisible();
+    await back.click();
+    await expect(picks, 'Back returns focus to its tile').toBeFocused();
+    await everyone.click();
     await expect(page.locator('[data-bets="everyone"]')).toBeVisible();
     await expect(page.locator('[data-bets="everyone"]')).toContainText('Community · Week');
 

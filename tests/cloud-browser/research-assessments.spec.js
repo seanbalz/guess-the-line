@@ -22,7 +22,7 @@ test('independent research filters, nested evidence and durable source intake at
       [randomUUID(),randomUUID(),snapshot.season,snapshot.week,g.id,['player_reception_yds'],snapshot.quotes]);
     await world.db.query('insert into public.gtl_research_snapshots(id,season,week,payload) values($1,$2,$3,$4)', [randomUUID(), snapshot.season, snapshot.week, snapshot]);
     await page.goto('/#bets/research'); await signIn(page, 'luke', { navigate: false });
-    await expect(page.getByRole('heading', { name: 'Research recommendations', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Recommended', exact: true })).toBeVisible();
     await expect(page.getByRole('group', { name: 'Game research', exact: true })).toBeVisible();
     await page.getByText(/Data coverage ·/).click();
     await expect(page.getByText('No reviewed snapshot published for this week', { exact: false })).toHaveCount(0);
@@ -37,8 +37,8 @@ test('independent research filters, nested evidence and durable source intake at
       await page.setViewportSize({ width, height: 844 });
       await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, theme);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-      expect(await page.getByRole('heading', { name: 'Research recommendations', exact: true }).evaluate(h => {
-        const node = h.firstChild, word = 'recommendations', start = node.textContent.indexOf(word);
+      expect(await page.getByRole('heading', { name: 'Recommended', exact: true }).evaluate(h => {
+        const node = h.firstChild, word = 'Recommended', start = node.textContent.indexOf(word);
         const range = document.createRange(); range.setStart(node, start); range.setEnd(node, start + word.length);
         return range.getClientRects().length === 1;
       })).toBe(true);
@@ -59,8 +59,10 @@ test('independent research filters, nested evidence and durable source intake at
     expect((await world.db.query('select count(*) n from public.gtl_research_submissions')).rows[0].n).toBe(1);
     await page.reload(); await page.getByText('Sources and submitted links', { exact: true }).click();
     await expect(page.getByRole('link', { name: 'actionnetworkhq · submitted post', exact: true })).toBeVisible();
-    await page.getByRole('button', { name: 'Your guess vs. market', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'Your guess vs. market', exact: true })).toBeVisible();
+    // D-69 step 4: Recommended reaches Your gap through Bets (no switch between the sections).
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await page.locator('#gx-b-tile-gap').click();
+    await expect(page.getByRole('heading', { name: 'Your gap', level: 1, exact: true })).toBeVisible();
   } finally { await world.db.close(); }
 });
 
@@ -75,7 +77,7 @@ test('empty research still shows game facts, current published week and honest c
     // A separate public history provider supplies completed-game facts only.
     stats = world.state.games.map(g => ({ gameId: g.id, teams: g.id.split('-').map(team => ({ team, sample: 1, from: '2026-09-01', to: '2026-09-01', pointsPerGame: 0, pointsAllowedPerGame: 21, recent: { sample: 1, pointsPerGame: 0, pointsAllowedPerGame: 21 }, games: [{ gameId: 'completed-fixture', date: '2026-09-01', scored: 0, allowed: 21 }], definition: 'Completed synthetic fixture game; no current market data.' })) }));
     await page.goto('/#bets/research'); await signIn(page, 'luke', { navigate: false });
-    await expect(page.getByRole('heading', { name: 'Research recommendations', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Recommended', exact: true })).toBeVisible();
     await expect(page.getByText(/Lock in a game’s guess in Play/)).toBeVisible();
     const gameButton = page.getByRole('button', { name: `${world.state.games[0].id.replace('-', ' at ')} · Team statistics`, exact: true });
     await expect(gameButton).toBeVisible(); await gameButton.click();
