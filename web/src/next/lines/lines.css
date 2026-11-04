@@ -61,8 +61,8 @@
 .gx-l-guess-place { display: block; margin-top: 4px; }
 
 /* The shared sheet foot stays above its safe area while the details scroll. */
-.gx .gx-l-actions { display: flex; gap: var(--gx-space-2); }
-/* Each label stays on one line, so the buttons in the bar keep one height at 320 px; they share the spare width. */
+.gx .gx-l-actions { display: flex; flex-wrap: wrap; gap: var(--gx-space-2); }
+/* Each label stays on one line and the bar wraps (gap is both the row and column gap), so a wide fallback font drops a button to a second line instead of clipping it at 320 px; they share the spare width. */
 .gx .gx-l-actions > button { flex: 1 1 auto; white-space: nowrap; }
 
 .gx .gx-l-pick { overflow-wrap: anywhere; }

@@ -7,6 +7,7 @@ import { lockedRecordsText, lockedTrendText } from '../../../../shared/lines-vie
 import { sinceText } from '../../../../shared/trends-view.mjs';
 import { useShell } from '../shell/context.js';
 import { gameView } from '../research/researchNav.js';
+import { rememberBoard } from '../lines/boardContext.js';
 import { Button, Icon, InfoButton, Nest } from '../ui/index.js';
 import { linePath, signed } from '../charts/geometry.js';
 import { trendInfoBody } from '../lines/parts.jsx';
@@ -61,10 +62,13 @@ export function LineLockTile({ market, rules }) {
   </div></li>;
 }
 
-/** The game's own layer in Research › Games (D-69 step 3), one tap from a game's trends; Back returns here. */
+/**
+ * The game's own layer in Research › Games (D-69 step 3), one tap from a game's trends; Back returns here. It is not a
+ * board row, so it clears any board an earlier row remembered and the pager follows the week's own order.
+ */
 export function GameDetailsButton({ view }) {
   const shell = useShell();
-  return <Button variant="secondary" onClick={() => shell.go('research', gameView(view.id))}>Game details · {view.title}</Button>;
+  return <Button variant="secondary" onClick={() => { rememberBoard(null); shell.go('research', gameView(view.id)); }}>Game details · {view.title}</Button>;
 }
 
 /** The opened trend's one glass card (D-75): the win rate, one line with a soft fill, then the record and units. */

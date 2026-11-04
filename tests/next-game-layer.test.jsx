@@ -19,7 +19,8 @@ vi.mock('../web/src/next/lines/trendsHooks.js', () => ({ useOfficials: () => nul
 const { ShellContext } = await import('../web/src/next/shell/context.js');
 const { GameLayer } = await import('../web/src/next/lines/GameLayer.jsx');
 const { GamesScreen } = await import('../web/src/next/lines/GamesScreen.jsx');
-const { rememberBoard } = await import('../web/src/next/lines/boardContext.js');
+const { rememberBoard, rememberedBoard } = await import('../web/src/next/lines/boardContext.js');
+const { GameDetailsButton } = await import('../web/src/next/trends/TrendLayer.jsx');
 
 const GAMES = week.games.map(g => ({ id: g.id, away: g.away, home: g.home, awayCode: g.away, homeCode: g.home, kickoff: g.kickoff }));
 const NOW = Date.parse(week.games[0].kickoff) - 24 * 3_600_000;
@@ -65,6 +66,25 @@ describe('the game layer', () => {
     rememberBoard({ accountId: 'fixture-account', season: 2026, week: 6, ids: shown, now: NOW, results: {} });
     expect(textOf(nodes(render(<GameLayer id={order[0].id}/>)).find(n => n.attrs?.['aria-live'] === 'polite'))).toMatch(/game 2 of/);
     rememberBoard({ accountId: 'someone-else', season: 2026, week: 6, ids: shown, now: NOW, results: {} });
+    expect(textOf(nodes(render(<GameLayer id={order[0].id}/>)).find(n => n.attrs?.['aria-live'] === 'polite'))).toMatch(/game 1 of/);
+  });
+  it('a board remembered for another week is ignored: the pager follows this week’s own order', () => {
+    state.lines = lines();
+    const shown = [order[2].id, order[0].id, ...order.filter((_, i) => i !== 0 && i !== 2).map(g => g.id)];
+    rememberBoard({ accountId: 'fixture-account', season: 2026, week: 5, ids: shown, now: NOW, results: {} });
+    expect(textOf(nodes(render(<GameLayer id={order[0].id}/>)).find(n => n.attrs?.['aria-live'] === 'polite'))).toMatch(/game 1 of/);
+  });
+  it('Trends’ Game details clears any board remembered by an earlier row, so the pager follows the week’s own order', () => {
+    state.lines = lines();
+    const shown = [order[2].id, order[0].id, ...order.filter((_, i) => i !== 0 && i !== 2).map(g => g.id)];
+    rememberBoard({ accountId: 'fixture-account', season: 2026, week: 6, ids: shown, now: NOW, results: {} });
+    const shell = shellOf({});
+    let button;
+    const Probe = () => { button = GameDetailsButton({ view: { id: order[0].id, title: titleOf(order[0]) } }); return null; };
+    render(<Probe/>, shell);
+    button.props.onClick();
+    expect(shell.go).toHaveBeenCalledWith('research', expect.objectContaining({ item: order[0].id }));
+    expect(rememberedBoard()).toBeNull();
     expect(textOf(nodes(render(<GameLayer id={order[0].id}/>)).find(n => n.attrs?.['aria-live'] === 'polite'))).toMatch(/game 1 of/);
   });
   it('while the week loads the heading is the game from its address; a game not on this board says so, with the lip back', () => {

@@ -127,3 +127,39 @@ test('one game is a layer: a step to open, paging in place, the chart reveal, te
     await world.db.close();
   }
 });
+
+// CI's Linux runner falls back to wider letters than Windows draws; this probe reproduces the 320 px clipping seen only there.
+const WIDE_FONT = '.gx { --gx-font-body: Verdana, "DejaVu Sans", sans-serif !important; }';
+
+test('the game layer’s Spread, Total and Bets buttons stay inside the layer at 320 px in a wide fallback font', async ({ page, baseURL }) => {
+  test.setTimeout(120000);
+  await page.setViewportSize({ width: 320, height: 800 });
+  const world = await communityWorld(page, baseURL, { migrations: ALL, games: GAMES.length, prepare: week6, optionalRpc: true, trendsReadSeason: async () => WEEK6_SOURCE });
+  try {
+    await storeLines(world.db, world.state, LINES);
+    await page.addInitScript(() => { try { localStorage.setItem('gtl.app', 'next'); } catch { /* about:blank */ } });
+    await page.goto('/#home');
+    await signIn(page, 'luke', { navigate: false });
+    await expect(page.locator('[data-landing="home"]')).toBeVisible({ timeout: 30000 });
+    await page.goto('about:blank'); await page.goto('/#research/games?layer=game&item=SEA-DEN');
+    await expect(heading(page, 'SEA @ DEN')).toBeVisible({ timeout: 30000 });
+    await page.addStyleTag({ content: WIDE_FONT });
+    const buttons = layer(page).locator('.gx-l-actions > button');
+    await expect(buttons.first()).toBeVisible({ timeout: 30000 });
+    // The edge that clips is the nearest ancestor with overflow-x clip/hidden (the pager), not the card around it.
+    const edges = await page.evaluate(() => {
+      const bar = document.querySelector('[data-research="game"] .gx-l-actions');
+      let clip = bar.parentElement;
+      while (clip && !['clip', 'hidden'].includes(getComputedStyle(clip).overflowX)) clip = clip.parentElement;
+      return { right: (clip ?? document.documentElement).getBoundingClientRect().right, clipped: !!clip,
+        buttons: [...bar.children].map(b => ({ text: b.textContent, right: b.getBoundingClientRect().right })) };
+    });
+    expect(edges.clipped).toBe(true);
+    expect(edges.buttons.length).toBeGreaterThan(0);
+    for (const b of edges.buttons) expect(b.right, `${b.text} inside the clipping edge`).toBeLessThanOrEqual(edges.right + 0.5);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    expect(world.errors).toEqual([]);
+  } finally {
+    await world.db.close();
+  }
+});

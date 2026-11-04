@@ -32,7 +32,8 @@ export function GameLayer({ id }) {
     [personal.data, community, trendsWeek, trends.status, records, id]);
   // The board's order and finals as the row that opened this game saw them (boardContext.js). It is module memory, not
   // state, so it is read again only when the week, the account or the game changes; a reload or a shared link has none
-  // (or another account's, which gameOrder.js rejects) and the pager follows the week's own order.
+  // (or another account's or week's, which gameOrder.js rejects) and the pager follows the week's own order. Other openers
+  // (Trends' Game details) clear it with rememberBoard(null) before they navigate.
   const context = useMemo(() => rememberedBoard(), [personal.data, app.accountId, id]); // eslint-disable-line react-hooks/exhaustive-deps
   const order = useMemo(() => openedBoardOrder(personal.data, app.accountId, context), [personal.data, app.accountId, context]);
   const result = openedBoardResult(personal.data, app.accountId, context, id);
