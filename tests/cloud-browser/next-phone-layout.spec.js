@@ -189,6 +189,98 @@ test('Research › Games keeps whole team names and records inside their cards a
   }
 });
 
+// Contract (quick win A1, November 4, 2026): on a short phone (320 x 640) the Menu sheet scrolls instead of squeezing
+// its list. Every row, down to the last one (Appearance), keeps its 44px height, can be scrolled fully into the sheet's
+// view and opens on a tap; in Dark and Light, as the commissioner (the longest Menu), with and without the Pick
+// reminders row. Before the fix the flush list card shrank to fit, cut "Settings" in half and hid the last rows, and the
+// sheet had nothing to scroll.
+for (const reminders of [false, true]) {
+  test(`the Menu scrolls to Appearance at 320 x 640 in both themes (${reminders ? 'with' : 'without'} Pick reminders)`, async ({ page, baseURL }) => {
+    const world = await communityWorld(page, baseURL, { migrations: ALL, optionalRpc: true, ...(reminders ? { pushPublicKey: `B${'A'.repeat(86)}` } : {}) });
+    try {
+      await page.addInitScript(() => localStorage.setItem('gtl.app', 'next'));
+      await page.setViewportSize({ width: 320, height: 640 });
+      await page.goto('/#home');
+      await signIn(page, 'sean', { navigate: false });
+      await expect(page.locator('[data-landing="home"]')).toBeVisible();
+      for (const theme of ['light', 'dark']) {
+        await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, theme);
+        await page.getByRole('button', { name: 'Your menu', exact: true }).click();
+        const menu = page.getByRole('dialog', { name: 'Menu', exact: true });
+        // The Community read that shows Commissioner tools has answered, so the reminders row is settled either way.
+        await expect(menu.getByRole('button', { name: 'Commissioner tools', exact: true })).toBeVisible();
+        await expect(menu.getByRole('button', { name: 'Pick reminders', exact: true })).toHaveCount(reminders ? 1 : 0);
+        const rows = await menu.locator('.gx-link-row').evaluateAll(rows => rows.map(row => ({ name: row.textContent.trim(), height: row.getBoundingClientRect().height })));
+        expect(rows.filter(row => row.height < 44), `${theme}: every Menu row keeps its 44px height`).toEqual([]);
+        // No card cuts off its own rows (a clipping card can still be scrolled by script, never by a finger).
+        const clipped = await menu.locator('.gx-link-row').evaluateAll(rows => rows.filter(row => {
+          const r = row.getBoundingClientRect(), card = row.closest('.gx-card').getBoundingClientRect();
+          return r.top < card.top - 1 || r.bottom > card.bottom + 1;
+        }).map(row => row.textContent.trim()));
+        expect(clipped, `${theme}: rows cut off inside their card`).toEqual([]);
+        // Scroll the way a finger or a wheel does, over the sheet, down to its end.
+        const body = await menu.locator('.gx-sheet-body').boundingBox();
+        await page.mouse.move(body.x + body.width / 2, body.y + body.height / 2);
+        await page.mouse.wheel(0, 3000);
+        const appearance = menu.getByRole('button', { name: 'Appearance', exact: true });
+        await expect.poll(() => appearance.evaluate(row => {
+          const r = row.getBoundingClientRect(), body = row.closest('.gx-sheet-body').getBoundingClientRect();
+          const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+          return { inside: r.top >= body.top - 1 && r.bottom <= body.bottom + 1 && r.height >= 44, hit: row.contains(hit) };
+        }), `${theme}: Appearance scrolls fully into the sheet and takes the tap`).toEqual({ inside: true, hit: true });
+        await appearance.click();
+        await expect(page.getByRole('dialog').getByRole('heading', { name: 'Appearance', exact: true })).toBeVisible();
+        await page.keyboard.press('Escape');
+        await expect(page.getByRole('dialog')).toHaveCount(0);
+      }
+      expect(world.errors).toEqual([]);
+    } finally {
+      await world.db.close();
+    }
+  });
+}
+
+// Contract (quick win A21, November 4, 2026): in a game sheet at 320 and 390 px, every button in the action bar keeps a
+// one-line label and the bar's buttons share one height (it said "League bets" on two lines beside one-line buttons); the
+// short "Bets" keeps its full name. Below 360 px the note's two buttons stack, each full width with a one-line label
+// ("Refresh note" wrapped beside "Save note").
+test('game sheet action bar and note buttons keep one-line labels at 320 and 390', async ({ page, baseURL }) => {
+  const world = await communityWorld(page, baseURL, { migrations: ALL, optionalRpc: true, prepare: WEEK6 });
+  try {
+    await page.addInitScript(() => localStorage.setItem('gtl.app', 'next'));
+    await page.goto('/#home');
+    await signIn(page, 'luke', { navigate: false });
+    await expect(page.locator('[data-landing="home"]')).toBeVisible();
+    const lineCount = buttons => buttons.map(button => {
+      const range = document.createRange();
+      range.selectNodeContents(button);
+      const box = button.getBoundingClientRect();
+      return { label: button.textContent.trim(), lines: new Set([...range.getClientRects()].filter(r => r.width).map(r => Math.round(r.top))).size,
+        height: Math.round(box.height), width: Math.round(box.width), parent: Math.round(button.parentElement.getBoundingClientRect().width) };
+    });
+    for (const width of [320, 390]) {
+      await page.setViewportSize({ width, height: 844 });
+      await open(page, '#research/games');
+      await page.locator('[data-game="SEA-DEN"]').click();
+      const sheet = page.getByRole('dialog').last();
+      const bar = sheet.getByRole('navigation', { name: 'Actions for this game', exact: true });
+      await expect(bar.getByRole('button', { name: 'Open League bets for SEA at DEN', exact: true })).toHaveText('Bets');
+      const dock = await bar.getByRole('button').evaluateAll(lineCount);
+      expect(dock.map(button => button.label), `${width}px: the bar's buttons`).toEqual(['Spread', 'Total', 'Bets']);
+      expect(dock.filter(button => button.lines > 1), `${width}px: one-line labels in the action bar`).toEqual([]);
+      expect(new Set(dock.map(button => button.height)).size, `${width}px: one height across the bar ${JSON.stringify(dock)}`).toBe(1);
+      // The game details (and the note in them) load on opening.
+      await expect(sheet.locator('.gx-game-note-actions > button'), `${width}px: the note's two buttons`).toHaveCount(2, { timeout: 15000 });
+      const note = await sheet.locator('.gx-game-note-actions > button').evaluateAll(lineCount);
+      expect(note.filter(button => button.lines > 1), `${width}px: one-line note buttons`).toEqual([]);
+      if (width < 360) expect(note.filter(button => button.width < button.parent - 1), '320px: the note buttons stack full width').toEqual([]);
+      await page.keyboard.press('Escape');
+    }
+  } finally {
+    await world.db.close();
+  }
+});
+
 // Contract: a pair of action buttons shares a row only when both labels fit on one line (the score page's
 // "View this week’s picks" used to wrap to two lines beside a one-line button), and the Pick'em chip keeps at
 // least 8px between its label and its border like the team chips beside it.

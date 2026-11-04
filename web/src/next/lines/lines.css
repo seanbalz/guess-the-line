@@ -77,8 +77,6 @@
 .gx-l-link { display: inline-flex; align-items: center; min-height: 44px; }
 
 /* ----- game sheet ----- */
-/* The sheet body scrolls; its blocks keep their own height (a flush card hides overflow, so it could shrink to nothing). */
-.gx-l-sheet .gx-sheet-body > * { flex-shrink: 0; }
 /* D-62: the matchup as marks with records, centred under the kickoff, and its one "Records through Week N" line. */
 .gx-l-head .gx-l-through { text-align: center; }
 /* At least 56px, never a fixed width: in a wide fallback font (DejaVu Sans while Figtree has not loaded) "SPREAD" needs 58px. */
@@ -117,7 +115,8 @@
 
 /* The shared sheet foot stays above its safe area while the details scroll. */
 .gx .gx-l-actions { display: flex; gap: var(--gx-space-2); }
-.gx .gx-l-actions > button { flex: 1; }
+/* Each label stays on one line, so the buttons in the bar keep one height at 320 px; they share the spare width. */
+.gx .gx-l-actions > button { flex: 1 1 auto; white-space: nowrap; }
 
 .gx .gx-l-pick { overflow-wrap: anywhere; }
 

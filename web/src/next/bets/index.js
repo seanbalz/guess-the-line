@@ -6,12 +6,14 @@
 // - homeTiles: `[{ id, order, Tile }]`, components Home draws in `order` (a Tile reads the shared data itself).
 // - counter: `(data) => null | { count, label } | { dot: true, label }`, the tab bar's counter or dot and the words
 //   added to the tab's name ("Play, 1 ballot due"); null (or a count of 0) shows nothing.
-// - sheetActions: `[{ id, order, label, show(game, data), run(game, shell) }]`, buttons on the game sheet's action bar.
+// - sheetActions: `[{ id, order, label, name?, show(game, data), run(game, shell) }]`, buttons on the game sheet's
+//   action bar (`name`, when given, is the full name said for a short `label`).
 // Bets' counter (challenge updates) and Home tile arrive with the Bets and challenge stages.
 export const homeTiles = Object.freeze([]);
 export const counter = null;
 export const sheetActions = Object.freeze([Object.freeze({
-  id: 'bets.game', order: 30, label: 'League bets',
+  // The bar says "Bets" so its buttons keep one line at 320 px; the button's name keeps the sheet's full name.
+  id: 'bets.game', order: 30, label: 'Bets', name: 'League bets',
   show: (game, data) => Boolean(data?.accountId && game?.id && Number.isInteger(game.season) && Number.isInteger(game.week)),
   run: (game, shell) => shell.openSheet('sh.gameBets', { game: game.id, season: game.season, week: game.week }),
 })]);

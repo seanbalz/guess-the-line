@@ -5,9 +5,10 @@ import { SLOTS } from '../shell/tabs.js';
 export const actionsForGame = (game, data) => Object.values(SLOTS).flatMap(slot => slot.sheetActions)
     .filter(action => action.show(game, data)).sort((a, b) => a.order - b.order);
 
+/** An action's short `label` is drawn; its optional full `name` (else the label) is said in the button's name. */
 export function GameActions({ game, actions, shell }) {
   return <nav className="gx-l-actions" aria-label="Actions for this game">
-    {actions.map(action => <Button key={action.id} aria-label={`Open ${action.label} for ${game.away.code} at ${game.home.code}`}
+    {actions.map(action => <Button key={action.id} aria-label={`Open ${action.name ?? action.label} for ${game.away.code} at ${game.home.code}`}
       onClick={() => action.run(game, shell)}>{action.label}</Button>)}
   </nav>;
 }
