@@ -146,6 +146,12 @@ export function trendsTile(saved) {
   return { big: '0', sub: 'Charts for every game', ariaLabel: 'Trends, none saved, charts for every game', open: { section: 'trends', season: null, week: null } };
 }
 
+/** The week's last kickoff (ms), or null: after it every game is closed, so This week's clock can stop. */
+export function lastKickoff(personal) {
+  const games = gamesOf(personal);
+  return games.length ? Date.parse(games.at(-1).kickoff) : null;
+}
+
 /**
  * This week (H1A): up to `limit` game tiles from the viewer's own /personal week, the first games in kickoff order that
  * had not kicked off at the server's `now` (the week's last ones when fewer remain), each with the viewer's own Spread

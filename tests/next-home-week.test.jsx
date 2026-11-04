@@ -5,13 +5,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { markupProblems, nameFrom, parseMarkup, readText, walk } from './helpers/ui-markup.mjs';
 
-const state = vi.hoisted(() => ({ home: null, shell: null, clock: null }));
+const state = vi.hoisted(() => ({ home: null, shell: null, clock: null, clocks: [] }));
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn(), meApi: vi.fn(), socialApi: vi.fn() }));
 vi.mock('../web/src/next/home/homeData.js', () => ({ useHomeData: () => state.home }));
 vi.mock('../web/src/next/bets/useTicketSummary.js', () => ({ useTicketSummary: () => ({ loading: true, error: null, active: null }) }));
 vi.mock('../web/src/next/features/useFeatures.js', () => ({ useFeatures: () => ({ model: null }) }));
 vi.mock('../web/src/next/moments/MomentsProvider.jsx', () => ({ useMoments: () => null, useMomentScope: () => {}, useNewCount: () => 0, useNewMoments: () => [], usePopped: () => false }));
-vi.mock('../web/src/next/home/useServerNow.js', async importOriginal => { const actual = await importOriginal(); return { useServerNow: base => (state.clock === null ? actual.useServerNow(base) : base + state.clock) }; });
+vi.mock('../web/src/next/home/useServerNow.js', async importOriginal => { const actual = await importOriginal(); return { useServerNow: (base, ...rest) => { state.clocks.push([base, ...rest]); return state.clock === null ? actual.useServerNow(base, ...rest) : base + state.clock; } }; });
 const { ShellContext } = await import('../web/src/next/shell/context.js');
 const { weekGames } = await import('../web/src/next/home/homeModel.js');
 const { Home, openAllGames, openGameTile } = await import('../web/src/next/home/Home.jsx');
@@ -44,7 +44,7 @@ const shown = n => [...walk(n)].filter(x => x.text !== undefined && !under(x, a 
 const longLines = html => nodes(html, n => n.attrs['aria-hidden'] !== 'true').map(n => n.children.filter(c => c.text !== undefined).map(c => c.text).join(' ').replace(/\s+/g, ' ').trim())
   .filter(text => text.split(' ').filter(w => w && w !== '·').length > 12);
 
-afterEach(() => { state.home = null; state.shell = null; state.clock = null; vi.clearAllMocks(); });
+afterEach(() => { state.home = null; state.shell = null; state.clock = null; state.clocks = []; vi.clearAllMocks(); });
 
 describe('This week (H1A)', () => {
   it('a heading with the game count, the next four games as tiles with your own Spread word, then All N games', () => {
@@ -146,6 +146,23 @@ describe('This week keeps the server’s clock (carry-over 1)', () => {
     expect(ids(after)).toEqual(['LAC-LV', 'NYG-PHI', 'HOU-JAX', 'CHI-GB']);
     expect(wordOf(after, 'NYG-PHI')).toContain('Closed at kickoff');
     expect(wordOf(after, 'NYG-PHI')).not.toContain('To pick');
+  });
+
+  it('returning to Home on a read that landed 4 h 30 min ago: the window is the server’s time now, not when the read landed', () => {
+    // The store refreshes only on focus, every 5 minutes or back online, so Home can mount on an older read; its `at`
+    // (the device time it landed) ages the server's `now` before the first tick.
+    home({ personal: { ...ready(personal()), at: Date.now() - 4.5 * 3_600_000 } });
+    const html = render();
+    expect(ids(html)).toEqual(['LAC-LV', 'NYG-PHI', 'HOU-JAX', 'CHI-GB']);
+    expect(wordOf(html, 'NYG-PHI')).toContain('Closed at kickoff');
+  });
+
+  it('This week’s clock runs from its own read’s landing time and stops at the week’s last kickoff (nothing changes after it)', () => {
+    const at = Date.now() - 60_000;
+    home({ personal: { ...ready(personal()), at } });
+    render();
+    const week = state.clocks.find(([base]) => base === Date.parse(personal().now));
+    expect(week).toEqual([Date.parse(personal().now), at, { until: Date.parse(MON) }]);
   });
 
   it('the device clock is never the source of truth: a device date years off changes nothing', () => {

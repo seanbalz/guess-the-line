@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { HOME_COPY, homeHero } from '../shared/home-view.mjs';
-import { GAME_TILES, HERO_COPY, awardsTile, betsTile, heroHeadline, heroMeters, rankTileView, trendsTile, weekGames, whoTile } from '../web/src/next/home/homeModel.js';
+import { GAME_TILES, HERO_COPY, awardsTile, betsTile, heroHeadline, heroMeters, lastKickoff, rankTileView, trendsTile, weekGames, whoTile } from '../web/src/next/home/homeModel.js';
 
 const THU = '2026-11-06T01:15:00.000Z'; // Thu Nov 5, 5:15 PM PT: the deadline and first kickoff
 const SUN10 = '2026-11-08T18:00:00.000Z', SUN1 = '2026-11-08T21:05:00.000Z', SUN5 = '2026-11-09T01:20:00.000Z', MON = '2026-11-10T01:15:00.000Z';
@@ -123,6 +123,12 @@ test('empty and failed shapes: no reply, no games or no kickoff draw no tiles; w
   assert.equal(weekGames({ ...personal(SUNDAY_MORNING), games: [{ id: 'SEA-DEN' }] }), null);
   assert.deepEqual(weekGames({ ...personal(SUNDAY_MORNING), now: null }).games.map(g => g.word), ['Closed at kickoff', 'Closed at kickoff', 'Locked in', 'Closed at kickoff']);
   assert.deepEqual(weekGames({ ...personal(SUNDAY_MORNING), ballots: {} }).games.map(g => g.word), ['To pick', 'To pick', 'To pick', 'To pick']);
+});
+
+test('the week’s last kickoff bounds This week’s clock: the latest game whatever the reply’s order; none without games', () => {
+  assert.equal(lastKickoff({ ...personal(SUNDAY_MORNING), games: [...GAMES].reverse() }), Date.parse(MON));
+  assert.equal(lastKickoff({ ...personal(SUNDAY_MORNING), games: [] }), null);
+  assert.equal(lastKickoff(null), null);
 });
 
 test('no surface sentence over twelve words in anything Home says (D-66)', () => {

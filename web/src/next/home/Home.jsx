@@ -37,7 +37,7 @@ import { useHomeData } from './homeData.js';
 import { focusLayerHeading, gameTileId, tileFocusAfterWindow } from './focusRules.js';
 import { useServerNow } from './useServerNow.js';
 import { hasNavigated } from '../moments/launch.js';
-import { HERO_COPY, HOME_LAYERS, HOME_TILE_ICONS, awardsTile, betsTile, heroHeadline, heroMeters, rankTileView, trendsTile, weekGames, whoTile } from './homeModel.js';
+import { HERO_COPY, HOME_LAYERS, HOME_TILE_ICONS, awardsTile, betsTile, heroHeadline, heroMeters, lastKickoff, rankTileView, trendsTile, weekGames, whoTile } from './homeModel.js';
 import '../ui/focusLanding.css';
 import './home.css';
 
@@ -56,10 +56,11 @@ function MeterColumn({ meter, season, week }) {
  * The next-move card, Home's one primary card. It holds Home's moments (SCOPES.home) while it is on screen, so nothing
  * waiting is spent while Home loads or shows a layer.
  */
-function Hero({ app, hero, headline, meters, season, onPicks, onLines }) {
+function Hero({ app, hero, headline, meters, season, at, onPicks, onLines }) {
   useMomentScope(SCOPES.home);
   const id = useId();
-  const now = useServerNow(hero.now);
+  // `at`: when the Community read landed, so a return to Home on an older read counts down from the server's time now.
+  const now = useServerNow(hero.now, at);
   // Before the week opens the countdown runs to the open, under its own words; "done" never says "locked" there.
   const countdownLabel = hero.state === 'not_open' ? HOME_COPY.notOpen : hero.perGame ? 'Next game kickoff' : HOME_COPY.picksDueIn;
   return (
@@ -175,15 +176,18 @@ export const openAllGames = shell => shell.go('research', { section: 'games', se
 
 /**
  * This week (H1A): the viewer's own /personal week as up to four game tiles, each opening that game's picks card, then
- * "All N games". The clock is the server's `now` advanced by this device's elapsed time (never the device's own date),
- * so a game that kicks off while Home stays open flips to its kickoff word and leaves the window. It draws nothing for
- * a week with no slate (404), placeholders while it loads, and one sentence with Try again when it fails.
+ * "All N games". The clock is the server's `now` advanced by this device's elapsed time since the read landed (never
+ * the device's own date), so a game that kicks off while Home stays open, or while the read sat in the store, flips to
+ * its kickoff word and leaves the window. The clock stops at the week's last kickoff: nothing changes after it. It
+ * draws nothing for a week with no slate (404), placeholders while it loads, and one sentence with Try again when it
+ * fails.
  */
 function ThisWeek({ app, shell, personal, community }) {
   const id = useId();
   const data = personal?.data ?? null;
   const base = Date.parse(data?.now ?? '');
-  const now = useServerNow(Number.isFinite(base) ? base : null);
+  const until = useMemo(() => lastKickoff(data), [data]);
+  const now = useServerNow(Number.isFinite(base) ? base : null, personal?.at, { until });
   const view = useMemo(() => {
     if (!data) return null;
     return weekGames(Number.isFinite(base) && Number.isFinite(now) ? { ...data, now: new Date(now).toISOString() } : data, community);
@@ -315,7 +319,7 @@ export function Home() {
   return (
     <div className="gx-screen gx-h" data-landing="home">
       {head}
-      <Hero app={app} hero={hero} headline={headline} meters={meters} season={week.season} onPicks={toPicks} onLines={toLines}/>
+      <Hero app={app} hero={hero} headline={headline} meters={meters} season={week.season} at={community.at} onPicks={toPicks} onLines={toLines}/>
       {community.status === 'error' && <p className="gx-t-body" role="status">This week could not refresh. Showing the last loaded update.</p>}
       <HomeTiles app={app} shell={shell} community={community} tiles={tiles} hero={hero} week={week} viewer={viewer}/>
       <ThisWeek app={app} shell={shell} personal={personal} community={data}/>

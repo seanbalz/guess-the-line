@@ -111,6 +111,13 @@ describe('Home while picks are due', () => {
     expect(nodes(html, attr('data-home', 'status')).map(textOf)).toEqual(['Spread · 2 of 4 picked Total · 0 of 4 picked']);
   });
 
+  it('the countdown counts from the server’s time now: a read that landed 3 minutes ago shows 3 minutes less (final review I1)', () => {
+    home(reply());
+    state.home.community = { ...state.home.community, at: Date.now() - 3 * 60_000 };
+    const timer = nodes(render(), attr('role', 'timer'))[0];
+    expect(timer.attrs['aria-label']).toBe('Picks lock in 2 days 4 hours 9 minutes');
+  });
+
   // Design lane hierarchy pass: the one primary card says the next action in words, with the week's deadline under it.
   it('the card names the next action under "Your next move": "Lock in 4 games" over "before Thu 5:15 PM PT"', () => {
     home(reply());
