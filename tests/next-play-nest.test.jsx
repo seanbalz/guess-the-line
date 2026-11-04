@@ -151,3 +151,56 @@ describe('without a nest (the old Community Picks page)', () => {
     expect(tiles(html)).toEqual([]);
   });
 });
+
+// D-69 step 1: Play no longer mounts the old whole-market editor (CommunityHome.jsx WeekPicks). Under rules that are not
+// per-game (a server without M-07) the same cards show the saved ballot read-only: every guess shows, nothing is offered
+// that would write, and the owner's saved line on a submitted ballot stays on its receipt (D-23, D-31 as before).
+describe('rules that are not per-game: the same cards, read-only', () => {
+  const SUBMITTED = at(-5 * 24 * 60);
+  const wholeMarket = { ...data, rules: { sentFinal: false, lateWindow: 'deadline', revealAt: 'deadline' }, scoring: undefined, ballots: {
+    guess_total: { picks: { 'JAX-BAL': 44.5, 'DEN-CAR': 41, 'DET-MIA': 50.5 }, submittedAt: SUBMITTED,
+      scoringReferences: { 'DEN-CAR': { value: 42.5, source: 'Synthetic three-book median', observedAt: SUBMITTED, savedAt: SUBMITTED, status: 'available' } } },
+    guess_spread: { picks: { 'DEN-CAR': -3 } },
+  } };
+  const readOnly = (game, mode = 'guess_total') => render(nest(game), { initialData: wholeMarket, mode });
+  const writers = name => /^(Save draft|Lock in|Sit out|Next to lock|Use unlocked)/.test(name);
+  /** Buttons a player can reach now: the closed lock-in and sit-out dialogs keep their own Confirm buttons. */
+  const reachable = html => { const found = [], visit = n => { if (n.tag === 'dialog') return; if (n.tag === 'button') found.push(nameFrom(n)); (n.children ?? []).forEach(visit); }; visit(parseMarkup(html)); return found; };
+  it('the week: every saved guess on its tile, one line saying why, no lime button and nothing that writes', () => {
+    const html = readOnly(undefined);
+    expect(markupProblems(html)).toEqual([]);
+    expect(textOf(nodes(html).find(n => n.attrs?.['data-play'] === 'read-only'))).toBe('View only for now. Your saved guesses are shown and kept.');
+    expect(tiles(html).map(n => n.attrs['data-state'])).toEqual(['locked', 'locked', 'locked', 'open']);
+    expect(tiles(html).map(nameFrom)).toEqual([
+      'Jacksonville Jaguars at Baltimore Ravens, Locked, 44.5', 'Denver Broncos at Carolina Panthers, Locked, 41',
+      'Detroit Lions at Miami Dolphins, Locked, 50.5', 'Buffalo Bills at Minnesota Vikings, Next, no guess',
+    ]);
+    expect(reachable(html).filter(writers)).toEqual([]);
+    expect(reachable(html)).toContain('Check saved picks');
+    expect(html).not.toContain('waiting for a sportsbook line');
+    expect(primaries(html)).toEqual([]);
+    for (const sentence of surface(html)) expect(sentence.split(/\s+/).length, sentence).toBeLessThanOrEqual(12);
+  });
+  it('a submitted game: its receipt with your guess and your saved line, no picker and no Lock in', () => {
+    const html = readOnly('DEN-CAR');
+    expect(markupProblems(html)).toEqual([]);
+    const receipt = nodes(html).find(n => n.attrs?.['aria-label'] === 'DEN at CAR Total receipt');
+    expect(textOf(receipt)).toContain('41');
+    expect(textOf(receipt)).toContain('42.5');
+    expect(html).not.toContain('gx-guess');
+    expect(reachable(html).filter(writers)).toEqual([]);
+  });
+  it('an open game says "No guess yet" and a draft says its guess in words, with no picker, Lock in or Next', () => {
+    const open = readOnly('BUF-MIN');
+    expect(textOf(nodes(open).find(n => n.attrs?.['data-play'] === 'saved-guess'))).toBe('No guess yet');
+    const draft = readOnly('DEN-CAR', 'guess_spread');
+    expect(textOf(nodes(draft).find(n => n.attrs?.['data-play'] === 'saved-guess'))).toBe('Your guess · Panthers −3');
+    for (const html of [open, draft]) {
+      expect(markupProblems(html)).toEqual([]);
+      expect(html).not.toContain('gx-guess');
+      expect(reachable(html).filter(writers)).toEqual([]);
+      expect(html).not.toContain('Every game is locked in.');
+      expect(primaries(html)).toEqual([]);
+    }
+  });
+});

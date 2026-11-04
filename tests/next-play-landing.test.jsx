@@ -6,8 +6,6 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { markupProblems, nameFrom, parseMarkup, readText, walk } from './helpers/ui-markup.mjs';
 
 const state = vi.hoisted(() => ({ app: null, newMoments: {}, scopes: [], buttons: [], tiles: [] }));
-// Task 7b retires Play's use of the old editor; until then its module needs a browser, so it is a stand-in.
-vi.mock('../web/src/CommunityHome.jsx', () => ({ WeekPicks: () => null }));
 vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: () => state.app, useSharedRead: () => ({ status: 'loading', data: null }) }));
 vi.mock('../web/src/next/league/useLeagueRead.jsx', () => ({ useLeagueRead: () => ({ loading: true, data: null, error: null }), LeagueFailure: () => null }));
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn(), meApi: vi.fn(), socialApi: vi.fn() }));

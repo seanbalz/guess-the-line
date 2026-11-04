@@ -14,7 +14,7 @@ const routeName = name => `${SUPABASE}/functions/v1/gtl-api/${name}`;
 const tabs = page => page.getByRole('navigation', { name: 'Main' });
 const reply = (route, body) => route.fulfill({ status: 200, headers: { 'access-control-allow-origin': '*' }, contentType: 'application/json', body: JSON.stringify(body) });
 
-async function fixture(page, baseURL) {
+async function fixture(page, baseURL, { beforeSignIn } = {}) {
   const world = await communityWorld(page, baseURL, { migrations: HOSTED, optionalRpc: true, games: 4 });
   const personal = structuredClone((await world.api('luke', 'personal')).body);
   personal.rules = { sentFinal: true, lateWindow: 'kickoff', revealAt: 'kickoff', perGameScoring: true };
@@ -33,6 +33,7 @@ async function fixture(page, baseURL) {
   });
   const dialogs = [];
   page.on('dialog', dialog => { dialogs.push(dialog.message()); return dialog.dismiss(); });
+  await beforeSignIn?.({ world, personal });
   await signIn(page, 'luke');
   await tabs(page).getByRole('button', { name: /^Play(,|$)/ }).click();
   await page.getByRole('button', { name: 'Make picks', exact: true }).click();
@@ -137,6 +138,44 @@ test('a reload reopens the game; moving inside Your guesses keeps a draft quietl
     await expect.poll(() => world.dialogs).toEqual(['Leave without saving your changes?']);
     await expect(gameCard(page, game.id)).toBeVisible(); // dismissed: still on the game, draft kept
     expect(world.writes).toEqual([]);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+// D-69 step 1, Whole week locked (small): the shared Community read that confirms the last lock-in plays it once, in
+// place, on the line that says so. Going back to the week and a reload show the words without the pop (never replays).
+test('Whole week locked pops once on the read that confirms the last lock; Back and a reload never replay it', async ({ page, baseURL }) => {
+  const world = await fixture(page, baseURL, { beforeSignIn: async ({ world, personal }) => {
+    // The fixture's /personal writes live in this page, so the Community read's per-game counts follow them.
+    await page.route(routeName('community/read'), async route => {
+      const request = route.request();
+      const response = await world.handler(new Request(request.url(), { method: request.method(), headers: request.headers(), body: request.postData() }));
+      const body = await response.json();
+      body.due = body.due.map(row => {
+        const locked = Object.keys(personal.ballots[row.mode]?.lockedAt ?? {}).length;
+        return { ...row, locked, openGames: personal.games.length - locked, games: personal.games.length };
+      });
+      return reply(route, body);
+    });
+  } });
+  try {
+    const games = world.personal.games;
+    for (const [i, game] of games.entries()) {
+      const card = await openGame(page, game.id);
+      await card.locator('[data-side="home"]').click();
+      await card.locator('.gx-guess-num[data-value="3"]').click();
+      await card.getByRole('button', { name: 'Lock in Spread', exact: true }).click();
+      await page.getByRole('alertdialog', { name: 'Lock in Spread?' }).getByRole('button', { name: 'Confirm lock-in' }).click();
+      await expect(card.getByRole('region', { name: /Spread receipt/ })).toBeVisible();
+      if (i < games.length - 1) await expect(page.locator('[data-moment="pop"]'), `${i + 1} of ${games.length} is not the moment`).toHaveCount(0);
+    }
+    await expect(page.locator('.gx-per-game p', { hasText: 'Every game is locked in.' })).toHaveAttribute('data-moment', 'pop');
+    await openWeek(page);
+    await expect(page.locator('[data-play="count"]')).toHaveText(`${games.length} of ${games.length} locked`);
+    await expect(page.locator('[data-moment="pop"]')).toHaveCount(0);
+    await page.reload();
+    await expect(page.locator('[data-play="count"]')).toHaveText(`${games.length} of ${games.length} locked`);
+    await expect(page.locator('[data-moment="pop"]')).toHaveCount(0);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

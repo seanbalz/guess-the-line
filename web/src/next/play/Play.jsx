@@ -1,10 +1,9 @@
 // Play (D-69 step 1). The landing is Sean's P1B (November 3, 2026): one glow card with the ballot to do next, then six
 // tiles in two columns, each opening its own section on its first layer (openPlay). Picks are the per-game cards
-// (PerGamePlay.jsx).
+// (PerGamePlay.jsx). When the server's rules are not per-game, the same cards show the saved ballot read-only, so the old
+// whole-market editor is retired from the new app (spec test 13).
 import { useCallback, useId, useMemo, useRef } from 'react';
-import { WeekPicks } from '../../CommunityHome.jsx'; // 7b
 import { useAppData, useSharedRead } from '../data/AppData.jsx';
-import { COMMUNITY } from '../data/league.js'; // 7b
 import { useShell } from '../shell/context.js';
 import { Button, Card, Meter } from '../ui/index.js';
 import '../ui/focusLanding.css';
@@ -12,7 +11,6 @@ import { HomeGuide } from '../home/HomeGuide.jsx';
 import { useAccountPreferences } from '../me/AccountPreferences.jsx';
 import { LeagueScreen } from '../league/LeagueScreen.jsx';
 import { LeagueTile } from '../league/LeagueTile.jsx';
-import { playPresentation } from './PlayPresentation.jsx'; // 7b
 import './play.css';
 import './landing.css';
 import { cloudApi } from '../../api.js';
@@ -21,7 +19,6 @@ import { PerGameEditor } from './PerGamePlay.jsx';
 import { PlayEmpty, PlayFailure, PlayLoading } from './PlayStates.jsx';
 import { ScoreComparison } from './ScoreComparison.jsx';
 import { WeeklyScore } from './WeeklyScore.jsx';
-import { perGameReady } from './scoring.js'; // 7b
 import { ScoreTile } from './ScoreTile.jsx';
 import { CompareTile } from './CompareTile.jsx';
 import { PlayTile } from './PlayTile.jsx';
@@ -39,10 +36,6 @@ import { useMomentScope, useNewMoments, usePopped } from '../moments/MomentsProv
 
 const modeOf = value => value === 'total' || value === 'guess_total' ? 'guess_total'
   : value === 'spread' || value === 'guess_spread' ? 'guess_spread' : null;
-const marketKey = accountId => `gtl.play-market.${accountId}`;
-function rememberedMarket(accountId) {
-  try { return modeOf(sessionStorage.getItem(marketKey(accountId))); } catch { return null; }
-}
 
 export function Play() {
   const shell = useShell(), app = useAppData();
@@ -103,60 +96,27 @@ function PlayLanding() {
 function PlayDetail() {
   const app = useAppData();
   const shell = useShell();
-  const { accountId, refresh, requestSignIn } = app;
-  const feed = app.community.data;
+  const { refresh } = app;
   const personal = useSharedRead('personal');
   const score = shell.state.views.play.section === 'score';
   const market = modeOf(shell.state.views.play.market);
   const refreshBallot = useCallback(() => refresh({ only: ['community', 'personal'] }), [refresh]);
-  const marketNavigation = useMemo(() => ({
-    read: () => market ?? rememberedMarket(accountId),
-    write: mode => {
-      shell.setView('play', { market: mode === 'guess_total' ? 'total' : 'spread' });
-      try { sessionStorage.setItem(marketKey(accountId), mode); } catch { /* In-memory navigation still works. */ }
-    },
-  }), [accountId, market, shell.setView]);
-  const reveal = mode => {
-    app.chooseLeague(COMMUNITY);
-    shell.go('league', { view: 'feed', market: mode });
-  };
-
   if (shell.state.views.play.section === 'compare') return <ScoreComparison/>;
   if (score) return <WeeklyScore/>;
-  const head = <><h1 className="gx-t-title">Your guesses</h1><Button variant="ghost" onClick={() => shell.setView('play', { section: 'score' })}>Your weekly score</Button></>;
-  if (perGameReady(personal.data?.rules)) return <div className="gx-screen gx-live-play gx-live-workflow gx-vstack gx-gap-16">{head}<SelectedPlay app={app} shell={shell} current={personal.data} mode={market || 'guess_spread'} onMode={marketNavigation.write}/></div>;
-  // Until the first /personal answer arrives nothing can tell which editor the server's rules call for, so neither
-  // mounts early (the whole-market editor used to start, then give way to the per-game one).
-  if (!personal.data) return <div className="gx-screen gx-live-play gx-live-workflow gx-vstack gx-gap-16">{head}{personal.status !== 'error' ? <PlayLoading>Loading your picks…</PlayLoading>
-    : personal.error?.status === 404 ? <PlayEmpty>No week is open yet. Weeks open Monday 12:00 AM PT once the schedule is published.</PlayEmpty>
-    : <PlayFailure what="Your picks" error={personal.error} onRetry={refreshBallot}/>}</div>;
-  return (
-    <div className="gx-screen gx-live-workflow gx-live-play">
-      {head}
-      <p className="gx-t-body gx-c-2">Guess the line. Submit a complete Spread or Total ballot when you’re ready.</p>
-      {!feed ? (
-        app.community.status === 'error' ? <PlayFailure what="Your picks" error={app.community.error} onRetry={() => refresh({ only: ['community'] })}/> : <PlayLoading>Loading your picks…</PlayLoading>
-      ) : (
-        <WeekPicks
-          key={accountId}
-          accountId={accountId}
-          feed={feed}
-          posts={feed.posts ?? []}
-          optOuts={feed.optOuts ?? []}
-          initialMode={feed.picksDue?.modes?.[0]?.mode}
-          marketNavigation={marketNavigation}
-          presentation={playPresentation}
-          onSaved={refreshBallot}
-          onSatOut={refreshBallot}
-          onSignInAgain={requestSignIn}
-          onReveal={reveal}
-        />
-      )}
-    </div>
-  );
+  const onMode = mode => shell.setView('play', { market: mode === 'guess_total' ? 'total' : 'spread' });
+  return <div className="gx-screen gx-live-play gx-live-workflow gx-vstack gx-gap-16">
+    <h1 className="gx-t-title">Your guesses</h1><Button variant="ghost" onClick={() => openPlay(shell, 'score')}>Your score</Button>
+    {/* Until the first /personal answer arrives nothing says which week to read, so the cards wait for it. */}
+    {personal.data ? <SelectedPlay app={app} shell={shell} current={personal.data} mode={market || 'guess_spread'} onMode={onMode}/>
+      : personal.status !== 'error' ? <PlayLoading>Loading your picks…</PlayLoading>
+      : personal.error?.status === 404 ? <PlayEmpty>No week is open yet. Weeks open Monday 12:00 AM PT once the schedule is published.</PlayEmpty>
+      : <PlayFailure what="Your picks" error={personal.error} onRetry={refreshBallot}/>}
+  </div>;
 }
 
 function SelectedPlay({ app, shell, current, mode, onMode }) {
+  // The picks card holds Whole week locked (D-69): the read that reaches N of N while it is open pops its count line.
+  useMomentScope(SCOPES.picks);
   const view = shell.state.views.play;
   const season = Number.isInteger(view.season) ? view.season : current.season;
   const week = Number.isInteger(view.week) ? view.week : current.week;
@@ -169,8 +129,9 @@ function SelectedPlay({ app, shell, current, mode, onMode }) {
   const nest = useMemo(() => ({ game: view.pickGame, keeps, onOpen: id => setView('play', { pickGame: id }), onWeek: () => setView('play', { pickGame: undefined }) }), [view.pickGame, keeps, setView]);
   if (read.loading) return <PlayLoading>Loading your picks…</PlayLoading>;
   if (read.error) return <PlayFailure what="Your picks" error={read.error} onRetry={read.retry}/>;
-  if (!perGameReady(read.data?.rules)) return <PlayEmpty role="alert" action="Check again" onAction={read.retry}>Scoring rules changed. Refresh the app before making a pick.</PlayEmpty>;
-  // The reveal names other players from the shared Community read, and only when it is this account's read.
+  // Rules that are not per-game (a server without M-07) draw these same cards read-only (PerGameEditor's `active`):
+  // every saved guess shows and nothing can be written (D-23). The reveal names other players from the shared
+  // Community read, and only when it is this account's read.
   const community = app.community.data, members = community?.viewer?.toLowerCase() === app.accountId.toLowerCase() ? community.members ?? [] : [];
   return <PerGameEditor key={`${app.accountId}:${season}:${week}:${mode}`} accountId={app.accountId} initialData={read.data} mode={mode} nest={nest} optOuts={app.community.data?.optOuts || []} reveal={{ members }}
     onMode={onMode} setDirty={shell.setDirty} onSignInAgain={app.requestSignIn} onSaved={() => app.refresh({ only: ['community', 'personal'] })}

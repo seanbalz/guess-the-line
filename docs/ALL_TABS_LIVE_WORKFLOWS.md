@@ -11,7 +11,7 @@ the implementation and its boundaries.
 | Tab | Available workflow | Data and scope |
 | --- | --- | --- |
 | Home | Weekly status, separate Spread/Total ranks, Make picks opens Play | Shared authenticated Community read; refreshed after successful entries |
-| Play | Draft recovery, whole-market submission, edits before the deadline, independent Spread/Total ballots, sit-out and submission receipts | Existing account-wide personal ballot routes; the server's live rules decide editability |
+| Play | The next move first (D-69 P1B), per-game lock-in, draft recovery, independent Spread/Total ballots, sit-out and receipts; read-only cards when the server's rules are not per-game | Existing account-wide personal ballot routes; the server's live rules decide editability |
 | Bets | Tracked bets, corrections, reported results, following, history and comparison; Virtual Units in an eligible selected group | Tracked bets are shared with signed-in Community members. Virtual Units always names the selected private group; Community never defaults to Triple Threat |
 | Lines | Schedule, own saved scoring references, permitted trends, weather, records, game details and a private game-note editor | Existing authenticated personal data and permitted public research. Notes use the hosted M-09/M-29 owner-only routes; current-line readers remain a later stage |
 | League | Community activity, likes, comments, separate market standings and history; selected private group's weekly standings | Community data is explicitly global. Private rosters and standings come only from that group's authenticated state route |
@@ -37,17 +37,13 @@ full redesign cutover retain their separately recorded gates.
 
 ## Intentional design exception
 
-The existing WeekPicks, SocialBetTracker and VirtualUnits editors are reused to
+The existing SocialBetTracker and VirtualUnits editors are reused to
 make the tabs functional under today's hosted rules. Their original markup is
 adapted inside `.gx-live-workflow` by `web/src/liveWorkflows.css`, which maps the
 legacy components' token names onto D-38 tokens, restores controls after the new
 shell's reset and places save controls above the tab bar. This scoped adapter is
 temporary; it does not approve a new brand direction or retire the prototype.
-Play now supplies optional presentation components for padded matchup cards,
-compact guidance, source details and a measured save dock. Favorite buttons show
-team abbreviations so names never break across narrow controls; the matchup and
-accessible button names retain the full teams. Its shared writer and
-classic fallback remain intact. Bets adds `web/src/liveBets.css`, scoped under
+Bets adds `web/src/liveBets.css`, scoped under
 `.gx .gx-bets`, for the existing forms and tables. League keeps comment drafts
 mounted when the reply form is collapsed.
 History reuses `HistoryLine` so pending, provisional and imported reference
@@ -92,6 +88,10 @@ carried over: it applies only under the retired common-reference scoring policy.
 - **Leave guard:** the editor's unsaved-work entry carries `keeps(next)`, so moving between the week and its games
   never asks. Leaving Your guesses still asks. See the
   [design spec](superpowers/specs/2026-11-02-play-picks-nesting-cards-design.md).
+
+**November 3 (D-69 step 1):** Play no longer reuses WeekPicks or its presentation components. When the server's rules
+are not per-game, Your guesses shows the same per-game cards read-only (every saved guess, no writes); the old app keeps
+its own editor. The landing leads with the next ballot and six tiles (P1B).
 
 ## Data protection and save recovery
 

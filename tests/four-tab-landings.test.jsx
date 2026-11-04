@@ -3,8 +3,6 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { markupProblems } from './helpers/ui-markup.mjs';
 
 const state = vi.hoisted(() => ({ app: null, personal: { data: null }, read: { loading: true, data: null, error: null } }));
-// Task 7b retires Play's use of the old editor; until then its module is a stand-in.
-vi.mock('../web/src/CommunityHome.jsx', () => ({ WeekPicks: () => <div className="community-week-picks"/> }));
 // D-69 step 1: Play's landing tiles are each page's own component with its own tests; here they are stand-ins.
 const tile = (name, label) => ({ [name]: () => <button type="button">{label}</button> });
 vi.mock('../web/src/next/play/ScoreTile.jsx', () => tile('ScoreTile', 'Your score'));
@@ -44,7 +42,7 @@ describe('One thing first roots', () => {
     expect(markupProblems(html)).toEqual([]);
     expect(html).toContain('Guess the Total');
     expect(html).toContain('Guess the Spread');
-    expect(html).not.toContain('community-week-picks'); // the landing never embeds the old editor (until Task 7b)
+    expect(html).not.toContain('gx-per-game'); // the landing never embeds a ballot editor; the cards live on the picks layer
     for (const name of ['ballot', 'score', 'league']) expect(html).toContain(`data-play-tile="${name}"`);
     expect((html.match(/gx-btn--primary/g) || [])).toHaveLength(1);
   });
