@@ -76,7 +76,12 @@ describe('the Track 1 owner’s conditions', () => {
     expect(REPORT_COPY.about).toContain('GTL’s weekly estimates');
     expect(reportModel(review, DEFAULT_FILTERS, 'Full PPR').fine[0]).toBe(REPORT_COPY.about);
   });
-  it('"pace" nowhere on screen: no app string says it, and no surface says it, even when a snapshot’s own method does', () => {
+  it('the rankings ⓘ shows each snapshot’s own method text unchanged, and the app’s own fallback when a snapshot has none', () => {
+    for (const method of [USAGE, PACE]) expect(methodBody({ ...base, method }, DEFAULT_FILTERS, 'Full PPR')).toContain(method.description);
+    const { method: _none, ...withoutMethod } = { ...base, method: undefined };
+    expect(methodBody(withoutMethod, DEFAULT_FILTERS, 'Full PPR')).toContain('Estimates come from recent usage and statistics over the scheduled games remaining.');
+  });
+  it('"pace" on no rendered surface: no app string says it, and no drawn surface says it, even when a snapshot’s own method does (the ⓘ dialog shows that method text unchanged, above)', () => {
     for (const file of FANTASY) expect(code(file), file).not.toMatch(/\bpace\b/i);
     for (const method of [USAGE, PACE]) for (const view of SURFACES) {
       state.value = ready(method);
