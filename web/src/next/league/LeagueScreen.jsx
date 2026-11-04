@@ -210,7 +210,7 @@ export function LeagueScreen() {
   let body;
   if (place.layer === 'feed') {
     body = <PlayLayer label="League feed" parents={[toBoard]} layer="league:feed" title={LEAGUE_COPY.feed}>
-      {gone ? <LeagueFailure error={gone} onRetry={() => { app.refresh({ only: ['lobby'] }); feed.retry(); }}/> : waiting ?? <FeedView feed={feed} app={app} leagueId={leagueId} leagueName={app.league.name} fresh={fresh} arrived={arrived}
+      {gone ? <LeagueFailure error={gone} onRetry={() => { setRefusal(null); app.refresh({ only: ['lobby'] }); feed.retry(); }}/> : waiting ?? <FeedView feed={feed} app={app} leagueId={leagueId} leagueName={app.league.name} fresh={fresh} arrived={arrived}
         legacy={community ? <CommunityFeed key={app.accountId} feed={app.community.data} app={app}/> : null}/>}
     </PlayLayer>;
   } else if (community && place.layer !== 'board') {

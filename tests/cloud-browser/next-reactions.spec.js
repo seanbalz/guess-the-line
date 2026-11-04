@@ -151,3 +151,27 @@ test('your reaction pops only after the server confirms it: not on the change th
     expect(await chip.getAttribute('data-moment')).toBeNull();
   } finally { release?.(); await page.unrouteAll({ behavior: 'wait' }); await page.close(); await world.db.close(); }
 });
+
+test('a first reaction from the popover pops its chip once the server confirms it, not before', async ({ page, baseURL }) => {
+  const world = await communityWorld(page, baseURL, { migrations: ALL, optionalRpc: true });
+  const react = url => url.origin === SUPABASE && url.pathname.endsWith('/gtl-api/league/react');
+  let release;
+  try {
+    await page.addInitScript(() => {
+      window.__pops = [];
+      new MutationObserver(list => list.forEach(m => { if (m.target.getAttribute?.('data-moment') === 'pop' && m.target.classList.contains('gx-feed-chip')) window.__pops.push(m.target.getAttribute('aria-label')); }))
+        .observe(document, { subtree: true, attributes: true, attributeFilter: ['data-moment'] });
+    });
+    await open(page);
+    const post = page.locator('.gx-feed-post[data-kind="joined"]').first();
+    const held = new Promise(resolve => { release = resolve; });
+    await page.route(react, async route => { await held; await route.fallback(); }, { times: 1 });
+    await post.getByRole('button', { name: 'Add a reaction' }).click();
+    await page.getByRole('dialog', { name: 'Choose a reaction' }).getByRole('button', { name: 'Fire' }).click();
+    await expect(post.getByRole('button', { name: /^Fire/ })).toHaveAttribute('aria-pressed', 'true'); // shown at once
+    await page.waitForTimeout(300);
+    expect(await page.evaluate(() => window.__pops.length), 'no pop on the unconfirmed change').toBe(0);
+    release();
+    await expect.poll(() => page.evaluate(() => window.__pops)).toEqual([expect.stringMatching(/^Fire/)]);
+  } finally { release?.(); await page.unrouteAll({ behavior: 'wait' }); await page.close(); await world.db.close(); }
+});

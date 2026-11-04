@@ -219,14 +219,16 @@ describe('react() is the confirmation the pop waits for (A2)', () => {
     const pending = react({ postId: 'p1', current, next: 'fire', toast: vi.fn() });
     let settled = false; pending.then(() => { settled = true; });
     await Promise.resolve();
-    expect(events.map(e => e.reactions.mine), 'the optimistic change is shown').toEqual(['fire']);
+    expect(events.map(e => [e.reactions.mine, e.confirmed === true]), 'the optimistic change is shown, unconfirmed').toEqual([['fire', false]]);
     expect(settled, 'but nothing is confirmed yet').toBe(false);
     answer({ counts: { fire: 1 }, total: 1, mine: 'fire' });
     expect(await pending).toEqual({ ok: true, mine: 'fire' });
+    expect(events.at(-1), 'the server answer goes out as the confirmation every chip pops on, popover writes included').toMatchObject({ confirmed: true, reactions: { mine: 'fire' } });
     leagueApi.mockRejectedValueOnce({ status: 403, message: 'Reactions are closed.' });
     const refused = await react({ postId: 'p1', current: { counts: { fire: 1 }, total: 1, mine: 'fire' }, next: null, toast: vi.fn() });
     expect(refused.ok).toBe(false);
     expect(events.at(-1).reactions.mine, 'the old reaction is back').toBe('fire');
+    expect(events.at(-1).confirmed, 'a refusal confirms nothing').not.toBe(true);
     stop();
   });
 });

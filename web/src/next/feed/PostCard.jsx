@@ -2,13 +2,13 @@
 // name and what happened, the post's details as the server gated them for this viewer, the reactions row and the newest
 // two comments. A hidden market is a lock row with a sentence, never "—" (rule 8); the picks themselves open in sh.picks.
 // The server and cloud/feed.mjs decide every number shown here; this component only draws it.
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useShell } from '../shell/context.js';
 import { Avatar, AvatarStack, Button, Card, FieldMark, Icon, IconButton, LockLine, Matchup, Pill } from '../ui/index.js';
 import { fmtNum, fmtPostTime, plural } from '../format.js';
 import { MARKET, codes, commentButton, gameName, guessText, lateWords, postLine, postLink, postMeta, reactionChips, realSlipPost, systemPost } from './feedModel.js';
 import { motionReduced } from '../ui/motion.js';
-import { react } from './feedActions.js';
+import { onFeedChange, react } from './feedActions.js';
 
 /** A game id ("SEA-DEN") as marks (D-62): away, "@", home; "—" when the id is not two codes. */
 export function FeedGame({ gameId }) {
@@ -65,18 +65,16 @@ export function ReactionRow({ post, leagueId }) {
   const shell = useShell();
   const chips = reactionChips(post.reactions);
   const comments = commentButton(post);
-  // D-69: your reaction pops once, when the server confirms the write you made here: never on the change that shows at once,
-  // never on a refusal that puts the old one back, and not at all under reduced motion (device or app setting).
-  const [pop, setPop] = useState(null);
+  // D-69: your reaction pops once, when the server confirms a write you made (from a chip or the popover): never on the change
+  // that shows at once, never on a refusal that puts the old one back, and not at all under reduced motion (device or app).
+  const [pop, setPop] = useState(null), row = useRef(null);
+  useEffect(() => onFeedChange(change => {
+    if (change.type === 'reactions' && change.confirmed === true && change.postId === post.id && change.reactions?.mine && !motionReduced(row.current)) setPop(change.reactions.mine);
+  }), [post.id]);
   useEffect(() => { if (!pop) return undefined; const timer = setTimeout(() => setPop(null), 900); return () => clearTimeout(timer); }, [pop]);
-  async function toggle(event, chip) {
-    const node = event.currentTarget;
-    const saved = await react({ postId: post.id, current: post.reactions, next: chip.mine ? null : chip.key, toast: shell.toast });
-    if (saved.ok && saved.mine && !motionReduced(node)) setPop(saved.mine);
-  }
-  return <div className="gx-feed-rx" data-emoji-ok="true">
+  return <div className="gx-feed-rx" data-emoji-ok="true" ref={row}>
     {chips.map(chip => <button key={chip.key} type="button" className={chip.mine ? 'gx-feed-chip gx-feed-chip--mine' : 'gx-feed-chip'} aria-pressed={chip.mine ? 'true' : 'false'} aria-label={chip.label} data-moment={pop === chip.key ? 'pop' : undefined} onAnimationEnd={() => setPop(null)}
-      onClick={event => toggle(event, chip)}>
+      onClick={() => react({ postId: post.id, current: post.reactions, next: chip.mine ? null : chip.key, toast: shell.toast })}>
       <span className="gx-feed-emoji" aria-hidden="true">{chip.emoji}</span><span className="gx-n-xs" aria-hidden="true">{chip.count}</span>
     </button>)}
     <IconButton icon="plus" size={16} label="Add a reaction" className="gx-feed-chip gx-feed-chip--add" onClick={() => shell.openPopover('pop.reactions', { postId: post.id, reactions: post.reactions, leagueId })}/>

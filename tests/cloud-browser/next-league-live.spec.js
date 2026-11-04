@@ -224,6 +224,36 @@ test('a private group that refuses shows none of its posts, on the board or in t
   } finally { await page.unrouteAll({ behavior: 'wait' }); await page.close(); await world.db.close(); }
 });
 
+// Only the group's standings read is refused; its feed read keeps answering. Without the `gone` guard the group's posts would stay.
+test('a group whose standings read is refused shows none of its posts even though its feed answers; Try again recovers', async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite required.');
+  const world = await communityWorld(page, baseURL, { migrations: ALL, groupScreens: true, optionalRpc: true });
+  try {
+    const delta = await group(world, 'Fixture Delta'), { season, week, deadline } = world.state.league;
+    const post = (await world.db.query("insert into public.gtl_feed_posts(actor_id,kind,season,week,payload,dedupe_key,league_id) values($1,'week_published',$2,$3,$4,$5,$6) returning id",
+      [ACCOUNTS.sean.id, season, week, { games: 2, deadline }, `week_published:${randomUUID()}`, delta])).rows[0].id;
+    await open(page);
+    const groupPost = page.locator(`.gx-feed-post[data-post="${post}"]`);
+    await choose(page, 'Fixture Delta');
+    await expect(groupPost).toBeVisible(); // the feed answers for this group
+    let refusing = true;
+    await page.route(url => apiPath('state')(url) && url.searchParams.get('league') === delta, route => (refusing
+      ? route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ error: 'This group is no longer available.' }) }) : route.fallback()));
+    await toBoard(page).click();
+    await expect(region(page).getByRole('alert')).toContainText('This group is no longer available.');
+    await expect(region(page).locator('.gx-feed-post')).toHaveCount(0);
+    await expect(region(page).locator('[data-league="preview"]')).toHaveCount(0);
+    await page.evaluate(() => { location.hash = '#play/league?view=feed'; });
+    await expect(region(page).getByRole('heading', { name: 'Feed', level: 2 })).toBeVisible();
+    await expect(region(page).getByRole('alert')).toContainText('This group is no longer available.');
+    await expect(groupPost).toHaveCount(0);
+    refusing = false; // the group answers again: Try again clears the refusal
+    await region(page).getByRole('button', { name: 'Try again', exact: true }).click();
+    await expect(groupPost).toBeVisible();
+    expect(world.errors).toEqual([]);
+  } finally { await page.unrouteAll({ behavior: 'wait' }); await page.close(); await world.db.close(); }
+});
+
 test('an older-feed refusal immediately removes loaded activity while the main refresh is pending', async ({ page, baseURL }) => {
   test.skip(!pgliteAvailable, 'Local PGlite required.');
   const world = await communityWorld(page, baseURL, { migrations: BEFORE_FEED, optionalRpc: true });
