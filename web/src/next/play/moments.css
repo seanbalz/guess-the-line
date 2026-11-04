@@ -66,8 +66,11 @@
   text-align: center;
   overflow-wrap: anywhere;
 }
-@media (max-width: 360px) {
-  .gx .gx-guess-nums { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+/* Four columns below 381px: a game card sits two lips deep under the Play lip (D-66, 8px a side a step), so five
+   columns with an 8px gap leave a guess button under 44px until about 376px. The narrower column gap keeps four at
+   44px+ down to 320px; the row gap stays 8px. */
+@media (max-width: 380px) {
+  .gx .gx-guess-nums { grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: var(--gx-space-1); }
 }
 
 /* ===== week progress ===== */

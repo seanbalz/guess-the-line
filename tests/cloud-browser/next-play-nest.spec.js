@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { HOSTED } from '../migrations.mjs';
 import { SUPABASE, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
-import { gameCard, openGame, openWeek } from './play-nest.mjs';
+import { chooseMarket, gameCard, openGame, openWeek } from './play-nest.mjs';
 
 // D-70 Play › Your guesses as nesting cards (docs/superpowers/specs/2026-11-02-play-picks-nesting-cards-design.md):
 // the week's game tiles, then one game's card, on the real shell and router. Fictional /personal reads and writes over
@@ -230,6 +230,37 @@ test('a waiting Whole week locked moment plays on the picks card once its cards 
     await expect(page.locator('.gx-per-game')).toBeVisible();
     await expect(page.locator('[data-moment="pop"]')).toHaveCount(1);
     await expect(page.locator('[data-moment="pop"]')).toContainText(/locked/i);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+// Final fix wave F4: a game's card sits two lips deep under the Play lip, so its guess grid narrows. Every guess button
+// keeps a 44px layout width (the used CSS width, not the rounded offsetWidth or a painted transform) from 320 to 390px,
+// in both markets, with the row gap still 8px.
+test('every guess button on a game card is at least 44px wide at 320, 360, 375, 380 and 390px, Spread and Total', async ({ page, baseURL }) => {
+  const world = await fixture(page, baseURL);
+  try {
+    const [game] = world.personal.games;
+    for (const market of ['Spread', 'Total']) {
+      if (market === 'Total') await chooseMarket(page, 'Total');
+      const card = await openGame(page, game.id);
+      expect(new URL(page.url()).hash).toBe(`#play/picks?market=${market.toLowerCase()}&season=${world.personal.season}&week=${world.personal.week}&pickGame=${game.id}`);
+      if (market === 'Spread') await card.locator('[data-side="home"]').click();
+      for (const width of [320, 360, 375, 380, 390]) {
+        await page.setViewportSize({ width, height: 844 });
+        await settled(page);
+        const row = await card.locator('.gx-guess-nums').evaluate(el => {
+          const style = getComputedStyle(el);
+          const chips = [...el.querySelectorAll('.gx-guess-num, .gx-guess-more')].filter(chip => chip.getClientRects().length);
+          return { rowGap: style.rowGap, count: chips.length, narrow: chips.map(chip => [chip.textContent.trim(), parseFloat(getComputedStyle(chip).width)]).filter(([, w]) => w < 44) };
+        });
+        expect(row.count, `${market} ${width}`).toBeGreaterThan(4);
+        expect(row.narrow, `${market} ${width}`).toEqual([]);
+        expect(row.rowGap, `${market} ${width}`).toBe('8px');
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${market} ${width}`).toBe(true);
+      }
+      await page.setViewportSize({ width: 390, height: 844 });
+    }
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

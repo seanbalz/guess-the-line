@@ -159,8 +159,6 @@
   .gx .gx-live-play [class~="chip-numbers"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .gx .gx-live-play [class~="trends-toggle-row"] { grid-template-columns: minmax(0, 1fr); }
   .gx .gx-live-play [class~="chip-help"] { flex-wrap: wrap; }
-  /* A game card sits two lips deep under the Play lip (D-66, 8px a side a step): keep each guess button 44px wide. */
-  .gx .gx-guess .gx-guess-nums { gap: var(--gx-space-1); }
 }
 
 
