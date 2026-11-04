@@ -1,8 +1,8 @@
 # Release card: BetRivers as a backup book (D-74, M-39) — November 3, 2026
 
-**Status: approved, rolling out.** Sean, November 3, 2026: "Draft it, don't ship", then "Add the label", then "Ship D-74
-now". [D-74](DECISIONS.md) is the decision. The order is M-39 by Gate M, then `api`, then `odds-refresh`; each step is
-recorded below as it lands.
+**Status: applied and deployed.** Sean, November 3, 2026: "Draft it, don't ship", then "Add the label", then "Ship D-74
+now". [D-74](DECISIONS.md) is the decision. M-39, `gtl-api` v50 and `gtl-odds-refresh` v8 are live; see "Applied and
+deployed" below.
 
 ## Why
 
@@ -71,6 +71,40 @@ occasionally, so the gap may close by itself; the November 4 06:15 UTC run will 
 2. **`api` release** (shared workflow, Sean's approval). Save-triggered collections then ask for BetRivers.
 3. **`odds-refresh` release** (shared workflow target; `gtl-odds-refresh` is v7 from `4cf149e7`), so the scheduled runs, the main collectors, ask for it too.
 4. **Readback:** the next collection's `availableQuotes`, its `standIns`, and the age of new saved lines.
+
+## Applied and deployed (November 3–4, 2026)
+
+- **Merge:** #452 merged at 23:32:34 UTC as `49f60718565f9bef45045fd20dc2b9535263f716`, after all 12 PR checks passed.
+  Auto-merge had not fired, so it was merged pinned to the head commit.
+- **M-39, Gate M (Sean's Chrome SQL editor, as `postgres`):**
+  - **Before:** the bodies matched the headers (`a4c48626…`, `051d3033…`), with ACL
+    `{postgres=X/postgres,service_role=X/postgres}`, security invoker and `search_path=""`. M-39 was not in history.
+  - **The apply:** the file was fetched from GitHub at `49f60718`: 7,969 bytes, SHA-256 `259069ca…3c1c35`, equal to the
+    repo copy. One implicit transaction ran the guard, the file, the history insert
+    (`array[$gtlmig$<file>$gtlmig$]`, created by sbalsiger2@gmail.com) and a readback.
+  - **Hosted version `20261103233404`.** The history row has 1 statement, 7,969 bytes, md5 `4f20b6a7…`, equal to the
+    file.
+  - **After:** `gtl_line_from_snapshot` `47ee81756faa18c12aa6796a971514c8` and `gtl_book_quotes_from_snapshot`
+    `5c6c4b46e02c16e05d0503f401984740`, equal to the repo bodies. One version of each, with the ACL, invoker and
+    search path unchanged.
+  - **Score hash, before (23:33:19) and after (23:34:23 UTC):** 40 ballots `81cb7094efd09ba2768eedce818e7ede` and 57
+    settlements `43a064a0490661770a06317f7f1eeae6`, unchanged.
+  - **History:** 76 rows, digest `d40fdad9eb144738cdbd032e3c95ba433b4cb1606f3de3ab8079f0df1b8108f1`. That includes M-40
+    (`20261103232119`), which the Codex rollout applied separately at 23:21 UTC.
+- **`api`:** [release run 41741408404](https://github.com/seanbalz/guess-the-line/actions/runs/41741408404), card
+  [#465](https://github.com/seanbalz/guess-the-line/issues/465).
+  - The deploy finished at 00:09:51 UTC on November 4. `gtl-api` is **v50**, bundle `c5ed571b…`, JWT verification on.
+  - The deployed source contains `DEFAULT_BACKUP_BOOKS`, `standInFor` and the three-quote skip. It also carries #421's API
+    part: EPL standings use Sleeper totals, and the bonus is not added twice. Sean approved that ("Ship both").
+- **`odds-refresh`:** [release run 41744806151](https://github.com/seanbalz/guess-the-line/actions/runs/41744806151), from
+  the same source, finished at 00:12:36 UTC. `gtl-odds-refresh` is **v8**, bundle `65d23faf…`.
+- **Gates:** Sean asked for both production gates to be approved for him ("Approve it for me"). Each was approved with the
+  GitHub CLI as seanbalz, after checking the run's title, source SHA and card.
+- **Still to read back:**
+  - the next collection with FanDuel missing, which should record `standIns` and make lines again (the 06:15 UTC run on
+    November 4, or a lock-in);
+  - BetRivers' freshness;
+  - that four named books bill two credits.
 
 ## Evidence (local, executed)
 
