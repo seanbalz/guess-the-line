@@ -179,3 +179,57 @@ test('Whole week locked pops once on the read that confirms the last lock; Back 
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
+
+// D-69 step 1, Whole week locked: the moment can wait (the last lock was confirmed while the player was on Your score).
+// The picks card holds it, so it must not play while "Loading your picks…" shows with no line mounted to pop.
+test('a waiting Whole week locked moment plays on the picks card once its cards mount, not while the picks load', async ({ page, baseURL }) => {
+  let holdCommunity = null, holdPicks = null, communityAnswered = false;
+  const world = await fixture(page, baseURL, { beforeSignIn: async ({ world, personal }) => {
+    await page.route(routeName('community/read'), async route => {
+      await holdCommunity;
+      const request = route.request();
+      const response = await world.handler(new Request(request.url(), { method: request.method(), headers: request.headers(), body: request.postData() }));
+      const body = await response.json();
+      body.due = body.due.map(row => {
+        const locked = Object.keys(personal.ballots[row.mode]?.lockedAt ?? {}).length;
+        return { ...row, locked, openGames: personal.games.length - locked, games: personal.games.length };
+      });
+      await reply(route, body);
+      communityAnswered = true;
+    });
+    // Delays only the picks read the remount makes (set below); the first mount's read is not held.
+    await page.route(routeName('personal/read'), async route => { await holdPicks; return route.fallback(); });
+  } });
+  try {
+    const games = world.personal.games;
+    for (const [i, game] of games.entries()) {
+      let release;
+      if (i === games.length - 1) { holdCommunity = new Promise(resolve => { release = resolve; }); communityAnswered = false; }
+      const card = await openGame(page, game.id);
+      await card.locator('[data-side="home"]').click();
+      await card.locator('.gx-guess-num[data-value="3"]').click();
+      await card.getByRole('button', { name: 'Lock in Spread', exact: true }).click();
+      await page.getByRole('alertdialog', { name: 'Lock in Spread?' }).getByRole('button', { name: 'Confirm lock-in' }).click();
+      await expect(card.getByRole('region', { name: /Spread receipt/ })).toBeVisible();
+      if (release) {
+        // The last lock is saved but the confirming Community read has not arrived: leave for Your score, then let it land.
+        await page.getByRole('button', { name: 'Your score', exact: true }).click();
+        await expect(page.getByRole('heading', { name: /score/i }).first()).toBeVisible();
+        release();
+        await expect.poll(() => communityAnswered).toBe(true);
+      }
+    }
+    // Back to the picks with the picks read held: the moment waits while the loading line shows.
+    let letPicks;
+    holdPicks = new Promise(resolve => { letPicks = resolve; });
+    await page.goBack();
+    await expect(page.getByText('Loading your picks…')).toBeVisible();
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    await expect(page.locator('[data-moment="pop"]')).toHaveCount(0);
+    letPicks();
+    await expect(page.locator('.gx-per-game')).toBeVisible();
+    await expect(page.locator('[data-moment="pop"]')).toHaveCount(1);
+    await expect(page.locator('[data-moment="pop"]')).toContainText(/locked/i);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});

@@ -58,6 +58,9 @@ test('historical D-16 rules: the landing and the per-game cards show every saved
         const small = await page.evaluate(() => [...document.querySelectorAll('.gx-per-game button')].filter(el => el.getClientRects().length && !el.closest('dialog:not([open])'))
           .filter(el => el.offsetWidth < 44 || el.offsetHeight < 44).map(el => el.textContent.trim()));
         expect(small, `${theme} ${width}`).toEqual([]);
+        // The header Your score button sits outside the cards and is a target too.
+        const header = await page.getByRole('button', { name: 'Your score', exact: true }).evaluate(el => [el.offsetWidth, el.offsetHeight]);
+        expect(Math.min(...header), `Your score ${theme} ${width}`).toBeGreaterThanOrEqual(44);
         const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
         expect(axe.violations.map(v => `${v.id}: ${v.nodes.map(n => n.target.join(' ')).join(', ')}`), `${theme} ${width}`).toEqual([]);
       }
@@ -69,7 +72,11 @@ test('historical D-16 rules: the landing and the per-game cards show every saved
     await chooseMarket(page, 'Spread');
     await expect(page.locator(`.gx-per-game [data-tile="${first.id}"]`)).toHaveAttribute('data-state', 'locked');
     const sent = await openGame(page, first.id);
-    await expect(sent.getByRole('region', { name: /Spread receipt/ })).toBeVisible();
+    const receipt = sent.getByRole('region', { name: /Spread receipt/ });
+    await expect(receipt).toBeVisible();
+    // The owner's saved line (the stored 3-book median, -2.5 for the first game) is the D-16 reference the server kept.
+    await expect(receipt.locator('.gx-receipt-chip', { hasText: 'Line' })).toContainText('2.5');
+    await expect(receipt.locator('.gx-receipt-chip--you')).toContainText('3');
     await expect(page.getByRole('button', { name: writer })).toHaveCount(0);
     expect(writes).toEqual([]);
     expect(world.errors).toEqual([]);
@@ -119,11 +126,16 @@ test('per-game rules: a 401 on lock-in keeps the typed guess through in-place si
     await dialog.getByLabel('Password', { exact: true }).fill('test-password');
     await dialog.getByRole('button', { name: 'Sign in', exact: true }).click();
     await expect(dialog).not.toBeVisible();
+    // The typed guess survives the sign-in on the card itself.
+    await expect(card.locator('[data-side="home"]')).toHaveAttribute('aria-pressed', 'true');
+    await expect(card.locator('.gx-guess-num[data-value="3"]')).toHaveAttribute('aria-checked', 'true');
     await page.getByRole('button', { name: 'Check saved picks', exact: true }).click();
     await page.getByRole('button', { name: 'Retry same save', exact: true }).click();
     await expect(card.getByRole('region', { name: /Spread receipt/ })).toBeVisible();
     expect(writes).toHaveLength(2);
     expect(writes[1].requestId).toBe(writes[0].requestId);
+    expect(Math.abs(writes[0].picks[first.id])).toBe(3);
+    expect(writes[1].picks).toEqual(writes[0].picks); // the guess typed before the 401 is the one retried
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

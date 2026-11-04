@@ -42,7 +42,7 @@ describe('One thing first roots', () => {
     expect(markupProblems(html)).toEqual([]);
     expect(html).toContain('Guess the Total');
     expect(html).toContain('Guess the Spread');
-    expect(html).not.toContain('gx-per-game'); // the landing never embeds a ballot editor; the cards live on the picks layer
+    expect(html).not.toContain('Your guesses'); // the landing never embeds the picks heading or ballot; the cards live on the picks layer
     for (const name of ['ballot', 'score', 'league']) expect(html).toContain(`data-play-tile="${name}"`);
     expect((html.match(/gx-btn--primary/g) || [])).toHaveLength(1);
   });

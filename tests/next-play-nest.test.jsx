@@ -173,8 +173,10 @@ describe('rules that are not per-game: the same cards, read-only', () => {
     expect(tiles(html).map(n => n.attrs['data-state'])).toEqual(['locked', 'locked', 'locked', 'open']);
     expect(tiles(html).map(nameFrom)).toEqual([
       'Jacksonville Jaguars at Baltimore Ravens, Locked, 44.5', 'Denver Broncos at Carolina Panthers, Locked, 41',
-      'Detroit Lions at Miami Dolphins, Locked, 50.5', 'Buffalo Bills at Minnesota Vikings, Next, no guess',
+      'Detroit Lions at Miami Dolphins, Locked, 50.5', 'Buffalo Bills at Minnesota Vikings, Mon, no guess',
     ]);
+    expect(html).not.toContain(', next to lock');
+    expect(tiles(html).map(n => n.attrs.class)).not.toContain(expect.stringContaining('gx-picks-tile--next'));
     expect(reachable(html).filter(writers)).toEqual([]);
     expect(reachable(html)).toContain('Check saved picks');
     expect(html).not.toContain('waiting for a sportsbook line');

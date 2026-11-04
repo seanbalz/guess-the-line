@@ -114,9 +114,17 @@ function PlayDetail() {
   </div>;
 }
 
-function SelectedPlay({ app, shell, current, mode, onMode }) {
-  // The picks card holds Whole week locked (D-69): the read that reaches N of N while it is open pops its count line.
+/**
+ * The picks card holds Whole week locked (D-69): the read that reaches N of N while it is open pops its count line.
+ * It renders only beside the cards that can show that line, so a waiting moment is never used up while the picks
+ * still load (or fail) with nothing mounted to pop.
+ */
+function PicksScope() {
   useMomentScope(SCOPES.picks);
+  return null;
+}
+
+function SelectedPlay({ app, shell, current, mode, onMode }) {
   const view = shell.state.views.play;
   const season = Number.isInteger(view.season) ? view.season : current.season;
   const week = Number.isInteger(view.week) ? view.week : current.week;
@@ -133,7 +141,7 @@ function SelectedPlay({ app, shell, current, mode, onMode }) {
   // every saved guess shows and nothing can be written (D-23). The reveal names other players from the shared
   // Community read, and only when it is this account's read.
   const community = app.community.data, members = community?.viewer?.toLowerCase() === app.accountId.toLowerCase() ? community.members ?? [] : [];
-  return <PerGameEditor key={`${app.accountId}:${season}:${week}:${mode}`} accountId={app.accountId} initialData={read.data} mode={mode} nest={nest} optOuts={app.community.data?.optOuts || []} reveal={{ members }}
+  return <><PerGameEditor key={`${app.accountId}:${season}:${week}:${mode}`} accountId={app.accountId} initialData={read.data} mode={mode} nest={nest} optOuts={app.community.data?.optOuts || []} reveal={{ members }}
     onMode={onMode} setDirty={shell.setDirty} onSignInAgain={app.requestSignIn} onSaved={() => app.refresh({ only: ['community', 'personal'] })}
-    onScore={patch => shell.setView('play', { ...patch, section: 'score' })}/>;
+    onScore={patch => shell.setView('play', { ...patch, section: 'score' })}/><PicksScope/></>;
 }

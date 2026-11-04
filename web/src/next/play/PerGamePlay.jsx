@@ -297,7 +297,8 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', f
           <LockedLine id={lockedId} className="gx-t-meta" data-play="count">{progress.summary}</LockedLine>
           {marketControl}
           <WeekProgress progress={progress} market={market} week={data.week} onNext={active ? nest.onOpen : undefined} nested/>
-          <WeekTiles progress={progress} mode={mode} guessOf={guessOf} onOpen={nest.onOpen} label={`Week ${data.week} ${market} games`}/>
+          {/* Read-only rules offer no lock, so no tile says Next or carries the ring. */}
+          <WeekTiles progress={active ? progress : { ...progress, next: null }} mode={mode} guessOf={guessOf} onOpen={nest.onOpen} label={`Week ${data.week} ${market} games`}/>
           {waitingLine}
           {uncertain ? null : checkAndSave}
           {olderDraftTools}
