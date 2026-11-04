@@ -17,7 +17,7 @@ export function draftParts(setDirty) {
   let parts = { view: false, review: false }, keeps = {};
   const report = () => {
     const held = Object.keys(parts).filter(part => parts[part]);
-    if (held.length && held.every(part => keeps[part])) setDirty('bets', true, next => held.every(part => keeps[part](next)));
+    if (held.length && held.every(part => keeps[part])) { const k = keeps; setDirty('bets', true, next => held.every(part => k[part](next))); }
     else setDirty('bets', held.length > 0);
   };
   return {

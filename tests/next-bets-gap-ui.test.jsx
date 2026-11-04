@@ -30,6 +30,7 @@ const { GapLayer } = await import('../web/src/next/bets/gap/GapLayer.jsx');
 const { GapReview } = await import('../web/src/next/bets/gap/GapReview.jsx');
 const { GapTrendsView } = await import('../web/src/next/bets/gap/GapTrends.jsx');
 const { GapHero } = await import('../web/src/next/bets/gap/GapHero.jsx');
+import { GAP_COPY } from '../web/src/next/bets/gap/gapModel.js';
 
 const now = Date.parse('2099-10-08T17:00:00Z');
 const game = (id, away, home) => ({ id, awayCode: away, homeCode: home, kickoff: '2099-10-08T20:00:00Z', offers: {}, locked: {} });
@@ -164,13 +165,27 @@ describe('one gap’s layer', () => {
     expect(nodes(html).filter(n => n.attrs?.['data-side']).map(n => [n.attrs['data-side'], n.attrs['data-value-color'], textOf(n).includes(n.attrs['data-value-color'] === 'green' ? 'Favorable' : 'Against your guess')]))
       .toEqual([['away', 'green', true], ['home', 'red', true]]);
   });
+  it('a failed read draws the error and Try again, never the loading skeleton; a read in flight draws the skeleton', () => {
+    const layer = state => renderToStaticMarkup(<div className="gx"><GapLayer gap={gap(state)} item="SEA-DEN:spread" onClose={() => {}}/></div>);
+    const failed = layer({ data: null, loading: false, error: 'Could not load your gap.' });
+    expect(failed).toContain('Could not load your gap.');
+    expect(failed).not.toContain('data-skeleton');
+    expect(failed).not.toContain(GAP_COPY.loading);
+    expect(layer({ data: null, loading: true })).toContain(GAP_COPY.loading);
+  });
+  it('a selection whose game left the read is Closed in the layer, as in the list (Matchup unavailable), not Ready', () => {
+    const html = renderToStaticMarkup(<div className="gx"><GapLayer gap={gap({ ranked: { status: 'ready', rows: [], counts: {} } })} item="NYJ-BUF:total" onClose={() => {}}/></div>);
+    expect(html).toContain('Matchup unavailable');
+    expect(html).toContain('Remove from card');
+    expect(html).not.toContain('Place virtual pick');
+  });
   it('the trends: the actual record, sample, years and credit, never a forecast', () => {
     const html = renderToStaticMarkup(<div className="gx"><GapTrendsView trend={{ status: 'ready', reference: 'Historical schedule through 2026', cards: [{ key: 'past', title: 'Past home games', record: '8–4–0', sample: '12 games', years: [2018, 2026] }] }}/></div>);
     for (const text of ['8–4–0', '12 games', '2018–2026', 'not forecasts', 'CC BY 4.0']) expect(html).toContain(text);
   });
   it('the trends while they load: rows in their final shape, the words kept for screen readers (D-69 4.5)', () => {
     const html = renderToStaticMarkup(<div className="gx"><GapTrendsView trend={{ status: 'loading', cards: [] }}/></div>);
-    expect(nodes(html).find(n => n.attrs?.['data-skeleton'] === 'rows')).toBeTruthy();
+    expect(nodes(html).find(n => n.attrs?.['data-skeleton'] === 'rows').attrs.role).toBe('status');
     expect(html).toContain('Loading historical trends…');
   });
 });

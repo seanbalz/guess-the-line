@@ -210,8 +210,8 @@ test('the landing: the next move, five tiles, no Bets, line or research read; Ba
     await page.waitForLoadState('networkidle');
     expect(calls.filter(call => /\/(bets\/|lines\/|research)/.test(call)), 'the landing reads only the shared reads').toEqual([]);
     expect(await running(page), 'nothing moves on the first paint').toEqual([]);
-    // No tracked win waits, so My bets opens its Active tickets.
-    for (const [key, heading, address] of [['mybets', 'My bets', /#bets\/active/], ['picks', 'Your picks', /#bets\/virtual/], ['everyone', 'Everyone', /#bets\/everyone/], ['recommended', 'Recommended', /#bets\/research/], ['gap', 'Your gap', /#bets\/recommended/]]) {
+    // No tracked win waits, so My bets opens its tickets with every result.
+    for (const [key, heading, address] of [['mybets', 'My bets', /#bets\/tracked/], ['picks', 'Your picks', /#bets\/virtual/], ['everyone', 'Everyone', /#bets\/everyone/], ['recommended', 'Recommended', /#bets\/research/], ['gap', 'Your gap', /#bets\/recommended/]]) {
       await tile(page, key).click();
       await expect(page).toHaveURL(address);
       await expect(page.getByRole('heading', { name: heading, level: 1, exact: true })).toBeVisible();
@@ -539,12 +539,8 @@ test('Recommended: each row is tinted by its assessment, Back from one refocuses
     });
     await openAt(page);
     await expect(landing(page)).toBeVisible({ timeout: 30000 });
-    // The rows land last, after the week's trends the screen also reads: a re-render during the rise ends it early.
-    const trends = page.waitForResponse(response => new URL(response.url()).pathname.endsWith('/gtl-api/trends/week'));
-    const assessed = await holdNext(page, 'lines/assessments');
+    // No holding: the entrance is decided once per visit, so the week's trends landing mid-rise cannot cancel it.
     await tile(page, 'recommended').click();
-    await trends;
-    assessed();
     const list = page.locator('ol[aria-label="Assessed bets"]'), rows = list.locator('.gx-prow');
     await expect(rows).toHaveCount(3, { timeout: 30000 });
     const rises = () => page.evaluate(() => window.__rises.filter(event => event.startsWith('animationstart')).length);
@@ -648,7 +644,7 @@ async function sweep(page, addresses, passes) {
     await page.setViewportSize({ width, height: 844 });
     for (const address of addresses) {
       await shared(page, address);
-      await expect(page.locator('[data-landing="bets"], [data-bets-section], [data-bets-layer], .gx-ra').first(), address).toBeVisible({ timeout: 30000 });
+      await expect(page.locator('[data-landing="bets"], [data-bets-section], [data-bets-layer]').first(), address).toBeVisible({ timeout: 30000 });
       await page.waitForLoadState('networkidle');
       await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
       if (wide) await page.addStyleTag({ content: WIDE_FONT });

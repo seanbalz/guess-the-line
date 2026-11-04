@@ -70,9 +70,9 @@ test('tracked Overview shows owner charts, shared filters and cash, then drills 
   await seedTicket('excluded',{},'win');await seedTicket('foreign',{stakeUnits:100},'win','troy');
   const before=(await world.db.query('select state from public.gtl_social_weeks order by season,week')).rows;
   const calls=callsFrom(page);
-  // D-69 step 4: the My bets tile opens Active tickets, and the tracker's Pending filter also narrows Overview, so all
-  // results are chosen first (the old landing's Overview row opened with none chosen).
-  await openBets(page);await tab(page,'Bets').click();await tile(page,'mybets').click();await resultFilter(page,'All').click();await overviewButton(page).click();
+  // D-69 step 4 (fix wave 1): the My bets tile opens every result over all weeks, so Overview shows settled results with
+  // no filter chosen first (an Active-opened tracker's Pending filter would have narrowed it to "—").
+  await openBets(page);await tab(page,'Bets').click();await tile(page,'mybets').click();await overviewButton(page).click();
   const overview=page.getByRole('region',{name:'Tracked bets overview',exact:true});await expect(overview).toBeVisible();
   await expect(page.getByLabel('Competition week',{exact:true})).toHaveValue('all');
   await expect(overview.locator('.gx-tc-big')).toHaveText('+0.75U');
@@ -135,7 +135,7 @@ test('Bets roots open creation from fresh all-week lists and remembered Add scop
   try {
     const calls = callsFrom(page);
     await openBets(page);
-    // Active tickets from its tile; Settled tickets by its own address, a fresh document (a win waiting opens it too).
+    // The tracker with every result from its tile; Settled tickets by its own address, a fresh document (a win waiting opens it too).
     const settled = async () => { await page.goto('about:blank'); await page.goto('/#bets/settled'); };
     for (const open of [async () => { await tab(page, 'Bets').click(); await tile(page, 'mybets').click(); }, settled]) {
       await open();

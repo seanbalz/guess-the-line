@@ -29,6 +29,8 @@ const TONE = Object.freeze({ green: 'good', yellow: 'plain', red: 'warn', gray: 
 const marks = gameId => { const [away, home] = String(gameId).split('-'); return <><TeamMark code={away} size={24} decorative/><TeamMark code={home} size={24} decorative/></>; };
 /** The rows' entrance, once per visit: 'in' only until the list has shown; coming back from an assessment is quiet. */
 export const listEnter = (shown, enter) => (shown ? undefined : enter);
+/** The list's entrance, decided once when it first draws and held (as `{ value }`) for as long as it stays up; null once it leaves. */
+export const holdRise = (held, up, shown, enter) => (up ? held ?? { value: listEnter(shown, enter) } : null);
 const odds = value => value > 0 ? `+${value}` : String(value).replace('-', '−');
 function Select({ label, value, options, onChange }) {
   const id = useId();
@@ -128,7 +130,7 @@ export function ResearchLinkIntake({ accountId, onDirty }) {
 
 export default function ResearchAssessments({ onDirty, onTrack }) {
   const lines = useLinesData(), shell = useShell(), route = shell.state.views.bets;
-  const root = useRef(null), enter = useEntrance(), listShown = useRef(false); useLayerFocus(root);
+  const root = useRef(null), enter = useEntrance(), listShown = useRef(false), listRise = useRef(null); useLayerFocus(root);
   const [market, setMarket] = useState(''), [color, setColor] = useState(''), [limit, setLimit] = useState(20);
   const gameId = route.matchup || undefined;
   // The server chooses the latest published account week, independently of a private league's week.
@@ -137,15 +139,21 @@ export default function ResearchAssessments({ onDirty, onTrack }) {
   const select = id => shell.go('bets', { view: 'research', ...(gameId ? { matchup: gameId } : {}), assessment: id ?? null });
   const chooseGame = id => { setLimit(20); shell.go('bets', { view: 'research', matchup: id || null, assessment: null }); };
   const rows = (data?.assessments ?? []).filter(a => !color || a.color === color);
-  // After the commit that shows the list, a later remount of it (back from an assessment) carries no entrance.
-  const listEntrance = listEnter(listShown.current, enter);
-  useEffect(() => { if (data && !a && rows.length) listShown.current = true; });
+  // The entrance is decided once, when the list first draws, and held while it stays on screen: a re-render during the
+  // rise (the week's trends landing) must not drop `data-enter` and cancel it. A later remount of the list (back from an
+  // assessment, or rows that left and returned) carries none.
+  const listUp = Boolean(data && !a && rows.length);
+  const held = holdRise(listRise.current, listUp, listShown.current, enter);
+  if (!listUp && listRise.current) listShown.current = true;
+  listRise.current = held;
+  const listEntrance = held?.value;
+  useEffect(() => { if (listUp) listShown.current = true; });
   const track = a => {
     const s = a.selection, leg = { gameId: a.gameId, market: s.market, side: s.side, line: s.line,
       ...(s.market === 'prop' ? { selection: `${s.playerName} ${s.side} ${s.line ?? ''} ${s.key.replace(/^player_/, '').replaceAll('_', ' ')}` } : {}) };
     onTrack?.({ season: data.season, week: data.week, kind: 'single', legs: [leg], odds: a.quote.odds, source: a.quote.source, quotedAt: a.quote.observedAt, stakeUnits: null });
   };
-  return <section ref={root} className="gx-screen gx-ra" aria-labelledby="gx-ra-title">
+  return <section ref={root} className="gx-screen gx-ra" aria-labelledby="gx-ra-title" data-bets-section="recommended">
     <header className="gx-ra-heading"><h1 id="gx-ra-title" className="gx-t-title" tabIndex={-1} data-route-focus>{BETS_NAMES.recommended}</h1><InfoButton {...INFO}/></header>
     {data ? <p className="gx-t-meta">{data.season} · Week {data.week}</p> : null}
     {gameId ? <Button variant="secondary" onClick={() => chooseGame('')}>All games research</Button> : null}

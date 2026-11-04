@@ -27,6 +27,7 @@ describe('Bets › Recommended', () => {
     const h1 = nodes(html).find(n => n.tag === 'h1');
     expect([textOf(h1), h1.attrs.tabindex, 'data-route-focus' in h1.attrs]).toEqual(['Recommended', '-1', true]);
     expect(html).not.toContain('Your guess vs. market');
+    expect(nodes(html).find(n => n.attrs?.['data-bets-section'])?.attrs['data-bets-section']).toBe('recommended');
   });
   it('draws each assessment as a picture row: marks first, the price over its word, a stable id', () => {
     const row = nodes(html).find(n => n.tag === 'button' && n.attrs?.['data-assessment']);
@@ -68,5 +69,15 @@ describe('Recommended rows rise in once per visit', () => {
     expect(listEnter(false, 'in')).toBe('in');
     expect(listEnter(true, 'in')).toBeUndefined();
     expect(listEnter(false, undefined)).toBeUndefined();
+  });
+  it('the entrance decided when the list first draws holds through every re-render while it stays up', async () => {
+    const { holdRise } = await import('../web/src/next/research/Assessments.jsx');
+    let held = holdRise(null, true, false, 'in');
+    expect(held.value).toBe('in');
+    // the first commit marks the list shown, then trends land and the screen renders again: the rise must not drop
+    for (let render = 0; render < 3; render += 1) held = holdRise(held, true, true, 'in');
+    expect(held.value, 'a re-render during the rise keeps data-enter').toBe('in');
+    expect(holdRise(held, false, true, 'in'), 'leaving the list ends the hold').toBeNull();
+    expect(holdRise(null, true, true, 'in').value, 'back from an assessment: no entrance').toBeUndefined();
   });
 });

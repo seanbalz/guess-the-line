@@ -50,12 +50,12 @@ export function GapLayer({ gap, item, onClose }) {
   const root = useRef(null);
   useLayerFocus(root);
   const row = gap.ranked.rows.find(r => r.key === item) ?? null, selection = gap.selections[item] ?? null, pick = gap.picks[item] ?? null;
-  const title = gapTitle(item), game = selection ? (gap.data?.games.find(g => g.id === selection.gameId) ?? selection.game) : null;
+  const title = gapTitle(item), game = selection ? gap.data?.games.find(g => g.id === selection.gameId) : undefined; // a game that left the read is Closed, as in the list
   return <section ref={root} className="gx-screen gx-bets" data-bets-layer="gap" data-gap-item={item}>
     <h1 className="gx-t-title">{BETS_NAMES.gap}</h1>
     <GapMessages gap={gap}/>
     <Nest label={title} lips={[{ key: 'gap', label: BETS_NAMES.gap, onOpen: onClose }]} layer={`gap:${item}`} title={title}>
-      {!gap.data ? <Skeleton label={GAP_COPY.loading} shape="panels" count={2}/>
+      {!gap.data ? (gap.loading ? <Skeleton label={GAP_COPY.loading} shape="panels" count={2}/> : null)
         : row ? <GapDetail gap={gap} row={row} selection={selection} pick={pick}/>
         : selection ? <><p className="gx-t-meta">{GAP_COPY.unsavedStays}</p><GapReview gap={gap} game={game} market={selection.market} selection={selection} pick={pick}/></>
         : <p className="gx-t-body">{GAP_COPY.gone}</p>}

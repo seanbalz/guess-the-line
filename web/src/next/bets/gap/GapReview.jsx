@@ -11,9 +11,9 @@ import { GAP_COPY, MARKET_NAME, closedLine, closedReason, lineText, sameQuote, t
 import '../place.css';
 
 export function GapReview({ gap, game, market, selection, pick }) {
-  const key = `${game.id}:${market}`, busy = gap.busy || gap.loading || Boolean(gap.uncertain);
-  if (game.locked?.[market]) return <div data-gap="review" data-locked="true"><LockLine as="p" className="gx-t-meta">{lineLocked(market, gap.data?.rules)}</LockLine></div>;
-  const reason = closedReason(game, gap.now, gap.data?.results?.[game.id]);
+  const key = `${selection.gameId}:${market}`, busy = gap.busy || gap.loading || Boolean(gap.uncertain);
+  if (game?.locked?.[market]) return <div data-gap="review" data-locked="true"><LockLine as="p" className="gx-t-meta">{lineLocked(market, gap.data?.rules)}</LockLine></div>;
+  const reason = closedReason(game, gap.now, gap.data?.results?.[selection.gameId]);
   const terms = `${termsText(selection.game ?? game, market, selection.side, selection.offer, selection.units)}${SEP}quoted ${fmtWhen(selection.offer.observedAt)}`;
   if (reason) return <div className="gx-vstack gx-gap-8" data-gap="review">
     <LockLine as="p" className="gx-t-body" role="status">{closedLine(reason)}</LockLine>
