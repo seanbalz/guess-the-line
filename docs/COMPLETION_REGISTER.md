@@ -20,7 +20,8 @@ Not yet: the Pages release, and Sean's iPhone check of Research.
 ## D-69 design overhaul, step 2: Home — November 4, 2026
 
 Built on `claude/overhaul-step2-home` from the
-[step 2 plan](superpowers/plans/2026-11-04-design-overhaul-step2-home.md). Not merged or released. Home is layout H1A
+[step 2 plan](superpowers/plans/2026-11-04-design-overhaul-step2-home.md), merged as
+[#482](https://github.com/seanbalz/guess-the-line/pull/482). Home is layout H1A
 (the recommended board, "Tiles, then This week as game tiles"), chosen by the build because Sean's step 2 questions
 were not answered before it, with the design audit's C9; both are build decisions for Sean's review. The next-move card
 carries the week in its eyebrow, the countdown as its picture and the Spread and Total meters side by side from a
@@ -33,8 +34,12 @@ chip is drawn; Play's Your score tile shows NEW for it. Home now reads `GET /per
 Evidence (local): `node --test` 2910 tests, 2909 pass, 1 fails (`tests/research-intake.test.mjs`, the Windows file-mode
 check on untouched code), skipped 0; Vitest 79 files, 834 tests pass; typecheck and build pass; the full browser run
 365 passed, skipped 0.
-Not yet: the Pages release, Sean's iPhone check of Home, and a post-release signed-in readback of `GET /personal`
-(latency and Edge CPU).
+After the 390 px captures Sean said "Yes, merge #482", then "Yes, release it".
+
+**Released** November 4, 2026, about 16:35 UTC: Pages `beab6d1b` from `main` at `7bb83a5b`, run 41868177237. See the
+[release record](RELEASE_2026_11_04_HOME_STEP2.md). Live bytes were checked signed out.
+Not yet: Sean's iPhone check of Home, and a signed-in readback of `GET /personal` (latency and Edge CPU). No signed-in
+request had arrived by about 16:45 UTC.
 
 ## Design audit quick wins (group A) — November 4, 2026
 
