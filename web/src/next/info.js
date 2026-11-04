@@ -101,7 +101,7 @@ export const INFO = Object.freeze({
     body: [
       'Compare your locked guesses with current lines. Track a ticket placed elsewhere, or play with Virtual Units.',
       'Differences are compared as a percentage of the line; they are not win probabilities.',
-      'Colors here describe the guess gap only. They do not indicate model-estimated betting value. Independent assessments are in Research recommendations.',
+      'Colors here describe the guess gap only. They do not indicate model-estimated betting value. Independent assessments are in Recommended.',
     ],
   },
   virtual: {

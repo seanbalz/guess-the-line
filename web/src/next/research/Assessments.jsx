@@ -10,7 +10,7 @@ import { useAssessments } from './useAssessments.js';
 import './assessments.css';
 
 const INFO = {
-  title: 'About research recommendations',
+  title: 'About Recommended',
   body: ['Research is independent of your sportsbook-line guesses. Qualitative findings have no calculated win probability or estimated betting edge.',
     'Yellow is a research lean; red means evidence against; gray means insufficient evidence. Green is reserved for a tested projection indicating value at the quoted price. No model is qualified yet.',
     'Contradictions and shared underlying data remain visible. Multiple posts about the same dataset are not independent confirmations.',
@@ -27,6 +27,8 @@ const reasons = {
 const readableTime = value => Number.isFinite(Date.parse(value)) ? new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Los_Angeles' }).format(new Date(value)) + ' PT' : 'Time unavailable';
 const TONE = Object.freeze({ green: 'good', yellow: 'plain', red: 'warn', gray: 'plain' });
 const marks = gameId => { const [away, home] = String(gameId).split('-'); return <><TeamMark code={away} size={24} decorative/><TeamMark code={home} size={24} decorative/></>; };
+/** The rows' entrance, once per visit: 'in' only until the list has shown; coming back from an assessment is quiet. */
+export const listEnter = (shown, enter) => (shown ? undefined : enter);
 const odds = value => value > 0 ? `+${value}` : String(value).replace('-', '−');
 function Select({ label, value, options, onChange }) {
   const id = useId();
@@ -126,7 +128,7 @@ export function ResearchLinkIntake({ accountId, onDirty }) {
 
 export default function ResearchAssessments({ onDirty, onTrack }) {
   const lines = useLinesData(), shell = useShell(), route = shell.state.views.bets;
-  const root = useRef(null), enter = useEntrance(); useLayerFocus(root);
+  const root = useRef(null), enter = useEntrance(), listShown = useRef(false); useLayerFocus(root);
   const [market, setMarket] = useState(''), [color, setColor] = useState(''), [limit, setLimit] = useState(20);
   const gameId = route.matchup || undefined;
   // The server chooses the latest published account week, independently of a private league's week.
@@ -135,6 +137,9 @@ export default function ResearchAssessments({ onDirty, onTrack }) {
   const select = id => shell.go('bets', { view: 'research', ...(gameId ? { matchup: gameId } : {}), assessment: id ?? null });
   const chooseGame = id => { setLimit(20); shell.go('bets', { view: 'research', matchup: id || null, assessment: null }); };
   const rows = (data?.assessments ?? []).filter(a => !color || a.color === color);
+  // After the commit that shows the list, a later remount of it (back from an assessment) carries no entrance.
+  const listEntrance = listEnter(listShown.current, enter);
+  useEffect(() => { if (data && !a && rows.length) listShown.current = true; });
   const track = a => {
     const s = a.selection, leg = { gameId: a.gameId, market: s.market, side: s.side, line: s.line,
       ...(s.market === 'prop' ? { selection: `${s.playerName} ${s.side} ${s.line ?? ''} ${s.key.replace(/^player_/, '').replaceAll('_', ' ')}` } : {}) };
@@ -152,10 +157,10 @@ export default function ResearchAssessments({ onDirty, onTrack }) {
       {a ? <AssessmentDetail assessment={a} onTrack={onTrack ? track : null}/> : <>
         <p className="gx-t-meta">Schedule order · qualitative assessments</p>
         {!rows.length ? <p className="gx-t-body" role="status">{assessmentEmptyMessage(data, { market, color })}</p>
-          : <ol className="gx-prows gx-stagger" data-enter={enter} aria-label="Assessed bets">{rows.slice(0, limit).map(a => <li key={a.id}>
+          : <ol className="gx-prows gx-stagger" data-enter={listEntrance} aria-label="Assessed bets">{rows.slice(0, limit).map(a => <li key={a.id}>
             <PictureRow id={`gx-b-ra-${a.routeId}`} data-assessment={a.color} picture={marks(a.gameId)} title={a.title}
               meta={a.hasConflicts ? 'Opposing evidence present' : null} value={a.quote ? odds(a.quote.odds) : '—'} word={a.label} tone={TONE[a.color] ?? 'plain'}
-              ariaLabel={`${a.title} ${a.label}${a.hasConflicts ? ', opposing evidence present' : ''}`} onClick={() => select(a.routeId)}/></li>)}</ol>}
+              ariaLabel={`${a.title} ${a.label}${a.quote ? `, ${odds(a.quote.odds)}` : ''}${a.hasConflicts ? ', opposing evidence present' : ''}`} onClick={() => select(a.routeId)}/></li>)}</ol>}
         {rows.length > limit ? <Button variant="secondary" onClick={() => setLimit(n => n + 20)}>Show more assessments</Button> : null}
         <Button variant="secondary" onClick={read.reload}>Refresh research</Button>
         <ResearchCoverage data={data}/>

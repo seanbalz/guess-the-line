@@ -2,6 +2,7 @@
 // POST /bets/read for the league showing (the Community, or a private league's roster). Read only: placing stays in
 // Your picks. everyone.js decides nothing the server has not: a friend's line, price and book show only where the
 // reply opens that game's market for this viewer; elsewhere the row shows side and units and a lock sentence.
+import { useRef } from 'react';
 import { betsApi } from '../../api.js';
 import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
@@ -11,18 +12,31 @@ import { SEP, fmtWhen } from '../format.js';
 import { EVERYONE_COPY, everyoneBoard } from './everyone.js';
 import './everyone.css';
 
+/**
+ * What Everyone shows for a read: the answer, or the last good answer of this same league while a refresh reads (the
+ * board stays on screen, so its rows rise in once per visit), or nothing on a first load (the skeleton).
+ */
+export function everyoneView(read, last, key) {
+  if (read.data) return { data: read.data, refreshing: false };
+  if (read.loading && last.key === key && last.data) return { data: last.data, refreshing: true };
+  return { data: null, refreshing: false };
+}
+
 export function EveryoneBets({ onPlace }) {
   const app = useAppData(), shell = useShell();
   const leagueId = app.league?.community === false && !app.league.pending ? app.league.id : null;
   const key = `${app.accountId}:everyone:${leagueId ?? 'community'}`;
   const read = useLeagueRead(key, signal => betsApi('read', leagueId ? { leagueId } : {}, signal), error => { if (error.status === 401) app.requestSignIn(); });
-  if (read.loading) return <Skeleton label="Loading everyone’s picks…" shape="rows" count={4} className="gx-ev-skel"/>;
+  const last = useRef({ key: null, data: null });
+  const view = everyoneView(read, last.current, key);
+  if (!read.loading && read.data) last.current = { key, data: read.data };
+  if (read.loading && !view.data) return <Skeleton label="Loading everyone’s picks…" shape="rows" count={4} className="gx-ev-skel"/>;
   if (read.error) return <LeagueFailure error={read.error} onRetry={read.retry}/>;
-  return <EveryoneBoard data={read.data} viewer={app.accountId} scopeName={leagueId ? app.league.name : 'Community'}
+  return <EveryoneBoard data={view.data} refreshing={view.refreshing} viewer={app.accountId} scopeName={leagueId ? app.league.name : 'Community'}
     onLockIn={() => shell.go('play', { section: 'picks' })} onOpenPlay={() => shell.go('play')} onPlace={onPlace} onRefresh={read.retry}/>;
 }
 
-export function EveryoneBoard({ data, viewer, scopeName, onLockIn, onOpenPlay, onPlace, onRefresh }) {
+export function EveryoneBoard({ data, viewer, scopeName, onLockIn, onOpenPlay, onPlace, onRefresh, refreshing = false }) {
   const board = everyoneBoard(data, viewer), enter = useEntrance();
   // Rule 5: an empty state is one sentence and one action (design audit A17).
   if (!board.published) return <div className="gx-vstack gx-gap-12" data-bets="unpublished">
@@ -47,7 +61,7 @@ export function EveryoneBoard({ data, viewer, scopeName, onLockIn, onOpenPlay, o
         {board.games.map(game => <li key={game.id}><EveryoneGame game={game}/></li>)}
       </ol>
     </>}
-    {onRefresh ? <Button variant="ghost" onClick={onRefresh}>Refresh</Button> : null}
+    {onRefresh ? <Button variant="ghost" disabled={refreshing} onClick={onRefresh}>{refreshing ? 'Refreshing…' : 'Refresh'}</Button> : null}
   </div>;
 }
 

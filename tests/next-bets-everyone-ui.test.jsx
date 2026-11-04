@@ -11,7 +11,7 @@ import { teamMarks } from '../web/src/teamLogoRegistry.js';
 vi.mock('../web/src/api.js', () => ({ betsApi: vi.fn() }));
 vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: vi.fn() }));
 
-const { EveryoneBoard } = await import('../web/src/next/bets/EveryoneBets.jsx');
+const { EveryoneBoard, everyoneView } = await import('../web/src/next/bets/EveryoneBets.jsx');
 const { EVERYONE_COPY } = await import('../web/src/next/bets/everyone.js');
 const { TrackedBetRow } = await import('../web/src/next/bets/TrackedBetRow.jsx');
 
@@ -143,5 +143,25 @@ describe('a tracked bet row (D-62)', () => {
     const lost = row({ kind: 'single', legs: [{ gameId: 'NYJ-BUF', selection: 'Over 40' }] });
     expect(matchups(lost)).toEqual([]);
     expect(lost).toContain('NYJ-BUF');
+  });
+});
+
+describe('a refresh keeps the board on screen (rows rise in once per visit)', () => {
+  const none = { key: null, data: null };
+  it('a first load is the skeleton; a refresh of the same league keeps the last answer and says it is refreshing', () => {
+    expect(everyoneView({ loading: true, data: null }, none, 'a:everyone:community')).toEqual({ data: null, refreshing: false });
+    const last = { key: 'a:everyone:community', data };
+    expect(everyoneView({ loading: true, data: null }, last, 'a:everyone:community')).toEqual({ data, refreshing: true });
+    expect(everyoneView({ loading: false, data: { ...data, week: 8 } }, last, 'a:everyone:community')).toEqual({ data: { ...data, week: 8 }, refreshing: false });
+  });
+  it('another league never shows the last league’s picks while it loads', () => {
+    expect(everyoneView({ loading: true, data: null }, { key: 'a:everyone:one', data }, 'a:everyone:two')).toEqual({ data: null, refreshing: false });
+  });
+  it('the board says Refreshing… on a disabled button, and still carries its entrance only from mount', () => {
+    const html = render({ refreshing: true });
+    const btn = [...walk(parseMarkup(html))].find(n => n.tag === 'button' && JSON.stringify(n, (k, v) => (k === 'parent' ? undefined : v)).includes('Refreshing'));
+    expect(btn.attrs.disabled).not.toBeUndefined();
+    expect(html).not.toContain('>Refresh<');
+    expect(render()).toContain('>Refresh<');
   });
 });

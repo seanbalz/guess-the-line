@@ -7,6 +7,10 @@
 .gx .gx-ra [data-assessment="yellow"] { background: var(--gx-pending-tint); border-color: var(--gx-pending); }
 .gx .gx-ra [data-assessment="red"] { background: var(--gx-loss-tint); border-color: var(--gx-loss); }
 .gx .gx-ra [data-assessment="green"] { background: var(--gx-win-tint); border-color: var(--gx-win); }
+/* A picture row inside the depth-0 nest is painted by the kit at (0,4,0); the tint must out-specify it (0,5,0). */
+.gx .gx-ra .gx-nest .gx-prow[data-assessment="yellow"] { background: var(--gx-pending-tint); border-color: var(--gx-pending); }
+.gx .gx-ra .gx-nest .gx-prow[data-assessment="red"] { background: var(--gx-loss-tint); border-color: var(--gx-loss); }
+.gx .gx-ra .gx-nest .gx-prow[data-assessment="green"] { background: var(--gx-win-tint); border-color: var(--gx-win); }
 .gx .gx-ra-evidence { min-width: 0; }
 .gx .gx-ra-evidence summary { display: flex; align-items: center; min-height: var(--gx-size-touch); cursor: pointer; font-size: 16px; color: var(--gx-data); }
 .gx .gx-ra-evidence[open] { display: flex; flex-direction: column; gap: var(--gx-space-3); }
