@@ -1,6 +1,41 @@
 # Guess The Line — eight whole-app style directions
 
-Owner: Sean Balsiger · Version 4 · November 4, 2026
+Owner: Sean Balsiger · Version 5 · November 4, 2026
+
+## Interactive Prism Glass customizer
+
+Open the [live customizer](prism-customizer.html). Sean requested direct color
+selection, background gradient on/off and additional style controls. The studio
+previews Home, Play, Bets, Research, EPL and Account, including opened layers.
+It offers background/card/accent/text colors, two gradient colors, strength and
+angle; polished/frosted/clear/solid materials; opacity, blur, gloss, shadow,
+corner radius and spacing; and system, rounded or editorial typography.
+
+Dark and light configurations stay independent. Settings persist in this browser;
+named designs contain both modes. Export/import transfers a versioned JSON file.
+Storage is local, not account synchronization. The shortlist includes 12, 18, 11,
+01 and 24; Sean likes only 18 and 24 from the additional round. The studio starts
+from his previously stated 12-dark/01-light preferences. No final dark selection
+between 12 and 18 has been inferred. All 24 starting palettes remain available.
+Choosing a starting palette resets that mode's appearance to its preset.
+
+Local Chromium verification: 26 targeted assertions passed for custom colors,
+gradient off, independent modes, all six screens, child navigation, solid/clear
+materials, radius, typography, named restore, export/import, invalid inputs,
+reload persistence and layouts at 320/390/736/1440 pixels. Additional checks
+confirmed gradient restoration, color-picker invalid-state recovery, and retained
+appearance inside Research game and Account reminder layers. No JavaScript
+errors were observed. Desktop dark and mobile dark/light captures were inspected.
+Brand QA, JavaScript syntax and local HTML references/IDs were checked.
+Contrast figures compare base text/background and button colors only; arbitrary
+user colors and composited translucent surfaces require their own review.
+
+![Interactive studio, dark preview](previews/prism-studio-desktop.png)
+
+This is a coded visual prototype using fictional fixtures, not production UI or
+functional betting/account verification. The requested colors/fonts are an
+explicit exploration exception; production tokens and approved G geometry remain
+unchanged. Approval and the deferred avatar/logo/icon/award phase remain pending.
 
 ## More unique palettes and an optional card-color experiment
 

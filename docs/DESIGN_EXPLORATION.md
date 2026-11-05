@@ -1,5 +1,17 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — live Prism Glass customization
+
+Sean requested editable colors, a background-gradient toggle and style options.
+The [interactive studio](../design/style-directions-2026-11-04/prism-customizer.html)
+lets him preview those choices with material, gloss, transparency, blur, shadow,
+corners, spacing and typography across six mockup areas. Dark/light settings
+persist independently; named designs and JSON export/import support review.
+Sean likes only 18 and 24 from the additional round. Earlier 12-dark, 01-light
+and 11-interest preferences remain recorded; no final replacement is inferred.
+The [record](../design/style-directions-2026-11-04/README.md) covers local browser
+checks and limitations. Final design approval and the deferred phase remain held.
+
 ## November 4, 2026 — stronger contrast and optional card colors
 
 Sean prefers original colors 12 (dark) and 01 (light), with 11 also appealing.

@@ -1,5 +1,21 @@
 # Guess The Line — current completion register
 
+## Interactive Prism Glass studio — November 4, 2026
+
+Sean requested a mockup with editable colors, gradient on/off and style options.
+The [customizer](../design/style-directions-2026-11-04/prism-customizer.html)
+provides independent dark/light settings, all 24 palette starts with favorites
+first, glass/depth/shape/type controls and six navigable mockup areas. Named
+browser-local designs and versioned export/import preserve both modes. From the
+new palette round Sean likes only 18 and 24; this does not replace his earlier
+12-dark/01-light preference without a further decision.
+
+[Evidence and scope](../design/style-directions-2026-11-04/README.md) record 26
+passing targeted Chromium assertions plus gradient restoration, invalid-state
+recovery and two deeper-layer retention checks. Desktop/mobile captures were
+inspected. Prototype only; approval, production work and the deferred phase
+remain pending. Frozen v62 and production tokens are unchanged.
+
 ## Preferred anchors, twelve more palettes and optional card tints — November 4, 2026
 
 Sean prefers 12 for dark mode, 01 for light mode and also likes 11 from the

@@ -13,5 +13,18 @@
   },
   "requestedMeaningOfSeparateColors": "unique, different, new",
   "optionalExperiment": "Different colors per card authorized for visual comparison",
-  "status": "Exploratory preferences; no production implementation decision"
+  "status": "Exploratory preferences; no production implementation decision",
+  "additionalPaletteRound": {
+    "likedOnly": [
+      {
+        "id": "midnight-lime",
+        "originalNumber": 18
+      },
+      {
+        "id": "porcelain-evergreen",
+        "originalNumber": 24
+      }
+    ],
+    "darkFinalChoice": "Unresolved between previous 12 preference and new 18 interest"
+  }
 }
