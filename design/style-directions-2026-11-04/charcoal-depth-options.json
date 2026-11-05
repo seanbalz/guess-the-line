@@ -1,5 +1,5 @@
 {
-  "status": "Charcoal base selected for dark mode; depth/text treatments exploratory",
+  "status": "02 and 04 shortlisted, followed by selection of combined 02-gradient/04-ivory direction",
   "selectedLogo": "logo-hybrid/lime.svg",
   "selectedDarkBase": {
     "id": "obsidian",
@@ -108,5 +108,6 @@
       "text": "#F2D6C3",
       "muted": "#CDB09B"
     }
-  ]
+  ],
+  "selectedCombination": "charcoal-ivory-combination.json"
 }

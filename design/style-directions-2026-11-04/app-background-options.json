@@ -1,5 +1,5 @@
 {
-  "status": "Option 01 selected as dark-mode base; depth/gradient and text treatment still exploratory",
+  "status": "Option 01 selected for dark base; subsequent combined gradient/ivory direction selected separately",
   "selectedLogo": "logo-hybrid/lime.svg",
   "logoBaseColor": "#B8F34B",
   "backgroundTreatment": "Solid; gradient decision deferred",
@@ -46,6 +46,7 @@
     "id": "obsidian",
     "hex": "#202126",
     "scope": "Dark-mode base only",
-    "lightMode": "Not decided by this selection"
+    "lightMode": "Not decided by this selection",
+    "subsequentDirection": "charcoal-ivory-combination.json"
   }
 }

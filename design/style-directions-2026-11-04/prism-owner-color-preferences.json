@@ -1,7 +1,8 @@
 {
   "darkPreference": {
     "id": "obsidian",
-    "originalNumber": 12
+    "originalNumber": 12,
+    "scope": "Earlier full-palette anchor; current selectedDarkDirection supersedes its accent/text interpretation"
   },
   "lightPreference": {
     "id": "arctic",
@@ -13,7 +14,7 @@
   },
   "requestedMeaningOfSeparateColors": "unique, different, new",
   "optionalExperiment": "Different colors per card authorized for visual comparison",
-  "status": "Exploratory preferences; no production implementation decision",
+  "status": "Logo and combined charcoal-gradient/ivory dark direction selected; remaining design decisions and production integration pending",
   "additionalPaletteRound": {
     "likedOnly": [
       {
@@ -25,17 +26,31 @@
         "originalNumber": 24
       }
     ],
-    "darkFinalChoice": "Unresolved between previous 12 preference and new 18 interest"
+    "darkFinalChoice": "Resolved as charcoal gradient plus warm ivory text in selectedDarkDirection"
   },
   "selectedDarkBackground": {
     "backgroundBoardNumber": 1,
     "id": "obsidian",
     "hex": "#202126",
-    "scope": "Dark base only; gradient/glow and text colors still exploratory"
+    "scope": "Dark base; exact selected gradient and text are in selectedDarkDirection"
   },
   "shortlistedDepthTextStudies": [
     2,
     4
   ],
-  "combinedGradientIvoryStatus": "Requested comparison, not selected"
+  "combinedGradientIvoryStatus": "Selected by Sean",
+  "selectedDarkDirection": {
+    "number": null,
+    "id": "combined-02-04",
+    "name": "Combined / Gradient + Warm ivory",
+    "treatment": "gradient",
+    "background": "#202126",
+    "wash": "linear-gradient(150deg,#2A2D37 0%,#202126 50%,#17181D 100%)",
+    "text": "#F3E9D7",
+    "muted": "#C4B9A6",
+    "logo": "logo-hybrid/lime.svg",
+    "logoBaseColor": "#B8F34B",
+    "confirmed": "2026-11-04",
+    "production": "Not integrated or deployed"
+  }
 }

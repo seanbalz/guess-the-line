@@ -1,6 +1,19 @@
 # Guess The Line — eight whole-app style directions
 
-Owner: Sean Balsiger · Version 12 · November 4, 2026
+Owner: Sean Balsiger · Version 13 · November 4, 2026
+
+## Selected combined dark direction — November 4, 2026
+
+Sean confirmed the **middle combined preview**: 02's subtle charcoal gradient
+and 04's warm ivory main/secondary text with the already selected lime hybrid G.
+The [exact selection](charcoal-ivory-combination.json) and [owner preferences](prism-owner-color-preferences.json)
+record base `#202126`, the 150-degree charcoal gradient, main `#F3E9D7`, secondary
+`#C4B9A6` and selected `logo-hybrid/lime.svg`. This supersedes review-pending
+statuses in the earlier entries below. The comparison itself stays as reviewed.
+This records a dark background/text direction; it does not establish approval
+of remaining card/control/light-mode decisions or whole-project completion.
+Metadata consistency and Brand QA passed; reviewed visuals are unchanged.
+Production integration and the deferred phase have not started.
 
 ## Combined preview: 02 gradient and 04 ivory — November 4, 2026
 

@@ -1,5 +1,16 @@
 # GUESS THE LINE — BRAND & DESIGN SYSTEM v1.0
 
+## Selected charcoal-gradient / warm-ivory dark direction — November 4, 2026
+
+Sean confirmed the **middle combined preview** in the [three-way comparison](../design/style-directions-2026-11-04/charcoal-ivory-combination.html):
+02's subtle charcoal gradient with 04's warm ivory text. Selected settings are
+base `#202126`, `linear-gradient(150deg,#2A2D37 0%,#202126 50%,#17181D 100%)`,
+main text `#F3E9D7`, and secondary text `#C4B9A6`. Retain the previously selected
+lime `#B8F34B` glossy-edge/frosted-center G. [Exact selection](../design/style-directions-2026-11-04/charcoal-ivory-combination.json)
+is the source for this direction. This supersedes earlier open dark-depth/text
+statuses. Card/control decisions, light mode, whole-project completion and
+production integration remain separate; shipped tokens and assets are unchanged.
+
 ## Selected dark background base — November 4, 2026
 
 Sean selected **01 / Obsidian charcoal, `#202126`**, from the [background board](../design/style-directions-2026-11-04/app-background-options.html)

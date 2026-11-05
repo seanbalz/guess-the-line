@@ -1,5 +1,17 @@
 # Guess The Line — current completion register
 
+## Combined dark direction selected — November 4, 2026
+
+Sean confirmed the middle combined preview: 02's subtle charcoal gradient plus
+04's warm ivory main/secondary text with the selected lime hybrid G. [Selection
+metadata](../design/style-directions-2026-11-04/charcoal-ivory-combination.json)
+and [brand guidance](BRAND_GUIDE.md) record the exact settings. This resolves the
+dark background/depth/text decision and supersedes the earlier review-pending
+status; it does not establish whole-app completion, production integration,
+light-mode acceptance or a start of deferred avatar/team-logo/icon/award work.
+Metadata consistency and Brand QA passed. This update records the decision;
+the reviewed visuals and production code/assets/tokens are unchanged.
+
 ## Combined gradient/ivory preview — November 4, 2026
 
 Sean shortlisted charcoal studies 02 and 04 and requested a visual preview of

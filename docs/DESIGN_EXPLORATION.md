@@ -1,5 +1,14 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — combined dark direction selected
+
+Sean confirmed the middle preview combining 02's subtle charcoal gradient with
+04's warm ivory text. The [selected settings](../design/style-directions-2026-11-04/charcoal-ivory-combination.json)
+keep base `#202126`, the specified 150-degree gradient, main `#F3E9D7` and
+secondary `#C4B9A6`, plus the previously selected current-lime hybrid logo.
+The background/depth/text choice is now selected. Remaining design decisions,
+whole-project completion, production integration and the deferred phase are open.
+
 ## November 4, 2026 — compare combined 02/04 before choosing
 
 Sean shortlisted 02 and 04, then agreed to preview 02's subtle gradient with
