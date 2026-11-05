@@ -1,5 +1,17 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — eight new whole-app style directions
+
+Sean requested 5–10 distinct styles based on his selected references, then
+confirmed: "Explore new colors and typography too. I want the 5–10 styles to look
+distinctly different, based on the references I saved."
+The [eight-direction review](../design/style-directions-2026-11-04/index.html)
+provides 48 new primary concepts across Home, Play, Bets, Research, EPL and Account.
+The [source map and validation](../design/style-directions-2026-11-04/README.md)
+cover all 25 selected reference IDs. This authorizes color/type exploration in
+these mockups; no replacement brand or implementation is selected. Production
+branding remains as documented below until Sean makes a new selection.
+
 ## November 1, 2026 — My bets preview and spacing refinement
 
 After the option 04 deployment, Sean requested better spacing and a preview that

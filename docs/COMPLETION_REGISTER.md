@@ -1,5 +1,17 @@
 # Guess The Line — current completion register
 
+## Eight new whole-app style mockups — November 4, 2026
+
+Sean selected 25 references and explicitly authorized new palettes and typography
+for 5–10 distinct whole-app styles. The [eight-direction review](../design/style-directions-2026-11-04/index.html)
+contains 48 new primary concepts across Home, Play, Bets, Research, EPL and Account,
+plus representative deeper layers. [Source mapping and evidence](../design/style-directions-2026-11-04/README.md)
+link all 25 selected references. These are exploratory coded mockups, not the
+earlier existing-screen gallery. No style is selected or implemented in production.
+New color/type variables are scoped to the artifact under Sean's explicit request;
+current product tokens and the selected Yardline G geometry are preserved.
+Targeted local browser layout, navigation, note persistence and export checks pass.
+
 ## Style references before new mockups — November 4, 2026
 
 Sean clarified that the 5–10 mockups must represent different styles across the whole app, with glossy glass as one option. He requested **50–100 references first**. The [87-reference visual library](../design/style-references-2026-11-04/index.html) provides 12 search groups, 84 publisher preview links and 3 source-only entries; [all sources](../design/style-references-2026-11-04/REFERENCES.md) remain attributed. These are selection candidates, not newly implemented GTL screens or completed visual audits. Private Twitter bookmarks were not accessed. The earlier 39-pair gallery mostly shows existing screens and is context only; it does not satisfy the new-style request. No new mockups or implementation are approved.
