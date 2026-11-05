@@ -23,4 +23,4 @@ and consistency, and which popup/award states and triggers need exploration.
 These are future interview topics, not inferred product decisions or approval
 to replace existing assets now.
 
-Current visual review: [five icon treatments](../design/style-directions-2026-11-04/icon-treatment-options.html) and existing NFL/EPL team marks in paired screen mockups. League-wide mark replacement and production integration remain outstanding; no icon option has been approved.
+Current visual review: [five icon treatments](../design/style-directions-2026-11-04/icon-treatment-options.html) and existing NFL/EPL team marks in paired screen mockups. League-wide mark replacement and production integration remain outstanding; 03 Glossy glass is selected for the mockups by Sean accepting the assistant recommendation. Fresh screen review remains pending.

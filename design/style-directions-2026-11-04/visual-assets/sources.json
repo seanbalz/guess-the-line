@@ -1,6 +1,6 @@
 {
   "date": "2026-11-04",
-  "status": "Proposed; no icon selection or new screen acceptance",
+  "status": "03 Glossy glass selected; fresh screen review remains pending",
   "teamAssets": "Copied unchanged from web/public/team-logos; NFL D-46 and EPL source registers retain provenance. Identification beside names only.",
   "iconSource": "https://github.com/lucide-icons/lucide/tree/0.468.0/icons",
   "license": "LUCIDE-LICENSE",
@@ -351,5 +351,14 @@
       }
     }
   ],
-  "trademarkNotice": "NFL, Premier League and team names, logos and marks are trademarks of their owners; used only to identify teams. No endorsement or affiliation. Existing repo use is not a license."
+  "trademarkNotice": "NFL, Premier League and team names, logos and marks are trademarks of their owners; used only to identify teams. No endorsement or affiliation. Existing repo use is not a license.",
+  "iconSelection": {
+    "id": "3",
+    "name": "Glossy glass",
+    "date": "2026-11-04",
+    "basis": "Sean accepted the assistant recommendation: go with your rec",
+    "scope": "Icon finish across the current mockups; fresh screen review remains pending",
+    "recipe": "visual-icon-treatments.css: data-icon-treatment=3",
+    "rationale": "Matches floating glass cards and hybrid G, with restrained depth around functional symbols; neutral inactive navigation keeps lime emphasis selective."
+  }
 }

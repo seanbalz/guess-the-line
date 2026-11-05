@@ -1,5 +1,19 @@
 # GUESS THE LINE — BRAND & DESIGN SYSTEM v1.0
 
+## Selected icon finish: 03 Glossy glass — November 4, 2026
+
+Sean accepted the assistant recommendation ("go with your rec"): use **03 Glossy
+glass** for icons across the current dark/light mockups. The clear face, glossy
+edge and restrained shadow fit the floating glass cards and hybrid G. Keep
+functional glyphs readable and inactive navigation neutral so lime emphasis
+stays selective. Geometry remains Lucide; notices and team-mark provenance are
+retained. [Five-way visual reference](../design/style-directions-2026-11-04/icon-treatment-options.html)
+and [paired screen review](../design/style-directions-2026-11-04/selected-system-review.html)
+record the choice. Alternatives remain available for comparison. This selects
+the icon finish; reopened screens still need fresh review. Production integration,
+league-wide mark replacement, avatars and popup/award work retain their existing status.
+
+
 ## Selected light background: 02 Porcelain glass — November 4, 2026
 
 Sean selected **02 / Porcelain glass** after the [three-way Research comparison](../design/style-directions-2026-11-04/light-research-comparison.html).

@@ -373,9 +373,18 @@
     "authorized": "2026-11-04",
     "scope": "Team/league logos and icon options active now; avatars and popup/award work held",
     "options": "icon-treatment-options.html",
-    "defaultPreview": "03 Glossy glass, proposed only; no selection",
+    "defaultPreview": "03 Glossy glass, selected by Sean accepting the assistant recommendation",
     "assets": "visual-assets/sources.json",
     "leagueMarks": "Not added; league-wide replacements remain outstanding",
     "screenAcceptance": "All previous screen approvals remain reopened"
+  },
+  "iconSelection": {
+    "id": "3",
+    "name": "Glossy glass",
+    "date": "2026-11-04",
+    "basis": "Sean accepted the assistant recommendation: go with your rec",
+    "scope": "Icon finish across the current mockups; fresh screen review remains pending",
+    "recipe": "visual-icon-treatments.css: data-icon-treatment=3",
+    "rationale": "Matches floating glass cards and hybrid G, with restrained depth around functional symbols; neutral inactive navigation keeps lime emphasis selective."
   }
 }
