@@ -1,5 +1,15 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — selected system across primary screens and layers
+
+Sean authorized the selected dark/Porcelain review across Home, Play, Bets,
+Research, EPL and Account. The [live viewer](../design/style-directions-2026-11-04/selected-system-review.html)
+aligns both themes for six primary screens and twenty existing sample detail
+states; the [overview](../design/style-directions-2026-11-04/selected-system-overview.html)
+shows all six pairs. Exact source recipes are retained, with local notes/export
+for feedback. Visual sign-off and whole-project completion remain pending.
+No production or deferred-feature work starts from opening the review.
+
 ## November 4, 2026 — 02 Porcelain glass selected for light mode
 
 Sean chose 02 / Porcelain glass in the same-content Research comparison.

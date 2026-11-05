@@ -1,5 +1,19 @@
 # Guess The Line — current completion register
 
+## Dark/light cross-screen review available — November 4, 2026
+
+Sean authorized the next cross-screen review. The [paired viewer](../design/style-directions-2026-11-04/selected-system-review.html)
+and [six-screen overview](../design/style-directions-2026-11-04/selected-system-overview.html)
+carry selected dark recipes and Porcelain/light adaptations across six existing
+primary mockup screens and twenty detail states (26 pairs / 52 themed views).
+Local screen/layer notes and export support review; no approval is inferred.
+[Evidence and limitations](../design/style-directions-2026-11-04/README.md) record
+four widths across six screen pairs, all 26 paired states, matching content and
+source recipes, table readability/overflow, notes persistence/export/deep links,
+gallery/visual checks and Brand QA. Cross-screen visual sign-off, whole-project
+completion and production integration remain pending. Frozen v62, production
+code/assets/tokens and deferred avatar/team-logo/icon/award scope are unchanged.
+
 ## Light background 02 Porcelain selected — November 4, 2026
 
 Sean selected **02 / Porcelain glass** from the Research comparison, resolving

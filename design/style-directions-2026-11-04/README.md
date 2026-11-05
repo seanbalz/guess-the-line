@@ -1,6 +1,49 @@
 # Guess The Line — eight whole-app style directions
 
-Owner: Sean Balsiger · Version 23 · November 4, 2026
+Owner: Sean Balsiger · Version 24 · November 4, 2026
+
+## Selected dark + Porcelain across primary screens and layers — November 4, 2026
+
+Sean authorized cross-screen review after selecting the Porcelain light base.
+The [live paired review](selected-system-review.html) aligns dark and light
+previews using six screen tabs and a layer selector. It covers Home, Play,
+Bets, Research, EPL and Account: six primary views plus twenty available detail
+states (26 pairs / 52 themed frame views). The [overview gallery](selected-system-overview.html)
+shows browser captures of all six primary pairs and links back to each live view.
+[Source manifest](selected-system-review.json) maps exact previously selected
+dark recipes and the current Porcelain/light-adaptation recipes. No whole-app
+approval or production acceptance is inferred.
+
+Details include existing game/draft/score/league views, ticket/tracking/
+recommendation layouts, Research lists/chart/table views, EPL drafting and
+confirmation, and account/reminder sample states. The review reuses existing
+fictional fixtures and click handlers; it does not build functional product
+features. Existing awards/avatar/team/logo/icon work remains deferred. Screen
+and layer controls align both phones; users can explore inside each separately
+and use the parent controls to realign. Each frame uses a fixed device height
+with flexible internal scrolling so navigation fits. Table rows are 16px,
+headers 13px, inside named keyboard-focusable overflow regions in this review.
+
+Optional notes are scoped to screen/layer, saved locally and exported as a
+versioned JSON review file. They are not account data, approval or a release.
+URL screen/layer parameters are validated against the manifest. The gallery is
+a static browser-capture overview; the paired page is the interactive review.
+
+Chromium verified all six screen pairs at 320/390/768/1440 (24 layout cases / 48
+frames), with matching content, selected theme recipes/logos, card geometry,
+internal navigation fit and no page/frame horizontal overflow. All 26 paired
+states opened correctly (52 themed views); notes persisted after reload,
+exported JSON content was verified, and a Research/fantasy deep link worked.
+Table font sizes/region semantics were verified; the gallery loaded all six
+captures without overflow at four widths. No JavaScript errors were observed.
+All primary captures were reviewed through the gallery, with Home/Bets/Account
+also inspected at full size. Exact source recipes, HTML IDs/local links, syntax,
+export metadata and Brand QA passed. These are bounded mockup checks, not a
+comprehensive accessibility audit or physical-device/hosted acceptance.
+Production code/assets/tokens, frozen tracker and deferred scope are unchanged.
+Cross-screen visual sign-off and whole-project completion remain pending.
+
+![Six primary dark/light screen pairs](previews/selected-system-overview.png)
 
 ## Selected light background: 02 Porcelain glass — November 4, 2026
 
