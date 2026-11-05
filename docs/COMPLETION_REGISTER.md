@@ -1,5 +1,18 @@
 # Guess The Line — current completion register
 
+## Five richer dark-mode explorations — November 4, 2026
+
+Sean said the design was becoming too grey and accepted five mockups showing
+how dark mode could have more character. The [board](../design/style-directions-2026-11-04/dark-character-options.html)
+compares forest glass, midnight glass, warm graphite, prism edges and selective
+color while retaining selected logo/ivory text and floating-card geometry.
+Tints, edge lighting, background undertones and primary-action presence vary;
+none is selected. [Evidence and recipes](../design/style-directions-2026-11-04/README.md)
+record five responsive widths, thirty screen/direction combinations, all five
+Home-to-Play actions, fixed selected settings, inspected capture, syntax/local
+references/metadata and Brand QA. Earlier selections remain recorded;
+production and deferred scope are unchanged.
+
 ## Transparent frosted button with bold green outline — November 4, 2026
 
 Sean chose frosted glass and requested transparent color with a bolder green

@@ -1,6 +1,37 @@
 # Guess The Line — eight whole-app style directions
 
-Owner: Sean Balsiger · Version 17 · November 4, 2026
+Owner: Sean Balsiger · Version 18 · November 4, 2026
+
+## Five directions for a richer dark mode — November 4, 2026
+
+Sean felt the neutral/transparent direction was becoming too grey and accepted
+five visual approaches: [Forest glass, Midnight glass, Warm graphite, Prism
+edges and Selective color](dark-character-options.html). These are exploratory
+alternatives, not replacements of earlier selections. All retain exact selected
+lime hybrid logo, ivory main/secondary text, charcoal base, font and floating-glass
+geometry (28px corners, 18px blur, selected gloss/shadow and spacing). Tints,
+reflections and primary-action presence vary. Midnight/warm add cool/warm dark
+background undertones; Prism keeps neutral cards with colored edge reflections;
+Selective color keeps supporting cards neutral and colors the hero and primary
+button. Dark label text is retained on the bright lime primary in option 05.
+[Exact recipes](dark-character-options.json) preserve all settings.
+
+Card/metric tints and the selective green hero were kept dark to protect the
+selected ivory labels. Tint is decorative, not a semantic result/status change.
+No direction or button-fill change is selected. This does not start deferred
+avatar/team-mark/icon/award work or alter production code/tokens/assets.
+
+Chromium checked all five frames at 320/390/768/1440/1920: no page/frame overflow,
+visible navigation, loaded selected logos, fixed text/base/geometry/blur, and
+five distinct edge/hero recipes. Thirty screen/direction combinations retained
+their material and button overrides. All five Home actions opened Play. No
+JavaScript errors were observed. JavaScript syntax, local references, metadata
+and source geometry/material consistency passed, as did Brand QA. The final
+Home capture was inspected after waiting for frame fonts and settled rendering.
+Reduced-transparency/forced-color rules were source-reviewed, not emulated.
+These checks do not establish full accessibility or physical-device acceptance.
+
+![Five richer dark-mode directions](previews/dark-character-options.png)
 
 ## Frosted button refinement: transparent face, bold lime outline — November 4, 2026
 

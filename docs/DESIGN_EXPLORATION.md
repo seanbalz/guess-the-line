@@ -1,5 +1,14 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — richer dark-mode alternatives
+
+Sean felt the transparent/neutral design was becoming too grey and accepted
+five visual alternatives. The [comparison](../design/style-directions-2026-11-04/dark-character-options.html)
+shows forest glass, midnight glass, warm graphite, prism edges and selective
+color using his exact logo, ivory text and floating-glass geometry. The broader
+color/lighting/button-tint exploration is authorized, not a selected replacement.
+Earlier selections, production and deferred scope remain unchanged.
+
 ## November 4, 2026 — frosted family with transparent green-outline revision
 
 Sean chose frosted glass and requested a transparent face with a bolder green
