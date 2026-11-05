@@ -1,5 +1,13 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — Prism Glass color exploration
+
+Sean asked to try different schemes, with at least ten examples. The
+[twelve-scheme board](../design/style-directions-2026-11-04/prism-colors.html)
+keeps the refined glass material, typography and layouts consistent while
+exploring seven light and five dark palettes across the mockup app. Favorites
+and exports support his review. No scheme or production replacement is selected.
+
 ## November 4, 2026 — Prism Glass first refinement
 
 Sean: "Let's refine Prism Glass first. Make the cards glossier and more

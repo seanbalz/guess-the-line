@@ -1,6 +1,51 @@
 # Guess The Line — eight whole-app style directions
 
-Owner: Sean Balsiger · Version 2 · November 4, 2026
+Owner: Sean Balsiger · Version 3 · November 4, 2026
+
+## Prism Glass — twelve color schemes
+
+Sean requested at least ten color schemes while retaining the refined glass
+style. Open [the 12-palette comparison board](prism-colors.html). Seven light
+and five dark palettes share the same material, typography and layouts across
+Home, Play, Bets, Research, EPL and Account, including deeper layers.
+
+Use the Screen selector to compare the same area across twelve palettes. Open
+any palette to navigate its full mockup or switch colors. Save palettes and notes
+on the comparison board, then export gtl-prism-color-favorites.json. A focused
+palette review exports gtl-prism-color-review.json with its current palette ID
+and notes. Notes stay attached to their palette when switching or reloading,
+and are shared between the focused review and the comparison board. These remain review preferences, not production approval.
+
+| Number | Scheme | Mode |
+| --- | --- | --- |
+| 01 | [Arctic Blue](prism.html?style=prism&palette=arctic) | light |
+| 02 | [Pearl Graphite](prism.html?style=prism&palette=pearl) | light |
+| 03 | [Champagne](prism.html?style=prism&palette=champagne) | light |
+| 04 | [Sea Glass](prism.html?style=prism&palette=sea) | light |
+| 05 | [Peach Coral](prism.html?style=prism&palette=coral) | light |
+| 06 | [Rose Quartz](prism.html?style=prism&palette=rose) | light |
+| 07 | [Lavender Mist](prism.html?style=prism&palette=lavender) | light |
+| 08 | [Sapphire Night](prism.html?style=prism&palette=sapphire) | dark |
+| 09 | [Midnight Teal](prism.html?style=prism&palette=teal) | dark |
+| 10 | [Aubergine](prism.html?style=prism&palette=aubergine) | dark |
+| 11 | [Forest Night](prism.html?style=prism&palette=forest) | dark |
+| 12 | [Obsidian Amber](prism.html?style=prism&palette=obsidian) | dark |
+
+![Twelve Prism Glass color schemes](previews/prism-twelve-color-schemes.png)
+
+Complete palette tokens are in prism-palettes.json, with CSS and browser data
+exports. Color overrides include atmospheric backgrounds, frosted surfaces,
+edge highlights, text, buttons, graphs, tables, navigation and opened layers.
+No production app tokens are changed.
+
+Local checks: 72 embedded palette/screen combinations, 144 focused palette/
+screen/width combinations at 320/390px with no detected horizontal overflow,
+selected-token application after navigation, a dark game layer, favorites and
+notes reload persistence, light/dark/favorites filters, and both export filenames.
+All twelve Home previews were visually inspected. Sixty specified token pairs
+(body/base, muted/base, accent/base and both primary-button gradient endpoints)
+meet 4.5:1; this is not a comprehensive audit of composited glass backgrounds.
+No palette has been selected or deployed.
 
 ## Prism Glass — refinement round 2
 

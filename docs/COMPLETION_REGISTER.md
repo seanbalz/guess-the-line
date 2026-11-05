@@ -1,5 +1,16 @@
 # Guess The Line — current completion register
 
+## Twelve Prism Glass color schemes — November 4, 2026
+
+Sean requested at least ten schemes for the refined Prism material. The
+[12-palette board](../design/style-directions-2026-11-04/prism-colors.html)
+provides seven light and five dark options across all six mockup areas and
+opened layers. [Palette mapping and evidence](../design/style-directions-2026-11-04/README.md)
+record 72 embedded and 144 focused layout/token checks, filters, persisted
+favorites/notes and exports. All twelve Home previews were inspected; specified
+text/base and button-endpoint token pairs meet 4.5:1. This is exploratory palette
+review, not final brand selection or a comprehensive accessibility audit.
+
 ## Prism Glass refinement across the mockup app — November 4, 2026
 
 Sean chose Prism Glass for the first refinement and requested glossier,
