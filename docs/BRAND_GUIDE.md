@@ -1,5 +1,19 @@
 # GUESS THE LINE — BRAND & DESIGN SYSTEM v1.0
 
+## Selected selective lime emphasis — November 4, 2026
+
+Sean approved the [Home/Play lime-priority preview](../design/style-directions-2026-11-04/lime-priority-preview.html).
+Use the logo's exact lime `#B8F34B` to emphasize action cards and key stats such
+as rank and accuracy. Action cards have a light lime face/edge; key stat tiles
+have a restrained lime tint with lime figures. Supporting cards remain neutral
+floating clear glass. Retain the selected charcoal gradient, ivory reading text,
+original G geometry/hybrid finish, and transparent primary with a full 3px lime
+outline. [Exact reviewed recipes and scope](../design/style-directions-2026-11-04/lime-priority-preview.json)
+supersede the earlier raw selective-color study and pending-refinement status.
+This selects the reviewed dark visual treatment; remaining screen/light-mode
+review, whole-project completion and production integration are separate.
+Shipped tokens, assets and code are unchanged.
+
 ## Selected card finish: 05 Floating clear glass — November 4, 2026
 
 Sean selected **05 / Floating clear glass** from the [five-finish board](../design/style-directions-2026-11-04/glass-card-options.html).

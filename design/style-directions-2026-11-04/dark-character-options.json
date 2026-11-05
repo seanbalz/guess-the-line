@@ -1,5 +1,5 @@
 {
-  "status": "Sean prefers 05 / Selective color; requested logo-lime action/stat refinement is in lime-priority-preview.json",
+  "status": "05 / Selective color selected as refined in lime-priority-preview.json; raw five-direction studies retained as history",
   "selectedLogo": "logo-hybrid/lime.svg",
   "selectedText": {
     "main": "#F3E9D7",
@@ -211,6 +211,7 @@
   "preferredDirection": {
     "id": "selective",
     "number": 5,
-    "nextPreview": "lime-priority-preview.json"
+    "nextPreview": "lime-priority-preview.json",
+    "status": "Selected through refined logo-lime action/stat preview, not raw forest-green hero"
   }
 }

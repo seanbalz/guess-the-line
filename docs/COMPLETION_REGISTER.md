@@ -1,5 +1,16 @@
 # Guess The Line — current completion register
 
+## Logo-lime action/stat emphasis selected — November 4, 2026
+
+Sean confirmed that the refined lime-priority preview looks good. [Exact
+selected settings](../design/style-directions-2026-11-04/lime-priority-preview.json)
+apply logo lime to action cards and rank/accuracy stats, leave supporting cards
+neutral, and retain selected background, ivory text, logo, floating-card geometry
+and transparent outlined primary. [Brand guidance](BRAND_GUIDE.md) and owner
+preferences record the choice. This supersedes the prior pending-refinement
+status; it does not mark the whole project complete or start production/deferred
+work. Metadata consistency and Brand QA passed; reviewed visuals are unchanged.
+
 ## Selective color refined toward logo lime — November 4, 2026
 
 Sean preferred Selective color, clarified the green should match the brighter

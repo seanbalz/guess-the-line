@@ -1,6 +1,18 @@
 # Guess The Line — eight whole-app style directions
 
-Owner: Sean Balsiger · Version 19 · November 4, 2026
+Owner: Sean Balsiger · Version 20 · November 4, 2026
+
+## Selected refined lime emphasis — November 4, 2026
+
+Sean confirmed that the [lime-priority Home/Play preview](lime-priority-preview.html)
+looks good. [Selection metadata](lime-priority-preview.json) now records exact
+logo lime for action cards and key rank/accuracy stats, neutral supporting
+floating cards, retained charcoal gradient/ivory text/hybrid logo, and the
+transparent outlined primary shown. This supersedes the pending-refinement
+status below and refines the earlier raw selective-color study. Metadata
+consistency and Brand QA passed; reviewed visuals are unchanged. Remaining
+screen/light-mode review, whole-project completion, production integration and
+deferred follow-up are not established by this selection.
 
 ## Selective logo-lime emphasis on actions and key stats — November 4, 2026
 

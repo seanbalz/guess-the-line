@@ -1,5 +1,15 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — refined selective lime treatment selected
+
+Sean approved the lime-priority preview. The [selected treatment](../design/style-directions-2026-11-04/lime-priority-preview.json)
+uses logo-matched bright lime on action cards and key rank/accuracy stats while
+keeping supporting cards neutral and reading text ivory. Retain the charcoal
+gradient, floating-glass shape, lime hybrid G and transparent outlined primary
+shown in the preview. The raw selective-color study is superseded by this
+refinement. Remaining design review, whole-project completion, production and
+deferred follow-up are separate.
+
 ## November 4, 2026 — action and rank/accuracy accents in logo lime
 
 Sean preferred Selective color, chose the logo's bright lime over forest green,

@@ -1,5 +1,5 @@
 {
-  "status": "Requested selective-color refinement for review; not final approval",
+  "status": "Selected by Sean: logo-lime selective emphasis on action cards and key stats; production integration pending",
   "preferredDirection": "05 / Selective color",
   "accent": "#B8F34B",
   "accentSource": "Exact selected logo base lime",
@@ -58,5 +58,11 @@
     "secondaryShadow": "inset 0 1px 0 #FFFFFF40,0 4px 8px #00000040",
     "backdrop": "blur(18px)"
   },
-  "comparison": "Ivory reading text and neutral floating glass remain; lime marks action cards and key figures. Existing transparent primary button with bold lime outline is retained."
+  "comparison": "Ivory reading text and neutral floating glass remain; lime marks action cards and key figures. Existing transparent primary button with bold lime outline is retained.",
+  "selection": {
+    "confirmed": "2026-11-04",
+    "scope": "Visual treatment in the reviewed Home/Play preview, including logo-lime action/stat emphasis and retained transparent outlined primary",
+    "production": "Not integrated or deployed",
+    "wholeProject": "Not marked complete by this selection"
+  }
 }
