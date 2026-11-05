@@ -1,5 +1,5 @@
 {
-  "status": "Five authorized exploratory color directions; none selected",
+  "status": "Sean prefers 05 / Selective color; requested logo-lime action/stat refinement is in lime-priority-preview.json",
   "selectedLogo": "logo-hybrid/lime.svg",
   "selectedText": {
     "main": "#F3E9D7",
@@ -207,5 +207,10 @@
         "heroEdge": "linear-gradient(125deg,#B0EDBCA6,#5EA68220 55%,#6ECB9480)"
       }
     }
-  ]
+  ],
+  "preferredDirection": {
+    "id": "selective",
+    "number": 5,
+    "nextPreview": "lime-priority-preview.json"
+  }
 }

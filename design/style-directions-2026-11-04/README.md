@@ -1,6 +1,38 @@
 # Guess The Line — eight whole-app style directions
 
-Owner: Sean Balsiger · Version 18 · November 4, 2026
+Owner: Sean Balsiger · Version 19 · November 4, 2026
+
+## Selective logo-lime emphasis on actions and key stats — November 4, 2026
+
+Sean preferred Selective color, clarified the accent should match the bright
+lime of his logo rather than forest green, and specified action cards plus key
+stats such as rank and accuracy. The [Home/Play preview](lime-priority-preview.html)
+uses the exact logo lime `#B8F34B` at varying transparencies: a lime face/edge on
+action cards, lightly tinted rank/accuracy tiles and lime key figures. Supporting
+cards and ordinary navigation retain neutral floating glass. Ivory reading text,
+charcoal gradient, selected hybrid SVG and card geometry remain fixed. The
+existing transparent-primary/3px-lime-outline recipe is retained.
+
+[Exact settings and scope](lime-priority-preview.json) distinguish the requested
+emphasis from a final visual selection. The bounded action selectors cover the
+Home next-action hero, Play draft/pick tiles, the tracking action panel and EPL
+pick-a-team panel. Stat accents target Home rank/accuracy and the Play score.
+Ordinary research/navigation cards, status semantics and fixtures do not change.
+The preview frames are taller to show highlighted and quiet cards together.
+No separate card colors or unrelated accent hues were introduced.
+
+Chromium verified four widths (320/390/768/1200), selected logo/text/geometry,
+page/frame overflow and navigation fit. Computed Home rank/accuracy and Play
+score colors match logo lime; action surfaces differ from the untouched quiet
+cards/pick-container. Twelve screen/frame combinations retained the design and
+the Home primary action opened Play. No JavaScript errors were observed.
+JavaScript syntax, local references, metadata, exact source recipe consistency
+and Brand QA passed. The final Home/Play capture was visually inspected after
+font readiness. Reduced-transparency/forced-color styles were source-reviewed,
+not browser-emulated; this is not full accessibility/device acceptance.
+Refined visual sign-off, production integration and deferred follow-up remain open.
+
+![Logo-lime action cards and rank/accuracy accents on Home and Play](previews/lime-priority-preview.png)
 
 ## Five directions for a richer dark mode — November 4, 2026
 

@@ -1,5 +1,16 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — action and rank/accuracy accents in logo lime
+
+Sean preferred Selective color, chose the logo's bright lime over forest green,
+and specified action cards plus key stats such as rank and accuracy. The
+[refined preview](../design/style-directions-2026-11-04/lime-priority-preview.html)
+shows Home and Play with exact lime edges/tints and key figures, ivory reading
+text, neutral supporting cards and the previously selected logo/background/card
+geometry. The transparent outlined button is retained. This records requested
+scope and color reference; exact visual sign-off, production and deferred work
+remain pending.
+
 ## November 4, 2026 — richer dark-mode alternatives
 
 Sean felt the transparent/neutral design was becoming too grey and accepted

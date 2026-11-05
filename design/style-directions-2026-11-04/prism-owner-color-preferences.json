@@ -76,5 +76,14 @@
     "previewRecipe": "button-transparent-lime.json",
     "outlineWidth": "3px",
     "status": "Requested revision displayed; exact visual weight pending review"
+  },
+  "darkCharacterPreference": {
+    "id": "selective",
+    "originalNumber": 5,
+    "accent": "#B8F34B",
+    "accentReference": "Bright lime in the logo, not forest green",
+    "confirmedEmphasis": "Action cards plus key stats like rank and accuracy",
+    "preview": "lime-priority-preview.json",
+    "status": "Direction and emphasis scope requested; refined visual treatment awaiting review"
   }
 }

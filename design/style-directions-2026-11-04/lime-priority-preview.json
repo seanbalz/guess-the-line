@@ -1,0 +1,62 @@
+{
+  "status": "Requested selective-color refinement for review; not final approval",
+  "preferredDirection": "05 / Selective color",
+  "accent": "#B8F34B",
+  "accentSource": "Exact selected logo base lime",
+  "emphasisScope": "Action cards plus key stats like rank and accuracy. Supporting cards and ordinary navigation stay neutral.",
+  "actionPolicy": [
+    "Home next-action hero",
+    "Draft/pick tiles in Play",
+    "Track-a-bet action panel",
+    "EPL pick-a-team action panel"
+  ],
+  "statsPolicy": [
+    "Home community rank tile",
+    "Home accuracy points tile",
+    "Play accuracy score panel"
+  ],
+  "actionFill": "linear-gradient(135deg,#B8F34B26 0%,#B8F34B0D 58%,#B8F34B12 100%)",
+  "actionBorder": "#B8F34BA6",
+  "statFill": "linear-gradient(135deg,#B8F34B14,#B8F34B09)",
+  "statBorder": "#B8F34B70",
+  "selectedLogo": "logo-hybrid/lime.svg",
+  "selectedDarkDirection": {
+    "number": null,
+    "id": "combined-02-04",
+    "name": "Combined / Gradient + Warm ivory",
+    "treatment": "gradient",
+    "background": "#202126",
+    "wash": "linear-gradient(150deg,#2A2D37 0%,#202126 50%,#17181D 100%)",
+    "text": "#F3E9D7",
+    "muted": "#C4B9A6"
+  },
+  "selectedCard": {
+    "number": 5,
+    "id": "floating",
+    "name": "Floating clear glass",
+    "note": "A light tint and deeper shadow create a visible gap.",
+    "overrides": {
+      "fill": "linear-gradient(135deg,#FFFFFF14,#FFFFFF06)",
+      "border": "#FFFFFF38",
+      "blur": "18px",
+      "shadow": "inset 0 1px 0 #FFFFFF80,0 4px 6px #00000070,0 18px 28px #000000A6",
+      "gloss": ".65",
+      "radius": "28px"
+    },
+    "confirmed": "2026-11-04",
+    "scope": "Card finish and navigation glass as shown in option 05; background, text and logo retain their selected settings",
+    "production": "Not integrated or deployed"
+  },
+  "buttonSettings": {
+    "fill": "transparent",
+    "ink": "#F3E9D7",
+    "border": "3px solid #B8F34B",
+    "radius": "20px",
+    "shadow": "inset 0 1px 0 #FFFFFF26,0 8px 16px #00000080",
+    "shine": "0",
+    "secondaryRadius": "20px",
+    "secondaryShadow": "inset 0 1px 0 #FFFFFF40,0 4px 8px #00000040",
+    "backdrop": "blur(18px)"
+  },
+  "comparison": "Ivory reading text and neutral floating glass remain; lime marks action cards and key figures. Existing transparent primary button with bold lime outline is retained."
+}

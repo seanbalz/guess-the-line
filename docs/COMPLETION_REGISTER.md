@@ -1,5 +1,18 @@
 # Guess The Line — current completion register
 
+## Selective color refined toward logo lime — November 4, 2026
+
+Sean preferred Selective color, clarified the green should match the brighter
+logo lime, and requested emphasis on action cards plus rank/accuracy stats.
+The [Home/Play preview](../design/style-directions-2026-11-04/lime-priority-preview.html)
+uses exact logo lime for card edges/tints and key figures while supporting cards
+remain neutral. Selected background/ivory text/logo/card geometry and the
+transparent outlined primary are retained. [Evidence and scope](../design/style-directions-2026-11-04/README.md)
+record four widths, twelve screen/frame combinations, exact computed lime,
+quiet-card distinction, click route, inspected capture and Brand QA.
+The direction/emphasis request is recorded; refined visual sign-off, production
+and deferred follow-up remain pending.
+
 ## Five richer dark-mode explorations — November 4, 2026
 
 Sean said the design was becoming too grey and accepted five mockups showing
