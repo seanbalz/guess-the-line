@@ -1,5 +1,16 @@
 # Guess The Line — current completion register
 
+## App backgrounds with the selected logo — November 4, 2026
+
+Sean requested a few background options after selecting the lime hybrid logo.
+The [five-background board](../design/style-directions-2026-11-04/app-background-options.html)
+compares solid charcoal, midnight navy, forest, petrol and plum using the same
+selected SVG, neutral glass material, text and control colors. No background
+or whole-app palette is approved. [Evidence and exact swatches](../design/style-directions-2026-11-04/README.md)
+record five responsive widths, thirty screen/background combinations, selected
+logo retention, layout/material checks, visual inspection and Brand QA.
+Production code/assets/tokens and the deferred phase are unchanged.
+
 ## Selected hybrid logo, option 01 — November 4, 2026
 
 Sean selected **01 / Current lime** on the hybrid logo board after explicitly

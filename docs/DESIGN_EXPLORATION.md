@@ -1,5 +1,14 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — background color after selected logo
+
+Sean requested a few app background options using his selected current-lime
+hybrid G. The [comparison](../design/style-directions-2026-11-04/app-background-options.html)
+shows five solid dark bases with identical neutral glass/text/control styling.
+Only the background changes; gradients and final card/accent decisions remain
+separate. No background is selected. The original logo studies, production
+assets and deferred phase are unchanged.
+
 ## November 4, 2026 — hybrid logo option 01 selected
 
 Sean clarified that he prefers option **01 / Current lime** from the hybrid

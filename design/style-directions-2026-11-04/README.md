@@ -1,6 +1,34 @@
 # Guess The Line — eight whole-app style directions
 
-Owner: Sean Balsiger · Version 9 · November 4, 2026
+Owner: Sean Balsiger · Version 10 · November 4, 2026
+
+## App background comparison with selected logo — November 4, 2026
+
+Sean next requested a few app backgrounds with his selected logo. The
+[five-background board](app-background-options.html) shows Obsidian charcoal,
+Midnight navy, Forest night, Deep petrol and Smoked plum. The first three reuse
+backgrounds from previous palettes 12, 18 and 11; the other two explore dark
+petrol/plum bases. These local option numbers 01–05 refer only to backgrounds,
+not the previous full-palette board. No background is selected.
+
+Every interactive Home mockup uses the exact selected `logo-hybrid/lime.svg`,
+neutral glass variables, identical lime controls, text, layout and fictional
+fixtures. Only the solid phone background changes; translucent cards naturally
+show the base behind them. Choosing a gradient or approving a control/card
+palette remains a separate decision. [Metadata](app-background-options.json)
+records exact hex values and source mapping. Original review pages and production
+code/assets/tokens are unchanged. Logo/background overrides follow navigation.
+
+Chromium verified all five frames at 320/390/768/1440/1920 pixels: no page/frame
+horizontal overflow, navigation fits the preview, selected logos load, solid
+backgrounds stay distinct, and accent/card variables remain shared. Thirty
+screen/background combinations (six areas times five backgrounds) retained their
+selected logo, base and shared accent. No JavaScript errors were observed.
+JavaScript syntax, HTML local links/IDs, metadata and Brand QA passed. The
+five-phone Home capture was visually inspected. These are mockup checks, not
+physical-phone acceptance. The deferred phase remains held.
+
+![Five app backgrounds with the selected hybrid lime logo](previews/app-background-options.png)
 
 ## Selected logo direction — November 4, 2026
 

@@ -1,0 +1,44 @@
+{
+  "status": "Background comparison; no selection",
+  "selectedLogo": "logo-hybrid/lime.svg",
+  "logoBaseColor": "#B8F34B",
+  "backgroundTreatment": "Solid; gradient decision deferred",
+  "comparison": "Only phone background differs. Same neutral glass material, lime controls, typography and fictional Home fixtures. Shared controls are comparison fixtures, not a new palette approval.",
+  "options": [
+    {
+      "id": "obsidian",
+      "number": 1,
+      "name": "Obsidian charcoal",
+      "color": "#202126",
+      "source": "Background of previous palette 12"
+    },
+    {
+      "id": "midnight",
+      "number": 2,
+      "name": "Midnight navy",
+      "color": "#101329",
+      "source": "Background of previous palette 18"
+    },
+    {
+      "id": "forest",
+      "number": 3,
+      "name": "Forest night",
+      "color": "#152C25",
+      "source": "Background of previous palette 11"
+    },
+    {
+      "id": "petrol",
+      "number": 4,
+      "name": "Deep petrol",
+      "color": "#10282E",
+      "source": "New background exploration"
+    },
+    {
+      "id": "plum",
+      "number": 5,
+      "name": "Smoked plum",
+      "color": "#281E2F",
+      "source": "New background exploration"
+    }
+  ]
+}
