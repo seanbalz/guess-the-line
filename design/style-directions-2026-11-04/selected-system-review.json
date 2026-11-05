@@ -386,5 +386,16 @@
     "scope": "Icon finish across the current mockups; fresh screen review remains pending",
     "recipe": "visual-icon-treatments.css: data-icon-treatment=3",
     "rationale": "Matches floating glass cards and hybrid G, with restrained depth around functional symbols; neutral inactive navigation keeps lime emphasis selective."
+  },
+  "homeActionCardSelection": {
+    "id": "compact",
+    "date": "2026-11-05",
+    "basis": "Sean selected compact version from side-by-side Home comparison",
+    "scope": "Home action card in both mockup themes; whole-screen acceptance remains pending",
+    "headline": "Finish your picks",
+    "dialSize": "60px",
+    "cardPadding": "18px",
+    "savedHeight": "approximately 108px",
+    "comparison": "home-compact-review.html"
   }
 }

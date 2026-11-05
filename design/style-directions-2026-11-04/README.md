@@ -3,6 +3,19 @@
 Owner: Sean Balsiger · Version 31 · November 4, 2026
 
 
+## Compact Home action card selected — November 5, 2026
+
+Sean selected the compact version from the Home comparison. The
+[selected whole-app viewer](selected-system-review.html?screen=Home)
+now uses the shorter "Finish your picks" headline, 60px progress ring and 18px
+action-card padding in dark and light Home. Existing colors, materials, G,
+button styling, data and native navigation are retained. The
+[comparison](home-compact-review.html)
+preserves the previous layout beside the selected version. This accepts the
+action-card layout only; fresh review of the rest of Home remains pending.
+The stopped Signal exploration is untouched and unpublished.
+
+
 ## Compact Home action-card comparison — November 5, 2026
 
 Sean agreed to review a compact Home card beside the existing card. The
