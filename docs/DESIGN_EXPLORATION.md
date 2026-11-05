@@ -1,5 +1,15 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — light-mode comparison
+
+Sean agreed to five light options carrying over floating glass, selective lime
+and typography, with logo/text readability checked. The [board](../design/style-directions-2026-11-04/light-mode-options.html)
+compares Arctic, Porcelain, Warm ivory, Pale sage and Silver mist. A proposed
+light-theme deep-green hybrid G preserves exact selected geometry/finish;
+dark text and green labels replace low-contrast ivory/lime foregrounds. This
+light adaptation and all five options await selection. Dark selections,
+production and deferred scope remain unchanged.
+
 ## November 4, 2026 — refined selective lime treatment selected
 
 Sean approved the lime-priority preview. The [selected treatment](../design/style-directions-2026-11-04/lime-priority-preview.json)

@@ -1,5 +1,17 @@
 # Guess The Line — current completion register
 
+## Five light-mode options — November 4, 2026
+
+Sean agreed to light-mode comparison next. The [board](../design/style-directions-2026-11-04/light-mode-options.html)
+shows Arctic, Porcelain, Warm ivory, Pale sage and Silver mist with floating
+glass, selective lime surface accents, readable dark text/green labels and a
+proposed deep-green adaptation of the same hybrid G. No light option or adapted
+logo is selected. [Evidence and scope](../design/style-directions-2026-11-04/README.md)
+record five widths, thirty screen/option combinations, five working Home actions,
+matched logo geometry, specified endpoint contrast pairs, dark-preview regression,
+inspected capture, syntax/local references/metadata and Brand QA. Production and
+deferred scope remain unchanged.
+
 ## Logo-lime action/stat emphasis selected — November 4, 2026
 
 Sean confirmed that the refined lime-priority preview looks good. [Exact

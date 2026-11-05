@@ -1,6 +1,41 @@
 # Guess The Line — eight whole-app style directions
 
-Owner: Sean Balsiger · Version 20 · November 4, 2026
+Owner: Sean Balsiger · Version 21 · November 4, 2026
+
+## Five light-mode alternatives — November 4, 2026
+
+Sean agreed to compare light-mode options next. The [five-option board](light-mode-options.html)
+shows Arctic glass, Porcelain glass, Warm ivory, Pale sage and Silver mist.
+The first two revisit his earlier Arctic/Porcelain interests; no current light
+option is selected. Shared floating-glass geometry, 18px blur, 28px corners,
+selective lime action/stat accents, typography and transparent outlined button
+family carry across the five. Dark ink replaces dark-mode ivory on light
+surfaces. Dark green supplies readable labels, key figures, progress and outlines;
+logo-lime remains in the surface tints. [Exact recipes](light-mode-options.json)
+record the proposed adaptation and source mapping.
+
+The [proposed deep-green hybrid SVG](logo-hybrid/light-deep-green.svg) retains all
+paths, masks, grain and lighting from the selected dark logo, remapping only
+base-derived gradient colors to existing light-theme green `#3B6309`. This is a
+light-surface candidate, not a newly selected logo or a change to dark mode.
+The dedicated light bridge does not alter earlier dark previews. Fixed-height
+phone frames use flexible scrollable content so navigation fits without a dark
+blank strip beneath the light scene.
+
+Chromium verified five widths (320/390/768/1440/1920), five distinct backgrounds,
+loaded adapted logos, light scheme, shared readable text/accent, selected card
+geometry/blur, no page/frame horizontal overflow and fitting navigation/device
+height. Thirty screen/light-option combinations retained the theme; all five
+Home actions opened Play. The approved dark preview retained ivory and the lime
+SVG in a regression check. No JavaScript errors were observed. Source checks
+verified identical logo paths/masks/grain, local references and metadata.
+Forty-five specified text/accent-to-gradient-endpoint pairs meet 4.5:1; this is
+not a comprehensive audit of translucent glass or logo specular highlights.
+Syntax and Brand QA passed; the final board capture was inspected. Transparency/
+forced-color fallbacks were source-reviewed, not separately emulated.
+Production code/assets/tokens and deferred follow-up remain unchanged.
+
+![Five light-mode options with floating glass and selective lime](previews/light-mode-options.png)
 
 ## Selected refined lime emphasis — November 4, 2026
 
