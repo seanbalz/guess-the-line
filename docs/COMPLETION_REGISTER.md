@@ -1,5 +1,22 @@
 # Guess The Line — current completion register
 
+## Separate team-logo tiles carried into Research — November 5, 2026
+
+Sean authorized applying the Home treatment to Research. The
+[Research viewer](../design/style-directions-2026-11-04/selected-system-review.html?screen=Research)
+now places each logo in its own glass tile in the main matchup and Games/Teams
+previews, with matching available detail matchup treatment. Main tiles are 64px;
+quick-card tiles are 42px. Names and the at separator stay outside the tiles.
+The shared layout container remains transparent, and existing Home choices,
+trend charts and fictional usage values are retained. The
+[paired capture](../design/style-directions-2026-11-04/previews/research-separate-logo-tiles.png)
+was inspected. Chromium verified 12 individual tiles across both themes, loaded
+marks and bounds at 320/390/768/1440px, plus ten native game/games/teams/trends/
+fantasy opens. JavaScript syntax and Brand document QA passed. This change is
+ready for visual review; it does not establish full Research or app acceptance.
+Production and the parked Signal exploration are unchanged.
+
+
 ## Separate backgrounds for each Home team logo — November 5, 2026
 
 Sean corrected the paired Home treatment: each logo needs its own background.

@@ -12,6 +12,7 @@ const css=`
  .phone[data-visual-review] .visual-matchup{display:flex;align-items:center;justify-content:space-around;gap:8px;margin:8px 0 14px;width:100%}
  .visual-matchup>span{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:13px;color:var(--ink)}
  .visual-matchup>small{color:var(--muted);font-size:12px}.matchup-summary.visual-pair{display:block!important;border:0!important;padding:0!important}
+ .phone[data-research-logo-tiles] .visual-matchup{background:transparent;box-shadow:none}.phone[data-research-logo-tiles] .visual-matchup .team-logo-tile{display:grid;place-items:center;width:64px;height:64px;border-radius:16px;background:var(--pc-small-surface);border:1px solid var(--pc-border);box-shadow:inset 0 1px 0 var(--pc-edge-1),0 4px 8px var(--pc-shadow);backdrop-filter:blur(12px)}.phone[data-research-logo-tiles] .content-quick .visual-matchup{gap:5px}.phone[data-research-logo-tiles] .content-quick .team-logo-tile{width:42px;height:42px;border-radius:12px}.phone[data-research-logo-tiles] .content-quick .team-logo-tile .team-mark{width:34px;height:34px}.phone[data-research-logo-tiles] .content-quick .visual-matchup>span{font-size:12px;min-width:0}
  .phone[data-visual-review] .content-quick{min-height:166px!important;gap:5px!important;padding:16px!important}
  .visual-card-head{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px;width:100%}.visual-card-head .visual-icon{width:32px;height:32px;border-radius:10px}.visual-card-head svg{width:20px;height:20px}
  .visual-card-head>small{margin-left:auto;font-size:16px;color:var(--muted)}
@@ -27,14 +28,16 @@ const css=`
  .phone[data-visual-review] .content-pick{min-height:170px}.content-pick .visual-matchup .team-mark{width:44px;height:44px}.content-pick .visual-matchup>span{font-size:11px}.phone[data-visual-review] .content-pick>b{font-size:18px;margin:2px 0}
  `;
 const head=(name,icon)=>'<span class="visual-card-head">'+glyph(icon)+name+'<small aria-hidden="true">↗</small></span>';
+function researchTiles(screen,d){screen.querySelectorAll('.visual-matchup .team-mark').forEach(img=>{if(img.parentElement.classList.contains('team-logo-tile'))return;const tile=d.createElement('span');tile.className='team-logo-tile';img.before(tile);tile.append(img);});}
 function apply(frame){
  const d=frame.contentDocument,p=d?.querySelector('.phone'),screen=p?.querySelector('.screen');if(!p||!icons)return;
  p.dataset.iconTreatment=treatment;p.dataset.visualReview='v1';if(screen.dataset.visualReview)return;screen.dataset.visualReview='true';
  const area=d.getElementById('screen')?.value;
+ if(area==='Research')p.dataset.researchLogoTiles='true';
  p.querySelectorAll('.app-nav button').forEach((b,i)=>{b.querySelector('i').innerHTML=glyph(['house','target','ticket','chart-no-axes-combined'][i]);});
  screen.querySelectorAll('.matchup-summary').forEach(n=>{n.classList.add('visual-pair');n.innerHTML=pair();});
  screen.querySelectorAll('.team-code').forEach(n=>{const code={SEA:'sea',DEN:'den',CHI:'chi',DET:'det'}[n.textContent.trim()];if(!code)return;const opponent=n.closest('.home-games')?{sea:'den',chi:'det'}[code]:null;const mark=c=>'<img class="team-mark" src="visual-assets/'+c+'.png" alt="">';n.innerHTML=opponent?'<span class="team-logo-tile">'+mark(code)+'</span><small aria-hidden="true">@</small><span class="team-logo-tile">'+mark(opponent)+'</span>':mark(code);});
- if(screen.querySelector('.detail-close'))return;
+ if(screen.querySelector('.detail-close')){if(area==='Research')researchTiles(screen,d);return;}
  screen.querySelectorAll('button.quick').forEach(b=>{
  const a=b.dataset.action;let html;
  if(a==='detail:league')html=head('League','users')+podium+'<span class="visual-card-note">Your rank · 2 of 24</span>';
@@ -52,7 +55,7 @@ function apply(frame){
  screen.querySelectorAll('.home-score .metric small').forEach((n,i)=>{n.insertAdjacentHTML('beforeend','<span class="visual-score-icon">'+glyph(i?'chart-no-axes-combined':'trophy')+'</span>');});
  }
  if(area==='Play')screen.querySelectorAll('.pick-card').forEach(b=>{const total=b.dataset.action==='detail:total';b.innerHTML='<small>'+ (total?'Total':'Spread')+' · sample</small>'+ (total?pair('chi','det','Bears','Lions'):pair())+'<b>'+(total?'To pick':'Your draft')+'</b>';});
- if(area==='Research'){const h=screen.querySelector('.hero h2');if(h)h.textContent='Know the matchup.';}
+ if(area==='Research'){const h=screen.querySelector('.hero h2');if(h)h.textContent='Know the matchup.';researchTiles(screen,d);}
  if(area==='EPL'){const hero=screen.querySelector('.hero');if(hero){hero.querySelector('p')?.remove();const clubs=d.createElement('div');clubs.className='visual-clubs';clubs.innerHTML=['ARS','CHE','LIV','MNC'].map((c,i)=>'<span>'+logo(c,['Arsenal','Chelsea','Liverpool','Man City'][i])+'</span>').join('');hero.insertBefore(clubs,hero.querySelector('.primary'));}}
 }
 fetch('visual-assets/lucide-icons.json').then(r=>r.json()).then(data=>{

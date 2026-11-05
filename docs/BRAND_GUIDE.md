@@ -1,5 +1,14 @@
 # GUESS THE LINE — BRAND & DESIGN SYSTEM v1.0
 
+## Research team marks — November 5, 2026
+
+Carry the separate-logo glass-tile treatment from Home into Research. Each logo
+has its own border, translucent background and shadow; keep the team name and
+at separator outside each tile. Use 64px main matchup tiles and 42px quick-card
+tiles in the current mockups, with selected theme variables for light and dark.
+This is authorized preview work; whole-screen visual review remains pending.
+
+
 ## Separate backgrounds for each Home team logo — November 5, 2026
 
 Sean corrected the paired Home treatment: each logo needs its own background.
