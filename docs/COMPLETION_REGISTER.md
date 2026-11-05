@@ -1,5 +1,9 @@
 # Guess The Line — current completion register
 
+## Style references before new mockups — November 4, 2026
+
+Sean clarified that the 5–10 mockups must represent different styles across the whole app, with glossy glass as one option. He requested **50–100 references first**. The [87-reference visual library](../design/style-references-2026-11-04/index.html) provides 12 search groups, 84 publisher preview links and 3 source-only entries; [all sources](../design/style-references-2026-11-04/REFERENCES.md) remain attributed. These are selection candidates, not newly implemented GTL screens or completed visual audits. Private Twitter bookmarks were not accessed. The earlier 39-pair gallery mostly shows existing screens and is context only; it does not satisfy the new-style request. No new mockups or implementation are approved.
+
 ## Owner verification and mockups for every sign-off — November 4, 2026
 
 Sean passed Home readability/scrolling/navigation clearance in the iPhone Home
