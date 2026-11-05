@@ -1,5 +1,15 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — material first, color afterward
+
+Sean clarified that he wants to change the flat logo appearance before color.
+He requested five finishes, including glossy glass, retaining the same G shape
+and current color. The [finish board](../design/style-directions-2026-11-04/logo-finish-first.html)
+compares glass, frosted glass, enamel, brushed metal and satin ceramic through
+editable native SVG effects on exact canonical paths and base lime `#B8F34B`.
+This supersedes the preceding color-first sequence. No finish, replacement color
+or production change is approved; deferred avatar/logo/icon/award work stays held.
+
 ## November 4, 2026 — simplify to logo color first
 
 Sean chose logo color/style as the first decision and confirmed keeping the

@@ -1,6 +1,33 @@
 # Guess The Line — eight whole-app style directions
 
-Owner: Sean Balsiger · Version 6 · November 4, 2026
+Owner: Sean Balsiger · Version 7 · November 4, 2026
+
+## Finish before color — November 4, 2026
+
+Sean clarified that he wants to change the flat/2D appearance first. He explicitly
+requested five finishes, including glossy glass, keeping the same G shape and
+color for now. The [finish comparison](logo-finish-first.html) therefore supersedes
+the color-first sequence. Options are glossy glass, frosted glass, polished
+enamel, brushed metal and satin ceramic. Every preview uses current lime
+`#B8F34B`, identical backgrounds, frontal orientation and sizing. Highlights and
+shading vary with the material; they are not additional base-color proposals.
+
+Native SVG gradients, lighting filters, clipped reflections and grain preserve
+the exact canonical body/hash paths and hash stroke. This is editable vector
+exploration, not raster editing. [Source manifest](logo-finishes/manifest.json)
+records the method, swatch and filenames; standalone SVG links support closer
+inspection. No new geometry, app tile or production asset was adopted.
+
+Chromium checked all ten preview images loaded, five options, identical card
+backgrounds and no horizontal overflow at 320/390/768/1600 pixels. XML/path
+checks verified exact body/clip/hash geometry, stroke, base lime and viewBox for
+all five vectors; HTML local links and Brand QA passed. The final desktop
+capture was inspected after reducing the ceramic/frosted highlights to keep
+materials distinct. These are material concepts, not physical renders or an
+approved finish. The earlier color board remains provenance, not the next step.
+The deferred phase remains held.
+
+![Five finishes with the same G and base lime](previews/logo-finish-first.png)
 
 ## Logo color first — November 4, 2026
 

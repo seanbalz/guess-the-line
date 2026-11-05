@@ -1,5 +1,18 @@
 # Guess The Line — current completion register
 
+## Finish before logo color — November 4, 2026
+
+Sean clarified that the flat/2D appearance should change first, then explicitly
+requested five finishes including glossy glass with the same G shape and color.
+The [five-finish comparison](../design/style-directions-2026-11-04/logo-finish-first.html)
+shows glossy glass, frosted glass, polished enamel, brushed metal and satin
+ceramic using current lime and exact canonical vector paths. The comparison
+supersedes the preceding color-first review sequence. No finish/color is chosen.
+[Evidence and source manifest](../design/style-directions-2026-11-04/README.md)
+record four responsive widths, ten loaded previews, exact-path/stroke/base-color
+checks, visual inspection and Brand QA. Production assets and deferred scope
+remain unchanged.
+
 ## Logo color before finish — November 4, 2026
 
 Sean found the customizer hard to narrow down and asked to choose logo color
