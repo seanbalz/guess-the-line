@@ -1,5 +1,16 @@
 # Guess The Line — current completion register
 
+## Earlier screen approvals reopened for closer review — November 4, 2026
+
+Sean said the Research matchup lines and sparse bubbles were unsatisfactory and
+that he had not looked closely at the earlier screens. Reopen Home, Play and
+Bets overviews in both themes, then revisit Research. The [review manifest](../design/style-directions-2026-11-04/selected-system-review.json)
+preserves prior yes acknowledgments as history and records fresh review as
+pending. Existing selected style recipes remain the starting point. Useful
+miniature content previews versus simple identifiers still require clarification;
+no new logo/icon asset work or deferred-phase start is inferred. Metadata scope
+and Brand QA passed; visuals, production and whole-project status are unchanged.
+
 ## Bets overview accepted in both themes — November 4, 2026
 
 Sean accepted Bets/overview in dark and Porcelain in response to the specific

@@ -1,5 +1,14 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — reopen earlier screen reviews
+
+Sean flagged the Research yard-line placeholder, missing marks and sparse
+bubbles, then requested revisiting earlier screens because he had not looked
+closely. [Review progress](../design/style-directions-2026-11-04/selected-system-review.json)
+reopens Home/Play/Bets and retains previous acknowledgments as history. Keep
+chosen style recipes as the starting point; clarify the intended bubble content
+before revision. Whole-project completion, production and deferred work remain open.
+
 ## November 4, 2026 — Bets dark/light overview accepted
 
 Sean accepted Bets/overview in both modes. [Review progress](../design/style-directions-2026-11-04/selected-system-review.json)

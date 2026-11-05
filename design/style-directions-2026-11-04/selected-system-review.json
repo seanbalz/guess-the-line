@@ -1,7 +1,7 @@
 {
   "kind": "GTL_SELECTED_SYSTEM_REVIEW",
   "version": 1,
-  "status": "Home, Play and Bets overviews visually accepted in both modes; remaining screen/layer review pending",
+  "status": "Earlier Home/Play/Bets approvals reopened for closer content/visual review; Research concerns unresolved; no whole-project completion",
   "darkSource": "lime-priority-preview.json",
   "lightSource": "light-mode-options.json",
   "dark": {
@@ -268,7 +268,10 @@
   },
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
-    "accepted": {
+    "accepted": {},
+    "next": "Home/overview",
+    "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
+    "acceptanceHistory": {
       "Home/overview": {
         "themes": [
           "dark",
@@ -294,7 +297,58 @@
         "evidence": "Sean replied yes to the explicit Bets-in-both-modes question"
       }
     },
-    "next": "Research/overview",
-    "scope": "Mockup visual acceptance only; layers, other screens, production acceptance and whole-project completion are not inferred"
+    "reReview": {
+      "Home/overview": {
+        "themes": [
+          "dark",
+          "light"
+        ],
+        "status": "Reopened after Sean said he had not looked closely",
+        "previousAcceptance": {
+          "themes": [
+            "dark",
+            "light"
+          ],
+          "confirmed": "2026-11-04",
+          "evidence": "Sean replied yes good to the explicit Home-in-both-modes question"
+        }
+      },
+      "Play/overview": {
+        "themes": [
+          "dark",
+          "light"
+        ],
+        "status": "Reopened after Sean said he had not looked closely",
+        "previousAcceptance": {
+          "themes": [
+            "dark",
+            "light"
+          ],
+          "confirmed": "2026-11-04",
+          "evidence": "Sean replied yes to the explicit Play-in-both-modes question"
+        }
+      },
+      "Bets/overview": {
+        "themes": [
+          "dark",
+          "light"
+        ],
+        "status": "Reopened after Sean said he had not looked closely",
+        "previousAcceptance": {
+          "themes": [
+            "dark",
+            "light"
+          ],
+          "confirmed": "2026-11-04",
+          "evidence": "Sean replied yes to the explicit Bets-in-both-modes question"
+        }
+      }
+    },
+    "researchConcerns": [
+      "Decorative yard-line placeholder in matchup graphic",
+      "Missing team marks/abbreviations in the mockup",
+      "Navigation bubbles look empty and boring"
+    ],
+    "pendingClarification": "Whether to replace sparse bubbles with useful miniature content previews"
   }
 }
