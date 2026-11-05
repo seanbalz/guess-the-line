@@ -1,5 +1,16 @@
 # Guess The Line — current completion register
 
+## Prism Glass refinement across the mockup app — November 4, 2026
+
+Sean chose Prism Glass for the first refinement and requested glossier,
+Apple-like cards across the whole app. The [six-screen board](../design/style-directions-2026-11-04/prism-board.html)
+and [focused review](../design/style-directions-2026-11-04/prism.html) apply the
+shared glass material to Home, Play, Bets, Research, EPL, Account and opened
+layers. [Round 2 evidence](../design/style-directions-2026-11-04/README.md)
+records 18 targeted layout checks, six embedded views, four layer/state checks,
+notes/export verification and inspected captures. This selects a direction for
+refinement only; no final brand or production change is approved or deployed.
+
 ## Eight new whole-app style mockups — November 4, 2026
 
 Sean selected 25 references and explicitly authorized new palettes and typography

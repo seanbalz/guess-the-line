@@ -1,5 +1,15 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — Prism Glass first refinement
+
+Sean: "Let's refine Prism Glass first. Make the cards glossier and more
+Apple-like, and carry that style across the whole app."
+The [refined six-screen board](../design/style-directions-2026-11-04/prism-board.html)
+carries the material through primary and deeper mockup screens. This is a
+refinement-stage preference; a final brand and production implementation still
+require their own decision. The [round 2 record](../design/style-directions-2026-11-04/README.md)
+links the original references, scoped material/type changes and local checks.
+
 ## November 4, 2026 — eight new whole-app style directions
 
 Sean requested 5–10 distinct styles based on his selected references, then

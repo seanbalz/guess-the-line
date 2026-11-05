@@ -2,21 +2,21 @@
   {
     "id": "prism",
     "name": "Prism Glass",
-    "subtitle": "Airy glass, icy color, luminous edges.",
+    "subtitle": "Glossy crystal edges, soft depth, quiet system type.",
     "refs": [
       "05",
       "06",
       "82",
       "86"
     ],
-    "fonts": "Manrope + Outfit",
+    "fonts": "System UI + Inter",
     "palette": [
-      "#E9F1FF",
+      "#E7EFFA",
       "#FFFFFF",
-      "#2056B8",
-      "#C1BCF4"
+      "#1659C7",
+      "#B8C7F2"
     ],
-    "cue": "Translucent overlapping surfaces and pill controls; the chat and smart-home references inform the layering.",
+    "cue": "Round 2: polished glass material, double-edge highlights, luminous cobalt controls and consistent frosted layers across every app area.",
     "number": 1,
     "sources": [
       {

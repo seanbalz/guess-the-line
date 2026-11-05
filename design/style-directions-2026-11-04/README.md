@@ -1,6 +1,35 @@
 # Guess The Line — eight whole-app style directions
 
-Owner: Sean Balsiger · Version 1 · November 4, 2026
+Owner: Sean Balsiger · Version 2 · November 4, 2026
+
+## Prism Glass — refinement round 2
+
+Sean selected Prism Glass to refine first: "Make the cards glossier and more
+Apple-like, and carry that style across the whole app." This is a mockup
+refinement request, not final brand selection or production implementation.
+
+Open [the six-screen Prism board](prism-board.html) or the
+[focused Prism review](prism.html). The shared material is applied to all six
+primary areas and their opened layers: double-edge highlights, translucent
+panels, a brighter glazed cobalt action, softer depth, frosted segmented controls
+and floating navigation. Typography now uses system UI (the Apple system face
+where available) with Inter/Segoe UI fallbacks. No font binaries are redistributed.
+
+![Prism Glass round 2 across the app](previews/prism-refined-whole-app.png)
+
+[Full Home capture](previews/prism-refined-home.png).
+
+The new CSS is scoped to Prism; other style directions retain their systems.
+The eight-direction gallery now shows the refined Prism. Older eight-style
+comparison PNGs below preserve round 1, before this refinement.
+
+Targeted round 2 verification: 18 primary screen/width combinations across
+320/390/736px, six embedded screens with no horizontal document overflow, four
+representative layers (game/Back, Fantasy, EPL recorded-team confirmation,
+reminders), note/shortlist reload persistence and export. Original comparison
+still renders eight directions. The Home and six-screen captures were visually
+inspected. JavaScript syntax, local links and Brand QA pass. This does not
+establish live app integration or a comprehensive accessibility audit.
 
 Sean requested 5–10 genuinely different styles across the whole app, based on
 his 25 saved references. He explicitly authorized exploring new colors and
@@ -37,7 +66,7 @@ Original imagery, logos and athlete artwork are not copied into the mockups.
 
 | Direction | New type | Palette / structure | Saved references |
 | --- | --- | --- | --- |
-| 1 · Prism Glass | Manrope + Outfit | Airy glass, icy color, luminous edges. | [#05](https://dribbble.com/shots/15816152-Messanger-Chat-App-With-Glassmorphism-Effect), [#06](https://dribbble.com/shots/15073946-Smart-Home-Manager-App), [#82](https://www.behance.net/gallery/227826125/Liquid-Glass-UI-Design-ios-26-Apple-Liquid-Glass-UI), [#86](https://x.com/proskuaaa/status/2083260471302365520) |
+| 1 · Prism Glass | System UI + Inter (round 2) | Airy glass, icy color, luminous edges. | [#05](https://dribbble.com/shots/15816152-Messanger-Chat-App-With-Glassmorphism-Effect), [#06](https://dribbble.com/shots/15073946-Smart-Home-Manager-App), [#82](https://www.behance.net/gallery/227826125/Liquid-Glass-UI-Design-ios-26-Apple-Liquid-Glass-UI), [#86](https://x.com/proskuaaa/status/2083260471302365520) |
 | 2 · Pearl Touch | Nunito Sans | Soft relief, circular controls, quiet blue. | [#28](https://dribbble.com/shots/10725826-Neumorphism-Soldo-mobile-app), [#29](https://dribbble.com/shots/11443127-iOS-Neumorphism-Concept), [#30](https://dribbble.com/shots/22289315-Alarmly), [#31](https://dribbble.com/shots/25716286-Minimal-Futuristic-Music-Player-UI) |
 | 3 · Paper Cut | Space Grotesk + IBM Plex Mono | Hard edges, bold ink, graphic lilac. | [#23](https://dribbble.com/shots/21692566-Neo-Brutalism-Cryptocurrency-Trading-and-Assets-Dashboard) |
 | 4 · After Hours | Space Grotesk + Space Mono | Plum-black, hot magenta, technical type. | [#25](https://dribbble.com/shots/25514281-3D-Neumorphic-Design-Financial-Wallet-Mobile-App), [#33](https://dribbble.com/shots/27362502-AI-Trading-Mobile-iOS-App-Design), [#37](https://dribbble.com/shots/27242702-Fitness-App-Dashboard-UI-Design-Health-Tracking-Mobile-App) |
@@ -72,7 +101,7 @@ This is targeted visual/mockup QA, not a full accessibility audit or live app
 acceptance. Static captures are in previews/. Raw capture and CLI evidence are retained
 under ignored .local helpers in the task checkout. No test credentials are involved.
 
-## Rendered comparison previews
+## Round 1 comparison previews — before Prism refinement
 
 ![Eight Home directions](previews/home-overview.png)
 
