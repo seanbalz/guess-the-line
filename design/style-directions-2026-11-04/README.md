@@ -1,6 +1,25 @@
 # Guess The Line — eight whole-app style directions
 
-Owner: Sean Balsiger · Version 5 · November 4, 2026
+Owner: Sean Balsiger · Version 6 · November 4, 2026
+
+## Logo color first — November 4, 2026
+
+Sean found the full customizer difficult to narrow down and chose to start with
+logo color/style. He confirmed keeping the current G shape. The [five-color
+comparison](logo-color-first.html) keeps the exact Balanced Yardline G geometry,
+flat finish and identical dark surround at large and header sizes. Soft lime
+and warm amber reuse options 18 and 12; mint, blue and violet are exploratory
+hues under his existing authorization to explore new colors. This chooses
+neither the app palette nor a finish. One next question: which logo color?
+
+[Color metadata](logo-color-first.json) records exact swatches. Chromium verified
+five choices/ten SVG marks and no horizontal overflow at 320/390/1400 pixels;
+computed colors match the swatches. Source verification confirms every path
+matches the approved SVG and that no gradient/effect was added. The desktop
+capture was visually reviewed; Brand QA passed. No production asset changed.
+The deferred avatar/team-logo/icon/award phase remains held.
+
+![Five logo colors, same shape and finish](previews/logo-color-first.png)
 
 ## Interactive Prism Glass customizer
 

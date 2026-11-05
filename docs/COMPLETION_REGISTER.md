@@ -1,5 +1,17 @@
 # Guess The Line — current completion register
 
+## Logo color before finish — November 4, 2026
+
+Sean found the customizer hard to narrow down and asked to choose logo color
+and style first, retaining the current G shape. The [five-color visual
+comparison](../design/style-directions-2026-11-04/logo-color-first.html)
+shows exact canonical geometry at large/header sizes on identical backgrounds
+with a flat finish. Color selection precedes finish exploration; neither is
+approved. Layout, computed-color and exact-path checks passed, desktop capture
+was inspected, and Brand QA passed. [Scope and swatches](../design/style-directions-2026-11-04/README.md)
+record the exploratory exception. Production assets and the deferred phase remain
+unchanged.
+
 ## Interactive Prism Glass studio — November 4, 2026
 
 Sean requested a mockup with editable colors, gradient on/off and style options.

@@ -1,5 +1,13 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — simplify to logo color first
+
+Sean chose logo color/style as the first decision and confirmed keeping the
+current G shape. The [five-color board](../design/style-directions-2026-11-04/logo-color-first.html)
+shows that geometry with identical backgrounds and flat finish so only hue
+changes. App-palette adoption and finish selection remain separate decisions.
+No color or finish is approved; production assets and deferred phase are unchanged.
+
 ## November 4, 2026 — live Prism Glass customization
 
 Sean requested editable colors, a background-gradient toggle and style options.
