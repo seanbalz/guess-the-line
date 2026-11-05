@@ -1,6 +1,31 @@
 # Guess The Line — eight whole-app style directions
 
-Owner: Sean Balsiger · Version 7 · November 4, 2026
+Owner: Sean Balsiger · Version 8 · November 4, 2026
+
+## Glossy/frosted hybrid and additional colors — November 4, 2026
+
+Sean shortlisted finishes **1 / Glossy glass** and **2 / Frosted glass** and asked
+for a hybrid with glossy edges and a frosted center, keeping the same G and
+current color while also adding colors. The [hybrid board](logo-hybrid.html)
+retains current lime as option 01 and adds evergreen, ice blue, warm amber,
+soft violet and rose quartz. Every version shares exact canonical G/hash paths,
+fixed frontal orientation, lighting, size, grain seed and dark background.
+
+Native SVG layers place the frosted face inside an eroded canonical-body mask,
+leaving a glossy rim and reflective yard-line strokes. Reflections are confined
+to the rim; fine grain and a broad diffuse wash sit in the center. Base colors
+and the exploratory status are in the [manifest](logo-hybrid/manifest.json).
+These are editable vector material concepts; no raster edit or production asset
+replacement occurred. Finish shortlist is not final approval of the hybrid/color.
+
+Chromium verified six options, all twelve large/header images loaded, identical
+card backgrounds and no horizontal overflow at 320/390/768/1440 pixels. XML
+checks verified canonical paths and stroke, correct base swatches, fixed view,
+shared inset masks and noise seed, and no shape transforms for all six SVGs.
+HTML local links and Brand QA passed. The desktop board was visually inspected.
+The separate avatar/team-mark/icon/award phase remains held.
+
+![Glossy edges and a frosted center, current lime plus five colors](previews/logo-hybrid.png)
 
 ## Finish before color — November 4, 2026
 

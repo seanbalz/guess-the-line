@@ -1,5 +1,17 @@
 # Guess The Line — current completion register
 
+## Glossy/frosted logo hybrid — November 4, 2026
+
+Sean shortlisted finishes 1 and 2 and requested glossy edges with a frosted
+center, preserving the G shape and current color plus additional colors.
+The [six-color hybrid board](../design/style-directions-2026-11-04/logo-hybrid.html)
+keeps current lime as 01, then explores evergreen, ice blue, amber, violet and
+rose using identical native SVG material layers on exact canonical paths.
+[Evidence and swatches](../design/style-directions-2026-11-04/README.md) record
+four responsive widths, twelve loaded previews, geometry/stroke/mask/base-color
+checks, desktop inspection and Brand QA. The hybrid and color are not approved;
+production assets and deferred scope remain unchanged.
+
 ## Finish before logo color — November 4, 2026
 
 Sean clarified that the flat/2D appearance should change first, then explicitly

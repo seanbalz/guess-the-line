@@ -1,5 +1,14 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — shortlisted glass finishes, hybrid exploration
+
+Sean shortlisted glossy glass (1) and frosted glass (2), then requested their
+hybrid: glossy edges, frosted center, exact current G and current color, with
+additional colors. The [hybrid board](../design/style-directions-2026-11-04/logo-hybrid.html)
+keeps current lime and adds five hues under identical material/scene settings.
+The shortlist does not approve the hybrid or a replacement color. Native SVG
+paths remain exact; production assets and the deferred phase are unchanged.
+
 ## November 4, 2026 — material first, color afterward
 
 Sean clarified that he wants to change the flat logo appearance before color.
