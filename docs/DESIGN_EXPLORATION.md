@@ -1,5 +1,13 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — compare combined 02/04 before choosing
+
+Sean shortlisted 02 and 04, then agreed to preview 02's subtle gradient with
+04's warm ivory text. The [comparison](../design/style-directions-2026-11-04/charcoal-ivory-combination.html)
+shows original 02, the combination, and original 04 with shared selected logo,
+card material and typography. This is authorization to show the combination,
+not adoption; production and the deferred phase remain unchanged.
+
 ## November 4, 2026 — charcoal selected, depth and text exploration
 
 Sean selected background 01 / Obsidian charcoal (`#202126`) for dark mode.

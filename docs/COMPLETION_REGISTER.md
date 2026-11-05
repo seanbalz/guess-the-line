@@ -1,5 +1,16 @@
 # Guess The Line — current completion register
 
+## Combined gradient/ivory preview — November 4, 2026
+
+Sean shortlisted charcoal studies 02 and 04 and requested a visual preview of
+the suggested combination. The [three-way comparison](../design/style-directions-2026-11-04/charcoal-ivory-combination.html)
+places 02's gradient with 04's ivory text between the original studies, retaining
+the selected lime hybrid logo and shared card/font/control styling. The
+combination remains unapproved. [Evidence](../design/style-directions-2026-11-04/README.md)
+records four responsive widths, eighteen screen/column combinations, exact
+source settings, inspected screenshot and Brand QA. Production and deferred
+scope are unchanged.
+
 ## Selected dark base: ten depth/text options — November 4, 2026
 
 Sean selected 01 / Obsidian charcoal as the dark-mode base, then requested

@@ -32,5 +32,10 @@
     "id": "obsidian",
     "hex": "#202126",
     "scope": "Dark base only; gradient/glow and text colors still exploratory"
-  }
+  },
+  "shortlistedDepthTextStudies": [
+    2,
+    4
+  ],
+  "combinedGradientIvoryStatus": "Requested comparison, not selected"
 }

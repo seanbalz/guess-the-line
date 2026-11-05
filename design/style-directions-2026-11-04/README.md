@@ -1,6 +1,29 @@
 # Guess The Line — eight whole-app style directions
 
-Owner: Sean Balsiger · Version 11 · November 4, 2026
+Owner: Sean Balsiger · Version 12 · November 4, 2026
+
+## Combined preview: 02 gradient and 04 ivory — November 4, 2026
+
+Sean shortlisted depth/text studies 02 and 04, asked which is better for users,
+and agreed to see the proposed combination before choosing. The [three-column
+comparison](charcoal-ivory-combination.html) shows original 02, the combined
+preview, and original 04. The middle uses the exact 02 charcoal gradient with
+04 main `#F3E9D7` and secondary `#C4B9A6` text. Card material, font, logo,
+control colors and fictional fixtures are unchanged. The combined treatment is
+requested for review, not selected or deployed. [Exact metadata](charcoal-ivory-combination.json)
+records the source studies and shared selected logo.
+
+Chromium verified four widths (320/390/768/1440), no page/frame horizontal
+overflow, visible navigation, loaded selected logos, identical material/accent,
+matching left/middle gradients and matching middle/right text colors. Eighteen
+screen/column combinations retained those relationships during navigation.
+No JavaScript errors were observed. Source metadata and local HTML references
+were verified, the desktop capture was visually inspected, and Brand QA passed.
+The earlier specified text-to-brightest-gradient endpoint calculations were
+11.41:1 main and 7.09:1 secondary; these do not establish all translucent-card
+contrast or user preference. No production or deferred-phase change occurred.
+
+![02 versus combined gradient/ivory versus 04](previews/charcoal-ivory-comparison.png)
 
 ## Selected charcoal: ten depth and text studies — November 4, 2026
 

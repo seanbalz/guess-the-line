@@ -1,0 +1,60 @@
+{
+  "status": "Requested visual combination for review; not selected",
+  "shortlistedStudies": [
+    2,
+    4
+  ],
+  "selectedLogo": "logo-hybrid/lime.svg",
+  "base": "#202126",
+  "combined": {
+    "number": null,
+    "id": "combined-02-04",
+    "name": "Combined / Gradient + Warm ivory",
+    "treatment": "gradient",
+    "background": "#202126",
+    "wash": "linear-gradient(150deg,#2A2D37 0%,#202126 50%,#17181D 100%)",
+    "text": "#F3E9D7",
+    "muted": "#C4B9A6"
+  },
+  "comparisonColumns": [
+    {
+      "label": "Original 02",
+      "study": {
+        "number": 2,
+        "id": "charcoal-02",
+        "name": "Gradient / Soft white",
+        "treatment": "gradient",
+        "background": "#202126",
+        "wash": "linear-gradient(150deg,#2A2D37 0%,#202126 50%,#17181D 100%)",
+        "text": "#F5F7FB",
+        "muted": "#BAC6D8"
+      }
+    },
+    {
+      "label": "Combined preview",
+      "study": {
+        "number": null,
+        "id": "combined-02-04",
+        "name": "Combined / Gradient + Warm ivory",
+        "treatment": "gradient",
+        "background": "#202126",
+        "wash": "linear-gradient(150deg,#2A2D37 0%,#202126 50%,#17181D 100%)",
+        "text": "#F3E9D7",
+        "muted": "#C4B9A6"
+      }
+    },
+    {
+      "label": "Original 04",
+      "study": {
+        "number": 4,
+        "id": "charcoal-04",
+        "name": "Solid / Warm ivory",
+        "treatment": "solid",
+        "background": "#202126",
+        "wash": "none",
+        "text": "#F3E9D7",
+        "muted": "#C4B9A6"
+      }
+    }
+  ]
+}
