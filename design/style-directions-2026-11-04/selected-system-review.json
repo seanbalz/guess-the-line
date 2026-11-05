@@ -418,10 +418,12 @@
   },
   "researchMatchupMarks": {
     "date": "2026-11-05",
-    "status": "Implemented for visual review; no whole-screen acceptance inferred",
+    "status": "Approved by Sean for the reviewed Research logo-tile treatment",
     "scope": "Research main matchup, Games/Teams previews and matching available detail matchup",
     "layout": "One glass tile per logo, transparent pair layout; 64px main tiles and 42px quick-card tiles; names and at separator retained",
     "sources": "Existing unchanged registered PNGs",
-    "Home": "Previously accepted separate logo tiles retained"
+    "Home": "Previously accepted separate logo tiles retained",
+    "accepted": "2026-11-05",
+    "acceptanceScope": "Individual team-logo tiles in the reviewed Research overview; not blanket approval of all Research details or whole-app completion"
   }
 }

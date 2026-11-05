@@ -1,5 +1,17 @@
 # Guess The Line — current completion register
 
+## Research logo-tile treatment approved — November 5, 2026
+
+Sean answered yes to the reviewed Research matchup and Games/Teams previews.
+The individual glass-tile treatment is approved for those reviewed placements
+in both themes. [Selection record](../design/style-directions-2026-11-04/selected-system-review.json)
+and [reviewed capture](../design/style-directions-2026-11-04/previews/research-separate-logo-tiles.png)
+preserve the scope. This does not establish approval of every Research detail
+view or whole-app completion. No UI code or production changes accompany this
+approval record. Play is the recommended next review area; its changes await
+Sean's direction. Parked Signal files remain untouched and unpublished.
+
+
 ## Separate team-logo tiles carried into Research — November 5, 2026
 
 Sean authorized applying the Home treatment to Research. The
