@@ -1,5 +1,11 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — Bets dark/light overview accepted
+
+Sean accepted Bets/overview in both modes. [Review progress](../design/style-directions-2026-11-04/selected-system-review.json)
+records Home, Play and Bets accepted, with Research/overview next. Remaining
+screens/layers, whole-project completion, production and deferred scope are separate.
+
 ## November 4, 2026 — Play dark/light overview accepted
 
 Sean accepted Play/overview in both modes. [Review progress](../design/style-directions-2026-11-04/selected-system-review.json)

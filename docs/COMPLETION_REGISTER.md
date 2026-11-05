@@ -1,5 +1,14 @@
 # Guess The Line — current completion register
 
+## Bets overview accepted in both themes — November 4, 2026
+
+Sean accepted Bets/overview in dark and Porcelain in response to the specific
+Bets question. The [review manifest](../design/style-directions-2026-11-04/selected-system-review.json)
+records Home, Play and Bets overviews accepted; Research/overview is next.
+Other screens/layers, production acceptance and whole-project completion remain
+open; deferred work stays held. Metadata/source-reference and Brand QA passed.
+Reviewed visuals and production are unchanged.
+
 ## Play overview accepted in both themes — November 4, 2026
 
 Sean accepted Play/overview in dark and Porcelain in response to the specific

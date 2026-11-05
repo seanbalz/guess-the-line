@@ -1,7 +1,7 @@
 {
   "kind": "GTL_SELECTED_SYSTEM_REVIEW",
   "version": 1,
-  "status": "Home and Play overviews visually accepted in both modes; remaining screen/layer review pending",
+  "status": "Home, Play and Bets overviews visually accepted in both modes; remaining screen/layer review pending",
   "darkSource": "lime-priority-preview.json",
   "lightSource": "light-mode-options.json",
   "dark": {
@@ -284,9 +284,17 @@
         ],
         "confirmed": "2026-11-04",
         "evidence": "Sean replied yes to the explicit Play-in-both-modes question"
+      },
+      "Bets/overview": {
+        "themes": [
+          "dark",
+          "light"
+        ],
+        "confirmed": "2026-11-04",
+        "evidence": "Sean replied yes to the explicit Bets-in-both-modes question"
       }
     },
-    "next": "Bets/overview",
+    "next": "Research/overview",
     "scope": "Mockup visual acceptance only; layers, other screens, production acceptance and whole-project completion are not inferred"
   }
 }

@@ -1,12 +1,12 @@
 # Guess The Line — eight whole-app style directions
 
-Owner: Sean Balsiger · Version 26 · November 4, 2026
+Owner: Sean Balsiger · Version 27 · November 4, 2026
 
 ## Visual review progress — November 4, 2026
 
-Sean accepted **Home / Overview and Play / Overview in both dark and Porcelain**. The
+Sean accepted **Home / Overview, Play / Overview and Bets / Overview in both dark and Porcelain**. The
 [review manifest](selected-system-review.json) records that exact scope and
-Bets / Overview as next. Other primary screens and detail layers remain pending;
+Research / Overview as next. Other primary screens and detail layers remain pending;
 this does not mark production acceptance, whole-project completion or a start
 of deferred work. Metadata references and Brand QA passed. Visuals are unchanged.
 
