@@ -1,5 +1,5 @@
 {
-  "status": "Five light-mode visual alternatives; none selected",
+  "status": "02 / Porcelain, 04 / Pale sage and 05 / Silver mist shortlisted; no final light-mode selection",
   "logo": {
     "path": "logo-hybrid/light-deep-green.svg",
     "baseColor": "#3B6309",
@@ -77,5 +77,10 @@
       "wash": "linear-gradient(150deg,#FAFCFE,#E9EDF1 55%,#DDE3EA)",
       "source": "New neutral light exploration"
     }
+  ],
+  "shortlist": [
+    2,
+    4,
+    5
   ]
 }

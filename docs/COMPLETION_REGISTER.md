@@ -1,5 +1,17 @@
 # Guess The Line — current completion register
 
+## Research comparison of light shortlist — November 4, 2026
+
+Sean shortlisted 02 / Porcelain, 04 / Pale sage and 05 / Silver mist and agreed
+to compare the same denser Research screen. The [three-way board](../design/style-directions-2026-11-04/light-research-comparison.html)
+uses identical existing fictional usage values and trend vector, with readable
+16px table rows and 13px metadata/chart labels. No final light-mode option is
+selected. [Evidence and source recipes](../design/style-directions-2026-11-04/README.md)
+record four responsive widths, exact shared content/styles, native table region,
+game-details/Back and Home/Research round trips, inspected capture, syntax/local
+references/metadata and Brand QA. Production, dark selections and deferred scope
+are unchanged.
+
 ## Five light-mode options — November 4, 2026
 
 Sean agreed to light-mode comparison next. The [board](../design/style-directions-2026-11-04/light-mode-options.html)

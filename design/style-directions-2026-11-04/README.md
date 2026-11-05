@@ -1,6 +1,37 @@
 # Guess The Line — eight whole-app style directions
 
-Owner: Sean Balsiger · Version 21 · November 4, 2026
+Owner: Sean Balsiger · Version 22 · November 4, 2026
+
+## Research comparison for light shortlist 02 / 04 / 05 — November 4, 2026
+
+Sean shortlisted Porcelain (02), Pale sage (04) and Silver mist (05), asked how
+to decide, and agreed to compare the same denser Research screen. The [three-way
+Research board](light-research-comparison.html) holds content, type, glass,
+logo and accents identical so the background undertone is the comparison.
+No option or light logo adaptation is selected. [Metadata](light-research-comparison.json)
+retains original option numbers and the exact shared source recipes.
+
+The comparison-only Research composition reuses the existing fictional Player
+A/B usage values and illustrative trend vector from `app.js`; it does not alter
+production Research, add live research, projections or sportsbook quotes. Table
+values and row labels are 16px; headers/caption and external chart labels are
+13px. Tiny vector text labels are replaced with native Week 1/Week 5 labels.
+A named, keyboard-focusable native table scroll region contains narrow-width
+overflow. The existing game-action button node is moved into the composition,
+preserving its native bound handler. Opening details/Back or leaving/returning
+to Research restores the comparison consistently.
+
+Chromium checked three frames at 320/390/768/1440: identical table/chart/card
+recipes, three distinct backgrounds, matching light logo and text, correct
+reading sizes, table caption/region, no page/frame horizontal overflow, and
+fitting navigation. Each preview passed game-details/Back and Home/Research
+round trips. No JavaScript errors were observed. Source option/recipe consistency,
+local references, syntax and Brand QA passed. The final desktop capture was
+inspected. This is bounded mockup verification, not independent device acceptance
+or a full accessibility audit. Dark selections, production and deferred scope
+remain unchanged.
+
+![Research in shortlisted Porcelain, Pale sage and Silver mist](previews/light-research-comparison.png)
 
 ## Five light-mode alternatives — November 4, 2026
 

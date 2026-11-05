@@ -1,5 +1,14 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — shortlist 02 / 04 / 05 on Research
+
+Sean shortlisted Porcelain (02), Pale sage (04) and Silver mist (05), then agreed
+to a denser Research comparison to help decide. The [board](../design/style-directions-2026-11-04/light-research-comparison.html)
+uses the same existing fictional usage table and trend fixture, type, glass,
+logo and accents; only background changes. Exact source mapping and bounded
+checks are documented in the artifact README. No light option or logo adaptation
+is selected. Dark selections, production and deferred scope are unchanged.
+
 ## November 4, 2026 — light-mode comparison
 
 Sean agreed to five light options carrying over floating glass, selective lime

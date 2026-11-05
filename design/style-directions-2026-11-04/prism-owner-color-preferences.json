@@ -6,7 +6,8 @@
   },
   "lightPreference": {
     "id": "arctic",
-    "originalNumber": 1
+    "originalNumber": 1,
+    "scope": "Earlier palette-board interest; current light-mode shortlist is recorded separately"
   },
   "additionalInterest": {
     "id": "forest",
@@ -107,5 +108,27 @@
     ],
     "supportingCards": "Neutral floating clear glass",
     "confirmed": "2026-11-04"
+  },
+  "lightModeShortlist": {
+    "source": "light-mode-options.json",
+    "options": [
+      {
+        "number": 2,
+        "id": "porcelain",
+        "name": "Porcelain glass"
+      },
+      {
+        "number": 4,
+        "id": "sage",
+        "name": "Pale sage"
+      },
+      {
+        "number": 5,
+        "id": "silver",
+        "name": "Silver mist"
+      }
+    ],
+    "comparison": "light-research-comparison.html",
+    "status": "Shortlisted only; no final light-mode selection"
   }
 }
