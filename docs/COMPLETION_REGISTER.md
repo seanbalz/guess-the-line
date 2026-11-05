@@ -1,5 +1,16 @@
 # Guess The Line — current completion register
 
+## Selected hybrid logo, option 01 — November 4, 2026
+
+Sean selected **01 / Current lime** on the hybrid logo board after explicitly
+clarifying that "original" meant option 01, not the flat app logo. The selected
+[vector](../design/style-directions-2026-11-04/logo-hybrid/lime.svg) retains the
+Balanced Yardline G with glossy edges, a frosted center and base `#B8F34B`.
+The [manifest](../design/style-directions-2026-11-04/logo-hybrid/manifest.json)
+records this choice. App palette and whole-project completion remain open;
+production integration/release and the deferred phase have not started.
+This supersedes the unapproved-hybrid status in the earlier exploration entry.
+
 ## Glossy/frosted logo hybrid — November 4, 2026
 
 Sean shortlisted finishes 1 and 2 and requested glossy edges with a frosted

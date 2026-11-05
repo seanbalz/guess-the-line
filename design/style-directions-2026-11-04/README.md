@@ -1,6 +1,16 @@
 # Guess The Line — eight whole-app style directions
 
-Owner: Sean Balsiger · Version 8 · November 4, 2026
+Owner: Sean Balsiger · Version 9 · November 4, 2026
+
+## Selected logo direction — November 4, 2026
+
+Sean selected **01 / Current lime hybrid** after clarifying "original" as option
+01 on this board, not the flat app mark. Use the [reviewed lime SVG](logo-hybrid/lime.svg)
+as the selected direction: exact existing G shape, lime `#B8F34B`, glossy edges
+and frosted center. [Selection metadata](logo-hybrid/manifest.json) records the
+scope. The five other colors remain unselected. This supersedes the earlier
+unapproved-hybrid status below; broader app palette and project completion
+remain open. Production integration and deferred follow-up have not started.
 
 ## Glossy/frosted hybrid and additional colors — November 4, 2026
 

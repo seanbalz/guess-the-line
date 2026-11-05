@@ -1,4 +1,16 @@
 # GUESS THE LINE — BRAND & DESIGN SYSTEM v1.0
+
+## Selected glossy/frosted logo direction — November 4, 2026
+
+Sean selected **01 / Current lime** from the [hybrid comparison](../design/style-directions-2026-11-04/logo-hybrid.html),
+clarifying that "original" meant that option rather than the flat app logo.
+The [selected vector](../design/style-directions-2026-11-04/logo-hybrid/lime.svg)
+keeps exact Balanced Yardline G geometry and base lime `#B8F34B`, adding glossy
+edges and a frosted center. The [manifest](../design/style-directions-2026-11-04/logo-hybrid/manifest.json)
+records the selection. This is the selected finish/color direction; production
+integration, light-surface treatment and small-icon adaptation remain pending.
+It does not select a replacement app palette or change existing shipped assets.
+
 Status: canonical for all product UI, documents, dashboards, presentations, notifications, iOS, and agent-generated assets. Updated 2026-10-08.
 The new app (D-38, `web/src/next/`) follows the [D-38 section](#d-38-redesign-system-the-new-app--october-14-2026) at the end of this guide. Since D-65 (October 28, 2026) it is the only app; the old app is no longer built or served. Everything above is the old app's legacy styling, which only the sign-in screen (until build plan stage 76) and the local engineering dashboard still use.
 

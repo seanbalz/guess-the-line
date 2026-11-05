@@ -1,5 +1,14 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — hybrid logo option 01 selected
+
+Sean clarified that he prefers option **01 / Current lime** from the hybrid
+board. Retain the existing G geometry and lime `#B8F34B` with glossy edges and a
+frosted center. The [selected SVG](../design/style-directions-2026-11-04/logo-hybrid/lime.svg)
+is the exact reviewed vector; the other five hues remain unselected studies.
+This selects the logo direction, not the app palette or whole-app approval.
+Production integration and the deferred phase remain pending.
+
 ## November 4, 2026 — shortlisted glass finishes, hybrid exploration
 
 Sean shortlisted glossy glass (1) and frosted glass (2), then requested their

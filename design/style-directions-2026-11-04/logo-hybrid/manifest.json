@@ -1,5 +1,5 @@
 {
-  "status": "Exploration; 1 and 2 shortlisted, hybrid and colors not approved",
+  "status": "Selected by Sean: option 01, current-lime glossy/frosted hybrid; production integration pending",
   "geometrySource": "design/logo-redraft-2026-10-29/logo-balanced-lime.svg",
   "material": "Glossy rim around eroded-mask frosted center; clear glossy yard-line strokes",
   "currentColor": "#B8F34B",
@@ -41,5 +41,16 @@
       "name": "Rose quartz",
       "baseColor": "#E995AC"
     }
-  ]
+  ],
+  "selection": {
+    "number": 1,
+    "id": "lime",
+    "asset": "lime.svg",
+    "baseColor": "#B8F34B",
+    "finish": "Glossy edges, frosted center",
+    "geometry": "Existing Balanced Yardline G unchanged",
+    "confirmed": "2026-11-04",
+    "clarification": "Sean clarified that original means option 01 on the hybrid board, not the flat app logo",
+    "scope": "Selected logo direction; no whole-app palette approval, release or deferred-phase start"
+  }
 }
