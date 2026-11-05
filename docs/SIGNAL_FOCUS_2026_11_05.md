@@ -33,3 +33,14 @@ The companion isolated preview and preference record remain in the task's `brand
 - Brand/D-18 document QA and diff whitespace checks passed.
 
 The broad Node run completed all 2,931 tests: 2,921 passed, 10 failed, zero skipped. Two failures observed the intermediate brand assets before their fixes; eight were sandbox-denied loopback sockets. All ten failing cases subsequently passed on the final source: seven within the 32-test targeted rerun and the remaining three in a dedicated loopback rerun (export, service worker CSP, font CSP; 3 passed, zero failed/skipped). No unexplained test failure remains. This records results across runs, not a second clean full-suite run. GitHub CI and physical-device acceptance are separate.
+
+
+## CI contract follow-through
+
+The initial CI head `5a1b7a1d` passed all three unit shards, Typecheck and test, Windows portability, dashboard, Persona and Brand QA. All four browser shards were reviewed before the corrective push: shard 2 passed; shards 1, 3 and 4 each had one failure.
+
+- Shard 4: Source details expected the historical 16px medium-card radius. Signal Focus intentionally uses 26px. The browser contract now checks all four corners against the shared medium-card token and requires a positive radius, while retaining every closed-body/open-body/reclose assertion.
+- Shard 1: the icon cache tag `signal-20261105` happened to contain `105`, a synthetic secret-odds sentinel scanned across every page attribute. It is now `signal-focus`; the secrecy assertions and API/UI gating checks are unchanged.
+- Shard 3: the shell test expected literal lime/deep-green logo colors. It now derives the expected RGB from the canonical theme accent-ink, retaining both parent/SVG transparency, shadow, geometry, responsive and axe checks.
+
+Final local follow-up: all 14 tests in the complete Trends and Everyone specs passed, plus the shell's full Light/Dark 320/390 accessibility/menu sweep (1 passed). The 25 token/brand/theme Node checks, JavaScript syntax, Brand QA and diff checks also passed. The corrective push triggers a fresh complete CI run; its result is reported at handoff rather than inferred from the previous head.
