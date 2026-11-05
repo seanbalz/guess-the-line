@@ -1,5 +1,13 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — 05 Floating clear glass selected
+
+Sean selected card finish **05 / Floating clear glass** with light tint and a
+deeper shadow gap. [Exact recipe](../design/style-directions-2026-11-04/glass-card-options.json)
+retains the selected charcoal-gradient/ivory direction and lime hybrid G.
+This supersedes the earlier unselected-card status; remaining design decisions,
+whole-project completion, production integration and deferred follow-up are open.
+
 ## November 4, 2026 — glass card finish comparison
 
 Sean's request to continue advances the current mockup review to card material.

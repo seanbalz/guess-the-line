@@ -1,6 +1,18 @@
 # Guess The Line — eight whole-app style directions
 
-Owner: Sean Balsiger · Version 14 · November 4, 2026
+Owner: Sean Balsiger · Version 15 · November 4, 2026
+
+## Selected card finish: 05 Floating clear glass — November 4, 2026
+
+Sean selected **05 / Floating clear glass**, resolving the card-finish review.
+Use the exact [selected recipe](glass-card-options.json): light clear tint,
+18px blur, 28px corners, restrained gloss and deeper shadow separation, including
+the navigation glass shown in the option. His selected charcoal gradient,
+ivory text and lime hybrid logo remain fixed. [Owner preferences](prism-owner-color-preferences.json)
+record these choices together. Earlier unselected-card status below is historical.
+Metadata consistency and Brand QA passed; reviewed visuals are unchanged.
+Remaining control/light-mode choices and whole-project completion remain open;
+production integration and deferred follow-up have not started.
 
 ## Next decision: five glass card finishes — November 4, 2026
 

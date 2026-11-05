@@ -14,7 +14,7 @@
   },
   "requestedMeaningOfSeparateColors": "unique, different, new",
   "optionalExperiment": "Different colors per card authorized for visual comparison",
-  "status": "Logo and combined charcoal-gradient/ivory dark direction selected; remaining design decisions and production integration pending",
+  "status": "Logo, combined charcoal-gradient/ivory dark direction and floating clear glass selected; remaining design decisions and production integration pending",
   "additionalPaletteRound": {
     "likedOnly": [
       {
@@ -50,6 +50,22 @@
     "muted": "#C4B9A6",
     "logo": "logo-hybrid/lime.svg",
     "logoBaseColor": "#B8F34B",
+    "confirmed": "2026-11-04",
+    "production": "Not integrated or deployed"
+  },
+  "selectedCardFinish": {
+    "number": 5,
+    "id": "floating",
+    "name": "Floating clear glass",
+    "source": "glass-card-options.json",
+    "overrides": {
+      "fill": "linear-gradient(135deg,#FFFFFF14,#FFFFFF06)",
+      "border": "#FFFFFF38",
+      "blur": "18px",
+      "shadow": "inset 0 1px 0 #FFFFFF80,0 4px 6px #00000070,0 18px 28px #000000A6",
+      "gloss": ".65",
+      "radius": "28px"
+    },
     "confirmed": "2026-11-04",
     "production": "Not integrated or deployed"
   }

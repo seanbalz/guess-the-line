@@ -1,5 +1,17 @@
 # GUESS THE LINE — BRAND & DESIGN SYSTEM v1.0
 
+## Selected card finish: 05 Floating clear glass — November 4, 2026
+
+Sean selected **05 / Floating clear glass** from the [five-finish board](../design/style-directions-2026-11-04/glass-card-options.html).
+Retain his selected charcoal gradient, warm ivory text and lime hybrid G.
+The finish uses `linear-gradient(135deg,#FFFFFF14,#FFFFFF06)`, border `#FFFFFF38`,
+18px backdrop blur, 28px card corners, gloss opacity `.65`, and the specified
+inset/depth shadow. [Exact recipe and selection](../design/style-directions-2026-11-04/glass-card-options.json)
+include the navigation glass shown in option 05. This resolves the card-finish
+choice and supersedes the earlier open-card status. Remaining control/light-mode
+decisions, whole-project completion and production integration are separate;
+shipped tokens/assets/code remain unchanged.
+
 ## Selected charcoal-gradient / warm-ivory dark direction — November 4, 2026
 
 Sean confirmed the **middle combined preview** in the [three-way comparison](../design/style-directions-2026-11-04/charcoal-ivory-combination.html):

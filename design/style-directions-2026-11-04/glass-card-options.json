@@ -1,5 +1,5 @@
 {
-  "status": "Card finish exploration; no option selected",
+  "status": "Selected by Sean: 05 / Floating clear glass; production integration pending",
   "selectedDarkDirection": {
     "number": null,
     "id": "combined-02-04",
@@ -76,5 +76,22 @@
         "radius": "28px"
       }
     }
-  ]
+  ],
+  "selection": {
+    "number": 5,
+    "id": "floating",
+    "name": "Floating clear glass",
+    "note": "A light tint and deeper shadow create a visible gap.",
+    "overrides": {
+      "fill": "linear-gradient(135deg,#FFFFFF14,#FFFFFF06)",
+      "border": "#FFFFFF38",
+      "blur": "18px",
+      "shadow": "inset 0 1px 0 #FFFFFF80,0 4px 6px #00000070,0 18px 28px #000000A6",
+      "gloss": ".65",
+      "radius": "28px"
+    },
+    "confirmed": "2026-11-04",
+    "scope": "Card finish and navigation glass as shown in option 05; background, text and logo retain their selected settings",
+    "production": "Not integrated or deployed"
+  }
 }

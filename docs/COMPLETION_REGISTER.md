@@ -1,5 +1,15 @@
 # Guess The Line — current completion register
 
+## Floating clear glass selected — November 4, 2026
+
+Sean selected **05 / Floating clear glass**. [Selection metadata](../design/style-directions-2026-11-04/glass-card-options.json)
+and [brand guidance](BRAND_GUIDE.md) preserve the exact reviewed tint, border,
+18px blur, shadow, gloss and 28px corners, including the navigation glass.
+The selected charcoal gradient, ivory text and lime hybrid logo are retained.
+This resolves the card-finish decision, not whole-project completion or
+production integration. The reviewed visuals are unchanged; metadata
+consistency and Brand QA passed. Deferred follow-up remains held.
+
 ## Next comparison: glass card finish — November 4, 2026
 
 Sean asked to continue after selecting the combined dark direction. The
