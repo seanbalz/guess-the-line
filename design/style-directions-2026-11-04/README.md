@@ -3,6 +3,21 @@
 Owner: Sean Balsiger · Version 31 · November 4, 2026
 
 
+## Compact Home action-card comparison — November 5, 2026
+
+Sean agreed to review a compact Home card beside the existing card. The
+[local comparison](home-compact-review.html)
+keeps both dark/light themes, selected materials, G, ring data and native button
+nodes. The proposal shortens the headline and progress row, saving approximately
+108px at 320, 390, 768 and 1440px in both themes. Chromium checked eight layouts,
+nav fit, retained 28px card radius, glossy icons and four Continue picks actions;
+no page errors were found. [Dark capture](previews/home-compact-dark.png)
+and [light capture](previews/home-compact-light.png)
+were inspected. This is a proposed comparison, not selection or Home acceptance.
+The selected whole-app viewer is unchanged. The stopped Signal branding files
+remain preserved and unpublished; no work on that exploration resumed.
+
+
 ## Selected icon finish: 03 Glossy glass — November 4, 2026
 
 Sean accepted the assistant recommendation ("go with your rec"): use **03 Glossy
