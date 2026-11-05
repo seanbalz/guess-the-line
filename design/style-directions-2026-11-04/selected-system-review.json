@@ -397,5 +397,22 @@
     "cardPadding": "18px",
     "savedHeight": "approximately 108px",
     "comparison": "home-compact-review.html"
+  },
+  "homeMatchupMarks": {
+    "date": "2026-11-05",
+    "status": "Implemented for visual review, not new screen acceptance",
+    "scope": "Both teams in each Home matchup row, dark and light",
+    "pairs": [
+      [
+        "Seattle Seahawks",
+        "Denver Broncos"
+      ],
+      [
+        "Chicago Bears",
+        "Detroit Lions"
+      ]
+    ],
+    "source": "Existing unchanged visual-assets team PNGs and source register",
+    "layout": "30px marks in a 72px pair, names and status retained, 44px minimum action height"
   }
 }

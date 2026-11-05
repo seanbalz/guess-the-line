@@ -1,5 +1,19 @@
 # Guess The Line — current completion register
 
+## Both team marks in Home matchup rows — November 5, 2026
+
+Sean authorized continuing with the recommendation to show both teams in Home
+matchup rows. The [selected viewer](../design/style-directions-2026-11-04/selected-system-review.html?screen=Home)
+now shows Seahawks/Broncos and Bears/Lions marks in away/home order beside the
+existing names and draft/status text. The compact selected action card is retained.
+Marks reuse the unchanged registered assets; no new live data or private picks
+are added. [Paired dark/light detail capture](../design/style-directions-2026-11-04/previews/home-matchup-logos.png)
+shows the proposed treatment. Chromium checked both themes at 320/390/768/1440px,
+loaded marks, readable row bounds, 44px actions and four native game opens with no
+page errors. Brand document and JavaScript syntax QA passed. No new Home or
+whole-app sign-off is inferred. The parked Signal files remain untouched.
+
+
 ## Compact Home action card selected — November 5, 2026
 
 Sean selected the compact version from the Home comparison. The
