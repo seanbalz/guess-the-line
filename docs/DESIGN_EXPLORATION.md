@@ -1,5 +1,14 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — frosted family with transparent green-outline revision
+
+Sean chose frosted glass and requested a transparent face with a bolder green
+outline. The [revision](../design/style-directions-2026-11-04/button-transparent-lime.html)
+shows the original beside a transparent, full 3px lime-border primary, keeping
+ivory text, 20px corners, glass blur and all selected surrounding design settings.
+The family preference and requested recipe are recorded; exact visual weight
+awaits review. Production and deferred scope are unchanged.
+
 ## November 4, 2026 — five action-button families
 
 Sean requested five button styles with the selected background, text, logo and

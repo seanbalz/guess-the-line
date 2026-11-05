@@ -1,6 +1,31 @@
 # Guess The Line — eight whole-app style directions
 
-Owner: Sean Balsiger · Version 16 · November 4, 2026
+Owner: Sean Balsiger · Version 17 · November 4, 2026
+
+## Frosted button refinement: transparent face, bold lime outline — November 4, 2026
+
+Sean chose the frosted-glass button family and requested a transparent face with
+a bolder green outline. The [before/after preview](button-transparent-lime.html)
+retains the exact selected logo/background/text/floating-card design. The revised
+primary has no fill (`transparent`, computed alpha zero), no background image or
+gloss wash, a full 3px `#B8F34B` border, ivory label, retained 20px corners and
+18px backdrop blur. The existing frosted-family secondary styling is retained.
+[Exact recipe](button-transparent-lime.json) records the request; the implemented
+3px weight is shown for review, not treated as final visual sign-off.
+
+The shared action bridge accepts optional backdrop filtering and defaults to
+`none`, preserving earlier family appearances. Chromium verified four widths
+(320/390/768/1100), transparent computed face/no image/no shine, exact border,
+label/radius/blur, loaded selected logos, identical selected backgrounds/cards,
+no page/frame overflow and fitting navigation. Twelve screen/column combinations
+retained the recipe. The revised Home action opened Play and its keyboard focus
+outline remained visible. The original frosted preview retained no backdrop
+filter. No JavaScript errors were observed. Syntax, local references, metadata,
+selected-card consistency and Brand QA passed; the desktop capture was inspected.
+These are bounded mockup checks, not full accessibility/device acceptance.
+Production and deferred follow-up are unchanged.
+
+![Original frosted button and requested transparent lime-outline revision](previews/button-transparent-lime.png)
 
 ## Five button styles on the selected design — November 4, 2026
 

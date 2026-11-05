@@ -68,5 +68,13 @@
     },
     "confirmed": "2026-11-04",
     "production": "Not integrated or deployed"
+  },
+  "buttonRefinement": {
+    "family": 5,
+    "id": "frosted",
+    "requestedChange": "Transparent face with bolder current-lime outline",
+    "previewRecipe": "button-transparent-lime.json",
+    "outlineWidth": "3px",
+    "status": "Requested revision displayed; exact visual weight pending review"
   }
 }

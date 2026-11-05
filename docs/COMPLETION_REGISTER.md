@@ -1,5 +1,16 @@
 # Guess The Line — current completion register
 
+## Transparent frosted button with bold green outline — November 4, 2026
+
+Sean chose frosted glass and requested transparent color with a bolder green
+outline. The [before/after preview](../design/style-directions-2026-11-04/button-transparent-lime.html)
+uses a transparent primary face, full 3px logo-lime outline, ivory label, retained
+20px corners and 18px glass blur with his selected floating cards/background/logo.
+[Evidence](../design/style-directions-2026-11-04/README.md) records exact computed
+styles, four widths, twelve screen/column combinations, keyboard focus and click
+route, inspected capture and Brand QA. The 3px revision awaits visual review;
+production and deferred scope remain unchanged.
+
 ## Five button styles with selected design — November 4, 2026
 
 Sean requested five button styles while preserving his selected dark background,
