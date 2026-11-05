@@ -1,5 +1,21 @@
 # Guess The Line — current completion register
 
+## Owner verification and mockups for every sign-off — November 4, 2026
+
+Sean passed Home readability/scrolling/navigation clearance in the iPhone Home
+Screen app, Research Games/detail, and Research Trends/chart. He then directed:
+"Assume navigation all passes until I identify an isssue." Broader navigation
+is accepted **by owner direction**, not represented as independently tested.
+
+Sean requires mockups for **everything** needing his sign-off. The
+[acceptance record](OWNER_ACCEPTANCE_2026_11_04.md) separates performed passes,
+that navigation assumption, existing approvals and remaining technical evidence.
+The [visual board](../design/owner-review-2026-11-04/index.html) collects 39
+Dark/Light screen pairs, reminder states, eight functional check sequences and
+X references. Older captures and missing current-state visuals are labelled.
+No new design choice is approved by assembling this board. No production
+data, migration or deployment was changed; the frozen v62 tracker is preserved.
+
 ## D-69 design overhaul, step 3: Research — November 4, 2026
 
 Built on `claude/overhaul-step3-research` from the
@@ -21,7 +37,7 @@ fixes landed after them.
 
 **Released** November 4, 2026, about 20:31 UTC: Pages `a73e79f7` from `main` at `87372514`, run 41906859675. See the
 [release record](RELEASE_2026_11_04_RESEARCH_STEP3.md). Live bytes were checked signed out.
-Not yet: a signed-in readback of Research (`GET /personal` and the game layer's reads), and Sean's iPhone check.
+November 4 owner acceptance: Games/detail and Trends/chart readability and Back passed on the iPhone; broader navigation is accepted by owner direction. See the [acceptance record](OWNER_ACCEPTANCE_2026_11_04.md). Fresh signed-in technical readback and unapproved D-69 visual choices remain open.
 
 ## D-69 design overhaul, step 2: Home — November 4, 2026
 
@@ -46,7 +62,7 @@ After the 390 px captures Sean said "Yes, merge #482", then "Yes, release it".
 [release record](RELEASE_2026_11_04_HOME_STEP2.md). Live bytes were checked signed out.
 The signed-in readback is done (hosted logs). An iPhone visit at 17:52 UTC got 200 from Home's `GET /personal` in
 1.1 s. All 17 `gtl-api` routes in that visit returned 200, and no CPU or worker-limit message appeared.
-Not yet: Sean's iPhone check of how Home looks.
+November 4 owner acceptance: Home readability, scrolling and bottom-navigation clearance passed in the iPhone Home Screen app. H1A/C9 and the other unapproved build choices still require mockup-based review; see the [acceptance record](OWNER_ACCEPTANCE_2026_11_04.md).
 
 ## Design audit quick wins (group A) — November 4, 2026
 

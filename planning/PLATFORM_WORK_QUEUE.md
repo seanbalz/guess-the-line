@@ -1,5 +1,16 @@
 # Guess The Line — sequential platform work
 
+## Owner acceptance direction — November 4, 2026
+
+Use the [current acceptance record](../docs/OWNER_ACCEPTANCE_2026_11_04.md)
+before asking for checks below. Home, Research Games and Research Trends have
+explicit iPhone passes. Sean accepts all navigation by direction unless he
+reports an issue. Every new sign-off requires a mockup first; use the
+[visual board](../design/owner-review-2026-11-04/index.html), preserving its
+capture limitations and missing-state notes. Technical verification and specific
+migration/deletion approvals remain separate. Dated statements below are
+historical where newer release evidence supersedes them.
+
 ## Pick a Team turn queues — November 3, 2026
 
 Implement the confirmed [turn-queue rule](../docs/EPL_TURN_QUEUES_2026_11_03.md):
