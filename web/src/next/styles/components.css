@@ -2,24 +2,24 @@
    Ported from the approved prototype's shared classes (shell v1.2, CONTRACT section 11) with the
    gx- prefix. Load after tokens.css and base.css. Compose these classes; screen styles add their
    own gx-<screen>- classes and never restyle a shared class globally.
-   Lime (--gx-accent) is only for the one primary button in view, your selections, the active tab
+   Signal blue (--gx-accent) is for the one primary button in view, your selections, the active tab
    and "you". Colors come from tokens only; numbers in Barlow Condensed are always tabular. */
 
 /* ===== type ===== */
 .gx-t-display {
   font: 800 40px/40px var(--gx-font-display);
-  text-transform: uppercase;
-  letter-spacing: 0.01em;
+  text-transform: none;
+  letter-spacing: -0.02em;
 }
 .gx-t-title {
   font: 800 28px/32px var(--gx-font-display);
-  text-transform: uppercase;
-  letter-spacing: 0.01em;
+  text-transform: none;
+  letter-spacing: -0.02em;
 }
 .gx-t-section {
   font: 700 20px/24px var(--gx-font-display);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  text-transform: none;
+  letter-spacing: -0.02em;
 }
 .gx-t-team {
   font: 700 20px/24px var(--gx-font-num);
@@ -278,7 +278,7 @@ textarea.gx-input { min-height: 96px; padding: 12px 16px; resize: vertical; }
   background: var(--gx-surface-1);
   box-shadow: var(--gx-e1);
 }
-/* D-55: each root's one action card glows (deep blue in Dark, a soft white report card in Light), with glass
+/* D-55: each root's action card keeps a neutral reading surface, with translucent
    countdown tiles. 24 radius. */
 .gx-card--hero {
   padding: 20px;

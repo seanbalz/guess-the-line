@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
 
-// D-44: the logo is the Yardline G alone, in green, on a transparent background. These are the files a browser, a
+// D-44: the logo is the Yardline G alone, in the theme foreground, on a transparent background. These are the files a browser, a
 // home screen and a notification show (web/public), and the old app's mark (web/src/Brand.jsx, brand.css); the new
 // app's FieldMark is checked in tests/next-ui.test.jsx. Sean chose "Transparent everywhere" (October 14, 2026), so
 // Android's launcher and the push notification use the same transparent G: no maskable or navy icon.
@@ -15,8 +15,8 @@ const nextTokens = JSON.parse(fs.readFileSync(path.join(root, 'design/tokens-nex
 const brand = fs.readFileSync(path.join(root, 'web/src/Brand.jsx'), 'utf8');
 const paths = [...brand.matchAll(/<path d="([^"]+)"/g)].map(m => m[1]);
 const viewBox = brand.match(/<svg viewBox="([^"]+)"/)[1];
-const lime = tokens.colors.primary;
-const deepGreen = tokens.themes.light.primaryForeground;
+const markInk = nextTokens.themes.dark.color['accent-ink'];
+const lightMarkInk = nextTokens.themes.light.color['accent-ink'];
 const navy = tokens.colors.canvas;
 
 // WCAG 2.x relative luminance and contrast ratio.
@@ -67,7 +67,7 @@ function placer(name) {
 // lines, and its counter. Anything drawn behind the G (a tile, faint or not) covers them.
 const holes = [[48, 24], [3, 32], [26, 32]];
 
-test('the PNG icons (home screen 180, manifest 192 and 512, notification badge 192) are the lime G on a real alpha channel', () => {
+test('the PNG icons (home screen 180, manifest 192 and 512, notification badge 192) are the theme-colored G on a real alpha channel', () => {
   const at = placer('app-icon.svg');
   for (const size of [180, 192, 512]) {
     const png = readPng(path.join(pub, `app-icon-${size}.png`));
@@ -80,8 +80,8 @@ test('the PNG icons (home screen 180, manifest 192 and 512, notification badge 1
       if (a === 0) continue;
       assert.ok(x >= band && x < size - band && y >= band && y < size - band, `app-icon-${size}.png: ${x},${y} is inside the margin`);
       left = Math.min(left, x); right = Math.max(right, x); top = Math.min(top, y); bottom = Math.max(bottom, y);
-      // Every visible pixel is lime, faint or not (straight alpha; at a low alpha the stored color is rounded).
-      assert.ok([r, g, b].every((v, i) => Math.abs(v - rgb(lime)[i]) * a / 255 <= 2), `app-icon-${size}.png: ${x},${y} is rgb(${r}, ${g}, ${b}) at alpha ${a}, not the lime ${lime}`);
+      // Every visible pixel is markInk, faint or not (straight alpha; at a low alpha the stored color is rounded).
+      assert.ok([r, g, b].every((v, i) => Math.abs(v - rgb(markInk)[i]) * a / 255 <= 2), `app-icon-${size}.png: ${x},${y} is rgb(${r}, ${g}, ${b}) at alpha ${a}, not the markInk ${markInk}`);
       if (a === 255) opaque += 1; else partial += 1;
     }
     assert.ok([...Array(size).keys()].some(y => png.pixel(size >> 1, y)[3] === 255), `app-icon-${size}.png: the G crosses the middle column`);
@@ -97,11 +97,11 @@ test('the PNG icons (home screen 180, manifest 192 and 512, notification badge 1
   assert.deepEqual(manifest.icons, [192, 512].map(size => ({ src: `/app-icon-${size}.png`, sizes: `${size}x${size}`, type: 'image/png', purpose: 'any' })));
   assert.equal(manifest.background_color, nextTokens.themeColor.dark);
   assert.equal(manifest.theme_color, nextTokens.themeColor.dark);
-  assert.equal(nextTokens.themeColor.dark, '#070B16');
+  assert.equal(nextTokens.themeColor.dark, nextTokens.themes.dark.color.canvas);
   assert.ok(![manifest.background_color, manifest.theme_color].includes(navy), 'the old app navy does not come back');
-  assert.ok(contrast(lime, nextTokens.themeColor.dark) >= 3, 'the lime G on the splash color');
+  assert.ok(contrast(markInk, nextTokens.themeColor.dark) >= 3, 'the theme-colored G on the splash color');
   // iOS shows a transparent home-screen icon on black.
-  assert.ok(contrast(lime, '#000000') >= 3);
+  assert.ok(contrast(markInk, '#000000') >= 3);
 });
 
 test('Android and notifications use the same transparent G: no maskable or navy icon (Sean, "Transparent everywhere")', () => {
@@ -113,7 +113,7 @@ test('Android and notifications use the same transparent G: no maskable or navy 
   assert.match(sw, /\n {4}icon: '\/app-icon-192\.png',\n {4}badge: '\/app-icon-192\.png',\n/);
 });
 
-test('favicon.svg simplifies the balanced G; app-icon.svg keeps its yard lines, both centered with no tile; the favicon is deep green in light and lime in dark', () => {
+test('favicon.svg simplifies the balanced G; app-icon.svg keeps its yard lines, both centered with no tile; the favicon is Signal blue in light and markInk in dark', () => {
   assert.equal(paths.length, 2);
   for (const name of ['favicon.svg', 'app-icon.svg']) {
     const svg = fs.readFileSync(path.join(pub, name), 'utf8');
@@ -122,7 +122,7 @@ test('favicon.svg simplifies the balanced G; app-icon.svg keeps its yard lines, 
     assert.doesNotMatch(svg, /<(rect|circle|ellipse|polygon|image)\b/, `${name}: nothing behind the G`);
     // Nothing else can draw a background either: no CSS background, style attribute or foreignObject. The favicon's one
     // <style> (checked below) only sets the dark-tab color.
-    const style = name === 'favicon.svg' ? `<style>@media (prefers-color-scheme:dark){:root{color:${tokens.themes.dark.primaryForeground}}}</style>` : '';
+    const style = name === 'favicon.svg' ? `<style>@media (prefers-color-scheme:dark){:root{color:${nextTokens.themes.dark.color['accent-ink']}}}</style>` : '';
     const bare = svg.replace(style, '');
     assert.deepEqual([...bare.matchAll(/<([A-Za-z][\w:-]*)/g)].map(m => m[1]), (favicon ? ['svg', 'title', 'svg', 'path'] : ['svg', 'title', 'svg', 'path', 'path']), `${name}: elements`);
     assert.deepEqual([...new Set([...bare.matchAll(/\s([\w:-]+)=/g)].map(m => m[1]))].sort(), ['color', 'd', 'fill', 'height', ...(favicon ? [] : ['stroke', 'stroke-width']), 'viewBox', 'width', 'x', 'xmlns', 'y'], `${name}: attributes`);
@@ -136,14 +136,12 @@ test('favicon.svg simplifies the balanced G; app-icon.svg keeps its yard lines, 
     assert.ok(x > 0 && Math.abs(2 * x + width - 64) < 1e-9 && Math.abs(2 * y + height - 64) < 1e-9, `${name}: centered with a margin`);
   }
   const favicon = fs.readFileSync(path.join(pub, 'favicon.svg'), 'utf8');
-  assert.match(favicon, new RegExp(`^<svg [^>]*color="${deepGreen}"`), 'the favicon is deep green by default (a light tab)');
-  assert.ok(favicon.includes(`<style>@media (prefers-color-scheme:dark){:root{color:${tokens.themes.dark.primaryForeground}}}</style>`), 'and lime in a dark tab');
-  assert.ok(contrast(deepGreen, '#FFFFFF') >= 3 && contrast(tokens.themes.dark.primaryForeground, tokens.colors.canvas) >= 3, 'each favicon green reaches 3:1 on its tab');
-  // AUD-04: in a dark browser the G is lime on the new app's dark browser bar, and deep green on its light one.
-  assert.equal(tokens.themes.dark.primaryForeground, nextTokens.themes.dark.color['accent-ink']);
-  assert.equal(deepGreen, nextTokens.themes.light.color['accent-ink']);
-  assert.ok(contrast(tokens.themes.dark.primaryForeground, nextTokens.themeColor.dark) >= 3 && contrast(deepGreen, nextTokens.themeColor.light) >= 3, 'each favicon green reaches 3:1 on the new theme colors');
-  assert.match(fs.readFileSync(path.join(pub, 'app-icon.svg'), 'utf8'), new RegExp(`<svg [^>]*color="${lime}"`), 'app-icon.svg is the lime source of the PNGs');
+  assert.match(favicon, new RegExp(`^<svg [^>]*color="${lightMarkInk}"`), 'the favicon is Signal blue by default (a light tab)');
+  assert.ok(favicon.includes(`<style>@media (prefers-color-scheme:dark){:root{color:${nextTokens.themes.dark.color['accent-ink']}}}</style>`), 'and markInk in a dark tab');
+  assert.ok(contrast(lightMarkInk, '#FFFFFF') >= 3 && contrast(nextTokens.themes.dark.color['accent-ink'], tokens.colors.canvas) >= 3, 'each favicon foreground reaches 3:1 on its tab');
+  // AUD-04: in a dark browser the G is markInk on the new app's dark browser bar, and Signal blue on its light one.
+  assert.ok(contrast(nextTokens.themes.dark.color['accent-ink'], nextTokens.themeColor.dark) >= 3 && contrast(lightMarkInk, nextTokens.themeColor.light) >= 3, 'each favicon foreground reaches 3:1 on the new theme colors');
+  assert.match(fs.readFileSync(path.join(pub, 'app-icon.svg'), 'utf8'), new RegExp(`<svg [^>]*color="${markInk}"`), 'app-icon.svg is the markInk source of the PNGs');
 });
 
 test('the old app\'s mark (Brand.jsx) is the G alone in --primaryForeground, framed by its own bounds, with no tile', () => {

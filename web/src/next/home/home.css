@@ -31,6 +31,25 @@
   .gx .gx-h-hero .gx-meter3-seg--on { forced-color-adjust: none; background: CanvasText; }
 }
 
+/* Signal Focus: white reading text and CTA on Home's blue action card. Scoring/state pills keep their own semantics. */
+.gx .gx-h-hero { background: var(--gx-home-fill); color: var(--gx-home-ink); }
+.gx .gx-h-hero .gx-h-eyebrow,
+.gx .gx-h-hero .gx-c-2,
+.gx .gx-h-hero .gx-c-3,
+.gx .gx-h-hero .gx-t-meta,
+.gx .gx-h-hero .gx-cd-done,
+.gx .gx-h-hero .gx-cd-done .gx-ic { color: var(--gx-home-ink); }
+.gx .gx-h-hero .gx-cd-tile { background: var(--gx-home-glass); color: var(--gx-home-ink); }
+.gx .gx-h-hero .gx-cd-tile .gx-t-micro { color: var(--gx-home-ink); }
+.gx .gx-h-hero .gx-meter3-seg { background: var(--gx-home-track); }
+.gx .gx-h-hero .gx-meter3-seg--on { background: var(--gx-home-ink); }
+.gx .gx-h-hero > .gx-btn--primary:not(:disabled):not([aria-disabled="true"]):not(.gx-btn--disabled) { background: var(--gx-home-button-fill); color: var(--gx-home-button-ink); box-shadow: none; }
+.gx .gx-h-hero :focus-visible { outline-color: var(--gx-home-ink); }
+@media (forced-colors: active) {
+  .gx .gx-h-hero { background: Canvas; color: CanvasText; }
+  .gx .gx-h-hero .gx-meter3-seg--on { background: CanvasText; }
+}
+
 /* ----- This week: up to four game tiles, then "All N games" ----- */
 .gx .gx-h-week { display: flex; flex-direction: column; gap: var(--gx-space-3); margin-top: var(--gx-space-3); min-width: 0; }
 .gx .gx-h-week-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--gx-space-2); }

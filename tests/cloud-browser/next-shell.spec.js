@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import path from 'node:path';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { build } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -19,6 +20,7 @@ import { SUPABASE, communityWorld, pgliteAvailable, signIn } from './community-w
 test.use({ viewport: { width: 390, height: 844 } });
 
 const ROOT = fileURLToPath(new URL('../..', import.meta.url));
+const DESIGN_TOKENS = JSON.parse(readFileSync(path.join(ROOT, 'design/tokens-next.json'), 'utf8'));
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 const RELOAD = 'Reload the app';
 const TABS = ['Home', 'Play', 'Bets', 'Research'];
@@ -385,7 +387,9 @@ test.describe('the real app', () => {
           await expect(mark).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
           await expect(mark).toHaveCSS('background-image', 'none');
           await expect(mark).toHaveCSS('box-shadow', 'none');
-          await expect(mark).toHaveCSS('color', theme === 'dark' ? 'rgb(184, 243, 75)' : 'rgb(59, 99, 9)');
+          const markInk = DESIGN_TOKENS.themes[theme].color['accent-ink'];
+          const markColor = `rgb(${[1, 3, 5].map(start => parseInt(markInk.slice(start, start + 2), 16)).join(', ')})`;
+          await expect(mark).toHaveCSS('color', markColor);
         }
         for (const width of [390, 320]) {
           await page.setViewportSize({ width, height: 844 });

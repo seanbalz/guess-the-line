@@ -199,16 +199,12 @@ test('contrast: text and icons at least 4.5:1, control edges and focus at least 
     for (const [fill, hex] of Object.entries(tokens.av)) if (fill !== 'ink' && contrast(tokens.av.ink, hex) < 4.5) failures.push(`avatar initials on ${fill}`);
     assert.deepEqual(failures, []);
   }
-  // The tightest pairs the design system recorded (design-final section 4) still hold.
-  assert.equal(contrast(tokens.themes.dark.color['text-3'], tokens.themes.dark.color['accent-tint']).toFixed(2), '4.80');
-  assert.equal(contrast(tokens.themes.light.color.win, tokens.themes.light.color['surface-3']).toFixed(2), '4.87');
-  // The brand guide's reason for the light lime edge quotes lime's range on the light surfaces (stage 6 review: it
-  // left out surface-3); keep it equal to the tokens.
-  const light = tokens.themes.light.color;
-  const lime = ['canvas', 'surface-1', 'surface-2', 'surface-3'].map(surface => contrast(light.accent, light[surface]));
-  const range = `${Math.min(...lime).toFixed(2)} to ${Math.max(...lime).toFixed(2)}:1`;
-  assert.equal(range, '1.07 to 1.32:1');
-  assert.ok(read('docs/BRAND_GUIDE.md').includes(`lime on the light surfaces is only ${range}`), `docs/BRAND_GUIDE.md says lime on the light surfaces is ${range}`);
+  // Signal Focus's blue hero and inverse CTA have independent text roles.
+  for (const name of ['dark', 'light']) {
+    const c = tokens.themes[name].color;
+    assert.ok(contrast(c['home-ink'], c['home-fill']) >= 4.5, `${name}: Home text on blue`);
+    assert.ok(contrast(c['home-button-ink'], c['home-button-fill']) >= 4.5, `${name}: inverse Home CTA`);
+  }
 });
 
 // D-55: the glow card (hero and opened trend), its glass pills and the chart marks. Glass and track are translucent
@@ -231,8 +227,8 @@ test('D-55 glow card: text, glass, chart line, bars and the break-even tick keep
       [c['text-1'], track, 3, 'break-even tick on the track'],
     ]) { const ratio = contrast(fg, bg); if (ratio < min) failures.push(`${name} ${label}: ${ratio.toFixed(2)}`); }
     assert.deepEqual(failures, []);
-    // Lime stays the primary action: as a chart color it is only the last, decorative stop of the glow.
-    assert.ok(!Object.entries(c).some(([key, value]) => value === c.accent && !['accent', 'accent-ink', 'glow-3'].includes(key)), `${name}: lime only as accent, accent-ink or glow-3`);
+    // Brand blue must not acquire a scoring or live-state meaning.
+    for (const role of ['data', 'win', 'loss', 'pending', 'live']) assert.notEqual(c[role], c.accent, `${name}: ${role} stays distinct from brand blue`);
   }
 });
 
