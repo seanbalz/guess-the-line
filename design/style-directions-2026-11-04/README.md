@@ -1,6 +1,17 @@
 # Guess The Line — eight whole-app style directions
 
-Owner: Sean Balsiger · Version 22 · November 4, 2026
+Owner: Sean Balsiger · Version 23 · November 4, 2026
+
+## Selected light background: 02 Porcelain glass — November 4, 2026
+
+Sean selected **02 / Porcelain glass** from the Research comparison. The
+[exact selection](light-mode-options.json) uses base `#E9ECE8` and
+`linear-gradient(150deg,#FAFBF6,#E9ECE8 55%,#E0E7DE)`. [Owner preferences](prism-owner-color-preferences.json)
+resolve the prior 02/04/05 background shortlist. The shared dark-ink/deep-green
+logo/light-glass adaptations remain the preview references for cross-screen
+review, not a separate claim of final app-wide approval. Metadata consistency
+and Brand QA passed; reviewed visuals are unchanged. Cross-screen review,
+production integration, whole-project completion and deferred work remain open.
 
 ## Research comparison for light shortlist 02 / 04 / 05 — November 4, 2026
 

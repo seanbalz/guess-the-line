@@ -15,7 +15,7 @@
   },
   "requestedMeaningOfSeparateColors": "unique, different, new",
   "optionalExperiment": "Different colors per card authorized for visual comparison",
-  "status": "Logo, dark background/ivory text, floating glass and refined logo-lime selective action/stat emphasis selected; remaining design review and production integration pending",
+  "status": "Dark logo/background/text/card/emphasis and light Porcelain background selected; cross-screen review and production integration pending",
   "additionalPaletteRound": {
     "likedOnly": [
       {
@@ -129,6 +129,17 @@
       }
     ],
     "comparison": "light-research-comparison.html",
-    "status": "Shortlisted only; no final light-mode selection"
+    "status": "Resolved: 02 / Porcelain selected"
+  },
+  "selectedLightBackground": {
+    "number": 2,
+    "id": "porcelain",
+    "name": "Porcelain glass",
+    "background": "#E9ECE8",
+    "wash": "linear-gradient(150deg,#FAFBF6,#E9ECE8 55%,#E0E7DE)",
+    "source": "light-mode-options.json",
+    "confirmed": "2026-11-04",
+    "scope": "Light-mode background; shared light adaptations retained for cross-screen review",
+    "production": "Not integrated or deployed"
   }
 }

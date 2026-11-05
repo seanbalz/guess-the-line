@@ -1,5 +1,5 @@
 {
-  "status": "02, 04 and 05 shortlisted; no final light-mode selection",
+  "status": "Sean selected 02 / Porcelain glass from this comparison; 04 and 05 remain unselected references",
   "source": "light-mode-options.json",
   "options": [
     {
@@ -79,5 +79,11 @@
       "5.5",
       "4.5"
     ]
-  ]
+  ],
+  "selection": {
+    "number": 2,
+    "id": "porcelain",
+    "source": "light-mode-options.json",
+    "confirmed": "2026-11-04"
+  }
 }

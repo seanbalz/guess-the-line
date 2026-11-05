@@ -1,5 +1,15 @@
 # Guess The Line — current completion register
 
+## Light background 02 Porcelain selected — November 4, 2026
+
+Sean selected **02 / Porcelain glass** from the Research comparison, resolving
+the light background shortlist. [Exact selection](../design/style-directions-2026-11-04/light-mode-options.json)
+and [brand guidance](BRAND_GUIDE.md) record base `#E9ECE8` and its light gradient.
+The next design step is cross-screen dark/light review using the selected
+backgrounds and the shared light-preview adaptations. Production integration,
+whole-project completion and deferred work are not established. Metadata
+consistency and Brand QA passed; reviewed visuals and production remain unchanged.
+
 ## Research comparison of light shortlist — November 4, 2026
 
 Sean shortlisted 02 / Porcelain, 04 / Pale sage and 05 / Silver mist and agreed

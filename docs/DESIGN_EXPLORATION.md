@@ -1,5 +1,13 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — 02 Porcelain glass selected for light mode
+
+Sean chose 02 / Porcelain glass in the same-content Research comparison.
+[Selected background metadata](../design/style-directions-2026-11-04/light-mode-options.json)
+records base `#E9ECE8` and its 150-degree light gradient. This resolves the prior
+02/04/05 background shortlist. Shared light-preview adaptations continue into
+cross-screen review; dark selections, production and deferred scope are unchanged.
+
 ## November 4, 2026 — shortlist 02 / 04 / 05 on Research
 
 Sean shortlisted Porcelain (02), Pale sage (04) and Silver mist (05), then agreed

@@ -1,5 +1,5 @@
 {
-  "status": "02 / Porcelain, 04 / Pale sage and 05 / Silver mist shortlisted; no final light-mode selection",
+  "status": "Selected by Sean: 02 / Porcelain glass light-mode background; cross-screen review and production integration pending",
   "logo": {
     "path": "logo-hybrid/light-deep-green.svg",
     "baseColor": "#3B6309",
@@ -82,5 +82,18 @@
     2,
     4,
     5
-  ]
+  ],
+  "selection": {
+    "number": 2,
+    "id": "porcelain",
+    "name": "Porcelain glass",
+    "note": "Off-white with a gentle green undertone.",
+    "background": "#E9ECE8",
+    "wash": "linear-gradient(150deg,#FAFBF6,#E9ECE8 55%,#E0E7DE)",
+    "source": "Earlier additional-round favorite 24 / Porcelain & Evergreen",
+    "confirmed": "2026-11-04",
+    "scope": "Light-mode background preference from the three-way Research comparison",
+    "nextReview": "Carry the light preview adaptations across screens alongside selected dark mode",
+    "production": "Not integrated or deployed"
+  }
 }

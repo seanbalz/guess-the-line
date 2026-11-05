@@ -1,5 +1,15 @@
 # GUESS THE LINE — BRAND & DESIGN SYSTEM v1.0
 
+## Selected light background: 02 Porcelain glass — November 4, 2026
+
+Sean selected **02 / Porcelain glass** after the [three-way Research comparison](../design/style-directions-2026-11-04/light-research-comparison.html).
+Use background `#E9ECE8` with `linear-gradient(150deg,#FAFBF6,#E9ECE8 55%,#E0E7DE)`
+for the light background direction. [Selection metadata](../design/style-directions-2026-11-04/light-mode-options.json)
+records the exact choice. The shared light-preview foreground, floating glass,
+selective lime and deep-green hybrid-logo adaptation remain available for the
+next cross-screen review; this background choice does not establish whole-app
+completion or a release. Dark selections and shipped code/tokens/assets are unchanged.
+
 ## Selected selective lime emphasis — November 4, 2026
 
 Sean approved the [Home/Play lime-priority preview](../design/style-directions-2026-11-04/lime-priority-preview.html).
