@@ -71,7 +71,7 @@ Open [the visual library](index.html). Filter by search group, mark favorites an
 
 ## Modular / bento
 
-- **#40** [Crypto Wallet Mobile App | Bento Grid](https://dribbble.com/shots/25093522-Crypto-Wallet-Mobile-App-Bento-Grid) — Andrii Boichuk  
+- **#40** [Crypto Wallet Mobile App | Bento Grid](https://dribbble.com/shots/25093522-Crypto-Wallet-Mobile-App-Bento-Grid) — Andrii Boichuk
 - **#41** [Crypto Dashboard by Sujon Hossain on Dribbble](https://dribbble.com/shots/26828063-Crypto-Dashboard) — Sujon Hossain
 - **#42** [Smart Connect Bento Box](https://dribbble.com/shots/15906324-Smart-Connect-Bento-Box) — Daniel Marian
 - **#43** [Bento Grid + Rive animations](https://dribbble.com/shots/25860105-Bento-Grid-Rive-animations) — Virgil Pana
@@ -114,7 +114,7 @@ Open [the visual library](index.html). Filter by search group, mark favorites an
 ## Retro / analog
 
 - **#69** [Vintage Radio App UI](https://dribbble.com/shots/23446242-Vintage-Radio-App-UI) — Aleksandra Negreskul
-- **#70** [To-do list — mobile app](https://dribbble.com/shots/9572543-To-do-list-mobile-app) — Valeria Kovaleva 
+- **#70** [To-do list — mobile app](https://dribbble.com/shots/9572543-To-do-list-mobile-app) — Valeria Kovaleva
 - **#71** [Tix - Scientific Calculator](https://dribbble.com/shots/21426572-Tix-Scientific-Calculator) — LazySeaHorse
 - **#72** [GrooveSpin - Where Nostalgia Meets the Beat](https://dribbble.com/shots/25288839-GrooveSpin-Where-Nostalgia-Meets-the-Beat) — Kew Nathakorn
 - **#73** [Pizza Boy SC - UI and Icon by Anthony on Dribbble](https://dribbble.com/shots/25116780-Pizza-Boy-SC-UI-and-Icon) — Anthony
@@ -128,4 +128,3 @@ Open [the visual library](index.html). Filter by search group, mark favorites an
 - **#78** [Coolors Color Palette Mobile App UI](https://dribbble.com/shots/16156957-Coolors-Color-Palette-Mobile-App-UI) — Appventurez
 - **#79** [Kopiku - Coffee Shop Mobile App](https://dribbble.com/shots/16356375-Kopiku-Coffee-Shop-Mobile-App) — Alvin Elian
 - **#80** [Zoe - Rainbow Splash](https://dribbble.com/shots/25358655-Zoe-Rainbow-Splash) — Ria Arante
-
