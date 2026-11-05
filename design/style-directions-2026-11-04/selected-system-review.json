@@ -413,6 +413,7 @@
       ]
     ],
     "source": "Existing unchanged visual-assets team PNGs and source register",
-    "layout": "30px marks in a 72px pair, names and status retained, 44px minimum action height"
+    "layout": "Each logo has its own 34x38px glass tile; 28px mark, 84px pair, transparent shared container, @ outside both tiles; 44px minimum action height",
+    "ownerCorrection": "Separate backgrounds for each logo; never one shared background"
   }
 }

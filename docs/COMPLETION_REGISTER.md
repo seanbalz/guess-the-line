@@ -1,5 +1,19 @@
 # Guess The Line — current completion register
 
+## Separate backgrounds for each Home team logo — November 5, 2026
+
+Sean corrected the paired Home treatment: each logo needs its own background.
+The [Home mockup](../design/style-directions-2026-11-04/selected-system-review.html?screen=Home)
+now puts each team mark in its own 34x38px glass tile, with the @ outside both
+and a fully transparent shared layout container. Each tile has its own border
+and shadow in dark and light mode. Names, sample status, selected compact card
+and native actions remain intact. [Updated paired capture](../design/style-directions-2026-11-04/previews/home-separate-logo-tiles.png)
+was inspected. Chromium verified eight individual tile backgrounds across both
+themes, no shared background/shadow, layouts at 320/390/768/1440px, loaded marks
+and four game opens. JavaScript syntax and Brand document QA passed. Whole-screen
+review remains pending; production and parked Signal files are unchanged.
+
+
 ## Both team marks in Home matchup rows — November 5, 2026
 
 Sean authorized continuing with the recommendation to show both teams in Home
