@@ -1,5 +1,26 @@
 # Guess The Line — current completion register
 
+## Preferred anchors, twelve more palettes and optional card tints — November 4, 2026
+
+Sean prefers 12 for dark mode, 01 for light mode and also likes 11 from the
+original color board. He clarified "separate colors" as "unique, different,
+new", while separately agreeing to see different colors per card. The
+[new 13–24 board](../design/style-directions-2026-11-04/prism-new-colors.html)
+and [optional comparison](../design/style-directions-2026-11-04/prism-card-color-comparison.html)
+retain original numbering and distinguish the two explorations. The
+[record](../design/style-directions-2026-11-04/README.md) covers 144 embedded and
+288 focused layout checks, preferences and exports. The next phase stays held
+under the separate deferred-phase record until Sean confirms current completion.
+
+## Deferred phase after glass/color completion — November 4, 2026
+
+Sean queued avatar/profile-picture controls with preloaded options, team/league
+logos replacing visible abbreviations/text, tab/other icon examples and options,
+and identification of interactive popups and awards. He explicitly holds this
+phase until the current project is 100% finished and requests detailed questions
+then. The [deferred phase record](../planning/AFTER_GLASS_COLOR_PROJECT.md)
+preserves the scope and sequencing. No work on these items has started.
+
 ## Twelve Prism Glass color schemes — November 4, 2026
 
 Sean requested at least ten schemes for the refined Prism material. The

@@ -1,6 +1,55 @@
 # Guess The Line — eight whole-app style directions
 
-Owner: Sean Balsiger · Version 3 · November 4, 2026
+Owner: Sean Balsiger · Version 4 · November 4, 2026
+
+## More unique palettes and an optional card-color experiment
+
+Sean prefers original **12 / Obsidian Amber for dark mode** and **01 / Arctic
+Blue for light mode**, and also likes **11 / Forest Night**. These remain the
+reference choices and their numbers have not changed. He clarified that
+"separate colors" meant "unique, different, new". He additionally authorized
+seeing different colors per card; that is an optional experiment, not an
+interpretation of the original request or a selected design.
+
+Open [twelve additional combinations, numbered 13–24](prism-new-colors.html).
+Ten dark and two light combinations emphasize darker surrounds, contrasting
+accents, clearer edges and shadow gaps. Typography, layout and the glass
+material remain consistent. Original options 01–12 remain on the first board.
+
+The **Different colors per card** checkbox switches a presentation-only view.
+The [side-by-side experiment on favorites 12, 01 and 11](prism-card-color-comparison.html)
+compares unified and individually tinted cards. Notes concern each palette
+across both views; exports include the active card-color mode. The tint
+categories are decorative, not a new result/status color system.
+
+![Original favorite 12: unified versus different card colors](previews/prism-card-colors-dark-comparison.png)
+
+[New unified palettes](previews/prism-new-color-combinations.png) ·
+[New palettes with varied cards](previews/prism-new-colors-varied-cards.png).
+
+| Number | Additional scheme | Mode |
+| --- | --- | --- |
+| 13 | [Ink & Cobalt](prism.html?style=prism&palette=ink-cobalt) | dark |
+| 14 | [Carbon & Copper](prism.html?style=prism&palette=carbon-copper) | dark |
+| 15 | [Petrol & Coral](prism.html?style=prism&palette=petrol-coral) | dark |
+| 16 | [Forest & Orchid](prism.html?style=prism&palette=forest-orchid) | dark |
+| 17 | [Burgundy & Ice](prism.html?style=prism&palette=burgundy-ice) | dark |
+| 18 | [Midnight & Lime](prism.html?style=prism&palette=midnight-lime) | dark |
+| 19 | [Slate & Apricot](prism.html?style=prism&palette=slate-apricot) | dark |
+| 20 | [Espresso & Turquoise](prism.html?style=prism&palette=espresso-turquoise) | dark |
+| 21 | [Graphite & Cherry](prism.html?style=prism&palette=graphite-cherry) | dark |
+| 22 | [Indigo & Gold](prism.html?style=prism&palette=indigo-gold) | dark |
+| 23 | [Ice & Pomegranate](prism.html?style=prism&palette=ice-pomegranate) | light |
+| 24 | [Porcelain & Evergreen](prism.html?style=prism&palette=porcelain-evergreen) | light |
+
+Verification: 144 embedded palette/screen/card-mode combinations and 288 focused
+palette/screen/card-mode/width combinations at 320/390px passed the targeted
+layout checks. All six favorite anchor/mode views rendered. Original option
+numbers, round-specific board counts, favorite/note reload persistence and a
+round-2 export's ID/number/mode were checked. Sixty new specified token pairs
+meet 4.5:1; this is not a complete composited-glass accessibility audit. New
+palette and card-comparison captures were visually inspected. No production
+implementation or optional card-color adoption is inferred.
 
 ## Prism Glass — twelve color schemes
 

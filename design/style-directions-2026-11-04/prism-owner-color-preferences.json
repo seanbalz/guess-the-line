@@ -1,0 +1,17 @@
+{
+  "darkPreference": {
+    "id": "obsidian",
+    "originalNumber": 12
+  },
+  "lightPreference": {
+    "id": "arctic",
+    "originalNumber": 1
+  },
+  "additionalInterest": {
+    "id": "forest",
+    "originalNumber": 11
+  },
+  "requestedMeaningOfSeparateColors": "unique, different, new",
+  "optionalExperiment": "Different colors per card authorized for visual comparison",
+  "status": "Exploratory preferences; no production implementation decision"
+}

@@ -7,6 +7,7 @@ function readPreferences(){try{const value=JSON.parse(localStorage.getItem(noteK
 if(params.get('swatch')==='1')document.body.classList.add('swatch');
 function apply(){
  document.querySelectorAll('.phone.prism').forEach(phone=>{phone.dataset.palette=current.id;phone.dataset.paletteName=current.name;});
+ if(window.GTL_PRISM_CARD_COLORS)window.GTL_PRISM_CARD_COLORS.apply();
  if(params.has('palette'))document.querySelectorAll('[data-choose]').forEach(button=>button.hidden=true);
  if(params.has('palette')&&!document.body.classList.contains('embed')){
   const notes=document.getElementById('notes-prism');
@@ -26,7 +27,7 @@ if(params.has('palette')&&!document.body.classList.contains('embed')){
  const exportButton=document.getElementById('export');exportButton.textContent='Export this palette review';
  exportButton.addEventListener('click',event=>{
   event.preventDefault();event.stopImmediatePropagation();
-  const payload={collection:'GTL Prism Glass palette review',kind:'review-preferences-not-implementation-approval',palette:{id:current.id,number:current.number,name:current.name,mode:current.mode},notes:document.getElementById('notes-prism')?.value||''};
+  const payload={collection:'GTL Prism Glass palette review',kind:'review-preferences-not-implementation-approval',palette:{id:current.id,number:current.number,name:current.name,mode:current.mode},cardColorMode:window.GTL_PRISM_CARD_COLORS?.mode||'uniform',notes:document.getElementById('notes-prism')?.value||''};
   const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='gtl-prism-color-review.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
  },true);
 }

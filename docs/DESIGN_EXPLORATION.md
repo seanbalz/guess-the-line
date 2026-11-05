@@ -1,5 +1,14 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — stronger contrast and optional card colors
+
+Sean prefers original colors 12 (dark) and 01 (light), with 11 also appealing.
+He requested unique new combinations and agreed to see different colors per
+card as an additional experiment. The [new palette board](../design/style-directions-2026-11-04/prism-new-colors.html)
+adds options 13–24; the [favorite comparison](../design/style-directions-2026-11-04/prism-card-color-comparison.html)
+shows the optional treatment. These are ongoing mockup explorations; the
+[deferred phase](../planning/AFTER_GLASS_COLOR_PROJECT.md) remains held.
+
 ## November 4, 2026 — Prism Glass color exploration
 
 Sean asked to try different schemes, with at least ten examples. The
