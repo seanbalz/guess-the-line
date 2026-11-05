@@ -1,5 +1,14 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — five action-button families
+
+Sean requested five button styles with the selected background, text, logo and
+floating clear glass cards. The [board](../design/style-directions-2026-11-04/button-style-options.html)
+compares classic lime pill, glossy bubble, soft rectangle, lime outline and
+frosted glass. Primary/secondary action styling varies while selected recipes,
+typography, spacing and tab/sport styling stay fixed. No button style is
+selected; production and deferred work are unchanged.
+
 ## November 4, 2026 — 05 Floating clear glass selected
 
 Sean selected card finish **05 / Floating clear glass** with light tint and a

@@ -1,6 +1,37 @@
 # Guess The Line — eight whole-app style directions
 
-Owner: Sean Balsiger · Version 15 · November 4, 2026
+Owner: Sean Balsiger · Version 16 · November 4, 2026
+
+## Five button styles on the selected design — November 4, 2026
+
+Sean requested five button styles with the selected background, ivory text,
+lime logo and floating glass cards. The [button board](button-style-options.html)
+compares classic lime pill (unmodified reference), glossy bubble, soft rectangle,
+lime outline and frosted glass. Only primary action material/shape/edge/text-on-fill
+and secondary action corners/shadows vary. The selected floating-card recipe,
+charcoal gradient, general ivory text, hybrid SVG, font, spacing and navigation
+styling stay fixed. Dark text remains on bright lime; ivory is used on dark/clear
+button faces. [Exact recipes](button-style-options.json) record all values.
+No button style is selected.
+
+The dedicated bridge reapplies skins after navigation and supplies keyboard
+focus, pressed, hover, disabled, reduced-motion and forced-color styles for the
+four new families. Chromium verified all five frames at 320/390/768/1440/1920,
+including no page/frame horizontal overflow, fitting navigation, fixed selected
+logo/colors/cards, five distinct button appearances and 48px primary height.
+Thirty screen/style combinations retained the selected design. All five Home
+primary actions opened Play. Each of the four new primary styles showed its 3px
+focus-visible outline through keyboard navigation. The 01 reference exactly
+matches the primary button in selected card option 05. No JavaScript errors were
+observed. Responsive state was tested in Chromium; reduced-motion, disabled and
+forced-color rules were source-reviewed, not separately browser-emulated.
+
+JavaScript syntax, local HTML references, source recipe consistency and Brand QA
+passed. The desktop comparison was visually inspected. This is not a full
+accessibility audit or physical-device acceptance. Production code/tokens/assets
+and deferred follow-up are unchanged.
+
+![Five button styles with selected logo, background, text and floating cards](previews/button-style-options.png)
 
 ## Selected card finish: 05 Floating clear glass — November 4, 2026
 

@@ -1,5 +1,16 @@
 # Guess The Line — current completion register
 
+## Five button styles with selected design — November 4, 2026
+
+Sean requested five button styles while preserving his selected dark background,
+ivory text, lime logo and floating glass cards. The [comparison](../design/style-directions-2026-11-04/button-style-options.html)
+shows classic lime pill, glossy bubble, soft rectangle, lime outline and frosted
+glass action buttons. No style is selected. [Evidence and recipes](../design/style-directions-2026-11-04/README.md)
+record five responsive widths, thirty screen/style combinations, unchanged
+selected recipe/reference, five functioning Home-to-Play actions, keyboard
+focus checks, inspected capture, syntax/references/metadata and Brand QA.
+Production and deferred scope are unchanged.
+
 ## Floating clear glass selected — November 4, 2026
 
 Sean selected **05 / Floating clear glass**. [Selection metadata](../design/style-directions-2026-11-04/glass-card-options.json)
