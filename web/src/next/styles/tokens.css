@@ -1,12 +1,6 @@
-/* Guess The Line, D-38 design tokens for the new app (web/src/next).
-   Mirrors design/tokens-next.json value for value; tests/next-tokens.test.mjs fails when the two differ.
-   Dark is the default. Light applies when <html data-theme="light"> (Theme.jsx) or the .gx root
-   carries data-theme="light"; data-theme="dark" on the .gx root keeps it dark either way.
-   Every custom property starts with --gx- so nothing here collides with the old app's :root tokens. */
-
-/* Shared by both themes */
+/* Signal Focus. Mirrors design/tokens-next.json; scoped to the new app. */
 .gx {
-  --gx-font-display: "Big Shoulders Display", Impact, "Arial Narrow", sans-serif;
+  --gx-font-display: Figtree, system-ui, -apple-system, "Segoe UI", sans-serif;
   --gx-font-num: "Barlow Condensed", "Arial Narrow", sans-serif;
   --gx-font-body: Figtree, system-ui, -apple-system, "Segoe UI", sans-serif;
   --gx-space-1: 4px;
@@ -21,8 +15,8 @@
   --gx-space-10: 64px;
   --gx-radius-xs: 6px;
   --gx-radius-sm: 10px;
-  --gx-radius-md: 16px;
-  --gx-radius-lg: 24px;
+  --gx-radius-md: 26px;
+  --gx-radius-lg: 28px;
   --gx-radius-pill: 999px;
   --gx-dur-tap: 100ms;
   --gx-dur-quick: 160ms;
@@ -60,23 +54,21 @@
   --gx-av-lilac: #DDB3FF;
   --gx-av-sand: #DCCDAE;
 }
-
-/* Dark (default) */
 .gx {
   color-scheme: dark;
-  --gx-canvas: #070B16;
-  --gx-surface-1: #111A2D;
-  --gx-surface-2: #1B253B;
-  --gx-surface-3: #26314B;
-  --gx-border: #303D57;
+  --gx-canvas: #0B0D17;
+  --gx-surface-1: #171B30;
+  --gx-surface-2: #1B2038;
+  --gx-surface-3: #222844;
+  --gx-border: #515A87;
   --gx-border-strong: #7A89A6;
-  --gx-text-1: #F5F7FB;
-  --gx-text-2: #BAC6D8;
-  --gx-text-3: #95A2BB;
-  --gx-accent: #B8F34B;
-  --gx-accent-text: #101B0A;
-  --gx-accent-ink: #B8F34B;
-  --gx-accent-tint: #283831;
+  --gx-text-1: #FFFFFF;
+  --gx-text-2: #BEC3DE;
+  --gx-text-3: #ADB5D1;
+  --gx-accent: #2B3BFF;
+  --gx-accent-text: #FFFFFF;
+  --gx-accent-ink: #A8AFFF;
+  --gx-accent-tint: #222844;
   --gx-data: #38BDF8;
   --gx-data-tint: #17344D;
   --gx-win: #34D399;
@@ -88,57 +80,63 @@
   --gx-live: #D08CFF;
   --gx-live-tint: #332F53;
   --gx-on-state: #070B16;
-  --gx-focus: #38BDF8;
-  --gx-overlay: #070B16CC;
-  --gx-toast-bg: #26314B;
-  --gx-seg-on: #26314B;
+  --gx-focus: #A8AFFF;
+  --gx-overlay: #0B0D17CC;
+  --gx-toast-bg: #171B30;
+  --gx-seg-on: #222844;
   --gx-glass: #FFFFFF1A;
   --gx-glass-line: #FFFFFF33;
   --gx-track: #FFFFFF29;
-  --gx-hero-base: #0C2540;
-  --gx-hero-text-2: #C9DCEB;
-  --gx-chart-line: #F5F7FB;
+  --gx-hero-base: #171B30;
+  --gx-hero-text-2: #BEC3DE;
+  --gx-chart-line: #A8AFFF;
   --gx-glow-1: #7DD3FC;
   --gx-glow-2: #34D399;
-  --gx-glow-3: #B8F34B;
-  --gx-bar-1: #7DD3FC;
+  --gx-glow-3: #A8AFFF;
+  --gx-bar-1: #A8AFFF;
   --gx-bar-2: #34D399;
-  --gx-e1: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 1px 2px rgba(0, 0, 0, 0.35);
+  --gx-home-fill: #2B3BFF;
+  --gx-home-ink: #FFFFFF;
+  --gx-home-button-fill: #FFFFFF;
+  --gx-home-button-ink: #2B3BFF;
+  --gx-home-track: #FFFFFF33;
+  --gx-home-glass: #FFFFFF1A;
+  --gx-brand-warm: #FFE3D6;
+  --gx-brand-ember: #FF5A1F;
+  --gx-e1: 0 1px 0 rgba(255, 255, 255, 0.12), 0 8px 24px rgba(11, 13, 23, 0.12);
   --gx-e2: 0 8px 24px rgba(0, 0, 0, 0.45);
   --gx-e3: 0 -16px 48px rgba(0, 0, 0, 0.6);
-  --gx-glow-accent: 0 0 0 1px rgba(184, 243, 75, 0.6), 0 0 20px rgba(184, 243, 75, 0.3);
+  --gx-glow-accent: 0 0 0 1px #A8AFFF;
   --gx-glow-live: 0 0 0 1px rgba(208, 140, 255, 0.65), 0 0 18px rgba(208, 140, 255, 0.35);
   --gx-glow-win: 0 0 0 1px rgba(52, 211, 153, 0.6), 0 0 24px rgba(52, 211, 153, 0.35);
-  --gx-lime-edge: 0 0 0 0 transparent;
+  --gx-lime-edge: inset 0 0 0 1px #A8AFFF;
   --gx-av-ring: 0 0 0 0 transparent;
   --gx-float-ring: 0 0 0 0 transparent;
   --gx-hero-shadow: var(--gx-e1);
-  --gx-wash: radial-gradient(120% 40% at 50% 0%, rgba(30, 99, 144, 0.35), transparent 60%);
-  --gx-yardlines: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 24px);
-  --gx-hero-card: radial-gradient(110% 60% at 90% 25%, #1E6390 0%, rgba(30, 99, 144, 0) 62%), linear-gradient(170deg, #154870 0%, #0C2540 55%, #0A1730 100%);
-  --gx-hero-ring: 0 0 0 1px rgba(125, 211, 252, 0.3), 0 18px 48px rgba(0, 0, 0, 0.45);
-  --gx-glass-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 6px 18px rgba(0, 0, 0, 0.25);
-  --gx-glass-blur: blur(14px);
+  --gx-wash: none;
+  --gx-yardlines: none;
+  --gx-hero-card: #171B30;
+  --gx-hero-ring: var(--gx-e1);
+  --gx-glass-shadow: var(--gx-e1);
+  --gx-glass-blur: none;
   --gx-chart-glow: 0.6;
 }
-
-/* Light */
 :root[data-theme="light"] .gx:not([data-theme="dark"]),
 .gx[data-theme="light"] {
   color-scheme: light;
-  --gx-canvas: #EEF1F6;
+  --gx-canvas: #E8EBFF;
   --gx-surface-1: #FFFFFF;
-  --gx-surface-2: #F3F5F9;
-  --gx-surface-3: #E3E8F0;
-  --gx-border: #D3DAE5;
+  --gx-surface-2: #F3F4FF;
+  --gx-surface-3: #E8EBFF;
+  --gx-border: #BCC2E2;
   --gx-border-strong: #6E7D96;
-  --gx-text-1: #0B1020;
-  --gx-text-2: #3C4A63;
-  --gx-text-3: #526078;
-  --gx-accent: #B8F34B;
-  --gx-accent-text: #101B0A;
-  --gx-accent-ink: #3B6309;
-  --gx-accent-tint: #EAFBC9;
+  --gx-text-1: #0B0D17;
+  --gx-text-2: #50566F;
+  --gx-text-3: #50566F;
+  --gx-accent: #2B3BFF;
+  --gx-accent-text: #FFFFFF;
+  --gx-accent-ink: #2B3BFF;
+  --gx-accent-tint: #E8EBFF;
   --gx-data: #03658A;
   --gx-data-tint: #DBF3FE;
   --gx-win: #067247;
@@ -150,36 +148,44 @@
   --gx-live: #7B2CBF;
   --gx-live-tint: #F5E8FF;
   --gx-on-state: #FFFFFF;
-  --gx-focus: #03658A;
-  --gx-overlay: #0B102099;
+  --gx-focus: #2B3BFF;
+  --gx-overlay: #0B0D17CC;
   --gx-toast-bg: #FFFFFF;
   --gx-seg-on: #FFFFFF;
   --gx-glass: #FFFFFF;
   --gx-glass-line: #E3E8F0;
   --gx-track: #E3E8F0;
   --gx-hero-base: #FFFFFF;
-  --gx-hero-text-2: #3C4A63;
-  --gx-chart-line: #03658A;
+  --gx-hero-text-2: #50566F;
+  --gx-chart-line: #2B3BFF;
   --gx-glow-1: #7DD3FC;
   --gx-glow-2: #6EE7B7;
-  --gx-glow-3: #D9F99D;
-  --gx-bar-1: #0284C7;
+  --gx-glow-3: #2B3BFF;
+  --gx-bar-1: #2B3BFF;
   --gx-bar-2: #059669;
-  --gx-e1: 0 0 0 1px #E3E8F0, 0 8px 24px rgba(11, 16, 32, 0.07);
+  --gx-home-fill: #2B3BFF;
+  --gx-home-ink: #FFFFFF;
+  --gx-home-button-fill: #FFFFFF;
+  --gx-home-button-ink: #2B3BFF;
+  --gx-home-track: #FFFFFF33;
+  --gx-home-glass: #FFFFFF1A;
+  --gx-brand-warm: #FFE3D6;
+  --gx-brand-ember: #FF5A1F;
+  --gx-e1: 0 1px 0 #FFFFFF, 0 8px 24px rgba(11, 13, 23, 0.08);
   --gx-e2: 0 8px 24px rgba(11, 16, 32, 0.12);
   --gx-e3: 0 -12px 40px rgba(11, 16, 32, 0.16);
-  --gx-glow-accent: 0 0 0 2px #3B6309;
+  --gx-glow-accent: 0 0 0 1px #2B3BFF;
   --gx-glow-live: 0 0 0 2px #7B2CBF;
   --gx-glow-win: 0 0 0 2px #067247;
-  --gx-lime-edge: inset 0 0 0 1px #3B6309;
+  --gx-lime-edge: 0 0 0 0 transparent;
   --gx-av-ring: 0 0 0 1px #D3DAE5;
   --gx-float-ring: 0 0 0 1px #6E7D96;
   --gx-hero-shadow: var(--gx-e2);
   --gx-wash: none;
   --gx-yardlines: none;
-  --gx-hero-card: linear-gradient(170deg, #FFFFFF 0%, #F4F9FD 100%);
-  --gx-hero-ring: 0 0 0 1px #E3E8F0, 0 10px 30px rgba(11, 16, 32, 0.08);
-  --gx-glass-shadow: 0 0 0 1px #E3E8F0, 0 6px 18px rgba(11, 16, 32, 0.07);
+  --gx-hero-card: #FFFFFF;
+  --gx-hero-ring: var(--gx-e1);
+  --gx-glass-shadow: var(--gx-e1);
   --gx-glass-blur: none;
   --gx-chart-glow: 0;
 }

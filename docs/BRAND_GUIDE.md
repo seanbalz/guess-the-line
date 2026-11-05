@@ -1,4 +1,11 @@
 # GUESS THE LINE — BRAND & DESIGN SYSTEM v1.0
+
+## Signal Focus implementation branch — November 5, 2026
+
+Ben preferred the right-hand **Signal Focus** Home light / Research dark comparisons and requested local/GitHub synchronization. The implementation uses blue `#2B3BFF` controls, lavender `#E8EBFF` / white light surfaces, Ink `#0B0D17` dark surfaces, and lighter blue `#A8AFFF` dark foregrounds. Home uses a blue action card with white text and a white CTA. Figtree headings and softer cards carry the reference direction while the existing G geometry, numeral typography and semantic scoring/state colors remain. See [the implementation record](SIGNAL_FOCUS_2026_11_05.md).
+
+On this branch, `design/tokens-next.json` and `web/src/next/styles/tokens.css` carry that palette in place of the prior lime theme. Earlier lime specifications below remain historical context. Reference-brand assets are not copied. This branch is not merged or deployed; Ben explicitly approved synchronization to the existing public GitHub repository after its visibility was disclosed. Merge and deployment remain outside this task.
+
 Status: canonical for all product UI, documents, dashboards, presentations, notifications, iOS, and agent-generated assets. Updated 2026-10-08.
 The new app (D-38, `web/src/next/`) follows the [D-38 section](#d-38-redesign-system-the-new-app--october-14-2026) at the end of this guide. Since D-65 (October 28, 2026) it is the only app; the old app is no longer built or served. Everything above is the old app's legacy styling, which only the sign-in screen (until build plan stage 76) and the local engineering dashboard still use.
 

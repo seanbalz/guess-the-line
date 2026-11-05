@@ -1,5 +1,10 @@
 # Guess The Line — current completion register
 
+## Signal Focus — local implementation, November 5, 2026
+
+Ben selected the right-hand Signal Focus comparisons and requested local/GitHub sync. Branch `codex/signal-focus-neo`, based on current remote `main` `7604cee2`, implements the shared blue/light-lavender/dark-Ink palette and Home's blue action card, preserving application behavior and the existing comparison baseline. [Implementation and destination blocker](SIGNAL_FOCUS_2026_11_05.md). Ben explicitly approved syncing to the existing public repository after disclosure of its visibility; the Neo’s authenticated CLI has repository access. Merge and production deployment remain outside this task. Validation and branch-sync evidence are recorded in the implementation record.
+
+
 ## D-69 design overhaul, step 3: Research — November 4, 2026
 
 Built on `claude/overhaul-step3-research` from the

@@ -65,7 +65,7 @@ test('radius, spacing, motion and type-scale tokens are exported as CSS variable
 // tests/cloud-browser/next-brand-chrome.spec.js).
 test('index.html theme-color: one tag per color scheme, the new app canvas; the old app colors never come back', () => {
   const next = JSON.parse(fs.readFileSync(path.join(root, 'design/tokens-next.json'), 'utf8'));
-  assert.deepEqual(next.themeColor, { dark: '#070B16', light: '#EEF1F6' });
+  assert.deepEqual(next.themeColor, { dark: '#0B0D17', light: '#E8EBFF' });
   const html = fs.readFileSync(path.join(root, 'web/index.html'), 'utf8');
   const metas = [...html.matchAll(/<meta name="theme-color"([^>]*)\/>/g)].map(([, attrs]) => ({ media: attrs.match(/media="([^"]+)"/)?.[1] ?? null, content: attrs.match(/content="([^"]+)"/)?.[1] }));
   assert.deepEqual(metas, [
