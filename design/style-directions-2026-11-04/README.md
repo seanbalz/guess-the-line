@@ -1,6 +1,33 @@
 # Guess The Line — eight whole-app style directions
 
-Owner: Sean Balsiger · Version 13 · November 4, 2026
+Owner: Sean Balsiger · Version 14 · November 4, 2026
+
+## Next decision: five glass card finishes — November 4, 2026
+
+After selecting the combined dark direction, Sean asked to continue. The
+[five-card-finish board](glass-card-options.html) compares current glass (the
+unmodified reviewed reference), bubble glass, frosted glass, smoked glass and
+floating clear glass. The selected charcoal gradient, ivory main/secondary text,
+lime hybrid logo, typography, layout spacing and control colors stay fixed.
+Only card material, corners and elevation change. The same treatment carries
+into the navigation glass; no icons, features or functional behavior change.
+[Exact recipes](glass-card-options.json) record backgrounds, borders, blur,
+shadows, gloss and radii. No card finish is selected.
+
+The dedicated bridge styles only this review's frames and reapplies the material
+after screen changes. It includes reduced-transparency and forced-color styles;
+these fallbacks were source-reviewed, not independently browser-emulated.
+Chromium checked all five frames at 320/390/768/1440/1920: no page/frame
+horizontal overflow, visible navigation, exact selected text/logo/accent,
+identical phone backgrounds and five distinct computed card surfaces. Thirty
+screen/finish combinations retained appearance across all six areas. The 01
+card background matches the previously reviewed combined preview exactly.
+No JavaScript errors were observed. JavaScript syntax, source metadata, local
+HTML references and Brand QA passed. The desktop capture was visually inspected.
+These are mockup checks, not full accessibility or physical-device acceptance.
+Production code/tokens/assets and deferred follow-up remain unchanged.
+
+![Five glass card finishes with selected logo/background/text](previews/glass-card-options.png)
 
 ## Selected combined dark direction — November 4, 2026
 

@@ -1,5 +1,14 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — glass card finish comparison
+
+Sean's request to continue advances the current mockup review to card material.
+The [five-option board](../design/style-directions-2026-11-04/glass-card-options.html)
+shows current, bubble, frosted, smoked and floating clear glass with the selected
+charcoal-gradient/ivory direction and lime hybrid G fixed. Only material,
+corners and elevation vary; no finish is selected. Production and deferred
+avatar/team-mark/icon/award work remain unchanged.
+
 ## November 4, 2026 — combined dark direction selected
 
 Sean confirmed the middle preview combining 02's subtle charcoal gradient with

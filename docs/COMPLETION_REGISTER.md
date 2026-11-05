@@ -1,5 +1,16 @@
 # Guess The Line — current completion register
 
+## Next comparison: glass card finish — November 4, 2026
+
+Sean asked to continue after selecting the combined dark direction. The
+[five-finish board](../design/style-directions-2026-11-04/glass-card-options.html)
+compares the reviewed current glass with bubble, frosted, smoked and floating
+clear glass while holding his selected background/text/logo and shared
+font/control styling fixed. No finish is selected. [Evidence](../design/style-directions-2026-11-04/README.md)
+records five responsive widths, thirty screen/finish combinations, unchanged
+reference, exact shared settings, inspected capture, syntax/links/metadata and
+Brand QA. Production and the deferred phase are unchanged.
+
 ## Combined dark direction selected — November 4, 2026
 
 Sean confirmed the middle combined preview: 02's subtle charcoal gradient plus
