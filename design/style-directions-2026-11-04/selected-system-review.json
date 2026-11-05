@@ -1,7 +1,7 @@
 {
   "kind": "GTL_SELECTED_SYSTEM_REVIEW",
   "version": 1,
-  "status": "Whole-mockup visual review pending; no release or whole-project completion",
+  "status": "Home overview visually accepted in both modes; remaining cross-screen/layer review pending; no release or whole-project completion",
   "darkSource": "lime-priority-preview.json",
   "lightSource": "light-mode-options.json",
   "dark": {
@@ -266,5 +266,19 @@
       }
     ]
   },
-  "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync."
+  "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
+  "visualReview": {
+    "accepted": {
+      "Home/overview": {
+        "themes": [
+          "dark",
+          "light"
+        ],
+        "confirmed": "2026-11-04",
+        "evidence": "Sean replied yes good to the explicit Home-in-both-modes question"
+      }
+    },
+    "next": "Play/overview",
+    "scope": "Mockup visual acceptance only; layers, other screens, production acceptance and whole-project completion are not inferred"
+  }
 }

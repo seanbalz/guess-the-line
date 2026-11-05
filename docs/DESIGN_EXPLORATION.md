@@ -1,5 +1,12 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — Home dark/light overview accepted
+
+Sean accepted the Home overview in both modes in response to that specific
+question. [Review progress](../design/style-directions-2026-11-04/selected-system-review.json)
+records Home/overview accepted and Play/overview next. Remaining screens/layers,
+production and whole-project completion remain separate; deferred work stays held.
+
 ## November 4, 2026 — selected system across primary screens and layers
 
 Sean authorized the selected dark/Porcelain review across Home, Play, Bets,

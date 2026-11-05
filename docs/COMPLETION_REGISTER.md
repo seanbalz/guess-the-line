@@ -1,5 +1,15 @@
 # Guess The Line — current completion register
 
+## Home overview accepted in both themes — November 4, 2026
+
+Sean replied "yes good" to the explicit Home-in-both-modes question. The
+[review manifest](../design/style-directions-2026-11-04/selected-system-review.json)
+records acceptance of Home/overview in dark and Porcelain only. Play/overview
+is next. Other primary screens and detail views retain their pending visual
+review status; no production/whole-project acceptance or deferred-phase start
+is inferred. Metadata/source-reference and Brand QA checks passed. Reviewed
+visuals and production are unchanged.
+
 ## Dark/light cross-screen review available — November 4, 2026
 
 Sean authorized the next cross-screen review. The [paired viewer](../design/style-directions-2026-11-04/selected-system-review.html)
