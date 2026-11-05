@@ -1,0 +1,10 @@
+.visual-icon{display:inline-grid;place-items:center;width:42px;height:42px;flex-shrink:0;color:var(--accent,#B8F34B);position:relative;border-radius:13px;isolation:isolate}
+.visual-icon svg{width:25px;height:25px;position:relative;z-index:1;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+[data-icon-treatment="2"] .visual-icon{background:color-mix(in srgb,currentColor 15%,transparent)}
+[data-icon-treatment="2"] .visual-icon svg{fill:color-mix(in srgb,currentColor 22%,transparent);stroke-width:1.7}
+[data-icon-treatment="3"] .visual-icon{background:linear-gradient(145deg,#FFFFFF38,#FFFFFF05 48%,#B8F34B12);border:1px solid #FFFFFF60;box-shadow:inset 0 1px 1px #FFFFFFA0,inset 0 -2px 4px #00000030,0 6px 10px #00000035;backdrop-filter:blur(12px)}
+[data-icon-treatment="3"] .visual-icon:after{content:"";position:absolute;inset:2px 4px 52%;border-radius:9px;background:linear-gradient(#FFFFFF50,#FFFFFF00);z-index:0}
+[data-icon-treatment="4"] .visual-icon{background:#B8F34B;color:#243128;border-radius:50%;box-shadow:inset 0 1px 1px #FFFFFF95,0 5px 14px #B8F34B20}
+[data-icon-treatment="4"] .visual-icon svg{stroke-width:2.4}
+[data-icon-treatment="5"] .visual-icon{background:linear-gradient(145deg,#00000018,#FFFFFF08);border:1px solid #FFFFFF10;box-shadow:inset 3px 3px 6px #00000050,inset -2px -2px 5px #FFFFFF19;border-radius:12px}
+[data-icon-treatment="5"] .visual-icon svg{filter:drop-shadow(0 1px 0 #FFFFFF40);stroke-width:2.2}

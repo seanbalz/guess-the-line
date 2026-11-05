@@ -1,0 +1,355 @@
+{
+  "date": "2026-11-04",
+  "status": "Proposed; no icon selection or new screen acceptance",
+  "teamAssets": "Copied unchanged from web/public/team-logos; NFL D-46 and EPL source registers retain provenance. Identification beside names only.",
+  "iconSource": "https://github.com/lucide-icons/lucide/tree/0.468.0/icons",
+  "license": "LUCIDE-LICENSE",
+  "treatments": [
+    "01 Clean outline",
+    "02 Frosted duotone",
+    "03 Glossy glass",
+    "04 Lime medallion",
+    "05 Inset relief"
+  ],
+  "scope": "Existing team marks and icon exploration brought into current redesign by Sean; avatars and awards remain held.",
+  "fixtures": "Existing fictional prototype only: rank 02/24, accuracy points 486, picks 8/12, fantasy targets 8.0/6.5. Charts label sample values. No real odds or private player data.",
+  "files": [
+    {
+      "file": "sea.png",
+      "original": "web/public/team-logos/sea.png",
+      "sha256": "390c4c0abe59e2075b8ebc900d50013737c744b1ffe5005740d793221595a1db",
+      "sourceRecord": {
+        "team": "Seattle Seahawks",
+        "file": "sea.png",
+        "sourceUrl": "https://a.espncdn.com/i/teamlogos/nfl/500/sea.png",
+        "sourceIndex": "https://github.com/nflverse/nflverse-data/releases/download/teams/teams_colors_logos.csv",
+        "sourceIndexRow": {
+          "team_abbr": "SEA",
+          "team_name": "Seattle Seahawks",
+          "column": "team_logo_espn"
+        },
+        "fetchedAt": "2026-10-14T22:44:01Z",
+        "original": {
+          "sha256": "2546b1d4fe5cf6c2d75cda53d3fb56bbc4dd43c6b00200586dab5a85df8fa492",
+          "bytes": 32081,
+          "width": 500,
+          "height": 500,
+          "format": "PNG",
+          "mode": "RGBA"
+        },
+        "sha256": "390c4c0abe59e2075b8ebc900d50013737c744b1ffe5005740d793221595a1db",
+        "bytes": 7655,
+        "width": 128,
+        "height": 128,
+        "transparent": true,
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "rightsBasis": "trademark-identification",
+        "trademarkNotice": "NFL and team names, logos and marks are trademarks of the NFL and its teams; used here only to identify the teams. No endorsement.",
+        "licensed": false,
+        "reviewedAt": "2026-10-14",
+        "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+        "usage": "Small team-identification marks shown next to the team name in matchup and data displays only; no endorsement or app-brand use."
+      }
+    },
+    {
+      "file": "den.png",
+      "original": "web/public/team-logos/den.png",
+      "sha256": "620056926340391104d4db91c2f62ba773ce7c6ba811f174557b329e306ad0a8",
+      "sourceRecord": {
+        "team": "Denver Broncos",
+        "file": "den.png",
+        "sourceUrl": "https://a.espncdn.com/i/teamlogos/nfl/500/den.png",
+        "sourceIndex": "https://github.com/nflverse/nflverse-data/releases/download/teams/teams_colors_logos.csv",
+        "sourceIndexRow": {
+          "team_abbr": "DEN",
+          "team_name": "Denver Broncos",
+          "column": "team_logo_espn"
+        },
+        "fetchedAt": "2026-10-14T22:44:00Z",
+        "original": {
+          "sha256": "c98bec2be32e27b19f79f5da86ac6ef133c78d75ab78aadb28ef36696c3213e8",
+          "bytes": 40948,
+          "width": 500,
+          "height": 500,
+          "format": "PNG",
+          "mode": "RGBA"
+        },
+        "sha256": "620056926340391104d4db91c2f62ba773ce7c6ba811f174557b329e306ad0a8",
+        "bytes": 10188,
+        "width": 128,
+        "height": 128,
+        "transparent": true,
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "rightsBasis": "trademark-identification",
+        "trademarkNotice": "NFL and team names, logos and marks are trademarks of the NFL and its teams; used here only to identify the teams. No endorsement.",
+        "licensed": false,
+        "reviewedAt": "2026-10-14",
+        "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+        "usage": "Small team-identification marks shown next to the team name in matchup and data displays only; no endorsement or app-brand use."
+      }
+    },
+    {
+      "file": "chi.png",
+      "original": "web/public/team-logos/chi.png",
+      "sha256": "577fdb2597970293728cf4b4709d9a1f37b3365a424b64a3cc1213a32cb40b38",
+      "sourceRecord": {
+        "team": "Chicago Bears",
+        "file": "chi.png",
+        "sourceUrl": "https://a.espncdn.com/i/teamlogos/nfl/500/chi.png",
+        "sourceIndex": "https://github.com/nflverse/nflverse-data/releases/download/teams/teams_colors_logos.csv",
+        "sourceIndexRow": {
+          "team_abbr": "CHI",
+          "team_name": "Chicago Bears",
+          "column": "team_logo_espn"
+        },
+        "fetchedAt": "2026-10-14T22:43:59Z",
+        "original": {
+          "sha256": "fd7b5a207b9ad443f950b384d43dba6cb367c5737ad50a51a15e3893fa31753b",
+          "bytes": 93593,
+          "width": 500,
+          "height": 500,
+          "format": "PNG",
+          "mode": "RGBA"
+        },
+        "sha256": "577fdb2597970293728cf4b4709d9a1f37b3365a424b64a3cc1213a32cb40b38",
+        "bytes": 21338,
+        "width": 128,
+        "height": 128,
+        "transparent": true,
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "rightsBasis": "trademark-identification",
+        "trademarkNotice": "NFL and team names, logos and marks are trademarks of the NFL and its teams; used here only to identify the teams. No endorsement.",
+        "licensed": false,
+        "reviewedAt": "2026-10-14",
+        "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+        "usage": "Small team-identification marks shown next to the team name in matchup and data displays only; no endorsement or app-brand use."
+      }
+    },
+    {
+      "file": "det.png",
+      "original": "web/public/team-logos/det.png",
+      "sha256": "bc0e8f195ce71af1d5852150bfb82f64e67b0861c587ff1e159f48ed66a9ccd5",
+      "sourceRecord": {
+        "team": "Detroit Lions",
+        "file": "det.png",
+        "sourceUrl": "https://a.espncdn.com/i/teamlogos/nfl/500/det.png",
+        "sourceIndex": "https://github.com/nflverse/nflverse-data/releases/download/teams/teams_colors_logos.csv",
+        "sourceIndexRow": {
+          "team_abbr": "DET",
+          "team_name": "Detroit Lions",
+          "column": "team_logo_espn"
+        },
+        "fetchedAt": "2026-10-14T22:44:00Z",
+        "original": {
+          "sha256": "9776b567ebab0bd3640165e915d948d8e736e35967dfc19ce62b967cfe7b4eb1",
+          "bytes": 57465,
+          "width": 500,
+          "height": 500,
+          "format": "PNG",
+          "mode": "RGBA"
+        },
+        "sha256": "bc0e8f195ce71af1d5852150bfb82f64e67b0861c587ff1e159f48ed66a9ccd5",
+        "bytes": 13010,
+        "width": 128,
+        "height": 128,
+        "transparent": true,
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "rightsBasis": "trademark-identification",
+        "trademarkNotice": "NFL and team names, logos and marks are trademarks of the NFL and its teams; used here only to identify the teams. No endorsement.",
+        "licensed": false,
+        "reviewedAt": "2026-10-14",
+        "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+        "usage": "Small team-identification marks shown next to the team name in matchup and data displays only; no endorsement or app-brand use."
+      }
+    },
+    {
+      "file": "ARS.png",
+      "original": "web/public/team-logos/epl/ARS.png",
+      "sha256": "edd82a851425dd4fa3af2a6210f6968fcaec3f01bb09c54901d507aff9c0d8bf",
+      "sourceRecord": {
+        "team": "Arsenal",
+        "file": "ARS.png",
+        "sourceUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/359.png",
+        "sourceIndex": "shared/epl-clubs.mjs",
+        "sourceIndexRow": {
+          "code": "ARS",
+          "name": "Arsenal",
+          "espnId": 359
+        },
+        "fetchedAt": "2026-10-28T21:50:15Z",
+        "original": {
+          "sha256": "92f1bb35662ff56dde09e1f8084221a458357a6df390bc97b2ed6495f6e39f53",
+          "bytes": 36280,
+          "width": 500,
+          "height": 500,
+          "format": "PNG",
+          "mode": "RGBA"
+        },
+        "sha256": "edd82a851425dd4fa3af2a6210f6968fcaec3f01bb09c54901d507aff9c0d8bf",
+        "bytes": 21090,
+        "width": 128,
+        "height": 128,
+        "transparent": true,
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "rightsBasis": "trademark-identification",
+        "trademarkNotice": "Premier League and club names, crests and marks are trademarks of their owners; used here only to identify the clubs. No endorsement.",
+        "licensed": false,
+        "reviewedAt": "2026-10-28",
+        "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+        "usage": "Small club-identification crests shown next to the club name in Pick a Team and EPL data displays only; no endorsement or app-brand use."
+      }
+    },
+    {
+      "file": "CHE.png",
+      "original": "web/public/team-logos/epl/CHE.png",
+      "sha256": "d14dc9cc1c61674ef900b94fa0c907b2b8509cc98455d1901d8a9d51cd5a04a5",
+      "sourceRecord": {
+        "team": "Chelsea",
+        "file": "CHE.png",
+        "sourceUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/363.png",
+        "sourceIndex": "shared/epl-clubs.mjs",
+        "sourceIndexRow": {
+          "code": "CHE",
+          "name": "Chelsea",
+          "espnId": 363
+        },
+        "fetchedAt": "2026-10-28T21:50:15Z",
+        "original": {
+          "sha256": "6f14d86b5e35074e91462c7ede6e822f6a6c9f6cb723cd04ea6b8d36f2fa5392",
+          "bytes": 59969,
+          "width": 500,
+          "height": 500,
+          "format": "PNG",
+          "mode": "RGBA"
+        },
+        "sha256": "d14dc9cc1c61674ef900b94fa0c907b2b8509cc98455d1901d8a9d51cd5a04a5",
+        "bytes": 27993,
+        "width": 128,
+        "height": 128,
+        "transparent": true,
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "rightsBasis": "trademark-identification",
+        "trademarkNotice": "Premier League and club names, crests and marks are trademarks of their owners; used here only to identify the clubs. No endorsement.",
+        "licensed": false,
+        "reviewedAt": "2026-10-28",
+        "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+        "usage": "Small club-identification crests shown next to the club name in Pick a Team and EPL data displays only; no endorsement or app-brand use."
+      }
+    },
+    {
+      "file": "LIV.png",
+      "original": "web/public/team-logos/epl/LIV.png",
+      "sha256": "84ba508f4ec5c3d27ed9f9ede0f92450a70c4ca8f1704b3df1725d0fbd8df5cf",
+      "sourceRecord": {
+        "team": "Liverpool",
+        "file": "LIV.png",
+        "sourceUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/364.png",
+        "sourceIndex": "shared/epl-clubs.mjs",
+        "sourceIndexRow": {
+          "code": "LIV",
+          "name": "Liverpool",
+          "espnId": 364
+        },
+        "fetchedAt": "2026-10-28T21:50:17Z",
+        "original": {
+          "sha256": "9f2c56faf3631eb32fb5cccd84d31827ba38fcd9dd3280f597b221711a8797de",
+          "bytes": 35827,
+          "width": 500,
+          "height": 500,
+          "format": "PNG",
+          "mode": "RGBA"
+        },
+        "sha256": "84ba508f4ec5c3d27ed9f9ede0f92450a70c4ca8f1704b3df1725d0fbd8df5cf",
+        "bytes": 11607,
+        "width": 128,
+        "height": 128,
+        "transparent": true,
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "rightsBasis": "trademark-identification",
+        "trademarkNotice": "Premier League and club names, crests and marks are trademarks of their owners; used here only to identify the clubs. No endorsement.",
+        "licensed": false,
+        "reviewedAt": "2026-10-28",
+        "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+        "usage": "Small club-identification crests shown next to the club name in Pick a Team and EPL data displays only; no endorsement or app-brand use."
+      }
+    },
+    {
+      "file": "MNC.png",
+      "original": "web/public/team-logos/epl/MNC.png",
+      "sha256": "23afacc746dd3719e91df6920e96cbed3bade9838e74ed4bab770ebd5fe300a1",
+      "sourceRecord": {
+        "team": "Manchester City",
+        "file": "MNC.png",
+        "sourceUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/382.png",
+        "sourceIndex": "shared/epl-clubs.mjs",
+        "sourceIndexRow": {
+          "code": "MNC",
+          "name": "Manchester City",
+          "espnId": 382
+        },
+        "fetchedAt": "2026-10-28T21:50:17Z",
+        "original": {
+          "sha256": "70e005bdab0ada41a153760398b4a2ef99f956bf9e72954686caa70da8c30c0b",
+          "bytes": 130387,
+          "width": 500,
+          "height": 500,
+          "format": "PNG",
+          "mode": "RGBA"
+        },
+        "sha256": "23afacc746dd3719e91df6920e96cbed3bade9838e74ed4bab770ebd5fe300a1",
+        "bytes": 29318,
+        "width": 128,
+        "height": 128,
+        "transparent": true,
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "rightsBasis": "trademark-identification",
+        "trademarkNotice": "Premier League and club names, crests and marks are trademarks of their owners; used here only to identify the clubs. No endorsement.",
+        "licensed": false,
+        "reviewedAt": "2026-10-28",
+        "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+        "usage": "Small club-identification crests shown next to the club name in Pick a Team and EPL data displays only; no endorsement or app-brand use."
+      }
+    }
+  ],
+  "trademarkNotice": "NFL, Premier League and team names, logos and marks are trademarks of their owners; used only to identify teams. No endorsement or affiliation. Existing repo use is not a license."
+}

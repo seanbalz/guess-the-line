@@ -19,5 +19,6 @@
     "rank": "Existing Home fixture: 02 / 24",
     "chart": "Existing illustrative trend path geometry from app.js"
   },
-  "excluded": "Actual NFL/EPL marks, icon redesign, avatar controls and awards remain in held phase; no new live quotes, projections, private picks or recommendations."
+  "excluded": "Avatar controls and new popup/award work remain held; no live quotes, projections, private picks or recommendations.",
+  "visualExpansion": "visual-content-review.js now overlays existing NFL/EPL marks and five icon finishes following Sean's authorization. Source records in visual-assets/sources.json. League-wide logo replacement remains pending."
 }

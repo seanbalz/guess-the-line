@@ -1,6 +1,33 @@
 # Guess The Line — eight whole-app style directions
 
-Owner: Sean Balsiger · Version 29 · November 4, 2026
+Owner: Sean Balsiger · Version 30 · November 4, 2026
+
+
+## Team marks and icon exploration brought into the redesign — November 4, 2026
+
+Sean explicitly authorized moving team/league logos and tab/other icons into the
+current visual project. Avatars and popups/awards remain held. The paired viewer
+now reuses existing NFL/EPL team marks beside names and offers five original
+Lucide-based finish studies: outline, duotone, glossy glass, lime medallion and
+inset relief. Home uses an 8/12 sample progress ring; Research uses actual team
+marks, an illustrative trend and 8.0/6.5 sample comparison bars instead of repeated
+instructions. Existing native buttons and selected theme recipes are retained.
+[Five-way comparison](icon-treatment-options.html)
+and [paired screens](selected-system-review.html)
+are proposals for fresh review. No new screen acceptance, icon selection, league
+mark replacement, production implementation or deployment is inferred.
+
+
+Validation for the visual expansion: Chromium checked six screens at 320, 390,
+768 and 1440px (24 layouts), all 26 paired views, all five selectable treatments,
+and 16 native Home/Play/Research card clicks. No page errors, broken preview
+images, document overflow or clipped bottom navigation were found in those
+checks. Brand document QA passed. Extended-height Home/Research/EPL captures
+show content for review; they are not device acceptance. The source manifest
+records unchanged team-asset hashes and original source records, with bundled
+Lucide license notices. New-head CI and visual selection remain pending.
+
+Saved current previews: [icon finishes](previews/icon-treatment-options.png), [Home](previews/visual-review-home.png), [Research](previews/visual-review-research.png), and [EPL](previews/visual-review-epl.png). Six overview thumbnails are refreshed.
 
 ## Useful mini previews in reopened screens — November 4, 2026
 

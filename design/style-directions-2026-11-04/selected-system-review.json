@@ -368,5 +368,14 @@
       "Research"
     ],
     "status": "Implemented for review; not visually accepted"
+  },
+  "visualExpansion": {
+    "authorized": "2026-11-04",
+    "scope": "Team/league logos and icon options active now; avatars and popup/award work held",
+    "options": "icon-treatment-options.html",
+    "defaultPreview": "03 Glossy glass, proposed only; no selection",
+    "assets": "visual-assets/sources.json",
+    "leagueMarks": "Not added; league-wide replacements remain outstanding",
+    "screenAcceptance": "All previous screen approvals remain reopened"
   }
 }

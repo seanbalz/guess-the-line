@@ -1,5 +1,29 @@
 # Guess The Line — current completion register
 
+## Team marks and icon exploration brought into the redesign — November 4, 2026
+
+Sean explicitly authorized moving team/league logos and tab/other icons into the
+current visual project. Avatars and popups/awards remain held. The paired viewer
+now reuses existing NFL/EPL team marks beside names and offers five original
+Lucide-based finish studies: outline, duotone, glossy glass, lime medallion and
+inset relief. Home uses an 8/12 sample progress ring; Research uses actual team
+marks, an illustrative trend and 8.0/6.5 sample comparison bars instead of repeated
+instructions. Existing native buttons and selected theme recipes are retained.
+[Five-way comparison](../design/style-directions-2026-11-04/icon-treatment-options.html)
+and [paired screens](../design/style-directions-2026-11-04/selected-system-review.html)
+are proposals for fresh review. No new screen acceptance, icon selection, league
+mark replacement, production implementation or deployment is inferred.
+
+
+Validation for the visual expansion: Chromium checked six screens at 320, 390,
+768 and 1440px (24 layouts), all 26 paired views, all five selectable treatments,
+and 16 native Home/Play/Research card clicks. No page errors, broken preview
+images, document overflow or clipped bottom navigation were found in those
+checks. Brand document QA passed. Extended-height Home/Research/EPL captures
+show content for review; they are not device acceptance. The source manifest
+records unchanged team-asset hashes and original source records, with bundled
+Lucide license notices. New-head CI and visual selection remain pending.
+
 ## Mini content previews added for fresh review — November 4, 2026
 
 Sean confirmed useful mini previews. The [paired viewer](../design/style-directions-2026-11-04/selected-system-review.html?screen=Home)
