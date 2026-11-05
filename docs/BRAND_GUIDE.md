@@ -1,5 +1,15 @@
 # GUESS THE LINE — BRAND & DESIGN SYSTEM v1.0
 
+## Selected dark background base — November 4, 2026
+
+Sean selected **01 / Obsidian charcoal, `#202126`**, from the [background board](../design/style-directions-2026-11-04/app-background-options.html)
+for dark mode. This selects the base color only. The subsequent [ten-study
+comparison](../design/style-directions-2026-11-04/charcoal-depth-options.html)
+explores solid/gradient/glow treatments and text colors with the selected lime
+hybrid logo; none of those treatments or text pairs is selected. Light-mode,
+card/control palette and production integration remain separate decisions.
+Existing production tokens/assets/code are unchanged.
+
 ## Selected glossy/frosted logo direction — November 4, 2026
 
 Sean selected **01 / Current lime** from the [hybrid comparison](../design/style-directions-2026-11-04/logo-hybrid.html),

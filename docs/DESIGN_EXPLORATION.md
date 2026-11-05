@@ -1,5 +1,15 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — charcoal selected, depth and text exploration
+
+Sean selected background 01 / Obsidian charcoal (`#202126`) for dark mode.
+He requested about ten examples comparing solid, subtle gradient and faint glow,
+alongside unique text colors. The [ten-study board](../design/style-directions-2026-11-04/charcoal-depth-options.html)
+keeps his selected hybrid logo and shared styling; 01–03 isolate depth while
+04–10 add ivory, ice blue, sage, lavender, rose, gold and copper text pairs.
+Depth/text and light-mode decisions remain open. Production and deferred scope
+remain unchanged.
+
 ## November 4, 2026 — background color after selected logo
 
 Sean requested a few app background options using his selected current-lime

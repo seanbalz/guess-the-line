@@ -14,13 +14,16 @@ document.querySelectorAll('iframe[data-background]').forEach(frame=>{
   phone.dataset.backgroundReview='true';phone.style.background=frame.dataset.background;
   phone.style.setProperty('--pc-bg',frame.dataset.background);
   for(const [key,value]of Object.entries(common))phone.style.setProperty(key,value);
+  phone.style.setProperty('--review-background-image',frame.dataset.wash||'none');
+  if(frame.dataset.text)phone.style.setProperty('--pc-ink',frame.dataset.text);
+  if(frame.dataset.muted)phone.style.setProperty('--pc-muted',frame.dataset.muted);
   const old=phone.querySelector('svg.g-mark');
   if(old){const image=doc.createElement('img');image.src='logo-hybrid/lime.svg';image.className='g-mark selected-hybrid';image.alt='Guess the Line — selected lime glossy/frosted G';old.replaceWith(image);}
  }
  function ready(){
   const doc=frame.contentDocument;if(!doc?.querySelector('#grid'))return;
   observer?.disconnect();
-  if(!doc.getElementById('background-review-styles')){const style=doc.createElement('style');style.id='background-review-styles';style.textContent='.phone[data-background-review]{background-image:none!important}.phone[data-background-review] .brand-name{display:none}.phone[data-background-review] .g-mark.selected-hybrid{width:52px;height:42px;object-fit:contain}.phone[data-background-review] .screen{height:600px!important;min-height:600px!important}';doc.head.append(style);}
+  if(!doc.getElementById('background-review-styles')){const style=doc.createElement('style');style.id='background-review-styles';style.textContent='.phone[data-background-review]{background-image:var(--review-background-image,none)!important}.phone[data-background-review] .brand-name{display:none}.phone[data-background-review] .g-mark.selected-hybrid{width:52px;height:42px;object-fit:contain}.phone[data-background-review] .screen{height:600px!important;min-height:600px!important}';doc.head.append(style);}
   observer=new MutationObserver(apply);observer.observe(doc.getElementById('grid'),{childList:true,subtree:true});apply();
  }
  frame.addEventListener('load',ready);if(frame.contentDocument?.querySelector('.phone'))ready();

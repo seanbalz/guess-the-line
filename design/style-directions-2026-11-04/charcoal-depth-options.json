@@ -1,0 +1,112 @@
+{
+  "status": "Charcoal base selected for dark mode; depth/text treatments exploratory",
+  "selectedLogo": "logo-hybrid/lime.svg",
+  "selectedDarkBase": {
+    "id": "obsidian",
+    "backgroundOptionNumber": 1,
+    "hex": "#202126"
+  },
+  "comparison": "01\u201303 share identical text and isolate solid vs gradient vs faint glow. 04\u201310 explore seven tinted text pairs. Card material, logo, accent, font and fixtures stay shared.",
+  "options": [
+    {
+      "number": 1,
+      "id": "charcoal-01",
+      "name": "Solid / Soft white",
+      "treatment": "solid",
+      "background": "#202126",
+      "wash": "none",
+      "text": "#F5F7FB",
+      "muted": "#BAC6D8"
+    },
+    {
+      "number": 2,
+      "id": "charcoal-02",
+      "name": "Gradient / Soft white",
+      "treatment": "gradient",
+      "background": "#202126",
+      "wash": "linear-gradient(150deg,#2A2D37 0%,#202126 50%,#17181D 100%)",
+      "text": "#F5F7FB",
+      "muted": "#BAC6D8"
+    },
+    {
+      "number": 3,
+      "id": "charcoal-03",
+      "name": "Faint glow / Soft white",
+      "treatment": "glow",
+      "background": "#202126",
+      "wash": "radial-gradient(ellipse at 82% 26%,#B8F34B12,transparent 52%),radial-gradient(ellipse at 12% 80%,#85A9FF16,transparent 55%)",
+      "text": "#F5F7FB",
+      "muted": "#BAC6D8"
+    },
+    {
+      "number": 4,
+      "id": "charcoal-04",
+      "name": "Solid / Warm ivory",
+      "treatment": "solid",
+      "background": "#202126",
+      "wash": "none",
+      "text": "#F3E9D7",
+      "muted": "#C4B9A6"
+    },
+    {
+      "number": 5,
+      "id": "charcoal-05",
+      "name": "Gradient / Ice blue",
+      "treatment": "gradient",
+      "background": "#202126",
+      "wash": "linear-gradient(150deg,#2A2D37 0%,#202126 50%,#17181D 100%)",
+      "text": "#D5E9FF",
+      "muted": "#A9C0DB"
+    },
+    {
+      "number": 6,
+      "id": "charcoal-06",
+      "name": "Faint glow / Pale sage",
+      "treatment": "glow",
+      "background": "#202126",
+      "wash": "radial-gradient(ellipse at 82% 26%,#B8F34B12,transparent 52%),radial-gradient(ellipse at 12% 80%,#85A9FF16,transparent 55%)",
+      "text": "#DBEFD9",
+      "muted": "#AEC8B2"
+    },
+    {
+      "number": 7,
+      "id": "charcoal-07",
+      "name": "Gradient / Lavender",
+      "treatment": "gradient",
+      "background": "#202126",
+      "wash": "linear-gradient(150deg,#2A2D37 0%,#202126 50%,#17181D 100%)",
+      "text": "#E7DFFF",
+      "muted": "#BFB2D8"
+    },
+    {
+      "number": 8,
+      "id": "charcoal-08",
+      "name": "Faint glow / Dusty rose",
+      "treatment": "glow",
+      "background": "#202126",
+      "wash": "radial-gradient(ellipse at 82% 26%,#B8F34B12,transparent 52%),radial-gradient(ellipse at 12% 80%,#85A9FF16,transparent 55%)",
+      "text": "#F2DDE5",
+      "muted": "#CCB1BE"
+    },
+    {
+      "number": 9,
+      "id": "charcoal-09",
+      "name": "Solid / Pale gold",
+      "treatment": "solid",
+      "background": "#202126",
+      "wash": "none",
+      "text": "#EFE7BF",
+      "muted": "#C9BF97"
+    },
+    {
+      "number": 10,
+      "id": "charcoal-10",
+      "name": "Gradient / Soft copper",
+      "treatment": "gradient",
+      "background": "#202126",
+      "wash": "linear-gradient(150deg,#2A2D37 0%,#202126 50%,#17181D 100%)",
+      "text": "#F2D6C3",
+      "muted": "#CDB09B"
+    }
+  ]
+}

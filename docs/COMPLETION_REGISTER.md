@@ -1,5 +1,17 @@
 # Guess The Line — current completion register
 
+## Selected dark base: ten depth/text options — November 4, 2026
+
+Sean selected 01 / Obsidian charcoal as the dark-mode base, then requested
+solid/gradient/faint-glow comparisons and unique text colors, around ten examples.
+The [ten-option board](../design/style-directions-2026-11-04/charcoal-depth-options.html)
+isolates depth in 01–03 and explores seven additional text pairs in 04–10, always
+with the selected lime hybrid logo and shared material/layout/accent styling.
+No depth/text treatment is approved. [Evidence](../design/style-directions-2026-11-04/README.md)
+covers five responsive widths, sixty screen/study combinations, earlier-board
+regression, inspected captures, specified text/base contrast pairs and Brand QA.
+Production tokens/assets/code and deferred follow-up remain unchanged.
+
 ## App backgrounds with the selected logo — November 4, 2026
 
 Sean requested a few background options after selecting the lime hybrid logo.

@@ -26,5 +26,11 @@
       }
     ],
     "darkFinalChoice": "Unresolved between previous 12 preference and new 18 interest"
+  },
+  "selectedDarkBackground": {
+    "backgroundBoardNumber": 1,
+    "id": "obsidian",
+    "hex": "#202126",
+    "scope": "Dark base only; gradient/glow and text colors still exploratory"
   }
 }

@@ -1,6 +1,38 @@
 # Guess The Line — eight whole-app style directions
 
-Owner: Sean Balsiger · Version 10 · November 4, 2026
+Owner: Sean Balsiger · Version 11 · November 4, 2026
+
+## Selected charcoal: ten depth and text studies — November 4, 2026
+
+Sean selected background **01 / Obsidian charcoal** for dark mode, then asked to
+compare solid charcoal, a subtle gradient and faint glow, plus more unique text
+colors, in about ten examples. The [ten-option board](charcoal-depth-options.html)
+uses the selected base `#202126` and exact selected lime hybrid SVG throughout.
+Options 01–03 keep the same text pair and isolate depth. Options 04–10 explore
+warm ivory, ice blue, pale sage, lavender, dusty rose, pale gold and soft copper
+text pairs. Card material, font, logo, accent and fictional fixtures remain
+consistent. No depth treatment or text pair is selected. This does not settle
+light mode or select a new app accent/semantic color system.
+
+[Exact settings](charcoal-depth-options.json) distinguish the three background
+recipes and eight text pairs. Earlier 01–05 background numbers are separate from
+this board's 01–10 numbers. The shared preview bridge accepts optional wash/text
+attributes; its defaults preserve the earlier five-background comparison.
+
+Chromium checked ten frames at 320/390/768/1440/1920 pixels, including loaded
+selected logos, text colors, base color, page/frame overflow, navigation fit,
+identical shared card/accent variables and the isolated 01–03 comparison.
+Sixty screen/study combinations retained the logo, background treatment and
+text overrides. The earlier five-background board retained solid backgrounds
+and selected logos in a regression check. No JavaScript errors were observed.
+Both rows were visually inspected. JavaScript syntax, HTML links/IDs, metadata,
+and Brand QA passed. Twenty specified main/secondary text-to-base pairs meet
+4.5:1; this is not a comprehensive composited-glass accessibility audit.
+Production code/assets/tokens and deferred follow-up are unchanged.
+
+![Options 01–05: controlled depth comparison, ivory and ice blue](previews/charcoal-options-01-05.png)
+
+![Options 06–10: sage, lavender, rose, pale gold and copper](previews/charcoal-options-06-10.png)
 
 ## App background comparison with selected logo — November 4, 2026
 
