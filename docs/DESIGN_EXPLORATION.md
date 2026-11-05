@@ -1,5 +1,15 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## November 4, 2026 — useful mini previews implemented
+
+Sean confirmed replacing sparse bubbles with useful mini content previews.
+The [selected-system viewer](../design/style-directions-2026-11-04/selected-system-review.html?screen=Home)
+now enriches Home/Play/Bets/Research using existing fictional matchup, rank,
+trend and player-usage fixtures, with clean full-name matchups replacing the
+field-grid placeholder. Native handlers and chosen visual recipes are retained.
+The content revision awaits fresh review; historical acknowledgments do not
+close those screens. Production and deferred logo/icon/avatar/award scope are unchanged.
+
 ## November 4, 2026 — reopen earlier screen reviews
 
 Sean flagged the Research yard-line placeholder, missing marks and sparse

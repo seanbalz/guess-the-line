@@ -1,0 +1,23 @@
+{
+  "status": "Authorized content-preview revision; reopened screen review remains pending",
+  "scope": [
+    "Home",
+    "Play",
+    "Bets",
+    "Research"
+  ],
+  "changes": {
+    "Home": "Community-rank and matchup research summaries in quick cards",
+    "Play": "Full sample matchup names in draft/total action cards; community summary",
+    "Bets": "Full matchup research preview in Recommendations panel; no wager recommendation invented",
+    "Research": "Replace decorative field/yard-line placeholder with full-name matchup; add game/trend/usage/team mini previews"
+  },
+  "preserved": "Exact selected theme/logo/card/button recipes; original native button nodes and click handlers; unrelated screens and deferred features",
+  "sampleSources": {
+    "matchups": "Existing app.js fixtures: Seahawks at Broncos, Bears at Lions",
+    "usage": "Existing app.js fantasy fixture: sample targets Player A 8.0 / Player B 6.5",
+    "rank": "Existing Home fixture: 02 / 24",
+    "chart": "Existing illustrative trend path geometry from app.js"
+  },
+  "excluded": "Actual NFL/EPL marks, icon redesign, avatar controls and awards remain in held phase; no new live quotes, projections, private picks or recommendations."
+}

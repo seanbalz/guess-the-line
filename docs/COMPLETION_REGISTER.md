@@ -1,5 +1,19 @@
 # Guess The Line — current completion register
 
+## Mini content previews added for fresh review — November 4, 2026
+
+Sean confirmed useful mini previews. The [paired viewer](../design/style-directions-2026-11-04/selected-system-review.html?screen=Home)
+now adds summaries and richer matchup/draft/research content in Home, Play,
+Bets and Research. Research's decorative field grid is replaced with full-name
+matchup details; the four quick cards show matchup, trend, usage and team
+previews. [Sources and evidence](../design/style-directions-2026-11-04/README.md)
+record original fictional fixtures, retained native handlers/selected recipes,
+26 paired-state regression checks, four responsive widths, eight Research and
+two Play pointer flows, refreshed/expanded captures and Brand QA. Fresh review
+starts at Home; earlier acknowledgments remain historical, with no current
+screen sign-off inferred. Actual team marks/icons/avatars/awards stay held;
+production, frozen tracker and selected style recipes are unchanged.
+
 ## Earlier screen approvals reopened for closer review — November 4, 2026
 
 Sean said the Research matchup lines and sparse bubbles were unsatisfactory and

@@ -1,7 +1,7 @@
 {
   "kind": "GTL_SELECTED_SYSTEM_REVIEW",
   "version": 1,
-  "status": "Earlier Home/Play/Bets approvals reopened for closer content/visual review; Research concerns unresolved; no whole-project completion",
+  "status": "Richer content previews added for reopened Home/Play/Bets/Research review; fresh visual sign-off pending",
   "darkSource": "lime-priority-preview.json",
   "lightSource": "light-mode-options.json",
   "dark": {
@@ -349,6 +349,24 @@
       "Missing team marks/abbreviations in the mockup",
       "Navigation bubbles look empty and boring"
     ],
-    "pendingClarification": "Whether to replace sparse bubbles with useful miniature content previews"
+    "pendingClarification": null,
+    "contentRevision": {
+      "authorization": "Sean confirmed useful miniature content previews",
+      "state": "Implemented for re-review",
+      "yardLineConcern": "Decorative field graphic removed; clean full-name matchup summary used",
+      "sparseCardConcern": "Game, trend, player-usage, team and community previews added",
+      "teamMarks": "Remain in held phase; no logo assets or icon redesign introduced"
+    }
+  },
+  "contentRevision": {
+    "id": "mini-previews-v1",
+    "source": "selected-content-preview.json",
+    "screens": [
+      "Home",
+      "Play",
+      "Bets",
+      "Research"
+    ],
+    "status": "Implemented for review; not visually accepted"
   }
 }

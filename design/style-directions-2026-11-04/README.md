@@ -1,6 +1,47 @@
 # Guess The Line — eight whole-app style directions
 
-Owner: Sean Balsiger · Version 28 · November 4, 2026
+Owner: Sean Balsiger · Version 29 · November 4, 2026
+
+## Useful mini previews in reopened screens — November 4, 2026
+
+Sean explicitly confirmed replacing sparse bubbles with useful content previews.
+The [paired review](selected-system-review.html?screen=Home) now enriches Home,
+Play, Bets and Research while retaining the exact selected theme/logo/card/button
+recipes. [Scope and fixture sources](selected-content-preview.json) identify the
+reused sample data: community rank 02/24, the existing Seahawks/Broncos and
+Bears/Lions matchups, fantasy targets 8.0/6.5 and the existing trend-path geometry.
+No private picks, live odds/projections or recommendations were added.
+
+Home's League and Research cards contain summaries. Play draft/total cards show
+full sample matchup names. Bets' recommendation panel previews matchup research.
+Research's Games/Trends/Fantasy/Teams cards contain a matchup, mini chart, player
+comparison and team names. Decorative football-field lines are replaced with a
+clean full-name matchup in the affected overview/detail views. Native button
+nodes and their bound click handlers are preserved; only their contents change.
+This controller is scoped to the current selected-system review; the earlier
+style studies, EPL/Account and held awards/avatar/team-mark/icon features are
+unchanged. Real NFL/EPL marks remain deferred under Sean's earlier instruction.
+
+Earlier screen acknowledgments remain historical, with fresh visual review
+pending and Home/overview next. [Expanded Home](previews/selected-content-home-expanded.png)
+and [expanded Research](previews/selected-content-research-expanded.png) captures
+show more content than a standard phone viewport; the live review retains normal
+850px frames with internal scrolling. All six standard primary captures and the
+overview gallery were refreshed; expanded captures are presentation aids only.
+
+Chromium rechecked all six screen pairs at four widths (24 layout cases / 48
+frames), all 26 paired states (52 themed views), matching content/selected
+recipes, notes/export/deep links and table/overview behavior. Separate pointer
+checks verified eight Research quick-card open/Back flows and two Play pick-card
+flows on both themes. Research has zero remaining `.field` placeholders, four
+content previews and the expected sample usage values. No JavaScript errors were
+observed. Syntax, local links/IDs, metadata/fixture/selected-source consistency
+and Brand QA passed. Expanded Home/Research captures were inspected at full size;
+updated primary and overview captures were checked. These are bounded mockup
+checks, not full accessibility, hosted acceptance or final screen approval.
+Production, frozen tracker, style selections and deferred scope are unchanged.
+
+![Revised Research with meaningful previews and a clean matchup](previews/selected-content-research-expanded.png)
 
 ## Visual review progress — November 4, 2026
 
@@ -9,8 +50,8 @@ missing team marks and sparse bubbles. **Home, Play and Bets overviews are
 reopened in both themes**, with Research concerns still unresolved. Prior yes
 acknowledgments remain in [acceptance history](selected-system-review.json), not
 current completed sign-off. Chosen style recipes remain the starting point.
-Clarify useful miniature content previews versus simple identifiers before
-revising the bubbles. Metadata scope and Brand QA passed. Visuals and production
+Sean confirmed useful miniature content previews; the implemented revision
+is now ready for fresh review. Metadata scope and Brand QA passed. Visuals and production
 are unchanged; whole-project completion and deferred work remain open.
 
 ## Selected dark + Porcelain across primary screens and layers — November 4, 2026
