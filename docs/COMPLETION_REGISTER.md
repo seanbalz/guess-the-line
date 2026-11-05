@@ -1,5 +1,14 @@
 # Guess The Line — current completion register
 
+## Play overview accepted in both themes — November 4, 2026
+
+Sean accepted Play/overview in dark and Porcelain in response to the specific
+Play question. The [review manifest](../design/style-directions-2026-11-04/selected-system-review.json)
+now records Home and Play overviews accepted, with Bets/overview next. Other
+screens/layers, production acceptance and whole-project completion remain open;
+deferred work stays held. Metadata/source-reference and Brand QA checks passed.
+Reviewed visuals and production are unchanged.
+
 ## Home overview accepted in both themes — November 4, 2026
 
 Sean replied "yes good" to the explicit Home-in-both-modes question. The
