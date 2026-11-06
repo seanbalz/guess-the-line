@@ -1,5 +1,41 @@
 # Guess The Line — current completion register
 
+## League leaderboard and feed mocked — November 6, 2026
+
+The selected glass system now covers a League leaderboard, separate Spread,
+Total and Points boards, shared tied ranks, pinned viewer row, ranked zero and
+unranked new member. The first six plus the viewer lead; Show more exposes all
+nine example members. Points keeps its unranked House value separate.
+
+The feed includes individual team-logo tiles, result accuracy bars, folded pick
+activity that opens each post, six existing reactions and a native comment sheet.
+Comment drafts survive closing and changing views; the sheet retains the native
+500-character rule, keyboard focus trap/return and inert background. Reactions
+and added comments change preview memory only. Existing initials avatars are
+retained; new avatar options and awards remain deferred.
+
+All identities, standings, ranks, posts, reactions, comments and fixed demo times
+are **fictional examples**. Spread/Total examples reuse the reviewed public
+Weeks 6–8 closing references and fictional guesses; Points/House are demonstration
+totals. Hidden-pick embeds contain identifiers and counts only, with no guesses
+or scoring references. No account history, private group or authenticated writer
+is included. The production API, reveal gates, saved-reference scoring and data
+are unchanged.
+
+Twelve dark/Porcelain phone captures were inspected. **League visual approval
+remains pending.** Checks passed: 16 independent season arithmetic validations,
+eight responsive layouts, 24 board/market cases, two themes of feed/comment
+interactions, four narrow feed layouts, four sheet layouts, 24 logo loads and
+three prior-view checks. All 26 selected native model tests pass. Native reaction
+cap/retention, comment bounds, deterministic preparation, reader exclusions,
+Brand document QA and syntax/diff checks pass. Browser checks produced no page
+errors or non-GET requests. These are local review checks, not physical-device
+acceptance, hosted evidence or whole-app completion.
+
+[Selection and evidence](../design/style-directions-2026-11-04/selected-system-review.json) ·
+[League mockup](../design/style-directions-2026-11-04/selected-system-review.html?screen=Play&layer=league).
+Parked Signal files and the frozen v62 tracker remain untouched and unpublished.
+
 ## Score and history direction approved — November 6, 2026
 
 Sean confirmed "Good" after the weekly score, game accuracy and history mockups,

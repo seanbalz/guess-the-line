@@ -991,5 +991,66 @@
     ],
     "acceptanceScope": "Supplied score/history visual direction, separate markets, logo tiles, accuracy ring/bars, signed game axis and linked history. Not separate acceptance of every unseen game/filter/state, actual saved player history, live sources, production integration or whole-project completion.",
     "next": "Recommended next visual review: League leaderboard and feed. Deferred avatars/awards stay held."
+  },
+  "leaguePreview": {
+    "prepared": "2026-11-06",
+    "status": "Mocked; awaiting Sean visual approval",
+    "view": "selected-system-review.html?screen=Play&layer=league",
+    "kind": "FICTIONAL_LEAGUE_VISUAL_PREVIEW",
+    "members": 9,
+    "posts": 7,
+    "sampleMeaning": "Fictional identities, standings, ranks, posts, reactions, comments and fixed demo timeline. No real account activity. Spread/Total examples reuse reviewed public historical closing references and fictional guesses; Points/House are demonstration totals. Hidden embeds contain IDs/counts only.",
+    "components": [
+      "Native boardFor / chaseLine / boardSlice",
+      "Native Points boardRows",
+      "Native foldPosts / postLine / postMeta / fmtPostTime",
+      "Native reactionChips / withReaction / commentDraft",
+      "Unchanged initials Avatar / AvatarStack / Rank",
+      "Native Segmented / TeamMark / InfoButton / Sheet; isolated preview controls"
+    ],
+    "features": [
+      "Separate Spread / Total / Points boards; shared ties skip ranks",
+      "First six plus viewer; Show more retains ranked zero and unranked member",
+      "Unranked House shown separately on Points",
+      "Two recent items on board; folded ballot digest can expose each post",
+      "Results with individual team-logo glass tiles and accuracy bars",
+      "Six existing reactions; one selected; three chip limit retains yours",
+      "Comment sheet with draft retention, 500-character limit, focus trap/return and inert background",
+      "Reactions and comments are memory-only; no account writes or messages sent"
+    ],
+    "verification": {
+      "independentSeasonArithmeticChecks": 16,
+      "responsiveLayouts": 8,
+      "boardMarketCases": 24,
+      "interactionThemes": 2,
+      "narrowFeedLayouts": 4,
+      "narrowSheetLayouts": 4,
+      "registeredLogoLoads": 24,
+      "priorViewChecks": 3,
+      "nativeModelTestsPassed": 26,
+      "pageErrors": 0,
+      "nonGETRequests": 0,
+      "deterministicPreparation": true,
+      "productionReaderExclusions": true,
+      "brandDocumentQA": true,
+      "commentedDigestRemountFocusAndHiddenGate": true
+    },
+    "captures": [
+      "league-comments-dark-phone.png",
+      "league-comments-light-phone.png",
+      "league-feed-dark-phone.png",
+      "league-feed-light-phone.png",
+      "league-hidden-picks-dark-phone.png",
+      "league-hidden-picks-light-phone.png",
+      "league-points-board-dark-phone.png",
+      "league-points-board-light-phone.png",
+      "league-spread-board-dark-phone.png",
+      "league-spread-board-light-phone.png",
+      "league-total-board-dark-phone.png",
+      "league-total-board-light-phone.png"
+    ],
+    "delivery": "Phone-width extended-height captures; not physical-device acceptance",
+    "production": "Unchanged; not merged or deployed",
+    "deferred": "New avatar/profile-picture options, awards and parked Signal branding remain held; whole-project review is incomplete"
   }
 }
