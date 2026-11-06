@@ -1,5 +1,48 @@
 # Guess The Line — current completion register
 
+## Guess the Points mocked — November 5, 2026
+
+Sean approved moving on to Guess the Points. The selected review now shows a
+five-position week overview, opened player draft, lock-in confirmation, usage
+profile and in-memory preview-confirmed card in dark and Porcelain. Each team
+mark has its own glass tile. Five fixed public NFL players form an explicitly
+labelled **example lineup**, not the published Points slate: Josh Allen (QB),
+Bijan Robinson (RB), Ja’Marr Chase (WR), Brock Bowers (TE), Justin Jefferson (FLEX).
+Prefilled guesses 24/18/22/14/20 are sample user entries only.
+
+The overview’s small charts, recent/season averages, opponent-allowed values and
+usage profile use the existing public Week 9 Fantasy snapshot and native player
+context/profile helpers. Every example’s kickoff matches the validated public
+schedule. Native context-number formatting preserves the same rounded tenths as
+the full profile, including Chase’s last-three-calendar-weeks average of 24.2
+(two recorded games). Phone-width context charts remain visible. The existing
+PointsProfile keeps the House estimate behind its original lock line; a local
+demo lock never grants server reveal permissions or fabricates member guesses.
+
+The 0–60 whole-point stepper is copied exactly from the native component, with
+±1 taps, held ±5, arrows/Page keys and boundary behavior. Save draft and Confirm
+lock-in change memory only. Edits survive overview/profile visits, and a lock in
+one slot leaves the others separate. The Points board tile opens GTL’s existing
+board in a new tab; this does not claim a new board mockup or live result read.
+No account/API/storage/save readers or writers are imported into the preview.
+
+Ten extended-height phone captures are available. **Visual approval remains
+pending.** These are presentation captures, not physical-iPhone acceptance,
+production integration or whole-project completion.
+
+Checks passed: eight responsive theme/width layouts (320/390/768/1440), 40
+independent decimal-weight context/chart comparisons, 48 profile/House-gate
+checks, 40 draft/profile/overview preservation cases and eight stepper/confirmation
+flows. Four narrow-phone scroll/touch checks verified navigation clearance and
+44px minimum control heights; two held-five-point checks passed. Prior Spread
+and Fantasy Rankings views still mount. No page errors or non-GET requests were
+observed. Native stepper-copy equality, unchanged public snapshot SHA-256,
+production-reader exclusions, Brand QA and syntax/diff checks passed.
+
+Production code/tokens, private picks, source exports, collectors, budgets,
+scoring, migrations, frozen v62, deferred avatars/awards and parked Signal files
+are unchanged. No merge or deployment was performed.
+
 ## Play draft and confirmation direction approved — November 5, 2026
 
 Sean confirmed "Good" after the Spread and Total draft mockups and the supplied

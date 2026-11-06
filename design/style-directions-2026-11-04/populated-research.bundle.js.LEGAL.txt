@@ -61,6 +61,7 @@ lucide-react/dist/esm/Icon.js:
 lucide-react/dist/esm/createLucideIcon.js:
 lucide-react/dist/esm/icons/arrow-down-up.js:
 lucide-react/dist/esm/icons/arrow-left-right.js:
+lucide-react/dist/esm/icons/arrow-left.js:
 lucide-react/dist/esm/icons/arrow-right.js:
 lucide-react/dist/esm/icons/award.js:
 lucide-react/dist/esm/icons/bell.js:

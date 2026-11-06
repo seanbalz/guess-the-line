@@ -815,5 +815,81 @@
     ],
     "acceptanceScope": "Supplied draft/confirmation visual direction, separate logo tiles, native picker treatment, outlined lock action and finality/separate-market messaging. Not separate acceptance of unseen confirmation/receipt variants, late/error/pending states, live saves, production integration or whole-project completion.",
     "next": "Recommended next visual review: Guess the Points draft and detail flow. Play score/history and remaining league/detail views remain pending. Deferred avatars/awards stay held."
+  },
+  "pointsDraftPreview": {
+    "status": "Mocked for visual review; awaiting Sean",
+    "prepared": "2026-11-05",
+    "basis": "Sean answered Yes to mocking Guess the Points next",
+    "scope": "Example week overview, player draft, confirmation, native usage profile and in-memory confirmed card in both selected themes",
+    "lineupKind": "Fixed public NFL examples, not the published Points slate",
+    "examples": [
+      {
+        "slot": "QB",
+        "id": "00-0034857",
+        "sampleGuess": 24
+      },
+      {
+        "slot": "RB",
+        "id": "00-0038542",
+        "sampleGuess": 18
+      },
+      {
+        "slot": "WR",
+        "id": "00-0036900",
+        "sampleGuess": 22
+      },
+      {
+        "slot": "TE",
+        "id": "00-0039338",
+        "sampleGuess": 14
+      },
+      {
+        "slot": "FLEX",
+        "id": "00-0036322",
+        "sampleGuess": 20
+      }
+    ],
+    "source": {
+      "snapshot": "fantasy-snapshot.json",
+      "sha256": "ef4d505200eb2e09ecb6b8635e288a8a6c7449f0c67d23357e3916477eae3339",
+      "schedule": "populated-research-data.json boardGames; all five kickoff timestamps match"
+    },
+    "components": [
+      "Exact isolated copy of native PointsBallot Stepper",
+      "Native pointsModel helpers",
+      "Native slotContext / contextNumber / PointsProfile",
+      "Native playerProfile / MiniArea / TeamMark / Button / Dialog / InfoButton"
+    ],
+    "behavior": "Whole points 0–60, ±1 tap / held ±5, keyboard boundaries, independent sample drafts/locks and edit preservation through overview/profile visits. Memory only.",
+    "house": "Original PointsProfile lock gate remains closed. Demo confirmation cannot reveal a House or member guesses; no real slate/private reply is loaded.",
+    "rounding": "Native contextNumber matches full-profile tenths; Chase Last 3 is 24.2 from two recorded games in three calendar weeks.",
+    "verification": {
+      "responsiveLayouts": 8,
+      "independentContextAndVisibleChartChecks": 40,
+      "profileAndHouseGateChecks": 48,
+      "draftVisitPreservationCases": 40,
+      "stepperAndLockFlows": 8,
+      "narrowScrollAndTouchChecks": 4,
+      "heldFivePointChecks": 2,
+      "priorViewChecks": 2,
+      "pageErrors": 0,
+      "nonGETRequests": 0
+    },
+    "captures": [
+      "points-week-dark-phone.png",
+      "points-draft-dark-phone.png",
+      "points-lock-confirm-dark-phone.png",
+      "points-profile-dark-phone.png",
+      "points-preview-confirmed-dark-phone.png",
+      "points-week-light-phone.png",
+      "points-draft-light-phone.png",
+      "points-lock-confirm-light-phone.png",
+      "points-profile-light-phone.png",
+      "points-preview-confirmed-light-phone.png"
+    ],
+    "delivery": "Phone-width extended-height captures; not physical-device acceptance",
+    "privacy": "Public NFL data and labelled sample entries only. No production API, Supabase, authenticated Fantasy readers, actual slate/member picks or account writes.",
+    "production": "Unchanged; not merged or deployed",
+    "deferred": "Avatars, awards, parked Signal branding and whole-project completion remain held"
   }
 }
