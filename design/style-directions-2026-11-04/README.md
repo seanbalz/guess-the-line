@@ -3,6 +3,31 @@
 Owner: Sean Balsiger · Version 31 · November 4, 2026
 
 
+## Both game research views mocked — November 5, 2026
+
+Sean chose both line movement and team performance. The approved compact
+Research/game header now leads to a glass tabbed research card, replacing the
+undefined chart and explanatory placeholder paragraph. Line movement offers
+Spread/Total selection and explicitly unavailable history/opening/latest/source
+fields: no sportsbook line, trace or timestamp is invented. Team performance
+shows a historical 2025 regular-season total-touchdown comparison from
+[NFL.com](https://www.nfl.com/stats/team-stats/offense/scoring/2025/reg/all),
+with source-linked data in game-research-data.json and individual logo tiles.
+[Line dark](previews/game-research-line-dark-phone.png),
+[line light](previews/game-research-line-light-phone.png),
+[team dark](previews/game-research-team-dark-phone.png)
+and [team light](previews/game-research-team-light-phone.png)
+phone captures were inspected. The longer capture height presents both layouts;
+it is not physical-device acceptance. Chromium checked both views/themes at
+320/390/768/1440px, source values, no invented quote fields, tab semantics and
+keyboard navigation, market selection, Back returns and six native game actions.
+Eight fresh direct loads and all 26 paired states passed without page errors.
+JavaScript syntax and Brand document QA passed. Visual approval remains pending.
+No production data/behavior, live collection, deferred features or parked Signal
+files changed. Historical team comparison is not current-season performance or
+verification of the illustrative matchup schedule.
+
+
 ## Compact opened-game matchup header prepared — November 5, 2026
 
 Sean replied "Good" to the recommendation to mock a compact matchup header.
