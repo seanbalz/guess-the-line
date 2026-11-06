@@ -1,5 +1,63 @@
 # Guess The Line — current completion register
 
+## EPL manager-link mockups prepared — November 6, 2026
+
+The selected dark/Porcelain system now covers Choose your manager, Just watching,
+illustrative linked result, already-claimed conflict, already-linked account,
+failed claim, unconfirmed save reply, fixed busy state and empty offered list.
+Native CLAIM_COPY, claimManagers and ClaimCardView are isolated exactly from the
+session/claim controller; only their two button sites add haptic=false. Native
+boardModel/DraftBoard, Sheet/Button/InfoButton/Toast and SaveUncertainError text
+are reused. This is existing manager-link UI, not new avatar/photo work.
+
+The existing fictional EPL draft export is unchanged: eight sample managers,
+two registered club crests in separate glass tiles and three example offered
+identities. The conflict's fixed offer list excludes Alex; linked examples have
+no chooser. Unlinked models cannot pick and have no queue; no board in this batch
+has club/queue controls. The internal fixed test clock is not displayed as an
+actual kickoff. No real grant, account, link, private pick or Sleeper read occurs.
+
+Manager taps show a no-action notice, never a successful link or refresh. Just
+watching hides the card in component memory only and moves focus to the board;
+it does not change the real browser-session preference. Reset restores the
+current scenario. Busy manager/watch controls are guarded and disabled. Native
+Toast copy, role and tone are reused inside the preview Sheet, with duration=null
+so supplied notices remain visible until dismissal; dismissal focuses Reset.
+Every result is labelled illustrative/nothing attempted. Uncertain stays
+unconfirmed; no saved readback is fabricated. Actual first-claim and refresh-vs-
+ordinary-failure branches were source checked, not executed here.
+
+Eighteen phone captures were inspected; visual approval is pending. Checks
+passed: 72 layouts, eighteen scenario flows, 36 individually loaded crest tiles,
+three exact isolated native blocks, two haptic-only adaptations, nine fixtures,
+seven read-only unlinked model cases, four native outcome source branches,
+unchanged source fixture, exact uncertain copy, fixed native Toast, 27 existing
+native Pick a Team/claim/Home/queue view tests, nested information focus, Sheet
+keyboard/Escape/opener return and six prior mounts. No storage writes, provider/
+auth reads, non-GET requests, popups, browser dialogs or page errors observed.
+Build, adapter/API/storage/timer exclusions, Brand QA, syntax and diff checks
+passed. All content fits the extended captures; narrow scroll/footer bounds,
+44px controls and focus checks were verified separately.
+
+[NATIVE_COVERAGE_REVIEW.md](../design/style-directions-2026-11-04/NATIVE_COVERAGE_REVIEW.md)
+records the remaining queue: native EPL Home/recovery, moneyline/leaderboard,
+FEPL Fantasy and reconciliation of other existing sport/account/NFL layers.
+It distinguishes confirmed gaps from areas still needing mapping, without
+reopening approved states or claiming hosted availability. Native Home and draft
+recovery are next. Whole-app completion is not established. Native controller,
+first-claim enforcement/session watching, accounts/grants/picks/draft order,
+production tokens, collectors, migrations and frozen v62 are unchanged. No
+merge/deploy; new avatar/photos, awards and parked Signal files remain held.
+
+## EPL correction direction approved — November 6, 2026
+
+Sean replied "Looks good in both themes. Continue with the next mockups." to
+the nine-state EPL correction batch at reviewed commit
+`d340a248cf0e6696ca83d68c46aa6398ffb27ff1`. The supplied visual direction is
+approved in both themes. Real permissions, source completeness/provenance,
+cancellation, refresh/device behavior and whole-app completion remain separate.
+The next batch follows the native coverage reconciliation: FEPL manager linking.
+
 ## EPL stat-correction mockups prepared — November 6, 2026
 
 The selected dark/Porcelain system now covers comparison, partial totals with

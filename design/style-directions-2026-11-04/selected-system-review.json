@@ -262,6 +262,69 @@
           "detail:draft",
           "detail:confirmation"
         ]
+      },
+      {
+        "id": "epl-manager-choose",
+        "name": "Manager - Choose your identity",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-manager-watching",
+        "name": "Manager - Just watching",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-manager-linked",
+        "name": "Manager - Link result example",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-manager-taken",
+        "name": "Manager - Already claimed",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-manager-already-linked",
+        "name": "Manager - Account already linked",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-manager-failed",
+        "name": "Manager - Failed claim",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-manager-uncertain",
+        "name": "Manager - Unconfirmed reply",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-manager-busy",
+        "name": "Manager - Claiming example",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-manager-no-managers",
+        "name": "Manager - No identities offered",
+        "actions": [
+          "detail:draft"
+        ]
       }
     ],
     "Account": [
@@ -969,7 +1032,7 @@
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "Account/epl-corrections-ready",
+    "next": "EPL/epl-manager-choose",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -3359,7 +3422,7 @@
     "approvalScope": "Supplied visual direction in both themes only. Real authorization, connection, measured quota, provider cost/limits, request reuse/readback, collection/benchmark eligibility and physical-device acceptance remain separate."
   },
   "eplCorrectionsPreview": {
-    "status": "Prepared for visual approval in both themes",
+    "status": "Approved in both themes",
     "prepared": "2026-11-06",
     "views": [
       "ready",
@@ -3423,6 +3486,98 @@
     "delivery": "18 dark/Porcelain phone-width captures visually inspected; full body fits each capture. Extended heights show content with source disclosures open; 320/390/768/1440 layouts, 44px controls, narrow reachability/footer bounds, keyboard/Escape/opener focus checked separately.",
     "production": "Review assets and evidence only. Native correction controller, Community grants, server/API routes and normalized reads, source snapshots/audits, existing picks and draft order, production tokens, migrations and frozen v62 unchanged. No merge/deploy.",
     "deferred": "Hosted authorization, real source completeness/capture provenance, cancellation and live refresh/device acceptance remain separate. New avatars/photos, awards and parked Signal work remain held.",
-    "next": "Reconcile remaining native screen/state coverage against scoped visual approvals; whole-app completion not established."
+    "next": "Reconcile remaining native screen/state coverage against scoped visual approvals; whole-app completion not established.",
+    "accepted": "2026-11-06",
+    "confirmation": "Looks good in both themes. Continue with the next mockups.",
+    "reviewedCommit": "d340a248cf0e6696ca83d68c46aa6398ffb27ff1",
+    "reviewedCaptures": [
+      "epl-corrections-ready-dark-phone.png",
+      "epl-corrections-ready-light-phone.png",
+      "epl-corrections-missing-dark-phone.png",
+      "epl-corrections-missing-light-phone.png",
+      "epl-corrections-empty-dark-phone.png",
+      "epl-corrections-empty-light-phone.png",
+      "epl-corrections-unavailable-dark-phone.png",
+      "epl-corrections-unavailable-light-phone.png",
+      "epl-corrections-failed-dark-phone.png",
+      "epl-corrections-failed-light-phone.png",
+      "epl-corrections-denied-dark-phone.png",
+      "epl-corrections-denied-light-phone.png",
+      "epl-corrections-loading-dark-phone.png",
+      "epl-corrections-loading-light-phone.png",
+      "epl-corrections-refreshing-dark-phone.png",
+      "epl-corrections-refreshing-light-phone.png",
+      "epl-corrections-stale-dark-phone.png",
+      "epl-corrections-stale-light-phone.png"
+    ],
+    "acceptanceScope": "Supplied nine-state visual direction in both themes only. Real source completeness/provenance, permissions, cancellation, refresh/device behavior and whole-app completion remain separate."
+  },
+  "eplManagerPreview": {
+    "status": "Prepared for visual approval in both themes",
+    "prepared": "2026-11-06",
+    "views": [
+      "choose",
+      "watching",
+      "linked",
+      "taken",
+      "already-linked",
+      "failed",
+      "uncertain",
+      "busy",
+      "no-managers"
+    ],
+    "nativePreservation": "Exact isolated native CLAIM_COPY, claimManagers and ClaimCardView, with haptic=false added only at its two button sites. Native boardModel/DraftBoard, Sheet/Button/InfoButton and Toast reused. Native uncertain-save text from SaveUncertainError reused. Real first-claim behavior and reread-vs-failure branches source checked, not executed.",
+    "fixtures": "Existing fictional EPL draft fixture reused unchanged. Eight fictional managers and two configured registered club crests; three offered managers in choose, two after the fixed taken example, zero on linked/empty/watching. Linked examples use demo-epl-2; no real account/claim/grant read. Fixed internal year-2000 eligibility clock is not a fixture kickoff or a saved timestamp.",
+    "behavior": "Manager taps show no-action notice only, never link or reread. Just watching hides the chooser in component memory only and focuses the sample board. Reset restores the current scenario. Unlinked models have canPick=false and queue=null; all boards have no club/queue actions. Busy manager/watch controls disabled and guarded without automatic completion. Uncertainty stays unconfirmed after a tap.",
+    "notices": "Native Toast is positioned within the preview Sheet content and uses duration=null to remain inspectable until dismissed. Native copy/role/tone preserved; dismissal focuses Reset. Result banners explicitly say illustrative/nothing attempted. No saved success is inferred from pressing a manager.",
+    "verification": {
+      "responsiveLayouts": 72,
+      "managerScenarioFlows": 18,
+      "loadedSeparateCrestTiles": 36,
+      "isolatedNativeBlocks": 3,
+      "hapticOnlyAdaptationSites": 2,
+      "fixtureStates": 9,
+      "readOnlyUnlinkedModels": 7,
+      "nativeClaimOutcomeSourceChecks": 4,
+      "sourceFixturePreserved": true,
+      "nativeUncertainCopy": true,
+      "fixedNativeToast": true,
+      "nativePickViewTests": 27,
+      "nativeInfoFocusThemes": 2,
+      "keyboardEscapeReturnThemes": 2,
+      "priorViews": 6,
+      "storageWrites": 0,
+      "nonGETRequests": 0,
+      "providerAndAuthReads": 0,
+      "browserDialogs": 0,
+      "popups": 0,
+      "pageErrors": 0,
+      "adapterApiStorageTimerExclusions": true,
+      "brandQA": true
+    },
+    "captures": [
+      "epl-manager-choose-dark-phone.png",
+      "epl-manager-choose-light-phone.png",
+      "epl-manager-watching-dark-phone.png",
+      "epl-manager-watching-light-phone.png",
+      "epl-manager-linked-dark-phone.png",
+      "epl-manager-linked-light-phone.png",
+      "epl-manager-taken-dark-phone.png",
+      "epl-manager-taken-light-phone.png",
+      "epl-manager-already-linked-dark-phone.png",
+      "epl-manager-already-linked-light-phone.png",
+      "epl-manager-failed-dark-phone.png",
+      "epl-manager-failed-light-phone.png",
+      "epl-manager-uncertain-dark-phone.png",
+      "epl-manager-uncertain-light-phone.png",
+      "epl-manager-busy-dark-phone.png",
+      "epl-manager-busy-light-phone.png",
+      "epl-manager-no-managers-dark-phone.png",
+      "epl-manager-no-managers-light-phone.png"
+    ],
+    "delivery": "18 dark/Porcelain phone-width captures visually inspected. All content fits supplied extended heights. Narrow 320/390/768/1440 layouts, 44px controls, footer bounds/reachability, watch-focus, Toast dismissal focus, information and Sheet keyboard/Escape/opener return checked separately.",
+    "isolation": "No claim/API/auth/Sleeper/provider request, board readback, grant read, account link, session/local storage, pick/queue write, polling, automatic completion or message. Native claim/session controller and EPL API excluded from build inputs; native Toast automatic dismissal suppressed by duration=null.",
+    "production": "Review assets/evidence only. Native source, first-claim enforcement, session watching, manager links, pick/draft data, grants, production tokens, collectors, migrations and frozen v62 unchanged. No merge/deploy.",
+    "next": "Native EPL Home and draft recovery per NATIVE_COVERAGE_REVIEW.md; dedicated EPL moneyline/FEPL Fantasy and remaining native reconciliation follow. Whole-app completion is not established. New avatar/photos and awards stay held."
   }
 }
