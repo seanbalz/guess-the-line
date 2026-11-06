@@ -2,13 +2,20 @@
 'use strict';
 const roots=new WeakMap();
 async function read(path){const response=await fetch(path);if(!response.ok)throw Error('Preview asset did not load: '+path);return response.json();}
-Promise.all([read('populated-research-data.json'),read('populated-fantasy-data.json').then(async metadata=>({...metadata,snapshot:await read(metadata.snapshotAsset),review:await read(metadata.reviewSource.asset)})),read('score-history-data.json'),read('league-preview-data.json'),read('bets-preview-data.json'),read('epl-preview-data.json')]).then(([model,fantasy,score,league,bets,epl])=>{
+Promise.all([read('populated-research-data.json'),read('populated-fantasy-data.json').then(async metadata=>({...metadata,snapshot:await read(metadata.snapshotAsset),review:await read(metadata.reviewSource.asset)})),read('score-history-data.json'),read('league-preview-data.json'),read('bets-preview-data.json'),read('epl-preview-data.json'),read('commissioner-schedule-data.json')]).then(([model,fantasy,score,league,bets,epl,commissionerSchedule])=>{
  document.querySelectorAll('iframe[data-review-theme]').forEach(frame=>{
  let observer;
  function apply(){const d=frame.contentDocument;if(!d||!frame.contentWindow.GTLPopulatedResearch||d.querySelector('.populated-research-root'))return;
  const title=d.querySelector('.detail-close~.screen-top .page-title');
 
 
+ const opsLayer=document.getElementById('review-layer')?.value;
+ if(d.getElementById('screen')?.value==='Account'&&title?.textContent==='Profile & account'&&['commissioner-status','commissioner-status-paused','commissioner-settlement-uncertain','commissioner-week-entry','commissioner-week-review','commissioner-week-error'].includes(opsLayer)){
+  const stack=d.querySelector('.detail-close~.stack');if(!stack)return;
+  const root=d.createElement('div');root.className='populated-research-root gx';root.dataset.theme=frame.dataset.reviewTheme;root.dataset.researchView='commissioner-status';stack.replaceChildren(root);
+  d.querySelector('.fixture').textContent='ILLUSTRATIVE STATUS / ARCHIVED SCHEDULE · NO OPERATIONS';
+  roots.get(frame)?.unmount();roots.set(frame,frame.contentWindow.GTLPopulatedResearch.mountCommissionerStatus(root,commissionerSchedule,opsLayer==='commissioner-status-paused'?'paused':opsLayer==='commissioner-settlement-uncertain'?'uncertain':opsLayer.startsWith('commissioner-week-')?opsLayer.slice(13):'status'));return;
+ }
  const commissionerLayer=document.getElementById('review-layer')?.value;
  if(d.getElementById('screen')?.value==='Account'&&title?.textContent==='Profile & account'&&['commissioner-hub','commissioner-members','commissioner-remove','commissioner-restore','commissioner-pending','commissioner-restricted'].includes(commissionerLayer)){
   const stack=d.querySelector('.detail-close~.stack');if(!stack)return;
@@ -184,7 +191,7 @@ Promise.all([read('populated-research-data.json'),read('populated-fantasy-data.j
  d.querySelector('.fixture').textContent='PUBLIC SNAPSHOT · VISUAL PREVIEW · NO SAVES';
  roots.get(frame)?.unmount();roots.set(frame,frame.contentWindow.GTLPopulatedResearch.mount(root,model));
  }
- function ready(){const d=frame.contentDocument;if(!d?.getElementById('grid'))return;observer?.disconnect();for(const file of ['populated-research.bundle.css','populated-research.css','populated-teams.css','populated-fantasy.css','populated-play.css','populated-points.css','populated-score.css','league-native-avatar.css','populated-league.css','populated-bets.css','populated-epl.css','account-native-avatar.css','populated-account.css','populated-bets-overview.css','populated-bets-changes.css','populated-gap-record.css','populated-account-tools.css','populated-league-setup.css','populated-app-invite.css','populated-access.css','populated-appearance.css','populated-export.css','populated-continuity.css','populated-league-access.css','populated-session-recovery.css','populated-commissioner.css'])if(!d.querySelector('link[data-populated-css="'+file+'"]')){const link=d.createElement('link');link.rel='stylesheet';link.href=file;link.dataset.populatedCss=file;d.head.append(link);}if(!d.querySelector('script[data-populated-module]')){const script=d.createElement('script');script.src='populated-research.bundle.js';script.dataset.populatedModule='true';script.onload=apply;d.head.append(script);}observer=new MutationObserver(apply);observer.observe(d.getElementById('grid'),{childList:true,subtree:true});apply();}
+ function ready(){const d=frame.contentDocument;if(!d?.getElementById('grid'))return;observer?.disconnect();for(const file of ['populated-research.bundle.css','populated-research.css','populated-teams.css','populated-fantasy.css','populated-play.css','populated-points.css','populated-score.css','league-native-avatar.css','populated-league.css','populated-bets.css','populated-epl.css','account-native-avatar.css','populated-account.css','populated-bets-overview.css','populated-bets-changes.css','populated-gap-record.css','populated-account-tools.css','populated-league-setup.css','populated-app-invite.css','populated-access.css','populated-appearance.css','populated-export.css','populated-continuity.css','populated-league-access.css','populated-session-recovery.css','populated-commissioner.css','populated-commissioner-status.css'])if(!d.querySelector('link[data-populated-css="'+file+'"]')){const link=d.createElement('link');link.rel='stylesheet';link.href=file;link.dataset.populatedCss=file;d.head.append(link);}if(!d.querySelector('script[data-populated-module]')){const script=d.createElement('script');script.src='populated-research.bundle.js';script.dataset.populatedModule='true';script.onload=apply;d.head.append(script);}observer=new MutationObserver(apply);observer.observe(d.getElementById('grid'),{childList:true,subtree:true});apply();}
  frame.addEventListener('load',ready);ready();
  });
 }).catch(error=>{const status=document.getElementById('load-status');if(status){status.textContent=error.message;status.setAttribute('role','alert');}});

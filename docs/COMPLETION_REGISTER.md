@@ -1,5 +1,63 @@
 # Guess The Line — current completion register
 
+## Commissioner status and week opening mocked — November 6, 2026
+
+The selected dark/Porcelain system now covers automatic week opening, odds
+refresh, illustrative Virtual Units settlement progress, free-quota pause,
+uncertain settlement checks, week entry, archived schedule review and connection
+error. Native Sheet/Button/InfoButton/TeamMark and Pacific formatting are reused.
+Twelve native display-copy fields and exact pure refreshLabel/scheduleDetails/
+API-date bodies are isolated from their controllers. Schedule guidance is behind
+a disclosure. All system statuses, example last-run time and 8-of-15 settlement
+counts are explicitly fictional; no hosted freshness or provider-credit claim.
+
+The schedule-only export projects fifteen matchups, kickoffs and neutral flags
+from the already verified November 5 public season snapshot, SHA-256
+`579f59616c4e51b678fe3f180fea3730995cc2aac73a76c59cf7ad2a8f3dda41`.
+It includes the neutral Bengals/Falcons game and follows native buildSlate's
+earliest-kickoff deadline rule. This archived slate is not a live/upcoming week
+publication. Three rows show initially; Show all 15 retains every game. Each
+team mark has its own tile and hides fallback letters once loaded. No odds,
+guesses, scores, account or private fields are exported. The public projection
+is hash-verified, schema-checked and byte-for-byte deterministic.
+
+Uncertain settlement remains check-only with no automatic replay or pretend
+readback. Settle/Check/Publish show preview notices only. Changing season/week
+immediately clears the old reviewed schedule; local review supplies only the
+archived 2026 Week 9 slate. No API/auth read/write, refresh, provider collection,
+persistent storage, timer, publishing, settlement, lock change or message occurs.
+No operational policy is changed.
+
+Twelve dark/light phone captures were visually inspected; approval is pending.
+Checks passed: 48 layouts, twelve scenario flows, 60 individually loaded logo
+tiles, twelve native copy fields, three exact formatter bodies, ten formatter
+comparisons, fifteen public schedule rows/60 field comparisons, one neutral flag,
+two earliest-kickoff checks, nine input cases, three native check/guard/edit
+source checks, nested information focus, Sheet keyboard/Escape/opener return
+and six prior views. No storage writes, operational reads, non-GET requests,
+popups, browser dialogs or page errors observed. Build, deterministic preparation,
+controller/write exclusions, public-field whitelist, Brand QA, syntax and diff
+checks passed. Extended captures show content; narrow reachability, frame/footer
+bounds, 44px controls and 16px inputs were checked separately.
+
+Review assets/evidence only; no merge/deploy. Actual jobs, permissions, settlement/
+readback, publication/deadlines, freshness/quota and physical-device acceptance
+remain separate. Production controllers, schedules/locks, provider limits,
+collectors, records, APIs/auth/storage, tokens, migrations and frozen v62 are
+unchanged. Referee assignment details are next. New avatars/photos, awards and
+parked Signal work remain held.
+
+## Commissioner menu and member direction approved — November 6, 2026
+
+Sean confirmed "Looks good in both themes. Continue with the next mockups."
+for the supplied commissioner menu, member list, remove/restore, pending check
+and restriction direction at reviewed commit
+`7c2ba3da13ddeb1bf5574445cb2d9341a012771d`. That visual direction is approved in
+both themes. Live authorization, fresh reads, concurrency, persistence/readback,
+audit attribution, physical-device acceptance and whole-app completion remain
+separate. Commissioner schedule/settlement and week-opening details are next.
+New avatars/photos and awards stay held.
+
 ## Commissioner menu and Community members mocked — November 6, 2026
 
 The selected dark/Porcelain system now covers the commissioner menu, Community

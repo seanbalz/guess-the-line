@@ -732,13 +732,55 @@
         "actions": [
           "detail:profile"
         ]
+      },
+      {
+        "id": "commissioner-status",
+        "name": "Schedule and settlement",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "commissioner-status-paused",
+        "name": "Automatic refresh paused",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "commissioner-settlement-uncertain",
+        "name": "Settlement needs checking",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "commissioner-week-entry",
+        "name": "Week opening entry",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "commissioner-week-review",
+        "name": "Archived schedule review",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "commissioner-week-error",
+        "name": "Week opening connection error",
+        "actions": [
+          "detail:profile"
+        ]
       }
     ]
   },
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "Account/commissioner-hub",
+    "next": "Account/commissioner-status",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -2739,7 +2781,7 @@
     "acceptanceScope": "Supplied session-expiry and retained first-name recovery direction in both themes. Real reauthentication/provider return, persistence, save/readback, invitation access, physical-device acceptance and whole-app completion remain separate."
   },
   "commissionerMembersPreview": {
-    "status": "Commissioner menu and Community member controls mocked in both themes; visual approval pending",
+    "status": "Supplied commissioner menu and Community member direction approved in both themes",
     "prepared": "2026-11-06",
     "views": [
       "Commissioner tools menu",
@@ -2790,6 +2832,93 @@
     "delivery": "12 dark/Porcelain phone-width captures visually inspected. Extended captures show content; scrolling, 44px touch targets, frame/footer bounds and 320/390/768/1440 viewport layouts checked separately.",
     "production": "Review assets/evidence only. Community-member/commissioner controllers, admin grants and original Triple Threat restrictions, membership storage, audit/history, data visibility, private memberships, APIs/auth, odds budgets/collectors, production tokens, migrations and frozen v62 unchanged. No merge/deploy.",
     "deferred": "Live authorization, fresh read-before-change, concurrency, pending-check persistence/readback, audit attribution and physical-device acceptance remain separate. Tool detail screens still need review. New avatars/photos and awards stay held.",
-    "next": "Commissioner schedule/settlement status and week-opening detail mockups."
+    "next": "Commissioner schedule/settlement status and week-opening detail mockups.",
+    "accepted": "2026-11-06",
+    "confirmation": "Looks good in both themes. Continue with the next mockups.",
+    "reviewedCommit": "7c2ba3da13ddeb1bf5574445cb2d9341a012771d",
+    "reviewedCaptures": [
+      "commissioner-hub-dark-phone.png",
+      "commissioner-hub-light-phone.png",
+      "commissioner-members-dark-phone.png",
+      "commissioner-members-light-phone.png",
+      "commissioner-remove-dark-phone.png",
+      "commissioner-remove-light-phone.png",
+      "commissioner-restore-dark-phone.png",
+      "commissioner-restore-light-phone.png",
+      "commissioner-pending-dark-phone.png",
+      "commissioner-pending-light-phone.png",
+      "commissioner-restricted-dark-phone.png",
+      "commissioner-restricted-light-phone.png"
+    ],
+    "acceptanceScope": "Supplied commissioner menu, member list, remove/restore, pending check and restriction visual direction in both themes. Live authorization, fresh reads, concurrency, persistence/readback, audit attribution, physical-device acceptance and whole-app completion remain separate."
+  },
+  "commissionerOperationsPreview": {
+    "status": "Schedule/settlement and week-opening detail mockups prepared in both themes; visual approval pending",
+    "prepared": "2026-11-06",
+    "views": [
+      "Illustrative automatic opening/odds/settlement status",
+      "Free-quota-protected paused schedule",
+      "Settlement reply needs checking",
+      "Week opening input",
+      "Archived public schedule review",
+      "Week opening connection error"
+    ],
+    "nativePreservation": "Native Sheet, Button, InfoButton, TeamMark and Pacific fmtFull are reused. Twelve status/week copy fields and exact native refreshLabel, scheduleDetails and API date formatter bodies are isolated without controller imports. The existing uncertain guard/check-only behavior, explicit schedule review, season/week bounds and input-change invalidation are retained as visual examples.",
+    "scheduleSource": {
+      "asset": "commissioner-schedule-data.json",
+      "generatedAt": "2026-11-05T22:43:15.728Z",
+      "snapshotSha256": "579f59616c4e51b678fe3f180fea3730995cc2aac73a76c59cf7ad2a8f3dda41",
+      "publicRows": 15,
+      "neutralRows": 1,
+      "method": "Hash-verified existing public season snapshot projected to schedule-only whitelisted fields. Earliest kickoff follows native buildSlate deadline rule. No odds, guesses, scores, account or private fields exported. Three rows initially shown with explicit Show all 15; every row remains available.",
+      "notice": "Archived public schedule · November 5 snapshot · visual example, not a live publication"
+    },
+    "fixtures": "Enabled/paused job states, November 2 example last-run time and 8-of-15 settlement counts are explicitly fictional. Archived schedule times and neutral flags are public snapshot values, separate from fictional system status. No current/hosted state or provider credits are asserted.",
+    "isolation": "All operational controls show no-action notices. Uncertain check stays unresolved without readback or replay. Publishing never opens a week, changes locks or claims saved success. Field edits discard the visible schedule; only the archived 2026 Week 9 slate is supplied. No operational API/auth read/write, provider fetch, refresh, persistent storage, timer or message occurs.",
+    "verification": {
+      "responsiveLayouts": 48,
+      "statusWeekScenarioFlows": 12,
+      "registeredLogoTiles": 60,
+      "nativeDisplayCopyFields": 12,
+      "exactFormatterBodies": 3,
+      "formatterComparisons": 10,
+      "publicScheduleRows": 15,
+      "publicScheduleFieldComparisons": 60,
+      "neutralFlagCount": 1,
+      "earliestKickoffChecks": 2,
+      "weekInputCases": 9,
+      "nativeCheckGuardAndInvalidationChecks": 3,
+      "nativeInfoFocusThemes": 2,
+      "keyboardEscapeReturnThemes": 2,
+      "priorViews": 6,
+      "storageWrites": 0,
+      "nonGETRequests": 0,
+      "operationalReads": 0,
+      "browserDialogs": 0,
+      "popups": 0,
+      "pageErrors": 0,
+      "controllerAndWriteExclusions": true,
+      "publicProjectionWhitelist": true,
+      "deterministicPreparation": true,
+      "brandQA": true
+    },
+    "captures": [
+      "commissioner-ops-status-dark-phone.png",
+      "commissioner-ops-status-light-phone.png",
+      "commissioner-ops-status-paused-dark-phone.png",
+      "commissioner-ops-status-paused-light-phone.png",
+      "commissioner-ops-settlement-uncertain-dark-phone.png",
+      "commissioner-ops-settlement-uncertain-light-phone.png",
+      "commissioner-ops-week-entry-dark-phone.png",
+      "commissioner-ops-week-entry-light-phone.png",
+      "commissioner-ops-week-review-dark-phone.png",
+      "commissioner-ops-week-review-light-phone.png",
+      "commissioner-ops-week-error-dark-phone.png",
+      "commissioner-ops-week-error-light-phone.png"
+    ],
+    "delivery": "12 dark/Porcelain phone-width captures visually inspected. Extended captures show content; responsive bounds/footer, narrow scrolling, 44px controls and 16px inputs checked separately. Loaded team marks have individual backgrounds and hide fallback letters.",
+    "production": "Review assets/evidence only. Native commissioner/settlement/publish controllers, permissions, schedules, locks, provider quota/budgets, collectors, real records, APIs/auth/storage, production tokens, migrations and frozen v62 unchanged. No merge/deploy.",
+    "deferred": "Live job status, authorization, settlement/readback, actual publication/deadlines, freshness/quota and physical-device acceptance remain separate. New avatars/photos and awards stay held.",
+    "next": "Game referee assignment mockups, followed by final-score review and remaining commissioner detail screens."
   }
 }

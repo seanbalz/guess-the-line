@@ -72,6 +72,7 @@ lucide-react/dist/esm/icons/bell-off.js:
 lucide-react/dist/esm/icons/bell-ring.js:
 lucide-react/dist/esm/icons/bell.js:
 lucide-react/dist/esm/icons/book-open.js:
+lucide-react/dist/esm/icons/calendar-days.js:
 lucide-react/dist/esm/icons/chart-line.js:
 lucide-react/dist/esm/icons/chart-no-axes-combined.js:
 lucide-react/dist/esm/icons/chart-pie.js:
