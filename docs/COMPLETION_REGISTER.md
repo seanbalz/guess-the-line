@@ -1,5 +1,22 @@
 # Guess The Line — current completion register
 
+## Score and history direction approved — November 6, 2026
+
+Sean confirmed "Good" after the weekly score, game accuracy and history mockups,
+with Porcelain versions and Total views linked. The supplied score/history
+visual direction is approved: separate markets, individual team-logo tiles,
+accuracy ring and bars, signed game axis and linked weekly history. The
+[selection record](../design/style-directions-2026-11-04/selected-system-review.json) preserves the reviewed commit and captures.
+
+Historical closing references and fictional sample guesses remain labelled
+examples. This approval does not establish acceptance of every unseen game,
+filter/state, actual saved account history, live sources, production integration
+or whole-project completion. No UI, source data or image changes accompany this
+approval record.
+
+League’s leaderboard and feed are the recommended next visual review. Deferred
+avatars/awards and parked Signal files remain unchanged.
+
 ## Play score and history mocked — November 5, 2026
 
 Sean selected the recommendation to continue with labelled historical examples.

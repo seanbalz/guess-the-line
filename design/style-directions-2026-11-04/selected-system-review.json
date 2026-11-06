@@ -908,7 +908,7 @@
     "next": "Play score/history examples authorized and prepared for visual review. Deferred avatars/awards stay held."
   },
   "scoreHistoryPreview": {
-    "status": "Mocked for visual review; awaiting Sean",
+    "status": "Approved by Sean for the supplied score and history visual direction",
     "prepared": "2026-11-05",
     "basis": "Sean instructed Move forward with rec after the labelled historical-example data choice",
     "scope": "Spread/Total weekly scores, filter subtotals, three-week history and opened game accuracy in both themes",
@@ -975,6 +975,21 @@
     ],
     "delivery": "Phone-width extended-height captures; not physical-device acceptance",
     "production": "Unchanged; not merged or deployed",
-    "deferred": "Avatars, awards, parked Signal branding and whole-project completion remain held"
+    "deferred": "Avatars, awards, parked Signal branding and whole-project completion remain held",
+    "accepted": "2026-11-06",
+    "confirmation": "Sean replied Good after the supplied weekly score, game accuracy and history mockups, with Porcelain and Total views linked.",
+    "reviewedCommit": "9bd5d6c96adc253afecaf333bc886a076011f3d3",
+    "reviewedCaptures": [
+      "score-spread-week-dark-phone.png",
+      "score-spread-game-dark-phone.png",
+      "score-history-dark-phone.png",
+      "score-total-week-dark-phone.png",
+      "score-total-game-dark-phone.png",
+      "score-spread-week-light-phone.png",
+      "score-spread-game-light-phone.png",
+      "score-history-light-phone.png"
+    ],
+    "acceptanceScope": "Supplied score/history visual direction, separate markets, logo tiles, accuracy ring/bars, signed game axis and linked history. Not separate acceptance of every unseen game/filter/state, actual saved player history, live sources, production integration or whole-project completion.",
+    "next": "Recommended next visual review: League leaderboard and feed. Deferred avatars/awards stay held."
   }
 }
