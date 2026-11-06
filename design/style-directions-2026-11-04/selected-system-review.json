@@ -599,13 +599,55 @@
         "actions": [
           "detail:profile"
         ]
+      },
+      {
+        "id": "league-access-pending",
+        "name": "League access - Pending",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "league-access-removed",
+        "name": "League access - Community removed, private leagues",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "league-access-removed-no-groups",
+        "name": "League access - Community removed, no private leagues",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "league-access-saved-link",
+        "name": "League access - Saved private link",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "league-access-saved-joining",
+        "name": "League access - Joining example",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "league-access-saved-uncertain",
+        "name": "League access - Join needs checking example",
+        "actions": [
+          "detail:profile"
+        ]
       }
     ]
   },
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "Account/app-offline",
+    "next": "Account/league-access-pending",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -2391,7 +2433,7 @@
     "next": "App-wide offline, loading, account/tab/page failures and reload-warning storyboard."
   },
   "continuityPreview": {
-    "status": "Mocked in both themes; fresh visual approval pending",
+    "status": "Supplied app continuity direction approved in both themes",
     "prepared": "2026-11-06",
     "views": [
       "Offline banner over illustrative content",
@@ -2440,6 +2482,75 @@
     ],
     "delivery": "12 dark/Porcelain phone-width captures visually inspected, some extended to show content. Local mockup verification only; no live offline readback, preservation, reload, recovery or physical-device acceptance.",
     "production": "Review assets/evidence only. Shell/Frame/AppGate/Boundary controllers, connection events, data/drafts, auth, reload/dirty-state logic, collectors, tokens, migrations and frozen v62 unchanged. No merge/deploy.",
-    "deferred": "Actual connection/service reachability, cached records, error recovery, dirty-draft preservation, reload/update behavior, access restrictions and physical-device acceptance remain separate. New avatars/photos and awards stay held."
+    "deferred": "Actual connection/service reachability, cached records, error recovery, dirty-draft preservation, reload/update behavior, access restrictions and physical-device acceptance remain separate. New avatars/photos and awards stay held.",
+    "accepted": "2026-11-06",
+    "confirmation": "looks good continue",
+    "reviewedCommit": "6e634d1fd8e1452585a5b5536855a5c337aff655",
+    "reviewedCaptures": [
+      "continuity-offline-dark-phone.png",
+      "continuity-offline-light-phone.png",
+      "continuity-startup-dark-phone.png",
+      "continuity-startup-light-phone.png",
+      "continuity-account-failed-dark-phone.png",
+      "continuity-account-failed-light-phone.png",
+      "continuity-tab-failed-dark-phone.png",
+      "continuity-tab-failed-light-phone.png",
+      "continuity-page-failed-dark-phone.png",
+      "continuity-page-failed-light-phone.png",
+      "continuity-reload-warning-dark-phone.png",
+      "continuity-reload-warning-light-phone.png"
+    ],
+    "acceptanceScope": "Supplied offline, startup, account/tab/page failure and reload-warning storyboard direction in both themes. Actual connection/data preservation/reload behavior, permissions, physical-device acceptance and whole-app completion remain separate.",
+    "next": "League access pending, Community removal and saved private-invitation examples."
+  },
+  "leagueAccessPreview": {
+    "status": "Mocked in both themes; fresh visual approval pending",
+    "prepared": "2026-11-06",
+    "views": [
+      "Private league access pending",
+      "Community removed with private leagues",
+      "Community removed without private leagues",
+      "Saved private invitation link",
+      "Joining busy example",
+      "Join reply uncertain example"
+    ],
+    "nativePreservation": "Exact native AccessPending, RemovedScreen and saved InviteCard presentation bodies are isolated, except disabling haptics and renaming the exported invite component. Native 21-field switcher copy and existing leagueRows projection are reused. Original access/retention copy, conditional private-league fallback, email-bound saved-link guidance, busy guard and explicit join/dismiss remain.",
+    "fixtures": "Saturday Club is pending and deliberately absent from fixture memberships. Existing fictional Community/Head to Head/Weekend Crew rows/counts and Alex Lane initials are reused. No real roster, invited email, link URL/token or expiry is supplied. This remains separate from the selected public app shareable link.",
+    "isolation": "All callbacks affect example memory/checkmarks/notices only. No access granted, member removed/restored, join/request/refresh, token consumed, invitation storage cleared, navigation/reload, auth or message operation. The native uncertain checked-list wording is explicitly an example, not a real readback. Busy remains fixed without a timer or automatic replay.",
+    "verification": {
+      "responsiveLayouts": 48,
+      "accessScenarioFlows": 12,
+      "nativeSwitcherCopyFields": 21,
+      "nativePresentationBodyMatches": 3,
+      "fixtureMembershipChecks": 3,
+      "nativeJoinGuardSourceChecks": 2,
+      "nativeInfoFocusThemes": 2,
+      "keyboardEscapeReturnThemes": 2,
+      "priorViews": 6,
+      "storageWrites": 0,
+      "nonGETRequests": 0,
+      "authReads": 0,
+      "nativeDialogs": 0,
+      "pageErrors": 0,
+      "controllerTokenAndWriteExclusions": true,
+      "brandQA": true
+    },
+    "captures": [
+      "league-access-pending-dark-phone.png",
+      "league-access-pending-light-phone.png",
+      "league-access-removed-dark-phone.png",
+      "league-access-removed-light-phone.png",
+      "league-access-removed-no-groups-dark-phone.png",
+      "league-access-removed-no-groups-light-phone.png",
+      "league-access-saved-joining-dark-phone.png",
+      "league-access-saved-joining-light-phone.png",
+      "league-access-saved-link-dark-phone.png",
+      "league-access-saved-link-light-phone.png",
+      "league-access-saved-uncertain-dark-phone.png",
+      "league-access-saved-uncertain-light-phone.png"
+    ],
+    "delivery": "12 dark/Porcelain phone-width captures visually inspected, some extended to show content. Local mockup verification only; no permission, private-token, joining or physical-device acceptance.",
+    "production": "Review assets/evidence only. AppGate/access rules, real switcher/join/invitation controllers, rosters/records, token handling, storage, APIs/auth, collectors, tokens/branding, migrations and frozen v62 unchanged. No merge/deploy.",
+    "deferred": "Actual membership/permission enforcement, invited-account matching, token expiry/consumption, concurrent joins, uncertainty recovery, retention/persistence and physical-device acceptance remain separate. New avatars/photos and awards stay held."
   }
 }

@@ -1,3 +1,54 @@
+## League access and saved private invitations mocked — November 6, 2026
+
+The selected dark/Porcelain system now covers private-league access pending,
+Community access removed with/without private groups, saved private invite
+links, joining and uncertain join replies. Native AccessPending, RemovedScreen
+and InviteCard presentation bodies are copied exactly except disabling haptics
+and exporting the renamed saved-card component. Native switcher copy (21 fields)
+and existing leagueRows projection are retained. No change to access rules is
+proposed. The Community-removal copy retains Everything you entered is kept;
+Your leagues appears on that screen only in the has-private-groups example.
+
+Saturday Club is deliberately not in the fixture membership list. Existing
+fictional Community/Head to Head/Weekend Crew rows/counts and Alex Lane initials
+are reused. The saved-link card has no usable token/URL, recipient address or
+expiry. It is distinct from the selected general public app invite. Join only
+shows an explicit preview notice; the busy example rejects another action and
+never transitions automatically. The uncertain checked-list words are labelled
+an example, not a claim of actual readback. Dismiss removes the example card
+only; membership rows and real stored invitations/records remain unchanged.
+Choosing a fixture league changes its checkmark, with an explicit no-real-view/
+permission-change notice. Access-cover actions keep the surrounding frame.
+
+Twelve dark/light phone captures were inspected; visual approval is pending.
+Checks passed: 48 responsive/frame/footer layouts, twelve scenario flows,
+21 native switcher copy fields, three exact presentation bodies, three fixture
+membership checks and two source checks of the real join guard. Conditional
+fallback, local list ordering/selection, no-grant notices, saved-card join/
+dismiss, retained fixture rows, no uncertain replay, busy semantics, native
+information focus return, Sheet trap/Escape/opener return and six prior views
+passed. No storage writes, auth/join reads, non-GET requests, browser dialogs
+or page errors were observed. Build, controller/token/write exclusions, Brand
+QA and syntax/diff checks passed. Extended captures show content; narrow
+scrolling and touch targets were checked separately.
+
+Production AppGate/access rules, switcher/join/invitation controllers, actual
+rosters and records, tokens, storage, APIs/auth, collectors, branding/tokens,
+migrations and frozen v62 are unchanged; no merge/deploy. Actual permissions,
+recipient matching, token expiry/consumption, concurrency, uncertain-join recovery,
+retention/persistence and physical-device acceptance remain separate. New
+avatars/photos, awards and parked Signal work remain held.
+
+## App continuity direction approved — November 6, 2026
+
+Sean replied "looks good continue" to the supplied offline, startup, account/
+tab/page failure and reload-warning storyboard direction in both themes at
+reviewed commit `6e634d1fd8e1452585a5b5536855a5c337aff655`. That visual direction
+is approved. Actual connection, data-preservation/reload behavior, permissions,
+physical-device acceptance and whole-app completion remain separate. League
+access pending, Community removal and saved private-invitation examples are next.
+New avatars/photos and awards remain held.
+
 ## App offline/loading/failure and reload warning mocked — November 6, 2026
 
 The selected dark/Porcelain system now covers offline with illustrative content,

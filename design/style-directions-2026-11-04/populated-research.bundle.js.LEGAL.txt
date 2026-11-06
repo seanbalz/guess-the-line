@@ -123,6 +123,7 @@ lucide-react/dist/esm/icons/scale.js:
 lucide-react/dist/esm/icons/settings-2.js:
 lucide-react/dist/esm/icons/settings.js:
 lucide-react/dist/esm/icons/share-2.js:
+lucide-react/dist/esm/icons/shield-alert.js:
 lucide-react/dist/esm/icons/shield-check.js:
 lucide-react/dist/esm/icons/shield.js:
 lucide-react/dist/esm/icons/sliders-horizontal.js:

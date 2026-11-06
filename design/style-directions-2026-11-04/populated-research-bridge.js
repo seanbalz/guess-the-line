@@ -7,6 +7,14 @@ Promise.all([read('populated-research-data.json'),read('populated-fantasy-data.j
  let observer;
  function apply(){const d=frame.contentDocument;if(!d||!frame.contentWindow.GTLPopulatedResearch||d.querySelector('.populated-research-root'))return;
  const title=d.querySelector('.detail-close~.screen-top .page-title');
+
+ const accessCoverLayer=document.getElementById('review-layer')?.value;
+ if(d.getElementById('screen')?.value==='Account'&&title?.textContent==='Profile & account'&&['league-access-pending','league-access-removed','league-access-removed-no-groups','league-access-saved-link','league-access-saved-joining','league-access-saved-uncertain'].includes(accessCoverLayer)){
+  const stack=d.querySelector('.detail-close~.stack');if(!stack)return;
+  const root=d.createElement('div');root.className='populated-research-root gx';root.dataset.theme=frame.dataset.reviewTheme;root.dataset.researchView='league-access';stack.replaceChildren(root);
+  d.querySelector('.fixture').textContent='FICTIONAL LEAGUE ACCESS · NO TOKEN OR MEMBERSHIP CHANGES';
+  roots.get(frame)?.unmount();roots.set(frame,frame.contentWindow.GTLPopulatedResearch.mountLeagueAccess(root,accessCoverLayer.slice(14)));return;
+ }
  const continuityLayer=document.getElementById('review-layer')?.value;
  if(d.getElementById('screen')?.value==='Account'&&title?.textContent==='Profile & account'&&['app-offline','app-startup','app-account-failed','app-tab-failed','app-page-failed','app-reload-warning'].includes(continuityLayer)){
   const stack=d.querySelector('.detail-close~.stack');if(!stack)return;
@@ -160,7 +168,7 @@ Promise.all([read('populated-research-data.json'),read('populated-fantasy-data.j
  d.querySelector('.fixture').textContent='PUBLIC SNAPSHOT · VISUAL PREVIEW · NO SAVES';
  roots.get(frame)?.unmount();roots.set(frame,frame.contentWindow.GTLPopulatedResearch.mount(root,model));
  }
- function ready(){const d=frame.contentDocument;if(!d?.getElementById('grid'))return;observer?.disconnect();for(const file of ['populated-research.bundle.css','populated-research.css','populated-teams.css','populated-fantasy.css','populated-play.css','populated-points.css','populated-score.css','league-native-avatar.css','populated-league.css','populated-bets.css','populated-epl.css','account-native-avatar.css','populated-account.css','populated-bets-overview.css','populated-bets-changes.css','populated-gap-record.css','populated-account-tools.css','populated-league-setup.css','populated-app-invite.css','populated-access.css','populated-appearance.css','populated-export.css','populated-continuity.css'])if(!d.querySelector('link[data-populated-css="'+file+'"]')){const link=d.createElement('link');link.rel='stylesheet';link.href=file;link.dataset.populatedCss=file;d.head.append(link);}if(!d.querySelector('script[data-populated-module]')){const script=d.createElement('script');script.src='populated-research.bundle.js';script.dataset.populatedModule='true';script.onload=apply;d.head.append(script);}observer=new MutationObserver(apply);observer.observe(d.getElementById('grid'),{childList:true,subtree:true});apply();}
+ function ready(){const d=frame.contentDocument;if(!d?.getElementById('grid'))return;observer?.disconnect();for(const file of ['populated-research.bundle.css','populated-research.css','populated-teams.css','populated-fantasy.css','populated-play.css','populated-points.css','populated-score.css','league-native-avatar.css','populated-league.css','populated-bets.css','populated-epl.css','account-native-avatar.css','populated-account.css','populated-bets-overview.css','populated-bets-changes.css','populated-gap-record.css','populated-account-tools.css','populated-league-setup.css','populated-app-invite.css','populated-access.css','populated-appearance.css','populated-export.css','populated-continuity.css','populated-league-access.css'])if(!d.querySelector('link[data-populated-css="'+file+'"]')){const link=d.createElement('link');link.rel='stylesheet';link.href=file;link.dataset.populatedCss=file;d.head.append(link);}if(!d.querySelector('script[data-populated-module]')){const script=d.createElement('script');script.src='populated-research.bundle.js';script.dataset.populatedModule='true';script.onload=apply;d.head.append(script);}observer=new MutationObserver(apply);observer.observe(d.getElementById('grid'),{childList:true,subtree:true});apply();}
  frame.addEventListener('load',ready);ready();
  });
 }).catch(error=>{const status=document.getElementById('load-status');if(status){status.textContent=error.message;status.setAttribute('role','alert');}});
