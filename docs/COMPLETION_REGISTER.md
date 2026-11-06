@@ -1,5 +1,20 @@
 # Guess The Line — current completion register
 
+## Account overview prepared for phone review — November 5, 2026
+
+Sean authorized Account review while avatar work remains held. Current
+[dark](../design/style-directions-2026-11-04/previews/account-review-dark-phone.png)
+and [light](../design/style-directions-2026-11-04/previews/account-review-light-phone.png)
+phone-width captures were prepared and inspected without UI changes. Chromium
+checked both themes at 320/390/768/1440px for overflow, bottom-nav fit, the three
+existing settings rows and the unchanged AL placeholder. Captures use an extended
+1100px presentation height, not physical-device acceptance. Recommended first
+change: replace Appearance design notes with a Light/Dark/System control using
+the selected visual language. Implementation awaits Sean's response; no Account
+approval is inferred. Production, deferred avatar/popup/award work and parked
+Signal files are unchanged.
+
+
 ## EPL overview crest tiles approved — November 5, 2026
 
 Sean confirmed "Good" after the updated phone-accessible previews. The
