@@ -761,7 +761,7 @@
     "next": "Recommended next review: Play draft-entry and lock-in screens. Existing Play approval covers the reviewed matchup-card logo tiles only. Deferred avatars/awards remain held."
   },
   "playDraftLockIn": {
-    "status": "Mocked for visual review; awaiting Sean",
+    "status": "Approved by Sean for the reviewed Play draft and lock-in confirmation direction",
     "prepared": "2026-11-05",
     "basis": "Sean answered Yes to mocking Play draft-entry and lock-in screens next",
     "components": [
@@ -801,6 +801,19 @@
     ],
     "delivery": "Phone-width captures with extended heights; not physical-device acceptance",
     "production": "Unchanged; not merged or deployed",
-    "deferred": "Avatars, awards, parked Signal branding and whole-project completion remain held"
+    "deferred": "Avatars, awards, parked Signal branding and whole-project completion remain held",
+    "accepted": "2026-11-05",
+    "confirmation": "Sean replied Good after receiving Spread/Total draft images and the supplied Spread confirmation in dark mode, with Porcelain versions linked.",
+    "reviewedCommit": "383cdf0825ed54aa811b8649c4631ae53eb2e97d",
+    "reviewedCaptures": [
+      "play-spread-draft-dark-phone.png",
+      "play-total-draft-dark-phone.png",
+      "play-lock-confirm-dark-phone.png",
+      "play-spread-draft-light-phone.png",
+      "play-total-draft-light-phone.png",
+      "play-lock-confirm-light-phone.png"
+    ],
+    "acceptanceScope": "Supplied draft/confirmation visual direction, separate logo tiles, native picker treatment, outlined lock action and finality/separate-market messaging. Not separate acceptance of unseen confirmation/receipt variants, late/error/pending states, live saves, production integration or whole-project completion.",
+    "next": "Recommended next visual review: Guess the Points draft and detail flow. Play score/history and remaining league/detail views remain pending. Deferred avatars/awards stay held."
   }
 }

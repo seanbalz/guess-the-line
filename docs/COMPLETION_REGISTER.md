@@ -1,5 +1,23 @@
 # Guess The Line — current completion register
 
+## Play draft and confirmation direction approved — November 5, 2026
+
+Sean confirmed "Good" after the Spread and Total draft mockups and the supplied
+Spread lock-in confirmation in dark mode, with Porcelain versions linked. The
+reviewed draft/confirmation visual direction is approved: separate team-logo
+tiles, editable guess chips and half-point controls, outlined lock action, and a
+confirmation that highlights the final choice and separate other market.
+The [selection record](../design/style-directions-2026-11-04/selected-system-review.json) preserves the scope and reviewed commit.
+
+This accepts the supplied visual direction, not separate acceptance of unseen
+confirmation/receipt variants, late/error/pending states, live saves, production
+integration or whole-project completion. The preview remains a no-save demo with
+sample user guesses. No UI, source data or image changes accompany this record.
+
+Guess the Points is the recommended next visual review. Its draft/detail flow,
+Play score/history and remaining league/detail views still need review. Deferred
+avatars/awards and parked Signal files remain unchanged.
+
 ## Play draft-entry and lock-in mocked — November 5, 2026
 
 Sean approved proceeding with Play’s draft-entry and lock-in mockups. Spread
