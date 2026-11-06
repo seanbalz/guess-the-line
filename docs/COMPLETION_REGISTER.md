@@ -1,5 +1,22 @@
 # Guess The Line — current completion register
 
+## Compact opened-game matchup header prepared — November 5, 2026
+
+Sean replied "Good" to the recommendation to mock a compact matchup header.
+The Research/game fixture now combines its title and matchup in one glass
+Game overview card, preserving separate 48px tiles for each logo and keeping
+names outside. The repeated standalone title is removed; existing actions and
+research sit higher. [Dark phone capture](../design/style-directions-2026-11-04/previews/game-detail-compact-dark-phone.png)
+and [light phone capture](../design/style-directions-2026-11-04/previews/game-detail-compact-light-phone.png)
+were inspected. Chromium checked both themes at 320/390/768/1440px, loaded and
+contained individual tiles, heading consolidation, preserved action labels,
+nav fit, two Back returns and six Spread/Total/Bets opens. JavaScript syntax and
+Brand document QA passed. The generic paragraph and illustrative chart meaning
+remain subsequent review items; no data or production behavior changes. Visual
+approval is pending, deferred features remain held, and parked Signal files are
+untouched and unpublished.
+
+
 ## Opened game screen prepared for phone review — November 5, 2026
 
 Sean authorized reviewing an opened game/detail screen. Current Research/game

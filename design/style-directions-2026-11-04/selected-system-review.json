@@ -495,5 +495,14 @@
     "preserved": "Approved Appearance selector, AL avatar placeholder, native row actions; no avatar controls added",
     "accepted": "2026-11-05",
     "acceptanceScope": "Profile, Reminders and Community glossy row icons in both reviewed themes; not blanket Account/detail acceptance or whole-project completion"
+  },
+  "compactGameHeader": {
+    "date": "2026-11-05",
+    "status": "Mocked for review; visual approval pending",
+    "basis": "Sean replied Good to the compact-header mock recommendation",
+    "scope": "Research opened game-detail fixture in both themes",
+    "layout": "Single glass Game overview header; individual 48px logo tiles, names outside, Sample matchup label; repeated standalone title removed",
+    "preserved": "Existing matchup fixtures, Back/Spread/Total/Bets handlers and illustrative chart; no real quotes or picks added",
+    "remaining": "Generic research paragraph and chart meaning remain future review items"
   }
 }
