@@ -1,5 +1,17 @@
 # Guess The Line — current completion register
 
+## Play matchup logo-tile treatment approved — November 5, 2026
+
+Sean confirmed "Looks good" for the reviewed Play Spread and Total cards in
+both themes. The individual logo-tile treatment is approved for those reviewed
+placements. [Selection record](../design/style-directions-2026-11-04/selected-system-review.json)
+and [reviewed capture](../design/style-directions-2026-11-04/previews/play-separate-logo-tiles.png)
+preserve the scope. This approval does not cover every Play detail state or
+establish whole-app completion. No UI or production code changes accompany this
+record. Bets is the recommended next review area, awaiting Sean's direction.
+The parked Signal files remain untouched and unpublished.
+
+
 ## Individual team-logo tiles added to Play — November 5, 2026
 
 Sean authorized carrying the reviewed Home/Research treatment into Play. Each

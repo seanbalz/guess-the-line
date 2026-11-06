@@ -428,10 +428,12 @@
   },
   "playMatchupMarks": {
     "date": "2026-11-05",
-    "status": "Implemented for review; approval pending",
+    "status": "Approved by Sean for the reviewed Play matchup-card logo tiles",
     "scope": "Spread and Total matchup cards in both Play mockup themes",
     "layout": "One 42px glass tile per logo, 34px marks, names and at separator outside tiles, transparent pair layout",
     "fixtures": "Original sample SEA/DEN draft and CHI/DET to-pick states unchanged",
-    "startup": "Visual enhancements wait for base content preview before applying"
+    "startup": "Visual enhancements wait for base content preview before applying",
+    "accepted": "2026-11-05",
+    "acceptanceScope": "Individual glass tiles in the reviewed Spread/Total sample cards in both themes; not approval of all Play detail views or whole-app completion"
   }
 }
