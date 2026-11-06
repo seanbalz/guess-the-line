@@ -3,6 +3,22 @@
 Owner: Sean Balsiger · Version 31 · November 4, 2026
 
 
+## Individual logo tiles in Bets Recommended card — November 5, 2026
+
+Sean authorized separate glass backgrounds for each Recommended matchup logo.
+The mockup now uses one 64px tile per mark in both themes, with names and at
+outside and no shared background. Existing source assets, sample content,
+glossy ticket icons and approved 16px Track a bet separation are preserved.
+[Dark phone capture](previews/bets-recommended-tiles-dark.png)
+and [light phone capture](previews/bets-recommended-tiles-light.png)
+show the result at phone width with an extended 930px presentation height, not
+physical-device acceptance. Chromium checked separate loaded tiles and bounds at
+320/390/768/1440px in both themes, two recommendation opens, four ticket opens,
+two tracking opens and the 16px gap at all widths. JavaScript syntax, Brand
+document QA and whitespace checks passed. Approval remains pending; production
+and parked Signal files are unchanged.
+
+
 ## Track a bet button cleared from ticket divider — November 5, 2026
 
 Sean reported the Track a bet bubble touching/overlapping the divider below the

@@ -448,5 +448,13 @@
       "basis": "Sean confirmed Good after the corrected phone previews",
       "scope": "16px separation between the last ticket divider and Track a bet button; not blanket Bets approval"
     }
+  },
+  "betsRecommendedMarks": {
+    "date": "2026-11-05",
+    "status": "Implemented for review; approval pending",
+    "scope": "Both sample team logos in Bets Recommended card, dark and light",
+    "layout": "Separate 64px glass tiles, names and at outside; transparent shared container",
+    "preserved": "Approved 16px tracking-button gap, ticket icons, sample statuses and actions",
+    "delivery": "Phone-accessible inline screenshots; extended 930px presentation captures, not physical-device acceptance"
   }
 }
