@@ -16,6 +16,7 @@ import {EplPreview} from './populated-epl.jsx';
 import {GapRecordPreview} from './populated-gap-record.jsx';
 import {BetsChangesPreview} from './populated-bets-changes.jsx';
 import {BetsOverviewPreview} from './populated-bets-overview.jsx';
+import {ContinuityPreview} from './populated-continuity.jsx';
 import {ExportPreview} from './populated-export.jsx';
 import {AppearancePreview} from './populated-appearance.jsx';
 import {AccessPreview} from './populated-access.jsx';
@@ -127,3 +128,5 @@ export function mountAccess(element,initialView){const root=createRoot(element);
 export function mountAppearance(element,scenario){const root=createRoot(element);root.render(<AppearancePreview theme={element.dataset.theme} scenario={scenario}/>);return root;}
 
 export function mountExport(element,initialPhase){const root=createRoot(element);root.render(<ExportPreview initialPhase={initialPhase}/>);return root;}
+
+export function mountContinuity(element,scenario){const root=createRoot(element);root.render(<ContinuityPreview theme={element.dataset.theme} scenario={scenario}/>);return root;}

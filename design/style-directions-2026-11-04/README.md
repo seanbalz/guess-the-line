@@ -1,3 +1,51 @@
+## App offline/loading/failure and reload warning mocked — November 6, 2026
+
+The selected dark/Porcelain system now covers offline with illustrative content,
+startup placeholders, account-load failure, failed tab, failed page and a dirty-
+reload warning storyboard. Startup/account failure correctly precede the frame;
+offline/tab/page examples keep the frame and navigation. The Home/Research
+context highlight is scoped to these review states. Native OfflineBanner and
+FailCard presentation bodies are reused exactly except disabling haptics, with
+31 isolated native copy fields and the existing static Skeleton component.
+
+The offline example keeps the reviewed fictional 8/12 Home visual visible.
+Retry does not read connection state or refresh; the native still-offline words
+are attributed to the example. Failed-view retry, account reload and sign-out
+only show preview notices. The loaded-view reload storyboard uses the exact
+existing Leave without saving your changes? prompt; Keep editing and Leave
+neither reload, navigate, save nor clear. Account-load failure does not invent
+a dirty-shell guard before the frame. The actual confirm-before-clear/reload
+logic remains unchanged. No browser confirmation is fabricated or triggered.
+
+Twelve dark/light phone captures were inspected; visual approval is pending.
+Checks passed: 48 responsive layouts, ten continuity scenario flows, 31 native
+copy fields, two exact presentation bodies, two source checks of the dirty-
+reload guard, static skeletons and information Escape/focus return in both
+themes, all 48 frame distinctions, 32 framed navigation bounds, eight contextual
+navigation checks and six prior views. An initially cropped dark-tab dock was
+corrected with a scoped flex/min-height rule; the checks and captures were
+repeated after that fix. No page errors, auth reads, non-GET requests, storage
+writes or browser confirmation dialogs were observed. Build, controller/reload
+exclusions, Brand QA and syntax/diff checks passed.
+
+No real connection, account, cached player record or unsaved draft is read.
+Production shell/frame/gate/boundary logic, auth, connection events, reload and
+dirty-state behavior, data/drafts, collectors, branding/tokens, migrations and
+frozen v62 are unchanged; no merge/deploy. Actual offline/readback, preservation,
+recovery, access restrictions, updates/reloads and physical-device acceptance
+remain separate. New avatars/photos, awards and parked Signal work stay held.
+
+## Export direction approved — November 6, 2026
+
+Sean confirmed "Looks good in both themes. Continue with the next mockups."
+The supplied export overview, preparation, completion example and failed/
+unavailable direction is approved in both themes at reviewed commit
+`34d2902a1bb886c40a014710a8a0b62eba60835e`. Actual export bytes, account isolation,
+full database runtime tests, hosted availability, physical-device file handling
+and whole-app completion remain separate. App-wide offline/loading/failure
+screens and the reload-warning storyboard are next. New avatars/photos and
+awards remain held.
+
 ## Export my data mocked — November 6, 2026
 
 The selected dark/Porcelain glass system now covers Export my data, preparation,

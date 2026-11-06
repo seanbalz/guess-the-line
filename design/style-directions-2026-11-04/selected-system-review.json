@@ -557,13 +557,55 @@
         "actions": [
           "detail:profile"
         ]
+      },
+      {
+        "id": "app-offline",
+        "name": "App states - Offline with content",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "app-startup",
+        "name": "App states - Startup loading",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "app-account-failed",
+        "name": "App states - Account failed to load",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "app-tab-failed",
+        "name": "App states - Tab failed",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "app-page-failed",
+        "name": "App states - Page failed",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "app-reload-warning",
+        "name": "App states - Reload warning storyboard",
+        "actions": [
+          "detail:profile"
+        ]
       }
     ]
   },
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "Account/export-data",
+    "next": "Account/app-offline",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -2283,7 +2325,7 @@
     "next": "Export my data, preparation, completion example and failure/unavailable mockups."
   },
   "exportPreview": {
-    "status": "Mocked in both themes; fresh visual approval pending",
+    "status": "Supplied Export my data direction approved in both themes",
     "prepared": "2026-11-06",
     "views": [
       "Export overview and existing record categories",
@@ -2329,6 +2371,75 @@
     ],
     "delivery": "Ten dark/Porcelain phone-width extended-height captures visually inspected. Local mockup verification only; not an actual export, data-preservation audit or physical-device file acceptance.",
     "production": "Review assets/evidence only. ExportSheet, actual owner checks, APIs/database, accounts, collectors, production branding/tokens, migrations and frozen v62 unchanged. No merge/deploy.",
-    "deferred": "Actual authenticated export bytes, full database runtime tests, owner isolation, browser file handling, hosted availability and physical-phone acceptance remain separate. New avatars/photos and awards stay held."
+    "deferred": "Actual authenticated export bytes, full database runtime tests, owner isolation, browser file handling, hosted availability and physical-phone acceptance remain separate. New avatars/photos and awards stay held.",
+    "accepted": "2026-11-06",
+    "confirmation": "Looks good in both themes. Continue with the next mockups.",
+    "reviewedCommit": "34d2902a1bb886c40a014710a8a0b62eba60835e",
+    "reviewedCaptures": [
+      "export-overview-dark-phone.png",
+      "export-overview-light-phone.png",
+      "export-preparing-dark-phone.png",
+      "export-preparing-light-phone.png",
+      "export-completion-dark-phone.png",
+      "export-completion-light-phone.png",
+      "export-failed-dark-phone.png",
+      "export-failed-light-phone.png",
+      "export-unavailable-dark-phone.png",
+      "export-unavailable-light-phone.png"
+    ],
+    "acceptanceScope": "Supplied export overview, preparing, completion example and failed/unavailable direction in both themes. Actual export bytes, account isolation, full database runtime tests, hosted availability, physical-device file handling and whole-app completion remain separate.",
+    "next": "App-wide offline, loading, account/tab/page failures and reload-warning storyboard."
+  },
+  "continuityPreview": {
+    "status": "Mocked in both themes; fresh visual approval pending",
+    "prepared": "2026-11-06",
+    "views": [
+      "Offline banner over illustrative content",
+      "Standalone startup skeleton",
+      "Standalone account-load failure",
+      "Failed tab with navigation retained",
+      "Failed page with navigation retained",
+      "Dirty-reload warning storyboard"
+    ],
+    "nativePreservation": "31 native shell/app-state/reload copy fields isolated without controllers. Exact OfflineBanner and FailCard presentation bodies reused except disabling haptics; native static Skeleton reused. Startup/account failure precede the frame; offline/tab/page examples retain it. Native dirty-reload prompt and confirm-before-clear order remain in the real shell.",
+    "preview": "All states are explicit fictional examples. Offline retry preserves the illustrative reviewed 8/12 card and reports the native still-offline words without reading network status. Retry/reload/sign-out never touch real accounts or views. Reload warning is an app-owned storyboard of the existing browser guard; Keep editing and Leave do not reload, clear, save or navigate. Account-load failure does not invent a dirty-shell guard before the frame.",
+    "verification": {
+      "responsiveLayouts": 48,
+      "continuityScenarioFlows": 10,
+      "nativeCopyFields": 31,
+      "nativePresentationBodyMatches": 2,
+      "dirtyReloadGuardSourceChecks": 2,
+      "staticSkeletonThemes": 2,
+      "frameDistinctionLayouts": 48,
+      "navigationBoundsLayouts": 32,
+      "contextualNavigationChecks": 8,
+      "nativeInfoFocusThemes": 2,
+      "priorViews": 6,
+      "storageWrites": 0,
+      "nonGETRequests": 0,
+      "authReads": 0,
+      "nativeDialogs": 0,
+      "pageErrors": 0,
+      "controllerAndReloadExclusions": true,
+      "brandQA": true
+    },
+    "captureFix": "A cropped dark-tab dock observed during inspection was corrected with a scoped flex/min-height rule; navigation bounds then passed all 32 framed layouts. Captures were regenerated and inspected. Contextual Home/Research navigation styling is scoped to these review states.",
+    "captures": [
+      "continuity-account-failed-dark-phone.png",
+      "continuity-account-failed-light-phone.png",
+      "continuity-offline-dark-phone.png",
+      "continuity-offline-light-phone.png",
+      "continuity-page-failed-dark-phone.png",
+      "continuity-page-failed-light-phone.png",
+      "continuity-reload-warning-dark-phone.png",
+      "continuity-reload-warning-light-phone.png",
+      "continuity-startup-dark-phone.png",
+      "continuity-startup-light-phone.png",
+      "continuity-tab-failed-dark-phone.png",
+      "continuity-tab-failed-light-phone.png"
+    ],
+    "delivery": "12 dark/Porcelain phone-width captures visually inspected, some extended to show content. Local mockup verification only; no live offline readback, preservation, reload, recovery or physical-device acceptance.",
+    "production": "Review assets/evidence only. Shell/Frame/AppGate/Boundary controllers, connection events, data/drafts, auth, reload/dirty-state logic, collectors, tokens, migrations and frozen v62 unchanged. No merge/deploy.",
+    "deferred": "Actual connection/service reachability, cached records, error recovery, dirty-draft preservation, reload/update behavior, access restrictions and physical-device acceptance remain separate. New avatars/photos and awards stay held."
   }
 }
