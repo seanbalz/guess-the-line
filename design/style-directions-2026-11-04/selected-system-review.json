@@ -445,13 +445,55 @@
         "actions": [
           "detail:profile"
         ]
+      },
+      {
+        "id": "access-forgot",
+        "name": "Account access - Forgot password",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "access-reset-requested",
+        "name": "Account access - Reset notice example",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "access-reset",
+        "name": "Account access - New password example",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "access-reset-mismatch",
+        "name": "Account access - Password mismatch example",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "access-unavailable",
+        "name": "Account access - Sign-in unavailable example",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "access-loading",
+        "name": "Account access - Loading example",
+        "actions": [
+          "detail:profile"
+        ]
       }
     ]
   },
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "Account/access-sign-in",
+    "next": "Account/access-forgot",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -1978,7 +2020,7 @@
     "next": "Sign-in, create-account, email confirmation and first-name setup mockups."
   },
   "accessPreview": {
-    "status": "Mocked in both themes; supplied access flow awaits visual approval",
+    "status": "Supplied account access and first-name direction approved in both themes",
     "prepared": "2026-11-06",
     "views": [
       "Email/Google sign-in example",
@@ -2018,6 +2060,72 @@
     ],
     "delivery": "Eight dark/Porcelain phone-width extended-height captures visually inspected. Local presentation/preview checks only; not physical-device or hosted auth acceptance.",
     "production": "Review assets and acceptance records only. AuthGate, NameStep, real account/auth configuration, production branding/tokens, migrations, data and frozen v62 unchanged; no merge or deploy.",
-    "deferred": "Password recovery, loading/failure/uncertain-name states, actual authentication and persistence remain open separately. Existing hidden/locked data boundaries remain unchanged. New avatars/photos and awards stay held."
+    "deferred": "Password recovery, loading/failure/uncertain-name states, actual authentication and persistence remain open separately. Existing hidden/locked data boundaries remain unchanged. New avatars/photos and awards stay held.",
+    "accepted": "2026-11-06",
+    "confirmation": "Looks good in both themes. Continue with the next mockups.",
+    "reviewedCommit": "f3479d4afa7aabc3d234ccf3c76c431d1da9c05d",
+    "reviewedCaptures": [
+      "access-create-account-dark-phone.png",
+      "access-create-account-light-phone.png",
+      "access-sign-in-dark-phone.png",
+      "access-sign-in-light-phone.png",
+      "access-confirmation-dark-phone.png",
+      "access-confirmation-light-phone.png",
+      "access-name-dark-phone.png",
+      "access-name-light-phone.png"
+    ],
+    "acceptanceScope": "Supplied sign-in, account creation, email-confirmation and first-name visual direction in both themes. Actual authentication/email/profile saves, provider configuration, unseen errors, physical-device acceptance and whole-app completion remain separate.",
+    "next": "Password recovery, reset form/mismatch, sign-in-unavailable and session-loading examples."
+  },
+  "accessRecoveryPreview": {
+    "status": "Mocked in both themes; awaiting fresh visual approval",
+    "prepared": "2026-11-06",
+    "views": [
+      "Forgot-password entry and form",
+      "Account-neutral reset request notice",
+      "New/confirm password example",
+      "Mismatch/error example",
+      "Sign-in-unavailable example",
+      "Session-loading storyboard"
+    ],
+    "nativePreservation": "Eight native AuthGate recovery/loading passages preserved, including account-neutral reset notice, password mismatch and temporarily unavailable sign-in. Reset fixture fields retain minimum length 8. Existing recovery email/session checks, provider settings and resend cooldowns are unchanged.",
+    "isolation": "All credential/email fields are fixed read-only examples. No account existence, delivered mail, valid reset session, successful reset or sign-out is asserted. View reset-form / View sign-in are explicit storyboard controls; loading never automatically transitions or retries. Only component memory changes.",
+    "verification": {
+      "responsiveLayouts": 48,
+      "recoveryScenarioFlows": 8,
+      "nativeRecoveryCopyComparisons": 8,
+      "priorNameCopyKeys": 14,
+      "priorAuthCopyComparisons": 6,
+      "nameValidationCases": 8,
+      "infoEscapeFocusThemes": 2,
+      "legalReachabilityLayouts": 48,
+      "priorViews": 6,
+      "storageWrites": 0,
+      "nonGETRequests": 0,
+      "authReads": 0,
+      "providerPopups": 0,
+      "pageErrors": 0,
+      "controllerAndAutomaticRetryExclusions": true,
+      "brandQA": true
+    },
+    "captures": [
+      "recovery-forgot-dark-phone.png",
+      "recovery-forgot-light-phone.png",
+      "recovery-loading-dark-phone.png",
+      "recovery-loading-light-phone.png",
+      "recovery-mismatch-dark-phone.png",
+      "recovery-mismatch-light-phone.png",
+      "recovery-new-password-dark-phone.png",
+      "recovery-new-password-light-phone.png",
+      "recovery-reset-notice-dark-phone.png",
+      "recovery-reset-notice-light-phone.png",
+      "recovery-sign-in-entry-dark-phone.png",
+      "recovery-sign-in-entry-light-phone.png",
+      "recovery-unavailable-dark-phone.png",
+      "recovery-unavailable-light-phone.png"
+    ],
+    "delivery": "14 dark/Porcelain extended-height phone captures, including the sign-in recovery entry, visually inspected. Local mockup verification only; not physical-device or hosted recovery acceptance.",
+    "production": "Review files and acceptance records only. AuthGate, actual credentials/accounts, email/Google configuration, recovery/sign-out handlers, cooldowns, storage, production tokens, migrations and frozen v62 remain unchanged. No merge or deployment.",
+    "deferred": "Actual reset/confirmation and persistence, token/session validation, real mail/provider behavior, other unseen errors and device acceptance remain separate. New avatars/photos and awards stay held."
   }
 }

@@ -10,11 +10,11 @@ Promise.all([read('populated-research-data.json'),read('populated-fantasy-data.j
 
 
  const accessLayer=document.getElementById('review-layer')?.value;
- if(d.getElementById('screen')?.value==='Account'&&title?.textContent==='Profile & account'&&['access-sign-in','access-create','access-confirmation','access-name'].includes(accessLayer)){
+ if(d.getElementById('screen')?.value==='Account'&&title?.textContent==='Profile & account'&&['access-sign-in','access-create','access-confirmation','access-name','access-forgot','access-reset-requested','access-reset','access-reset-mismatch','access-unavailable','access-loading'].includes(accessLayer)){
   const stack=d.querySelector('.detail-close~.stack');if(!stack)return;
   const root=d.createElement('div');root.className='populated-research-root gx';root.dataset.theme=frame.dataset.reviewTheme;root.dataset.researchView='access';stack.replaceChildren(root);
   d.querySelector('.fixture').textContent='FICTIONAL ACCESS EXAMPLE · NO AUTHENTICATION OR EMAIL';
-  roots.get(frame)?.unmount();roots.set(frame,frame.contentWindow.GTLPopulatedResearch.mountAccess(root,accessLayer==='access-create'?'signup':accessLayer==='access-confirmation'?'confirmation':accessLayer==='access-name'?'name':'signin'));return;
+  roots.get(frame)?.unmount();roots.set(frame,frame.contentWindow.GTLPopulatedResearch.mountAccess(root,({'access-sign-in':'signin','access-create':'signup','access-confirmation':'confirmation','access-name':'name','access-forgot':'forgot','access-reset-requested':'reset-requested','access-reset':'reset','access-reset-mismatch':'reset-mismatch','access-unavailable':'signin-error','access-loading':'loading'})[accessLayer]));return;
  }
  const appInviteLayer=document.getElementById('review-layer')?.value;
  if(d.getElementById('screen')?.value==='Account'&&title?.textContent==='Profile & account'&&['app-invite-entry','app-invite','app-invite-share','app-invite-fallback'].includes(appInviteLayer)){

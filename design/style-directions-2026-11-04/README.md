@@ -1,3 +1,47 @@
+## Account recovery, unavailable sign-in and loading mocked — November 6, 2026
+
+The selected dark/Porcelain access skin now covers Forgot password entry,
+account-neutral reset request notice, new/confirm password, mismatch,
+sign-in-unavailable and session-loading examples. The already-native Forgot
+password control is brought into the preview's sign-in/create form, keeping
+its actual implementation unchanged. All eight native recovery/loading copy
+passages are retained, including "If this address has a game account".
+
+Every email/password field is a fixed read-only example. The reset-form and
+loading exit are explicit storyboard controls, not authentication bypasses.
+The mismatch stays an error until the viewer chooses the matching fixture.
+No email, valid recovery session, changed password or real sign-out is claimed.
+Loading has no timer, automatic retry, transition or account read. Existing
+actual recovery/session checks, provider setup and cooldown rules are unchanged.
+
+Fourteen dark/light phone captures, including sign-in recovery entry, were
+visually inspected; visual approval is pending. Checks passed: 48 responsive
+layouts, eight recovery/error/loading scenario flows, eight native copy matches,
+account-neutral notice and controller/automatic-retry exclusions. Prior 14-key
+name copy, six auth passages, eight name cases and controller checks still pass.
+Native information Escape/focus return passed in both themes; legal links were
+reachable across all layouts; six earlier views still mount. All scenario write
+counters stayed zero; no page errors, non-GET requests, auth reads or provider
+popups were observed. Build, Brand QA and syntax/diff checks passed. Extended
+captures show content; scrolling/touch targets were checked separately.
+
+Production auth, credentials/accounts, real email/Google service, recovery and
+sign-out handlers, storage, branding/tokens, migrations and frozen v62 are
+unchanged; no merge/deployment. Actual recovery, token/session/mail behavior,
+persistence, other unseen errors and phone acceptance remain separate. New
+avatars/photos, awards and parked Signal work remain held.
+
+## Account access direction approved — November 6, 2026
+
+Sean confirmed "Looks good in both themes. Continue with the next mockups."
+The supplied sign-in, account-creation, email-confirmation and first-name visual
+direction is approved in both themes at reviewed commit
+`f3479d4afa7aabc3d234ccf3c76c431d1da9c05d`. Actual authentication, email/profile
+saves, provider configuration, unseen errors, physical-device acceptance and
+whole-app completion remain separate. Password recovery, reset/mismatch,
+sign-in-unavailable and loading states are next. New avatars/photos and awards
+remain held.
+
 ## Account access and first-name setup mocked — November 6, 2026
 
 The selected dark/Porcelain glass system now covers sign in, account creation,

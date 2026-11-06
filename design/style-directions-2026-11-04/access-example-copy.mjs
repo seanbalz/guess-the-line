@@ -17,3 +17,14 @@ export const NAME_STEP_COPY=Object.freeze({
 });
 export const EXAMPLE_EMAIL='alex@example.com';
 export const EXAMPLE_PASSWORD='ExampleOnly8!';
+// Native AuthGate recovery/loading copy; preview-only data, no account enumeration.
+export const ACCESS_RECOVERY_COPY=Object.freeze({
+ forgotTitle:'Get back in the game.',
+ forgotIntro:'Request a password reset link for your game account.',
+ resetNotice:'If this address has a game account, look for a password reset link in your email.',
+ resetTitle:'Choose a new password.',
+ resetIntro:'Save a new password for your game account.',
+ mismatch:'The passwords do not match. Please enter them again.',
+ unavailable:'Sign-in is temporarily unavailable. Please try again.',
+ loading:'Checking your sign-in…',
+});
