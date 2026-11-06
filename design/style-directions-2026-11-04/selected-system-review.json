@@ -487,13 +487,48 @@
         "actions": [
           "detail:profile"
         ]
+      },
+      {
+        "id": "appearance",
+        "name": "Appearance - Theme and motion",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "appearance-system",
+        "name": "Appearance - System example",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "appearance-reduced",
+        "name": "Appearance - Reduce motion on",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "appearance-device-reduced",
+        "name": "Appearance - Device requests reduced motion",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "appearance-storage-unavailable",
+        "name": "Appearance - Storage unavailable example",
+        "actions": [
+          "detail:profile"
+        ]
       }
     ]
   },
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "Account/access-forgot",
+    "next": "Account/appearance",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -2078,7 +2113,7 @@
     "next": "Password recovery, reset form/mismatch, sign-in-unavailable and session-loading examples."
   },
   "accessRecoveryPreview": {
-    "status": "Mocked in both themes; awaiting fresh visual approval",
+    "status": "Supplied recovery, error and loading direction approved in both themes",
     "prepared": "2026-11-06",
     "views": [
       "Forgot-password entry and form",
@@ -2126,6 +2161,73 @@
     ],
     "delivery": "14 dark/Porcelain extended-height phone captures, including the sign-in recovery entry, visually inspected. Local mockup verification only; not physical-device or hosted recovery acceptance.",
     "production": "Review files and acceptance records only. AuthGate, actual credentials/accounts, email/Google configuration, recovery/sign-out handlers, cooldowns, storage, production tokens, migrations and frozen v62 remain unchanged. No merge or deployment.",
-    "deferred": "Actual reset/confirmation and persistence, token/session validation, real mail/provider behavior, other unseen errors and device acceptance remain separate. New avatars/photos and awards stay held."
+    "deferred": "Actual reset/confirmation and persistence, token/session validation, real mail/provider behavior, other unseen errors and device acceptance remain separate. New avatars/photos and awards stay held.",
+    "accepted": "2026-11-06",
+    "confirmation": "Looks good in both themes. Continue with the next mockups.",
+    "reviewedCommit": "75764996412d6ba78982513def909fc9f5f51d84",
+    "reviewedCaptures": [
+      "recovery-forgot-dark-phone.png",
+      "recovery-forgot-light-phone.png",
+      "recovery-reset-notice-dark-phone.png",
+      "recovery-reset-notice-light-phone.png",
+      "recovery-new-password-dark-phone.png",
+      "recovery-new-password-light-phone.png",
+      "recovery-mismatch-dark-phone.png",
+      "recovery-mismatch-light-phone.png",
+      "recovery-unavailable-dark-phone.png",
+      "recovery-unavailable-light-phone.png",
+      "recovery-loading-dark-phone.png",
+      "recovery-loading-light-phone.png"
+    ],
+    "acceptanceScope": "Supplied Forgot password, reset notice/form/mismatch, unavailable sign-in and loading visual direction in both themes. Unseen sign-in recovery-entry update, actual reset/email/auth behavior, persistence, physical-device acceptance and whole-app completion remain separate.",
+    "next": "Appearance: Dark/Light/System, Reduce motion and unavailable device storage examples."
+  },
+  "appearancePreview": {
+    "status": "Mocked in both themes; fresh visual approval pending",
+    "prepared": "2026-11-06",
+    "views": [
+      "Dark/Light preference with selected miniature Home card",
+      "System following an example device theme",
+      "Explicit Reduce motion on",
+      "Device-requested reduced motion with explicit toggle off",
+      "Unavailable device storage message"
+    ],
+    "nativePreservation": "Native Sheet, Segmented, Switch, Button and InfoButton; seven native Appearance copy fields. Exact resolveDashboardMotion body is isolated without its preference store. Three theme choices, device-only preference scope, OS reduced-motion precedence and native unavailable-storage copy are retained.",
+    "preview": "Choices update an illustrative Home card and preference labels in component memory. Selected charcoal/ivory and Porcelain/ink recipes and theme Gs are reused. The example 8/12 Home card is fictional. Reviewer device theme/reduced-motion controls are behind information, not proposed app settings. Surrounding paired review themes stay fixed.",
+    "isolation": "No actual Theme provider, MenuSheet, dashboard preference store, account store, local/session storage, OS media query, browser meta tag or account write is used. Native storage messages are labelled examples; no actual saved state is asserted. Cards are static; motion labels illustrate resolution only.",
+    "verification": {
+      "responsiveLayouts": 40,
+      "appearanceFlows": 4,
+      "nativeMenuCopyKeys": 7,
+      "nativeThemeMotionCombinations": 36,
+      "invalidPreferenceFallbacks": 4,
+      "scopedPaletteChecks": 7,
+      "nativeMotionBodyParity": true,
+      "keyboardEscapeReturnThemes": 2,
+      "systemDeviceOverrideThemes": 2,
+      "storageUnavailableThemes": 2,
+      "priorViews": 6,
+      "storageWrites": 0,
+      "nonGETRequests": 0,
+      "authReads": 0,
+      "pageErrors": 0,
+      "controllerAndStorageCallExclusions": true,
+      "brandQA": true
+    },
+    "captures": [
+      "appearance-device-reduced-dark-phone.png",
+      "appearance-device-reduced-light-phone.png",
+      "appearance-reduced-dark-phone.png",
+      "appearance-reduced-light-phone.png",
+      "appearance-storage-unavailable-dark-phone.png",
+      "appearance-storage-unavailable-light-phone.png",
+      "appearance-system-dark-phone.png",
+      "appearance-system-light-phone.png",
+      "appearance-theme-dark-phone.png",
+      "appearance-theme-light-phone.png"
+    ],
+    "delivery": "Ten dark/Porcelain phone-width extended-height captures visually inspected. Local preview verification only; not physical-device, animation or persistence acceptance.",
+    "production": "Review assets/evidence only. Production appearance providers, preferences, browser theme metadata, palettes/tokens, accounts, collectors, migrations and frozen v62 unchanged. No merge/deploy.",
+    "deferred": "Actual persistence, cross-tab behavior, browser/OS theme changes, effective real animation, updates/icons and physical-device acceptance remain separate. New avatars/photos and awards stay held."
   }
 }

@@ -1,5 +1,52 @@
 # Guess The Line — current completion register
 
+## Appearance controls mocked — November 6, 2026
+
+The selected dark/Porcelain glass system now covers Appearance: Dark, Light,
+System, Reduce motion, device-requested reduced motion and unavailable storage.
+Native Sheet, Segmented, Switch, Button and InfoButton are reused, with seven
+native Appearance copy fields and the exact isolated resolveDashboardMotion
+body. An illustrative 8/12 Home action card previews the already selected
+palettes and Gs. Choosing a theme changes this miniature only; the paired review
+frames keep their named themes. Reviewer device-scenario controls live behind
+information and are not proposed product settings.
+
+The explicit Reduce motion toggle remains off when reduced motion is requested
+only by the example device, while the effective label correctly reads Reduced.
+Native storage messages are clearly labelled examples; no actual Saved state
+is asserted. Unavailable storage never becomes a persisted-success state.
+All card graphics are static; motion labels demonstrate preference resolution,
+not observed animation or an OS setting. All changes stay in component memory.
+
+Ten dark/light phone captures were inspected; visual approval is pending.
+Checks passed: 40 responsive layouts; four appearance/unavailable-storage flows;
+all 36 valid theme/device/motion combinations against the native Theme logic
+and native motion function; seven native copy fields; four invalid preference
+fallbacks; seven scoped palette checks; exact native motion-body parity.
+System changes, device motion override, native information Escape/focus return,
+Sheet trap/opener return, memory on reopen, narrow lower-card reachability,
+selected-logo loads and six prior views passed. No storage writes, auth reads,
+non-GET requests or page errors were observed. Build, controller/store exclusions,
+Brand QA and syntax/diff checks passed. Extended captures show content; narrow
+scrolling/touch reachability was checked separately.
+
+Production Theme/Menu providers, preference stores, browser metadata,
+branding/tokens, accounts, collectors, migrations and frozen v62 are unchanged;
+no merge/deploy. Actual persistence/cross-tab behavior, OS/browser appearance,
+animation, updates/icons and real-phone acceptance remain separate. New
+avatars/photos, awards and parked Signal work remain held.
+
+## Recovery direction approved — November 6, 2026
+
+Sean confirmed "Looks good in both themes. Continue with the next mockups."
+The supplied Forgot password, reset notice/form/mismatch, unavailable sign-in
+and loading visual direction is approved in both themes at reviewed commit
+`75764996412d6ba78982513def909fc9f5f51d84`. The unseen sign-in recovery-entry
+update, actual reset/email/auth behavior, persistence, physical-device
+acceptance and whole-app completion remain separate. Appearance controls and
+device-only storage/motion examples are next. New avatars/photos and awards
+remain held.
+
 ## Account recovery, unavailable sign-in and loading mocked — November 6, 2026
 
 The selected dark/Porcelain access skin now covers Forgot password entry,

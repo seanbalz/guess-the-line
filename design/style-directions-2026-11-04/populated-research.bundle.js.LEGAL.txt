@@ -108,6 +108,8 @@ lucide-react/dist/esm/icons/mail.js:
 lucide-react/dist/esm/icons/message-circle.js:
 lucide-react/dist/esm/icons/minus.js:
 lucide-react/dist/esm/icons/monitor.js:
+lucide-react/dist/esm/icons/moon.js:
+lucide-react/dist/esm/icons/move.js:
 lucide-react/dist/esm/icons/palette.js:
 lucide-react/dist/esm/icons/pencil.js:
 lucide-react/dist/esm/icons/plug.js:
@@ -123,6 +125,7 @@ lucide-react/dist/esm/icons/shield-check.js:
 lucide-react/dist/esm/icons/shield.js:
 lucide-react/dist/esm/icons/sliders-horizontal.js:
 lucide-react/dist/esm/icons/smartphone.js:
+lucide-react/dist/esm/icons/sun.js:
 lucide-react/dist/esm/icons/target.js:
 lucide-react/dist/esm/icons/ticket.js:
 lucide-react/dist/esm/icons/trash-2.js:
