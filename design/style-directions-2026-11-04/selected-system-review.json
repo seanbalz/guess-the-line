@@ -417,13 +417,41 @@
         "actions": [
           "detail:profile"
         ]
+      },
+      {
+        "id": "access-sign-in",
+        "name": "Account access - Sign in",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "access-create",
+        "name": "Account access - Create account",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "access-confirmation",
+        "name": "Account access - Email confirmation example",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "access-name",
+        "name": "Account access - First-name setup",
+        "actions": [
+          "detail:profile"
+        ]
       }
     ]
   },
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "Account/app-invite",
+    "next": "Account/access-sign-in",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -1888,10 +1916,10 @@
     "next": "General app invitation mockups requested; app invitation is separate from private-league access. New avatars/photos and awards remain held."
   },
   "appInvitePreview": {
-    "status": "New requested feature mocked in both themes; shareable-link working assumption and visual direction await review",
+    "status": "Shareable public app link selected; supplied direction approved in both themes",
     "requested": "2026-11-06",
     "request": "Can we add the ability to invite to the app in general? Continue with the next mockups.",
-    "assumption": "Public shareable app link recommended; link-versus-specific-email question was asked. No answer has been received as of preparation. Mockups demonstrate the recommendation only, not a confirmed product choice.",
+    "assumption": "Resolved: Sean explicitly selected the shareable link on November 6, 2026.",
     "views": [
       "Account entry placement",
       "Invite friends with selected theme G and generic message",
@@ -1934,6 +1962,62 @@
     ],
     "delivery": "Eight dark/Porcelain phone-width extended-height captures visually inspected; local mockup checks only, not physical-phone acceptance.",
     "production": "No app feature shipped; review assets and proposal records only. Native share/clipboard integration, live routing checks and device acceptance remain open. Existing league invitation behavior, production code/tokens, database, collectors and frozen v62 unchanged; no merge/deploy.",
-    "deferred": "Specific-email preference remains unresolved. New avatars/photos and awards stay held."
+    "deferred": "Native share/copy implementation and live/device acceptance remain separate. Specific-email app invitation is not selected; existing email-bound league invitations are retained. New avatars/photos and awards stay held.",
+    "accepted": "2026-11-06",
+    "confirmation": "Looks good in both themes. Go with the shareable link and continue with the next mockups.",
+    "reviewedCommit": "80cd719da27b7da5a768c96f4013cc8f0591cd71",
+    "reviewedCaptures": [
+      "app-invite-invite-dark-phone.png",
+      "app-invite-invite-light-phone.png",
+      "app-invite-account-entry-dark-phone.png",
+      "app-invite-account-entry-light-phone.png",
+      "app-invite-link-fallback-dark-phone.png",
+      "app-invite-link-fallback-light-phone.png"
+    ],
+    "acceptanceScope": "Supplied invite card, Account entry and linked fallback direction in both themes, plus public shareable-link product choice. Unseen device-sharing illustration, native API integration, actual delivery, physical-device acceptance and whole-app completion remain separate.",
+    "next": "Sign-in, create-account, email confirmation and first-name setup mockups."
+  },
+  "accessPreview": {
+    "status": "Mocked in both themes; supplied access flow awaits visual approval",
+    "prepared": "2026-11-06",
+    "views": [
+      "Email/Google sign-in example",
+      "Create-account example",
+      "Email-confirmation storyboard",
+      "First-name setup example"
+    ],
+    "presentation": "Full-screen access flow with selected theme G, glass form surfaces, ivory/ink text and selective lime. Signed-in app header and navigation are hidden only while this preview is mounted.",
+    "nativePreservation": "Six native AuthGate copy passages, all 14 NAME_STEP_COPY keys and existing trimmed 1-to-60-character profile validation are retained. Existing native initials avatar only. Returning accounts with saved names skip first-name setup in the actual flow; View first-name example is an explicit storyboard step after confirmation.",
+    "isolation": "Read-only fictional alex@example.com/example password. No provider, authentication, sign-up, confirmation, resend, sign-out, profile or draft API/store is imported or invoked. Name editing and actions are memory-only. No saved private invitation or membership is fabricated.",
+    "verification": {
+      "responsiveLayouts": 32,
+      "fullAccessFlows": 2,
+      "nativeNameCopyKeys": 14,
+      "nativeAuthCopyComparisons": 6,
+      "nameValidationCases": 8,
+      "exampleCredentialChecks": 2,
+      "controllerAndCallExclusions": 2,
+      "nestedInfoAndFocusReturnThemes": 2,
+      "legalReachabilityLayouts": 32,
+      "priorViews": 6,
+      "storageWrites": 0,
+      "nonGETRequests": 0,
+      "providerPopups": 0,
+      "pageErrors": 0,
+      "brandQA": true
+    },
+    "captures": [
+      "access-confirmation-dark-phone.png",
+      "access-confirmation-light-phone.png",
+      "access-create-account-dark-phone.png",
+      "access-create-account-light-phone.png",
+      "access-name-dark-phone.png",
+      "access-name-light-phone.png",
+      "access-sign-in-dark-phone.png",
+      "access-sign-in-light-phone.png"
+    ],
+    "delivery": "Eight dark/Porcelain phone-width extended-height captures visually inspected. Local presentation/preview checks only; not physical-device or hosted auth acceptance.",
+    "production": "Review assets and acceptance records only. AuthGate, NameStep, real account/auth configuration, production branding/tokens, migrations, data and frozen v62 unchanged; no merge or deploy.",
+    "deferred": "Password recovery, loading/failure/uncertain-name states, actual authentication and persistence remain open separately. Existing hidden/locked data boundaries remain unchanged. New avatars/photos and awards stay held."
   }
 }

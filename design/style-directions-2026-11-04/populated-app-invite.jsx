@@ -14,7 +14,7 @@ export function AppInvitePreview({initialView='invite',theme='dark'}){
  function selectLink(){link.current?.focus();link.current?.select();setNotice('Example link selected. Nothing was copied or sent.');}
  const title=view==='account'?'Account':view==='share'?'Share app link':view==='fallback'?'Copy app link':'Invite friends';
  const about=<InfoButton title="About this app invite proposal" body={[
-  'This is a proposed new general app invite, requested by Sean. The working assumption is a shareable public link, pending the link-versus-email preference and visual review.',
+  'Sean selected a shareable public link and approved the supplied app invite direction in both themes. This remains a mockup; native sharing and live/device acceptance are separate.',
   'Account offers Invite friends to any player. No host role or private league is required. The public root opens the existing sign-in/create-account flow; no new authentication route or access grant is claimed.',
   'The share payload contains the app title, generic invitation text and the public root only. No player identity, email, league ID, invite token, picks, odds, account metadata or referral tracking is included.',
   'Production should use the device share menu on a deliberate tap, with copy/manual selection available when sharing is unavailable. Dismissing a share menu does not establish a send. The OS controls its own destinations and appearance.',

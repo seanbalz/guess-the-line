@@ -1,3 +1,53 @@
+## Account access and first-name setup mocked — November 6, 2026
+
+The selected dark/Porcelain glass system now covers sign in, account creation,
+email confirmation and first-name setup. The selected theme G, floating form
+surfaces, outlined primary and glossy icon treatment carry through the
+full-screen flow. Signed-in header/navigation hide only while this preview is
+mounted and restore on return to other views.
+
+Email and password are fixed read-only fictional examples. Google, sign-in,
+creation, resend and name-preview controls never contact a provider or account.
+The confirmation notice retains native wording; its example card explicitly
+says no email was sent. View first-name example is a storyboard step after
+confirmation, not an authentication or confirmation bypass. Existing returning
+players with saved names skip this setup in the real flow. First-name input
+uses the existing name rule and native initials avatar, in memory only.
+No saved private invitation or granted membership is invented.
+
+Eight dark/light phone captures were visually inspected; approval is pending.
+Checks passed: 32 responsive layouts, two complete access flows including
+Google/sign-in no-action notices, creation/confirmation/resend storyboard,
+empty-name error/focus, trimmed name and native initials; all 14 isolated native
+NAME_STEP_COPY keys, six AuthGate copy passages, eight name-validation cases,
+two fictional-credential checks and two controller/call exclusions. Native
+information dialog Escape/focus return and selected logo loads passed in both
+themes. Privacy/Terms remained reachable across all layouts and retained their
+public destinations. Six prior views restored signed-in chrome. No page errors,
+non-GET requests, storage writes or provider popups were observed. Build,
+Brand QA and syntax/diff checks passed. Capture heights are extended to show
+content; scrolling and touch targets were checked separately at narrow width.
+
+Production auth/name controllers, provider configuration, accounts, drafts,
+branding/tokens, migrations and frozen v62 are unchanged; no merge/deployment.
+Recovery, loading/failure/uncertain-name layouts, actual auth, persistence and
+physical-device acceptance remain separate. New avatars/photos, awards and
+parked Signal work remain held.
+
+## General app shareable link selected and direction approved — November 6, 2026
+
+Sean confirmed "Looks good in both themes. Go with the shareable link and
+continue with the next mockups." The public shareable link is now selected,
+and the supplied invitation card, Account entry and linked fallback direction
+are approved in both themes at reviewed commit
+`80cd719da27b7da5a768c96f4013cc8f0591cd71`. The earlier link-versus-email question
+is resolved. Private-league invitations remain separate and email-bound.
+
+The unseen device-sharing illustration, native sharing/copy integration,
+actual delivery, physical-device acceptance and whole-app completion remain
+separate. Sign-in, create-account, email confirmation and first-name setup are
+next. New avatars/photos and awards remain held.
+
 ## General app invitation proposed and mocked — November 6, 2026
 
 Sean requested app-wide invitations while approving the supplied league setup
