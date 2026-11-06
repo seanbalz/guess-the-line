@@ -191,6 +191,13 @@
         "actions": [
           "detail:ticket"
         ]
+      },
+      {
+        "id": "gap-record",
+        "name": "Historical gap record",
+        "actions": [
+          "detail:recommendations"
+        ]
       }
     ],
     "Research": [
@@ -332,7 +339,7 @@
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "Bets/result-report",
+    "next": "Bets/gap-record",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -1489,7 +1496,7 @@
   },
   "betsChangesPreview": {
     "prepared": "2026-11-06",
-    "status": "Mocked; awaiting visual approval",
+    "status": "Supplied result and correction direction approved by Sean in both themes",
     "views": [
       "selected-system-review.html?screen=Bets&layer=result-report",
       "selected-system-review.html?screen=Bets&layer=ticket-correction"
@@ -1549,6 +1556,81 @@
     ],
     "delivery": "12 phone-width dark/Porcelain screenshots, including scrolled forms/history and extended-height receipt views; visually inspected. Local preview checks, not physical-device acceptance.",
     "production": "Review assets and records only; accounts, preferences, production source/tokens, collectors, migrations and frozen v62 unchanged; no merge or deployment.",
-    "deferred": "Unseen tail, recommendation/Virtual Units, failure/recovery and other flows remain unreviewed. New avatars/photos and awards remain held."
+    "deferred": "Unseen tail, recommendation/Virtual Units, failure/recovery and other flows remain unreviewed. New avatars/photos and awards remain held.",
+    "accepted": "2026-11-06",
+    "confirmation": "Looks good in both themes. Continue with the next mockups.",
+    "reviewedCommit": "9478c56246352ffa8388bbbbb65c624562e31fc4",
+    "reviewedCaptures": [
+      "bets-changes-report-filled-dark-phone.png",
+      "bets-changes-correction-history-dark-phone.png",
+      "bets-changes-report-filled-light-phone.png",
+      "bets-changes-correction-history-light-phone.png",
+      "bets-changes-correction-top-dark-phone.png",
+      "bets-changes-correction-details-dark-phone.png",
+      "bets-changes-result-receipt-dark-phone.png",
+      "bets-changes-report-validation-dark-phone.png"
+    ],
+    "acceptanceScope": "Supplied result reporting and correction/history direction in both themes, with linked form/details/receipt/validation examples; not unseen states, live saves, physical-device acceptance or whole-app completion.",
+    "next": "Your guess vs. market historical gap record. New avatars/photos and awards remain held."
+  },
+  "gapRecordPreview": {
+    "prepared": "2026-11-06",
+    "status": "Mocked; awaiting visual approval",
+    "view": "selected-system-review.html?screen=Bets&layer=gap-record",
+    "sampleMeaning": "Existing labeled sample guesses from the reviewed Weeks 6–8 score history, graded against the same public historical closing lines and final scores. No account ballot, current quote, sportsbook price, submission/observation time or three-book consensus is supplied.",
+    "components": [
+      "Native gapRecord/recommendationMarket and standard GAP_WIN_UNITS convention",
+      "Native TrendDetail/TrendLine selection, scale, zero baseline and StatTiles",
+      "Native numberLine geometry and isolated NumberLine body with historical/example copy and full-name axis caption",
+      "Native Segmented, TeamMark, InfoButton and Button"
+    ],
+    "features": [
+      "Selected hit-rate hero with circular meter and W–L–P summary",
+      "Weeks 6/7/8, All/Spreads/Totals and All/10%+ gap filters",
+      "Paper-unit chart and lettered outcome controls linked to its exact plotted points",
+      "Negative paper totals/line/ROI use the selected loss color; win-rate hero and key actions keep lime",
+      "First six then full gap list; separate registered team-logo tiles and full names",
+      "Spread/Total details show historical close, sample guess, native number axis, favored side/line, gap size, paper result and recorded final",
+      "Opening a detail retains the chart; Back restores the selected point, expanded list, filters, focus and scroll",
+      "Illustrative 1U per gap at standard −110; not actual wagers, live quotes, win probabilities or a qualified betting edge"
+    ],
+    "verification": {
+      "independentWeekMarketTierViews": 18,
+      "independentlyGradedRowAndCumulativeChecks": 210,
+      "fullNameGapSideTermsChecked": 72,
+      "historicalReferencesChecked": 84,
+      "recordedFinalsChecked": 42,
+      "sourceSha256": "48fbdd6f9f63ffcc0a0322dd7f5b22fa0faa0303874f21200baebff5d30831df",
+      "responsiveLayouts": 8,
+      "browserWeekMarketTierStates": 36,
+      "detailFlows": 2,
+      "narrowMarketDetailCases": 4,
+      "verifiedDetailLogoLoads": 12,
+      "sourceDialogThemes": 2,
+      "priorViews": 6,
+      "backPreservesChartFocusAndScroll": true,
+      "nativeDomainTestsPassed": 26,
+      "sourceFixtureUnchanged": true,
+      "productionReaderExclusions": true,
+      "pageErrors": 0,
+      "nonGETRequests": 0,
+      "brandQA": true,
+      "expandedListReturnThemes": 2
+    },
+    "captures": [
+      "bets-gap-large-gaps-dark-phone.png",
+      "bets-gap-large-gaps-light-phone.png",
+      "bets-gap-outcomes-dark-phone.png",
+      "bets-gap-outcomes-light-phone.png",
+      "bets-gap-spread-detail-dark-phone.png",
+      "bets-gap-spread-detail-light-phone.png",
+      "bets-gap-summary-dark-phone.png",
+      "bets-gap-summary-light-phone.png",
+      "bets-gap-total-detail-dark-phone.png",
+      "bets-gap-total-detail-light-phone.png"
+    ],
+    "delivery": "Ten dark/Porcelain phone-width extended-height screenshots, including scrolled outcomes and Spread/Total details; visually inspected. Local preview verification only, not physical-device acceptance.",
+    "production": "Review assets and records only; accounts, preferences, production source/tokens, collectors, migrations and frozen v62 unchanged; no merge or deployment.",
+    "deferred": "Current actionable recommendations, live named-book quote/offer paths, Virtual Units and other unseen states remain unreviewed. New avatars/photos and awards remain held."
   }
 }

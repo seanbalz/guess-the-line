@@ -13,6 +13,7 @@ import {ScorePreview} from './populated-score.jsx';
 import {LeaguePreview} from './populated-league.jsx';
 import {BetsPreview} from './populated-bets.jsx';
 import {EplPreview} from './populated-epl.jsx';
+import {GapRecordPreview} from './populated-gap-record.jsx';
 import {BetsChangesPreview} from './populated-bets-changes.jsx';
 import {BetsOverviewPreview} from './populated-bets-overview.jsx';
 import {AccountPreview} from './populated-account.jsx';
@@ -106,3 +107,5 @@ export function mountAccount(element,initialView,scenario,profileScenario){const
 export function mountBetsOverview(element,model){const root=createRoot(element);root.render(<BetsOverviewPreview model={model}/>);return root;}
 
 export function mountBetsChanges(element,model,initialAction){const root=createRoot(element);root.render(<BetsChangesPreview model={model} initialAction={initialAction}/>);return root;}
+
+export function mountGapRecord(element,model){const root=createRoot(element);root.render(<GapRecordPreview model={model}/>);return root;}

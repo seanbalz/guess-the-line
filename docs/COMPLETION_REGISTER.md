@@ -1,5 +1,54 @@
 # Guess The Line — current completion register
 
+## Historical gap record mocked — November 6, 2026
+
+The selected dark/Porcelain system now covers the Your guess vs. market paper
+record: hit-rate hero, cumulative paper-unit chart, W/L/P outcome controls,
+week/market/10%+ filters, first-six/full gap list, and Spread/Total details.
+Each team keeps its own registered glass-logo tile and full name. Detail views
+show the historical close, sample guess, favored side and line, native number
+axis, gap size, illustrative paper units and recorded final. Opening a detail
+retains the chart; Back restores selection, filters, focus and scroll.
+
+Native gapRecord/recommendationMarket, TrendDetail/TrendLine, StatTiles,
+numberLine/NumberLine and ordinary UI components are reused. All guesses are the
+existing labeled sample guesses from the reviewed Weeks 6–8 score examples.
+Closing references and final scores match the same verified public source.
+These are historical references, not qualifying three-book consensus,
+submission-time references or current quotes. No account/player ballot,
+sportsbook identity/price or save/observation time is supplied. Paper units
+illustrate the native 1U per graded gap at standard −110; they are not actual
+wagers, probabilities or a tested edge. Negative paper totals use the selected
+loss color. Filters and detail interactions affect preview memory only.
+
+Ten phone captures were inspected; visual approval is pending. Checks passed:
+18 independent week/market/tier views with 210 row/cumulative-point comparisons,
+72 full-name favored-side terms, 84 historical line references and 42 finals.
+The completed-source SHA-256 matches the reviewed publication. All 26 native
+recommended-bet domain tests passed. Browser checks covered eight responsive
+layouts, 36 filter states, two complete chart/detail/Back flows, four narrow
+market details, 12 detail-logo loads, two source dialogs and six prior views.
+Chart selection, expanded list, focus and scroll are preserved; no checked
+horizontal overflow or page errors/non-GET requests occurred. Build, reader
+exclusions, Brand QA and syntax/diff checks passed. Production source/tokens,
+accounts, storage, collectors, migrations and frozen v62 remain unchanged;
+no merge or deployment was performed. Unseen live recommendation/Virtual Units
+paths remain unreviewed; new avatars/photos, awards and parked Signal work stay
+held.
+
+[Selection and evidence](../design/style-directions-2026-11-04/selected-system-review.json).
+
+## Bets result and correction direction approved — November 6, 2026
+
+Sean confirmed "Looks good in both themes. Continue with the next mockups."
+The supplied result reporting and ticket correction/history direction is
+approved in dark and Porcelain at reviewed commit
+`9478c56246352ffa8388bbbbb65c624562e31fc4`, including linked form, correction
+reason, receipt and validation examples. Unseen states, live saves, real-phone
+behavior and whole-app completion remain separate. The next visual review is
+Your guess vs. market's historical gap record. New avatars/photos and awards
+remain held.
+
 ## Bets result reporting and corrections mocked — November 6, 2026
 
 The selected dark/Porcelain system now covers the native result form, filled and
