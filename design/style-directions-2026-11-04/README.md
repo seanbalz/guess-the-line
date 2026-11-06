@@ -1,3 +1,17 @@
+## Populated Games layout approved — November 5, 2026
+
+Sean confirmed "Good" after the populated Games list and expanded team-comparison
+previews. The reviewed Games visual direction is approved in both selected
+themes: separate team-logo tiles, records/form chips, scoring bars and the
+original margin/play-stat presentation. The
+[selection record](selected-system-review.json) retains the scope and
+reviewed phone captures. This records the reviewed list and Jaguars/Ravens
+comparison; it does not establish separate acceptance of every unseen matchup
+detail, current live feeds, production integration or whole-project completion.
+No UI, data or asset changes accompany this approval record. Research / Teams
+is the recommended next review. Deferred avatars/awards and parked Signal files
+remain unchanged.
+
 ## Populated Games preview and Trends approval — November 5, 2026
 
 Sean replied "Good continue" to the populated Trends list and expanded evidence
