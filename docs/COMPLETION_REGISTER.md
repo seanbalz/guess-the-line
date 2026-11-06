@@ -1,5 +1,54 @@
 # Guess The Line — current completion register
 
+## Populated Fantasy usage and comparisons — November 5, 2026
+
+Sean approved preparing the Fantasy mockup with existing usage charts and player
+comparisons. The generic Player A/B fixture is replaced with a checksummed
+published Week 9 Fantasy snapshot: 525 public NFL athletes, generated November 5
+at 18:25 UTC, statistics through Week 8. The PPR observed-production browse has
+470 players with recorded points, six fixed named examples initially displayed,
+search/position filters and show-more pagination. The order is a demonstration
+selection, not a new performance ranking. Team marks keep separate glass tiles.
+
+The mockup imports the original PlayerProfileBody, PlayerCompare and
+PlayerToolButtons, plus the shared Fantasy scoring/profile functions. It retains
+weekly point bars and usage tables, season/recent averages with game samples,
+bye/missing distinctions, labelled public GTL pace estimates and opponent history.
+Standard/Half PPR/PPR and four/six-point passing TDs work. Comparison preserves
+Season/Last 3/This week, two/three-player selection, search/add/remove and the cap.
+Two-player comparisons fit on a phone; three-player data stays in a named local
+scroll region. Back keeps the browse state and restores focus. No private Points
+ballot, user guesses, current sportsbook line or production context reader is used.
+
+[Dark players](../design/style-directions-2026-11-04/previews/fantasy-players-dark-phone.png),
+[light players](../design/style-directions-2026-11-04/previews/fantasy-players-light-phone.png),
+[dark comparison](../design/style-directions-2026-11-04/previews/fantasy-compare-dark-phone.png),
+[light comparison](../design/style-directions-2026-11-04/previews/fantasy-compare-light-phone.png),
+[dark profile](../design/style-directions-2026-11-04/previews/fantasy-profile-dark-phone.png) and
+[light profile](../design/style-directions-2026-11-04/previews/fantasy-profile-light-phone.png)
+are extended-height phone captures, not physical-device acceptance. **Fantasy
+visual approval remains pending.** This pass covers usage/profile/comparison;
+weekly rankings/report cards and unseen states are not declared reviewed.
+
+The public index and snapshot pass their existing shared validators. The exact
+1,223,180 published snapshot bytes are copied unchanged as fantasy-snapshot.json,
+SHA-256 ef4d505200eb2e09ecb6b8635e288a8a6c7449f0c67d23357e3916477eae3339.
+Source URLs, licences, dates, original method and input fingerprints are retained.
+prepare-populated-fantasy.mjs reproduces that export from the ignored downloaded
+index/content-addressed file; its small metadata is populated-fantasy-data.json.
+All original Research data and registered logo assets remain unchanged.
+
+Chromium passed eight width/theme layouts, 288 card-point checks against
+independent stat-weight calculations, 24 profile views, 72 comparison views,
+24 search states, 16 comparison add/remove checks and four phone keyboard-scroll/
+three-player-cap checks. Usage chart samples, original profile averages, scoring
+and period values, two-player fit, profile focus return and Back/Teams/Games/
+Trends regressions were checked. No page errors or checked page/card overflow.
+Syntax, public-export scope and Brand QA passed. The publication index was read
+once; no collector, provider budget, account state, production code/tokens,
+scoring, migration or frozen v62 changes. Avatars/awards and parked Signal files
+remain untouched. No merge or deployment occurred.
+
 ## Teams layout and Seattle profile approved — November 5, 2026
 
 Sean confirmed "Good" after reviewing the Teams list and Seattle profile in the

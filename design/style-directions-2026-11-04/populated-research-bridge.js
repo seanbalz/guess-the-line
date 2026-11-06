@@ -1,11 +1,19 @@
 (()=>{
 'use strict';
 const roots=new WeakMap();
-fetch('populated-research-data.json').then(r=>{if(!r.ok)throw Error('Research snapshot did not load');return r.json();}).then(model=>{
+async function read(path){const response=await fetch(path);if(!response.ok)throw Error('Preview asset did not load: '+path);return response.json();}
+Promise.all([read('populated-research-data.json'),read('populated-fantasy-data.json').then(async metadata=>({...metadata,snapshot:await read(metadata.snapshotAsset)}))]).then(([model,fantasy])=>{
  document.querySelectorAll('iframe[data-review-theme]').forEach(frame=>{
  let observer;
  function apply(){const d=frame.contentDocument;if(!d||!frame.contentWindow.GTLPopulatedResearch||d.querySelector('.populated-research-root'))return;
  const title=d.querySelector('.detail-close~.screen-top .page-title');
+ if(title?.textContent==='Fantasy comparison'){
+  const stack=d.querySelector('.detail-close~.stack');if(!stack)return;
+  const root=d.createElement('div');root.className='populated-research-root gx';root.dataset.theme=frame.dataset.reviewTheme;root.dataset.publicSnapshot=fantasy.source.generatedAt;root.dataset.researchView='fantasy';stack.replaceChildren(root);
+  title.textContent='Fantasy';title.previousElementSibling.textContent='Research';
+  d.querySelector('.fixture').textContent='PUBLIC SNAPSHOT · VISUAL PREVIEW · NO SAVES';
+  roots.get(frame)?.unmount();roots.set(frame,frame.contentWindow.GTLPopulatedResearch.mountFantasy(root,fantasy,view=>{title.textContent=view.name;d.querySelector('.detail-close').hidden=view.open;}));return;
+ }
  if(title?.textContent==='Team profiles'){
   const stack=d.querySelector('.detail-close~.stack');if(!stack)return;
   const root=d.createElement('div');root.className='populated-research-root gx';root.dataset.theme=frame.dataset.reviewTheme;root.dataset.publicSnapshot=model.generatedAt;root.dataset.researchView='teams';stack.replaceChildren(root);
@@ -33,7 +41,7 @@ fetch('populated-research-data.json').then(r=>{if(!r.ok)throw Error('Research sn
  d.querySelector('.fixture').textContent='PUBLIC SNAPSHOT · VISUAL PREVIEW · NO SAVES';
  roots.get(frame)?.unmount();roots.set(frame,frame.contentWindow.GTLPopulatedResearch.mount(root,model));
  }
- function ready(){const d=frame.contentDocument;if(!d?.getElementById('grid'))return;observer?.disconnect();for(const file of ['populated-research.bundle.css','populated-research.css','populated-teams.css'])if(!d.querySelector('link[data-populated-css="'+file+'"]')){const link=d.createElement('link');link.rel='stylesheet';link.href=file;link.dataset.populatedCss=file;d.head.append(link);}if(!d.querySelector('script[data-populated-module]')){const script=d.createElement('script');script.src='populated-research.bundle.js';script.dataset.populatedModule='true';script.onload=apply;d.head.append(script);}observer=new MutationObserver(apply);observer.observe(d.getElementById('grid'),{childList:true,subtree:true});apply();}
+ function ready(){const d=frame.contentDocument;if(!d?.getElementById('grid'))return;observer?.disconnect();for(const file of ['populated-research.bundle.css','populated-research.css','populated-teams.css','populated-fantasy.css'])if(!d.querySelector('link[data-populated-css="'+file+'"]')){const link=d.createElement('link');link.rel='stylesheet';link.href=file;link.dataset.populatedCss=file;d.head.append(link);}if(!d.querySelector('script[data-populated-module]')){const script=d.createElement('script');script.src='populated-research.bundle.js';script.dataset.populatedModule='true';script.onload=apply;d.head.append(script);}observer=new MutationObserver(apply);observer.observe(d.getElementById('grid'),{childList:true,subtree:true});apply();}
  frame.addEventListener('load',ready);ready();
  });
 }).catch(error=>{const status=document.getElementById('load-status');if(status){status.textContent=error.message;status.setAttribute('role','alert');}});

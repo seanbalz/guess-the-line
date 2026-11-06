@@ -6,6 +6,7 @@ import ResearchChart from '../../web/src/next/research/ResearchChart.jsx';
 import {MarginChart} from '../../web/src/next/teams/MarginChart.jsx';
 import {GamesList} from './populated-games.jsx';
 import {TeamsBrowser} from './populated-teams.jsx';
+import {FantasyPreview} from './populated-fantasy.jsx';
 import '../../web/src/next/charts/charts.css';
 import '../../web/src/next/research/research.css';
 import '../../web/src/next/teams/teams.css';
@@ -80,3 +81,4 @@ function TrendsList({model}){
 export function mountTrends(element,model){const root=createRoot(element);root.render(<TrendsList model={model}/>);return root;}
 export function mountGames(element,model){const root=createRoot(element);root.render(<GamesList model={model} renderTeams={comparison=><Teams model={comparison}/>}/>);return root;}
 export function mountTeams(element,model,onSelection){const root=createRoot(element);root.render(<TeamsBrowser model={model} onSelection={onSelection}/>);return root;}
+export function mountFantasy(element,model,onSelection){const root=createRoot(element);root.render(<FantasyPreview model={model} onSelection={onSelection}/>);return root;}

@@ -1,0 +1,18 @@
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+import {validateFantasyIndex} from '../../shared/fantasy-index.mjs';
+import {validateFantasySnapshot} from '../../shared/fantasy-rankings.mjs';
+import {playerProfile} from '../../shared/fantasy-tools.mjs';
+const source='.local/fantasy-review-20261105/',out='design/style-directions-2026-11-04/';
+const indexBytes=fs.readFileSync(source+'index.json'),index=JSON.parse(indexBytes),validIndex=validateFantasyIndex(index);
+if(!validIndex.valid)throw Error(validIndex.errors.join('; '));
+const entry=index.snapshots.find(s=>s.week===9),bytes=fs.readFileSync(source+entry.file),sha256=crypto.createHash('sha256').update(bytes).digest('hex');
+if(sha256!==entry.sha256||bytes.length!==entry.bytes)throw Error('Published Fantasy bytes do not match index');
+const snapshot=JSON.parse(bytes),valid=validateFantasySnapshot(snapshot);
+if(!valid.valid||snapshot.week!==entry.week||snapshot.statsThroughWeek!==entry.statsThroughWeek)throw Error(valid.errors.join('; ')||'Wrong Fantasy coverage');
+const names=["Ja'Marr Chase",'CeeDee Lamb','Justin Jefferson','Josh Allen','Bijan Robinson','Brock Bowers'];
+const featuredIds=names.map(name=>{const player=snapshot.players.find(p=>p.name===name);if(!player||!playerProfile(snapshot,player.id,{scoring:'ppr',passingTds:4}).summary.season.games)throw Error('Missing observed example '+name);return player.id;});
+const model={version:1,checkedOn:'2026-11-05',source:{index:'https://github.com/seanbalz/guess-the-line/releases/download/fantasy-data-2026/index.json',release:'https://github.com/seanbalz/guess-the-line/releases/tag/fantasy-data-2026',file:`https://github.com/seanbalz/guess-the-line/releases/download/fantasy-data-2026/${entry.file}`,indexSha256:crypto.createHash('sha256').update(indexBytes).digest('hex'),sha256,bytes:bytes.length,generatedAt:snapshot.generatedAt,asOf:snapshot.asOf,credit:'nflverse · CC BY 4.0'},snapshotAsset:'fantasy-snapshot.json',featuredIds,initialCompare:featuredIds.slice(0,2),selection:'Fixed named examples across WR, QB, RB and TE; observed-production browse order, not a performance ranking'};
+fs.writeFileSync(out+'fantasy-snapshot.json',bytes);
+fs.writeFileSync(out+'populated-fantasy-data.json',JSON.stringify(model,null,2)+'\n');
+console.log(JSON.stringify({verified:true,players:snapshot.players.length,matchupTeams:Object.keys(snapshot.matchups).length,season:snapshot.season,week:snapshot.week,statsThroughWeek:snapshot.statsThroughWeek,bytes:bytes.length,sha256,examples:names}));
