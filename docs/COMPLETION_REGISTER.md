@@ -1,5 +1,21 @@
 # Guess The Line — current completion register
 
+## Redesign data-content correction and inventory — November 5, 2026
+
+Sean challenged the many no-data mockup states, citing the app's existing rich
+charts and research. The [source/data inventory](DESIGN_DATA_INVENTORY_2026_11_05.md)
+confirms recorded market movement, book comparisons, historical/season charts,
+team statistics, evidence/assessments, player analysis and Fantasy tools. A fresh
+public release read verified the November 5 22:43 UTC research build, 750 registered
+candidates, matching season-file SHA-256 and shared schema validation. The last
+four inspected refresh runs succeeded; November 2 documentation records populated
+signed-in research. No fresh authenticated production read was performed today.
+The approved visual choices are retained, but sparse research fixture content
+must be replaced using the actual populated app components/readers. The mockup's
+missing line fixture is not evidence of missing production data. Production,
+private data, refreshes and parked Signal files remain unchanged.
+
+
 ## Both game research views mocked — November 5, 2026
 
 Sean chose both line movement and team performance. The approved compact

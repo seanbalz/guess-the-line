@@ -509,12 +509,14 @@
   },
   "gameResearchViews": {
     "date": "2026-11-05",
-    "status": "Both views mocked; visual approval pending",
+    "status": "Two-tab layout accepted in principle; sparse data representation challenged by Sean and must be replaced",
     "basis": "Sean chose Both: line movement and team performance",
     "scope": "Tabbed research card under the approved Research/game compact matchup header in both themes",
     "lineHistory": "Spread/Total local selection; verified history unavailable, no plotted odds or invented opening/latest values or timestamps",
     "performance": "Historical 2025 regular-season Total touchdowns, sourced from NFL.com; source and values in game-research-data.json",
     "interaction": "Accessible local tabs with keyboard navigation; no live feeds, writes or account changes",
-    "remaining": "Connecting eligible live history and real matchup context is outside this visual mockup"
+    "remaining": "Connecting eligible live history and real matchup context is outside this visual mockup",
+    "correction": "Mockup-only missing fixtures do not establish production data absence. Use existing populated Research/MarketDetails/TrendDetail/TeamView components and verified representative data.",
+    "inventory": "../../docs/DESIGN_DATA_INVENTORY_2026_11_05.md"
   }
 }
