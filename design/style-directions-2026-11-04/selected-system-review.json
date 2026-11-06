@@ -483,7 +483,7 @@
   },
   "accountRowIcons": {
     "date": "2026-11-05",
-    "status": "Mocked for review; visual approval pending",
+    "status": "Approved by Sean for the reviewed Account row icons",
     "scope": "Profile, Reminders and Community rows in Account overview, both themes",
     "glyphs": [
       "circle-user-round",
@@ -492,6 +492,8 @@
     ],
     "source": "visual-assets/sources.json accountIcons",
     "finish": "Selected 03 Glossy glass; one tile per icon, decorative SVG beside existing readable labels",
-    "preserved": "Approved Appearance selector, AL avatar placeholder, native row actions; no avatar controls added"
+    "preserved": "Approved Appearance selector, AL avatar placeholder, native row actions; no avatar controls added",
+    "accepted": "2026-11-05",
+    "acceptanceScope": "Profile, Reminders and Community glossy row icons in both reviewed themes; not blanket Account/detail acceptance or whole-project completion"
   }
 }

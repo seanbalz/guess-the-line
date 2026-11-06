@@ -1,5 +1,17 @@
 # Guess The Line — current completion register
 
+## Account glossy row icons approved — November 5, 2026
+
+Sean answered "Yes" to the reviewed Profile, Reminders and Community icon
+mockups in both themes. The [selection record](../design/style-directions-2026-11-04/selected-system-review.json)
+preserves approval of those icons alongside the separately approved Appearance
+control. No UI or production changes accompany this record. Main-screen
+refinements reviewed in this sequence do not establish approval of all opened
+detail views or whole-project completion. Suggested next review: an opened game
+screen, with phone-accessible previews. Avatars and popup/award work remain held;
+parked Signal files are untouched and unpublished.
+
+
 ## Glossy Account row icons prepared for review — November 5, 2026
 
 Sean authorized matching glossy icons for Profile, Reminders and Community.
