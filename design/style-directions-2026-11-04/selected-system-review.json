@@ -361,13 +361,41 @@
         "actions": [
           "detail:profile"
         ]
+      },
+      {
+        "id": "league-switcher",
+        "name": "Your leagues and invitations",
+        "actions": [
+          "detail:league"
+        ]
+      },
+      {
+        "id": "league-create",
+        "name": "Create a league",
+        "actions": [
+          "detail:league"
+        ]
+      },
+      {
+        "id": "league-invite",
+        "name": "Invite players",
+        "actions": [
+          "detail:league"
+        ]
+      },
+      {
+        "id": "league-join-check",
+        "name": "Join needs checking example",
+        "actions": [
+          "detail:league"
+        ]
       }
     ]
   },
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "Account/settings",
+    "next": "Account/league-switcher",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -1677,7 +1705,7 @@
   },
   "accountToolsPreview": {
     "prepared": "2026-11-06",
-    "status": "Mocked; awaiting visual approval",
+    "status": "Supplied Settings and Guidance direction approved by Sean in both themes",
     "views": [
       "selected-system-review.html?screen=Account&layer=settings",
       "selected-system-review.html?screen=Account&layer=settings-unavailable",
@@ -1741,6 +1769,81 @@
     ],
     "delivery": "14 dark/Porcelain phone-width extended-height screenshots, including scrolled guidance and source links, visually inspected. Local preview verification only, not physical-device acceptance.",
     "production": "Review assets and records only. Production source/tokens, account settings, storage, provider connections, collectors, migrations and frozen v62 unchanged; no merge or deployment.",
-    "deferred": "Actual preference saving, fresh-read conflict checks, persistence and unseen recovery states remain separate. New avatars/photos and awards remain held."
+    "deferred": "Actual preference saving, fresh-read conflict checks, persistence and unseen recovery states remain separate. New avatars/photos and awards remain held.",
+    "accepted": "2026-11-06",
+    "confirmation": "looks good continue",
+    "reviewedCommit": "51709782dad3ba7250b474b797a60284ae829bbf",
+    "reviewedCaptures": [
+      "account-tools-settings-draft-dark-phone.png",
+      "account-tools-guidance-topics-dark-phone.png",
+      "account-tools-settings-draft-light-phone.png",
+      "account-tools-guidance-topics-light-phone.png",
+      "account-tools-guidance-sources-dark-phone.png",
+      "account-tools-settings-unavailable-dark-phone.png",
+      "account-tools-settings-conflict-dark-phone.png"
+    ],
+    "acceptanceScope": "Supplied Settings and Guidance direction in both themes and linked source/unavailable/conflict examples; not live saves, provider availability, rule/content changes, physical-device acceptance or whole-app completion.",
+    "next": "League switching, creation and invitations. New avatars/photos and awards remain held."
+  },
+  "leagueSetupPreview": {
+    "status": "Mocked in both themes; visual approval pending",
+    "prepared": "2026-11-06",
+    "views": [
+      "Community-first league switcher and incoming example invitation",
+      "Duel/Group private league creation",
+      "Host-only invitation entry",
+      "Non-operational example link",
+      "Pending, accepted and revoked status cards",
+      "Join needs checking example without replay"
+    ],
+    "components": [
+      "Sheet",
+      "Row",
+      "List",
+      "Avatar",
+      "Button",
+      "Segmented",
+      "InfoButton",
+      "leagueRows",
+      "pendingInvites"
+    ],
+    "data": "Fictional leagues, counts, viewer and example.com addresses only; no private lobby, roster, contact or live invitation reads.",
+    "behavior": "All changes are component memory only. Invitation lists are keyed separately for each example league. Select example link selects text only; example.invalid is non-operational. Pending list check never repeats a join.",
+    "preserved": "Community first; case-insensitive group order; host-only invitations excluding Community and fixed founding roster; native name/email constraints; Duel 2 / Group 20; shared picks and separate rosters; started games closed. No server capacity, authorization, expiry or idempotency claim.",
+    "verification": {
+      "responsiveLayouts": 24,
+      "scenarioFlows": 6,
+      "pureChecks": 43,
+      "nativeCloudLobbyTests": 9,
+      "nativeEmailParity": true,
+      "perLeagueInvitationIsolation": true,
+      "keyboardEscapeReturnThemes": 2,
+      "narrowLowerActionThemes": 2,
+      "nestedInfoThemes": 2,
+      "priorViews": 6,
+      "storageWrites": 0,
+      "clipboardWrites": 0,
+      "nonGETRequests": 0,
+      "pageErrors": 0,
+      "productionControllersExcluded": true,
+      "brandQA": true
+    },
+    "captures": [
+      "league-setup-create-dark-phone.png",
+      "league-setup-create-light-phone.png",
+      "league-setup-invite-dark-phone.png",
+      "league-setup-invite-light-phone.png",
+      "league-setup-join-check-dark-phone.png",
+      "league-setup-join-check-light-phone.png",
+      "league-setup-link-ready-dark-phone.png",
+      "league-setup-link-ready-light-phone.png",
+      "league-setup-statuses-dark-phone.png",
+      "league-setup-statuses-light-phone.png",
+      "league-setup-switcher-dark-phone.png",
+      "league-setup-switcher-light-phone.png"
+    ],
+    "delivery": "12 dark/Porcelain phone-width extended-height screenshots, including scrolled statuses, visually inspected. Local preview verification only; not physical-device acceptance.",
+    "production": "Review assets and evidence only. Production source/tokens, accounts, invitations, storage, collectors, migrations and frozen v62 unchanged. No merge or deployment.",
+    "deferred": "Actual creation/join/revocation, authorization, capacity, link expiry, persistent drafts and recovery remain separate. New avatars/photos and awards remain held."
   }
 }

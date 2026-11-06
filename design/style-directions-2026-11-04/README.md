@@ -1,3 +1,46 @@
+## League setup and invitations mocked — November 6, 2026
+
+The selected dark/Porcelain glass system now covers the Community-first league
+switcher, incoming invitation, Duel/Group creation, host invitation entry,
+non-operational link and pending/accepted/revoked status cards. Native Sheet,
+Row, List, Avatar, Button, Segmented and InfoButton are reused, with native
+leagueRows/pendingInvites projection and isolated native email normalization.
+Fictional leagues, counts and example.com emails replace all private data.
+
+Preview actions change component memory only. Each league keeps a separate
+invitation list, including after creating a new example league. Host controls
+exclude Community, member-only groups and the fixed founding roster. Name and
+email validation, two-/20-player formats, shared weekly picks, separate rosters
+and started-game locks are retained. The pending-check example never repeats
+a join. The example.invalid link has no usable token or invented expiry;
+Select example link selects text without writing to the clipboard.
+
+Twelve dark/light phone captures were inspected; visual approval is pending.
+Checks passed: 24 responsive layouts; six scenario flows covering switching,
+joining, creation, link selection, self/duplicate rejection, status retention,
+revocation, per-league isolation and check-only pending behavior; 43 pure
+checks with native email parity; nine existing cloud lobby tests; keyboard
+Escape/opener return, narrow lower-action reachability and nested information
+in both themes; and six prior views. No page errors, non-GET requests, storage
+or clipboard writes were observed. Build, authenticated controller exclusions,
+Brand QA and syntax/diff checks passed. Capture heights are extended to show
+content; scroll reachability is checked separately at narrow phone width.
+
+Production source/tokens, real accounts/invitations, collectors, migrations and
+frozen v62 are unchanged. No merge or deployment. Actual authorization,
+capacity, idempotency, expiry, persistence and live recovery remain separate.
+New avatars/photos, awards and parked Signal work remain held.
+
+## Account Settings and Guidance direction approved — November 6, 2026
+
+Sean replied "looks good continue" to the supplied Settings and Guidance/source
+mockups in both themes at reviewed commit
+`51709782dad3ba7250b474b797a60284ae829bbf`. The supplied direction and linked
+source/unavailable/conflict examples are approved. This does not approve unseen
+states, live saves, provider availability, rule/content changes, physical-device
+behavior or whole-app completion. League switching, creation and invitations
+are next. New avatars/photos and awards remain held.
+
 ## EPL Pick a Team flow mocked — November 6, 2026
 
 ## Account Settings and Guidance mocked — November 6, 2026
