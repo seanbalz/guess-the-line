@@ -774,13 +774,48 @@
         "actions": [
           "detail:profile"
         ]
+      },
+      {
+        "id": "referees-ready",
+        "name": "Referees - Current examples",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "referees-draft",
+        "name": "Referees - Unsaved choices",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "referees-busy",
+        "name": "Referees - Saving example",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "referees-partial",
+        "name": "Referees - Partial-save example",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "referees-read-error",
+        "name": "Referees - Read-error example",
+        "actions": [
+          "detail:profile"
+        ]
       }
     ]
   },
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "Account/commissioner-status",
+    "next": "Account/referees-ready",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -2853,7 +2888,7 @@
     "acceptanceScope": "Supplied commissioner menu, member list, remove/restore, pending check and restriction visual direction in both themes. Live authorization, fresh reads, concurrency, persistence/readback, audit attribution, physical-device acceptance and whole-app completion remain separate."
   },
   "commissionerOperationsPreview": {
-    "status": "Schedule/settlement and week-opening detail mockups prepared in both themes; visual approval pending",
+    "status": "Supplied weekly automation, settlement and schedule-review direction approved in both themes",
     "prepared": "2026-11-06",
     "views": [
       "Illustrative automatic opening/odds/settlement status",
@@ -2919,6 +2954,78 @@
     "delivery": "12 dark/Porcelain phone-width captures visually inspected. Extended captures show content; responsive bounds/footer, narrow scrolling, 44px controls and 16px inputs checked separately. Loaded team marks have individual backgrounds and hide fallback letters.",
     "production": "Review assets/evidence only. Native commissioner/settlement/publish controllers, permissions, schedules, locks, provider quota/budgets, collectors, real records, APIs/auth/storage, production tokens, migrations and frozen v62 unchanged. No merge/deploy.",
     "deferred": "Live job status, authorization, settlement/readback, actual publication/deadlines, freshness/quota and physical-device acceptance remain separate. New avatars/photos and awards stay held.",
-    "next": "Game referee assignment mockups, followed by final-score review and remaining commissioner detail screens."
+    "next": "Game referee assignment mockups, followed by final-score review and remaining commissioner detail screens.",
+    "accepted": "2026-11-06",
+    "confirmation": "Looks good in both themes. Continue with the next mockups.",
+    "reviewedCommit": "e7cd9497ca3947dbfec761cc827feb0ac59ae7ac",
+    "reviewedCaptures": [
+      "commissioner-ops-status-dark-phone.png",
+      "commissioner-ops-status-light-phone.png",
+      "commissioner-ops-status-paused-dark-phone.png",
+      "commissioner-ops-status-paused-light-phone.png",
+      "commissioner-ops-settlement-uncertain-dark-phone.png",
+      "commissioner-ops-settlement-uncertain-light-phone.png",
+      "commissioner-ops-week-entry-dark-phone.png",
+      "commissioner-ops-week-entry-light-phone.png",
+      "commissioner-ops-week-review-dark-phone.png",
+      "commissioner-ops-week-review-light-phone.png",
+      "commissioner-ops-week-error-dark-phone.png",
+      "commissioner-ops-week-error-light-phone.png"
+    ],
+    "acceptanceScope": "Supplied status, pause, uncertain settlement, week input/review/error visual direction in both themes. Live jobs, authorization, settlement/readback, publication/deadlines, freshness/quota, physical-device acceptance and whole-app completion remain separate."
+  },
+  "refereesPreview": {
+    "status": "Game referee assignment mockups prepared in both themes; visual approval pending",
+    "prepared": "2026-11-06",
+    "views": [
+      "Current fictional assignments",
+      "Three unsaved choices across full list",
+      "Fixed saving example",
+      "Illustrative partial-save error with remaining drafts",
+      "Read-error disabled choices"
+    ],
+    "nativePreservation": "Native Sheet, Button, InfoButton, TeamMark, Pacific fmtFull and unchanged refereeFor are reused. Seven native copy fields, hosted-over-file precedence including explicit clearing, changed-row predicate, extra-option retention, busy/ready guards and partial-error shape are retained. Native controller/API/cache writes are excluded.",
+    "fixtures": "The fifteen archived schedule rows, kickoff times and neutral flag reuse commissioner-schedule-data.json from the hash-verified November 5 public snapshot. Example official A/B/C, all assignment maps, drafts, busy/error states and partial outcome are fictional; no real NFL crew, referee identity, revision, timestamp or announcement is asserted. The read-error fixture has no hosted assignment map and falls back to its fictional static map.",
+    "drafts": "Compact first-three layout with Show all 15. Changes and clearing remain in component memory; counts include drafts outside the visible subset. Busy remains fixed and guards choice/submit callbacks. Read-error disables selectors and save. Partial has one explicitly fictional already-recorded row and two remaining drafts. Preview never changes fixture baselines, clears retained drafts or claims real save success.",
+    "isolation": "No officials/API/auth read or write, provider fetch, app refresh, trends-cache mutation, persistent draft storage, timer or message. No assignment, trend, history, permission, schedule or account changes.",
+    "verification": {
+      "responsiveLayouts": 40,
+      "refereeScenarioFlows": 10,
+      "registeredLogoTiles": 60,
+      "nativeCopyFields": 7,
+      "fixtureScenarioProjections": 5,
+      "publicScheduleRows": 15,
+      "nativePrecedenceAndOptionCases": 7,
+      "changedAndClearCases": 3,
+      "partialRetentionChecks": 3,
+      "nativeBusyStateSourceGuards": 3,
+      "nativeInfoFocusThemes": 2,
+      "keyboardEscapeReturnThemes": 2,
+      "priorViews": 6,
+      "storageWrites": 0,
+      "nonGETRequests": 0,
+      "officialsReads": 0,
+      "browserDialogs": 0,
+      "popups": 0,
+      "pageErrors": 0,
+      "controllerAndWriteExclusions": true,
+      "brandQA": true
+    },
+    "captures": [
+      "referees-ready-dark-phone.png",
+      "referees-ready-light-phone.png",
+      "referees-draft-dark-phone.png",
+      "referees-draft-light-phone.png",
+      "referees-busy-dark-phone.png",
+      "referees-busy-light-phone.png",
+      "referees-partial-dark-phone.png",
+      "referees-partial-light-phone.png",
+      "referees-read-error-dark-phone.png",
+      "referees-read-error-light-phone.png"
+    ],
+    "delivery": "Ten dark/Porcelain phone-width captures visually inspected. Extended heights show content; narrow scrolling, footer bounds, 44px controls, 16px themed native selects, loaded logos/hidden letters, keyboard and opener focus checked separately.",
+    "production": "Review assets/evidence only. Actual referee assignments/announcements, officials controller, trends cache, audits/history, permissions, APIs/auth/storage, collectors, production tokens, migrations and frozen v62 unchanged. No merge/deploy.",
+    "deferred": "Live assignment reads/saves, real referee option availability, partial/uncertain saves, cache/audit consistency, permissions, persistence and physical-device acceptance remain separate. New avatars/photos and awards stay held.",
+    "next": "Final-score review mockups, then remaining commissioner detail screens."
   }
 }

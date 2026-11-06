@@ -84,6 +84,7 @@ lucide-react/dist/esm/icons/chevron-up.js:
 lucide-react/dist/esm/icons/circle-help.js:
 lucide-react/dist/esm/icons/circle-user.js:
 lucide-react/dist/esm/icons/clipboard-check.js:
+lucide-react/dist/esm/icons/clipboard-list.js:
 lucide-react/dist/esm/icons/clock-3.js:
 lucide-react/dist/esm/icons/clock.js:
 lucide-react/dist/esm/icons/cloud-sun.js:

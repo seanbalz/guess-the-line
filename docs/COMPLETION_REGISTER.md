@@ -1,5 +1,58 @@
 # Guess The Line — current completion register
 
+## Game referee assignment mockups prepared — November 6, 2026
+
+The selected dark/Porcelain system now covers current fictional assignments,
+editable drafts, a fixed saving state, partial-save error and read-error disabled
+controls. Native Sheet/Button/InfoButton/TeamMark, Pacific formatting and the
+unchanged refereeFor helper are reused. Seven native copy fields, hosted-over-
+file precedence (including a cleared assignment), changed-row calculation,
+extra-option retention, busy/ready guards and partial-error shape are retained.
+
+All fifteen matchups/times and the neutral flag reuse the verified archived
+public schedule. Example official A/B/C, assignments, draft selections and
+partial outcome are deliberately fictional; no real NFL crew announcement,
+referee, audit timestamp or revision is asserted. Read-error has no hosted map
+and falls back to the fictional static map while disabling controls. A neutral
+clock marks an unassigned example; changed choices use lime Draft markers.
+
+Three games show initially; Show all 15 keeps the whole list available. Draft
+counts include hidden rows. Choice/clear/preview and collapse/reopen retain
+component-memory drafts. Busy rejects changes and submits without auto-resolving.
+The partial scene has one explicitly fictional already-recorded row and two
+remaining drafts; preview never claims a real retry succeeded. Controls do not
+read/save assignments, change trends/cache/history, clear draft storage or call
+any API/auth/provider operation, timer or message.
+
+Ten phone captures were visually inspected; visual approval is pending. Checks
+passed: 40 layouts, ten scenario flows, 60 loaded individual logo tiles, seven
+native copy fields, five fixture projections, fifteen unchanged public schedule
+rows, seven precedence/option cases, three changed/clear cases, three partial-
+retention checks, three native busy/ready source guards, nested information focus,
+Sheet keyboard/Escape/opener return and six prior views. No storage writes,
+officials reads, non-GET requests, popups, browser dialogs or page errors observed.
+Build, controller/write exclusions, Brand QA, syntax and diff checks passed.
+Extended captures show content; narrow scrolling/footer bounds, 44px controls
+and 16px themed native selects were checked separately.
+
+Review assets/evidence only; no merge/deploy. Real crew/options, permissions,
+reads/saves, partial/uncertain recovery, cache/audit consistency, persistence and
+physical-device acceptance remain separate. Native controllers/cache, real
+assignments/history, APIs/auth/storage, collectors, production tokens, migrations
+and frozen v62 are unchanged. Final-score review is next. New avatars/photos,
+awards and parked Signal work stay held.
+
+## Weekly operations direction approved — November 6, 2026
+
+Sean confirmed "Looks good in both themes. Continue with the next mockups."
+for the supplied status, pause, uncertain settlement, week input/review/error
+visual direction at reviewed commit
+`e7cd9497ca3947dbfec761cc827feb0ac59ae7ac`. That direction is approved in both
+themes. Live jobs, permissions, settlement/readback, publication/deadlines,
+freshness/quota, physical-device acceptance and whole-app completion remain
+separate. Game referee assignment details are next. New avatars/photos and
+awards stay held.
+
 ## Commissioner status and week opening mocked — November 6, 2026
 
 The selected dark/Porcelain system now covers automatic week opening, odds
