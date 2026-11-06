@@ -1,5 +1,37 @@
 # Guess The Line — current completion register
 
+## Revised Monday recap mockup · November 6, 2026
+
+The [Prism Glass recap board](../design/monday-recap-2026-11-05/monday-recap-prism-glass.png) shows one journey across three phone screens. Home keeps the Week 8 recap within reach after Week 9 opens. The weekly recap leads with the player's Spread rank, a friend comparison, a recorded final and one Monday game pending. A Porcelain matchup view separates the miss against a saved line from the game's winning margin.
+
+The visual references come from the reviewed charcoal Home, game score and Porcelain League screens at `59a1b55f225122aca9f7e9a1cd2d4a815d821e4e`. The November 5 studies and [full prompt record](../design/monday-recap-2026-11-05/prompts.json) accompany the revision. Status is a design preview using fictional examples for Sean and Connor's review.
+
+The final 1536 × 1024 image was reviewed for both guesses, each scored miss, the score, margin and pending state. Chromium loaded the image and opened its full-size link. The gallery fit 320, 390 and 1440 px without horizontal overflow. Local brand/document QA passed.
+
+## Monday recap — eight mockups, November 5, 2026
+
+Connor requested a Monday recap comparing guesses with other players and game
+results. Sean requested five to ten mockups in the new app layout. Delivered
+[eight raster studies and an interactive comparison gallery](../design/monday-recap-2026-11-05/README.md)
+on `codex/monday-recap-mockups`, based on freshly fetched `origin/main` at
+`7604cee25f4182d7c5262217c05f20d84b2994e3`. All values, people and teams are fictional
+fixtures, visibly marked SAMPLE; no account data was read. The studies follow
+the four-tab frame, D-69 nested cards and D-38/D-55 tokens, with separate Spread
+and Total ranks, saved-reference accuracy, actual game results and pending states.
+
+Evidence: eight 1024 × 1536 PNGs visually reviewed; Option 06 received one
+targeted image edit to remove an unlabeled metric. Full prompts are saved beside
+the images. The gallery passed Chromium checks at 320, 390 and 1440 px: no page
+overflow, all eight images decode, viewer opens, arrow navigation works, Escape
+closes, focus returns and no script errors. Brand/document QA passed with
+`python -X utf8 scripts/check-brand-docs.py`; whitespace checks passed. Raster
+screens do not establish app accessibility or real-phone acceptance.
+
+Status: **mockups delivered, awaiting selection**. The suggested combination is
+01 (overview), 03 (matchup) and 04 (friend comparison); 08 demonstrates Light.
+No app code, scoring rule, API, migration, schedule, deployment or frozen v62
+tracker changed. Exact production marks/components must be reused if selected.
+
 ## D-69 design overhaul, step 3: Research — November 4, 2026
 
 Built on `claude/overhaul-step3-research` from the
