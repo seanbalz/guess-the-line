@@ -851,13 +851,62 @@
         "actions": [
           "detail:profile"
         ]
+      },
+      {
+        "id": "odds-connection-initial",
+        "name": "Odds connection - Before check",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "odds-connection-ready",
+        "name": "Odds connection - Example check complete",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "odds-connection-fetched",
+        "name": "Odds connection - Example fetch summary",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "odds-connection-low-quota",
+        "name": "Odds connection - Protected reserve",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "odds-connection-pending",
+        "name": "Odds connection - Request pending",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "odds-connection-failed",
+        "name": "Odds connection - Provider error",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "odds-connection-checking",
+        "name": "Odds connection - Checking example",
+        "actions": [
+          "detail:profile"
+        ]
       }
     ]
   },
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "Account/final-review-form",
+    "next": "Account/odds-connection-initial",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -3087,7 +3136,7 @@
     "acceptanceScope": "Supplied current/draft/busy/partial-save/read-error referee visual direction in both themes. Live crews/options, permissions, assignment reads/saves, partial/uncertain recovery, cache/audit consistency, persistence, physical-device acceptance and whole-app completion remain separate."
   },
   "finalScoresReviewPreview": {
-    "status": "Final-score entry, confirmation and recovery mockups prepared in both themes; visual approval pending",
+    "status": "Supplied final score review direction approved in both themes",
     "prepared": "2026-11-06",
     "views": [
       "Archived final-score entry with assertion",
@@ -3145,6 +3194,85 @@
     "delivery": "12 dark/Porcelain phone-width captures visually inspected. Extended heights show content; 320/390/768/1440 responsive layouts, footer/dialog bounds, narrow reachability, 44px controls, 16px fields, 29px score entry, native selects and separate loaded logo tiles checked independently.",
     "production": "Review assets/evidence only. Actual results/review controller, permission grant, request IDs, exact receipt validation, versions/audits, grading, data/locks, APIs/auth/storage, collectors, production tokens, migrations and frozen v62 unchanged. No merge/deploy.",
     "deferred": "Live commissioner authorization, source verification, request idempotency, exact result receipt, concurrency, audit retention, Challenge grading, persistence and physical-device acceptance remain separate. New avatars/photos and awards stay held.",
-    "next": "Odds connection mockups, followed by EPL stat-correction reviews."
+    "next": "Odds connection mockups, followed by EPL stat-correction reviews.",
+    "accepted": "2026-11-06",
+    "confirmation": "looks good continue",
+    "reviewedCommit": "d9113bdd0070ab49ef79cd64ec0ff6281a7c4cf3",
+    "reviewedCaptures": [
+      "final-review-form-dark-phone.png",
+      "final-review-form-light-phone.png",
+      "final-review-confirmation-dark-phone.png",
+      "final-review-confirmation-light-phone.png",
+      "final-review-correction-dark-phone.png",
+      "final-review-correction-light-phone.png",
+      "final-review-conflict-dark-phone.png",
+      "final-review-conflict-light-phone.png",
+      "final-review-unavailable-dark-phone.png",
+      "final-review-unavailable-light-phone.png",
+      "final-review-busy-dark-phone.png",
+      "final-review-busy-light-phone.png"
+    ],
+    "acceptanceScope": "Supplied entry, confirmation, source-correction, conflict, unavailable and fixed recording visual direction in both themes. Live authorization, source verification, request idempotency, receipts/concurrency/audits, Challenge grading, persistence, physical-device acceptance and whole-app completion remain separate."
+  },
+  "oddsConnectionPreview": {
+    "status": "Odds connection mockups prepared in both themes; visual approval pending",
+    "prepared": "2026-11-06",
+    "views": [
+      "Before connection check",
+      "Illustrative successful measured check",
+      "Illustrative manual-fetch count summary",
+      "51-credit protected-quota block",
+      "Pending collect request",
+      "Provider rate-limit example",
+      "Fixed checking state"
+    ],
+    "nativePreservation": "Native Sheet/Button/InfoButton and unchanged oddsCount/oddsFetchAllowed/oddsSummary are reused. Seventeen native copy fields, 52-credit measured threshold, protected reserve, free limits, explicit check/fetch gating, pending same-action wording and benchmark/reveal guidance are retained. The existing isolated native schedule label formatter is reused.",
+    "fixtures": "Every connection/job/reply/count/quota/schedule state is fictional. Successful check uses 15 matched events, 316 credits and zero used; collected fixture uses 90 available quotes, 314 remaining and two used. These are neither hosted observations nor claims that a connection, quote save, credit measurement or fetch succeeded.",
+    "gating": "Initial/low-quota/failed/checking fetch is disabled and guarded. Low quota has 51 measured example credits against required 52. Fetched/pending fixtures explicitly retain a prior successful measured-check example. Pending stays pending after an action, and checking remains fixed without a timer. Actual operation request-ID reuse is explained/source-checked, not executed or simulated as real idempotency.",
+    "disclosure": "Native free-limit prose remains behind Free quota rules, with 0/2/50 visual tiles repeating the existing check-cost/fetch-max/reserve values. Missing pending/failed counts remain native Unavailable behind Request counts rather than invented zeros. No market values, book prices, provider identity or key inputs appear.",
+    "isolation": "Actions show no-action notices only. No provider/API/auth request, request-ID generation, saved-status read, quote collection, quota/budget change, automatic-schedule change, persistent storage, refresh, timer or message occurs.",
+    "verification": {
+      "responsiveLayouts": 56,
+      "oddsScenarioFlows": 14,
+      "nativeCopyFields": 17,
+      "fixtureScenarioCases": 7,
+      "priorCheckPreservationCases": 2,
+      "unknownCountCases": 4,
+      "quotaBoundaryAndCostCases": 4,
+      "nativeGuardRequestRetentionSourceChecks": 4,
+      "nativeOddsRulesTests": 3,
+      "nativeInfoFocusThemes": 2,
+      "keyboardEscapeReturnThemes": 2,
+      "priorViews": 6,
+      "storageWrites": 0,
+      "nonGETRequests": 0,
+      "providerAndAuthReads": 0,
+      "browserDialogs": 0,
+      "popups": 0,
+      "pageErrors": 0,
+      "countOnlySummaryKeys": true,
+      "controllerProviderAndWriteExclusions": true,
+      "brandQA": true
+    },
+    "captures": [
+      "odds-connection-initial-dark-phone.png",
+      "odds-connection-initial-light-phone.png",
+      "odds-connection-ready-dark-phone.png",
+      "odds-connection-ready-light-phone.png",
+      "odds-connection-fetched-dark-phone.png",
+      "odds-connection-fetched-light-phone.png",
+      "odds-connection-low-quota-dark-phone.png",
+      "odds-connection-low-quota-light-phone.png",
+      "odds-connection-pending-dark-phone.png",
+      "odds-connection-pending-light-phone.png",
+      "odds-connection-failed-dark-phone.png",
+      "odds-connection-failed-light-phone.png",
+      "odds-connection-checking-dark-phone.png",
+      "odds-connection-checking-light-phone.png"
+    ],
+    "delivery": "14 dark/Porcelain phone-width captures visually inspected. Extended heights show content; 320/390/768/1440 layouts, narrow reachability, footer bounds, 44px controls/disclosures and native Sheet keyboard/focus checked separately.",
+    "production": "Review assets/evidence only. Native controller, original Triple Threat grants, provider/key/configuration, request IDs, server idempotency, quota/reserve/rate limits, automatic schedule, quote data/reveal rules, APIs/auth/storage, collectors, production tokens, migrations and frozen v62 unchanged. No merge/deploy.",
+    "deferred": "Live authorization/connection, measured quota, provider cost/limits, pending request reuse/readback, actual quote collection/benchmark eligibility and physical-device acceptance remain separate. New avatars/photos and awards stay held.",
+    "next": "EPL stat-correction review mockups, then remaining native coverage reconciliation."
   }
 }

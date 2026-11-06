@@ -144,6 +144,7 @@ lucide-react/dist/esm/icons/user-round.js:
 lucide-react/dist/esm/icons/users.js:
 lucide-react/dist/esm/icons/wifi-off.js:
 lucide-react/dist/esm/icons/x.js:
+lucide-react/dist/esm/icons/zap.js:
 lucide-react/dist/esm/lucide-react.js:
   /**
    * @license lucide-react v0.468.0 - ISC

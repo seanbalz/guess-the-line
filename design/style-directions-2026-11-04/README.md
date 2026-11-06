@@ -1,3 +1,60 @@
+## Odds connection mockups prepared — November 6, 2026
+
+The selected dark/Porcelain system now covers before-check, successful measured-
+check example, manual-fetch counts, low-quota block, pending collect, provider
+rate-limit and fixed checking. Native Sheet/Button/InfoButton, unchanged
+oddsCount/oddsFetchAllowed/oddsSummary, seventeen native copy fields and the
+isolated schedule label formatter are reused. Existing zero-credit check,
+up-to-two-credit fetch, six-per-UTC-day limit, five-minute gap, 50-credit reserve,
+52-credit measured gate and benchmark/reveal guidance are retained.
+
+Every connection/reply/count/quota/schedule state is fictional. Example check
+counts are 15 events, 316 remaining and zero used; fetch counts are 90 quotes,
+314 remaining and two used. No provider success, measured quota or stored quote
+is asserted. The 51-credit example blocks Fetch. Fetched/pending examples retain
+an explicit earlier successful measured-check fixture; readiness is never inferred
+from a collect reply alone. Native unknown counts remain Unavailable behind
+Request counts rather than invented zeros. Free quota rules are expandable;
+0/2/50 glass tiles repeat the existing limits without changing them.
+
+All actions show no-action notices. Initial/low-quota/failed/checking guards and
+disabled controls prevent fetch previews. Pending stays pending; its same-action
+retry wording is unchanged. The real controller's retained request ID is source-
+checked, never generated/exposed or executed here. No API/auth/provider request,
+saved-status read, collection, credit/budget/schedule change, persistent storage,
+refresh, timer or message occurs. No key fields, provider identity or market
+values are present.
+
+Fourteen phone captures were visually inspected; visual approval is pending.
+Checks passed: 56 layouts, fourteen scenario flows, seventeen native copy fields,
+seven fixture cases, two prior-check preservation cases, four unknown-count
+cases, four quota/cost cases, four native guard/request-retention source checks,
+three existing native odds-rule tests, nested information focus, Sheet keyboard/
+Escape/opener return and six prior views. No storage writes, provider/auth reads,
+non-GET requests, popups, browser dialogs or page errors observed. Build,
+count-only shape and controller/provider/write exclusions, Brand QA, syntax and
+diff checks passed. Extended captures show content; narrow reachability/footer
+bounds and 44px controls/disclosures were checked separately.
+
+Review assets/evidence only; no merge/deploy. Real original-commissioner grants,
+connection/configuration, measured quota/cost, pending readback/idempotency,
+actual collection/benchmark eligibility and physical-device acceptance remain
+separate. Native controller/grants, provider/key/configuration, request IDs,
+server limits/reserve, automatic schedule, quotes/reveal rules, APIs/auth/storage,
+collectors, production tokens, migrations and frozen v62 are unchanged. EPL stat-
+correction review is next. New avatars/photos, awards and parked Signal work
+stay held.
+
+## Final score review direction approved — November 6, 2026
+
+Sean replied "looks good continue" to the supplied entry, confirmation, source-
+correction, conflict, unavailable and fixed recording direction in both themes
+at reviewed commit `d9113bdd0070ab49ef79cd64ec0ff6281a7c4cf3`. That visual
+direction is approved. Live authorization, source checks, idempotency, receipts/
+concurrency/audits, Challenge grading, persistence, physical-device acceptance
+and whole-app completion remain separate. Odds connection is next, then EPL
+stat-correction reviews. New avatars/photos and awards stay held.
+
 ## Final-score review mockups prepared — November 6, 2026
 
 The selected dark/Porcelain system now covers final-score entry, confirmation,
