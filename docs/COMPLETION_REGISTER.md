@@ -1,5 +1,16 @@
 # Guess The Line — current completion register
 
+## EPL overview crest tiles approved — November 5, 2026
+
+Sean confirmed "Good" after the updated phone-accessible previews. The
+individual glass tiles around the four reviewed EPL club crests are approved
+in both themes. [Selection record](../design/style-directions-2026-11-04/selected-system-review.json)
+preserves that scope; approval does not cover all EPL details or establish
+whole-app completion. No UI or production changes accompany this record.
+Account is the recommended next main-screen review. Avatars and popup/award
+work remain held; parked Signal files remain untouched and unpublished.
+
+
 ## Individual EPL crest tiles prepared for review — November 5, 2026
 
 Sean replied "Good" to the recommendation to apply individual glass tiles to
