@@ -1,5 +1,17 @@
 # Guess The Line — current completion register
 
+## Account Appearance selector visual approved — November 5, 2026
+
+Sean answered "Yes" after the phone-accessible Appearance mockups. The glass
+Light/Dark/System choices, preview thumbnails and selected outline are approved
+for the reviewed dark/light designs. The [selection record](../design/style-directions-2026-11-04/selected-system-review.json)
+preserves this visual scope; paired previews remain fixed and preference
+persistence/device-theme behavior are not implemented by this mockup. No UI or
+production changes accompany this record. Suggested next review: proper glossy
+icons for Profile, Reminders and Community. Avatar and popup/award work remains
+held; parked Signal files are untouched and unpublished.
+
+
 ## Account Appearance selector mocked — November 5, 2026
 
 Sean instructed "Go with your rec and mock." The Account Appearance card now

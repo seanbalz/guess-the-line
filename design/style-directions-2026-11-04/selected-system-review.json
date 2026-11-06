@@ -472,11 +472,13 @@
   },
   "accountAppearanceProposal": {
     "date": "2026-11-05",
-    "status": "Mocked for review; visual acceptance pending",
+    "status": "Visual design approved by Sean",
     "basis": "Sean instructed go with your rec and mock",
     "scope": "Replace Appearance design notes with glass Light/Dark/System choices, illustrative theme thumbnails and an accent selection outline",
     "interaction": "Local click/keyboard choice feedback only; paired preview themes remain fixed. No persisted preference, device-theme observation or production theme change",
     "preserved": "AL placeholder, profile/reminders/community actions and selected theme materials; avatar work held",
-    "delivery": "Phone screenshots, extended 1100px presentation height; not physical-device acceptance"
+    "delivery": "Phone screenshots, extended 1100px presentation height; not physical-device acceptance",
+    "accepted": "2026-11-05",
+    "acceptanceScope": "Reviewed glass Light/Dark/System control and selection styling in both themes; not production theme switching or blanket Account acceptance"
   }
 }
