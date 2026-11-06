@@ -617,7 +617,7 @@
   },
   "populatedTeams": {
     "date": "2026-11-05",
-    "status": "Mocked for Sean; visual approval pending",
+    "status": "Approved by Sean for the reviewed Teams layout and Seattle profile",
     "scope": "Research / Teams, all 32 team rows and profiles in the selected dark/light themes; Seattle profile shown in the review captures",
     "basis": "Sean agreed to mock up Research / Teams with real records, recent form and game-by-game charts",
     "components": [
@@ -653,6 +653,10 @@
     },
     "privacy": "Public completed scores and redacted schedule only; future scores remain null; no private picks, player accounts, quotes, auth/API readers or new source requests",
     "delivery": "Phone-width captures with extended 1700/2250px presentation heights. Images show upper list/profile portions; all 32 teams and 17 season rows remain reachable. Not physical-device acceptance.",
-    "preserved": "Approved Games, Trends and game-detail model fields and styling; production code/tokens, scoring, collectors, migrations, frozen v62 and deferred avatars/awards unchanged."
+    "preserved": "Approved Games, Trends and game-detail model fields and styling; production code/tokens, scoring, collectors, migrations, frozen v62 and deferred avatars/awards unchanged.",
+    "accepted": "2026-11-05",
+    "confirmation": "Sean replied Good after reviewing the Teams list and Seattle profile in the selected dark/light themes.",
+    "acceptanceScope": "Reviewed Teams list layout, individual logo tiles, records/recent-form presentation and Seattle profile with original home/road/scoring tiles, margin chart and season log. Not separate visual acceptance of every unseen team profile, live-data freshness, production integration or whole-project completion.",
+    "next": "Recommended next review: Research / Fantasy. Other unreviewed screens and deferred avatars/awards remain outstanding."
   }
 }

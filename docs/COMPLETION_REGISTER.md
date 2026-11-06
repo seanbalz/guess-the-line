@@ -1,5 +1,18 @@
 # Guess The Line — current completion register
 
+## Teams layout and Seattle profile approved — November 5, 2026
+
+Sean confirmed "Good" after reviewing the Teams list and Seattle profile in the
+selected dark/light themes. The reviewed visual direction is approved: individual
+logo tiles, records/recent form, home/road and scoring tiles, the original margin
+chart and season log. The
+[selection record](../design/style-directions-2026-11-04/selected-system-review.json) preserves that scope and
+the phone captures. This does not establish separate acceptance of every unseen
+team profile, current live feeds, production integration or whole-project
+completion. No UI, source data or asset changes accompany this approval record.
+Research / Fantasy is the recommended next review. Deferred avatars/awards and
+parked Signal files remain unchanged.
+
 ## Populated Teams mockup — November 5, 2026
 
 Sean approved preparing Research / Teams with the selected glass styling and
