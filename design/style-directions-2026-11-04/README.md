@@ -1,3 +1,20 @@
+## Fantasy ranking/report direction approved — November 5, 2026
+
+Sean confirmed "Good" after the Week 9 ranking and provisional Week 8 report
+previews in the selected dark/light themes, with expanded biggest-miss detail
+available. The reviewed visual direction is approved, retaining native
+calculations, source/provisional status, paired baseline charts and the supplied
+team-logo treatment. The
+[selection record](selected-system-review.json) preserves the reviewed scope.
+This is not separate acceptance of every unseen filter/player/state, current live
+feeds, production integration or whole-project completion. No UI, source data or
+asset changes accompany this approval record.
+
+Play draft-entry and lock-in screens are the recommended next review. The
+existing Play approval covers the reviewed matchup-card logo tiles; its detail
+flows remain unapproved. Deferred avatars/awards and parked Signal files stay
+unchanged.
+
 ## Fantasy rankings and accuracy report mocked — November 5, 2026
 
 Sean instructed continuing with weekly rankings and the accuracy report. The

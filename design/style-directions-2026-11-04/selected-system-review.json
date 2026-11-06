@@ -706,7 +706,7 @@
   },
   "fantasyRankingsAccuracy": {
     "date": "2026-11-05",
-    "status": "Mocked for Sean; visual approval pending",
+    "status": "Approved by Sean for the reviewed Fantasy ranking and accuracy-report direction",
     "scope": "Fantasy weekly/rest-of-season rankings and Week 8 accuracy report in both selected themes",
     "basis": "Sean explicitly instructed Continue after the weekly rankings/report proposal",
     "components": [
@@ -754,6 +754,10 @@
     },
     "delivery": "Four phone-width extended-height captures plus two expanded biggest-miss detail crops; not physical-device acceptance",
     "privacy": "Exact public NFL snapshot/review exports and historical estimate hash binding; no Guess picks, bookmaker values, player accounts, authenticated data readers or production writes",
-    "preserved": "Approved usage/comparison content and models, original ranking/report calculations, selected materials, production tokens/code, collectors, scoring, migrations, frozen v62 and deferred avatars/awards. Whole-project completion is not declared."
+    "preserved": "Approved usage/comparison content and models, original ranking/report calculations, selected materials, production tokens/code, collectors, scoring, migrations, frozen v62 and deferred avatars/awards. Whole-project completion is not declared.",
+    "accepted": "2026-11-05",
+    "confirmation": "Sean replied Good after receiving the Week 9 ranking and provisional Week 8 report previews in both themes, with the expanded biggest-miss detail link.",
+    "acceptanceScope": "Reviewed ranking/report visual direction, native calculations, paired baseline chart and supplied biggest-miss treatment. Not separate acceptance of every unseen filter/player/state, live-data freshness, production integration or whole-project completion.",
+    "next": "Recommended next review: Play draft-entry and lock-in screens. Existing Play approval covers the reviewed matchup-card logo tiles only. Deferred avatars/awards remain held."
   }
 }
