@@ -94,6 +94,7 @@ lucide-react/dist/esm/icons/database.js:
 lucide-react/dist/esm/icons/diamond.js:
 lucide-react/dist/esm/icons/download.js:
 lucide-react/dist/esm/icons/eye.js:
+lucide-react/dist/esm/icons/file-check-2.js:
 lucide-react/dist/esm/icons/file-json.js:
 lucide-react/dist/esm/icons/filter.js:
 lucide-react/dist/esm/icons/flame.js:

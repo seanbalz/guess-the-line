@@ -1,5 +1,66 @@
 # Guess The Line — current completion register
 
+## Final-score review mockups prepared — November 6, 2026
+
+The selected dark/Porcelain system now covers final-score entry, confirmation,
+metadata correction, version conflict, unavailable service and fixed recording.
+Exact native emptyFields/sourceURL/validate helpers and fourteen display-copy
+fields are retained. Native Sheet/Dialog/Button/InfoButton/TeamMark and Pacific
+formatting are reused. Ordinary-final/commissioner-reported/Challenge grading
+warnings, completed-game assertion, Keep editing first and prior-version audit
+wording remain. Input edits reset the assertion.
+
+Fourteen Week 8 matchups, kickoff times and recordedFinal values reuse the
+previously hash-verified public score-history export unchanged, including zero
+scores. Source name, example.invalid URL, observation time, reasons, versions,
+prior entries, conflict readback and service states are fictional. The example
+clock is the public publication time. The correction changes source metadata
+while retaining the archived final; no real wrong score, original observation/
+review timestamp, server receipt or saved success is invented.
+
+The conflict keeps fields and blocks another review. Explicit Refresh preview
+reveals fictional version 2; separate Use version resets acknowledgment before
+a new review. There is no automatic rebase. Confirmation/Refresh only show
+no-action notices. The unavailable state stays unavailable. No results API/auth,
+source URL request, request-ID generation, grading, audit, refresh, persistent
+storage, provider fetch, timer or message occurs.
+
+The selected native Dialog replaces the legacy presentation frame only. A
+preview key/cancel/close boundary keeps it inside Sheet behavior and isolates
+nested information; heading focus, Keep editing/Escape opener return and a
+fixed busy state that survives repeated Escape are verified. Actual legacy
+controllers, request reuse and exact receipt checks remain unchanged/excluded.
+
+Twelve phone captures were visually inspected; approval is pending. Checks
+passed: 48 layouts, twelve scenario flows, eight individually loaded logo tiles,
+three exact validation helpers, fourteen native copy fields, sixteen validation
+cases, fourteen public final games/56 field comparisons, six fixture scenarios,
+three metadata-correction checks, three native version/request/receipt source
+checks, nested information focus, confirmation Escape/opener return, repeated
+busy Escape and six prior views. No storage writes, result/example-source reads,
+non-GET requests, popups, browser dialogs or page errors observed. Build,
+controller/clock/write exclusions, Brand QA, syntax and diff checks passed.
+Extended captures show content; narrow reachability/footer/dialog bounds, 44px
+controls, 16px fields and 29px score entry were checked separately.
+
+Review assets/evidence only; no merge/deploy. Real authorization, source checks,
+idempotency, exact receipts, concurrent corrections, audits, Challenge grading,
+persistence and physical-device acceptance remain separate. Actual controllers,
+permissions, versions/history, grading/data/locks, APIs/auth/storage, collectors,
+production tokens, migrations and frozen v62 are unchanged. Odds connection is
+next, then EPL stat-correction reviews. New avatars/photos, awards and parked
+Signal work stay held.
+
+## Game referee direction approved — November 6, 2026
+
+Sean confirmed "Looks good in both themes. Continue with the next mockups."
+for the supplied current/draft/busy/partial-save/read-error referee direction at
+reviewed commit `c743e553fea52362381650ac8818d927d06886ea`. That visual direction
+is approved in both themes. Live crews/options, permissions, reads/saves,
+partial/uncertain recovery, cache/audit consistency, persistence, physical-device
+acceptance and whole-app completion remain separate. Final-score review is next.
+New avatars/photos and awards stay held.
+
 ## Game referee assignment mockups prepared — November 6, 2026
 
 The selected dark/Porcelain system now covers current fictional assignments,

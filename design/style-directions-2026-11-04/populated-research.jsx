@@ -16,6 +16,7 @@ import {EplPreview} from './populated-epl.jsx';
 import {GapRecordPreview} from './populated-gap-record.jsx';
 import {BetsChangesPreview} from './populated-bets-changes.jsx';
 import {BetsOverviewPreview} from './populated-bets-overview.jsx';
+import {FinalReviewPreview} from './populated-final-review.jsx';
 import {RefereesPreview} from './populated-referees.jsx';
 import {CommissionerStatusPreview} from './populated-commissioner-status.jsx';
 import {CommissionerPreview} from './populated-commissioner.jsx';
@@ -146,3 +147,5 @@ export function mountCommissioner(element,scenario){const root=createRoot(elemen
 export function mountCommissionerStatus(element,model,scenario){const root=createRoot(element);root.render(<CommissionerStatusPreview model={model} scenario={scenario}/>);return root;}
 
 export function mountReferees(element,model,scenario){const root=createRoot(element);root.render(<RefereesPreview model={model} scenario={scenario}/>);return root;}
+
+export function mountFinalReview(element,model,scenario){const root=createRoot(element);root.render(<FinalReviewPreview model={model} scenario={scenario}/>);return root;}

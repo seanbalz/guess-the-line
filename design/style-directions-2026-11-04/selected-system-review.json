@@ -809,13 +809,55 @@
         "actions": [
           "detail:profile"
         ]
+      },
+      {
+        "id": "final-review-form",
+        "name": "Final scores - Example entry",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "final-review-confirmation",
+        "name": "Final scores - Confirmation",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "final-review-correction",
+        "name": "Final scores - Metadata correction",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "final-review-conflict",
+        "name": "Final scores - Version conflict",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "final-review-unavailable",
+        "name": "Final scores - Service unavailable",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "final-review-busy",
+        "name": "Final scores - Recording example",
+        "actions": [
+          "detail:profile"
+        ]
       }
     ]
   },
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "Account/referees-ready",
+    "next": "Account/final-review-form",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -2975,7 +3017,7 @@
     "acceptanceScope": "Supplied status, pause, uncertain settlement, week input/review/error visual direction in both themes. Live jobs, authorization, settlement/readback, publication/deadlines, freshness/quota, physical-device acceptance and whole-app completion remain separate."
   },
   "refereesPreview": {
-    "status": "Game referee assignment mockups prepared in both themes; visual approval pending",
+    "status": "Supplied game referee direction approved in both themes",
     "prepared": "2026-11-06",
     "views": [
       "Current fictional assignments",
@@ -3026,6 +3068,83 @@
     "delivery": "Ten dark/Porcelain phone-width captures visually inspected. Extended heights show content; narrow scrolling, footer bounds, 44px controls, 16px themed native selects, loaded logos/hidden letters, keyboard and opener focus checked separately.",
     "production": "Review assets/evidence only. Actual referee assignments/announcements, officials controller, trends cache, audits/history, permissions, APIs/auth/storage, collectors, production tokens, migrations and frozen v62 unchanged. No merge/deploy.",
     "deferred": "Live assignment reads/saves, real referee option availability, partial/uncertain saves, cache/audit consistency, permissions, persistence and physical-device acceptance remain separate. New avatars/photos and awards stay held.",
-    "next": "Final-score review mockups, then remaining commissioner detail screens."
+    "next": "Final-score review mockups, then remaining commissioner detail screens.",
+    "accepted": "2026-11-06",
+    "confirmation": "Looks good in both themes. Continue with the next mockups.",
+    "reviewedCommit": "c743e553fea52362381650ac8818d927d06886ea",
+    "reviewedCaptures": [
+      "referees-ready-dark-phone.png",
+      "referees-ready-light-phone.png",
+      "referees-draft-dark-phone.png",
+      "referees-draft-light-phone.png",
+      "referees-busy-dark-phone.png",
+      "referees-busy-light-phone.png",
+      "referees-partial-dark-phone.png",
+      "referees-partial-light-phone.png",
+      "referees-read-error-dark-phone.png",
+      "referees-read-error-light-phone.png"
+    ],
+    "acceptanceScope": "Supplied current/draft/busy/partial-save/read-error referee visual direction in both themes. Live crews/options, permissions, assignment reads/saves, partial/uncertain recovery, cache/audit consistency, persistence, physical-device acceptance and whole-app completion remain separate."
+  },
+  "finalScoresReviewPreview": {
+    "status": "Final-score entry, confirmation and recovery mockups prepared in both themes; visual approval pending",
+    "prepared": "2026-11-06",
+    "views": [
+      "Archived final-score entry with assertion",
+      "First final confirmation",
+      "Metadata-only correction confirmation",
+      "Version conflict with separate refresh/adopt/review",
+      "Service unavailable",
+      "Fixed recording confirmation"
+    ],
+    "nativePreservation": "Exact native emptyFields/sourceURL/validate helpers are isolated. Fourteen native copy fields preserve commissioner-reported/not-independently-verified scope, ordinary finals only, Challenge grading warning, retained prior versions, completed-game assertion, conflict and unavailable copy. Native Sheet, Dialog, Button, InfoButton, TeamMark and Pacific formatting are reused. Keep editing is first; input edits reset the assertion.",
+    "publicFinals": "Fourteen Week 8 games, kickoff times and recordedFinal values reuse the previously hash-verified score-history-data.json unchanged. A zero final remains zero. No new result values, reference lines or private data are exported.",
+    "fixtures": "Source name, example.invalid URL, observed local time, reason, acknowledgment, prior entries/versions, conflict readback and service states are explicitly fictional. The example clock is the public publication time. Correction changes source metadata while retaining the archived final; it never asserts a real prior score error, observation/review timestamp or successful save.",
+    "conflict": "Refresh preview keeps the proposed fields and reveals fictional version 2 only. Separate Use version is required, resets acknowledgment and creates no write. A new acknowledgment/review can show version 2 to 3 as an example. No automatic rebase. Matchup selection resets fields, acknowledgment and that game’s example version.",
+    "dialogAdaptation": "Selected native Dialog replaces the legacy presentation frame; native validation and warnings stay intact. Preview-only key/cancel/close boundaries keep the nested dialog/Info local to the Sheet, heading receives initial focus, Keep editing/Escape returns to the review opener, and repeated Escape keeps the fixed busy state open. No legacy controller is imported.",
+    "isolation": "Confirm/Refresh show no-action notices. No result API/auth read/write, request-ID generation, exact receipt success simulation, grading, audit, provider fetch, persistent storage, refresh, clock timer or message. No source URL is requested. Unavailable remains unavailable.",
+    "verification": {
+      "responsiveLayouts": 48,
+      "finalReviewScenarioFlows": 12,
+      "registeredLogoTiles": 8,
+      "exactNativeValidationHelpers": 3,
+      "nativeDisplayCopyFields": 14,
+      "validationCases": 16,
+      "publicFinalGames": 14,
+      "publicFinalFieldComparisons": 56,
+      "fixtureScenarioCases": 6,
+      "metadataCorrectionChecks": 3,
+      "nativeVersionRequestAndReceiptSourceChecks": 3,
+      "nativeInfoFocusThemes": 2,
+      "confirmationEscapeReturnThemes": 2,
+      "busyRepeatedEscapeThemes": 2,
+      "priorViews": 6,
+      "storageWrites": 0,
+      "nonGETRequests": 0,
+      "resultAndExampleSourceReads": 0,
+      "browserDialogs": 0,
+      "popups": 0,
+      "pageErrors": 0,
+      "controllerClockAndWriteExclusions": true,
+      "brandQA": true
+    },
+    "captures": [
+      "final-review-form-dark-phone.png",
+      "final-review-form-light-phone.png",
+      "final-review-confirmation-dark-phone.png",
+      "final-review-confirmation-light-phone.png",
+      "final-review-correction-dark-phone.png",
+      "final-review-correction-light-phone.png",
+      "final-review-conflict-dark-phone.png",
+      "final-review-conflict-light-phone.png",
+      "final-review-unavailable-dark-phone.png",
+      "final-review-unavailable-light-phone.png",
+      "final-review-busy-dark-phone.png",
+      "final-review-busy-light-phone.png"
+    ],
+    "delivery": "12 dark/Porcelain phone-width captures visually inspected. Extended heights show content; 320/390/768/1440 responsive layouts, footer/dialog bounds, narrow reachability, 44px controls, 16px fields, 29px score entry, native selects and separate loaded logo tiles checked independently.",
+    "production": "Review assets/evidence only. Actual results/review controller, permission grant, request IDs, exact receipt validation, versions/audits, grading, data/locks, APIs/auth/storage, collectors, production tokens, migrations and frozen v62 unchanged. No merge/deploy.",
+    "deferred": "Live commissioner authorization, source verification, request idempotency, exact result receipt, concurrency, audit retention, Challenge grading, persistence and physical-device acceptance remain separate. New avatars/photos and awards stay held.",
+    "next": "Odds connection mockups, followed by EPL stat-correction reviews."
   }
 }
