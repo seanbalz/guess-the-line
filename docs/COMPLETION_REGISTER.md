@@ -1,5 +1,15 @@
 # Guess The Line — current completion register
 
+## Bets tracking-button spacing approved — November 5, 2026
+
+Sean confirmed "Good" after the corrected phone previews. The 16px separation
+between the two-selection ticket divider and Track a bet button is approved.
+The [selection record](../design/style-directions-2026-11-04/selected-system-review.json)
+preserves this specific scope; it does not establish blanket Bets or whole-app
+acceptance. No UI or production changes accompany this approval record. The
+parked Signal files remain untouched and unpublished.
+
+
 ## Track a bet button cleared from ticket divider — November 5, 2026
 
 Sean reported the Track a bet bubble touching/overlapping the divider below the
