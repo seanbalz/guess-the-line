@@ -1,5 +1,21 @@
 # Guess The Line — current completion register
 
+## Individual EPL crest tiles prepared for review — November 5, 2026
+
+Sean replied "Good" to the recommendation to apply individual glass tiles to
+EPL's four example club crests. Each unchanged crest now has its own responsive
+glass tile, up to 52px square, with its club name outside. The shared layout is
+transparent. [Dark phone capture](../design/style-directions-2026-11-04/previews/epl-crest-tiles-dark-phone.png)
+and [light phone capture](../design/style-directions-2026-11-04/previews/epl-crest-tiles-light-phone.png)
+were inspected; paired/gallery captures were refreshed. Chromium verified eight
+independent tile backgrounds, loaded marks, image/tile containment and overflow
+at 320/390/768/1440px in both themes. Six native Pick a Team/Fantasy/Turn queue
+opens passed, with original three-row sample standings preserved. JavaScript
+syntax and Brand document QA passed. Phone captures use extended presentation
+height and do not establish physical-device acceptance. Visual approval remains
+pending; production, deferred features and parked Signal files are unchanged.
+
+
 ## EPL overview prepared for phone review — November 5, 2026
 
 Sean authorized reviewing EPL with previews delivered directly in chat. Current

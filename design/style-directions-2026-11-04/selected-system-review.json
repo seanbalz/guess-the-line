@@ -458,5 +458,14 @@
     "delivery": "Phone-accessible inline screenshots; extended 930px presentation captures, not physical-device acceptance",
     "accepted": "2026-11-05",
     "acceptanceScope": "Individual team-logo tiles in the reviewed Bets Recommended card, both themes; not blanket approval of Bets detail views or whole-app completion"
+  },
+  "eplCrestTiles": {
+    "date": "2026-11-05",
+    "status": "Implemented for review; approval pending",
+    "basis": "Sean replied Good to the recommendation to apply individual glass tiles",
+    "scope": "Four example club crests on EPL overview in both themes",
+    "layout": "One responsive glass tile per crest, up to 52px square, separate club names and transparent shared layout",
+    "sources": "Existing unchanged ARS/CHE/LIV/MNC registered assets",
+    "delivery": "Phone-width screenshots with extended presentation height, not physical-device acceptance"
   }
 }
