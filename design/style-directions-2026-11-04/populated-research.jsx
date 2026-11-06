@@ -16,6 +16,7 @@ import {EplPreview} from './populated-epl.jsx';
 import {GapRecordPreview} from './populated-gap-record.jsx';
 import {BetsChangesPreview} from './populated-bets-changes.jsx';
 import {BetsOverviewPreview} from './populated-bets-overview.jsx';
+import {AppInvitePreview} from './populated-app-invite.jsx';
 import {LeagueSetupPreview} from './populated-league-setup.jsx';
 import {AccountToolsPreview} from './populated-account-tools.jsx';
 import {AccountPreview} from './populated-account.jsx';
@@ -115,3 +116,5 @@ export function mountGapRecord(element,model){const root=createRoot(element);roo
 export function mountAccountTools(element,initialView,scenario){const root=createRoot(element);root.render(<AccountToolsPreview initialView={initialView} scenario={scenario}/>);return root;}
 
 export function mountLeagueSetup(element,initialView,scenario){const root=createRoot(element);root.render(<LeagueSetupPreview initialView={initialView} scenario={scenario}/>);return root;}
+
+export function mountAppInvite(element,initialView){const root=createRoot(element);root.render(<AppInvitePreview initialView={initialView} theme={element.dataset.theme}/>);return root;}

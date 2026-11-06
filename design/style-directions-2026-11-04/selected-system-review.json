@@ -389,13 +389,41 @@
         "actions": [
           "detail:league"
         ]
+      },
+      {
+        "id": "app-invite-entry",
+        "name": "App invite - Account entry",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "app-invite",
+        "name": "Invite friends to Guess the Line",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "app-invite-share",
+        "name": "App invite - device sharing proposal",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "app-invite-fallback",
+        "name": "App invite - link fallback",
+        "actions": [
+          "detail:profile"
+        ]
       }
     ]
   },
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "Account/league-switcher",
+    "next": "Account/app-invite",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -1786,7 +1814,7 @@
     "next": "League switching, creation and invitations. New avatars/photos and awards remain held."
   },
   "leagueSetupPreview": {
-    "status": "Mocked in both themes; visual approval pending",
+    "status": "Supplied league switching, creation and invitation direction approved by Sean in both themes",
     "prepared": "2026-11-06",
     "views": [
       "Community-first league switcher and incoming example invitation",
@@ -1844,6 +1872,68 @@
     ],
     "delivery": "12 dark/Porcelain phone-width extended-height screenshots, including scrolled statuses, visually inspected. Local preview verification only; not physical-device acceptance.",
     "production": "Review assets and evidence only. Production source/tokens, accounts, invitations, storage, collectors, migrations and frozen v62 unchanged. No merge or deployment.",
-    "deferred": "Actual creation/join/revocation, authorization, capacity, link expiry, persistent drafts and recovery remain separate. New avatars/photos and awards remain held."
+    "deferred": "Actual creation/join/revocation, authorization, capacity, link expiry, persistent drafts and recovery remain separate. New avatars/photos and awards remain held.",
+    "accepted": "2026-11-06",
+    "confirmation": "Looks good in both themes. Can we add the ability to invite to the app in general? Continue with the next mockups.",
+    "reviewedCommit": "5b917a92f2dcad726ab152aaa4350364f666d713",
+    "reviewedCaptures": [
+      "league-setup-switcher-dark-phone.png",
+      "league-setup-switcher-light-phone.png",
+      "league-setup-invite-dark-phone.png",
+      "league-setup-invite-light-phone.png",
+      "league-setup-create-dark-phone.png",
+      "league-setup-create-light-phone.png"
+    ],
+    "acceptanceScope": "Supplied league switcher, invitation entry/status direction and linked creation mockups in both themes only. Unseen link-ready, scrolled/revoked and pending-check states, actual creation/join/invitations, physical-device acceptance and whole-app completion remain separate.",
+    "next": "General app invitation mockups requested; app invitation is separate from private-league access. New avatars/photos and awards remain held."
+  },
+  "appInvitePreview": {
+    "status": "New requested feature mocked in both themes; shareable-link working assumption and visual direction await review",
+    "requested": "2026-11-06",
+    "request": "Can we add the ability to invite to the app in general? Continue with the next mockups.",
+    "assumption": "Public shareable app link recommended; link-versus-specific-email question was asked. No answer has been received as of preparation. Mockups demonstrate the recommendation only, not a confirmed product choice.",
+    "views": [
+      "Account entry placement",
+      "Invite friends with selected theme G and generic message",
+      "App-owned device-sharing explanation",
+      "Public link fallback with manual selection"
+    ],
+    "proposedProduction": "Account > Invite friends for every player, then device share on explicit tap or Copy link/manual fallback. Public root leads to existing sign-in/create-account UI. No private-league access granted.",
+    "payload": {
+      "title": "Guess the Line",
+      "text": "Join me on Guess the Line. Guess NFL spreads and totals, explore research, and compete with the Community.",
+      "url": "https://guess-the-line.pages.dev/"
+    },
+    "privacy": "No player identity, email, league ID, token, picks, odds or referral identifier in the payload. No contacts, address lists, referral rewards or automatic messages.",
+    "previewEffects": "Component memory and deliberate link text selection only. Device sharing/copy/SMS/email/auth/API/storage are not called. OS destinations are illustrative, not an iOS system screenshot; dismissing never claims a send.",
+    "verification": {
+      "responsiveLayouts": 32,
+      "fullInviteFlows": 2,
+      "payloadPrivacyAndIsolationAssertions": 14,
+      "narrowShareReachabilityThemes": 2,
+      "nestedInfoThemes": 2,
+      "keyboardEscapeReturnThemes": 2,
+      "priorViews": 6,
+      "shareCalls": 0,
+      "clipboardWrites": 0,
+      "storageWrites": 0,
+      "nonGETRequests": 0,
+      "pageErrors": 0,
+      "productionControllersExcluded": true,
+      "brandQA": true
+    },
+    "captures": [
+      "app-invite-account-entry-dark-phone.png",
+      "app-invite-account-entry-light-phone.png",
+      "app-invite-invite-dark-phone.png",
+      "app-invite-invite-light-phone.png",
+      "app-invite-link-fallback-dark-phone.png",
+      "app-invite-link-fallback-light-phone.png",
+      "app-invite-share-dark-phone.png",
+      "app-invite-share-light-phone.png"
+    ],
+    "delivery": "Eight dark/Porcelain phone-width extended-height captures visually inspected; local mockup checks only, not physical-phone acceptance.",
+    "production": "No app feature shipped; review assets and proposal records only. Native share/clipboard integration, live routing checks and device acceptance remain open. Existing league invitation behavior, production code/tokens, database, collectors and frozen v62 unchanged; no merge/deploy.",
+    "deferred": "Specific-email preference remains unresolved. New avatars/photos and awards stay held."
   }
 }

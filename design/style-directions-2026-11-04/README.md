@@ -1,3 +1,51 @@
+## General app invitation proposed and mocked — November 6, 2026
+
+Sean requested app-wide invitations while approving the supplied league setup
+mockups. The recommended shareable public link is now demonstrated in Account
+entry, invitation, app-owned sharing explanation and link fallback views. The
+link-versus-specific-email question was asked; no answer has arrived as of
+preparation. These mockups show the recommendation as a working assumption,
+not an approved product choice. Both themes require fresh visual approval.
+
+Every player would get Account > Invite friends. The public root opens the
+existing sign-in/create-account screen. The generic payload has no player,
+email, league, token, pick, odds or referral identifier and grants no private
+membership. In production, a deliberate share tap would use the device menu;
+Copy link/manual selection would provide a fallback. OS destinations are
+illustrative, and dismissing a share menu never establishes delivery. No
+contacts, automated email/SMS, rewards or attribution are proposed.
+
+Eight phone captures were visually inspected. Checks passed: 32 responsive
+layouts, full entry/share/dismiss/fallback/reopen flows in both themes, narrow
+share-action reachability, selected-logo loads, keyboard Escape/focus return,
+nested information, six prior views, and 14 payload/privacy/isolation assertions.
+No share calls, clipboard/storage writes, non-GET requests or page errors were
+observed. Build, controller exclusions, Brand QA and syntax/diff checks passed.
+The preview selects link text only. The initial invocation-detection check
+matched explanatory text; its pattern was narrowed to actual call syntax and
+then passed. No UI change was needed for that check correction.
+
+This is a new feature proposal and mockup, not a shipped invite capability.
+Native sharing/copy integration, live route and physical-device acceptance
+remain open. Existing league behavior, production source/tokens, accounts,
+collectors, migrations and frozen v62 are unchanged; no merge or deployment.
+New avatars/photos, awards and the three parked Signal files remain held.
+
+## League setup direction approved; general app invites requested — November 6, 2026
+
+Sean confirmed "Looks good in both themes" for the supplied league switcher,
+invitation entry and linked creation mockups at reviewed commit
+`5b917a92f2dcad726ab152aaa4350364f666d713`, then requested the ability to invite
+to Guess the Line generally and continuation of the mockups. This accepts the
+supplied visual direction in both themes; unseen link-ready, scrolled/revoked
+and pending-check states, actual account/invitation actions, physical-device
+acceptance and whole-app completion remain separate.
+
+General app invitation is an additional requested mockup scope, separate from
+email-bound private-league access. Sharing a public app link is the recommended
+approach; the link-versus-address preference is being clarified one question
+at a time before the dependent design. New avatars/photos and awards remain held.
+
 ## League setup and invitations mocked — November 6, 2026
 
 The selected dark/Porcelain glass system now covers the Community-first league

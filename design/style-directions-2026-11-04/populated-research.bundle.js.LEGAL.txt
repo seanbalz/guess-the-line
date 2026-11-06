@@ -65,6 +65,7 @@ lucide-react/dist/esm/icons/arrow-down.js:
 lucide-react/dist/esm/icons/arrow-left-right.js:
 lucide-react/dist/esm/icons/arrow-left.js:
 lucide-react/dist/esm/icons/arrow-right.js:
+lucide-react/dist/esm/icons/arrow-up-right.js:
 lucide-react/dist/esm/icons/arrow-up.js:
 lucide-react/dist/esm/icons/award.js:
 lucide-react/dist/esm/icons/bell-off.js:
@@ -113,6 +114,7 @@ lucide-react/dist/esm/icons/refresh-cw.js:
 lucide-react/dist/esm/icons/scale.js:
 lucide-react/dist/esm/icons/settings-2.js:
 lucide-react/dist/esm/icons/settings.js:
+lucide-react/dist/esm/icons/share-2.js:
 lucide-react/dist/esm/icons/shield-check.js:
 lucide-react/dist/esm/icons/shield.js:
 lucide-react/dist/esm/icons/sliders-horizontal.js:
@@ -124,6 +126,7 @@ lucide-react/dist/esm/icons/trending-up.js:
 lucide-react/dist/esm/icons/triangle-alert.js:
 lucide-react/dist/esm/icons/trophy.js:
 lucide-react/dist/esm/icons/user-plus.js:
+lucide-react/dist/esm/icons/user-round.js:
 lucide-react/dist/esm/icons/users.js:
 lucide-react/dist/esm/icons/x.js:
 lucide-react/dist/esm/lucide-react.js:
