@@ -1,5 +1,40 @@
 # Guess The Line — current completion register
 
+## Populated Research Trends list preview — November 5, 2026
+
+Sean approved moving the populated research approach to Research's Trends list.
+The review now reuses GTL's actual TrendRow, TrendDetail and ResearchChart
+components, with six fixed examples from the same 750-candidate public research
+snapshot used by the approved game view. Cards show real win rates, W-L-P
+records, sample sizes and cumulative illustrative-unit sparklines. All/Spread/
+Totals and six evidence-period filters work. Each card expands to the original
+interactive chart, 25 season comparisons and linked supporting-result tables.
+The examples include positive and negative returns; they are category samples,
+not ranked recommendations or a complete catalogue implementation.
+
+[Dark list](../design/style-directions-2026-11-04/previews/trends-list-dark-phone.png),
+[light list](../design/style-directions-2026-11-04/previews/trends-list-light-phone.png),
+[dark expanded card](../design/style-directions-2026-11-04/previews/trends-list-expanded-dark-phone.png) and
+[light expanded card](../design/style-directions-2026-11-04/previews/trends-list-expanded-light-phone.png)
+provide phone-accessible review captures. Extended capture height shows more
+scrollable content; it does not establish physical-device acceptance. The
+selection record marks this new list **pending visual approval**. The approved
+game direction and previous screen decisions remain recorded at their own scope.
+
+Source preparation validates six publication hashes/shared schemas and the
+completed schedule fingerprint. All six candidates' reconstructed full-history
+records/illustrative units match the publication. Chromium checked eight
+width/theme layouts, 288 displayed source records, 48 expanded charts, 24 market
+filter states, season/keyboard/supporting-result linkage, native Back and the
+approved game header. No page errors or document/expanded-card overflow was
+found in these checks. Original 16px table values and local table scrolling are
+retained. Brand QA, syntax and the public-export scope check passed.
+
+Only review assets/records changed. No new authenticated reads, private picks,
+upcoming quotes, collector changes, production integration, migration, merge or
+deployment occurred. Avatars/awards stay deferred; parked Signal files remain
+unpublished. The first design project is not declared complete.
+
 ## Populated game-detail direction approved — November 5, 2026
 
 Sean confirmed "Good" after the rebuilt phone previews using existing GTL chart

@@ -544,5 +544,39 @@
     "delivery": "Phone-width captures with extended presentation height, not physical-device acceptance",
     "accepted": "2026-11-05",
     "acceptanceScope": "Reviewed Arizona/Seattle public-snapshot game preview, real trend/team chart components and populated information depth in both themes; not production integration, live quote acceptance or whole-project completion"
+  },
+  "populatedTrendsList": {
+    "date": "2026-11-05",
+    "status": "Mocked for Sean; visual approval pending",
+    "basis": "Sean agreed to carry the approved populated research approach into the Trends list",
+    "scope": "Research / Trends opened layer, both themes; six fixed examples from 750 published candidates",
+    "components": [
+      "web/src/next/charts/TrendRow.jsx",
+      "web/src/next/charts/TrendDetail.jsx",
+      "web/src/next/research/ResearchChart.jsx"
+    ],
+    "source": "Same fingerprint-verified public research-data-2026 snapshot as the approved game view; no new live or authenticated reads",
+    "selection": "Fixed category/side choices: divisional road ATS, ATS after a loss, non-divisional home ATS, divisional overs, primetime unders and indoor overs. Includes positive and negative illustrative returns; never ranked by performance.",
+    "features": [
+      "Real win rates, W-L-P records and sample counts",
+      "Cumulative illustrative-unit sparklines",
+      "All / Spread / Totals filters",
+      "Six evidence periods",
+      "Expandable original charts",
+      "25 seasons per candidate with linked tables",
+      "Keyboard chart selection and supporting results"
+    ],
+    "privacy": "Completed public history only; no private picks, account records, new odds collection or upcoming quotes",
+    "delivery": "Phone-width list and expanded-card captures, extended presentation height; not physical-device acceptance",
+    "verification": {
+      "responsiveLayouts": 8,
+      "sourceRowsChecked": 288,
+      "expandedCharts": 48,
+      "marketFilterChecks": 24,
+      "seasonsPerCandidate": 25,
+      "backAndGameChecks": 2,
+      "pageErrors": 0
+    },
+    "preserved": "Approved materials, logo, icons, game preview and native Back navigation. Production app and tokens unchanged; avatars and awards remain deferred."
   }
 }

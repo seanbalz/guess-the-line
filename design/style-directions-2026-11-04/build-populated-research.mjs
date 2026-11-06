@@ -7,4 +7,4 @@ const esbuild=require('esbuild'),out='design/style-directions-2026-11-04/';
 const result=await esbuild.build({entryPoints:[out+'populated-research.jsx'],bundle:true,format:'iife',globalName:'GTLPopulatedResearch',outfile:out+'populated-research.bundle.js',minify:true,jsx:'automatic',nodePaths:[dependencyRoot],define:{'process.env.NODE_ENV':'"production"'},legalComments:'linked',metafile:true});
 fs.writeFileSync('.local/populated-research-build-inputs.json',JSON.stringify(Object.keys(result.metafile.inputs),null,2));
 const notices=['react','react-dom','lucide-react'].map(name=>`${name}\n${fs.readFileSync(path.join(dependencyRoot,name,'LICENSE'),'utf8')}`).join('\n\n');fs.writeFileSync(out+'populated-research-NOTICES.txt',notices);
-console.log(JSON.stringify({inputs:Object.keys(result.metafile.inputs).length,bytes:fs.statSync(out+'populated-research.bundle.js').size,components:['TrendDetail','ResearchChart','MarginChart']}));
+console.log(JSON.stringify({inputs:Object.keys(result.metafile.inputs).length,bytes:fs.statSync(out+'populated-research.bundle.js').size,components:['TrendRow','TrendDetail','ResearchChart','MarginChart']}));
