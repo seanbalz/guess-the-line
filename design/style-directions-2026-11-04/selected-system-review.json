@@ -661,7 +661,7 @@
   },
   "populatedFantasy": {
     "date": "2026-11-05",
-    "status": "Mocked for Sean; visual approval pending",
+    "status": "Approved by Sean for the reviewed Fantasy usage/comparison direction",
     "scope": "Research / Fantasy observed-production browse, player usage/profile and two/three-player comparison, selected dark/light themes",
     "source": "Published Fantasy Week 9 snapshot 2026-week-09.ef4d5052.json, generated 2026-11-05T18:25:57.010Z; 525 public NFL athletes; observed statistics through Week 8; CC BY 4.0",
     "sha256": "ef4d505200eb2e09ecb6b8635e288a8a6c7449f0c67d23357e3916477eae3339",
@@ -698,6 +698,10 @@
     "privacy": "Only the checksum-verified public NFL research file; no Guess picks, bookmaker lines, player account data or production Fantasy/auth/API readers. All source attribution retained.",
     "delivery": "Six phone-width captures of browse, comparison and Ja'Marr Chase profile in both themes. Extended presentation heights; not physical-device acceptance.",
     "remaining": "Weekly ranking/report-card workflow and other unseen states are not declared reviewed or complete. Avatars and awards remain deferred.",
-    "preserved": "Approved Team, Games, Trends and game-detail source data, selected materials and original app rules; no production code/tokens, collectors, scoring, migrations or frozen v62 changes."
+    "preserved": "Approved Team, Games, Trends and game-detail source data, selected materials and original app rules; no production code/tokens, collectors, scoring, migrations or frozen v62 changes.",
+    "accepted": "2026-11-05",
+    "confirmation": "Sean replied Good after receiving the player-list and comparison previews plus the full usage-profile captures in both themes.",
+    "acceptanceScope": "Reviewed Fantasy player-list, comparison and usage-profile visual direction, preserving observed statistics, original tools and selected glass styling. Not separate acceptance of every unseen player/state, weekly rankings/report cards, current live-data freshness, production integration or whole-project completion.",
+    "next": "Recommended next review: Fantasy weekly rankings and accuracy report. Deferred avatars/awards remain held."
   }
 }

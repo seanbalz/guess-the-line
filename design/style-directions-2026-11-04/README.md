@@ -1,3 +1,16 @@
+## Fantasy usage/comparison direction approved — November 5, 2026
+
+Sean confirmed "Good" after the player-list and comparison previews and the
+linked full usage-profile captures in the selected dark/light themes. The
+reviewed Fantasy usage/comparison direction is approved, including the selected
+glass styling and preservation of observed statistics and original tools. The
+[selection record](selected-system-review.json) retains the reviewed scope.
+This does not establish separate acceptance of every unseen player/state,
+weekly rankings/report cards, current live feeds, production integration or
+whole-project completion. No UI, data or asset changes accompany this record.
+Fantasy weekly rankings and the accuracy report are the recommended next review.
+Deferred avatars/awards and parked Signal files remain unchanged.
+
 ## Populated Fantasy usage and comparisons — November 5, 2026
 
 Sean approved preparing the Fantasy mockup with existing usage charts and player
