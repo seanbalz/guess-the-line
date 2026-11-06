@@ -522,13 +522,48 @@
         "actions": [
           "detail:profile"
         ]
+      },
+      {
+        "id": "export-data",
+        "name": "Export my data",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "export-preparing",
+        "name": "Export - Preparation example",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "export-completion",
+        "name": "Export - Completion example",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "export-failed",
+        "name": "Export - Failure example",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "export-unavailable",
+        "name": "Export - Unavailable example",
+        "actions": [
+          "detail:profile"
+        ]
       }
     ]
   },
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "Account/appearance",
+    "next": "Account/export-data",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -2183,7 +2218,7 @@
     "next": "Appearance: Dark/Light/System, Reduce motion and unavailable device storage examples."
   },
   "appearancePreview": {
-    "status": "Mocked in both themes; fresh visual approval pending",
+    "status": "Supplied Appearance direction approved in both themes",
     "prepared": "2026-11-06",
     "views": [
       "Dark/Light preference with selected miniature Home card",
@@ -2228,6 +2263,72 @@
     ],
     "delivery": "Ten dark/Porcelain phone-width extended-height captures visually inspected. Local preview verification only; not physical-device, animation or persistence acceptance.",
     "production": "Review assets/evidence only. Production appearance providers, preferences, browser theme metadata, palettes/tokens, accounts, collectors, migrations and frozen v62 unchanged. No merge/deploy.",
-    "deferred": "Actual persistence, cross-tab behavior, browser/OS theme changes, effective real animation, updates/icons and physical-device acceptance remain separate. New avatars/photos and awards stay held."
+    "deferred": "Actual persistence, cross-tab behavior, browser/OS theme changes, effective real animation, updates/icons and physical-device acceptance remain separate. New avatars/photos and awards stay held.",
+    "accepted": "2026-11-06",
+    "confirmation": "Looks good in both themes. Continue with the next mockups.",
+    "reviewedCommit": "9ac86fc282cfd55c6121b2a4141e44406f76b229",
+    "reviewedCaptures": [
+      "appearance-theme-dark-phone.png",
+      "appearance-theme-light-phone.png",
+      "appearance-system-dark-phone.png",
+      "appearance-system-light-phone.png",
+      "appearance-reduced-dark-phone.png",
+      "appearance-reduced-light-phone.png",
+      "appearance-device-reduced-dark-phone.png",
+      "appearance-device-reduced-light-phone.png",
+      "appearance-storage-unavailable-dark-phone.png",
+      "appearance-storage-unavailable-light-phone.png"
+    ],
+    "acceptanceScope": "Supplied Appearance, System, explicit/device-reduced motion and unavailable-storage direction in both themes. Actual persistence, OS/browser behavior, animation, physical-device acceptance and whole-app completion remain separate.",
+    "next": "Export my data, preparation, completion example and failure/unavailable mockups."
+  },
+  "exportPreview": {
+    "status": "Mocked in both themes; fresh visual approval pending",
+    "prepared": "2026-11-06",
+    "views": [
+      "Export overview and existing record categories",
+      "Preparation with busy guard",
+      "Labelled completion-message example",
+      "Preparation failure and explicit retry",
+      "Unavailable export and no-action availability check"
+    ],
+    "nativePreservation": "Seven native EXPORT_COPY fields and exact exportFileName helper are isolated without the authenticated controller. All three INFO.export paragraphs are retained unchanged, including own records only, push devices excluded and nothing changed or deleted. Existing ownerId guard remains in the actual controller.",
+    "isolation": "No account record, private pick/line, count, JSON payload or export timestamp is read or fabricated. YYYY-MM-DD is a filename pattern. Completion is a labelled example only. No API, Blob, object URL, download anchor, download event, clipboard, storage or message operation. Preparation advances only on an explicit storyboard tap.",
+    "verification": {
+      "responsiveLayouts": 40,
+      "exportScenarioFlows": 6,
+      "nativeCopyFields": 7,
+      "nativeFilenameCases": 3,
+      "nativeFilenameBodyParity": true,
+      "nativeGuidanceParagraphComparisons": 6,
+      "keyboardEscapeReturnThemes": 2,
+      "priorViews": 6,
+      "storageWrites": 0,
+      "objectUrls": 0,
+      "downloads": 0,
+      "nonGETRequests": 0,
+      "authReads": 0,
+      "pageErrors": 0,
+      "controllerAndFileOperationExclusions": true,
+      "nativeSQLSourceChecksPassed": 1,
+      "nativeSQLRuntimeChecksSkipped": 2,
+      "runtimeSkipReason": "Optional local PGlite runtime not installed; no remote database test run.",
+      "brandQA": true
+    },
+    "captures": [
+      "export-completion-dark-phone.png",
+      "export-completion-light-phone.png",
+      "export-failed-dark-phone.png",
+      "export-failed-light-phone.png",
+      "export-overview-dark-phone.png",
+      "export-overview-light-phone.png",
+      "export-preparing-dark-phone.png",
+      "export-preparing-light-phone.png",
+      "export-unavailable-dark-phone.png",
+      "export-unavailable-light-phone.png"
+    ],
+    "delivery": "Ten dark/Porcelain phone-width extended-height captures visually inspected. Local mockup verification only; not an actual export, data-preservation audit or physical-device file acceptance.",
+    "production": "Review assets/evidence only. ExportSheet, actual owner checks, APIs/database, accounts, collectors, production branding/tokens, migrations and frozen v62 unchanged. No merge/deploy.",
+    "deferred": "Actual authenticated export bytes, full database runtime tests, owner isolation, browser file handling, hosted availability and physical-phone acceptance remain separate. New avatars/photos and awards stay held."
   }
 }

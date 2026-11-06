@@ -1,3 +1,48 @@
+## Export my data mocked — November 6, 2026
+
+The selected dark/Porcelain glass system now covers Export my data, preparation,
+a labelled completion example, failure/retry and unavailable service. A JSON
+file hero and four record-category cards give the existing personal-export
+flow a visual hierarchy. The seven native export copy fields and exact filename
+helper are isolated without the controller. All three original INFO.export
+paragraphs are unchanged: own records and revisions, no other-player records or
+push-device addresses/keys, and nothing changed or deleted.
+
+No account record, private pick/line, record count, payload or export time is
+read or invented. YYYY-MM-DD is a filename pattern, and the completion card is
+explicitly labelled an example with no file created. Preparation disables the
+main action and has no timer or automatic transition. Its completion button is
+a storyboard step. Failed retry and unavailable check affect example memory
+only; the unavailable example never asserts a service recovery.
+
+Ten dark/light phone captures were inspected; visual approval is pending.
+Checks passed: 40 responsive layouts, six export scenario flows, seven native
+copy fields, three filename cases/exact helper parity and six native guidance
+paragraph comparisons. Busy guard, explicit transitions, failure/unavailable
+behavior, narrow action reachability, native information and Sheet keyboard/
+Escape/opener return, memory on reopen and six prior views passed. No object
+URL, download, storage write, auth read, non-GET request or page error was
+observed. Build, controller/file-operation exclusions, Brand QA and syntax/diff
+checks passed. The existing SQL suite passed one source check; two optional
+PGlite runtime checks were skipped because that local runtime is not installed.
+No remote database test was run; no new database/hosted isolation claim is made.
+
+Production export controller and ownerId check, account records, API/database,
+collectors, branding/tokens, migrations and frozen v62 are unchanged; no merge
+or deployment. Actual export bytes, complete database runtime verification,
+owner isolation, file handling and physical-phone acceptance remain separate.
+New avatars/photos, awards and parked Signal work remain held.
+
+## Appearance direction approved — November 6, 2026
+
+Sean confirmed "Looks good in both themes. Continue with the next mockups."
+The supplied Appearance, System, explicit/device-reduced motion and unavailable
+storage direction is approved in both themes at reviewed commit
+`9ac86fc282cfd55c6121b2a4141e44406f76b229`. Actual persistence, OS/browser
+behavior, animation, physical-device acceptance and whole-app completion remain
+separate. Export my data and its preparation/completion/error examples are next.
+New avatars/photos and awards remain held.
+
 ## Appearance controls mocked — November 6, 2026
 
 The selected dark/Porcelain glass system now covers Appearance: Dark, Light,

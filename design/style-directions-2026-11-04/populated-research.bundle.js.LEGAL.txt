@@ -91,12 +91,14 @@ lucide-react/dist/esm/icons/database.js:
 lucide-react/dist/esm/icons/diamond.js:
 lucide-react/dist/esm/icons/download.js:
 lucide-react/dist/esm/icons/eye.js:
+lucide-react/dist/esm/icons/file-json.js:
 lucide-react/dist/esm/icons/filter.js:
 lucide-react/dist/esm/icons/flame.js:
 lucide-react/dist/esm/icons/history.js:
 lucide-react/dist/esm/icons/house.js:
 lucide-react/dist/esm/icons/info.js:
 lucide-react/dist/esm/icons/key-round.js:
+lucide-react/dist/esm/icons/layers.js:
 lucide-react/dist/esm/icons/link-2.js:
 lucide-react/dist/esm/icons/loader-circle.js:
 lucide-react/dist/esm/icons/lock-keyhole.js:
