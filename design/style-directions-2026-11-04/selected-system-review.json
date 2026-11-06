@@ -521,7 +521,7 @@
   },
   "populatedGameResearch": {
     "date": "2026-11-05",
-    "status": "Implemented for visual review; approval pending",
+    "status": "Approved by Sean for the reviewed populated game-detail visual direction",
     "matchup": "2026 Week 9, Arizona at Seattle, November 8",
     "source": "populated-research-data.json: published GTL research-data-2026 files with SHA-256/shared validation; completed schedule fingerprint matches publication",
     "components": [
@@ -541,6 +541,8 @@
     "preserved": "Approved logo, individual logo tiles, compact header, glass/materials, dark/light palettes and other screens",
     "privacy": "Public completed-game research only; no private picks, account records, upcoming bookmaker quotes, auth modules or new odds requests",
     "marketHistory": "Existing GTL game route preserves its own access/freshness checks; no unavailable fixture graph is displayed by default",
-    "delivery": "Phone-width captures with extended presentation height, not physical-device acceptance"
+    "delivery": "Phone-width captures with extended presentation height, not physical-device acceptance",
+    "accepted": "2026-11-05",
+    "acceptanceScope": "Reviewed Arizona/Seattle public-snapshot game preview, real trend/team chart components and populated information depth in both themes; not production integration, live quote acceptance or whole-project completion"
   }
 }

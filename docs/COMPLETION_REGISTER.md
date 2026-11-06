@@ -1,5 +1,19 @@
 # Guess The Line — current completion register
 
+## Populated game-detail direction approved — November 5, 2026
+
+Sean confirmed "Good" after the rebuilt phone previews using existing GTL chart
+components and verified public research. The reviewed populated Arizona/Seattle
+Trends/Team presentation is approved as the visual/data-depth direction. The
+[selection record](../design/style-directions-2026-11-04/selected-system-review.json)
+preserves that scope. Existing data and chart capabilities must remain the
+redesign baseline; the superseded sparse fixture is not restored. Approval is
+not production integration, live quote or physical-device acceptance, or whole-
+project completion. No UI changes accompany this record. Research's Trends list
+is the recommended next review area. Deferred features and parked Signal files
+remain unchanged.
+
+
 ## Populated game research rebuilt from existing app components — November 5, 2026
 
 Sean instructed continuing after challenging the sparse mockup. The active opened
