@@ -1,3 +1,53 @@
+## Bets ticket details and entry mocked — November 6, 2026
+
+The selected glass treatment now covers a settled two-selection receipt, an open
+single example, opened receipt context and the Track a bet form in both themes.
+Each team has its own glass tile. Full-width selection cards, lime return values
+and the approved clear outlined buttons preserve the prior visual selections.
+
+The receipt is **fictional**. Its two selection lines reuse the reviewed public
+Week 8 historical closing references; these are not anyone’s placed terms or
+current quotes. The sample 0.5U stake and 1.25U player-reported full return give
++0.75U net. Prices, sportsbook and quote/placement times remain unknown. NFL
+research cannot supply personal receipt terms, and unknown prices never default
+to −110 or an invented return.
+
+The preview uses native TrackedBetRow and the native BetEditor body, exact except
+the ordinary Save caption is marked Preview. A local Modal adds the preview
+notice, and native matchup choices gain separate logo tiles/full-name options.
+Native entry controls, cash conversion and pure domain validation/normalization
+are retained. The callback validates ephemeral fixture memory, then discards
+generated recording metadata; no account, database, record or preference changes.
+No API reader/writer is imported. Existing manual prop entry remains available;
+player suggestions and further prop/correction/tail/settlement flows are outside
+this supplied review. New avatars and awards stay held.
+
+Twelve phone captures were inspected, including a 1300px extended terms view.
+**Ticket/form visual approval remains pending.** Checks passed: eight responsive
+layouts and eight form layouts, two advanced entry flows, two cash conversion
+flows, 32 logo loads and four prior-view regressions. All 21 selected native
+model tests pass. Two historical references and the sample return arithmetic
+were independently checked. Native editor-body equality, reader exclusions,
+Brand document QA and syntax/diff checks pass. Browser checks produced no page
+errors or non-GET requests. These checks do not establish physical-device or
+production acceptance.
+
+[Selection and evidence](selected-system-review.json) · [Ticket mockup](selected-system-review.html?screen=Bets&layer=ticket).
+Production source/tokens, scoring, collectors, migrations, frozen v62 and parked
+Signal files remain unchanged. No merge or deployment was performed.
+
+## League visual direction approved — November 6, 2026
+
+Sean replied "Yes good continue" after the supplied League leaderboard, feed and
+comment sheet, with Points/hidden-pick and Porcelain views linked. The supplied
+League direction is approved. [Selection record](selected-system-review.json) preserves the exact
+reviewed commit and eight supplied captures. This covers the supplied visual
+direction, not every unseen market/state, live account behavior or whole-project
+completion. Fictional sample activity remains labeled; no post was sent.
+
+Bets ticket details and the Track a bet form are the next visual review.
+Avatars, awards and parked Signal branding remain held.
+
 ## League leaderboard and feed mocked — November 6, 2026
 
 The selected glass system now covers a League leaderboard, separate Spread,

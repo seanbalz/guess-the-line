@@ -1,0 +1,121 @@
+{
+  "kind": "FICTIONAL_TRACKED_TICKET_VISUAL_PREVIEW",
+  "prepared": "2026-11-06",
+  "source": {
+    "definition": "https://nflverse.r-universe.dev/nflfastR/nflfastR.pdf#page=27",
+    "release": "https://github.com/seanbalz/guess-the-line/releases/tag/research-data-2026",
+    "schedule": "https://github.com/nflverse/nflverse-data/releases/tag/schedules",
+    "file": "https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv",
+    "publicationGeneratedAt": "2026-11-05T22:43:15.728Z",
+    "completedSha256": "48fbdd6f9f63ffcc0a0322dd7f5b22fa0faa0303874f21200baebff5d30831df",
+    "credit": "nflverse Â· Lee Sharpe Â· CC BY 4.0",
+    "referenceMeaning": "Recorded historical closing lines; not verified submission-time references, current quotes or three-book consensus. No observation/save timestamps or sportsbook identities are fabricated."
+  },
+  "games": [
+    {
+      "id": "CAR-GB",
+      "awayCode": "CAR",
+      "homeCode": "GB",
+      "awayName": "Carolina Panthers",
+      "homeName": "Green Bay Packers",
+      "kickoff": "2026-10-30T00:15:00.000Z",
+      "recordedFinal": {
+        "away": 19,
+        "home": 27
+      },
+      "gameKey": "2026_08_CAR_GB",
+      "away": "Carolina Panthers",
+      "home": "Green Bay Packers",
+      "season": 2026,
+      "week": 8
+    },
+    {
+      "id": "BAL-BUF",
+      "awayCode": "BAL",
+      "homeCode": "BUF",
+      "awayName": "Baltimore Ravens",
+      "homeName": "Buffalo Bills",
+      "kickoff": "2026-11-01T18:00:00.000Z",
+      "recordedFinal": {
+        "away": 10,
+        "home": 36
+      },
+      "gameKey": "2026_08_BAL_BUF",
+      "away": "Baltimore Ravens",
+      "home": "Buffalo Bills",
+      "season": 2026,
+      "week": 8
+    }
+  ],
+  "receipt": {
+    "id": "demo-tracked-ticket",
+    "ownerId": "demo-viewer",
+    "origin": "tracked",
+    "kind": "parlay",
+    "season": 2026,
+    "week": 8,
+    "legs": [
+      {
+        "gameId": "CAR-GB",
+        "market": "spread",
+        "side": "home",
+        "line": -3.5,
+        "selection": "Green Bay Packers −3.5",
+        "referenceMeaning": "Historical closing-line illustration, not a placed ticket or current quote"
+      },
+      {
+        "gameId": "BAL-BUF",
+        "market": "total",
+        "side": "under",
+        "line": 54.5,
+        "selection": "Under 54.5 total points",
+        "referenceMeaning": "Historical closing-line illustration, not a placed ticket or current quote"
+      }
+    ],
+    "odds": null,
+    "stakeUnits": 0.5,
+    "actualReturnUnits": 1.25,
+    "netUnits": 0.75,
+    "outcome": "win",
+    "source": "",
+    "quotedAt": null,
+    "placedAt": null,
+    "recordedAt": null,
+    "settledAt": null,
+    "settlementSource": "user_reported",
+    "countsForRecord": true,
+    "notes": "Fictional two-selection receipt. Stake and reported return are layout examples; no sportsbook price or time is supplied."
+  },
+  "draft": {
+    "id": "demo-entry-draft",
+    "ownerId": "demo-viewer",
+    "origin": "tracked",
+    "kind": "single",
+    "season": 2026,
+    "week": 8,
+    "legs": [
+      {
+        "gameId": "CAR-GB",
+        "market": "spread",
+        "side": "home",
+        "line": -3.5,
+        "selection": "Green Bay Packers −3.5",
+        "referenceMeaning": "Historical closing-line illustration, not a placed ticket or current quote"
+      }
+    ],
+    "odds": null,
+    "stakeUnits": 0.5,
+    "actualReturnUnits": null,
+    "netUnits": null,
+    "outcome": "pending",
+    "source": "",
+    "quotedAt": null,
+    "placedAt": null,
+    "recordedAt": null,
+    "settledAt": null,
+    "settlementSource": "user_reported",
+    "countsForRecord": true,
+    "notes": ""
+  },
+  "notice": "Fictional receipt and entry example. Historical closing references supply only illustrative selection lines. Stake/return are sample values. No actual bet, sportsbook price, quote time or placement time is supplied."
+}

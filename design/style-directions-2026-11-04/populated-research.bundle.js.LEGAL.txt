@@ -71,6 +71,7 @@ lucide-react/dist/esm/icons/check.js:
 lucide-react/dist/esm/icons/chevron-down.js:
 lucide-react/dist/esm/icons/chevron-left.js:
 lucide-react/dist/esm/icons/chevron-right.js:
+lucide-react/dist/esm/icons/chevron-up.js:
 lucide-react/dist/esm/icons/circle-help.js:
 lucide-react/dist/esm/icons/circle-user.js:
 lucide-react/dist/esm/icons/clipboard-check.js:
@@ -92,6 +93,7 @@ lucide-react/dist/esm/icons/palette.js:
 lucide-react/dist/esm/icons/pencil.js:
 lucide-react/dist/esm/icons/plug.js:
 lucide-react/dist/esm/icons/plus.js:
+lucide-react/dist/esm/icons/receipt-text.js:
 lucide-react/dist/esm/icons/receipt.js:
 lucide-react/dist/esm/icons/refresh-cw.js:
 lucide-react/dist/esm/icons/scale.js:
@@ -100,6 +102,7 @@ lucide-react/dist/esm/icons/shield-check.js:
 lucide-react/dist/esm/icons/sliders-horizontal.js:
 lucide-react/dist/esm/icons/target.js:
 lucide-react/dist/esm/icons/ticket.js:
+lucide-react/dist/esm/icons/trash-2.js:
 lucide-react/dist/esm/icons/trending-up.js:
 lucide-react/dist/esm/icons/triangle-alert.js:
 lucide-react/dist/esm/icons/trophy.js:

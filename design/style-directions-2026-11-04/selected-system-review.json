@@ -994,7 +994,7 @@
   },
   "leaguePreview": {
     "prepared": "2026-11-06",
-    "status": "Mocked; awaiting Sean visual approval",
+    "status": "Supplied League visual direction approved by Sean",
     "view": "selected-system-review.html?screen=Play&layer=league",
     "kind": "FICTIONAL_LEAGUE_VISUAL_PREVIEW",
     "members": 9,
@@ -1051,6 +1051,88 @@
     ],
     "delivery": "Phone-width extended-height captures; not physical-device acceptance",
     "production": "Unchanged; not merged or deployed",
-    "deferred": "New avatar/profile-picture options, awards and parked Signal branding remain held; whole-project review is incomplete"
+    "deferred": "New avatar/profile-picture options, awards and parked Signal branding remain held; whole-project review is incomplete",
+    "accepted": "2026-11-06",
+    "confirmation": "Sean replied Yes good continue to the League direction approval question.",
+    "reviewedCommit": "77bf312303a35acd1119fdc6e30efec2da2861ab",
+    "reviewedCaptures": [
+      "league-spread-board-dark-phone.png",
+      "league-feed-dark-phone.png",
+      "league-comments-dark-phone.png",
+      "league-points-board-dark-phone.png",
+      "league-hidden-picks-dark-phone.png",
+      "league-spread-board-light-phone.png",
+      "league-feed-light-phone.png",
+      "league-comments-light-phone.png"
+    ],
+    "acceptanceScope": "Supplied leaderboard/feed/comment direction and linked Points/hidden-pick examples. Not every unseen market/state, actual league/account activity, production integration or whole-project completion.",
+    "next": "Bets ticket details and Track a bet form visual review; avatars and awards remain held."
+  },
+  "betsTicketDetailPreview": {
+    "prepared": "2026-11-06",
+    "status": "Mocked; awaiting Sean visual approval",
+    "views": [
+      "selected-system-review.html?screen=Bets&layer=ticket",
+      "selected-system-review.html?screen=Bets&layer=tracking"
+    ],
+    "sampleMeaning": "Fictional receipt and manual entry. Two selection lines reuse reviewed public historical closing references. The 0.5U stake and 1.25U reported return illustrate +0.75U net; no actual personal ticket, bookmaker price, quote time or placement time is supplied.",
+    "source": {
+      "definition": "https://nflverse.r-universe.dev/nflfastR/nflfastR.pdf#page=27",
+      "release": "https://github.com/seanbalz/guess-the-line/releases/tag/research-data-2026",
+      "schedule": "https://github.com/nflverse/nflverse-data/releases/tag/schedules",
+      "file": "https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv",
+      "publicationGeneratedAt": "2026-11-05T22:43:15.728Z",
+      "completedSha256": "48fbdd6f9f63ffcc0a0322dd7f5b22fa0faa0303874f21200baebff5d30831df",
+      "credit": "nflverse Ã‚Â· Lee Sharpe Ã‚Â· CC BY 4.0",
+      "referenceMeaning": "Recorded historical closing lines; not verified submission-time references, current quotes or three-book consensus. No observation/save timestamps or sportsbook identities are fabricated."
+    },
+    "components": [
+      "Native TrackedBetRow / Matchup / Pill",
+      "Native BetEditor body, exact except ordinary Save caption marked Preview",
+      "Local Modal adds preview notice; native matchup choices gain separate logo tiles and full-name text options",
+      "Native ChoiceButtons / NumberChoices / SpreadChoices / BookChoices / manual PlayerPropEntry",
+      "Native cashToUnits and pure applySocialMutation / socialView validation/accounting, used only on ephemeral fixture memory"
+    ],
+    "features": [
+      "Settled two-selection receipt and open single example",
+      "One glass tile per team; full-width selection cards and lime results",
+      "Receipt details retain unfilled price/source/times and sample reported full return",
+      "Single/parlay entry; incomplete leg guard; native domain validation errors",
+      "Units or cash input with native exact conversion; one stake/price per parlay",
+      "No assumed odds or return; prices and times remain blank unless entered",
+      "Local receipt preview explicitly says nothing saved; generated recording metadata is discarded"
+    ],
+    "verification": {
+      "responsiveLayouts": 8,
+      "nativeFormLayouts": 8,
+      "advancedEntryFlows": 2,
+      "cashConversionFlows": 2,
+      "registeredLogoLoads": 32,
+      "priorViewChecks": 4,
+      "nativeModelTestsPassed": 21,
+      "historicalReferenceChecks": 2,
+      "sampleReportedNetArithmetic": true,
+      "nativeEditorBodyExactExceptPreviewLabel": true,
+      "productionReaderExclusions": true,
+      "pageErrors": 0,
+      "nonGETRequests": 0
+    },
+    "captures": [
+      "bets-entry-selection-dark-phone.png",
+      "bets-entry-selection-light-phone.png",
+      "bets-entry-terms-dark-phone.png",
+      "bets-entry-terms-light-phone.png",
+      "bets-local-preview-dark-phone.png",
+      "bets-local-preview-light-phone.png",
+      "bets-open-ticket-dark-phone.png",
+      "bets-open-ticket-light-phone.png",
+      "bets-receipt-context-dark-phone.png",
+      "bets-receipt-context-light-phone.png",
+      "bets-receipt-dark-phone.png",
+      "bets-receipt-light-phone.png"
+    ],
+    "delivery": "Phone-width extended-height captures; terms view 1300px. Not physical-device acceptance.",
+    "production": "Unchanged; no account writes, merge or deployment",
+    "deferred": "Player suggestions, further prop/correction/tail/settlement and other unseen states remain unreviewed. New avatars, awards and parked Signal branding remain held."
   }
 }
