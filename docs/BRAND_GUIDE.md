@@ -1,5 +1,14 @@
 # GUESS THE LINE — BRAND & DESIGN SYSTEM v1.0
 
+## Play team marks — November 5, 2026
+
+The Play mockup carries the reviewed Home/Research treatment into Spread and
+Total matchup cards: each logo has a separate 42px glass tile, its own border
+and shadow, and a 34px mark. Names and the at separator remain outside the tiles.
+Use selected light/dark surface variables. This is authorized visual exploration;
+Play approval remains pending.
+
+
 ## Research logo-tile treatment approved — November 5, 2026
 
 Sean answered yes to the reviewed Research matchup and Games/Teams previews.

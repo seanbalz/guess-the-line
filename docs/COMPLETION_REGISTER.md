@@ -1,5 +1,23 @@
 # Guess The Line — current completion register
 
+## Individual team-logo tiles added to Play — November 5, 2026
+
+Sean authorized carrying the reviewed Home/Research treatment into Play. Each
+logo in the Spread and Total sample matchup cards now has its own 42px glass
+tile with a 34px mark. Names and the at separator sit outside the tiles; the pair
+container is transparent. Draft/To pick status and native card handlers remain.
+The [Play viewer](../design/style-directions-2026-11-04/selected-system-review.html?screen=Play)
+and [paired capture](../design/style-directions-2026-11-04/previews/play-separate-logo-tiles.png)
+are ready for review; visual approval is pending. Startup ordering was corrected
+so base content cannot overwrite these enhancements on an initial iframe load.
+Chromium checked both themes at 320/390/768/1440px, eight individual tile
+backgrounds, asset loads and card bounds, four native Spread/Total opens,
+Home/Research preservation, eight fresh direct loads and all 26 paired preview
+states. No page errors were found. Captures were inspected; JavaScript syntax
+and Brand document QA passed. Production, deferred avatars/awards and the parked
+Signal exploration remain unchanged.
+
+
 ## Research logo-tile treatment approved — November 5, 2026
 
 Sean answered yes to the reviewed Research matchup and Games/Teams previews.

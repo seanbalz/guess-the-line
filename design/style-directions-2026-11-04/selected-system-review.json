@@ -425,5 +425,13 @@
     "Home": "Previously accepted separate logo tiles retained",
     "accepted": "2026-11-05",
     "acceptanceScope": "Individual team-logo tiles in the reviewed Research overview; not blanket approval of all Research details or whole-app completion"
+  },
+  "playMatchupMarks": {
+    "date": "2026-11-05",
+    "status": "Implemented for review; approval pending",
+    "scope": "Spread and Total matchup cards in both Play mockup themes",
+    "layout": "One 42px glass tile per logo, 34px marks, names and at separator outside tiles, transparent pair layout",
+    "fixtures": "Original sample SEA/DEN draft and CHI/DET to-pick states unchanged",
+    "startup": "Visual enhancements wait for base content preview before applying"
   }
 }

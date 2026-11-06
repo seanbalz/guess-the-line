@@ -26,18 +26,21 @@ const css=`
  .visual-score-icon{display:inline-flex;vertical-align:middle;margin-left:5px}.visual-score-icon .visual-icon{width:28px;height:28px}.visual-score-icon svg{width:19px;height:19px}
  .visual-clubs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:16px 0}.visual-clubs>span{display:flex;align-items:center;flex-direction:column;font-size:11px;gap:4px}.visual-clubs .team-mark{width:40px!important;height:40px!important}
  .phone[data-visual-review] .content-pick{min-height:170px}.content-pick .visual-matchup .team-mark{width:44px;height:44px}.content-pick .visual-matchup>span{font-size:11px}.phone[data-visual-review] .content-pick>b{font-size:18px;margin:2px 0}
+ .phone[data-play-logo-tiles] .content-pick .visual-matchup{background:transparent;box-shadow:none;gap:5px}.phone[data-play-logo-tiles] .content-pick .team-logo-tile{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:var(--pc-small-surface);border:1px solid var(--pc-border);box-shadow:inset 0 1px 0 var(--pc-edge-1),0 4px 8px var(--pc-shadow);backdrop-filter:blur(12px)}.phone[data-play-logo-tiles] .content-pick .team-logo-tile .team-mark{width:34px;height:34px}.phone[data-play-logo-tiles] .content-pick .visual-matchup>span{min-width:0}
  `;
 const head=(name,icon)=>'<span class="visual-card-head">'+glyph(icon)+name+'<small aria-hidden="true">↗</small></span>';
-function researchTiles(screen,d){screen.querySelectorAll('.visual-matchup .team-mark').forEach(img=>{if(img.parentElement.classList.contains('team-logo-tile'))return;const tile=d.createElement('span');tile.className='team-logo-tile';img.before(tile);tile.append(img);});}
+function matchupTiles(screen,d){screen.querySelectorAll('.visual-matchup .team-mark').forEach(img=>{if(img.parentElement.classList.contains('team-logo-tile'))return;const tile=d.createElement('span');tile.className='team-logo-tile';img.before(tile);tile.append(img);});}
 function apply(frame){
  const d=frame.contentDocument,p=d?.querySelector('.phone'),screen=p?.querySelector('.screen');if(!p||!icons)return;
- p.dataset.iconTreatment=treatment;p.dataset.visualReview='v1';if(screen.dataset.visualReview)return;screen.dataset.visualReview='true';
  const area=d.getElementById('screen')?.value;
+ if(['Home','Play','Bets','Research'].includes(area)&&!screen.dataset.contentPreview)return;
+ p.dataset.iconTreatment=treatment;p.dataset.visualReview='v1';if(screen.dataset.visualReview)return;screen.dataset.visualReview='true';
  if(area==='Research')p.dataset.researchLogoTiles='true';
+ if(area==='Play')p.dataset.playLogoTiles='true';
  p.querySelectorAll('.app-nav button').forEach((b,i)=>{b.querySelector('i').innerHTML=glyph(['house','target','ticket','chart-no-axes-combined'][i]);});
  screen.querySelectorAll('.matchup-summary').forEach(n=>{n.classList.add('visual-pair');n.innerHTML=pair();});
  screen.querySelectorAll('.team-code').forEach(n=>{const code={SEA:'sea',DEN:'den',CHI:'chi',DET:'det'}[n.textContent.trim()];if(!code)return;const opponent=n.closest('.home-games')?{sea:'den',chi:'det'}[code]:null;const mark=c=>'<img class="team-mark" src="visual-assets/'+c+'.png" alt="">';n.innerHTML=opponent?'<span class="team-logo-tile">'+mark(code)+'</span><small aria-hidden="true">@</small><span class="team-logo-tile">'+mark(opponent)+'</span>':mark(code);});
- if(screen.querySelector('.detail-close')){if(area==='Research')researchTiles(screen,d);return;}
+ if(screen.querySelector('.detail-close')){if(area==='Research')matchupTiles(screen,d);return;}
  screen.querySelectorAll('button.quick').forEach(b=>{
  const a=b.dataset.action;let html;
  if(a==='detail:league')html=head('League','users')+podium+'<span class="visual-card-note">Your rank · 2 of 24</span>';
@@ -54,8 +57,8 @@ function apply(frame){
  const hero=screen.querySelector('.home-hero');if(hero){hero.querySelector('h2').textContent='Your week. In play.';hero.querySelector('p')?.remove();hero.querySelector('.progress-wrap')?.remove();const progress=d.createElement('div');progress.className='visual-progress';progress.innerHTML='<span class="visual-dial" role="img" aria-label="8 of 12 sample picks ready"><svg viewBox="0 0 90 90" aria-hidden="true"><circle cx="45" cy="45" r="38"/><circle cx="45" cy="45" r="38"/></svg><b>8 / 12</b></span><span><strong>4 picks left</strong><br>Finish your drafts</span>';hero.insertBefore(progress,hero.querySelector('.primary'));}
  screen.querySelectorAll('.home-score .metric small').forEach((n,i)=>{n.insertAdjacentHTML('beforeend','<span class="visual-score-icon">'+glyph(i?'chart-no-axes-combined':'trophy')+'</span>');});
  }
- if(area==='Play')screen.querySelectorAll('.pick-card').forEach(b=>{const total=b.dataset.action==='detail:total';b.innerHTML='<small>'+ (total?'Total':'Spread')+' · sample</small>'+ (total?pair('chi','det','Bears','Lions'):pair())+'<b>'+(total?'To pick':'Your draft')+'</b>';});
- if(area==='Research'){const h=screen.querySelector('.hero h2');if(h)h.textContent='Know the matchup.';researchTiles(screen,d);}
+ if(area==='Play'){screen.querySelectorAll('.pick-card').forEach(b=>{const total=b.dataset.action==='detail:total';b.innerHTML='<small>'+ (total?'Total':'Spread')+' · sample</small>'+ (total?pair('chi','det','Bears','Lions'):pair())+'<b>'+(total?'To pick':'Your draft')+'</b>';});matchupTiles(screen,d);}
+ if(area==='Research'){const h=screen.querySelector('.hero h2');if(h)h.textContent='Know the matchup.';matchupTiles(screen,d);}
  if(area==='EPL'){const hero=screen.querySelector('.hero');if(hero){hero.querySelector('p')?.remove();const clubs=d.createElement('div');clubs.className='visual-clubs';clubs.innerHTML=['ARS','CHE','LIV','MNC'].map((c,i)=>'<span>'+logo(c,['Arsenal','Chelsea','Liverpool','Man City'][i])+'</span>').join('');hero.insertBefore(clubs,hero.querySelector('.primary'));}}
 }
 fetch('visual-assets/lucide-icons.json').then(r=>r.json()).then(data=>{
@@ -65,7 +68,7 @@ fetch('visual-assets/lucide-icons.json').then(r=>r.json()).then(data=>{
  controls.querySelectorAll('[data-icon-choice]').forEach(b=>b.addEventListener('click',()=>{treatment=b.dataset.iconChoice;document.querySelectorAll('iframe[data-review-theme]').forEach(f=>apply(f));controls.querySelectorAll('button').forEach(n=>{n.setAttribute('aria-pressed',String(n===b));n.style.background=n===b?'#B8F34B':'#FFFFFF';});}));
  document.querySelectorAll('iframe[data-review-theme]').forEach(frame=>{
  let observer;
- function ready(){const d=frame.contentDocument;if(!d?.getElementById('grid'))return;observer?.disconnect();if(!d.getElementById('visual-review-styles')){const link=d.createElement('link');link.rel='stylesheet';link.href='visual-icon-treatments.css';d.head.append(link);const s=d.createElement('style');s.id='visual-review-styles';s.textContent=css;d.head.append(s);}observer=new MutationObserver(()=>apply(frame));observer.observe(d.getElementById('grid'),{childList:true,subtree:true});apply(frame);}
+ function ready(){const d=frame.contentDocument;if(!d?.getElementById('grid'))return;observer?.disconnect();if(!d.getElementById('visual-review-styles')){const link=d.createElement('link');link.rel='stylesheet';link.href='visual-icon-treatments.css';d.head.append(link);const s=d.createElement('style');s.id='visual-review-styles';s.textContent=css;d.head.append(s);}observer=new MutationObserver(()=>apply(frame));observer.observe(d.getElementById('grid'),{childList:true,subtree:true,attributes:true,attributeFilter:['data-content-preview']});apply(frame);}
  frame.addEventListener('load',ready);ready();
  });
 });
