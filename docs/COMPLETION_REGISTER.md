@@ -1,5 +1,21 @@
 # Guess The Line — current completion register
 
+## Opened game screen prepared for phone review — November 5, 2026
+
+Sean authorized reviewing an opened game/detail screen. Current Research/game
+[dark](../design/style-directions-2026-11-04/previews/game-detail-review-dark-phone.png)
+and [light](../design/style-directions-2026-11-04/previews/game-detail-review-light-phone.png)
+phone-width captures were prepared and inspected without changing UI code.
+Chromium checked both themes at 320/390/768/1440px, loaded separate team tiles,
+Spread/Total/Bets action labels, document overflow, bottom-nav fit and two Back
+returns to Research. Captures use extended 1000px presentation height, not
+physical-device acceptance. Recommended first change: combine the duplicated
+matchup title and team tiles into a compact glass header, bringing actions and
+research higher. The generic chart's meaning and example-data labeling remain
+subsequent review items. No detail-screen or whole-project acceptance is inferred.
+Production, deferred features and parked Signal files remain unchanged.
+
+
 ## Account glossy row icons approved — November 5, 2026
 
 Sean answered "Yes" to the reviewed Profile, Reminders and Community icon
