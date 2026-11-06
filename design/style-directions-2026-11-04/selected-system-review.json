@@ -170,6 +170,13 @@
         "actions": [
           "detail:recommendations"
         ]
+      },
+      {
+        "id": "performance",
+        "name": "My bets overview",
+        "actions": [
+          "detail:ticket"
+        ]
       }
     ],
     "Research": [
@@ -311,7 +318,7 @@
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "Home/overview",
+    "next": "Bets/performance",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -1315,7 +1322,7 @@
   },
   "accountProfileRemindersPreview": {
     "prepared": "2026-11-06",
-    "status": "Mocked; visual approval pending",
+    "status": "Supplied Profile and Reminders direction approved by Sean in both themes",
     "views": [
       "profile",
       "profile-conflict",
@@ -1383,6 +1390,73 @@
     ],
     "delivery": "20 phone-width extended-height dark/Porcelain screenshots, visually inspected; not physical-device acceptance",
     "production": "Review assets only; production app/tokens, accounts, subscriptions and permissions unchanged; no merge or deployment",
-    "deferred": "New avatars/profile-photo options and awards/celebrations remain held. Real account saving, push delivery and unseen states are outside this visual review."
+    "deferred": "New avatars/profile-photo options and awards/celebrations remain held. Real account saving, push delivery and unseen states are outside this visual review.",
+    "accepted": "2026-11-06",
+    "confirmation": "Looks good in both themes. Continue with the next mockups.",
+    "reviewedCommit": "bd5637779686b624f7c2384e20fe329aafa11f20",
+    "reviewedCaptures": [
+      "account-profile-draft-dark-phone.png",
+      "account-profile-draft-light-phone.png",
+      "account-reminders-on-dark-phone.png",
+      "account-reminders-on-light-phone.png",
+      "account-reminders-off-dark-phone.png",
+      "account-reminders-blocked-dark-phone.png",
+      "account-reminders-install-dark-phone.png"
+    ],
+    "acceptanceScope": "Supplied Profile and Reminders direction in both themes, with linked Off/blocked/install examples; unseen recovery/unsupported/unconfigured states, live saves, real permissions, push delivery and whole-app completion are not separately accepted.",
+    "next": "My bets performance overview. New avatars/photos and awards remain held."
+  },
+  "betsOverviewPreview": {
+    "prepared": "2026-11-06",
+    "status": "Mocked; awaiting visual approval",
+    "view": "selected-system-review.html?screen=Bets&layer=performance",
+    "sampleMeaning": "Ten explicitly fictional tracked tickets. Ticket source names, manual-input prices, reported outcomes, amounts and recording dates are examples, never live quotes or saved account history. Two selection lines reuse the already-reviewed public Week 8 historical closing references. No submission-time reference is asserted.",
+    "components": [
+      "Native socialView and trackedOverview pure projections",
+      "Native TrackedOverview, NetUnits, TrendDetail, TrendLine and StatTiles",
+      "Native TrackedBetRow, Segmented, Button and InfoButton"
+    ],
+    "features": [
+      "Nine included, one excluded ticket; 5–2–1 with one open; eight settled, 5.5U settled risk, +2.5U net and 45.5% ROI",
+      "Native zero baseline, displayed range and pointer/keyboard chart selection",
+      "Result, whole-ticket type, market and source breakdowns",
+      "Result/type/source links to matching tickets; excluded tickets stay available",
+      "Type/result/source/date filters and reset, with Pacific recording-date fallback",
+      "Optional memory-only cash conversion; sample 20 dollars per unit gives 50 dollars net",
+      "Unknown pending price remains unknown; single-ticket and zero-filter states remain honest"
+    ],
+    "verification": {
+      "responsiveLayouts": 8,
+      "interactionThemes": 2,
+      "independentFilterArithmeticCases": 72,
+      "orderedCumulativePoints": 8,
+      "pureDateCases": 2,
+      "nativeDomainTestsPassed": 21,
+      "narrowThemes": 2,
+      "zeroOneInvalidRangeCases": 6,
+      "registeredLogoLoads": 56,
+      "priorViews": 6,
+      "productionReaderExclusions": true,
+      "pageErrors": 0,
+      "nonGETRequests": 0,
+      "brandQA": true,
+      "sourceDialogLink": true,
+      "receiptContextThemes": 2
+    },
+    "captures": [
+      "bets-overview-performance-dark-phone.png",
+      "bets-overview-performance-light-phone.png",
+      "bets-overview-breakdowns-dark-phone.png",
+      "bets-overview-breakdowns-light-phone.png",
+      "bets-overview-matching-tickets-dark-phone.png",
+      "bets-overview-matching-tickets-light-phone.png",
+      "bets-overview-filters-dark-phone.png",
+      "bets-overview-filters-light-phone.png",
+      "bets-overview-cash-dark-phone.png",
+      "bets-overview-cash-light-phone.png"
+    ],
+    "delivery": "Ten phone-width extended-height screenshots. Local preview verification only, not physical-device acceptance.",
+    "production": "Preview assets and records only; no account/storage/preferences, production source/tokens, collectors or migrations changed; not merged or deployed.",
+    "deferred": "Unseen Bets recommendation, Virtual Units, correction/tail/settlement and other states remain unreviewed. New avatars/photos and awards remain held."
   }
 }

@@ -70,6 +70,7 @@ lucide-react/dist/esm/icons/bell-off.js:
 lucide-react/dist/esm/icons/bell-ring.js:
 lucide-react/dist/esm/icons/bell.js:
 lucide-react/dist/esm/icons/chart-line.js:
+lucide-react/dist/esm/icons/chart-no-axes-combined.js:
 lucide-react/dist/esm/icons/chart-pie.js:
 lucide-react/dist/esm/icons/check.js:
 lucide-react/dist/esm/icons/chevron-down.js:
@@ -85,6 +86,7 @@ lucide-react/dist/esm/icons/copy.js:
 lucide-react/dist/esm/icons/diamond.js:
 lucide-react/dist/esm/icons/download.js:
 lucide-react/dist/esm/icons/eye.js:
+lucide-react/dist/esm/icons/filter.js:
 lucide-react/dist/esm/icons/flame.js:
 lucide-react/dist/esm/icons/house.js:
 lucide-react/dist/esm/icons/info.js:

@@ -1,5 +1,49 @@
 ## EPL Pick a Team flow mocked — November 6, 2026
 
+## My bets performance Overview mocked — November 6, 2026
+
+The selected dark/Porcelain glass treatment now covers My bets Overview, its
+chart, result/type/market/source breakdowns, matching tickets, filters and cash
+display. Native socialView/trackedOverview projections and TrackedOverview,
+NetUnits, TrendDetail/TrendLine, StatTiles and TrackedBetRow are reused. The
+chart retains its zero baseline, displayed range and pointer/keyboard selection.
+Detailed controls live inside Filters & options so the chart leads. Result,
+type and source links open matching tickets; excluded tickets stay available.
+
+The ten-ticket history is explicitly fictional: source names, hypothetical
+manual-input prices, reported outcomes, amounts and recording dates are sample
+entries, never bookmaker quotes or saved account history. Selection lines reuse
+the two reviewed public Week 8 historical closing references. No new quote,
+observation/submission time or account record is invented. Nine included tickets
+produce five wins, two losses, one push and one open; eight settled tickets risk
+5.5U for +2.5U net and 45.5% ROI. One excluded ticket stays visible, and the open
+ticket's price remains unknown. The optional example $20/U conversion displays
+$50 net without changing unit stakes. All interactions affect fixture memory;
+no account or device preference is read or written.
+
+Ten phone captures were inspected; visual approval remains pending. Checks
+passed: eight responsive layouts, two full interaction themes, 72 independent
+filter/accounting cases, eight cumulative points, two pure date cases and all
+21 selected native domain tests. Two narrow themes cover filters, expanded
+tickets, six zero/one/invalid-range cases and 56 existing logo loads. Six prior
+views still mount. Reader exclusions, build, Brand QA and syntax/diff checks
+passed; browser checks recorded no page errors or non-GET requests. Production
+source/tokens, collectors, migrations and frozen v62 remain unchanged. No merge
+or deployment was performed. Unseen Bets flows remain unreviewed; new
+avatars/photos, awards and parked Signal work remain held.
+
+[Selection and evidence](selected-system-review.json).
+
+## Profile and Reminders direction approved — November 6, 2026
+
+Sean confirmed "Looks good in both themes. Continue with the next mockups."
+The supplied Profile and Pick reminders direction is approved in dark and
+Porcelain at reviewed commit `bd5637779686b624f7c2384e20fe329aafa11f20`, including
+the linked Off, blocked and Home Screen examples. This is visual approval of the
+supplied direction; unseen recovery/unsupported/unconfigured states, real account
+saving, permissions, push delivery and whole-app completion remain separate.
+New avatars/photos and awards remain held. My bets Overview is the next review.
+
 ## Profile and reminder examples mocked — November 6, 2026
 
 The selected dark/Porcelain glass system now covers Profile and Pick reminders.
