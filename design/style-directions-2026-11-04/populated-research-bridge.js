@@ -6,6 +6,13 @@ fetch('populated-research-data.json').then(r=>{if(!r.ok)throw Error('Research sn
  let observer;
  function apply(){const d=frame.contentDocument;if(!d||!frame.contentWindow.GTLPopulatedResearch||d.querySelector('.populated-research-root'))return;
  const title=d.querySelector('.detail-close~.screen-top .page-title');
+ if(title?.textContent==='This week’s games'){
+  const stack=d.querySelector('.detail-close~.stack');if(!stack)return;
+  const root=d.createElement('div');root.className='populated-research-root gx';root.dataset.theme=frame.dataset.reviewTheme;root.dataset.publicSnapshot=model.generatedAt;root.dataset.researchView='games-list';stack.replaceChildren(root);
+  title.textContent='Games';title.previousElementSibling.textContent='Research';
+  d.querySelector('.fixture').textContent='PUBLIC SNAPSHOT · VISUAL PREVIEW · NO SAVES';
+  roots.get(frame)?.unmount();roots.set(frame,frame.contentWindow.GTLPopulatedResearch.mountGames(root,model));return;
+ }
  if(title?.textContent==='Trend evidence'){
   const old=d.querySelector('.detail-close~.stack .panel');if(!old)return;
   const root=d.createElement('div');root.className='populated-research-root gx';root.dataset.theme=frame.dataset.reviewTheme;root.dataset.publicSnapshot=model.generatedAt;root.dataset.researchView='trends-list';old.replaceWith(root);

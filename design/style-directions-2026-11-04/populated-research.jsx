@@ -4,6 +4,7 @@ import {TrendDetail} from '../../web/src/next/charts/TrendDetail.jsx';
 import {TrendRow} from '../../web/src/next/charts/TrendRow.jsx';
 import ResearchChart from '../../web/src/next/research/ResearchChart.jsx';
 import {MarginChart} from '../../web/src/next/teams/MarginChart.jsx';
+import {GamesList} from './populated-games.jsx';
 import '../../web/src/next/charts/charts.css';
 import '../../web/src/next/research/research.css';
 import '../../web/src/next/teams/teams.css';
@@ -40,7 +41,7 @@ function Trends({model}){
  </div>;
 }
 function Teams({model}){
- const [code,setCode]=useState('SEA');const team=model.teams.find(t=>t.code===code),play=model.playStatistics.find(t=>t.team===code);
+ const [code,setCode]=useState(model.teams.at(-1).code);const team=model.teams.find(t=>t.code===code),play=model.playStatistics.find(t=>t.team===code);
  const margins=team.margins,extent={low:Math.min(0,...margins.map(p=>p.margin)),high:Math.max(0,...margins.map(p=>p.margin))};
  return <div className="real-research-content">
   <div className="real-team-choice" role="group" aria-label="Team statistics">{model.teams.map(t=><button type="button" key={t.code} aria-pressed={code===t.code} onClick={()=>setCode(t.code)}><span className="real-team-logo"><img src={`visual-assets/${t.code.toLowerCase()}.png`} alt=""/></span>{t.name}</button>)}</div>
@@ -76,3 +77,4 @@ function TrendsList({model}){
  </div>;
 }
 export function mountTrends(element,model){const root=createRoot(element);root.render(<TrendsList model={model}/>);return root;}
+export function mountGames(element,model){const root=createRoot(element);root.render(<GamesList model={model} renderTeams={comparison=><Teams model={comparison}/>}/>);return root;}

@@ -547,7 +547,7 @@
   },
   "populatedTrendsList": {
     "date": "2026-11-05",
-    "status": "Mocked for Sean; visual approval pending",
+    "status": "Approved by Sean for the reviewed populated Trends list",
     "basis": "Sean agreed to carry the approved populated research approach into the Trends list",
     "scope": "Research / Trends opened layer, both themes; six fixed examples from 750 published candidates",
     "components": [
@@ -577,6 +577,39 @@
       "backAndGameChecks": 2,
       "pageErrors": 0
     },
-    "preserved": "Approved materials, logo, icons, game preview and native Back navigation. Production app and tokens unchanged; avatars and awards remain deferred."
+    "preserved": "Approved materials, logo, icons, game preview and native Back navigation. Production app and tokens unchanged; avatars and awards remain deferred.",
+    "accepted": "2026-11-05",
+    "acceptanceScope": "Reviewed six-example Trends list, filters, records, sparklines and expandable evidence in the selected dark/light design. Not all 750 candidates, production integration or whole-project acceptance.",
+    "confirmation": "Sean replied Good continue after reviewing the list and expanded chart previews."
+  },
+  "populatedGamesList": {
+    "date": "2026-11-05",
+    "status": "Mocked for Sean; visual approval pending",
+    "scope": "Research / Games opened layer, selected dark/light themes; all 15 published Week 9 matchups",
+    "source": "Schedule from hash-verified public research-data-2026 season targets; records/form/score averages from completed-history fingerprint-matched source through November 2; observed statistics from the same publication",
+    "features": [
+      "Day filters with counts",
+      "30 individual registered team-logo tiles",
+      "Team records and last-five W/L/T chips",
+      "Points-scored-per-game bars with a shared zero-based scale",
+      "Inline team comparison with the original MarginChart and observed play statistics",
+      "Team switching and keyboard chart scrub",
+      "Actual GTL game-research links with existing app access rules"
+    ],
+    "preserved": "Approved Trends list and opened game model, selected logo/materials/themes/icons, and native Back navigation. No gated-market or account reader is imported.",
+    "verification": {
+      "responsiveLayouts": 8,
+      "teamRecordsChecked": 240,
+      "dayFilterStates": 32,
+      "expandedGames": 36,
+      "teamViews": 72,
+      "keyboardScrubChecks": 4,
+      "backTrendsAndGameChecks": 2,
+      "independentSourceTeams": 30,
+      "pageErrors": 0
+    },
+    "delivery": "Phone-width list and expanded-stat captures with extended presentation height. The list capture shows its top portion; all 15 games remain reachable by scrolling/filtering. Not physical-device acceptance.",
+    "privacy": "Public schedule and completed-history statistics only; no private picks, account records, current quotes, new odds collection or production writes",
+    "next": "Visual review of Games; other unreviewed screens and deferred avatars/awards remain outstanding"
   }
 }

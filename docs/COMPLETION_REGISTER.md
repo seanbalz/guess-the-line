@@ -1,5 +1,50 @@
 # Guess The Line — current completion register
 
+## Populated Games preview and Trends approval — November 5, 2026
+
+Sean replied "Good continue" to the populated Trends list and expanded evidence
+previews. That reviewed direction is approved at its recorded scope, including
+the selected dark/light styling, six example cards, filters and original charts.
+It is not blanket approval of all catalogue content or production integration.
+
+The next Research / Games mockup replaces its generic field/paragraph fixture
+with all 15 Week 9 matchups from the same hash-verified public publication.
+Each of the 30 participating teams has an individual registered logo tile,
+record, last-five W/L/T chips and a scoring-average bar. All bars share a zero-
+based points/game scale. Day filters retain all 15 games (Thursday 1, Sunday 13,
+Monday 1), with scheduled Pacific times explicitly labelled PT. Compare stats
+opens the existing team presentation and original interactive MarginChart,
+record/scoring averages and observed play metrics; each team's values and
+samples remain available. Research links open the matching real GTL route with
+its own account/market-access rules, without exporting gated values here.
+
+[Dark Games](../design/style-directions-2026-11-04/previews/research-games-dark-phone.png),
+[light Games](../design/style-directions-2026-11-04/previews/research-games-light-phone.png),
+[dark comparison](../design/style-directions-2026-11-04/previews/research-games-expanded-dark-phone.png) and
+[light comparison](../design/style-directions-2026-11-04/previews/research-games-expanded-light-phone.png)
+are phone-width, extended-height captures. The list images show its upper portion;
+all games are reachable by scrolling/filtering. They are mockup evidence, not
+physical-device acceptance. **Games visual approval remains pending.**
+
+The schedule is taken from the validated, checksummed publication targets.
+Only fingerprint-matched completed rows are used from the local schedule CSV;
+its later/unplayed rows are not a source for this schedule preview. Records and
+statistics are dated through November 2, not presented as current live readings.
+An independent CSV calculation confirmed all 30 team records and scoring
+averages. All 30 logo copies match registered repository assets. Existing
+approved game and Trends model fields are unchanged. No source is replaced
+with a made-up line, quote timestamp or current-game prediction.
+
+Chromium passed eight width/theme layouts, 240 displayed team-record checks,
+32 day-filter states, 36 expanded games and 72 team views, including every
+matchup in both themes at phone width. It checked logo loading, records, form,
+scoring averages, scheduled times/route links, chart sample counts, observed
+values, keyboard chart selection, Back and approved Trends/game regressions.
+No page errors or document/card overflow were found. Brand QA, syntax,
+public-export scope and deterministic data-preparation checks passed. Production
+code/tokens, collectors, migrations, private data, frozen v62, deferred avatars/
+awards and the unpublished parked Signal exploration remain unchanged.
+
 ## Populated Research Trends list preview — November 5, 2026
 
 Sean approved moving the populated research approach to Research's Trends list.
