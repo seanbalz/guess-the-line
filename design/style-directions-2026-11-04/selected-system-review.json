@@ -817,7 +817,7 @@
     "next": "Recommended next visual review: Guess the Points draft and detail flow. Play score/history and remaining league/detail views remain pending. Deferred avatars/awards stay held."
   },
   "pointsDraftPreview": {
-    "status": "Mocked for visual review; awaiting Sean",
+    "status": "Approved by Sean for the supplied Guess the Points visual direction",
     "prepared": "2026-11-05",
     "basis": "Sean answered Yes to mocking Guess the Points next",
     "scope": "Example week overview, player draft, confirmation, native usage profile and in-memory confirmed card in both selected themes",
@@ -890,6 +890,21 @@
     "delivery": "Phone-width extended-height captures; not physical-device acceptance",
     "privacy": "Public NFL data and labelled sample entries only. No production API, Supabase, authenticated Fantasy readers, actual slate/member picks or account writes.",
     "production": "Unchanged; not merged or deployed",
-    "deferred": "Avatars, awards, parked Signal branding and whole-project completion remain held"
+    "deferred": "Avatars, awards, parked Signal branding and whole-project completion remain held",
+    "accepted": "2026-11-05",
+    "confirmation": "Sean clarified Done with Approved continue after the overview, opened draft, confirmation and linked full profiles were supplied.",
+    "reviewedCommit": "881167ad49b8df946cddae35626466b721c6041a",
+    "reviewedCaptures": [
+      "points-week-dark-phone.png",
+      "points-draft-dark-phone.png",
+      "points-lock-confirm-dark-phone.png",
+      "points-profile-dark-phone.png",
+      "points-week-light-phone.png",
+      "points-draft-light-phone.png",
+      "points-lock-confirm-light-phone.png",
+      "points-profile-light-phone.png"
+    ],
+    "acceptanceScope": "Supplied example overview, opened draft, confirmation and linked usage-profile direction in the selected themes. Not separate acceptance of all unseen players/states, unshown preview-confirmed card, actual account saves, production integration or whole-project completion.",
+    "next": "Play score/history mockups authorized; data-presentation clarification pending. Deferred avatars/awards stay held."
   }
 }

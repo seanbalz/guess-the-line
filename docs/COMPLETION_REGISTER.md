@@ -1,5 +1,20 @@
 # Guess The Line — current completion register
 
+## Guess the Points direction approved — November 5, 2026
+
+Sean explicitly confirmed "Approved continue" after the Guess the Points review.
+The supplied five-player overview, opened draft, lock-in confirmation and linked
+native usage-profile direction are approved in the selected dark/Porcelain
+system. The [selection record](../design/style-directions-2026-11-04/selected-system-review.json) binds this approval to the reviewed
+commit and captures. The fixed lineup and draft values remain labelled examples.
+
+This is visual acceptance of the supplied direction, not separate acceptance of
+all unseen players/states, the unshown preview-confirmed card, actual account
+saves, production integration or whole-project completion. No UI, data or image
+changes accompany the approval record. Continuing with Play score/history is
+authorized; a data-presentation question is pending before those mockups are built.
+Deferred avatars/awards and parked Signal files remain unchanged.
+
 ## Guess the Points mocked — November 5, 2026
 
 Sean approved moving on to Guess the Points. The selected review now shows a
