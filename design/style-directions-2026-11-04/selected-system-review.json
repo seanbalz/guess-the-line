@@ -263,6 +263,48 @@
           "detail:reminders",
           "detail:reminders-on"
         ]
+      },
+      {
+        "id": "profile-conflict",
+        "name": "Profile - name changed elsewhere",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "profile-pending",
+        "name": "Profile - save needs checking",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "reminders-blocked",
+        "name": "Reminders - blocked",
+        "actions": [
+          "detail:reminders"
+        ]
+      },
+      {
+        "id": "reminders-install",
+        "name": "Reminders - Home Screen setup",
+        "actions": [
+          "detail:reminders"
+        ]
+      },
+      {
+        "id": "reminders-unsupported",
+        "name": "Reminders - unsupported browser",
+        "actions": [
+          "detail:reminders"
+        ]
+      },
+      {
+        "id": "reminders-unconfigured",
+        "name": "Reminders - server setup unavailable",
+        "actions": [
+          "detail:reminders"
+        ]
       }
     ]
   },
@@ -1194,7 +1236,7 @@
   },
   "eplDraftPreview": {
     "prepared": "2026-11-06",
-    "status": "Mocked; awaiting Sean visual approval",
+    "status": "Supplied EPL draft direction approved by Sean",
     "views": [
       "selected-system-review.html?screen=EPL&layer=draft",
       "selected-system-review.html?screen=EPL&layer=confirmation"
@@ -1253,6 +1295,94 @@
     "delivery": "Phone-width extended-height captures; not physical-device acceptance",
     "crestSource": "team-logos/epl/sources.json; unchanged copies from web/public/team-logos/epl, trademark identification only",
     "production": "App source/tokens, accounts, collectors and migrations unchanged; no merge or deployment",
-    "deferred": "Unseen manager-claim, error, deadline-resolution and other EPL flows remain unreviewed. New avatar and award work stays held."
+    "deferred": "Unseen manager-claim, error, deadline-resolution and other EPL flows remain unreviewed. New avatar and award work stays held.",
+    "accepted": "2026-11-06",
+    "confirmation": "Sean replied Good continue to the EPL draft and ranking direction question.",
+    "reviewedCommit": "59a1b55f225122aca9f7e9a1cd2d4a815d821e4e",
+    "reviewedCaptures": [
+      "epl-draft-board-dark-phone.png",
+      "epl-backup-ranking-dark-phone.png",
+      "epl-team-confirmation-dark-phone.png",
+      "epl-draft-board-light-phone.png",
+      "epl-backup-ranking-light-phone.png",
+      "epl-team-confirmation-light-phone.png",
+      "epl-backup-confirmation-dark-phone.png",
+      "epl-waiting-dark-phone.png",
+      "epl-closed-dark-phone.png"
+    ],
+    "acceptanceScope": "Supplied draft, ranking and confirmation direction plus linked waiting/closed/backup examples; not unseen claims, failures, actual private drafts or whole-project completion.",
+    "next": "Profile and reminders; new avatar/photo options and awards stay held."
+  },
+  "accountProfileRemindersPreview": {
+    "prepared": "2026-11-06",
+    "status": "Mocked; visual approval pending",
+    "views": [
+      "profile",
+      "profile-conflict",
+      "profile-pending",
+      "reminders",
+      "reminders-on",
+      "reminders-blocked",
+      "reminders-install",
+      "reminders-unsupported",
+      "reminders-unconfigured"
+    ],
+    "sampleMeaning": "Fictional Alex Lane / alex@example.com and labeled example device states; no signed-in identity, permission state, subscription or account record is read.",
+    "components": [
+      "Native Avatar, Sheet, Button, InfoButton and Switch",
+      "Native profileName and matching display-name rules",
+      "Exact native reminder copy/status/switch helpers isolated without the push store"
+    ],
+    "features": [
+      "Display name, unchanged disabled action, trim/validation, memory-only preview and initials update",
+      "Conflict retains draft; status check unlocks draft without automatically submitting it",
+      "On/Off, blocked, Home Screen setup, unsupported and service-unavailable layouts",
+      "Turning off the example retains granted permission; no actual permission or subscription is changed",
+      "Native sheet focus/escape with inert background and return to opener"
+    ],
+    "verification": {
+      "profileLayouts": 8,
+      "reminderStates": 12,
+      "recoveryFlows": 2,
+      "narrowReminderStates": 12,
+      "profileFocusTrapEscapeReturn": true,
+      "priorViews": 4,
+      "profileValidationCases": 9,
+      "reminderHelperCases": 8,
+      "nativeReminderSourceSlices": 2,
+      "nativeAvatarEquality": true,
+      "turningOffKeepsGrantedPermission": true,
+      "productionReaderExclusions": true,
+      "pageErrors": 0,
+      "nonGETRequests": 0,
+      "permissionRequests": 0,
+      "workerRegistrations": 0,
+      "brandQA": true
+    },
+    "captures": [
+      "account-profile-check-dark-phone.png",
+      "account-profile-check-light-phone.png",
+      "account-profile-conflict-dark-phone.png",
+      "account-profile-conflict-light-phone.png",
+      "account-profile-dark-phone.png",
+      "account-profile-draft-dark-phone.png",
+      "account-profile-draft-light-phone.png",
+      "account-profile-light-phone.png",
+      "account-reminders-blocked-dark-phone.png",
+      "account-reminders-blocked-light-phone.png",
+      "account-reminders-install-dark-phone.png",
+      "account-reminders-install-light-phone.png",
+      "account-reminders-off-dark-phone.png",
+      "account-reminders-off-light-phone.png",
+      "account-reminders-on-dark-phone.png",
+      "account-reminders-on-light-phone.png",
+      "account-reminders-unavailable-dark-phone.png",
+      "account-reminders-unavailable-light-phone.png",
+      "account-reminders-unsupported-dark-phone.png",
+      "account-reminders-unsupported-light-phone.png"
+    ],
+    "delivery": "20 phone-width extended-height dark/Porcelain screenshots, visually inspected; not physical-device acceptance",
+    "production": "Review assets only; production app/tokens, accounts, subscriptions and permissions unchanged; no merge or deployment",
+    "deferred": "New avatars/profile-photo options and awards/celebrations remain held. Real account saving, push delivery and unseen states are outside this visual review."
   }
 }

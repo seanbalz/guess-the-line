@@ -13,6 +13,7 @@ import {ScorePreview} from './populated-score.jsx';
 import {LeaguePreview} from './populated-league.jsx';
 import {BetsPreview} from './populated-bets.jsx';
 import {EplPreview} from './populated-epl.jsx';
+import {AccountPreview} from './populated-account.jsx';
 import '../../web/src/next/charts/charts.css';
 import '../../web/src/next/research/research.css';
 import '../../web/src/next/teams/teams.css';
@@ -97,3 +98,5 @@ export function mountLeague(element,model,theme,onSelection){const root=createRo
 export function mountBets(element,model,initialView,onSelection){const root=createRoot(element);root.render(<BetsPreview model={model} initialView={initialView} onSelection={onSelection}/>);return root;}
 
 export function mountEpl(element,data,initialView,onSelection){const root=createRoot(element);root.render(<EplPreview data={data} initialView={initialView} onSelection={onSelection}/>);return root;}
+
+export function mountAccount(element,initialView,scenario,profileScenario){const root=createRoot(element);root.render(<AccountPreview initialView={initialView} scenario={scenario} profileScenario={profileScenario}/>);return root;}

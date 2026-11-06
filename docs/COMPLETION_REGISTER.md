@@ -1,5 +1,46 @@
 # Guess The Line — current completion register
 
+## Profile and reminder examples mocked — November 6, 2026
+
+The selected dark/Porcelain glass system now covers Profile and Pick reminders.
+Native initials avatars, Sheet, Button, InfoButton and Switch are retained.
+Profile shows display-name editing, unchanged/invalid states, an unsaved draft,
+conflict and needs-checking examples. Checking unlocks the retained draft for a
+separate explicit preview; it never automatically replays a save. Whitespace is
+trimmed, names retain the native 1–60-character/control-character rules, and
+previewing updates only fixture memory.
+
+Reminders show On/Off, blocked, Home Screen setup, unsupported and unconfigured
+examples. Exact native copy/status/switch helpers are isolated from the push
+store. The existing two-hours-before-due, device-only wording remains. Turning
+off the example retains granted permission. No signed-in identity, permission or
+subscription state is read. All identity/device data is explicitly fictional;
+no account, storage, permission request, service-worker registration,
+subscription or notification is changed.
+
+Twenty dark/Porcelain phone captures were inspected; visual approval is pending.
+Checks passed: eight profile layouts, 12 reminder states, two recovery flows,
+12 narrow reminder layouts, profile focus trap/Escape/return, four prior views,
+nine validation and eight reminder-helper cases. Native copy/helper and avatar
+equality, reader exclusions, build, Brand QA and syntax/diff checks passed.
+Browser checks recorded zero page errors, non-GET requests, permission requests
+or worker registrations. These are local preview checks, not live account or
+physical-device acceptance. Production source/tokens, collectors, migrations
+and frozen v62 remain unchanged; no merge or deployment was performed. New
+avatar/photo options, awards and parked Signal work remain held.
+
+[Selection and evidence](../design/style-directions-2026-11-04/selected-system-review.json).
+
+## EPL draft direction approved — November 6, 2026
+
+Sean replied "Good continue" to the supplied EPL Pick a Team, backup ranking and
+confirmation review. The supplied direction, including linked backup, waiting
+and closed examples, is approved at reviewed commit
+`59a1b55f225122aca9f7e9a1cd2d4a815d821e4e`. This does not accept unseen claim,
+failure or deadline-resolution states, live draft writes or whole-project
+completion. Profile and reminders are next; new avatar/photo options and awards
+remain held. The selection record preserves the supplied capture scope.
+
 ## EPL Pick a Team flow mocked — November 6, 2026
 
 The selected dark/Porcelain system now covers Pick a Team, a backup ranking

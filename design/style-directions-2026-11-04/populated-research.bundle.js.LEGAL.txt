@@ -66,6 +66,8 @@ lucide-react/dist/esm/icons/arrow-left.js:
 lucide-react/dist/esm/icons/arrow-right.js:
 lucide-react/dist/esm/icons/arrow-up.js:
 lucide-react/dist/esm/icons/award.js:
+lucide-react/dist/esm/icons/bell-off.js:
+lucide-react/dist/esm/icons/bell-ring.js:
 lucide-react/dist/esm/icons/bell.js:
 lucide-react/dist/esm/icons/chart-line.js:
 lucide-react/dist/esm/icons/chart-pie.js:
@@ -91,6 +93,7 @@ lucide-react/dist/esm/icons/lock.js:
 lucide-react/dist/esm/icons/log-out.js:
 lucide-react/dist/esm/icons/message-circle.js:
 lucide-react/dist/esm/icons/minus.js:
+lucide-react/dist/esm/icons/monitor.js:
 lucide-react/dist/esm/icons/palette.js:
 lucide-react/dist/esm/icons/pencil.js:
 lucide-react/dist/esm/icons/plug.js:
@@ -102,6 +105,7 @@ lucide-react/dist/esm/icons/scale.js:
 lucide-react/dist/esm/icons/settings.js:
 lucide-react/dist/esm/icons/shield-check.js:
 lucide-react/dist/esm/icons/sliders-horizontal.js:
+lucide-react/dist/esm/icons/smartphone.js:
 lucide-react/dist/esm/icons/target.js:
 lucide-react/dist/esm/icons/ticket.js:
 lucide-react/dist/esm/icons/trash-2.js:
