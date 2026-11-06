@@ -1,3 +1,59 @@
+## EPL stat-correction mockups prepared — November 6, 2026
+
+The selected dark/Porcelain system now covers comparison, partial totals with
+no next-week picks, successful empty list, unavailable checks, read failure,
+restricted access, first loading, refreshing and last-loaded refresh failure.
+Paired original/recheck glass tiles preserve decimals and signed differences;
+no performance trend is inferred. Source capture times remain separate in a
+44px disclosure, open in populated review captures. Native Sheet/Button/
+InfoButton/static Skeleton and unchanged fmtFull/fmtNum/fmtSigned are reused.
+Ten static native copy fields and recorded-picks/no-picks guidance are retained.
+
+Every person, matchweek, pick count, capture time and normalized total is
+fictional. The two pairs are 611.25 to 613.5 (+2.25) season points and 584.75 to
+583.25 (−1.5) points against. Partial corrected points and delta stay —, never
+zero. No private roster or pick payload appears. Denied/failed/first-loading
+fixtures contain no review data; empty and unavailable remain distinct.
+Refreshing/stale retain the original supplied examples and timestamps. Stale
+content is explicitly labelled fictional last-loaded reviews.
+
+The existing tool remains read-only. There is no Apply/Reorder/Acknowledge/Save
+control. Refresh shows a no-action notice only; loading/refreshing are guarded,
+disabled and fixed, without automatic completion. No API/auth/permission read,
+Sleeper/source read, audit, status readback, storage, polling, timer, message or
+pick/draft/order change occurs. Actual controller/API imports stay excluded.
+
+Eighteen phone captures were inspected; visual approval is pending. Checks
+passed: 72 layouts, eighteen scenario flows, ten native copy fields, nine fixture
+states, two paired deltas, three next-week copy cases, native number/Pacific
+formatters, two native access/abort source checks, five existing endpoint tests,
+two existing view tests, nested information focus, Sheet keyboard/Escape/opener
+return and six prior views. No storage writes, provider/auth reads, non-GET
+requests, popups, browser dialogs or page errors observed. Build, import/write
+exclusions, Brand QA, syntax and diff checks passed. All content fits the supplied
+extended captures; narrow scroll/footer bounds and 44px controls were checked
+separately. Local Vitest initially could not resolve dependencies; an ignored
+worktree node_modules junction to the existing shared dependencies allowed its
+two native view tests to pass without installing or changing dependencies.
+
+Review assets/evidence only; no merge/deploy. Actual Community grants,
+normalized/source reads, snapshots/audits, picks/draft order, APIs/auth/storage,
+production tokens, migrations and frozen v62 are unchanged. Hosted permission,
+source completeness/provenance, cancellation, refresh and physical-device
+acceptance remain separate. Remaining native coverage will be reconciled next;
+whole-app completion is not established. New avatars/photos, awards and parked
+Signal work stay held.
+
+## Odds connection direction approved — November 6, 2026
+
+Sean replied "Looks good in both themes. Continue with the next mockups." to
+the supplied seven-state, fourteen-capture odds-connection batch at reviewed
+commit `05a7cc5f5c0db3641654924ef96de44e08693951`. That visual direction is
+approved in both themes. Real authorization/connection, measured quota/cost,
+pending request reuse/readback, actual collection/benchmark eligibility,
+physical-device acceptance and whole-app completion remain separate. EPL stat-
+correction mockups are next. New avatars/photos and awards stay held.
+
 ## Odds connection mockups prepared — November 6, 2026
 
 The selected dark/Porcelain system now covers before-check, successful measured-

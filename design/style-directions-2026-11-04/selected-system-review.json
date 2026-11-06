@@ -900,13 +900,76 @@
         "actions": [
           "detail:profile"
         ]
+      },
+      {
+        "id": "epl-corrections-ready",
+        "name": "EPL correction comparison",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "epl-corrections-missing",
+        "name": "EPL partial totals / no picks",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "epl-corrections-empty",
+        "name": "EPL no corrections",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "epl-corrections-unavailable",
+        "name": "EPL checks unavailable",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "epl-corrections-failed",
+        "name": "EPL read failed",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "epl-corrections-denied",
+        "name": "EPL restricted",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "epl-corrections-loading",
+        "name": "EPL first loading",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "epl-corrections-refreshing",
+        "name": "EPL refreshing",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "epl-corrections-stale",
+        "name": "EPL last-loaded reviews",
+        "actions": [
+          "detail:profile"
+        ]
       }
     ]
   },
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "Account/odds-connection-initial",
+    "next": "Account/epl-corrections-ready",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -3215,7 +3278,7 @@
     "acceptanceScope": "Supplied entry, confirmation, source-correction, conflict, unavailable and fixed recording visual direction in both themes. Live authorization, source verification, request idempotency, receipts/concurrency/audits, Challenge grading, persistence, physical-device acceptance and whole-app completion remain separate."
   },
   "oddsConnectionPreview": {
-    "status": "Odds connection mockups prepared in both themes; visual approval pending",
+    "status": "Approved in both themes",
     "prepared": "2026-11-06",
     "views": [
       "Before connection check",
@@ -3273,6 +3336,93 @@
     "delivery": "14 dark/Porcelain phone-width captures visually inspected. Extended heights show content; 320/390/768/1440 layouts, narrow reachability, footer bounds, 44px controls/disclosures and native Sheet keyboard/focus checked separately.",
     "production": "Review assets/evidence only. Native controller, original Triple Threat grants, provider/key/configuration, request IDs, server idempotency, quota/reserve/rate limits, automatic schedule, quote data/reveal rules, APIs/auth/storage, collectors, production tokens, migrations and frozen v62 unchanged. No merge/deploy.",
     "deferred": "Live authorization/connection, measured quota, provider cost/limits, pending request reuse/readback, actual quote collection/benchmark eligibility and physical-device acceptance remain separate. New avatars/photos and awards stay held.",
-    "next": "EPL stat-correction review mockups, then remaining native coverage reconciliation."
+    "next": "EPL stat-correction review mockups, then remaining native coverage reconciliation.",
+    "accepted": "2026-11-06",
+    "confirmation": "Looks good in both themes. Continue with the next mockups.",
+    "reviewedCommit": "05a7cc5f5c0db3641654924ef96de44e08693951",
+    "reviewedCaptures": [
+      "odds-connection-initial-dark-phone.png",
+      "odds-connection-initial-light-phone.png",
+      "odds-connection-ready-dark-phone.png",
+      "odds-connection-ready-light-phone.png",
+      "odds-connection-fetched-dark-phone.png",
+      "odds-connection-fetched-light-phone.png",
+      "odds-connection-low-quota-dark-phone.png",
+      "odds-connection-low-quota-light-phone.png",
+      "odds-connection-pending-dark-phone.png",
+      "odds-connection-pending-light-phone.png",
+      "odds-connection-failed-dark-phone.png",
+      "odds-connection-failed-light-phone.png",
+      "odds-connection-checking-dark-phone.png",
+      "odds-connection-checking-light-phone.png"
+    ],
+    "approvalScope": "Supplied visual direction in both themes only. Real authorization, connection, measured quota, provider cost/limits, request reuse/readback, collection/benchmark eligibility and physical-device acceptance remain separate."
+  },
+  "eplCorrectionsPreview": {
+    "status": "Prepared for visual approval in both themes",
+    "prepared": "2026-11-06",
+    "views": [
+      "ready",
+      "missing",
+      "empty",
+      "unavailable",
+      "failed",
+      "denied",
+      "loading",
+      "refreshing",
+      "stale"
+    ],
+    "nativePreservation": "Read-only Community commissioner review. Ten native static copy fields, matchweek headings, both recorded-picks/no-picks branches, season points/points-against pairs, signed differences, separate source capture times and native fmtFull/fmtNum/fmtSigned retained. Native Sheet/Button/InfoButton and static Skeleton reused. No apply/reorder/acknowledge/save control.",
+    "fixtures": "Every name, matchweek, recorded-pick count, source timestamp and normalized total is fictional. Alex example: season points 611.25 to 613.5 (+2.25), points against 584.75 to 583.25 (−1.5). This compares two captures, not two matchweeks or a performance trend. No roster or private pick payload present.",
+    "dataStates": "Partial scenario combines native no-picks branch with unavailable corrected points and delta as —, never zero. Denied/first-loading/failed fixtures have no review data. Empty success differs from unavailable checks. Refreshing/stale keep original fictional totals and capture times. Last-loaded labeling makes stale examples explicit. Source captures disclosure is open in supplied populated captures.",
+    "isolation": "All Refresh controls show no-action notices only; loading/refreshing disabled with action guard, fixed without automatic completion. No API/auth/permission/Sleeper/source read, audit, storage, polling, timer, draft/order mutation or message occurs. Actual controller and APIs excluded from bundle.",
+    "verification": {
+      "responsiveLayouts": 72,
+      "eplScenarioFlows": 18,
+      "nativeCopyFields": 10,
+      "fixtureStates": 9,
+      "pairedDeltaChecks": 2,
+      "nextWeekCopyCases": 3,
+      "nativeFormatters": true,
+      "missingAndDeniedIsolation": true,
+      "nativeAccessAbortSourceChecks": 2,
+      "nativeEndpointTests": 5,
+      "nativeViewTests": 2,
+      "nativeInfoFocusThemes": 2,
+      "keyboardEscapeReturnThemes": 2,
+      "priorViews": 6,
+      "storageWrites": 0,
+      "nonGETRequests": 0,
+      "providerAndAuthReads": 0,
+      "browserDialogs": 0,
+      "popups": 0,
+      "pageErrors": 0,
+      "controllerApiStorageTimerExclusions": true,
+      "brandQA": true
+    },
+    "captures": [
+      "epl-corrections-ready-dark-phone.png",
+      "epl-corrections-ready-light-phone.png",
+      "epl-corrections-missing-dark-phone.png",
+      "epl-corrections-missing-light-phone.png",
+      "epl-corrections-empty-dark-phone.png",
+      "epl-corrections-empty-light-phone.png",
+      "epl-corrections-unavailable-dark-phone.png",
+      "epl-corrections-unavailable-light-phone.png",
+      "epl-corrections-failed-dark-phone.png",
+      "epl-corrections-failed-light-phone.png",
+      "epl-corrections-denied-dark-phone.png",
+      "epl-corrections-denied-light-phone.png",
+      "epl-corrections-loading-dark-phone.png",
+      "epl-corrections-loading-light-phone.png",
+      "epl-corrections-refreshing-dark-phone.png",
+      "epl-corrections-refreshing-light-phone.png",
+      "epl-corrections-stale-dark-phone.png",
+      "epl-corrections-stale-light-phone.png"
+    ],
+    "delivery": "18 dark/Porcelain phone-width captures visually inspected; full body fits each capture. Extended heights show content with source disclosures open; 320/390/768/1440 layouts, 44px controls, narrow reachability/footer bounds, keyboard/Escape/opener focus checked separately.",
+    "production": "Review assets and evidence only. Native correction controller, Community grants, server/API routes and normalized reads, source snapshots/audits, existing picks and draft order, production tokens, migrations and frozen v62 unchanged. No merge/deploy.",
+    "deferred": "Hosted authorization, real source completeness/capture provenance, cancellation and live refresh/device acceptance remain separate. New avatars/photos, awards and parked Signal work remain held.",
+    "next": "Reconcile remaining native screen/state coverage against scoped visual approvals; whole-app completion not established."
   }
 }
