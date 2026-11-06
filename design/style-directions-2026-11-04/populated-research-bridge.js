@@ -7,6 +7,13 @@ Promise.all([read('populated-research-data.json'),read('populated-fantasy-data.j
  let observer;
  function apply(){const d=frame.contentDocument;if(!d||!frame.contentWindow.GTLPopulatedResearch||d.querySelector('.populated-research-root'))return;
  const title=d.querySelector('.detail-close~.screen-top .page-title');
+ const toolsLayer=document.getElementById('review-layer')?.value;
+ if(title?.textContent==='Profile & account'&&['settings','settings-unavailable','settings-conflict','guidance'].includes(toolsLayer)&&d.getElementById('screen')?.value==='Account'){
+  const stack=d.querySelector('.detail-close~.stack');if(!stack)return;
+  const root=d.createElement('div');root.className='populated-research-root gx';root.dataset.theme=frame.dataset.reviewTheme;root.dataset.researchView='account-tools';stack.replaceChildren(root);
+  const guide=toolsLayer==='guidance';title.textContent=guide?'Guidance and sources':'Settings';title.previousElementSibling.textContent='Account';d.querySelector('.fixture').textContent=guide?'EXISTING GUIDANCE · SOURCES UNCHANGED · NO ACCOUNT DATA':'FICTIONAL SETTINGS · EXAMPLE CATALOG · NO SAVES';
+  roots.get(frame)?.unmount();roots.set(frame,frame.contentWindow.GTLPopulatedResearch.mountAccountTools(root,guide?'guidance':'settings',toolsLayer==='settings-unavailable'?'unavailable':toolsLayer==='settings-conflict'?'conflict':'standard'));return;
+ }
  const reminderLayer=document.getElementById('review-layer')?.value??'';
  const reminderExample=d.getElementById('screen')?.value==='Account'&&d.querySelector('.detail-close')&&(title?.textContent==='Reminders'||d.querySelector('.pill')?.textContent==='ON · SAMPLE STATE'||reminderLayer.startsWith('reminders'));
  if(title?.textContent==='Profile & account'||reminderExample){
@@ -111,7 +118,7 @@ Promise.all([read('populated-research-data.json'),read('populated-fantasy-data.j
  d.querySelector('.fixture').textContent='PUBLIC SNAPSHOT · VISUAL PREVIEW · NO SAVES';
  roots.get(frame)?.unmount();roots.set(frame,frame.contentWindow.GTLPopulatedResearch.mount(root,model));
  }
- function ready(){const d=frame.contentDocument;if(!d?.getElementById('grid'))return;observer?.disconnect();for(const file of ['populated-research.bundle.css','populated-research.css','populated-teams.css','populated-fantasy.css','populated-play.css','populated-points.css','populated-score.css','league-native-avatar.css','populated-league.css','populated-bets.css','populated-epl.css','account-native-avatar.css','populated-account.css','populated-bets-overview.css','populated-bets-changes.css','populated-gap-record.css'])if(!d.querySelector('link[data-populated-css="'+file+'"]')){const link=d.createElement('link');link.rel='stylesheet';link.href=file;link.dataset.populatedCss=file;d.head.append(link);}if(!d.querySelector('script[data-populated-module]')){const script=d.createElement('script');script.src='populated-research.bundle.js';script.dataset.populatedModule='true';script.onload=apply;d.head.append(script);}observer=new MutationObserver(apply);observer.observe(d.getElementById('grid'),{childList:true,subtree:true});apply();}
+ function ready(){const d=frame.contentDocument;if(!d?.getElementById('grid'))return;observer?.disconnect();for(const file of ['populated-research.bundle.css','populated-research.css','populated-teams.css','populated-fantasy.css','populated-play.css','populated-points.css','populated-score.css','league-native-avatar.css','populated-league.css','populated-bets.css','populated-epl.css','account-native-avatar.css','populated-account.css','populated-bets-overview.css','populated-bets-changes.css','populated-gap-record.css','populated-account-tools.css'])if(!d.querySelector('link[data-populated-css="'+file+'"]')){const link=d.createElement('link');link.rel='stylesheet';link.href=file;link.dataset.populatedCss=file;d.head.append(link);}if(!d.querySelector('script[data-populated-module]')){const script=d.createElement('script');script.src='populated-research.bundle.js';script.dataset.populatedModule='true';script.onload=apply;d.head.append(script);}observer=new MutationObserver(apply);observer.observe(d.getElementById('grid'),{childList:true,subtree:true});apply();}
  frame.addEventListener('load',ready);ready();
  });
 }).catch(error=>{const status=document.getElementById('load-status');if(status){status.textContent=error.message;status.setAttribute('role','alert');}});

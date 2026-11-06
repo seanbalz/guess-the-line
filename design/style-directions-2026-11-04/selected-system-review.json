@@ -333,13 +333,41 @@
         "actions": [
           "detail:reminders"
         ]
+      },
+      {
+        "id": "settings",
+        "name": "Sportsbooks and guidance settings",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "settings-unavailable",
+        "name": "Settings - retained unavailable book",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "settings-conflict",
+        "name": "Settings - draft conflict example",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "guidance",
+        "name": "Guidance and sources",
+        "actions": [
+          "detail:profile"
+        ]
       }
     ]
   },
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "Bets/gap-record",
+    "next": "Account/settings",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -1575,7 +1603,7 @@
   },
   "gapRecordPreview": {
     "prepared": "2026-11-06",
-    "status": "Mocked; awaiting visual approval",
+    "status": "Supplied gap-record direction approved by Sean in both themes",
     "view": "selected-system-review.html?screen=Bets&layer=gap-record",
     "sampleMeaning": "Existing labeled sample guesses from the reviewed Weeks 6–8 score history, graded against the same public historical closing lines and final scores. No account ballot, current quote, sportsbook price, submission/observation time or three-book consensus is supplied.",
     "components": [
@@ -1631,6 +1659,88 @@
     ],
     "delivery": "Ten dark/Porcelain phone-width extended-height screenshots, including scrolled outcomes and Spread/Total details; visually inspected. Local preview verification only, not physical-device acceptance.",
     "production": "Review assets and records only; accounts, preferences, production source/tokens, collectors, migrations and frozen v62 unchanged; no merge or deployment.",
-    "deferred": "Current actionable recommendations, live named-book quote/offer paths, Virtual Units and other unseen states remain unreviewed. New avatars/photos and awards remain held."
+    "deferred": "Current actionable recommendations, live named-book quote/offer paths, Virtual Units and other unseen states remain unreviewed. New avatars/photos and awards remain held.",
+    "accepted": "2026-11-06",
+    "confirmation": "good continue",
+    "reviewedCommit": "5490d6d16a44b5d0f34c58053219dc06a6b785fc",
+    "reviewedCaptures": [
+      "bets-gap-summary-dark-phone.png",
+      "bets-gap-spread-detail-dark-phone.png",
+      "bets-gap-summary-light-phone.png",
+      "bets-gap-spread-detail-light-phone.png",
+      "bets-gap-outcomes-dark-phone.png",
+      "bets-gap-total-detail-dark-phone.png",
+      "bets-gap-large-gaps-dark-phone.png"
+    ],
+    "acceptanceScope": "Supplied historical gap-record direction in both themes, including linked outcomes, Total detail and 10%+ example; not unseen states, actual player history, live offers, physical-device behavior or whole-app completion.",
+    "next": "Account Settings and Guidance/source topic cards. New avatars/photos and awards remain held."
+  },
+  "accountToolsPreview": {
+    "prepared": "2026-11-06",
+    "status": "Mocked; awaiting visual approval",
+    "views": [
+      "selected-system-review.html?screen=Account&layer=settings",
+      "selected-system-review.html?screen=Account&layer=settings-unavailable",
+      "selected-system-review.html?screen=Account&layer=settings-conflict",
+      "selected-system-review.html?screen=Account&layer=guidance"
+    ],
+    "sampleMeaning": "Explicit fictional account settings and collected-book catalog scenarios. The existing nine-key account catalog is unchanged and remains separate from the 33 manual tracking labels. No actual supported provider, connection, offer or account preference is read or asserted.",
+    "components": [
+      "Native Sheet, Avatar, Switch, Button and InfoButton",
+      "Native SPORTSBOOK_NAMES/preferenceValue/validBooks",
+      "Native INFO and GUIDANCE_ORDER, with original topic titles, body text and external credit/license links"
+    ],
+    "features": [
+      "Selected glass checkbox cards and live example selected count; native book keys and guidanceCollapsed mapping retained",
+      "Standard, retained-unavailable and conflict-draft examples; explicit preview only, unchanged action disabled",
+      "Unavailable selected book remains until explicitly removed; no provider-status claim",
+      "Native getting-started choice shown as a switch; changes and preview apply in memory only",
+      "All 19 guidance topics in native order, expandable in place; 70 paragraphs and 13 source/license links unchanged",
+      "Supporting topic icons neutral until opened; selected books, count, switch and primary action use selective accent",
+      "Native sheet keyboard/Escape and preview opener focus return; no account, preference or tab-draft storage writes",
+      "Existing award guidance text is preserved; no new award/avatar feature or design is introduced"
+    ],
+    "verification": {
+      "responsiveLayouts": 16,
+      "settingsScenarioFlows": 6,
+      "bookSubsetGuidanceCases": 1024,
+      "invalidPreferenceCases": 4,
+      "retainedUnavailableBook": true,
+      "conflictDraftPreserved": true,
+      "guidanceTopics": 19,
+      "originalGuidanceParagraphs": 70,
+      "originalSourceLinks": 13,
+      "guidanceParagraphComparisonsBothThemes": 140,
+      "sourceLinkComparisonsBothThemes": 26,
+      "nativeTopicOrder": true,
+      "keyboardEscapeReturnThemes": 2,
+      "narrowGuideSourceThemes": 2,
+      "settingsStorageWrites": 0,
+      "priorViews": 6,
+      "productionControllerReaderPushAndDraftStoreExclusions": true,
+      "pageErrors": 0,
+      "nonGETRequests": 0,
+      "brandQA": true,
+      "nestedSettingsInfoThemes": 2
+    },
+    "captures": [
+      "account-tools-guidance-research-dark-phone.png",
+      "account-tools-guidance-research-light-phone.png",
+      "account-tools-guidance-sources-dark-phone.png",
+      "account-tools-guidance-sources-light-phone.png",
+      "account-tools-guidance-topics-dark-phone.png",
+      "account-tools-guidance-topics-light-phone.png",
+      "account-tools-settings-conflict-dark-phone.png",
+      "account-tools-settings-conflict-light-phone.png",
+      "account-tools-settings-dark-phone.png",
+      "account-tools-settings-draft-dark-phone.png",
+      "account-tools-settings-draft-light-phone.png",
+      "account-tools-settings-light-phone.png",
+      "account-tools-settings-unavailable-dark-phone.png",
+      "account-tools-settings-unavailable-light-phone.png"
+    ],
+    "delivery": "14 dark/Porcelain phone-width extended-height screenshots, including scrolled guidance and source links, visually inspected. Local preview verification only, not physical-device acceptance.",
+    "production": "Review assets and records only. Production source/tokens, account settings, storage, provider connections, collectors, migrations and frozen v62 unchanged; no merge or deployment.",
+    "deferred": "Actual preference saving, fresh-read conflict checks, persistence and unseen recovery states remain separate. New avatars/photos and awards remain held."
   }
 }

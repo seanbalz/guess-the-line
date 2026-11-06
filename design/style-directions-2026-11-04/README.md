@@ -1,5 +1,53 @@
 ## EPL Pick a Team flow mocked — November 6, 2026
 
+## Account Settings and Guidance mocked — November 6, 2026
+
+The selected dark/Porcelain glass treatment now covers sportsbook preferences,
+Home guidance and expandable Guidance/source topics. Native Sheet, Avatar,
+Switch, Button and InfoButton are reused. Book cards show a selected count;
+supporting topic icons stay neutral until opened. Unchanged example settings
+keep Preview disabled. Changes and previewing affect component memory only.
+
+The existing nine-key account sportsbook catalog is retained, separately from
+the 33 manual tracking source labels. Standard, retained-unavailable and
+conflict-draft scenarios are explicitly fictional; no current provider status,
+connection, offer or actual account preference is asserted. Native
+preferenceValue/validBooks preserve sorted choices and the inverse Home guide
+flag. A retained unavailable option stays visible until explicitly removed.
+The conflict example preserves the draft for a separate explicit preview;
+no account read, save, retry or tab-draft write is performed.
+
+Guidance retains all 19 topics in native GUIDANCE_ORDER, with all 70 paragraphs
+and 13 credit/license links from INFO unchanged. Topics open in place with
+readable text and external source buttons. Existing badge/award guidance text
+is retained; it does not introduce or approve new award designs or behavior.
+
+Fourteen phone captures were inspected; visual approval is pending. Checks
+passed: 16 responsive layouts, six settings scenario flows, all 1,024 book-subset/
+guidance combinations and four invalid preference cases; unavailable retention
+and conflict-draft preservation. Both themes matched all guidance paragraphs
+(140 comparisons), source links (26) and topic order. Native sheet keyboard,
+Escape/opener return, narrow source reachability, six prior views and zero
+settings storage writes passed. Browser checks recorded no page errors or
+non-GET requests. Build, authenticated controller/reader/push/draft-store
+exclusions, Brand QA and syntax/diff checks passed. Production source/tokens,
+accounts, connections, collectors, migrations and frozen v62 remain unchanged;
+no merge or deployment was performed. Actual saving/persistence/fresh-read
+conflict handling remains separate. New avatars/photos, awards and parked
+Signal work stay held.
+
+[Selection and evidence](selected-system-review.json).
+
+## Historical gap-record direction approved — November 6, 2026
+
+Sean replied "good continue" to the question asking whether the supplied gap
+record looked right in both themes. The supplied historical direction is
+approved at reviewed commit `5490d6d16a44b5d0f34c58053219dc06a6b785fc`, including
+linked outcome, Total-detail and 10%+ examples. This does not establish approval
+of unseen states, actual player history, live offers, real-phone behavior or
+whole-app completion. Account Settings and Guidance/source cards are next.
+New avatars/photos and awards remain held.
+
 ## Historical gap record mocked — November 6, 2026
 
 The selected dark/Porcelain system now covers the Your guess vs. market paper
