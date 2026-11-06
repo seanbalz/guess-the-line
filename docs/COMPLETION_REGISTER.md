@@ -1,5 +1,58 @@
 # Guess The Line — current completion register
 
+## EPL Pick a Team flow mocked — November 6, 2026
+
+The selected dark/Porcelain system now covers Pick a Team, a backup ranking
+sheet, manual/team-from-ranking confirmations, and waiting/closed scenarios.
+Eight example managers appear in native pick order; pending nodes use a quiet
+clock glyph. Each available club has its own glass crest tile and full name.
+The first eight cards lead; Show all exposes the 18 initially available clubs.
+Play is highlighted within the opened EPL flow.
+
+Managers, picks, rankings, results and draft state are **fictional**. The pool
+uses the existing configured 20-club catalog, not a claimed current fixture list.
+No live table, bookmaker price, Sleeper/account history or actual kickoff is
+invented. An internal fixed year-2000 test clock drives native eligibility only;
+it is not displayed as a match or recording time. The 20 registered crests and
+source register are unchanged copies of the existing public assets, used for
+club identification under their existing trademark notice.
+
+Presentation reuses native DraftBoard/Crest/MarginChart, boardModel/moveClub and
+the pure pick-order, turn, eligibility and bonus helpers. The native queue view
+is isolated from its API controller, with a Preview caption, a taken-club note
+and optional fixture wording. Reorder/add/remove controls remain. The local
+ranking example skips taken Chelsea for Liverpool. An empty or taken-only
+ranking leaves the manual turn open; waiting managers can rank without being
+assigned, and the closed scenario prevents changes. Latest-picker changes and
+two tied fictional 3-0 margin bonuses (15 points each) retain existing rules.
+All interactions change fixture memory only; no pick, ranking or account claim
+is saved, and no new avatar, award or celebration feature is added.
+
+Twelve phone captures were inspected. **EPL draft visual approval remains
+pending.** Checks passed: eight responsive layouts, 24 scenario states, two
+complete pick/change/queue flows, two narrow sheet/keyboard/waiting/taken-only
+cases, 176 crest image loads, 20 byte-identical original crest copies, four prior
+view checks and all 11 native draft-domain tests. Independent order/bonus checks,
+deterministic preparation, direct confirmation routing, reader exclusions, Brand
+QA and syntax/diff checks passed. Browser checks produced no page errors or
+non-GET requests. These are local review checks, not hosted or physical-device
+acceptance. Production code/tokens, collectors, migrations, frozen v62 and parked
+Signal files remain unchanged; no merge or deployment was performed.
+
+[Selection and evidence](../design/style-directions-2026-11-04/selected-system-review.json).
+
+## Bets source choices and tap sizes approved — November 6, 2026
+
+Sean replied "Good next" to the revised source choices and tap-size review.
+The supplied 12 upfront/33 searchable manual source choices and plus/minus
+controls are approved, with 5 odds points and 0.25U per tap. The [selection
+record](../design/style-directions-2026-11-04/selected-system-review.json) preserves the four supplied dark/Porcelain captures and reviewed
+commit. This does not establish acceptance of unseen states, real account writes
+or whole-project completion. No new sportsbook integration is implied.
+
+EPL Pick a Team, backup ranking and team confirmation are the next visual review.
+New avatar and award work remains held; parked Signal files remain untouched.
+
 ## Bets source choices and entry steppers revised — November 6, 2026
 
 Sean requested more sportsbooks and plus/minus controls for odds and units.

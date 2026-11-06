@@ -2,11 +2,20 @@
 'use strict';
 const roots=new WeakMap();
 async function read(path){const response=await fetch(path);if(!response.ok)throw Error('Preview asset did not load: '+path);return response.json();}
-Promise.all([read('populated-research-data.json'),read('populated-fantasy-data.json').then(async metadata=>({...metadata,snapshot:await read(metadata.snapshotAsset),review:await read(metadata.reviewSource.asset)})),read('score-history-data.json'),read('league-preview-data.json'),read('bets-preview-data.json')]).then(([model,fantasy,score,league,bets])=>{
+Promise.all([read('populated-research-data.json'),read('populated-fantasy-data.json').then(async metadata=>({...metadata,snapshot:await read(metadata.snapshotAsset),review:await read(metadata.reviewSource.asset)})),read('score-history-data.json'),read('league-preview-data.json'),read('bets-preview-data.json'),read('epl-preview-data.json')]).then(([model,fantasy,score,league,bets,epl])=>{
  document.querySelectorAll('iframe[data-review-theme]').forEach(frame=>{
  let observer;
  function apply(){const d=frame.contentDocument;if(!d||!frame.contentWindow.GTLPopulatedResearch||d.querySelector('.populated-research-root'))return;
  const title=d.querySelector('.detail-close~.screen-top .page-title');
+ const eplConfirmation=title?.textContent==='Team confirmation'||d.querySelector('.status-word')?.textContent==='ILLUSTRATED CONFIRMATION';
+ if(title?.textContent==='Pick a Team'||eplConfirmation){
+  const stack=d.querySelector('.detail-close~.stack');if(!stack)return;
+  const initialView=eplConfirmation?'confirmation':'board';
+  const root=d.createElement('div');root.className='populated-research-root gx';root.dataset.theme=frame.dataset.reviewTheme;root.dataset.researchView='epl';stack.replaceChildren(root);
+  d.querySelectorAll('.app-nav button').forEach(b=>b.classList.toggle('active',b.dataset.action==='Play'));
+  title.previousElementSibling.textContent='EPL';d.querySelector('.fixture').textContent='FICTIONAL DRAFT · NO LIVE FIXTURES · NO SAVES';
+  roots.get(frame)?.unmount();roots.set(frame,frame.contentWindow.GTLPopulatedResearch.mountEpl(root,epl,initialView,view=>{title.textContent=view.name;d.querySelector('.detail-close').hidden=view.open;}));return;
+ }
  if(title?.textContent==='Ticket details'||title?.textContent==='Track a bet'){
   const stack=d.querySelector('.detail-close~.stack');if(!stack)return;
   const initialView=title.textContent==='Track a bet'?'tracking':'ticket';
@@ -73,7 +82,7 @@ Promise.all([read('populated-research-data.json'),read('populated-fantasy-data.j
  d.querySelector('.fixture').textContent='PUBLIC SNAPSHOT · VISUAL PREVIEW · NO SAVES';
  roots.get(frame)?.unmount();roots.set(frame,frame.contentWindow.GTLPopulatedResearch.mount(root,model));
  }
- function ready(){const d=frame.contentDocument;if(!d?.getElementById('grid'))return;observer?.disconnect();for(const file of ['populated-research.bundle.css','populated-research.css','populated-teams.css','populated-fantasy.css','populated-play.css','populated-points.css','populated-score.css','league-native-avatar.css','populated-league.css','populated-bets.css'])if(!d.querySelector('link[data-populated-css="'+file+'"]')){const link=d.createElement('link');link.rel='stylesheet';link.href=file;link.dataset.populatedCss=file;d.head.append(link);}if(!d.querySelector('script[data-populated-module]')){const script=d.createElement('script');script.src='populated-research.bundle.js';script.dataset.populatedModule='true';script.onload=apply;d.head.append(script);}observer=new MutationObserver(apply);observer.observe(d.getElementById('grid'),{childList:true,subtree:true});apply();}
+ function ready(){const d=frame.contentDocument;if(!d?.getElementById('grid'))return;observer?.disconnect();for(const file of ['populated-research.bundle.css','populated-research.css','populated-teams.css','populated-fantasy.css','populated-play.css','populated-points.css','populated-score.css','league-native-avatar.css','populated-league.css','populated-bets.css','populated-epl.css'])if(!d.querySelector('link[data-populated-css="'+file+'"]')){const link=d.createElement('link');link.rel='stylesheet';link.href=file;link.dataset.populatedCss=file;d.head.append(link);}if(!d.querySelector('script[data-populated-module]')){const script=d.createElement('script');script.src='populated-research.bundle.js';script.dataset.populatedModule='true';script.onload=apply;d.head.append(script);}observer=new MutationObserver(apply);observer.observe(d.getElementById('grid'),{childList:true,subtree:true});apply();}
  frame.addEventListener('load',ready);ready();
  });
 }).catch(error=>{const status=document.getElementById('load-status');if(status){status.textContent=error.message;status.setAttribute('role','alert');}});

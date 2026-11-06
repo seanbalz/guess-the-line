@@ -1137,7 +1137,7 @@
   },
   "betsEntryControlsRevision": {
     "prepared": "2026-11-06",
-    "status": "Requested controls mocked; visual approval and tap-size selection pending",
+    "status": "Reviewed source choices and tap controls approved by Sean",
     "request": "Add more sportsbooks and +/- buttons for odds and units so users can adjust without typing.",
     "sportsbooks": {
       "upfront": 12,
@@ -1148,7 +1148,7 @@
     "steps": {
       "odds": 5,
       "units": 0.25,
-      "status": "Provisional recommendation shown pending the owner response to the one-question tap-size prompt."
+      "status": "Approved by Sean on November 6, 2026"
     },
     "behavior": [
       "Unknown odds/units stay unknown; select a preset first to enable adjustment",
@@ -1180,6 +1180,79 @@
       "bets-odds-units-default-dark-phone.png",
       "bets-odds-units-default-light-phone.png"
     ],
-    "production": "Preview assets only; app code/tokens, accounts and data unchanged. Not merged or deployed."
+    "production": "Preview assets only; app code/tokens, accounts and data unchanged. Not merged or deployed.",
+    "accepted": "2026-11-06",
+    "confirmation": "Sean replied Good next to the question asking whether the source choices and tap sizes looked right.",
+    "reviewedCommit": "cf9452de8546ea5cc5c500a89fa9ec3db4429656",
+    "reviewedCaptures": [
+      "bets-odds-units-adjusted-dark-phone.png",
+      "bets-more-books-dark-phone.png",
+      "bets-odds-units-adjusted-light-phone.png",
+      "bets-more-books-light-phone.png"
+    ],
+    "acceptanceScope": "Supplied 12 upfront/33 searchable manual source choices and odds/unit steppers at 5 points/0.25U. Not all unseen source states, real account writes or whole-project completion."
+  },
+  "eplDraftPreview": {
+    "prepared": "2026-11-06",
+    "status": "Mocked; awaiting Sean visual approval",
+    "views": [
+      "selected-system-review.html?screen=EPL&layer=draft",
+      "selected-system-review.html?screen=EPL&layer=confirmation"
+    ],
+    "sampleMeaning": "Fictional managers, order, picks, rankings, results, bonus and draft state. The existing configured 20-club catalog and registered crests are reused. No live fixture list, kickoff, table, odds or Sleeper/account history is supplied.",
+    "clockMeaning": "Fixed year-2000 test clock for native eligibility only; not displayed as a match kickoff or recording/quote time.",
+    "components": [
+      "Native boardModel / moveClub",
+      "Native pickOrder / canPick / onTheClock / settleBonus",
+      "Native DraftBoard / Crest / MarginChart",
+      "Isolated native QueueSheetView with Preview caption, taken-club note and conditional fixture text",
+      "Native Sheet focus/gestures plus preview background inertness and focus return"
+    ],
+    "features": [
+      "Eight sample managers in pick order; clock glyphs identify waiting nodes",
+      "First eight then all 18 initially available sample clubs; one glass tile per crest, full names",
+      "Can pick / Waiting / Closed scenarios; Play highlighted within EPL",
+      "Manual confirmation and latest-picker change before the next manager picks",
+      "Backup ranking move/add/remove controls; taken Chelsea is skipped for Liverpool",
+      "Ranking preview on the sample turn assigns the first available ranked club; empty/taken-only ranking leaves manual turn open",
+      "Waiting manager may preview a ranking without assigning a club; closed draft prevents edits",
+      "Two identical fictional 3–0 wins demonstrate native tied 15-point margin bonuses",
+      "All actions affect fixture memory only; no account/API/storage writes or new awards/avatars"
+    ],
+    "verification": {
+      "responsiveLayouts": 8,
+      "scenarioStates": 24,
+      "fullPickChangeQueueFlows": 2,
+      "narrowSheetKeyboardWaitingTakenOnlyCases": 2,
+      "registeredCrestImageLoads": 176,
+      "exactOriginalCrestCopies": 20,
+      "priorViewChecks": 4,
+      "nativeDomainTestsPassed": 11,
+      "independentOrderAndBonusChecks": true,
+      "deterministicPreparation": true,
+      "directConfirmationRoute": true,
+      "productionReaderExclusions": true,
+      "pageErrors": 0,
+      "nonGETRequests": 0,
+      "latestPickerRankingKeepsPick": true
+    },
+    "captures": [
+      "epl-backup-confirmation-dark-phone.png",
+      "epl-backup-confirmation-light-phone.png",
+      "epl-backup-ranking-dark-phone.png",
+      "epl-backup-ranking-light-phone.png",
+      "epl-closed-dark-phone.png",
+      "epl-closed-light-phone.png",
+      "epl-draft-board-dark-phone.png",
+      "epl-draft-board-light-phone.png",
+      "epl-team-confirmation-dark-phone.png",
+      "epl-team-confirmation-light-phone.png",
+      "epl-waiting-dark-phone.png",
+      "epl-waiting-light-phone.png"
+    ],
+    "delivery": "Phone-width extended-height captures; not physical-device acceptance",
+    "crestSource": "team-logos/epl/sources.json; unchanged copies from web/public/team-logos/epl, trademark identification only",
+    "production": "App source/tokens, accounts, collectors and migrations unchanged; no merge or deployment",
+    "deferred": "Unseen manager-claim, error, deadline-resolution and other EPL flows remain unreviewed. New avatar and award work stays held."
   }
 }
