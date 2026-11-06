@@ -759,5 +759,48 @@
     "confirmation": "Sean replied Good after receiving the Week 9 ranking and provisional Week 8 report previews in both themes, with the expanded biggest-miss detail link.",
     "acceptanceScope": "Reviewed ranking/report visual direction, native calculations, paired baseline chart and supplied biggest-miss treatment. Not separate acceptance of every unseen filter/player/state, live-data freshness, production integration or whole-project completion.",
     "next": "Recommended next review: Play draft-entry and lock-in screens. Existing Play approval covers the reviewed matchup-card logo tiles only. Deferred avatars/awards remain held."
+  },
+  "playDraftLockIn": {
+    "status": "Mocked for visual review; awaiting Sean",
+    "prepared": "2026-11-05",
+    "basis": "Sean answered Yes to mocking Play draft-entry and lock-in screens next",
+    "components": [
+      "Original GuessPicker / Chip / Button",
+      "Original native Dialog / InfoButton"
+    ],
+    "scope": "Reviewed public Week 9 Cardinals at Seahawks fixture; Spread and Total draft controls, confirmations and in-memory confirmed state in both selected themes",
+    "sampleGuesses": {
+      "guess_spread": -3,
+      "guess_total": 44.5,
+      "meaning": "Sample user entries only; not sportsbook quotes or saved player picks"
+    },
+    "rules": "D-39: each game and market locks independently and finally. Other drafts stay separate. No whole-week submission.",
+    "privacy": "No account/API/storage/save imports, no authenticated reads or writes. No book quotes, opponents picks or scores are fabricated.",
+    "verification": {
+      "responsiveLayouts": 8,
+      "marketLayoutStates": 16,
+      "confirmationDialogs": 16,
+      "nativePickerFlows": 8,
+      "narrowPhoneScrollStates": 8,
+      "minVisibleControlHeight": 44,
+      "pageErrors": 0,
+      "nonGETRequests": 0,
+      "fantasyRankingsRegression": "mounts"
+    },
+    "captures": [
+      "play-spread-draft-dark-phone.png",
+      "play-total-draft-dark-phone.png",
+      "play-lock-confirm-dark-phone.png",
+      "play-preview-confirmed-dark-phone.png",
+      "play-total-lock-confirm-dark-phone.png",
+      "play-spread-draft-light-phone.png",
+      "play-total-draft-light-phone.png",
+      "play-lock-confirm-light-phone.png",
+      "play-preview-confirmed-light-phone.png",
+      "play-total-lock-confirm-light-phone.png"
+    ],
+    "delivery": "Phone-width captures with extended heights; not physical-device acceptance",
+    "production": "Unchanged; not merged or deployed",
+    "deferred": "Avatars, awards, parked Signal branding and whole-project completion remain held"
   }
 }

@@ -1,3 +1,50 @@
+## Play draft-entry and lock-in mocked — November 5, 2026
+
+Sean approved proceeding with Play’s draft-entry and lock-in mockups. Spread
+and Total now use the existing GuessPicker, Chip, Button, Dialog and InfoButton
+components under the selected glass skin. Separate team-logo tiles, the public
+Week 9 Cardinals/Seahawks schedule and recorded 3–5 / 4–4 records are retained.
+The prefilled −3 Spread and 44.5 Total are explicitly **sample user guesses**,
+not sportsbook quotes or any player’s saved picks.
+
+The preview retains favorite/Pick’em selection, half-point steps, More, typed
+and keyboard entry. Each market has its own editable state. The confirmation
+highlights the chosen guess, finality and the independent other market, with
+Keep editing before Confirm lock-in. Confirming changes in-memory demo state
+only; the resulting card says Preview confirmed. It does not simulate a saved
+server receipt or fabricate revealed book lines, opponents’ picks or scores.
+The real app’s fresh-read confirmation and per-game rules remain unchanged.
+
+Ten phone-width captures show Spread/Total drafts, both market confirmations
+and the preview-confirmed Spread card in dark and Porcelain themes. Capture
+heights are extended for presentation; these are not physical-device checks.
+**Visual approval of this Play detail direction remains pending.**
+
+Local checks passed: eight responsive theme/width layouts (320, 390, 768, 1440),
+16 market layout states, 16 confirmation dialogs and eight native-picker flows,
+including signs, Pick’em zero, half steps, keyboard/typed values, cancel and
+independent-market preservation. Eight additional narrow-phone scroll states
+confirmed the lock button clears bottom navigation and visible controls retain
+44px minimum heights. No page errors or non-GET requests were observed. The
+approved Fantasy rankings still mount. The bundle excludes production API,
+Supabase and authenticated Fantasy readers. Brand document QA and syntax/diff
+checks passed.
+
+Production code/tokens, private picks, public source exports, collectors, budgets,
+scoring, migrations and the frozen v62 tracker are unchanged. Avatars/awards and
+the parked Signal work remain deferred. No merge or deployment was performed.
+
+[Spread dark](previews/play-spread-draft-dark-phone.png) ·
+[Spread light](previews/play-spread-draft-light-phone.png) ·
+[Total dark](previews/play-total-draft-dark-phone.png) ·
+[Total light](previews/play-total-draft-light-phone.png) ·
+[Spread confirmation dark](previews/play-lock-confirm-dark-phone.png) ·
+[Spread confirmation light](previews/play-lock-confirm-light-phone.png) ·
+[Total confirmation dark](previews/play-total-lock-confirm-dark-phone.png) ·
+[Total confirmation light](previews/play-total-lock-confirm-light-phone.png) ·
+[Confirmed demo dark](previews/play-preview-confirmed-dark-phone.png) ·
+[Confirmed demo light](previews/play-preview-confirmed-light-phone.png).
+
 ## Fantasy ranking/report direction approved — November 5, 2026
 
 Sean confirmed "Good" after the Week 9 ranking and provisional Week 8 report
