@@ -1,5 +1,23 @@
 # Guess The Line — current completion register
 
+## Bets glossy ticket icons and status badges — November 5, 2026
+
+Sean authorized the Bets mockup and clarified that he is on a phone and cannot
+see local files. Present review images directly in chat using phone-accessible
+URLs; do not rely on localhost or local-path links for owner review. The Bets
+mockup now replaces 01/02 number blocks with the selected glossy ticket glyph
+and adds visible Pending/Settled badges using existing sample status. Titles,
+receipt/tracker text, sample result and native buttons remain. The
+[dark phone capture](../design/style-directions-2026-11-04/previews/bets-ticket-review-dark.png)
+and [light phone capture](../design/style-directions-2026-11-04/previews/bets-ticket-review-light.png)
+were inspected. Chromium checked both themes at 320/390/768/1440px, badge
+contents, icon replacement, row bounds, 44px action targets, four ticket opens
+and two tracking opens, with no page errors. JavaScript syntax and Brand document
+QA passed. Ticket visual approval is pending. No new wagers, recommendations,
+private data or production behavior were introduced. Parked Signal files stay
+untouched and unpublished.
+
+
 ## Play matchup logo-tile treatment approved — November 5, 2026
 
 Sean confirmed "Looks good" for the reviewed Play Spread and Total cards in
