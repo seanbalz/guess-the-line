@@ -1,3 +1,51 @@
+## Commissioner menu and Community members mocked — November 6, 2026
+
+The selected dark/Porcelain system now covers the commissioner menu, Community
+member list, remove/restore confirmations, pending access check and Community-
+admin restriction. Six native tool destinations/icon keys, fourteen static
+member copy fields and both native confirmation titles are retained. Native
+Sheet, LinkRow, Button, InfoButton and existing initials Avatar are reused.
+
+Alex Lane, Morgan Reed and Jamie Park are fictional. Removal preserves entered
+records under existing visibility rules and leaves private memberships unchanged;
+it does not delete an account. Cancel stays first, your own row has no access
+change action, and pending shows a check instead of another change. The restricted
+private-host example has no Community-admin grant, roster or privileged action.
+All controls affect selection/notices only. Remove/Restore leave fixture access
+unchanged; Check stays pending and never claims real readback or replays a write.
+Refresh reads nothing. Tool rows show entry notices: their details are outside
+this batch. No API, auth, storage, membership, settlement, publishing, fetch or
+message operation is performed.
+
+Twelve dark/light phone captures were visually inspected; visual approval is
+pending. Checks passed: 48 responsive/frame/footer layouts, twelve scenario
+flows, six native tool rows, fourteen member copy fields, one dynamic-title
+comparison, three permission/self/pending source guards, two native read-before-
+write/single-write checks, fixture independence, nested information focus return,
+Sheet keyboard/Escape/opener return and six prior views. No storage writes,
+privileged reads, non-GET requests, popups, browser dialogs or page errors were
+observed. Build, controller/write exclusions, Brand QA, syntax and diff checks
+passed. Extended captures show content; narrow scroll reachability and 44px
+controls were checked separately.
+
+Review assets/evidence only; no merge/deploy. Real authorization, fresh reads,
+concurrency, pending-check persistence/readback, audits and physical-device
+acceptance remain separate. Native controllers, Community-admin/original Triple
+Threat grants, real memberships/history, visibility rules, APIs/auth, collectors/
+budgets, production tokens, migrations and frozen v62 are unchanged. Commissioner
+status/week-opening details are next. New avatars/photos, awards and parked
+Signal work stay held.
+
+## Session and name recovery direction approved — November 6, 2026
+
+Sean confirmed "Looks good in both themes. Continue with the next mockups."
+for the supplied session-expiry and retained first-name recovery direction at
+reviewed commit `9d5d0ad85dcf779802cbf0ae6777691b5758ae19`. That visual direction
+is approved in both themes. Actual reauthentication/provider return, persistence,
+save/readback, invitation access, physical-device acceptance and whole-app
+completion remain separate. Commissioner menu and Community member controls are
+next. New avatars/photos and awards stay held.
+
 ## Session-expiry and first-name recovery mocked — November 6, 2026
 
 The selected dark/Porcelain system now covers Sign in again with password plus

@@ -690,13 +690,55 @@
         "actions": [
           "detail:profile"
         ]
+      },
+      {
+        "id": "commissioner-hub",
+        "name": "Commissioner menu",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "commissioner-members",
+        "name": "Community members",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "commissioner-remove",
+        "name": "Remove access confirmation",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "commissioner-restore",
+        "name": "Restore access confirmation",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "commissioner-pending",
+        "name": "Access change needs checking",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "commissioner-restricted",
+        "name": "Community admin required",
+        "actions": [
+          "detail:profile"
+        ]
       }
     ]
   },
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "Account/session-expired",
+    "next": "Account/commissioner-hub",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -2622,7 +2664,7 @@
     "next": "Session-expiry sign-in and retained first-name draft recovery examples."
   },
   "sessionRecoveryPreview": {
-    "status": "Session-expiry and first-name draft recovery mocked in both themes; visual approval pending",
+    "status": "Supplied session and first-name recovery direction approved in both themes",
     "prepared": "2026-11-06",
     "views": [
       "Sign in again with password and Google",
@@ -2674,6 +2716,80 @@
     "delivery": "14 dark/Porcelain phone-width captures visually inspected. Extended heights show content; 320/390/768/1440 layouts, reachability, 44px controls and 16px inputs were checked separately.",
     "production": "Review assets/evidence only. Native session/name/AuthGate controllers, draft storage, account/provider configuration, APIs, invitations, data, production tokens/branding, migrations and frozen v62 unchanged. No merge/deploy.",
     "deferred": "Real same-account reauthentication, OAuth return, persistence across reload/provider changes, actual name readback/save, invitation access and physical-device acceptance remain separate. New avatars/photos and awards stay held.",
-    "next": "Reconcile remaining native screen coverage after this visual review."
+    "next": "Commissioner menu and Community member controls.",
+    "accepted": "2026-11-06",
+    "confirmation": "Looks good in both themes. Continue with the next mockups.",
+    "reviewedCommit": "9d5d0ad85dcf779802cbf0ae6777691b5758ae19",
+    "reviewedCaptures": [
+      "session-recovery-signin-dark-phone.png",
+      "session-recovery-signin-light-phone.png",
+      "session-recovery-failed-dark-phone.png",
+      "session-recovery-failed-light-phone.png",
+      "session-recovery-google-dark-phone.png",
+      "session-recovery-google-light-phone.png",
+      "session-recovery-name-uncertain-dark-phone.png",
+      "session-recovery-name-uncertain-light-phone.png",
+      "session-recovery-name-offline-dark-phone.png",
+      "session-recovery-name-offline-light-phone.png",
+      "session-recovery-name-signin-dark-phone.png",
+      "session-recovery-name-signin-light-phone.png",
+      "session-recovery-name-invited-dark-phone.png",
+      "session-recovery-name-invited-light-phone.png"
+    ],
+    "acceptanceScope": "Supplied session-expiry and retained first-name recovery direction in both themes. Real reauthentication/provider return, persistence, save/readback, invitation access, physical-device acceptance and whole-app completion remain separate."
+  },
+  "commissionerMembersPreview": {
+    "status": "Commissioner menu and Community member controls mocked in both themes; visual approval pending",
+    "prepared": "2026-11-06",
+    "views": [
+      "Commissioner tools menu",
+      "Community members",
+      "Remove access confirmation",
+      "Restore access confirmation",
+      "Pending access check",
+      "Community admin required"
+    ],
+    "nativePreservation": "The six native tool destinations and their destination-icon keys are reused without importing the commissioner controller. Native member explanation, active/removed labels, Cancel-first remove/restore review, self-row protection, pending-check wording and Community-admin restriction are retained. Native Sheet, LinkRow, Button, InfoButton and existing initials Avatar are reused.",
+    "fixtures": "Alex Lane (self), Morgan Reed (active) and Jamie Park (removed) are fictional. The restricted example is a private-league host without Community-admin access; it shows no roster or privileged change action. No live roster, account role, removed record or stored pending check is read.",
+    "isolation": "All actions change example selection/notices only. Remove/Restore do not alter even the fixture memberships. Check stays pending with no actual readback and no replay. Refresh reads nothing; tool rows show review-entry notices because detail screens are outside this batch. No API, auth, persistent storage, grant, removal/restoration, account deletion, publishing, settlement, provider fetch or message occurs.",
+    "verification": {
+      "responsiveLayouts": 48,
+      "commissionerScenarioFlows": 12,
+      "nativeToolRows": 6,
+      "nativeMemberCopyFields": 14,
+      "nativeDynamicTitleChecks": 1,
+      "nativePermissionSelfAndPendingGuards": 3,
+      "nativeReadBeforeWriteAndSingleWriteChecks": 2,
+      "nativeInfoFocusThemes": 2,
+      "keyboardEscapeReturnThemes": 2,
+      "priorViews": 6,
+      "storageWrites": 0,
+      "nonGETRequests": 0,
+      "privilegedReads": 0,
+      "browserDialogs": 0,
+      "popups": 0,
+      "pageErrors": 0,
+      "controllerAndWriteExclusions": true,
+      "fixtureIndependence": true,
+      "brandQA": true
+    },
+    "captures": [
+      "commissioner-hub-dark-phone.png",
+      "commissioner-hub-light-phone.png",
+      "commissioner-members-dark-phone.png",
+      "commissioner-members-light-phone.png",
+      "commissioner-remove-dark-phone.png",
+      "commissioner-remove-light-phone.png",
+      "commissioner-restore-dark-phone.png",
+      "commissioner-restore-light-phone.png",
+      "commissioner-pending-dark-phone.png",
+      "commissioner-pending-light-phone.png",
+      "commissioner-restricted-dark-phone.png",
+      "commissioner-restricted-light-phone.png"
+    ],
+    "delivery": "12 dark/Porcelain phone-width captures visually inspected. Extended captures show content; scrolling, 44px touch targets, frame/footer bounds and 320/390/768/1440 viewport layouts checked separately.",
+    "production": "Review assets/evidence only. Community-member/commissioner controllers, admin grants and original Triple Threat restrictions, membership storage, audit/history, data visibility, private memberships, APIs/auth, odds budgets/collectors, production tokens, migrations and frozen v62 unchanged. No merge/deploy.",
+    "deferred": "Live authorization, fresh read-before-change, concurrency, pending-check persistence/readback, audit attribution and physical-device acceptance remain separate. Tool detail screens still need review. New avatars/photos and awards stay held.",
+    "next": "Commissioner schedule/settlement status and week-opening detail mockups."
   }
 }

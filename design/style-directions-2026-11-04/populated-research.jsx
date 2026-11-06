@@ -16,6 +16,7 @@ import {EplPreview} from './populated-epl.jsx';
 import {GapRecordPreview} from './populated-gap-record.jsx';
 import {BetsChangesPreview} from './populated-bets-changes.jsx';
 import {BetsOverviewPreview} from './populated-bets-overview.jsx';
+import {CommissionerPreview} from './populated-commissioner.jsx';
 import {SessionRecoveryPreview,NameRecoveryPreview} from './populated-session-recovery.jsx';
 import {LeagueAccessPreview} from './populated-league-access.jsx';
 import {ContinuityPreview} from './populated-continuity.jsx';
@@ -137,3 +138,5 @@ export function mountLeagueAccess(element,scenario){const root=createRoot(elemen
 
 export function mountSessionRecovery(element,scenario){const root=createRoot(element);root.render(<SessionRecoveryPreview scenario={scenario}/>);return root;}
 export function mountNameRecovery(element,scenario){const root=createRoot(element);root.render(<NameRecoveryPreview theme={element.dataset.theme} scenario={scenario}/>);return root;}
+
+export function mountCommissioner(element,scenario){const root=createRoot(element);root.render(<CommissionerPreview scenario={scenario}/>);return root;}
