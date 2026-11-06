@@ -480,5 +480,18 @@
     "delivery": "Phone screenshots, extended 1100px presentation height; not physical-device acceptance",
     "accepted": "2026-11-05",
     "acceptanceScope": "Reviewed glass Light/Dark/System control and selection styling in both themes; not production theme switching or blanket Account acceptance"
+  },
+  "accountRowIcons": {
+    "date": "2026-11-05",
+    "status": "Mocked for review; visual approval pending",
+    "scope": "Profile, Reminders and Community rows in Account overview, both themes",
+    "glyphs": [
+      "circle-user-round",
+      "bell",
+      "users"
+    ],
+    "source": "visual-assets/sources.json accountIcons",
+    "finish": "Selected 03 Glossy glass; one tile per icon, decorative SVG beside existing readable labels",
+    "preserved": "Approved Appearance selector, AL avatar placeholder, native row actions; no avatar controls added"
   }
 }

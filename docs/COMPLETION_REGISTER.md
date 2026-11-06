@@ -1,5 +1,22 @@
 # Guess The Line — current completion register
 
+## Glossy Account row icons prepared for review — November 5, 2026
+
+Sean authorized matching glossy icons for Profile, Reminders and Community.
+The mockup now uses Lucide circle-user-round, bell and users glyphs in the
+selected 03 glass finish, replacing the placeholder symbols. Each icon has its
+own tile beside the existing label; the original wrapper is transparent to avoid
+a second background. [Dark phone capture](../design/style-directions-2026-11-04/previews/account-icons-dark-phone.png)
+and [light phone capture](../design/style-directions-2026-11-04/previews/account-icons-light-phone.png)
+were inspected. Pinned 0.468.0 SVG sources and existing ISC/MIT notices are
+recorded in the asset manifest. Chromium matched all six displayed glyphs to
+the registered source geometry; checked four widths, 44px targets, six native
+Account opens, six Appearance choice clicks and two keyboard selections, with
+no page errors. JavaScript syntax and Brand document QA passed. Avatar placeholder
+and approved Appearance styling are preserved; no avatar controls, production
+changes or whole-screen approval are inferred. Parked Signal files are unchanged.
+
+
 ## Account Appearance selector visual approved — November 5, 2026
 
 Sean answered "Yes" after the phone-accessible Appearance mockups. The glass

@@ -360,5 +360,21 @@
     "scope": "Icon finish across the current mockups; fresh screen review remains pending",
     "recipe": "visual-icon-treatments.css: data-icon-treatment=3",
     "rationale": "Matches floating glass cards and hybrid G, with restrained depth around functional symbols; neutral inactive navigation keeps lime emphasis selective."
+  },
+  "accountIcons": {
+    "date": "2026-11-05",
+    "sourceVersion": "0.468.0",
+    "icons": {
+      "profile": "circle-user-round",
+      "reminders": "bell",
+      "community": "users (existing)"
+    },
+    "source": "https://github.com/lucide-icons/lucide/tree/0.468.0/icons",
+    "licenseFiles": [
+      "LUCIDE-LICENSE",
+      "FEATHER-LICENSE"
+    ],
+    "treatment": "Selected 03 Glossy glass",
+    "status": "Mocked for review; no avatar changes"
   }
 }
