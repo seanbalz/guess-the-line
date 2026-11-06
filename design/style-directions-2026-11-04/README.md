@@ -3,6 +3,68 @@
 Owner: Sean Balsiger · Version 31 · November 4, 2026
 
 
+## Populated game research rebuilt from existing app components — November 5, 2026
+
+Sean instructed continuing after challenging the sparse mockup. The active opened
+Research game now uses a verified Week 9 Arizona-at-Seattle example from GTL's
+published data, replacing the fictional matchup and the disconnected blank-card/
+touchdown comparison. Approved visual materials and header geometry are retained.
+The prototype imports the actual TrendDetail, ResearchChart and MarginChart React
+components. It supports six evidence periods, interactive cumulative curves,
+25 season stems with linked tables, team switching, records/scoring averages,
+eight-game margin charts and observed play metrics. The existing app game route
+is linked for market history, retaining its own access/freshness checks; no private
+or gated quote values are exported into public assets.
+
+[Dark trends](previews/populated-game-trends-dark-phone.png),
+[light trends](previews/populated-game-trends-light-phone.png),
+[dark teams](previews/populated-game-teams-dark-phone.png)
+and [light teams](previews/populated-game-teams-light-phone.png)
+phone-width captures were inspected. Extended-height captures show scrollable
+content for review, not device acceptance. Public-data provenance, exact source
+hashes, original-component paths and reproduction commands are in the
+[prototype README](README.md).
+
+All six public files passed published SHA-256 and shared schema validation.
+The completed schedule fingerprint matches the publication. Reconstructed full
+history matches its published record (2,362 games); by-season summaries and team
+finals use existing shared calculation functions and verified completed rows.
+No historical result is relabeled as a current prediction or profitable lean.
+Chromium checked eight theme/width layouts, 48 evidence-period views, 16 team
+views, season/keyboard selection, linked evidence tables, eight fresh direct
+loads and all 26 paired navigation states. No page errors; syntax, public-export
+key checks and Brand QA passed. Production app code/tokens, live data, collectors,
+credentials, migrations and parked Signal files are unchanged. Visual approval
+remains pending; the first design project is not declared finished.
+
+
+### Source and reproduction
+
+The active model is populated-research-data.json. Public data source: the GTL
+research-data-2026 release generated 2026-11-05T22:43:15.728Z. nflverse schedule
+history is maintained by Lee Sharpe; observed plays are from nflverse. Source
+links, input hashes and CC BY 4.0 credit are retained in the model. No raw future
+quotes, private guesses or account data are in this export. Market history opens
+the real app's game route; this prototype does not bypass its authenticated gate.
+
+To reproduce from the root, put the six immutable compressed publication files,
+the matching index.json and schedules games.csv under
+.local/data-inventory-20261105 (ignored), then run:
+
+```powershell
+node design/style-directions-2026-11-04/prepare-populated-research.mjs
+node design/style-directions-2026-11-04/build-populated-research.mjs
+```
+
+The generator verifies source/file fingerprints and reconstructs season records
+using the existing research engine. The builder uses the checkout's installed
+React/esbuild dependencies. GTL_PREVIEW_NODE_MODULES can point to an existing
+read-only dependency directory when the worktree has none. Builds emit the
+review-only bundle/CSS and retained third-party notices. Production source imports
+are compiled unchanged; theme overrides are isolated to the preview root. Raw
+source downloads and the build-input receipt remain ignored.
+
+
 ## Both game research views mocked — November 5, 2026
 
 Sean chose both line movement and team performance. The approved compact

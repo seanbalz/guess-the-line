@@ -1,5 +1,40 @@
 # Guess The Line — current completion register
 
+## Populated game research rebuilt from existing app components — November 5, 2026
+
+Sean instructed continuing after challenging the sparse mockup. The active opened
+Research game now uses a verified Week 9 Arizona-at-Seattle example from GTL's
+published data, replacing the fictional matchup and the disconnected blank-card/
+touchdown comparison. Approved visual materials and header geometry are retained.
+The prototype imports the actual TrendDetail, ResearchChart and MarginChart React
+components. It supports six evidence periods, interactive cumulative curves,
+25 season stems with linked tables, team switching, records/scoring averages,
+eight-game margin charts and observed play metrics. The existing app game route
+is linked for market history, retaining its own access/freshness checks; no private
+or gated quote values are exported into public assets.
+
+[Dark trends](../design/style-directions-2026-11-04/previews/populated-game-trends-dark-phone.png),
+[light trends](../design/style-directions-2026-11-04/previews/populated-game-trends-light-phone.png),
+[dark teams](../design/style-directions-2026-11-04/previews/populated-game-teams-dark-phone.png)
+and [light teams](../design/style-directions-2026-11-04/previews/populated-game-teams-light-phone.png)
+phone-width captures were inspected. Extended-height captures show scrollable
+content for review, not device acceptance. Public-data provenance, exact source
+hashes, original-component paths and reproduction commands are in the
+[prototype README](../design/style-directions-2026-11-04/README.md).
+
+All six public files passed published SHA-256 and shared schema validation.
+The completed schedule fingerprint matches the publication. Reconstructed full
+history matches its published record (2,362 games); by-season summaries and team
+finals use existing shared calculation functions and verified completed rows.
+No historical result is relabeled as a current prediction or profitable lean.
+Chromium checked eight theme/width layouts, 48 evidence-period views, 16 team
+views, season/keyboard selection, linked evidence tables, eight fresh direct
+loads and all 26 paired navigation states. No page errors; syntax, public-export
+key checks and Brand QA passed. Production app code/tokens, live data, collectors,
+credentials, migrations and parked Signal files are unchanged. Visual approval
+remains pending; the first design project is not declared finished.
+
+
 ## Redesign data-content correction and inventory — November 5, 2026
 
 Sean challenged the many no-data mockup states, citing the app's existing rich

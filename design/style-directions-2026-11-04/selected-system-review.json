@@ -509,7 +509,7 @@
   },
   "gameResearchViews": {
     "date": "2026-11-05",
-    "status": "Two-tab layout accepted in principle; sparse data representation challenged by Sean and must be replaced",
+    "status": "Superseded by populatedGameResearch; sparse fixture is retained only as history",
     "basis": "Sean chose Both: line movement and team performance",
     "scope": "Tabbed research card under the approved Research/game compact matchup header in both themes",
     "lineHistory": "Spread/Total local selection; verified history unavailable, no plotted odds or invented opening/latest values or timestamps",
@@ -518,5 +518,29 @@
     "remaining": "Connecting eligible live history and real matchup context is outside this visual mockup",
     "correction": "Mockup-only missing fixtures do not establish production data absence. Use existing populated Research/MarketDetails/TrendDetail/TeamView components and verified representative data.",
     "inventory": "../../docs/DESIGN_DATA_INVENTORY_2026_11_05.md"
+  },
+  "populatedGameResearch": {
+    "date": "2026-11-05",
+    "status": "Implemented for visual review; approval pending",
+    "matchup": "2026 Week 9, Arizona at Seattle, November 8",
+    "source": "populated-research-data.json: published GTL research-data-2026 files with SHA-256/shared validation; completed schedule fingerprint matches publication",
+    "components": [
+      "web/src/next/charts/TrendDetail.jsx",
+      "web/src/next/research/ResearchChart.jsx",
+      "web/src/next/teams/MarginChart.jsx"
+    ],
+    "features": [
+      "Six evidence periods",
+      "Cumulative trend curve and linked result table",
+      "25 season stem/table comparisons",
+      "Team records and points per game",
+      "Eight-game team margin charts",
+      "Observed pass/run success and yardage metrics",
+      "Existing app market-history deep link"
+    ],
+    "preserved": "Approved logo, individual logo tiles, compact header, glass/materials, dark/light palettes and other screens",
+    "privacy": "Public completed-game research only; no private picks, account records, upcoming bookmaker quotes, auth modules or new odds requests",
+    "marketHistory": "Existing GTL game route preserves its own access/freshness checks; no unavailable fixture graph is displayed by default",
+    "delivery": "Phone-width captures with extended presentation height, not physical-device acceptance"
   }
 }

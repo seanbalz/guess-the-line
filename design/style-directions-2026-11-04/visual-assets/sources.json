@@ -349,6 +349,48 @@
         "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
         "usage": "Small club-identification crests shown next to the club name in Pick a Team and EPL data displays only; no endorsement or app-brand use."
       }
+    },
+    {
+      "file": "ari.png",
+      "original": "web/public/team-logos/ari.png",
+      "sha256": "a1fb968d728e369d2382b04d7c9beaf1d42236ace9a85a355b189cf74aef62e8",
+      "sourceRecord": {
+        "team": "Arizona Cardinals",
+        "file": "ari.png",
+        "sourceUrl": "https://a.espncdn.com/i/teamlogos/nfl/500/ari.png",
+        "sourceIndex": "https://github.com/nflverse/nflverse-data/releases/download/teams/teams_colors_logos.csv",
+        "sourceIndexRow": {
+          "team_abbr": "ARI",
+          "team_name": "Arizona Cardinals",
+          "column": "team_logo_espn"
+        },
+        "fetchedAt": "2026-10-14T22:43:59Z",
+        "original": {
+          "sha256": "f870b58b43585a5b7717d578dd433b0b1e0c462d64ef4bea2aeb8c03f4ae7854",
+          "bytes": 41994,
+          "width": 500,
+          "height": 500,
+          "format": "PNG",
+          "mode": "RGBA"
+        },
+        "sha256": "a1fb968d728e369d2382b04d7c9beaf1d42236ace9a85a355b189cf74aef62e8",
+        "bytes": 11272,
+        "width": 128,
+        "height": 128,
+        "transparent": true,
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "rightsBasis": "trademark-identification",
+        "trademarkNotice": "NFL and team names, logos and marks are trademarks of the NFL and its teams; used here only to identify the teams. No endorsement.",
+        "licensed": false,
+        "reviewedAt": "2026-10-14",
+        "modifications": "Downscaled only (Pillow LANCZOS, aspect and alpha kept); no recolor, no crop.",
+        "usage": "Small team-identification marks shown next to the team name in matchup and data displays only; no endorsement or app-brand use."
+      }
     }
   ],
   "trademarkNotice": "NFL, Premier League and team names, logos and marks are trademarks of their owners; used only to identify teams. No endorsement or affiliation. Existing repo use is not a license.",
