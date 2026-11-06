@@ -113,4 +113,4 @@ function BetEditor({ unitCash, onUnitCash, entry, action, fromRecommendation, ga
   </Modal>;
 }
 
-export {BetEditor};
+export {BetEditor,Modal as PreviewBetModal};

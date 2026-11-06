@@ -88,6 +88,7 @@ lucide-react/dist/esm/icons/download.js:
 lucide-react/dist/esm/icons/eye.js:
 lucide-react/dist/esm/icons/filter.js:
 lucide-react/dist/esm/icons/flame.js:
+lucide-react/dist/esm/icons/history.js:
 lucide-react/dist/esm/icons/house.js:
 lucide-react/dist/esm/icons/info.js:
 lucide-react/dist/esm/icons/lock-keyhole.js:

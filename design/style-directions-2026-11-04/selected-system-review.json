@@ -177,6 +177,20 @@
         "actions": [
           "detail:ticket"
         ]
+      },
+      {
+        "id": "result-report",
+        "name": "Report a result",
+        "actions": [
+          "detail:ticket"
+        ]
+      },
+      {
+        "id": "ticket-correction",
+        "name": "Correct an open ticket",
+        "actions": [
+          "detail:ticket"
+        ]
       }
     ],
     "Research": [
@@ -318,7 +332,7 @@
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "Bets/performance",
+    "next": "Bets/result-report",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -1408,7 +1422,7 @@
   },
   "betsOverviewPreview": {
     "prepared": "2026-11-06",
-    "status": "Mocked; awaiting visual approval",
+    "status": "Supplied Overview direction approved by Sean in both themes",
     "view": "selected-system-review.html?screen=Bets&layer=performance",
     "sampleMeaning": "Ten explicitly fictional tracked tickets. Ticket source names, manual-input prices, reported outcomes, amounts and recording dates are examples, never live quotes or saved account history. Two selection lines reuse the already-reviewed public Week 8 historical closing references. No submission-time reference is asserted.",
     "components": [
@@ -1457,6 +1471,84 @@
     ],
     "delivery": "Ten phone-width extended-height screenshots. Local preview verification only, not physical-device acceptance.",
     "production": "Preview assets and records only; no account/storage/preferences, production source/tokens, collectors or migrations changed; not merged or deployed.",
-    "deferred": "Unseen Bets recommendation, Virtual Units, correction/tail/settlement and other states remain unreviewed. New avatars/photos and awards remain held."
+    "deferred": "Unseen Bets recommendation, Virtual Units, correction/tail/settlement and other states remain unreviewed. New avatars/photos and awards remain held.",
+    "accepted": "2026-11-06",
+    "confirmation": "Looks good in both themes. Continue with the next mockups.",
+    "reviewedCommit": "fb9ce8186157076db818a81ca8653ed9a4522d86",
+    "reviewedCaptures": [
+      "bets-overview-performance-dark-phone.png",
+      "bets-overview-breakdowns-dark-phone.png",
+      "bets-overview-performance-light-phone.png",
+      "bets-overview-breakdowns-light-phone.png",
+      "bets-overview-matching-tickets-dark-phone.png",
+      "bets-overview-filters-dark-phone.png",
+      "bets-overview-cash-dark-phone.png"
+    ],
+    "acceptanceScope": "Supplied Overview direction in both themes and linked matching-ticket/filter/cash examples; not unseen states, real account history/writes, physical-device acceptance or whole-app completion.",
+    "next": "Bets result reporting, ticket correction and example history. New avatars/photos and awards remain held."
+  },
+  "betsChangesPreview": {
+    "prepared": "2026-11-06",
+    "status": "Mocked; awaiting visual approval",
+    "views": [
+      "selected-system-review.html?screen=Bets&layer=result-report",
+      "selected-system-review.html?screen=Bets&layer=ticket-correction"
+    ],
+    "sampleMeaning": "Fictional open tracked ticket with a 0.5U sample stake and reviewed public Week 8 historical closing-reference selection. No saved sportsbook price, quote-observation/placement time or account history is supplied. Result returns, reasons and corrections are explicit preview inputs.",
+    "components": [
+      "Exact native ResultEditor body with the existing preview-only Modal",
+      "Native BetEditor body, unchanged except its ordinary create-save preview caption",
+      "Native TrackedBetRow, Button and InfoButton",
+      "Native applySocialMutation/socialView rules for revision, reason, corrections and reported-return accounting"
+    ],
+    "features": [
+      "Player-reported outcome and optional full return, including stake, with required source/note",
+      "Win, Loss, Push, Void and return-to-pending; inconsistent return shows error without discarding draft",
+      "Example 1.25U full return on 0.5U stake yields +0.75U net even with unknown saved odds",
+      "Open-ticket correction retains current selection, source choices and approved odds/unit steppers; correction reason required",
+      "Settled terms remain protected; reported results can be revised separately",
+      "Each change retains its prior version/reason; before/after summary plus expandable changed fields and selection text",
+      "Internal test-seed/generated recording metadata is omitted from visual history; no real save is implied",
+      "Callbacks affect fixture memory only; no account/storage/API writes, new avatars/photos or awards"
+    ],
+    "verification": {
+      "responsiveFormLayouts": 16,
+      "resultOutcomeThemeCases": 10,
+      "invalidReturnThemes": 2,
+      "correctionFlows": 2,
+      "fullAuditNarrowThemes": 2,
+      "nativeKeyboardAndEscapeThemes": 2,
+      "priorViews": 6,
+      "validPureResultCases": 6,
+      "invalidPureResultCases": 6,
+      "correctionBeforeAfterPreserved": true,
+      "settledTermsProtected": true,
+      "returnPendingRetainsHistory": true,
+      "reasonRequired": true,
+      "exactNativeResultBody": true,
+      "nativeBetEditorExceptOrdinaryCreateCaption": true,
+      "nativeDomainTestsPassed": 21,
+      "productionReaderExclusions": true,
+      "pageErrors": 0,
+      "nonGETRequests": 0,
+      "brandQA": true
+    },
+    "captures": [
+      "bets-changes-correction-details-dark-phone.png",
+      "bets-changes-correction-details-light-phone.png",
+      "bets-changes-correction-history-dark-phone.png",
+      "bets-changes-correction-history-light-phone.png",
+      "bets-changes-correction-top-dark-phone.png",
+      "bets-changes-correction-top-light-phone.png",
+      "bets-changes-report-filled-dark-phone.png",
+      "bets-changes-report-filled-light-phone.png",
+      "bets-changes-report-validation-dark-phone.png",
+      "bets-changes-report-validation-light-phone.png",
+      "bets-changes-result-receipt-dark-phone.png",
+      "bets-changes-result-receipt-light-phone.png"
+    ],
+    "delivery": "12 phone-width dark/Porcelain screenshots, including scrolled forms/history and extended-height receipt views; visually inspected. Local preview checks, not physical-device acceptance.",
+    "production": "Review assets and records only; accounts, preferences, production source/tokens, collectors, migrations and frozen v62 unchanged; no merge or deployment.",
+    "deferred": "Unseen tail, recommendation/Virtual Units, failure/recovery and other flows remain unreviewed. New avatars/photos and awards remain held."
   }
 }

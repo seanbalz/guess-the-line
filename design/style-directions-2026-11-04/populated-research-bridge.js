@@ -26,6 +26,13 @@ Promise.all([read('populated-research-data.json'),read('populated-fantasy-data.j
   title.previousElementSibling.textContent='EPL';d.querySelector('.fixture').textContent='FICTIONAL DRAFT · NO LIVE FIXTURES · NO SAVES';
   roots.get(frame)?.unmount();roots.set(frame,frame.contentWindow.GTLPopulatedResearch.mountEpl(root,epl,initialView,view=>{title.textContent=view.name;d.querySelector('.detail-close').hidden=view.open;}));return;
  }
+ const changeLayer=document.getElementById('review-layer')?.value;
+ if(title?.textContent==='Ticket details'&&['result-report','ticket-correction'].includes(changeLayer)&&d.getElementById('screen')?.value==='Bets'){
+  const stack=d.querySelector('.detail-close~.stack');if(!stack)return;
+  const root=d.createElement('div');root.className='populated-research-root gx';root.dataset.theme=frame.dataset.reviewTheme;root.dataset.researchView='bets-changes';stack.replaceChildren(root);
+  title.textContent='Ticket changes';title.previousElementSibling.textContent='Bets';d.querySelector('.fixture').textContent='FICTIONAL TICKET · EXAMPLE CHANGES · NO SAVES';
+  roots.get(frame)?.unmount();roots.set(frame,frame.contentWindow.GTLPopulatedResearch.mountBetsChanges(root,bets,changeLayer==='ticket-correction'?'correct':'settle'));return;
+ }
  if(title?.textContent==='Ticket details'&&document.getElementById('review-layer')?.value==='performance'&&d.getElementById('screen')?.value==='Bets'){
   const stack=d.querySelector('.detail-close~.stack');if(!stack)return;
   const root=d.createElement('div');root.className='populated-research-root gx';root.dataset.theme=frame.dataset.reviewTheme;root.dataset.researchView='bets-overview';stack.replaceChildren(root);
@@ -98,7 +105,7 @@ Promise.all([read('populated-research-data.json'),read('populated-fantasy-data.j
  d.querySelector('.fixture').textContent='PUBLIC SNAPSHOT · VISUAL PREVIEW · NO SAVES';
  roots.get(frame)?.unmount();roots.set(frame,frame.contentWindow.GTLPopulatedResearch.mount(root,model));
  }
- function ready(){const d=frame.contentDocument;if(!d?.getElementById('grid'))return;observer?.disconnect();for(const file of ['populated-research.bundle.css','populated-research.css','populated-teams.css','populated-fantasy.css','populated-play.css','populated-points.css','populated-score.css','league-native-avatar.css','populated-league.css','populated-bets.css','populated-epl.css','account-native-avatar.css','populated-account.css','populated-bets-overview.css'])if(!d.querySelector('link[data-populated-css="'+file+'"]')){const link=d.createElement('link');link.rel='stylesheet';link.href=file;link.dataset.populatedCss=file;d.head.append(link);}if(!d.querySelector('script[data-populated-module]')){const script=d.createElement('script');script.src='populated-research.bundle.js';script.dataset.populatedModule='true';script.onload=apply;d.head.append(script);}observer=new MutationObserver(apply);observer.observe(d.getElementById('grid'),{childList:true,subtree:true});apply();}
+ function ready(){const d=frame.contentDocument;if(!d?.getElementById('grid'))return;observer?.disconnect();for(const file of ['populated-research.bundle.css','populated-research.css','populated-teams.css','populated-fantasy.css','populated-play.css','populated-points.css','populated-score.css','league-native-avatar.css','populated-league.css','populated-bets.css','populated-epl.css','account-native-avatar.css','populated-account.css','populated-bets-overview.css','populated-bets-changes.css'])if(!d.querySelector('link[data-populated-css="'+file+'"]')){const link=d.createElement('link');link.rel='stylesheet';link.href=file;link.dataset.populatedCss=file;d.head.append(link);}if(!d.querySelector('script[data-populated-module]')){const script=d.createElement('script');script.src='populated-research.bundle.js';script.dataset.populatedModule='true';script.onload=apply;d.head.append(script);}observer=new MutationObserver(apply);observer.observe(d.getElementById('grid'),{childList:true,subtree:true});apply();}
  frame.addEventListener('load',ready);ready();
  });
 }).catch(error=>{const status=document.getElementById('load-status');if(status){status.textContent=error.message;status.setAttribute('role','alert');}});

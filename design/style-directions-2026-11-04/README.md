@@ -1,5 +1,49 @@
 ## EPL Pick a Team flow mocked — November 6, 2026
 
+## Bets result reporting and corrections mocked — November 6, 2026
+
+The selected dark/Porcelain system now covers the native result form, filled and
+invalid-return states, an updated example receipt, open-ticket correction and
+before/after history. Native ResultEditor is copied exactly without its account
+controller, using the existing preview Modal/banner. The native BetEditor body
+is unchanged except its earlier ordinary create-save preview caption; correction
+controls, required reason and approved odds/unit steppers remain intact.
+
+The fictional ticket uses a sample 0.5U stake and the already-reviewed public
+Week 8 historical closing reference. No new line, sportsbook price, quote or
+placement time, account record or outcome verification is asserted. Results are
+explicitly player reported. Native pure mutation/revision/accounting helpers
+validate returns and corrections in memory only. A 1.25U full return produces
++0.75U net. Inconsistent returns retain the draft and display the existing error;
+return-to-pending clears the result. Settled terms cannot be rewritten. An open
+stake correction from 0.5U to 0.75U retains the prior version and supplied reason.
+The example history shows before/after values and expandable changed fields and
+selection text. Internal test-seed/generated recording metadata is omitted from
+the visual history; no actual save is claimed.
+
+Twelve dark/Porcelain phone captures were inspected; visual approval is pending.
+Checks passed: 16 responsive forms, 10 outcome/theme cases, two invalid-return
+and two correction flows, two narrow full-audit and keyboard/Escape cases, and
+six prior views. Six valid and six invalid pure return cases, revision/history,
+settled-term protection, required reasons and all 21 selected native domain
+tests passed. Native body equality, reader exclusions, build, Brand QA and
+syntax/diff checks passed. Browser checks recorded no page errors or non-GET
+requests. No production source/tokens, accounts, storage, collectors, migrations
+or frozen v62 changed; no merge or deployment was performed. New avatars/photos,
+awards and parked Signal work remain held. Unseen flows remain unreviewed.
+
+[Selection and evidence](selected-system-review.json).
+
+## My bets Overview direction approved — November 6, 2026
+
+Sean confirmed "Looks good in both themes. Continue with the next mockups."
+The supplied Overview direction is approved in dark and Porcelain at reviewed
+commit `fb9ce8186157076db818a81ca8653ed9a4522d86`, including linked matching-ticket,
+filter and cash examples. This does not accept unseen states, real account
+history/writes, physical-device behavior or whole-app completion. The next visual
+review is Bets result reporting, open-ticket corrections and example history.
+New avatars/photos and awards remain held.
+
 ## My bets performance Overview mocked — November 6, 2026
 
 The selected dark/Porcelain glass treatment now covers My bets Overview, its
