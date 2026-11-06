@@ -1,5 +1,39 @@
 # Guess The Line — current completion register
 
+## Bets source choices and entry steppers revised — November 6, 2026
+
+Sean requested more sportsbooks and plus/minus controls for odds and units.
+The preview now puts 12 existing source choices upfront, with the remaining 21
+available through the searchable More sportsbooks & sources control. The original
+33-label manual catalog is retained; this does not assert new integrations or
+current service availability.
+
+Odds and units now have named 48px minus/plus buttons and a live value output.
+Presets, Unknown and optional Custom entry remain. A starting preset enables the
+buttons; unknown prices never acquire an assumed value. American odds cross
+canonical +100 without producing invalid prices between −99 and +99. Unit
+adjustments retain native four-decimal precision, cannot reach zero and respect
+the existing editor limits. Tapping does not open a typing field automatically.
+Single/combined parlay odds and the native one-stake accounting are retained.
+
+The pictured increments, **5 odds points and 0.25U**, are a provisional
+recommendation. One direct tap-size question was asked; owner selection and
+visual approval remain pending. The adjusted capture demonstrates manual taps
+from +100 to +105 and 0.5U to 0.75U; these are sample entry values, not sportsbook
+quotes or actual stakes. The underlying example still has no saved price or
+quote/placement times. No account, database or preference is written.
+
+Eight dark/Porcelain phone captures were inspected. Checks passed: 28 arithmetic
+cases plus odds-domain round trips; eight responsive form layouts with 44px+
+targets and no checked overflow; two book-search/parlay/local-receipt flows;
+exact 33-label catalog comparison; native editor body preservation (ordinary
+Save caption remains Preview); reader exclusions, Brand QA and syntax/diff checks.
+Browser checks produced no page errors or non-GET requests. Production app code,
+tokens, collectors, frozen v62 and parked Signal files remain unchanged.
+
+[Selection and evidence](../design/style-directions-2026-11-04/selected-system-review.json). Prior Bets captures remain as historical review
+evidence; this revision is not an approval, release or physical-device acceptance.
+
 ## Bets ticket details and entry mocked — November 6, 2026
 
 The selected glass treatment now covers a settled two-selection receipt, an open

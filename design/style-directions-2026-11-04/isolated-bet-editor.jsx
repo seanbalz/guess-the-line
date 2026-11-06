@@ -2,7 +2,9 @@
 // Imports are isolated from SocialBetTracker's authenticated readers/actions. No network or storage writes.
 import React,{useEffect,useId,useRef,useState} from 'react';
 import {Check,ChevronDown,Lock,Plus,Trash2,Users,X} from 'lucide-react';
-import {BookChoices,ChoiceButtons,MatchupChoices as NativeMatchupChoices,NumberChoices,SpreadChoices} from '../../web/src/BetEntryControls.jsx';
+import {ChoiceButtons,MatchupChoices as NativeMatchupChoices,SpreadChoices} from '../../web/src/BetEntryControls.jsx';
+import {BookChoices} from './bets-book-choices.jsx';
+import {NumberChoices} from './bets-number-choices.jsx';
 import {PlayerPropEntry as PlayerPropEntry} from '../../web/src/PlayerPropEntry.jsx';
 import {Matchup} from '../../web/src/next/ui/Matchup.jsx';
 import {cashToUnits,cashText,validUnitCash} from '../../web/src/trackedBetTerms.js';

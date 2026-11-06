@@ -1134,5 +1134,52 @@
     "delivery": "Phone-width extended-height captures; terms view 1300px. Not physical-device acceptance.",
     "production": "Unchanged; no account writes, merge or deployment",
     "deferred": "Player suggestions, further prop/correction/tail/settlement and other unseen states remain unreviewed. New avatars, awards and parked Signal branding remain held."
+  },
+  "betsEntryControlsRevision": {
+    "prepared": "2026-11-06",
+    "status": "Requested controls mocked; visual approval and tap-size selection pending",
+    "request": "Add more sportsbooks and +/- buttons for odds and units so users can adjust without typing.",
+    "sportsbooks": {
+      "upfront": 12,
+      "searchableTotal": 33,
+      "remaining": 21,
+      "meaning": "Six existing additional choices promoted to the main list; all original manual source labels retained. No new feed/account integration or current service availability is asserted."
+    },
+    "steps": {
+      "odds": 5,
+      "units": 0.25,
+      "status": "Provisional recommendation shown pending the owner response to the one-question tap-size prompt."
+    },
+    "behavior": [
+      "Unknown odds/units stay unknown; select a preset first to enable adjustment",
+      "American odds cross canonical +100 without entering invalid -99 through +99 prices",
+      "Units use four-decimal arithmetic, cannot reach zero, and retain native 0.0001–10000 UI limits",
+      "Single and combined parlay odds use the same adjustment; one parlay stake remains unchanged",
+      "Presets, Unknown, optional Custom entry, cash mode, source search and custom sources remain",
+      "Tapping does not open a typing field automatically; named 48px +/- buttons and live value output"
+    ],
+    "sampleMeaning": "Adjusted screenshot is an explicit manual-input demonstration (+100 tapped to +105; 0.5U tapped to 0.75U), not a bookmaker quote, actual stake or saved ticket. Default dataset prices and observed/placed times remain null.",
+    "verification": {
+      "arithmeticCases": 28,
+      "oddsDomainRoundTrips": true,
+      "responsiveFormLayouts": 8,
+      "bookSearchParlayAndLocalReceiptFlows": 2,
+      "uniqueCatalogComparison": true,
+      "nativeEditorBodyPreservedExceptPreviewCaption": true,
+      "productionReaderExclusions": true,
+      "pageErrors": 0,
+      "nonGETRequests": 0
+    },
+    "captures": [
+      "bets-book-search-dark-phone.png",
+      "bets-book-search-light-phone.png",
+      "bets-more-books-dark-phone.png",
+      "bets-more-books-light-phone.png",
+      "bets-odds-units-adjusted-dark-phone.png",
+      "bets-odds-units-adjusted-light-phone.png",
+      "bets-odds-units-default-dark-phone.png",
+      "bets-odds-units-default-light-phone.png"
+    ],
+    "production": "Preview assets only; app code/tokens, accounts and data unchanged. Not merged or deployed."
   }
 }
