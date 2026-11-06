@@ -441,6 +441,7 @@
     "status": "Mocked for review; acceptance pending",
     "scope": "Replace 01/02 ticket blocks with selected glossy ticket glyphs and add Pending/Settled badges in both themes",
     "fixtures": "Original titles, ticket status, +0.75U result and native actions retained",
-    "delivery": "Owner is on phone and cannot use local files or localhost. Present screenshots inline with phone-accessible image URLs."
+    "delivery": "Owner is on phone and cannot use local files or localhost. Present screenshots inline with phone-accessible image URLs.",
+    "trackingButtonSpacing": "16px above Track a bet, separating its glass border/shadow from the last ticket divider"
   }
 }

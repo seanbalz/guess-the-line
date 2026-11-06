@@ -1,5 +1,18 @@
 # Guess The Line — current completion register
 
+## Track a bet button cleared from ticket divider — November 5, 2026
+
+Sean reported the Track a bet bubble touching/overlapping the divider below the
+two-selection ticket in the phone capture. Computed bounds reproduced zero gap
+at 320/390/768/1440px in both themes. A scoped 16px top margin on the tracking
+button now separates its glass edge and shadow from the last row divider.
+The same measurement check passed at all eight theme/width combinations, with
+no overflow and preserved 44px targets; four ticket opens and two tracking opens
+also passed. Updated dark/light phone captures were inspected. JavaScript syntax,
+Brand document QA and whitespace checks passed. This fixes the mockup spacing;
+visual approval remains pending. Production and parked Signal files are untouched.
+
+
 ## Bets glossy ticket icons and status badges — November 5, 2026
 
 Sean authorized the Bets mockup and clarified that he is on a phone and cannot
