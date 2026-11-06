@@ -469,5 +469,14 @@
     "delivery": "Phone-width screenshots with extended presentation height, not physical-device acceptance",
     "accepted": "2026-11-05",
     "acceptanceScope": "Individual glass tiles around the four example club crests, both themes; not blanket approval of all EPL details or whole-app completion"
+  },
+  "accountAppearanceProposal": {
+    "date": "2026-11-05",
+    "status": "Mocked for review; visual acceptance pending",
+    "basis": "Sean instructed go with your rec and mock",
+    "scope": "Replace Appearance design notes with glass Light/Dark/System choices, illustrative theme thumbnails and an accent selection outline",
+    "interaction": "Local click/keyboard choice feedback only; paired preview themes remain fixed. No persisted preference, device-theme observation or production theme change",
+    "preserved": "AL placeholder, profile/reminders/community actions and selected theme materials; avatar work held",
+    "delivery": "Phone screenshots, extended 1100px presentation height; not physical-device acceptance"
   }
 }

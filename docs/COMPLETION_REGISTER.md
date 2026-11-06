@@ -1,5 +1,22 @@
 # Guess The Line — current completion register
 
+## Account Appearance selector mocked — November 5, 2026
+
+Sean instructed "Go with your rec and mock." The Account Appearance card now
+replaces design notes with glass Light/Dark/System choices, small theme previews
+and a selected accent outline. [Dark phone capture](../design/style-directions-2026-11-04/previews/account-appearance-dark-phone.png)
+and [light phone capture](../design/style-directions-2026-11-04/previews/account-appearance-light-phone.png)
+were inspected. The mock demonstrates click/keyboard selection feedback only:
+paired preview themes stay fixed, with no stored preference, OS-theme listener
+or production changes. Existing AL placeholder and account rows are preserved;
+avatar work remains held. Chromium checked both themes at 320/390/768/1440px,
+button fit and 44px minimum targets, six choice clicks, two keyboard selections
+and six native profile/reminder/community opens; no page errors. Brand document
+and JavaScript syntax QA passed. Captures use extended presentation height and
+are not physical-device acceptance. Appearance visual approval remains pending;
+parked Signal files are untouched and unpublished.
+
+
 ## Account overview prepared for phone review — November 5, 2026
 
 Sean authorized Account review while avatar work remains held. Current
