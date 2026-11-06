@@ -905,6 +905,76 @@
       "points-profile-light-phone.png"
     ],
     "acceptanceScope": "Supplied example overview, opened draft, confirmation and linked usage-profile direction in the selected themes. Not separate acceptance of all unseen players/states, unshown preview-confirmed card, actual account saves, production integration or whole-project completion.",
-    "next": "Play score/history mockups authorized; data-presentation clarification pending. Deferred avatars/awards stay held."
+    "next": "Play score/history examples authorized and prepared for visual review. Deferred avatars/awards stay held."
+  },
+  "scoreHistoryPreview": {
+    "status": "Mocked for visual review; awaiting Sean",
+    "prepared": "2026-11-05",
+    "basis": "Sean instructed Move forward with rec after the labelled historical-example data choice",
+    "scope": "Spread/Total weekly scores, filter subtotals, three-week history and opened game accuracy in both themes",
+    "source": {
+      "definition": "https://nflverse.r-universe.dev/nflfastR/nflfastR.pdf#page=27",
+      "release": "https://github.com/seanbalz/guess-the-line/releases/tag/research-data-2026",
+      "schedule": "https://github.com/nflverse/nflverse-data/releases/tag/schedules",
+      "file": "https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv",
+      "publicationGeneratedAt": "2026-11-05T22:43:15.728Z",
+      "completedSha256": "48fbdd6f9f63ffcc0a0322dd7f5b22fa0faa0303874f21200baebff5d30831df",
+      "credit": "nflverse · Lee Sharpe · CC BY 4.0",
+      "referenceMeaning": "Recorded historical closing lines; not verified submission-time references, current quotes or three-book consensus. No observation/save timestamps or sportsbook identities are fabricated."
+    },
+    "publicGames": 42,
+    "marketReferences": 84,
+    "weeks": [
+      6,
+      7,
+      8
+    ],
+    "sampleMeaning": "Fictional sample guesses and calculated example scores only. Not saved player history, qualifying submission references, current quotes, three-book consensus, real rank or account data. No observation/save times or book identities are invented.",
+    "components": [
+      "Native scoreRows / scoreSummary / ownEntry",
+      "Native heroModel / rowView / gameView",
+      "Native WeekChips / FilterToggle / Segmented / TeamMark",
+      "Exact isolated NumberLine body from WeeklyScore.jsx",
+      "Original server/domain accuracy helper at preparation time; SQL formula matches"
+    ],
+    "features": [
+      "Separate Spread/Total summaries and game lists",
+      "First six then Show all 14 games",
+      "Team AND matchup filters with scoped subtotals",
+      "History bars on fixed 0–10 points/game scale; open a week",
+      "Native signed-axis geometry with historical/sample labels",
+      "Source details behind Info; actual recorded game outcome kept separate from line-guess scoring",
+      "Native historical team-code aliases including LA to LAR"
+    ],
+    "verification": {
+      "independentSourceAndArithmeticChecks": 84,
+      "responsiveLayouts": 8,
+      "displayedRows": 672,
+      "nativeAxisChecks": 48,
+      "filterCases": 24,
+      "historyBarChecks": 48,
+      "narrowZeroOppositeFavoriteNonexactAndTouchCases": 4,
+      "registeredLogoChecks": 112,
+      "priorViewChecks": 2,
+      "pageErrorsAfterCorrection": 0,
+      "nonGETRequests": 0,
+      "deterministicPreparation": true,
+      "nativeNumberLineCopyExact": true
+    },
+    "captures": [
+      "score-spread-week-dark-phone.png",
+      "score-total-week-dark-phone.png",
+      "score-spread-game-dark-phone.png",
+      "score-total-game-dark-phone.png",
+      "score-history-dark-phone.png",
+      "score-spread-week-light-phone.png",
+      "score-total-week-light-phone.png",
+      "score-spread-game-light-phone.png",
+      "score-total-game-light-phone.png",
+      "score-history-light-phone.png"
+    ],
+    "delivery": "Phone-width extended-height captures; not physical-device acceptance",
+    "production": "Unchanged; not merged or deployed",
+    "deferred": "Avatars, awards, parked Signal branding and whole-project completion remain held"
   }
 }

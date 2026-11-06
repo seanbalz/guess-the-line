@@ -1,3 +1,62 @@
+## Play score and history mocked — November 5, 2026
+
+Sean selected the recommendation to continue with labelled historical examples.
+The score review now has separate Spread/Total weekly summaries, game cards,
+week chips, team AND matchup filters, filtered subtotals, a three-week history
+view and opened game accuracy charts in dark/Porcelain. Cards retain individual
+team-logo tiles and the selected clear glass, ivory/ink type and lime emphasis.
+The first six games lead; Show all exposes each week’s full 14-game example.
+History bars share a fixed 0–10 points/game scale and open their week.
+
+Public completed-game records for Weeks 6–8 (42 games, 84 market references)
+match the existing November 5 publication’s completed-source SHA-256:
+`48fbdd6f9f63ffcc0a0322dd7f5b22fa0faa0303874f21200baebff5d30831df`.
+The upstream [nflfastR reference](https://nflverse.r-universe.dev/nflfastR/nflfastR.pdf#page=27)
+defines spread_line and total_line as closing lines, with positive spread_line
+meaning the home team was favored. The adapter negates that spread for GTL’s
+home-referenced sign and uses native appCode for historical team aliases.
+
+Guesses are **fictional samples**, and the resulting example points use the
+unchanged accuracy helper (10 minus twice the gap, floored at zero), which agrees
+with the SQL scorer. These recorded closing references are not anyone’s saved,
+qualifying submission-time reference, current quotes or three-book consensus.
+No player accounts, private guesses, rank, quote-observation/save time or book
+identity is invented. The production saved-reference scorer is unchanged.
+
+Presentation reuses scoreRows/scoreSummary, heroModel/rowView/gameView,
+WeekChips/FilterToggle/Segmented and the native number-line component’s exact
+isolated body. Only its supplied labels identify the historical/sample context;
+its geometry is retained. The source distinction and recorded final are behind
+About this example game. Score accuracy remains separate from the game outcome.
+
+Ten extended-height phone captures were inspected. **Visual approval remains
+pending.** They are visual review assets, not physical-device acceptance,
+production integration, live account evidence or whole-project completion.
+
+Checks passed: 84 independent reference/arithmetic validations; eight responsive
+layouts (320/390/768/1440 × dark/light), 672 displayed score rows, 48 native axis
+checks, 24 filter cases and 48 history-bar checks. Four additional narrow-phone
+cases covered zero points, opposite favored sides, nonexact marker/gap placement,
+44px controls and navigation clearance; 112 registered-logo loads passed. Prior
+Points and Fantasy Rankings views mount. Corrected-source runs produced no page
+errors or non-GET requests. Deterministic preparation, exact number-line copy,
+production-reader exclusions, Brand QA and syntax/diff checks passed.
+
+Production code/tokens, private data, previous source exports, collectors, free
+budgets, scoring, migrations, frozen v62, deferred avatars/awards and parked
+Signal files are unchanged. No merge or deployment was performed.
+
+[Spread Week dark](previews/score-spread-week-dark-phone.png) ·
+[Total Week dark](previews/score-total-week-dark-phone.png) ·
+[Spread Game dark](previews/score-spread-game-dark-phone.png) ·
+[Total Game dark](previews/score-total-game-dark-phone.png) ·
+[History dark](previews/score-history-dark-phone.png) ·
+[Spread Week light](previews/score-spread-week-light-phone.png) ·
+[Total Week light](previews/score-total-week-light-phone.png) ·
+[Spread Game light](previews/score-spread-game-light-phone.png) ·
+[Total Game light](previews/score-total-game-light-phone.png) ·
+[History light](previews/score-history-light-phone.png).
+
 ## Guess the Points direction approved — November 5, 2026
 
 Sean explicitly confirmed "Approved continue" after the Guess the Points review.

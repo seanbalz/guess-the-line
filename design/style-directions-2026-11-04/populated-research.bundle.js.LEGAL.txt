@@ -97,6 +97,7 @@ lucide-react/dist/esm/icons/refresh-cw.js:
 lucide-react/dist/esm/icons/scale.js:
 lucide-react/dist/esm/icons/settings.js:
 lucide-react/dist/esm/icons/shield-check.js:
+lucide-react/dist/esm/icons/sliders-horizontal.js:
 lucide-react/dist/esm/icons/target.js:
 lucide-react/dist/esm/icons/ticket.js:
 lucide-react/dist/esm/icons/trending-up.js:
