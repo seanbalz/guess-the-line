@@ -325,6 +325,97 @@
         "actions": [
           "detail:draft"
         ]
+      },
+      {
+        "id": "epl-home-turn",
+        "name": "Home - Your turn",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-home-picked",
+        "name": "Home - Your club picked",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-home-unlinked",
+        "name": "Home - Manager not linked",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-home-all-in",
+        "name": "Home - All picks in",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-home-locked",
+        "name": "Home - Draft locked",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-home-progress-failed",
+        "name": "Home - Moneyline progress unavailable",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-home-loading",
+        "name": "Draft recovery - Loading",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-home-failed",
+        "name": "Draft recovery - Failed read",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-home-forbidden",
+        "name": "Draft recovery - Access refused",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-home-off",
+        "name": "Draft recovery - Feature off",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-home-no-week",
+        "name": "Draft recovery - No open matchweek",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-home-stale",
+        "name": "Draft recovery - Last board retained",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-home-review",
+        "name": "Draft recovery - Results/source review",
+        "actions": [
+          "detail:draft"
+        ]
       }
     ],
     "Account": [
@@ -1032,7 +1123,7 @@
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "EPL/epl-manager-choose",
+    "next": "EPL/epl-home-turn",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -3513,7 +3604,7 @@
     "acceptanceScope": "Supplied nine-state visual direction in both themes only. Real source completeness/provenance, permissions, cancellation, refresh/device behavior and whole-app completion remain separate."
   },
   "eplManagerPreview": {
-    "status": "Prepared for visual approval in both themes",
+    "status": "Approved in both themes",
     "prepared": "2026-11-06",
     "views": [
       "choose",
@@ -3578,6 +3669,117 @@
     "delivery": "18 dark/Porcelain phone-width captures visually inspected. All content fits supplied extended heights. Narrow 320/390/768/1440 layouts, 44px controls, footer bounds/reachability, watch-focus, Toast dismissal focus, information and Sheet keyboard/Escape/opener return checked separately.",
     "isolation": "No claim/API/auth/Sleeper/provider request, board readback, grant read, account link, session/local storage, pick/queue write, polling, automatic completion or message. Native claim/session controller and EPL API excluded from build inputs; native Toast automatic dismissal suppressed by duration=null.",
     "production": "Review assets/evidence only. Native source, first-claim enforcement, session watching, manager links, pick/draft data, grants, production tokens, collectors, migrations and frozen v62 unchanged. No merge/deploy.",
-    "next": "Native EPL Home and draft recovery per NATIVE_COVERAGE_REVIEW.md; dedicated EPL moneyline/FEPL Fantasy and remaining native reconciliation follow. Whole-app completion is not established. New avatar/photos and awards stay held."
+    "next": "Native EPL Home and draft recovery per NATIVE_COVERAGE_REVIEW.md; dedicated EPL moneyline/FEPL Fantasy and remaining native reconciliation follow. Whole-app completion is not established. New avatar/photos and awards stay held.",
+    "accepted": "2026-11-06",
+    "confirmation": "Looks good in both themes. Continue with the EPL Home and draft recovery mockups.",
+    "reviewedCommit": "0db5eafd47d6e6325c7cd0164ae392b42b78d4e8",
+    "reviewedCaptures": [
+      "epl-manager-choose-dark-phone.png",
+      "epl-manager-choose-light-phone.png",
+      "epl-manager-watching-dark-phone.png",
+      "epl-manager-watching-light-phone.png",
+      "epl-manager-linked-dark-phone.png",
+      "epl-manager-linked-light-phone.png",
+      "epl-manager-taken-dark-phone.png",
+      "epl-manager-taken-light-phone.png",
+      "epl-manager-already-linked-dark-phone.png",
+      "epl-manager-already-linked-light-phone.png",
+      "epl-manager-failed-dark-phone.png",
+      "epl-manager-failed-light-phone.png",
+      "epl-manager-uncertain-dark-phone.png",
+      "epl-manager-uncertain-light-phone.png",
+      "epl-manager-busy-dark-phone.png",
+      "epl-manager-busy-light-phone.png",
+      "epl-manager-no-managers-dark-phone.png",
+      "epl-manager-no-managers-light-phone.png"
+    ],
+    "acceptanceScope": "Supplied nine-state visual direction in both themes only. Real claims, identity/grants, first-claim concurrency, session watching, saved readbacks/device behavior and whole-app completion remain separate."
+  },
+  "eplHomeRecoveryPreview": {
+    "status": "Prepared for visual approval in both themes",
+    "prepared": "2026-11-06",
+    "views": [
+      "turn",
+      "picked",
+      "unlinked",
+      "all-in",
+      "locked",
+      "progress-failed",
+      "loading",
+      "failed",
+      "forbidden",
+      "off",
+      "no-week",
+      "stale",
+      "review"
+    ],
+    "nativePreservation": "Seven native presentation blocks (HOME_COPY, headline, EplHomeView, DraftReadState, PrimaryAction, StandingsSource, HomeMoneylineProgress) isolated from actual controllers/APIs. Button haptics suppressed. Source Info alone adds an illustrative-only paragraph and omits outbound fixture source links. Native Countdown with explicit fixed now, boardModel/draftReducer/readProblem/deadlineLine, DraftBoard/MarginChart and formats reused.",
+    "fixtures": "Existing fictional EPL export remains unchanged. Each case clones it. Fictional eight-manager draft, picks, clubs, MW10, remaining time, status and count-only moneyline progress. No fixture pairing, live kickoff, quote, saved guess row or real account/grant is supplied. Original year-2000 test clock drives fixed remaining-time tiles; any deadline is explicitly illustrative. Linked club/slot tiles and unlinked omission follow native Home.",
+    "independentProgress": "Six native progress states are represented: ready (fictional 2 of 10), read-only, prices-not-verified, loading, idle and read-failed. A progress problem never hides/disables the Home draft action. No moneyline game or price is read/opened.",
+    "recovery": "Native first failure/loading have no draft. Generic failure offers Try again; 401/403/off/no-week clear previously supplied data and have no Retry. Ordinary failed refresh retains the board/stale copy and original turn eligibility; no new stale gate is invented. Review has native locked action and results-under-review wording, with no invented bonus. Recovery captures focus on existing board/action/status/source presentation; previously approved club pool/queue/confirmation remain separate.",
+    "tableSource": "Existing native-view test metadata exercises validated source-guidance presentation only. It is not fetched/used standings or production provenance. Visible caveat and extra Info paragraph identify illustrative-only metadata; outbound source URLs omitted. Native Wikipedia-contributor/not-official/CC BY-SA wording retained. Source modal styled with selected tokens and long words wrap at narrow widths.",
+    "behavior": "Buttons show no-action notices without navigation/readback. Unlinked manager watch hides its card only in component memory and focuses Home title; reset restores the card and watch-button focus. Countdown has explicit fixed now and starts no bundle interval. Existing tab bar/selected logo remain visible; Home active for Home variants, Play for recovery.",
+    "verification": {
+      "responsiveLayouts": 104,
+      "homeRecoveryScenarioFlows": 26,
+      "loadedCrestTiles": 18,
+      "popupLayouts": 16,
+      "popupEscapeFocusReturns": 16,
+      "isolatedNativePresentationBlocks": 7,
+      "tableInfoAdaptations": 2,
+      "fixtureStates": 13,
+      "nativeRefusalClearCases": 4,
+      "nativeStaleRetention": true,
+      "sourceFixturePreserved": true,
+      "fixedCountdown": true,
+      "nativePickAndHomeProgressTests": 36,
+      "nativeInfoFocusThemes": 2,
+      "tableInfoFocusThemes": 2,
+      "watchAndResetFocusThemes": 2,
+      "priorViews": 6,
+      "storageWrites": 0,
+      "bundleIntervals": 0,
+      "nonGETRequests": 0,
+      "providerAndSourceAuthReads": 0,
+      "browserDialogs": 0,
+      "popups": 0,
+      "pageErrors": 0,
+      "adapterControllerApiStorageTimerExclusions": true,
+      "brandQA": true
+    },
+    "captures": [
+      "epl-home-turn-dark-phone.png",
+      "epl-home-turn-light-phone.png",
+      "epl-home-picked-dark-phone.png",
+      "epl-home-picked-light-phone.png",
+      "epl-home-unlinked-dark-phone.png",
+      "epl-home-unlinked-light-phone.png",
+      "epl-home-all-in-dark-phone.png",
+      "epl-home-all-in-light-phone.png",
+      "epl-home-locked-dark-phone.png",
+      "epl-home-locked-light-phone.png",
+      "epl-home-progress-failed-dark-phone.png",
+      "epl-home-progress-failed-light-phone.png",
+      "epl-home-loading-dark-phone.png",
+      "epl-home-loading-light-phone.png",
+      "epl-home-failed-dark-phone.png",
+      "epl-home-failed-light-phone.png",
+      "epl-home-forbidden-dark-phone.png",
+      "epl-home-forbidden-light-phone.png",
+      "epl-home-off-dark-phone.png",
+      "epl-home-off-light-phone.png",
+      "epl-home-no-week-dark-phone.png",
+      "epl-home-no-week-light-phone.png",
+      "epl-home-stale-dark-phone.png",
+      "epl-home-stale-light-phone.png",
+      "epl-home-review-dark-phone.png",
+      "epl-home-review-light-phone.png",
+      "epl-home-review-source-dark-phone.png",
+      "epl-home-review-source-light-phone.png"
+    ],
+    "delivery": "28 inspected phone captures: 13 screen states in both themes plus source Info in both themes. Every supplied full screen/source dialog fits extended height. 320/390/768/1440 layouts, 44px buttons, last-content/footer reachability, selected logo/active tab, native modal Escape/focus and long content checked separately. A default browser popup style and narrow long-word overflow were found, fixed locally and rechecked in 16 modal layouts.",
+    "isolation": "No API/auth/provider/source/permission read, progress/draft refresh, saved readback, claim, pick/queue write, polling, persistent storage, automatic countdown/completion or message. Actual EPL Home/PickATeam/useEplDraft/Home progress hook/API imports excluded from build inputs.",
+    "production": "Review assets/evidence only. Native controllers, server turn/refusal behavior, real clocks/schedules, identity/grants, accounts/picks/draft order, moneyline data/quotes, production tokens, collectors, migrations and frozen v62 unchanged. No merge/deploy.",
+    "next": "Dedicated EPL moneyline entry/reveal/leaderboard mockups, then FEPL Fantasy and remaining native coverage reconciliation. Whole-app completion is not established. New avatar/photos and awards stay held."
   }
 }

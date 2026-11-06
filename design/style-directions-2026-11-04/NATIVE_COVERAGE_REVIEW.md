@@ -11,8 +11,8 @@ reports an issue; technical bounds/focus checks continue separately.
 
 | Order | Native area | Existing review coverage | Remaining work |
 |---|---|---|---|
-| 1 | EPL manager linking (`web/src/next/epl/ClaimCard.jsx`) | New nine-state batch prepared in this change | Phone visual approval; no live claims or session setting writes |
-| 2 | EPL Home and draft recovery (`EplHome.jsx`, `PickATeam.jsx`) | Generic EPL overview and approved populated draft/queue/confirmation | Native Home, unlinked/linked variations, first loading, refused/off/no-week/failed/stale reads, and existing resolution/source guidance |
+| 1 | EPL manager linking (`web/src/next/epl/ClaimCard.jsx`) | Nine-state batch approved in both themes at `0db5eafd47d6e6325c7cd0164ae392b42b78d4e8` | Actual claims/session setting behavior remains separate |
+| 2 | EPL Home and draft recovery (`EplHome.jsx`, `PickATeam.jsx`) | Approved draft/queue/confirmation; new 13-state Home/recovery batch and source Info prepared | Visual approval for supplied Home, independent progress, recovery board/status/action/source presentation; existing pool/queue/confirmation scope stays separate |
 | 3 | EPL moneyline (`epl/guess/EplGuess.jsx`, `GuessCard.jsx`, `EplGuessLeaderboard.jsx`) | No dedicated populated review routes | Entry/lock, permitted reference/reveal and scoring views, leaderboard, unavailable/read-only/recovery states |
 | 4 | FEPL Fantasy (`epl/fantasy/EplFantasy.jsx`) | NFL Research Fantasy was reviewed; it does not cover FEPL | Matchup, Standings, Rosters, Insights and permitted source/read states |
 | 5 | Other existing sport surfaces (`nba/NbaApp.jsx`, `Games.jsx`, `Bets.jsx`, `BetEditor.jsx`) | No NBA preview routes | Verify scope and existing source states, then cover the native views; do not add a new sport or infer deployed availability |
@@ -51,3 +51,16 @@ Existing initials, glyphs, source controls and native operational notices may be
 represented without adding those deferred features. Parked Signal branding
 files remain untouched and unpublished. No merge, deployment or migration apply
 is part of this review queue.
+
+## Current Home/recovery delivery
+
+Thirteen states plus the table-source popup are supplied in both themes (28
+captures). Source metadata is an existing test fixture; no real table was fetched
+or used, and outbound fixture URLs are omitted. The information popup now uses
+the selected glass treatment; its narrow long-word overflow was corrected and
+16 modal layout/Escape/focus checks passed. Home retains the shared logo and tab
+bar. Independent progress failures leave the draft action available. Refused,
+off and no-week reads drop the board; an ordinary failed refresh retains its
+native stale board and turn eligibility. This is prepared visual evidence,
+not live-source/device acceptance or completion of the entire first project.
+Dedicated EPL moneyline views are next after this batch's approval.

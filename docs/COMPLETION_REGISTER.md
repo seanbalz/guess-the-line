@@ -1,5 +1,76 @@
 # Guess The Line — current completion register
 
+## EPL Home and draft-recovery mockups prepared — November 6, 2026
+
+The selected dark/Porcelain system now covers your turn, picked club, unlinked
+Home, all picks in, locked draft, independent progress failure, first loading,
+failed draft read, refused access, feature off, no open matchweek, retained stale
+board and results/source review. Seven native presentation blocks are isolated
+from controllers/APIs: HOME_COPY, headline, EplHomeView, DraftReadState,
+PrimaryAction, StandingsSource and HomeMoneylineProgress. Button haptics are
+suppressed. Source Info alone adds an illustrative-only paragraph and omits
+outbound fixture URLs. Native Countdown, boardModel/draftReducer/readProblem/
+deadlineLine, DraftBoard/MarginChart and formatters are reused.
+
+All managers, matchweeks, picks, counts, draft statuses and remaining time are
+fictional clones of the unchanged existing EPL preview export. The explicit
+fixed year-2000 clock is not a real kickoff. No fixture pairings, bookmaker
+prices, saved moneyline rows, real identity/grants or permissions are supplied.
+Home keeps the selected logo and shared tab bar. Linked club/slot tiles and the
+unlinked omission are native. Ready 2-of-10 progress is illustrative; read-only,
+prices-not-verified, loading, idle and failed-progress states keep native wording.
+A progress problem never hides/disables the Home draft action.
+
+Native reducer behavior is retained: first failure/loading show no board;
+generic failure has Try again; 401/403/off/no-week drop prior data and have no
+Retry. An ordinary failed refresh retains its last board, stale copy and turn
+eligibility, with no new stale gate. Under-review uses the native locked action
+and review wording, without inventing a bonus. Recovery visuals focus on the
+existing board/action/status/source section; previously approved pool, queue and
+confirmation remain separate. Native source guidance uses existing view-test
+metadata only; visible/Info caveats state no table was fetched/used. Wikipedia-
+contributor, not-official and CC BY-SA wording remains; fixture source links
+are omitted. The source popup's default browser box and narrow long-word
+overflow were found, styled with selected tokens, fixed and rechecked.
+
+Buttons show no-action notices only; Retry does not pretend to refresh. Watch
+hides the manager card in component memory and focuses Home's title; Reset
+restores the card/watch focus. No API/auth/provider/source/permission read,
+progress/draft refresh, saved readback, claim, pick/queue write, polling, storage,
+automatic countdown/completion or message occurs. Actual Home/PickATeam/draft
+reader/progress hook/API imports stay excluded.
+
+Twenty-eight captures were inspected: thirteen screen states and source Info
+in both themes; visual approval is pending. Checks passed: 104 layouts, 26
+scenario flows, eighteen loaded crest tiles, sixteen popup layout/Escape/focus
+checks, seven exact isolated presentation blocks with the stated adaptations,
+thirteen fixtures, four native refusal-clear cases, stale retention, unchanged
+source fixture, fixed Countdown and 36 existing native Pick/Home/progress tests.
+Nested information, watch/reset focus, footer reachability, selected logo/tab
+and six prior mounts passed. No storage writes, bundle intervals, provider/
+source/auth reads, non-GET requests, popups, browser dialogs or page errors
+observed. Build, adapter/controller/API/storage/timer exclusions, Brand QA,
+syntax and diff checks passed. All supplied content/source dialogs fit their
+extended captures; narrow 320/390/768/1440 bounds, 44px buttons and reachability
+were checked separately. Popup-only corrections received targeted rechecks.
+
+[NATIVE_COVERAGE_REVIEW.md](../design/style-directions-2026-11-04/NATIVE_COVERAGE_REVIEW.md)
+records dedicated EPL moneyline/leaderboard next, followed by FEPL Fantasy and
+remaining native reconciliation. Whole-app completion is not established.
+Native controllers, server turn/refusal rules, actual clocks/schedules, grants,
+accounts/picks/draft order, moneyline quotes/data, production tokens, collectors,
+migrations and frozen v62 are unchanged. No merge/deploy. New avatar/photos,
+awards and parked Signal files remain held.
+
+## EPL manager direction approved — November 6, 2026
+
+Sean replied "Looks good in both themes. Continue with the EPL Home and draft
+recovery mockups." to the nine-state manager-link batch at reviewed commit
+`0db5eafd47d6e6325c7cd0164ae392b42b78d4e8`. The supplied visual direction is
+approved in both themes. Real identity/grants, claims/first-claim concurrency,
+session watching, saved readbacks/device behavior and whole-app completion
+remain separate. EPL Home and draft recovery are the authorized next batch.
+
 ## EPL manager-link mockups prepared — November 6, 2026
 
 The selected dark/Porcelain system now covers Choose your manager, Just watching,
