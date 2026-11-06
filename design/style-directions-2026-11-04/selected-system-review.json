@@ -641,13 +641,62 @@
         "actions": [
           "detail:profile"
         ]
+      },
+      {
+        "id": "session-expired",
+        "name": "Session - Sign in again",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "session-failed",
+        "name": "Session - Sign-in failure example",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "session-google",
+        "name": "Session - Google-only example",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "name-save-uncertain",
+        "name": "Name recovery - Save needs checking",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "name-save-offline",
+        "name": "Name recovery - Offline",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "name-save-sign-in",
+        "name": "Name recovery - Sign-in required",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "name-private-invite",
+        "name": "Name setup - Private invite example",
+        "actions": [
+          "detail:profile"
+        ]
       }
     ]
   },
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "Account/league-access-pending",
+    "next": "Account/session-expired",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -2504,7 +2553,7 @@
     "next": "League access pending, Community removal and saved private-invitation examples."
   },
   "leagueAccessPreview": {
-    "status": "Mocked in both themes; fresh visual approval pending",
+    "status": "Supplied league access and saved-invitation direction approved in both themes",
     "prepared": "2026-11-06",
     "views": [
       "Private league access pending",
@@ -2551,6 +2600,80 @@
     ],
     "delivery": "12 dark/Porcelain phone-width captures visually inspected, some extended to show content. Local mockup verification only; no permission, private-token, joining or physical-device acceptance.",
     "production": "Review assets/evidence only. AppGate/access rules, real switcher/join/invitation controllers, rosters/records, token handling, storage, APIs/auth, collectors, tokens/branding, migrations and frozen v62 unchanged. No merge/deploy.",
-    "deferred": "Actual membership/permission enforcement, invited-account matching, token expiry/consumption, concurrent joins, uncertainty recovery, retention/persistence and physical-device acceptance remain separate. New avatars/photos and awards stay held."
+    "deferred": "Actual membership/permission enforcement, invited-account matching, token expiry/consumption, concurrent joins, uncertainty recovery, retention/persistence and physical-device acceptance remain separate. New avatars/photos and awards stay held.",
+    "accepted": "2026-11-06",
+    "confirmation": "good. continue",
+    "reviewedCommit": "5609f305f905b6949a337508a30be55a5ce7ebc7",
+    "reviewedCaptures": [
+      "league-access-pending-dark-phone.png",
+      "league-access-pending-light-phone.png",
+      "league-access-removed-dark-phone.png",
+      "league-access-removed-light-phone.png",
+      "league-access-removed-no-groups-dark-phone.png",
+      "league-access-removed-no-groups-light-phone.png",
+      "league-access-saved-link-dark-phone.png",
+      "league-access-saved-link-light-phone.png",
+      "league-access-saved-joining-dark-phone.png",
+      "league-access-saved-joining-light-phone.png",
+      "league-access-saved-uncertain-dark-phone.png",
+      "league-access-saved-uncertain-light-phone.png"
+    ],
+    "acceptanceScope": "Supplied private access pending, Community removed with/without groups and saved-link/joining/uncertain visual direction in both themes. Actual access rules, token behavior, joining, retention/persistence, physical-device acceptance and whole-app completion remain separate.",
+    "next": "Session-expiry sign-in and retained first-name draft recovery examples."
+  },
+  "sessionRecoveryPreview": {
+    "status": "Session-expiry and first-name draft recovery mocked in both themes; visual approval pending",
+    "prepared": "2026-11-06",
+    "views": [
+      "Sign in again with password and Google",
+      "Sign-in failure example",
+      "Google-only method example",
+      "Name save uncertain",
+      "Name save offline",
+      "Name save requires sign-in",
+      "First name with saved private-invite notice"
+    ],
+    "nativePreservation": "Native Dialog, Button, InfoButton and existing initials Avatar are reused. The isolated 10-field SIGN_IN_AGAIN_COPY and 14-field NAME_STEP_COPY match native source. Existing 60-character first-name bound is retained. Not now dismisses only the example prompt; uncertain name Check if it saved is distinct from explicit Continue.",
+    "fixtures": "Alex Rivera, alex@example.com and a read-only example password are fictional. Name drafts live only in component memory. The saved-invite flag has no URL, token, recipient or permission grant. Existing initials only; no new avatar/photo options.",
+    "isolation": "No authentication, OAuth/provider redirect, account/draft-store read or write, refresh, write replay, sign-out, invitation operation or persistent storage. Preview controls show no-action notices. Check keeps the exact draft and uses native still-not-saved wording as an explicitly labelled example, never a real readback. Actual sign-out draft-clearing rules are unchanged.",
+    "dialogAdaptation": "A preview-only wrapper stops synthetic React cancel/close propagation from the nested information dialog. Regression reproduced before the fix; Escape now closes information alone and returns focus, then a separate Escape dismisses the session prompt. Native Dialog and InfoButton are unchanged.",
+    "verification": {
+      "responsiveLayouts": 56,
+      "recoveryScenarioFlows": 14,
+      "nativeSessionCopyFields": 10,
+      "nativeNameCopyFields": 14,
+      "nativeDismissAndCheckSourceChecks": 4,
+      "nativeInfoFocusThemes": 2,
+      "sessionDismissDraftFocusThemes": 2,
+      "priorViews": 6,
+      "storageWrites": 0,
+      "nonGETRequests": 0,
+      "authReads": 0,
+      "browserDialogs": 0,
+      "popups": 0,
+      "pageErrors": 0,
+      "controllerAndWriteExclusions": true,
+      "brandQA": true
+    },
+    "captures": [
+      "session-recovery-signin-dark-phone.png",
+      "session-recovery-signin-light-phone.png",
+      "session-recovery-failed-dark-phone.png",
+      "session-recovery-failed-light-phone.png",
+      "session-recovery-google-dark-phone.png",
+      "session-recovery-google-light-phone.png",
+      "session-recovery-name-uncertain-dark-phone.png",
+      "session-recovery-name-uncertain-light-phone.png",
+      "session-recovery-name-offline-dark-phone.png",
+      "session-recovery-name-offline-light-phone.png",
+      "session-recovery-name-signin-dark-phone.png",
+      "session-recovery-name-signin-light-phone.png",
+      "session-recovery-name-invited-dark-phone.png",
+      "session-recovery-name-invited-light-phone.png"
+    ],
+    "delivery": "14 dark/Porcelain phone-width captures visually inspected. Extended heights show content; 320/390/768/1440 layouts, reachability, 44px controls and 16px inputs were checked separately.",
+    "production": "Review assets/evidence only. Native session/name/AuthGate controllers, draft storage, account/provider configuration, APIs, invitations, data, production tokens/branding, migrations and frozen v62 unchanged. No merge/deploy.",
+    "deferred": "Real same-account reauthentication, OAuth return, persistence across reload/provider changes, actual name readback/save, invitation access and physical-device acceptance remain separate. New avatars/photos and awards stay held.",
+    "next": "Reconcile remaining native screen coverage after this visual review."
   }
 }

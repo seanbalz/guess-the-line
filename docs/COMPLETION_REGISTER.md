@@ -1,5 +1,61 @@
 # Guess The Line — current completion register
 
+## Session-expiry and first-name recovery mocked — November 6, 2026
+
+The selected dark/Porcelain system now covers Sign in again with password plus
+Google, failed password and Google-only examples, uncertain/offline/sign-in-
+required first-name saves, and first-name setup with a saved private invitation.
+Native Dialog, Button, InfoButton and existing initials Avatar are reused.
+Isolated session copy (10 fields) and name copy (14 fields) match native source;
+the existing 60-character name bound is retained. No new account rules or
+avatar/photo choices are proposed.
+
+Alex Rivera, alex@example.com and the read-only password are fictional.
+Underlying names remain only in component memory. Not now/Escape dismisses the
+example session prompt and keeps its typed name; actual Sign out has separate
+draft-clearing rules and is never invoked. The uncertain-name Check if it saved
+example keeps the exact typed text and shows native still-not-saved wording,
+explicitly labelled an example. Source verification confirms the real check
+reads lobby only and never resubmits. Continue/sign-in/Google/sign-out controls
+show preview notices only; no real success or readback is asserted. The saved
+private-invite presence flag contains no token, URL, recipient or access grant.
+
+Fourteen phone captures were visually inspected; visual approval is pending.
+Checks passed: 56 layouts across four viewport widths and both themes, fourteen
+scenario flows, ten session and fourteen name copy fields, four native dismiss/
+check source checks, nested information focus/Escape, session dismiss/opener/
+draft retention, conditional methods, read-only password, failure semantics,
+name validation, check-versus-retry distinction and six prior-view mounts.
+No storage writes, auth/profile reads, non-GET requests, popups, browser dialogs
+or page errors were observed. Build, controller/write exclusions, Brand QA
+(using Python UTF-8 mode on Windows), syntax and diff checks passed. Extended
+captures show content; narrow scrolling, touch targets and input sizing were
+checked separately.
+
+A regression was reproduced: nested information cancel events bubbled through
+React to the parent session dialog. A preview-only cancel/close propagation
+boundary fixes it. Escape closes information alone with focus return, then a
+separate Escape dismisses the session example. Native UI primitives and live
+auth/session components are unchanged.
+
+Review assets/evidence only; no merge/deploy. Actual reauthentication, provider
+return, tab-draft persistence across reload, name-save/readback, invitation
+access and physical-device acceptance remain separate. Production controllers,
+draft storage, account/provider configuration, APIs/data, invitations, tokens,
+migrations and frozen v62 are unchanged. New avatars/photos, awards and parked
+Signal work remain held. Reconcile remaining native coverage after this review.
+
+## League access direction approved — November 6, 2026
+
+Sean replied "good. continue" to the supplied private access pending,
+Community removed with/without groups and saved-link/joining/uncertain visual
+direction in both themes at reviewed commit
+`5609f305f905b6949a337508a30be55a5ce7ebc7`. That visual direction is approved.
+Actual access rules, token behavior, joining, retention/persistence,
+physical-device acceptance and whole-app completion remain separate. Session
+expiry and retained first-name draft recovery are next. New avatars/photos
+and awards remain held.
+
 ## League access and saved private invitations mocked — November 6, 2026
 
 The selected dark/Porcelain system now covers private-league access pending,
