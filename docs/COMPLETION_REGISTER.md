@@ -1,5 +1,20 @@
 # Guess The Line — current completion register
 
+## EPL overview prepared for phone review — November 5, 2026
+
+Sean authorized reviewing EPL with previews delivered directly in chat. Current
+[dark](../design/style-directions-2026-11-04/previews/epl-review-dark-phone.png)
+and [light](../design/style-directions-2026-11-04/previews/epl-review-light-phone.png)
+phone-width captures were prepared and inspected without changing UI code.
+Chromium checked both themes at 320/390/768/1440px, all eight loaded crest images,
+three sample standing rows per theme, document overflow and bottom-nav fit.
+No page errors were found. Captures use an extended 1200px presentation height
+to show the full overview; they do not establish physical-device acceptance.
+Recommended next change: individual glass tiles around the four club crests.
+No new EPL approval or whole-app completion is inferred. Production and parked
+Signal files are unchanged.
+
+
 ## Bets Recommended logo tiles approved — November 5, 2026
 
 Sean confirmed "Good" after the phone-accessible dark/light previews. The
