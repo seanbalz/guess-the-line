@@ -498,11 +498,13 @@
   },
   "compactGameHeader": {
     "date": "2026-11-05",
-    "status": "Mocked for review; visual approval pending",
+    "status": "Approved by Sean for the reviewed compact game header",
     "basis": "Sean replied Good to the compact-header mock recommendation",
     "scope": "Research opened game-detail fixture in both themes",
     "layout": "Single glass Game overview header; individual 48px logo tiles, names outside, Sample matchup label; repeated standalone title removed",
     "preserved": "Existing matchup fixtures, Back/Spread/Total/Bets handlers and illustrative chart; no real quotes or picks added",
-    "remaining": "Generic research paragraph and chart meaning remain future review items"
+    "remaining": "Generic research paragraph and chart meaning remain future review items",
+    "accepted": "2026-11-05",
+    "acceptanceScope": "Reviewed Research/game glass header, individual logo tiles and action placement in both themes; generic research chart/copy remains unapproved"
   }
 }

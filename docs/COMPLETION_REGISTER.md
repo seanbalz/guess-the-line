@@ -1,5 +1,17 @@
 # Guess The Line — current completion register
 
+## Compact opened-game header approved — November 5, 2026
+
+Sean answered "Yes" after the compact game-detail phone mockups. The reviewed
+Game overview header, individual logo tiles and action placement are approved
+in both themes. The [selection record](../design/style-directions-2026-11-04/selected-system-review.json)
+preserves that scope. The generic research paragraph and undefined illustrative
+chart are still pending; chart purpose needs clarification before a meaningful
+research-panel mockup. This is not full detail-screen or whole-project approval.
+No UI or production changes accompany this record. Deferred features and parked
+Signal files remain unchanged.
+
+
 ## Compact opened-game matchup header prepared — November 5, 2026
 
 Sean replied "Good" to the recommendation to mock a compact matchup header.
