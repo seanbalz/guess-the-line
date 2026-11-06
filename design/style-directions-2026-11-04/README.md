@@ -1,3 +1,61 @@
+## Fantasy rankings and accuracy report mocked — November 5, 2026
+
+Sean instructed continuing with weekly rankings and the accuracy report. The
+selected Fantasy review now adds Rankings and Accuracy beside the approved
+Players/Compare views. Rankings use the existing buildRankings engine, unchanged:
+weekly/rest-of-season totals, displayed-point tie ranks, positional ranks,
+eligibility and bye handling. Search, team and strong-trend filters preserve
+ranks within the chosen position. Cards show separate registered team-logo tiles,
+rank/estimated points, sampled games and native trend signals. Row opening uses
+the existing usage profile and restores rank-list focus on Back. Scoring settings
+are folded for these new views; existing player/comparison content is retained.
+
+The Week 8 report imports the original FantasyReport/reportModel/summarizeReview.
+The published status remains **PROVISIONAL**. PPR/four-point passing TDs grade
+301 players: 4.7-point mean absolute error, 4.7 for the season-average baseline
+(both rounded), 66% within five points. Missing actual-stat rows are excluded;
+65 available-estimate rows without actuals and 36 players without an estimate
+are not converted into zero results. Original position rows and biggest misses
+remain available. An additional zero-based paired-error chart compares the same
+players with a baseline across QB/RB/WR/TE/K. Lower is closer; comparisons use
+unrounded errors even where displayed tenths tie. No model-return or betting
+claim is made.
+
+[Dark rankings](previews/fantasy-rankings-dark-phone.png),
+[light rankings](previews/fantasy-rankings-light-phone.png),
+[dark report](previews/fantasy-accuracy-dark-phone.png) and
+[light report](previews/fantasy-accuracy-light-phone.png)
+were inspected at phone width with extended capture heights. Expanded biggest-
+miss detail crops are available in [dark](previews/fantasy-accuracy-misses-dark-phone.png)
+and [light](previews/fantasy-accuracy-misses-light-phone.png). Those native rows now
+identify teams with individual registered logo tiles; original error values and
+ordering are unchanged. **Visual approval
+of these new views remains pending.** Captures are not physical-device acceptance
+or production integration; the first design project is not declared finished.
+
+The original Week 9 snapshot remains unchanged. The added public Week 8 review
+is copied byte-for-byte as fantasy-review.json (293,986 bytes), SHA-256
+69d9802563d3a131ead39484368f78cd970a18670e6bf4a43a69880d8db00b9d.
+Its referenced historical estimate file, 2026-week-08.93d26154.json, was downloaded
+and checked against the review's SHA-256, week and generation time. Every one of
+its 366 review estimate objects matches that exact pre-freeze publication; no
+estimate was rebuilt from later actuals. Shared index/snapshot/review validators
+passed. Attribution, actual-stat source hash, original report status and both
+source links remain available in metadata/source information.
+
+Independent stat-weight calculations checked 96 ranking settings/horizon states
+and 576 displayed rows, 48 report settings and 240 paired position charts across
+eight width/theme layouts. Forty filter cases, pagination, unsupported defensive
+scoring, source/exclusion dialogs, profile Back/focus, original Players/Compare
+and Teams regressions also passed. No page errors or checked page/card overflow.
+Two final source-dialog checks confirmed readable publication/review dates and
+the historical estimate link; 12 narrow-phone miss-detail views checked 120 logo
+tiles without overflow. Brand QA, syntax, public-export scope and deterministic
+preparation passed.
+Production code/tokens, collectors, budgets, accounts, scoring, migrations,
+frozen v62, deferred avatars/awards and parked Signal files remain unchanged.
+No merge or deployment occurred.
+
 ## Fantasy usage/comparison direction approved — November 5, 2026
 
 Sean confirmed "Good" after the player-list and comparison previews and the

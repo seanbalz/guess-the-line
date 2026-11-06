@@ -2,7 +2,7 @@
 'use strict';
 const roots=new WeakMap();
 async function read(path){const response=await fetch(path);if(!response.ok)throw Error('Preview asset did not load: '+path);return response.json();}
-Promise.all([read('populated-research-data.json'),read('populated-fantasy-data.json').then(async metadata=>({...metadata,snapshot:await read(metadata.snapshotAsset)}))]).then(([model,fantasy])=>{
+Promise.all([read('populated-research-data.json'),read('populated-fantasy-data.json').then(async metadata=>({...metadata,snapshot:await read(metadata.snapshotAsset),review:await read(metadata.reviewSource.asset)}))]).then(([model,fantasy])=>{
  document.querySelectorAll('iframe[data-review-theme]').forEach(frame=>{
  let observer;
  function apply(){const d=frame.contentDocument;if(!d||!frame.contentWindow.GTLPopulatedResearch||d.querySelector('.populated-research-root'))return;

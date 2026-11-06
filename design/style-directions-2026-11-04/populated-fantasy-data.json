@@ -25,5 +25,21 @@
     "00-0036900",
     "00-0036358"
   ],
-  "selection": "Fixed named examples across WR, QB, RB and TE; observed-production browse order, not a performance ranking"
+  "selection": "Fixed named examples across WR, QB, RB and TE; observed-production browse order, not a performance ranking",
+  "reviewSource": {
+    "asset": "fantasy-review.json",
+    "file": "https://github.com/seanbalz/guess-the-line/releases/download/fantasy-data-2026/2026-review-week-08.69d98025.json",
+    "sha256": "69d9802563d3a131ead39484368f78cd970a18670e6bf4a43a69880d8db00b9d",
+    "bytes": 293986,
+    "week": 8,
+    "status": "PROVISIONAL",
+    "generatedAt": "2026-11-05T18:25:57.010Z",
+    "estimate": {
+      "file": "2026-week-08.93d26154.json",
+      "sha256": "93d26154d680c60095876027c07cfe3da7186137e519bb3bd1983708f93f52af",
+      "generatedAt": "2026-11-01T16:58:25.995Z",
+      "publishedBeforeFreeze": true,
+      "url": "https://github.com/seanbalz/guess-the-line/releases/download/fantasy-data-2026/2026-week-08.93d26154.json"
+    }
+  }
 }

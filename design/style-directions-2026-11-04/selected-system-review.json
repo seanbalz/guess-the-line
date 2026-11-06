@@ -703,5 +703,57 @@
     "confirmation": "Sean replied Good after receiving the player-list and comparison previews plus the full usage-profile captures in both themes.",
     "acceptanceScope": "Reviewed Fantasy player-list, comparison and usage-profile visual direction, preserving observed statistics, original tools and selected glass styling. Not separate acceptance of every unseen player/state, weekly rankings/report cards, current live-data freshness, production integration or whole-project completion.",
     "next": "Recommended next review: Fantasy weekly rankings and accuracy report. Deferred avatars/awards remain held."
+  },
+  "fantasyRankingsAccuracy": {
+    "date": "2026-11-05",
+    "status": "Mocked for Sean; visual approval pending",
+    "scope": "Fantasy weekly/rest-of-season rankings and Week 8 accuracy report in both selected themes",
+    "basis": "Sean explicitly instructed Continue after the weekly rankings/report proposal",
+    "components": [
+      "shared/fantasy-rankings.mjs buildRankings",
+      "shared/fantasy-review.mjs summarizeReview",
+      "web/src/next/fantasy/FantasyReport.jsx",
+      "web/src/next/fantasy/fantasyReport.js reportModel",
+      "web/src/next/ui/PictureRow.jsx / TeamMark.jsx / InfoButton.jsx"
+    ],
+    "rankings": "Original Week 9 snapshot/scoring engine; PPR four-point-TD default has 407 weekly / 433 rest-of-season ranked players. Team/search/trend filters preserve ranks within the selected position; native tie, eligibility, bye and missing-data behavior retained.",
+    "report": {
+      "file": "2026-review-week-08.69d98025.json",
+      "sha256": "69d9802563d3a131ead39484368f78cd970a18670e6bf4a43a69880d8db00b9d",
+      "status": "PROVISIONAL",
+      "estimateFile": "2026-week-08.93d26154.json",
+      "estimateSha256": "93d26154d680c60095876027c07cfe3da7186137e519bb3bd1983708f93f52af",
+      "publishedBeforeFreeze": true,
+      "gradedDefault": 301,
+      "missingActualRows": 65,
+      "playedWithoutEstimate": 36
+    },
+    "features": [
+      "Rank, estimated total points, position rank and sampled games",
+      "Native strong-trend signals, weekly/ROS selection, search, position/team/trend filters and pagination",
+      "Rank-row opens original usage profile with Back/focus return",
+      "Original four report metrics, position rows and expandable biggest misses",
+      "Zero-based paired error bars from native same-player baseline metrics; lower is closer",
+      "Source/method dialogs, provisional status and unrounded-comparison explanation",
+      "Collapsed scoring settings for new views; existing player/comparison content retained",
+      "Individual team-logo tiles in biggest-miss rows; native error values and ordering preserved"
+    ],
+    "verification": {
+      "responsiveLayouts": 8,
+      "rankingStates": 96,
+      "independentRankingRows": 576,
+      "reportStates": 48,
+      "rankingFilterStates": 40,
+      "pairedPositionCharts": 240,
+      "sourceDialogs": 8,
+      "profileBackAndPriorViewChecks": 2,
+      "pageErrors": 0,
+      "humanReadableSourceDialogs": 2,
+      "missDetailViews": 12,
+      "missLogoChecks": 120
+    },
+    "delivery": "Four phone-width extended-height captures plus two expanded biggest-miss detail crops; not physical-device acceptance",
+    "privacy": "Exact public NFL snapshot/review exports and historical estimate hash binding; no Guess picks, bookmaker values, player accounts, authenticated data readers or production writes",
+    "preserved": "Approved usage/comparison content and models, original ranking/report calculations, selected materials, production tokens/code, collectors, scoring, migrations, frozen v62 and deferred avatars/awards. Whole-project completion is not declared."
   }
 }
