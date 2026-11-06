@@ -1,5 +1,13 @@
 # Guess The Line — current completion register
 
+## Revised Monday recap mockup · November 6, 2026
+
+The [Prism Glass recap board](../design/monday-recap-2026-11-05/monday-recap-prism-glass.png) shows one journey across three phone screens. Home keeps the Week 8 recap within reach after Week 9 opens. The weekly recap leads with the player's Spread rank, a friend comparison, a recorded final and one Monday game pending. A Porcelain matchup view separates the miss against a saved line from the game's winning margin.
+
+The visual references come from the reviewed charcoal Home, game score and Porcelain League screens at `59a1b55f225122aca9f7e9a1cd2d4a815d821e4e`. The November 5 studies and [full prompt record](../design/monday-recap-2026-11-05/prompts.json) accompany the revision. Status is a design preview using fictional examples for Sean and Connor's review.
+
+The final 1536 × 1024 image was reviewed for both guesses, each scored miss, the score, margin and pending state. Chromium loaded the image and opened its full-size link. The gallery fit 320, 390 and 1440 px without horizontal overflow. Local brand/document QA passed.
+
 ## Monday recap — eight mockups, November 5, 2026
 
 Connor requested a Monday recap comparing guesses with other players and game

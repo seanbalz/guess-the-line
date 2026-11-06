@@ -1,6 +1,14 @@
-# Monday recap — eight layout studies
+# Monday recap design studies
 
-Owner: Sean Balsiger · Version 1 · November 5, 2026
+Owner: Sean Balsiger · Version 2 · November 6, 2026
+
+## Prism Glass revision · November 6
+
+[View the revised Monday recap mockup at full size](monday-recap-prism-glass.png).
+
+The board follows one player's path from Home to a weekly recap and then to a game's comparison with a friend. It uses the charcoal, ivory and Porcelain finishes from [the selected design review](https://github.com/seanbalz/guess-the-line/tree/59a1b55f225122aca9f7e9a1cd2d4a815d821e4e/design/style-directions-2026-11-04). The previous week has its own entry beside the newly opened week. All examples use fictional fixtures. The image is a design proposal for review.
+
+## Original eight studies · November 5
 
 Status: **design studies, awaiting selection**. Connor requested a Monday recap that compares a player's guesses with other players and the games' final results. Sean requested five to ten mockups using the new app layout. These eight images explore that request; they do not implement or release the feature.
 
