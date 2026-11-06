@@ -614,5 +614,45 @@
     "accepted": "2026-11-05",
     "confirmation": "Sean replied Good after reviewing the Games list and expanded comparison previews.",
     "acceptanceScope": "Reviewed Games list and expanded Jaguars/Ravens team-comparison design in the selected dark/light themes, including individual logo tiles, form chips, scoring bars and original margin/play-stat presentation. Not separate approval of every unseen matchup detail, live data, production integration or whole-project completion."
+  },
+  "populatedTeams": {
+    "date": "2026-11-05",
+    "status": "Mocked for Sean; visual approval pending",
+    "scope": "Research / Teams, all 32 team rows and profiles in the selected dark/light themes; Seattle profile shown in the review captures",
+    "basis": "Sean agreed to mock up Research / Teams with real records, recent form and game-by-game charts",
+    "components": [
+      "web/src/next/teams/TeamView.jsx",
+      "web/src/next/teams/teamModel.js",
+      "web/src/next/ui/PictureRow.jsx",
+      "web/src/next/ui/TeamMark.jsx",
+      "web/src/next/charts/useChartSelection.js",
+      "shared/team-records.mjs"
+    ],
+    "source": "Same checksummed research publication and fingerprint-matched completed history as approved Games/Trends. Original teamSeason builder joins 121 verified finals with 151 redacted published scheduled games. Records through November 2; 2026 season, through Week 8.",
+    "features": [
+      "Search all 32 teams by name/code",
+      "Separate team and next-opponent logo tiles",
+      "Records and last-five W/L/T chips on list rows",
+      "Original TeamView home/road records and scoring averages",
+      "Original margin chart linked to season-result selection",
+      "17 season games per team, with recorded scores and scheduled upcoming games",
+      "Search/scroll/focus retained on Back",
+      "Original team-record source information dialog"
+    ],
+    "assets": "32 unchanged registered logo copies under team-logos for native TeamMark URLs; provenance and SHA-256 in visual-assets/sources.json",
+    "verification": {
+      "responsiveLayouts": 8,
+      "listRecordAndFormChecks": 256,
+      "searchStates": 32,
+      "teamProfiles": 76,
+      "seasonRowsChecked": 1292,
+      "sourceDialogs": 2,
+      "backAndRegressionChecks": 2,
+      "independentlyVerifiedTeams": 32,
+      "pageErrors": 0
+    },
+    "privacy": "Public completed scores and redacted schedule only; future scores remain null; no private picks, player accounts, quotes, auth/API readers or new source requests",
+    "delivery": "Phone-width captures with extended 1700/2250px presentation heights. Images show upper list/profile portions; all 32 teams and 17 season rows remain reachable. Not physical-device acceptance.",
+    "preserved": "Approved Games, Trends and game-detail model fields and styling; production code/tokens, scoring, collectors, migrations, frozen v62 and deferred avatars/awards unchanged."
   }
 }

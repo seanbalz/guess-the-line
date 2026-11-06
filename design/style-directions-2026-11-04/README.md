@@ -1,3 +1,44 @@
+## Populated Teams mockup — November 5, 2026
+
+Sean approved preparing Research / Teams with the selected glass styling and
+real records, recent form and game-by-game charts. The opened Teams mockup now
+provides all 32 NFL teams, name/code search, separate registered team/opponent
+logo tiles, record headlines and last-five result chips. Each row opens the
+original TeamView component: home/road records, scoring averages, last-five
+blocks, the original MarginChart, chart-linked season-result controls and all
+17 season games. Scheduled games retain their actual published kickoff times;
+no future result or market is invented. Back preserves the search, list scroll
+and focus; the existing team-record information dialog retains its source context.
+
+[Dark Teams](previews/research-teams-dark-phone.png),
+[light Teams](previews/research-teams-light-phone.png),
+[dark Seattle profile](previews/research-team-profile-dark-phone.png) and
+[light Seattle profile](previews/research-team-profile-light-phone.png)
+are phone-width extended-height captures of the upper list/profile portions.
+All teams and season rows remain reachable. **Teams visual approval is pending**;
+these captures are not physical-device acceptance or production integration.
+
+The original shared teamSeason builder uses 121 fingerprint-matched completed
+regular-season games plus 151 redacted schedules from the same checksummed
+public research snapshot. It produces 32 teams, 544 team-season rows and records
+through Week 8 / November 2. Upcoming scores/results remain null. Native TeamMark
+URLs resolve to 32 unchanged registered copies in the review's team-logos folder;
+all original source records and asset SHA-256 values are retained. No API/auth
+reader is imported into the review bundle. Previously approved game, Games and
+Trends model fields remain unchanged.
+
+Independent CSV calculations confirmed every team's overall/home/road record
+(neutral finals count toward overall only), points scored/allowed and original
+logo bytes. Preparation reproduces the same model hash. Chromium passed eight
+width/theme layouts, 256 list record/form checks, 32 search states, 76 profiles
+(including all 32 in both phone themes), 1,292 season rows, chart/row/keyboard
+selection, search/focus return, source dialogs and Back/Trends/Games regressions.
+No page errors or checked document/card overflow were found. Captures were
+inspected after waiting for native logo decoding. Syntax, public-export scope
+and Brand QA passed. Production code/tokens, scoring, collectors, migrations,
+private data, frozen v62, deferred avatars/awards and parked Signal files remain
+unchanged. No merge or deployment occurred.
+
 ## Populated Games layout approved — November 5, 2026
 
 Sean confirmed "Good" after the populated Games list and expanded team-comparison
