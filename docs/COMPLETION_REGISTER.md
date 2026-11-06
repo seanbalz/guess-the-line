@@ -1,5 +1,16 @@
 # Guess The Line — current completion register
 
+## Bets Recommended logo tiles approved — November 5, 2026
+
+Sean confirmed "Good" after the phone-accessible dark/light previews. The
+individual glass tiles for the Recommended matchup logos are approved for the
+reviewed card in both themes. [Selection record](../design/style-directions-2026-11-04/selected-system-review.json)
+preserves this scope; it does not establish blanket approval of Bets details
+or whole-app completion. No UI or production changes accompany this record.
+EPL is the recommended next review area, awaiting Sean's direction. Parked
+Signal files remain untouched and unpublished.
+
+
 ## Individual logo tiles in Bets Recommended card — November 5, 2026
 
 Sean authorized separate glass backgrounds for each Recommended matchup logo.
