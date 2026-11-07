@@ -25,10 +25,11 @@ remain separate from visual acceptance.
 
 ## Areas requiring reconciliation before declaring the first project finished
 
-- Account History: native Guess weeks/week/game/owner-changes now have a prepared
-  nineteen-state batch in both themes (44 captures). Bets weeks and Older records
-  remain next; earlier Play score/history and Bets corrections do not automatically
-  cover these account-history views.
+- Account History: nineteen Guess states and expanded/source/rules views were
+  approved at `e585b0afa23deb49996f4b044010d5b41656d5ce` (44 captures). Bets weeks
+  and all seven Older sections now have 24 states plus expanded/Info variants
+  prepared in both themes (60 captures), awaiting visual approval. Earlier Play
+  scores/Bets corrections are not substituted for this account-history evidence.
 - NFL game and action layers: map `shell/registry.jsx`, Play/Bets subviews and
   modal/guard branches to exact existing captures. In particular, check the
   forfeit/reveal dialog, personal/everyone pick sheets, Virtual Units entry and
@@ -103,7 +104,7 @@ none is automatically complete. Deferred avatar/photos/awards remain held.
 ## Current Account Guess History delivery
 
 Nineteen states plus expanded game and source/rules Info are supplied in both
-themes (44 captures), awaiting visual approval. Native five-block presentation
+themes (44 captures), approved at `e585b0afa23deb49996f4b044010d5b41656d5ce`. Native five-block presentation
 is compared against explicit injected-read/fixed-clock/haptic/mark-only/math
 adapters; format/status/hidden/points/change helpers remain unchanged. Inputs
 are fictional/math examples, never actual saved history or bookmaker quotes.
@@ -116,5 +117,25 @@ Fourteen native tests, 152 layouts, 38 flows, 304 loaded separate marks, sixteen
 Info layout/Escape/focus checks, six prior mounts, source/fixture/brand/syntax/
 diff checks passed. No API/auth/provider read, writes, storage changes, polling,
 bundle intervals, browser popup/dialog or page error observed. Bets weeks and
-Older records are next; NFL layers/shared shell and retained-route coverage
+Older records are now prepared below; NFL layers/shared shell and retained-route coverage
 remain explicit. No whole-project completion, production integration or release.
+
+## Current Bets weeks / Older records delivery
+
+24 states plus four expanded views and source/rules Info are supplied in both
+themes (60 captures), awaiting visual approval. Both native feature files are
+isolated/source-compared; all seven sections remain. Native record/outcome,
+qualification, Challenge grading, note/forecast changes, archived-journal
+accounting, slips, comparison snapshots and benchmark visibility are retained.
+All data is fictional/math. Quote/source/save/archive/freeze timestamps are not
+invented; 36 fields remain null. Illustrative metadata avoids provenance claims.
+Closed terms are absent from fixtures; hidden comparisons remain withheld.
+
+Sixteen native history/journal tests, 192 layouts, 48 flows, fourteen section
+opens, 88 loaded marks, sixteen Info checks, six prior mounts and source/fixture/
+brand/syntax/diff checks passed. No reads/writes, imports/freezes, storage changes,
+bundle intervals, browser popup/dialog or page error observed. Independent slips
+still opens while records is unavailable. Actual server permissions/history/
+source/settlement/import/freeze/device acceptance stays separate. Remaining NFL
+sheets, shared-shell and retained-route reconciliation follows; whole-app work
+is not complete. Avatars/photos and awards stay held.

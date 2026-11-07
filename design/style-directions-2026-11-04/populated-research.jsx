@@ -1,3 +1,4 @@
+import {HistoryRecordsPreview} from './populated-history-records.jsx';
 import {AccountHistoryPreview} from './populated-account-history.jsx';
 import {EplFantasyPreview} from './populated-epl-fantasy.jsx';
 import React, {useState} from 'react';
@@ -170,3 +171,5 @@ export function mountEplMoneyline(element,scenario){const root=createRoot(elemen
 export function mountEplFantasy(element,scenario){const root=createRoot(element);root.render(<EplFantasyPreview scenario={scenario}/>);return root;}
 
 export function mountAccountHistory(element,scenario){const root=createRoot(element);root.render(<AccountHistoryPreview scenario={scenario}/>);return root;}
+
+export function mountHistoryRecords(element,scenario){const root=createRoot(element);root.render(<HistoryRecordsPreview scenario={scenario}/>);return root;}

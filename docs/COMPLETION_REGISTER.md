@@ -1,5 +1,68 @@
 # Guess The Line — current completion register
 
+## History Bets weeks and Older records mockups prepared — November 6, 2026
+
+[Phone review index: all sixty captures](../design/style-directions-2026-11-04/HISTORY_BETS_OLDER_REVIEW.md).
+
+Selected dark/Porcelain visuals now cover Bets weeks and all seven existing
+Older record sections: retired Betting Challenge, saved games/notes, forecasts,
+journal, real slips by week, older group scoring and Week 5 benchmark freeze.
+Two native feature files are extracted and compared against explicit preview
+adapters: injected read/context/args, haptics off, mark-only native matchups,
+a negative-net styling hook, and illustrative note/archive/freeze metadata.
+Native formatting/grouping/outcome/record/journal helpers and About History
+copy remain unchanged. Existing initial avatars and section icons are reused.
+
+Every identity, ticket, amount, quote-like entered term, outcome/final, note,
+forecast, change, qualification, archive and freeze state is fictional/math.
+No real private record, actual transaction, fixture, bookmaker quote/source,
+source URL or observation/save/archive/freeze time is supplied. Thirty-six time
+fields stay null. Example archive/frozen-record captions explicitly avoid real
+provenance claims. Withheld Bets rows contain side/units only and no line/odds/
+source/result/time; the locked slip has a side only. Challenge/journal withheld
+counts and archive/benchmark hidden comparisons have no private values.
+
+Native calculations are checked: +0.91U sample Bets record; qualification at three
+picks or three units; Challenge W/L/P from gradeBet; journal net USD90.91 from one
+active placed bet, excluding the still-listed archived loss and unstaked research
+note; +150 combined sample parlay terms with 2U stake yield +3U; archived accuracy
+math is 9+8+4=21. Virtual Units and journal cash remain separate. No simulated
+book integration or new automatic settlement is introduced.
+
+Twenty-four states plus four expanded views and source/rules Info in both themes
+produce 60 inspected phone captures. Native loading/failed/unavailable/empty paths
+are included. Local tabs, seven section links/back, disclosure rows and two Bets
+weeks run in memory. Retry, Slip week and header Back are no-read notices.
+Slips stays independently reachable when Older records is unavailable. No
+API/hook/controller, auth/provider read, write/import/freeze, persistent storage,
+polling, bundle interval, browser popup/dialog or page error was observed.
+
+Checks passed: sixteen existing history/journal tests, two native feature source
+comparisons, 24 fixture cases, native qualification/grade/accounting/math/hidden
+checks; 192 layouts, 48 scenario flows, 88 loaded individual marks, fourteen
+section opens, sixteen Info layout/scroll/Escape/focus checks and six prior mounts.
+Build, Brand QA, syntax/diff and API/hook/storage/timer exclusions passed.
+320/390/768/1440 bounds, 44px controls and footer reachability are checked separately
+from extended captures. Loss words and negative example net use the existing
+semantic loss color; selected lime remains on positive/key values.
+
+[Native coverage queue](../design/style-directions-2026-11-04/NATIVE_COVERAGE_REVIEW.md) retains remaining NFL/action,
+shared-shell and retained-route reconciliation. Real permissions/redaction,
+account scope/completeness, source/timestamp evidence, settlement/import/freeze
+validity and phone behavior remain separate. No whole-app completion, production
+integration, merge/deploy/migration or frozen-v62 change. New avatars/photos,
+awards and parked Signal files remain held.
+
+## Account Guess History direction approved — November 6, 2026
+
+Sean confirmed: "Looks good in both themes. Continue with the Bets weeks and
+Older records mockups." This accepts the supplied nineteen Guess History states
+plus expanded game/source/rules Info in both themes at
+`e585b0afa23deb49996f4b044010d5b41656d5ce` (44 captures). Actual private records,
+reference/source/timestamp evidence, device behavior and whole-app completion
+remain separate. The structured record preserves exact confirmation and scope.
+
+
 ## Account Guess History mockups prepared — November 6, 2026
 
 Account → History → Guess now carries the selected dark/Porcelain system:

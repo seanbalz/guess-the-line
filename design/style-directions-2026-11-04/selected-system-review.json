@@ -1467,13 +1467,181 @@
         "actions": [
           "detail:profile"
         ]
+      },
+      {
+        "id": "records-bets",
+        "name": "History records - Bets",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "records-bets-empty",
+        "name": "History records - Bets Empty",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "records-bets-loading",
+        "name": "History records - Bets Loading",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "records-bets-unavailable",
+        "name": "History records - Bets Unavailable",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "records-bets-failed",
+        "name": "History records - Bets Failed",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "records-weeks-loading",
+        "name": "History records - Weeks Loading",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "records-weeks-failed",
+        "name": "History records - Weeks Failed",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "records-no-weeks",
+        "name": "History records - No Weeks",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "records-older",
+        "name": "History records - Older",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "records-challenge",
+        "name": "History records - Challenge",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "records-saved",
+        "name": "History records - Saved",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "records-forecasts",
+        "name": "History records - Forecasts",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "records-journal",
+        "name": "History records - Journal",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "records-slips",
+        "name": "History records - Slips",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "records-archives",
+        "name": "History records - Archives",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "records-benchmark",
+        "name": "History records - Benchmark",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "records-benchmark-unfrozen",
+        "name": "History records - Benchmark Unfrozen",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "records-older-loading",
+        "name": "History records - Older Loading",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "records-older-failed",
+        "name": "History records - Older Failed",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "records-older-off",
+        "name": "History records - Older Off",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "records-older-empty",
+        "name": "History records - Older Empty",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "records-slips-loading",
+        "name": "History records - Slips Loading",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "records-slips-failed",
+        "name": "History records - Slips Failed",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "records-slips-empty",
+        "name": "History records - Slips Empty",
+        "actions": [
+          "detail:profile"
+        ]
       }
     ]
   },
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "Account/history-weeks",
+    "next": "Account/records-bets",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -4441,7 +4609,7 @@
     "acceptanceScope": "Supplied sixteen FEPL states plus expanded standing and source/estimate Info, both themes. Visual direction only; real private/source/roster/inference/device behavior and whole-app completion remain separate."
   },
   "accountGuessHistoryPreview": {
-    "status": "Prepared for visual approval in both themes",
+    "status": "Approved for supplied visual direction in both themes",
     "prepared": "2026-11-06",
     "views": [
       "weeks",
@@ -4547,6 +4715,188 @@
     ],
     "captureScope": "Nineteen states plus expanded mathematical game row and source/rules Info in both themes (44 inspected PNGs). Extended ordinary captures fit all content; modal captures show scrollable opening. Selected other-player chip scrolled into view for its capture; no app scroll behavior changed.",
     "approvalScope": "Supplied Account History Guess weeks, week/game detail, owner timeline and read-state visuals only; Bets weeks and Older records still need their own batch. Real private authorization, record completeness/provenance, clocks, saved references, phone behavior and whole-app completion remain separate.",
-    "next": "Account History Bets weeks and Older records, then NFL action/shared-shell and retained-route coverage reconciliation. NBA remains hidden from navigation per October 29; retained NBA records are not deleted or newly exposed. New avatars/photos and awards remain held."
+    "next": "Account History Bets weeks and Older records, then NFL action/shared-shell and retained-route coverage reconciliation. NBA remains hidden from navigation per October 29; retained NBA records are not deleted or newly exposed. New avatars/photos and awards remain held.",
+    "accepted": "2026-11-06",
+    "confirmation": "Looks good in both themes. Continue with the Bets weeks and Older records mockups.",
+    "reviewedCommit": "e585b0afa23deb49996f4b044010d5b41656d5ce",
+    "reviewedCaptures": [
+      "account-history-changes-empty-dark-phone.png",
+      "account-history-changes-empty-light-phone.png",
+      "account-history-changes-failed-dark-phone.png",
+      "account-history-changes-failed-light-phone.png",
+      "account-history-changes-held-dark-phone.png",
+      "account-history-changes-held-light-phone.png",
+      "account-history-changes-loading-dark-phone.png",
+      "account-history-changes-loading-light-phone.png",
+      "account-history-draft-active-dark-phone.png",
+      "account-history-draft-active-light-phone.png",
+      "account-history-empty-dark-phone.png",
+      "account-history-empty-light-phone.png",
+      "account-history-failed-dark-phone.png",
+      "account-history-failed-light-phone.png",
+      "account-history-late-dark-phone.png",
+      "account-history-late-light-phone.png",
+      "account-history-loading-dark-phone.png",
+      "account-history-loading-light-phone.png",
+      "account-history-no-ballot-dark-phone.png",
+      "account-history-no-ballot-light-phone.png",
+      "account-history-other-hidden-dark-phone.png",
+      "account-history-other-hidden-light-phone.png",
+      "account-history-practice-dark-phone.png",
+      "account-history-practice-light-phone.png",
+      "account-history-records-off-dark-phone.png",
+      "account-history-records-off-light-phone.png",
+      "account-history-removed-dark-phone.png",
+      "account-history-removed-light-phone.png",
+      "account-history-ruled-dark-phone.png",
+      "account-history-ruled-light-phone.png",
+      "account-history-rules-info-dark-phone.png",
+      "account-history-rules-info-light-phone.png",
+      "account-history-sat-out-dark-phone.png",
+      "account-history-sat-out-light-phone.png",
+      "account-history-source-info-dark-phone.png",
+      "account-history-source-info-light-phone.png",
+      "account-history-total-dark-phone.png",
+      "account-history-total-light-phone.png",
+      "account-history-week-dark-phone.png",
+      "account-history-week-expanded-dark-phone.png",
+      "account-history-week-expanded-light-phone.png",
+      "account-history-week-light-phone.png",
+      "account-history-weeks-dark-phone.png",
+      "account-history-weeks-light-phone.png"
+    ],
+    "acceptanceScope": "Supplied nineteen Guess History states plus expanded game/source/rules Info in both themes (44 captures). Visual direction only; actual private records, sources, timestamps/references, device behavior and whole-app completion remain separate."
+  },
+  "historyBetsOlderPreview": {
+    "status": "Prepared for visual approval in both themes",
+    "prepared": "2026-11-06",
+    "views": [
+      "bets",
+      "bets-empty",
+      "bets-loading",
+      "bets-unavailable",
+      "bets-failed",
+      "weeks-loading",
+      "weeks-failed",
+      "no-weeks",
+      "older",
+      "challenge",
+      "saved",
+      "forecasts",
+      "journal",
+      "slips",
+      "archives",
+      "benchmark",
+      "benchmark-unfrozen",
+      "older-loading",
+      "older-failed",
+      "older-off",
+      "older-empty",
+      "slips-loading",
+      "slips-failed",
+      "slips-empty"
+    ],
+    "nativePreservation": "HistoryBets.jsx and HistoryOlder.jsx presentation extracted and source-compared, including all seven olderSections. Context/API/read wiring is injected. Native betResultWords/betWords/betsRecord/challengeWeeks/noteChanges/forecastWords/journalChanges/journalSummary/journalWords/selectionWords/slipWords, formatting and UI primitives remain unchanged. Native gradeBet, accuracy and weekFromPicks calculate examples.",
+    "adaptations": "Local app/shell/read injection, Button haptics off, native Matchup codes=false retains full accessible names and separate marks. Negative-net styling attribute only. Example saved-note/archive/snapshot/benchmark metadata explicitly says illustrative/math and omits implied real source/page/capture/freeze times. Other native branches and About History topic unchanged. Existing initial avatars retained; no new avatar or award feature.",
+    "fixtures": "Every identity, ticket, selection, amount, outcome/final, note, forecast, change, qualification, archive and freeze status is fictional/math. Sources for manually entered terms say Example entered terms. No actual private record, transaction, fixture, bookmaker quote, source observation, URL or save/archive/freeze timestamp is supplied. Thirty-six timestamp fields remain null. Hidden Bets payload contains only side/units with null status/result; hidden slip leg contains a side only, with no odds/line/source. Hidden challenge/journal counts and empty archive/benchmark comparisons have no private values.",
+    "math": "Bets own sample W/P/pending yields +0.91U; the other week changes it to −1U locally. Qualification uses existing 3-picks-or-3-units helper. Retired Challenge uses gradeBet on fictional finals for W/L/P, preserving 1–0–1 own record and removed-member row. Journal native summary counts only one active placed bet, net USD90.91; archived USD50 loss remains visible but excluded, research notes not staked. Sample parlay uses one combined +150 entered price and 2U stake for +3U. Archive accuracy comparisons yield 9+8+4=21.",
+    "behavior": "Local tabs, seven section opens/back, disclosure rows and two sample Bets weeks only. Slip-week/retry/header Back produce no-read notices. Independent Slips still opens when records returns 503. Loading/failed reads contain no record data; empty states do not invent rows. No API/hook/controller, auth/provider read, write, import, freeze, persistent storage, polling or interval.",
+    "verification": {
+      "responsiveLayouts": 192,
+      "recordScenarioFlows": 48,
+      "loadedIndividualMarks": 88,
+      "infoLayoutAndEscapeFocus": 16,
+      "sectionOpens": 14,
+      "priorViews": 6,
+      "nativeHistoryAndJournalTests": 16,
+      "nativeFeatureSourceComparisons": 2,
+      "fixtureStates": 24,
+      "nativeOlderSections": 7,
+      "qualificationMatchesNative": true,
+      "challengeGradeExamples": 3,
+      "journalArchivedExcluded": true,
+      "journalNetMinor": 9091,
+      "archiveMathPoints": 21,
+      "combinedSlipMath": true,
+      "hiddenTermsExcluded": true,
+      "nullTimestampFields": 36,
+      "recordsOffSlipsIndependent": true,
+      "missingReadsCarryNoData": true,
+      "apiHookStorageTimerExclusions": true,
+      "storageWrites": 0,
+      "bundleIntervals": 0,
+      "pageErrors": 0,
+      "nonGETRequests": 0,
+      "providerAuthReads": 0,
+      "browserDialogs": 0,
+      "popups": 0,
+      "brandQA": true
+    },
+    "captures": [
+      "history-records-archives-dark-phone.png",
+      "history-records-archives-expanded-dark-phone.png",
+      "history-records-archives-expanded-light-phone.png",
+      "history-records-archives-light-phone.png",
+      "history-records-benchmark-dark-phone.png",
+      "history-records-benchmark-expanded-dark-phone.png",
+      "history-records-benchmark-expanded-light-phone.png",
+      "history-records-benchmark-light-phone.png",
+      "history-records-benchmark-unfrozen-dark-phone.png",
+      "history-records-benchmark-unfrozen-light-phone.png",
+      "history-records-bets-dark-phone.png",
+      "history-records-bets-empty-dark-phone.png",
+      "history-records-bets-empty-light-phone.png",
+      "history-records-bets-failed-dark-phone.png",
+      "history-records-bets-failed-light-phone.png",
+      "history-records-bets-light-phone.png",
+      "history-records-bets-loading-dark-phone.png",
+      "history-records-bets-loading-light-phone.png",
+      "history-records-bets-unavailable-dark-phone.png",
+      "history-records-bets-unavailable-light-phone.png",
+      "history-records-challenge-dark-phone.png",
+      "history-records-challenge-light-phone.png",
+      "history-records-forecasts-dark-phone.png",
+      "history-records-forecasts-light-phone.png",
+      "history-records-journal-dark-phone.png",
+      "history-records-journal-expanded-dark-phone.png",
+      "history-records-journal-expanded-light-phone.png",
+      "history-records-journal-light-phone.png",
+      "history-records-no-weeks-dark-phone.png",
+      "history-records-no-weeks-light-phone.png",
+      "history-records-older-dark-phone.png",
+      "history-records-older-empty-dark-phone.png",
+      "history-records-older-empty-light-phone.png",
+      "history-records-older-failed-dark-phone.png",
+      "history-records-older-failed-light-phone.png",
+      "history-records-older-light-phone.png",
+      "history-records-older-loading-dark-phone.png",
+      "history-records-older-loading-light-phone.png",
+      "history-records-older-off-dark-phone.png",
+      "history-records-older-off-light-phone.png",
+      "history-records-rules-info-dark-phone.png",
+      "history-records-rules-info-light-phone.png",
+      "history-records-saved-dark-phone.png",
+      "history-records-saved-expanded-dark-phone.png",
+      "history-records-saved-expanded-light-phone.png",
+      "history-records-saved-light-phone.png",
+      "history-records-slips-dark-phone.png",
+      "history-records-slips-empty-dark-phone.png",
+      "history-records-slips-empty-light-phone.png",
+      "history-records-slips-failed-dark-phone.png",
+      "history-records-slips-failed-light-phone.png",
+      "history-records-slips-light-phone.png",
+      "history-records-slips-loading-dark-phone.png",
+      "history-records-slips-loading-light-phone.png",
+      "history-records-source-info-dark-phone.png",
+      "history-records-source-info-light-phone.png",
+      "history-records-weeks-failed-dark-phone.png",
+      "history-records-weeks-failed-light-phone.png",
+      "history-records-weeks-loading-dark-phone.png",
+      "history-records-weeks-loading-light-phone.png"
+    ],
+    "captureScope": "Twenty-four states, four expanded note/journal/archive/benchmark views and source/rules Info, both themes: 60 inspected PNGs. Extended ordinary captures fit content; modal opening captures remain scrollable, with full scroll/Escape/focus checked separately.",
+    "approvalScope": "Supplied Bets weeks and seven Older record sections/read-state visual direction only. Actual authorization/redaction, saved record completeness/account scope, timestamps/source provenance, settlement, historical imports/freeze validity and phone acceptance require separate evidence. No whole-app completion or release.",
+    "next": "Reconcile remaining NFL game/action sheets, shared Menu/sport/league/download layers and retained-route coverage against exact supplied captures. Do not reopen approved views or expose hidden NBA navigation. New avatar/photos and awards remain held.",
+    "reviewIndex": "HISTORY_BETS_OLDER_REVIEW.md"
   }
 }
