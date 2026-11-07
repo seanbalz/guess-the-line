@@ -1,3 +1,27 @@
+## Unit quick choices and Custom clarified — November 6, 2026
+
+Sean confirmed “Yes” to the distinction: **0.5U is the smallest quick-select
+option**, while **Custom may enter smaller values, including 0.25U or 0.01U**.
+The previously selected **0.1U per +/− tap** remains. This confirms these
+controls only, not the entire 106-capture batch or whole-app visual approval.
+
+Both Virtual and manual tracking previews remove the 0.01U quick chip. Virtual
+labels its amount field “Custom units”; it retains 0.01U–100U and hundredths
+precision. Tracking retains its Custom toggle, 0.01U floor, existing field
+precision/Unknown option and 10000U maximum. Buttons may adjust an entered
+custom amount below 0.5U; quick options still start at 0.5U. No saved amount,
+qualification threshold, production API/database rule or native writer changes.
+
+The revised Virtual states and tracking unit placement are refreshed in both
+themes in [the phone review index](NFL_ACTIONS_NAVIGATION_REVIEW.md). Source-excerpt comparison, build,
+Brand/syntax/diff checks, 56 Virtual responsive checks/eight entry flows and
+eight tracking responsive/entry checks cover the correction. Checks verify
+the absence of a sub-0.5U preset, the 0.5U shortcut, Custom 0.01U acceptance,
+0.1U stepping, bounds/validation and busy/uncertain guards. No page errors or
+non-GET requests are observed in the focused Virtual check. Native production
+Virtual remains limited to its existing half-unit stakes; implementation and
+release are separate work. Parked Signal files remain untouched/unpublished.
+
 ## NFL actions and shared navigation mockups prepared — November 6, 2026
 
 [Phone review index: all 106 captures](NFL_ACTIONS_NAVIGATION_REVIEW.md).

@@ -223,14 +223,14 @@ export function SlipRow({ entry, disabled, onUnits, onRemove, unitValue, onUnitV
         <span className="gx-t-body">{market.name} · {side.text}</span>
         <span className="gx-t-meta gx-c-2">{side.offer.source}{edit ? ' · replaces your saved bet' : ''}</span>
       </span>
-      <IconButton icon="close" label={`Remove ${market.name} ${side.text} from your slip`} onClick={onRemove} disabled={disabled || units >= 100}/>
+      <IconButton icon="close" label={`Remove ${market.name} ${side.text} from your slip`} onClick={onRemove} disabled={disabled}/>
     </div>
     <ChipRail label={`Units for ${market.name} ${side.text}`} className="gx-place-units">
-      {[0.01,...UNIT_CHIPS].map(value => <Chip key={value} selected={units === value} disabled={disabled} label={`${fmtNum(value)} units`} onClick={() => onUnits(value)}>{fmtU(value)}</Chip>)}
+      {UNIT_CHIPS.map(value => <Chip key={value} selected={units === value} disabled={disabled} label={`${fmtNum(value)} units`} onClick={() => onUnits(value)}>{fmtU(value)}</Chip>)}
     </ChipRail>
     <div className="gx-hstack gx-gap-8 gx-place-stepper">
       <IconButton icon="minus" label="0.1 units less" onClick={() => onUnits(previewStepUnits(units, -1))} disabled={disabled || units <= 0.01}/>
-      <label className="real-action-unit-field">Units<input aria-label="Units" type="number" inputMode="decimal" min="0.01" max="100" step="0.01" value={unitValue} disabled={disabled} aria-invalid={!validUnits || undefined} onChange={event=>onUnitValue(event.target.value)}/></label>
+      <label className="real-action-unit-field">Custom units<input aria-label="Custom units" type="number" inputMode="decimal" min="0.01" max="100" step="0.01" value={unitValue} disabled={disabled} aria-invalid={!validUnits || undefined} onChange={event=>onUnitValue(event.target.value)}/></label>
       <IconButton icon="plus" label="0.1 units more" onClick={() => onUnits(previewStepUnits(units, 1))} disabled={disabled || units >= 100}/>
     </div>
   </li>;

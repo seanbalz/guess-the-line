@@ -2,14 +2,14 @@
 
 Visual approval pending. Both themes use the selected Prism Glass system. All records and terms are fictional; no account is read or changed.
 
-**Units: minimum 0.01U, +/− 0.1U per tap**, with a quick 0.01U chip and custom entry. This direction is applied to the Virtual slip and the manual tracked-bet preview. Production rules are unchanged.
+**Units: quick choices start at 0.5U; Custom accepts 0.01U–100U in Virtual; +/− changes by 0.1U per tap.** Smaller amounts are entered through Custom, without a 0.01U quick chip. This direction is applied to the Virtual slip and the manual tracked-bet preview. Production rules are unchanged.
 
 ## Main examples
 
 | Mockup | Dark | Light |
 |---|---|---|
-| 0.01U Virtual slip | [Dark](previews/nfl-actions-virtual-minimum-dark-phone.png) | [Light](previews/nfl-actions-virtual-minimum-light-phone.png) |
-| 0.01U tracked-bet entry | [Dark](previews/nfl-actions-tracked-minimum-dark-phone.png) | [Light](previews/nfl-actions-tracked-minimum-light-phone.png) |
+| Custom 0.01U Virtual slip · presets from 0.5U | [Dark](previews/nfl-actions-virtual-minimum-dark-phone.png) | [Light](previews/nfl-actions-virtual-minimum-light-phone.png) |
+| Custom 0.01U tracked entry · presets from 0.5U | [Dark](previews/nfl-actions-tracked-minimum-dark-phone.png) | [Light](previews/nfl-actions-tracked-minimum-light-phone.png) |
 | Whole-week reveal confirmation | [Dark](previews/nfl-actions-forfeit-ready-dark-phone.png) | [Light](previews/nfl-actions-forfeit-ready-light-phone.png) |
 | Saved Spread pick and community guesses | [Dark](previews/nfl-actions-saved-pick-dark-phone.png) | [Light](previews/nfl-actions-saved-pick-light-phone.png) |
 | League bets for one game | [Dark](previews/nfl-actions-game-bets-dark-phone.png) | [Light](previews/nfl-actions-game-bets-light-phone.png) |

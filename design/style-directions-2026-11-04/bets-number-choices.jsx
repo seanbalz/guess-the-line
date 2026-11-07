@@ -6,7 +6,7 @@ import {adjustOdds,adjustUnits} from './bets-adjustments.mjs';
 export const TAP_STEPS={odds:5,units:.1};
 export function NumberChoices(props){
  const kind=props.label==='Units risked'?'units':props.label==='American odds'||props.label==='Combined American odds'?'odds':null;
- return kind?<SteppedChoices {...props} min={kind==='units'?0.01:props.min} presets={kind==='units'?[0.01,...props.presets.filter(v=>v!==0.01)]:props.presets} kind={kind}/>:<NativeNumberChoices {...props}/>;
+ return kind?<SteppedChoices {...props} min={kind==='units'?0.01:props.min} presets={kind==='units'?props.presets.filter(v=>v>=0.5):props.presets} kind={kind}/>:<NativeNumberChoices {...props}/>;
 }
 function SteppedChoices({label,value,onChange,presets,format=String,disabled=false,allowUnknown=false,required=false,step='0.01',min,max,kind,children}){
  const id=useId(),[custom,setCustom]=useState(false),present=value!==''&&value!=null,numeric=Number(value),adjust=kind==='odds'?adjustOdds:adjustUnits;
