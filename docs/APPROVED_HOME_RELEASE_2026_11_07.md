@@ -42,7 +42,7 @@ fixed sample numbers, invented opponent guess or bookmaker line may ship.
 - [x] Verify pure models, native markup, source contrast/parity, both themes
   and phone widths, real local actions/recovery, and isolation of other pages.
   Compare native captures with the approved reference before release.
-- [ ] Push named reviewed files and PR; satisfy exact source CI and review,
+- [x] Push named reviewed files and PR; satisfy exact source CI and review,
   merge, wait for exact-main push checks, then use manual frontend-only
   check-only/readiness/deploy with a release card, migration-history digest,
   compatibility and rollback evidence. Record hosted byte verification and
@@ -92,5 +92,17 @@ authorized manual release. Avatars/photos/new awards and NBA remain held.
   API, worker, pick data, historical snapshot or provider-budget change is made.
 
 The Supabase app connector returned `UNAUTHORIZED` (reauthentication required).
-No SQL ran. Hosted release checks use the existing protected GitHub workflow;
+No SQL ran through that connector. Hosted release checks use the existing protected GitHub workflow;
 connector access is not inferred from that workflow's credentials.
+
+## Released
+
+Source PR #492 merged at `4c6e91bba6f95cb20197c39185e91a58ce2b9b66`, and all
+12 exact-main jobs passed. Manual source check `42400561135`, readiness
+`42400620539` and frontend deploy `42400945688` succeeded. Pages `f31193e9` is
+live; 127 production asset URLs matched the exact build at 18:25:28 UTC. The
+immutable deployment URL is Access-protected; its protected bytes are not
+claimed as independently fetched. API v50, worker metadata and migration digest
+are unchanged. No migration was applied. See the [durable release
+record](RELEASE_2026_11_07_APPROVED_HOME.md) for full hashes, pending migrations,
+compatibility, rollback and limits. Physical-phone visual acceptance is separate.
