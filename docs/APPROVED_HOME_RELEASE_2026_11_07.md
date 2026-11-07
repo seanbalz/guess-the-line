@@ -74,6 +74,9 @@ authorized manual release. Avatars/photos/new awards and NBA remain held.
 - Native screenshots were compared with the approved references and are
   [published with hashes](../design/approved-home-release-2026-11-07/README.md).
   Test data is fictional. A browser capture does not establish phone acceptance.
+- The final Home/League run with Home's own font explicitly overridden to the
+  wider fallback passed all 21 tests. Six EPL shell/account-isolation checks
+  also passed; EPL's layout and permissions remain unchanged.
 - Read-only source review found no remaining important defects. No schema,
   API, worker, pick data, historical snapshot or provider-budget change is made.
 

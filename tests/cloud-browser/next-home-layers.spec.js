@@ -25,7 +25,7 @@ test.beforeEach(() => test.skip(!pgliteAvailable, 'Local PGlite required; never 
 const LUKE = ACCOUNTS.luke.id;
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 // CI's Linux runner falls back to wider letters than Windows draws; this probe reproduces a 320 px overflow seen only there.
-const WIDE_FONT = '.gx { --gx-font-body: Verdana, "DejaVu Sans", sans-serif !important; }';
+const WIDE_FONT = '.gx { --gx-font-home: Verdana, "DejaVu Sans", sans-serif !important; --gx-font-body: Verdana, "DejaVu Sans", sans-serif !important; }';
 const api = name => url => url.origin === SUPABASE && url.pathname === `/functions/v1/gtl-api/${name}`;
 const tabs = page => page.getByRole('navigation', { name: 'Main' });
 const homeTab = page => tabs(page).getByRole('button', { name: /^Home(, .+)?$/ });

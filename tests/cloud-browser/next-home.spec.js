@@ -43,7 +43,7 @@ async function ciFonts(page) {
     if (document.getElementById('ci-fonts')) return;
     const style = document.createElement('style');
     style.id = 'ci-fonts';
-    style.textContent = 'html .gx { --gx-font-body: "DejaVu Sans", sans-serif; --gx-font-num: "DejaVu Sans", sans-serif; --gx-font-display: "DejaVu Sans", sans-serif; }';
+    style.textContent = 'html .gx { --gx-font-home: "DejaVu Sans", sans-serif; --gx-font-body: "DejaVu Sans", sans-serif; --gx-font-num: "DejaVu Sans", sans-serif; --gx-font-display: "DejaVu Sans", sans-serif; }';
     document.head.append(style);
   });
 }
