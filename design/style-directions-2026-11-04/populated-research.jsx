@@ -1,3 +1,4 @@
+import {EplFantasyPreview} from './populated-epl-fantasy.jsx';
 import React, {useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import {TrendDetail} from '../../web/src/next/charts/TrendDetail.jsx';
@@ -164,3 +165,5 @@ export function mountEplClaim(element,data,scenario){const root=createRoot(eleme
 export function mountEplHome(element,data,scenario){const root=createRoot(element);root.render(<EplHomePreview data={data} scenario={scenario}/>);return root;}
 
 export function mountEplMoneyline(element,scenario){const root=createRoot(element);root.render(<EplMoneylinePreview scenario={scenario}/>);return root;}
+
+export function mountEplFantasy(element,scenario){const root=createRoot(element);root.render(<EplFantasyPreview scenario={scenario}/>);return root;}

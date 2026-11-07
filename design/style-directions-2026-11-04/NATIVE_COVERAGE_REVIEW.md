@@ -13,8 +13,8 @@ reports an issue; technical bounds/focus checks continue separately.
 |---|---|---|---|
 | 1 | EPL manager linking (`web/src/next/epl/ClaimCard.jsx`) | Nine-state batch approved in both themes at `0db5eafd47d6e6325c7cd0164ae392b42b78d4e8` | Actual claims/session setting behavior remains separate |
 | 2 | EPL Home and draft recovery (`EplHome.jsx`, `PickATeam.jsx`) | Home/recovery/source Info approved in both themes at `d2ead64e55adb3d8c3b1ee7d55505236f995bc90`; earlier draft/queue/confirmation approvals retained | Real data, permission, clock/turn and device behavior remain separate |
-| 3 | EPL moneyline (`epl/guess/EplGuess.jsx`, `GuessCard.jsx`, `EplGuessLeaderboard.jsx`) | New 15-state batch and expanded reveal example prepared in both themes | Visual approval for sample entry, rule-math results/standings and supplied recovery states; no bookmaker quotes or real player records |
-| 4 | FEPL Fantasy (`epl/fantasy/EplFantasy.jsx`) | NFL Research Fantasy was reviewed; it does not cover FEPL | Matchup, Standings, Rosters, Insights and permitted source/read states |
+| 3 | EPL moneyline (`epl/guess/EplGuess.jsx`, `GuessCard.jsx`, `EplGuessLeaderboard.jsx`) | Fifteen-state batch and expanded fictional reveal approved in both themes at `6c54342754972f1a31ec5b42842adae66e2cf4ba` | Real quotes, saves/locks/reveal/privacy and device behavior remain separate |
+| 4 | FEPL Fantasy (`epl/fantasy/EplFantasy.jsx`) | Sixteen FEPL states, expanded own standing and two Info views prepared in both themes (38 captures) | Visual approval for supplied Matchup/Standings/Rosters/Insights and read states; actual private/source/device behavior remains separate |
 | 5 | Other existing sport surfaces (`nba/NbaApp.jsx`, `Games.jsx`, `Bets.jsx`, `BetEditor.jsx`) | No NBA preview routes | Verify scope and existing source states, then cover the native views; do not add a new sport or infer deployed availability |
 
 The EPL correction nine-state batch at
@@ -75,6 +75,26 @@ are fabricated. Scored comparison and standings are explicitly pure rule-math
 examples. Native distance/leaderboard and input/visibility helpers are unchanged.
 Five native presentation blocks were compared against their documented preview
 adaptations. The 120 layouts, 30 flows, 92 loaded crest tiles, native 24 view/
-controller tests and eleven pure rules tests passed. This batch is prepared for
-visual approval; real locking/references/privacy/device behavior remains
-separate. FEPL Fantasy's four tabs are next after approval.
+controller tests and eleven pure rules tests passed. This supplied batch was approved
+in both themes at `6c54342754972f1a31ec5b42842adae66e2cf4ba`; real locking/
+references/privacy/device behavior remains separate. FEPL Fantasy is prepared below.
+
+## Current FEPL Fantasy delivery
+
+Sixteen states, expanded own standing and source/estimate Info are supplied in
+both themes (38 captures), awaiting visual approval. Four tabs and WeeklyLine
+use unchanged native panels. The wrapper replaces claimed saved-source time with
+an illustrative-data footer and disables retry haptics. Eight fictional teams
+have eleven fictional starters and three bench players each. No private roster,
+real player affiliation, actual pairing inference, snapshot or capture time is
+asserted. Projection arithmetic, win chance, points/bonus disclosure and chart
+gaps remain native. Refused states contain no data; local retry stays failed.
+
+128 layouts, 32 flows, 312 loaded individual crest tiles, sixteen Info layout/
+scroll/Escape/focus checks, six prior mounts, eighteen native view tests and forty
+domain/source tests passed. Bundle/API/hook/storage/timer exclusions, native
+wrapper comparison, fixture checks, Brand QA, syntax and diff checks passed.
+No writes, provider/auth reads, storage changes, bundle intervals, browser
+popups/dialogs or page errors observed. Remaining existing NBA exposure/scope,
+account history, NFL action layers and shell coverage need reconciliation;
+none is automatically complete. Deferred avatar/photos/awards remain held.

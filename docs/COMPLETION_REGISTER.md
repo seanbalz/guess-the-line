@@ -1,5 +1,59 @@
 # Guess The Line — current completion register
 
+## FEPL Fantasy mockups prepared — November 6, 2026
+
+Matchup, Standings, Rosters and Insights now carry the selected dark/Porcelain
+system, with projection bubbles/bars, separate club-crest glass tiles,
+expandable points/bonus rows, full lineups and the native weekly points chart.
+Five native presentation panels are imported unchanged; the isolated view
+wrapper is source-compared with two explicit adaptations: retry haptics off
+and illustrative-data footer instead of a claimed saved Sleeper timestamp.
+Production source descriptions inside panels remain, with prominent fictional
+labels and source Info explaining the review contains no actual observations.
+
+All eight managers and their eleven starters/three bench players, records,
+matchweeks, pairing/repeat metadata, projections and results are fictional.
+Registered club crests identify the catalog, not real affiliations. capturedAt
+is null. Starter projections sum to 104.2; native winChance against 98.6 rounds
+to 59%. Standings already include bonuses; the disclosed 20 is not added twice.
+Thirty-two weekly sample values, high 141 and latest projection difference +8.6
+are checked. Missing values stay null/dashes; chart gaps and isolated dots remain
+native. Main screens are populated; deliberate edge-state examples are separate.
+
+Sixteen states plus expanded own standing, source Info and estimate Info in
+both themes produce 38 inspected phone captures. The state set includes three
+unavailable-matchup reasons, missing projection/standings/chart data, detail
+not started, loading, failed, manager-only refusal, feature off and no saved data.
+Tabs/details operate in memory; retry is a no-read notice and stays failed.
+Refused states contain no league data, even after a local section change. The
+Fantasy hook/API/controller is excluded. No provider/auth read, non-GET request,
+roster write, storage write, polling, interval, browser dialog/popup or page error
+was observed. No real private league/player data is included in public assets.
+
+Build, source/fixture checks, 128 responsive layouts, 32 scenario flows, 312 loaded
+individual crest tiles, sixteen Info layout/scroll/Escape/focus checks, six prior
+mounts, eighteen existing native view tests and forty domain/source tests passed.
+320/390/768/1440 bounds, 44px controls and footer reachability are checked separately
+from extended captures. Native panels and scoring/source code are unchanged.
+
+[Native coverage review](../design/style-directions-2026-11-04/NATIVE_COVERAGE_REVIEW.md) records remaining existing
+sport/shell/account/NFL reconciliation; whole-app completion is not established.
+Actual Sleeper completeness, source times, permission enforcement, inferred
+opponents, current rosters and physical-device behavior require separate evidence.
+No production integration, merge, deployment or migration. Frozen v62 and parked
+Signal files are unchanged; new avatar/photos and awards remain held.
+
+## EPL moneyline and leaderboard direction approved — November 6, 2026
+
+Sean confirmed: "Looks good in both themes. Continue with the FEPL Fantasy
+mockups." This accepts the supplied fifteen moneyline/leaderboard states and
+expanded fictional reveal in both themes, reviewed at
+`6c54342754972f1a31ec5b42842adae66e2cf4ba` (32 captures). It does not establish
+real price/source evidence, save/lock/reveal/privacy acceptance, physical-device
+acceptance or whole-app completion. The structured selection record preserves
+the exact confirmation and reviewed capture list.
+
+
 ## EPL moneyline and leaderboard mockups prepared — November 6, 2026
 
 The selected dark/Porcelain system now covers sample entry, saved-draft example,
@@ -39,7 +93,8 @@ provider request, polling, persistent storage, clock interval, actual save/lock/
 readback, budget change or message occurs. The original controllers/EPL API and
 unused guess/read/guess/save execution paths are excluded from the bundle.
 
-Thirty-two phone captures were inspected; visual approval is pending. Checks
+Thirty-two phone captures were inspected and subsequently approved in both themes
+at `6c54342754972f1a31ec5b42842adae66e2cf4ba`. Checks
 passed: 120 layouts, thirty scenario flows, 92 loaded individual crest tiles,
 five native presentation comparisons with stated adaptations, fifteen fixture
 cases, three visibility-gate cases, three even-step cases, three native

@@ -521,6 +521,118 @@
         "actions": [
           "detail:draft"
         ]
+      },
+      {
+        "id": "epl-fantasy-matchup",
+        "name": "FEPL Fantasy - Matchup",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-fantasy-standings",
+        "name": "FEPL Fantasy - Standings",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-fantasy-rosters",
+        "name": "FEPL Fantasy - Rosters",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-fantasy-insights",
+        "name": "FEPL Fantasy - Insights",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-fantasy-no-repeat",
+        "name": "FEPL Fantasy - No Repeat",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-fantasy-ambiguous",
+        "name": "FEPL Fantasy - Ambiguous",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-fantasy-no-team",
+        "name": "FEPL Fantasy - No Team",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-fantasy-matchup-gaps",
+        "name": "FEPL Fantasy - Matchup Gaps",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-fantasy-standings-missing",
+        "name": "FEPL Fantasy - Standings Missing",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-fantasy-insights-gaps",
+        "name": "FEPL Fantasy - Insights Gaps",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-fantasy-insights-no-detail",
+        "name": "FEPL Fantasy - Insights No Detail",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-fantasy-loading",
+        "name": "FEPL Fantasy - Loading",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-fantasy-failed",
+        "name": "FEPL Fantasy - Failed",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-fantasy-forbidden",
+        "name": "FEPL Fantasy - Forbidden",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-fantasy-off",
+        "name": "FEPL Fantasy - Off",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-fantasy-no-data",
+        "name": "FEPL Fantasy - No Data",
+        "actions": [
+          "detail:draft"
+        ]
       }
     ],
     "Account": [
@@ -1228,7 +1340,7 @@
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "EPL/epl-moneyline-entry",
+    "next": "EPL/epl-fantasy-matchup",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -3922,7 +4034,7 @@
     "acceptanceScope": "Supplied 13-state Home/recovery and table-source popup direction in both themes only. Real clocks/permissions/turn acceptance, source completeness/provenance, recovery/readbacks, device behavior and whole-app completion remain separate."
   },
   "eplMoneylinePreview": {
-    "status": "Prepared for visual approval in both themes",
+    "status": "Approved for supplied visual direction in both themes",
     "prepared": "2026-11-06",
     "views": [
       "entry",
@@ -4012,6 +4124,143 @@
     "delivery": "32 inspected phone captures: 15 screen states in both themes plus expanded revealed-guess example in both themes. Full content fits supplied extended heights; narrow 320/390/768/1440 bounds, 44px controls, footer reachability, field validation/stepping, memory navigation, info scroll/Escape/focus and loaded individual crest backgrounds checked separately.",
     "isolation": "No API/auth/provider request, polling, persistent storage, clock interval, real fixture/quote/reference observation, actual save/lock/reveal/readback, budget change or message. Original EplGuess/EplGuessLeaderboard controllers and EPL API are excluded; unused createGuessController and guess/read/guess/save execution paths are absent from bundle.",
     "production": "Review assets/evidence only. Native controllers, identity/grants, real pick deadlines/locks/reveal and saved-reference behavior, accounts/picks/drafts, moneyline quotes/data, production tokens, collectors, budgets, migrations and frozen v62 unchanged. No merge/deploy.",
-    "next": "FEPL Fantasy Matchup/Standings/Rosters/Insights mockups, then remaining native coverage reconciliation. Whole-app completion is not established; new avatar/photos and awards remain held."
+    "next": "FEPL Fantasy Matchup/Standings/Rosters/Insights mockups, then remaining native coverage reconciliation. Whole-app completion is not established; new avatar/photos and awards remain held.",
+    "accepted": "2026-11-06",
+    "confirmation": "Looks good in both themes. Continue with the FEPL Fantasy mockups.",
+    "reviewedCommit": "6c54342754972f1a31ec5b42842adae66e2cf4ba",
+    "reviewedCaptures": [
+      "epl-moneyline-entry-dark-phone.png",
+      "epl-moneyline-entry-light-phone.png",
+      "epl-moneyline-saved-draft-dark-phone.png",
+      "epl-moneyline-saved-draft-light-phone.png",
+      "epl-moneyline-results-dark-phone.png",
+      "epl-moneyline-results-light-phone.png",
+      "epl-moneyline-closed-dark-phone.png",
+      "epl-moneyline-closed-light-phone.png",
+      "epl-moneyline-uncertain-dark-phone.png",
+      "epl-moneyline-uncertain-light-phone.png",
+      "epl-moneyline-stale-dark-phone.png",
+      "epl-moneyline-stale-light-phone.png",
+      "epl-moneyline-busy-dark-phone.png",
+      "epl-moneyline-busy-light-phone.png",
+      "epl-moneyline-read-only-dark-phone.png",
+      "epl-moneyline-read-only-light-phone.png",
+      "epl-moneyline-unavailable-dark-phone.png",
+      "epl-moneyline-unavailable-light-phone.png",
+      "epl-moneyline-loading-dark-phone.png",
+      "epl-moneyline-loading-light-phone.png",
+      "epl-moneyline-failed-dark-phone.png",
+      "epl-moneyline-failed-light-phone.png",
+      "epl-moneyline-leaderboard-dark-phone.png",
+      "epl-moneyline-leaderboard-light-phone.png",
+      "epl-moneyline-leaderboard-empty-dark-phone.png",
+      "epl-moneyline-leaderboard-empty-light-phone.png",
+      "epl-moneyline-leaderboard-loading-dark-phone.png",
+      "epl-moneyline-leaderboard-loading-light-phone.png",
+      "epl-moneyline-leaderboard-failed-dark-phone.png",
+      "epl-moneyline-leaderboard-failed-light-phone.png",
+      "epl-moneyline-results-revealed-dark-phone.png",
+      "epl-moneyline-results-revealed-light-phone.png"
+    ],
+    "acceptanceScope": "Supplied 15 moneyline/leaderboard states plus expanded fictional reveal, both themes. Visual direction only; real quotes, saves/locks/reveal privacy, device acceptance and whole-app completion remain separate."
+  },
+  "eplFantasyPreview": {
+    "status": "Prepared for visual approval in both themes",
+    "prepared": "2026-11-06",
+    "views": [
+      "matchup",
+      "standings",
+      "rosters",
+      "insights",
+      "no-repeat",
+      "ambiguous",
+      "no-team",
+      "matchup-gaps",
+      "standings-missing",
+      "insights-gaps",
+      "insights-no-detail",
+      "loading",
+      "failed",
+      "forbidden",
+      "off",
+      "no-data"
+    ],
+    "nativePreservation": "MatchupPanel, StandingsPanel, RostersPanel, InsightsPanel and WeeklyLine are direct unchanged presentation imports. Native formatting, problem copy, three unavailable reasons, projection bars, bonus disclosure, missing-value gaps, line segments, weekly averages, high marker and accessible chart summary remain. One isolated EplFantasyView wrapper is compared against source.",
+    "adaptations": "Retry Button haptics off. Footer replaces a claimed saved Sleeper source/time with an explicit illustrative-data label; no capture timestamp is supplied. Scoped selected-system CSS, shared shell and local section selection only. Native source descriptions inside panels/estimate Info remain, with prominent fictional-data labels and source Info explaining they are not real saved observations.",
+    "fixtures": "Eight fictional example managers, each eleven fictional starters and three bench players; registered club crests identify the catalog only, not real affiliations. Matchweeks, records, pairing/repeat metadata, totals, projections and top scorers are synthetic normalized examples. IDs begin example-, capturedAt is null. No real private players, accounts, rosters, results, schedule inference or Sleeper/provider snapshot is exposed.",
+    "math": "Sample starter projections sum to 104.2; native winChance against 98.6 rounds to 59%. Missing-one-projection variant sums remaining entries to 95.6 under native partial-total behavior. Standings totals 988/951/950/921/893/892/876/871 already include sample bonuses; the 20-point example is disclosed, never added again. Thirty-two synthetic weekly values, high 141 and latest vs-projection +8.6 are validated; missing values stay null.",
+    "behavior": "Native segmented controls switch local tabs; details expand points/bonus. Retry is a no-read notice and stays failed. Loading, generic failed, 403, feature-off and no-saved-data variants contain no league data; switching sections does not expose earlier data. No API/hook/controller, storage, polling, interval, roster write or navigation is run.",
+    "verification": {
+      "responsiveLayouts": 128,
+      "fantasyScenarioFlows": 32,
+      "loadedCrestTiles": 312,
+      "infoLayoutAndEscapeFocus": 16,
+      "priorViews": 6,
+      "fixtureStates": 16,
+      "fictionalTeams": 8,
+      "startersPerTeam": 11,
+      "benchPerTeam": 3,
+      "nativeWrapperCompared": true,
+      "unchangedNativePanels": 5,
+      "nativeViewTests": 18,
+      "nativeDomainSourceTests": 40,
+      "missingValuesRemainNull": true,
+      "refusedStatesCarryNoData": true,
+      "noFakeCaptureTimes": true,
+      "registeredCrestCodes": true,
+      "bonusNotAddedTwice": true,
+      "apiHookStorageAndTimerExclusions": true,
+      "storageWrites": 0,
+      "bundleIntervals": 0,
+      "pageErrors": 0,
+      "nonGETRequests": 0,
+      "providerAuthReads": 0,
+      "browserDialogs": 0,
+      "popups": 0,
+      "brandQA": true
+    },
+    "captures": [
+      "epl-fantasy-ambiguous-dark-phone.png",
+      "epl-fantasy-ambiguous-light-phone.png",
+      "epl-fantasy-failed-dark-phone.png",
+      "epl-fantasy-failed-light-phone.png",
+      "epl-fantasy-forbidden-dark-phone.png",
+      "epl-fantasy-forbidden-light-phone.png",
+      "epl-fantasy-insights-dark-phone.png",
+      "epl-fantasy-insights-gaps-dark-phone.png",
+      "epl-fantasy-insights-gaps-light-phone.png",
+      "epl-fantasy-insights-light-phone.png",
+      "epl-fantasy-insights-no-detail-dark-phone.png",
+      "epl-fantasy-insights-no-detail-light-phone.png",
+      "epl-fantasy-loading-dark-phone.png",
+      "epl-fantasy-loading-light-phone.png",
+      "epl-fantasy-matchup-dark-phone.png",
+      "epl-fantasy-matchup-gaps-dark-phone.png",
+      "epl-fantasy-matchup-gaps-light-phone.png",
+      "epl-fantasy-matchup-light-phone.png",
+      "epl-fantasy-no-data-dark-phone.png",
+      "epl-fantasy-no-data-light-phone.png",
+      "epl-fantasy-no-repeat-dark-phone.png",
+      "epl-fantasy-no-repeat-light-phone.png",
+      "epl-fantasy-no-team-dark-phone.png",
+      "epl-fantasy-no-team-light-phone.png",
+      "epl-fantasy-off-dark-phone.png",
+      "epl-fantasy-off-light-phone.png",
+      "epl-fantasy-rosters-dark-phone.png",
+      "epl-fantasy-rosters-light-phone.png",
+      "epl-fantasy-source-info-dark-phone.png",
+      "epl-fantasy-source-info-light-phone.png",
+      "epl-fantasy-standings-dark-phone.png",
+      "epl-fantasy-standings-expanded-dark-phone.png",
+      "epl-fantasy-standings-expanded-light-phone.png",
+      "epl-fantasy-standings-light-phone.png",
+      "epl-fantasy-standings-missing-dark-phone.png",
+      "epl-fantasy-standings-missing-light-phone.png",
+      "epl-fantasy-win-info-dark-phone.png",
+      "epl-fantasy-win-info-light-phone.png"
+    ],
+    "captureScope": "Sixteen fixed states, expanded own standing, source Info and native win-chance Info in both themes: 38 captures inspected. Normal screens extend to fit all content; rosters include all eight teams, not a truncated list. Info screenshots show the scrollable modal opening; full scroll/Escape/focus checked separately.",
+    "approvalScope": "Awaiting supplied FEPL Fantasy visual direction only. Live Sleeper completeness/source times, private permission behavior, actual inferred opponents/scoring/rosters, physical-device acceptance and whole-app completion remain separate.",
+    "next": "Remaining native coverage reconciliation: verify existing NBA surface scope/exposure, Account History, NFL action layers and shared shell against supplied approvals. Do not add a sport or reopen an approved state under a new name. New avatars/photos and awards remain held."
   }
 }
