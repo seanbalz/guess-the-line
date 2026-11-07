@@ -1,6 +1,8 @@
 # Home spacing review — November 7, 2026
 
-Owner: Sean Balsiger. Status: **approved and implemented locally; release pending**.
+Owner: Sean Balsiger. Status: **approved and deployed** as Pages `6a847959` from
+`70c2b85ea7466ca308c8e69006b4ec09888267a7`. See the
+[release record](../../docs/RELEASE_2026_11_07_HOME_SPACING.md).
 
 Sean approved the exact Dark/Light review visuals and `preview.css` at review
 commit `5faead67b9a66091c595168d89bfe21556dec01f`, saying **“That looks better.
@@ -71,9 +73,9 @@ The original mockup browser rendered unchanged app source from main
 `42a5ad9930a5712c6b357564701fbb5628b12b43` (the deployed Home source plus its
 release record). [preview.css](preview.css) was injected into the review browser only;
 the app does not import that review artifact. The implementation changes only
-Home CSS and approval/status documentation. API, database, migration, provider,
-controllers, source data and build configuration remain unchanged. No release
-has been dispatched for this spacing update.
+Home CSS, its spacing assertion and approval/status documentation. API, database,
+migration, provider, controllers, source data and build configuration remain
+unchanged. The frontend release is verified in the linked release record.
 
 The fixture uses the repository's real cloud handler and all local migrations on
 PGlite, with `createCommunityWorld` and `seedFinishedWeek`. Accounts, rank, points,
@@ -101,10 +103,12 @@ resolved it before final capture. The simulated-inset check uses the same
 scroll-padding selector specificity as the existing Home stylesheet. It does not
 change that production rule or claim a physical-device test.
 
-[evidence.json](evidence.json) records dimensions, results and file hashes.
+[evidence.json](evidence.json) preserves the original timestamped preview's
+dimensions, results and file hashes. Its pre-approval status is historical;
+Sean's later approval and the hosted release are recorded here and in the release record.
 Sean's approval satisfies his standing mockup-first instruction for these exact
-visuals. Release remains subject to the protected manual workflow with fresh
-exact-source evidence.
+visuals. The protected manual workflow completed with fresh exact-source
+evidence; the wider redesign is a separate ongoing rollout.
 
 ## Implementation verification
 
@@ -120,4 +124,6 @@ scroll/navigation browser specs passed 7/7 (no skips), including both-theme
 320/390px layout/axe, hidden-market leak/no-write checks, navigation restoration
 and cross-page scrolling/focus checks. The browser command built the current
 cloud-test app successfully. These checks use local fictional PGlite accounts;
-production deployment and physical-phone acceptance remain separate.
+these local checks do not establish physical-phone acceptance. Final hosted
+deployment evidence is recorded separately in the release record. The loading
+repair passed all 17 Home/layers/scrolling cases and 40 focused Node checks.
