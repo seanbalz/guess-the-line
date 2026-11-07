@@ -1,5 +1,28 @@
 # Guess The Line — current completion register
 
+## NFL set approved; older overview/ticket review prepared — November 6, 2026
+
+Sean answered “Approved” to the remaining NFL action/shared-navigation set in
+both themes at `9c2aa961f14f6a68cc51858e777c4e0796a9b5e5`: 104 newly approved
+captures plus two previously approved Virtual-minimum captures, 106 total.
+The approval is recorded with its exact question and capture list.
+
+The prior reconciliation missed explicit older whole-view flags for Home,
+Play, Bets and the original tracked-ticket/entry screens. Component and later
+specialized-state approvals remain valid. [Fourteen current phone captures](../design/style-directions-2026-11-04/OVERVIEW_CLOSEOUT_REVIEW.md)
+now show those seven views in both themes; only this whole-view review is
+pending. These are existing views, with a preview-only narrow-grid overflow
+fix; no new feature or production code. 56 responsive layouts, 14 scenario
+checks, 66 decoded images and inspection of all 14 captures passed. No observed
+provider/auth read, non-GET request, storage write, bundle interval, OS dialog
+or page error. Illustrative/historical data labels and unknown personal terms
+remain explicit; no live account read or save.
+
+The earlier league-wide logo replacement request also is not established as
+fulfilled by the approved text sport selector; reconcile that requirement
+before claiming the first project finished. NBA remains parked, and new
+avatar/photo/award work remains held. No merge, deployment or migration.
+
 ## NBA parked; current visual review reconciled — November 6, 2026
 
 Sean answered “Parked for now” to the retained NBA scope question. Existing
