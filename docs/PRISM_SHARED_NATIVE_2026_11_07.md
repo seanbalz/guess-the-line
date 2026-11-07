@@ -51,3 +51,15 @@ explicitly retained above. This is not real-device or hosted acceptance.
 No push, PR, merge, deployment, API/SQL, rules, source-data or provider change is
 part of this local handoff. Integration and release require their own exact-source
 checks. The frozen v62 tracker and other worktrees are untouched.
+
+## Integration follow-up
+
+The shared checkpoint and full rollout checklist are published in draft PR #495;
+no merge or deployment is claimed. The initial full CI exposed two static EPL
+tests that still read abbreviated button text after the approved logo-only
+controls adopted full accessible names. Their assertions now check the exact
+accessible choices and selected sport, retaining access denial and hidden NBA
+coverage. The moneyline shell test uses the same full National Football League
+button name. Full Vitest passed 85 files / 886 tests; both moneyline shell browser
+flows passed, including dirty-draft guarding and account-remount privacy.
+The separate Research card-radius expectation is tracked with that area port.

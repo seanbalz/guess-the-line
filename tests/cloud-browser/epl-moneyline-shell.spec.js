@@ -49,7 +49,7 @@ test('shared shell wires the EPL week and children, guards drafts once, and clea
     await expect(page.getByLabel('Your moneyline price', { exact: true })).toHaveValue('-135');
     expect(dialogs).toHaveLength(1);
     page.once('dialog', async dialog => { dialogs.push(dialog.message()); await dialog.dismiss(); });
-    await page.getByRole('group', { name: 'Sport', exact: true }).getByRole('button', { name: 'NFL', exact: true }).click();
+    await page.getByRole('group', { name: 'Sport', exact: true }).getByRole('button', { name: 'National Football League', exact: true }).click();
     await expect(page.getByLabel('Your moneyline price', { exact: true })).toHaveValue('-135');
     expect(dialogs).toHaveLength(2);
     await page.getByRole('button', { name: 'Save draft', exact: true }).click();

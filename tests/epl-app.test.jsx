@@ -16,20 +16,23 @@ const { ApiError } = await import('../web/src/apiResponse.js');
 const { NbaHeader } = await import('../web/src/next/nba/NbaHeader.jsx');
 
 const text = html => decode(html.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ');
-const pressed = html => [...html.matchAll(/<button[^>]*aria-pressed="true"[^>]*>([^<]*)<\/button>/g)].map(match => match[1]);
+// Sport marks have full accessible names; the retained NBA header still has visible button text.
+const buttons = html => [...html.matchAll(/<button\b([^>]*)>([\s\S]*?)<\/button>/g)].map(([, attrs, inner]) => ({
+  name: text(inner).trim() || decode(attrs.match(/aria-label="([^"]+)"/)?.[1] || ''),
+  selected: /aria-pressed="true"/.test(attrs),
+}));
+const pressed = html => buttons(html).filter(button => button.selected).map(button => button.name);
 const render = route => renderToStaticMarkup(<div className="gx"><EplView route={route} onRoute={() => {}}/></div>);
 
 describe('sport switch', () => {
   it('the new app shows EPL only when the account has EPL access', () => {
     const without = renderToStaticMarkup(<div className="gx"><SportControls/></div>);
-    expect(text(without)).not.toContain('EPL');
-    expect(text(without)).toContain('NFL'); expect(text(without)).not.toContain('NBA');
+    expect(buttons(without).map(button => button.name)).toEqual(['National Football League']);
     const hidden = renderToStaticMarkup(<EplAccessContext.Provider value={false}><div className="gx"><SportControls/></div></EplAccessContext.Provider>);
-    expect(text(hidden)).not.toContain('EPL');
+    expect(buttons(hidden).map(button => button.name)).toEqual(['National Football League']);
     const shown = renderToStaticMarkup(<EplAccessContext.Provider value={true}><div className="gx"><SportControls/></div></EplAccessContext.Provider>);
-    expect(text(shown)).toContain('EPL');
-    expect(text(shown)).not.toContain('NBA');
-    expect(pressed(shown)).toEqual(['NFL']);
+    expect(buttons(shown).map(button => button.name)).toEqual(['National Football League', 'Premier League']);
+    expect(pressed(shown)).toEqual(['National Football League']);
     expect(markupProblems(shown)).toEqual([]);
   });
   it('the NBA header offers EPL only with access, with NBA selected (pre-T8 fix wave)', () => {
@@ -46,7 +49,7 @@ describe('sport switch', () => {
     const html = renderToStaticMarkup(<EplAccessContext.Provider value={true}><SportNavigationContext.Provider value={{ sport: 'epl' }}><div className="gx"><SportControls/></div></SportNavigationContext.Provider></EplAccessContext.Provider>);
     expect(html).toContain('aria-label="Sport"');
     expect(text(html)).not.toContain('NBA');
-    expect(pressed(html)).toContain('EPL');
+    expect(pressed(html)).toEqual(['Premier League']);
   });
 });
 
