@@ -14,8 +14,8 @@ reports an issue; technical bounds/focus checks continue separately.
 | 1 | EPL manager linking (`web/src/next/epl/ClaimCard.jsx`) | Nine-state batch approved in both themes at `0db5eafd47d6e6325c7cd0164ae392b42b78d4e8` | Actual claims/session setting behavior remains separate |
 | 2 | EPL Home and draft recovery (`EplHome.jsx`, `PickATeam.jsx`) | Home/recovery/source Info approved in both themes at `d2ead64e55adb3d8c3b1ee7d55505236f995bc90`; earlier draft/queue/confirmation approvals retained | Real data, permission, clock/turn and device behavior remain separate |
 | 3 | EPL moneyline (`epl/guess/EplGuess.jsx`, `GuessCard.jsx`, `EplGuessLeaderboard.jsx`) | Fifteen-state batch and expanded fictional reveal approved in both themes at `6c54342754972f1a31ec5b42842adae66e2cf4ba` | Real quotes, saves/locks/reveal/privacy and device behavior remain separate |
-| 4 | FEPL Fantasy (`epl/fantasy/EplFantasy.jsx`) | Sixteen FEPL states, expanded own standing and two Info views prepared in both themes (38 captures) | Visual approval for supplied Matchup/Standings/Rosters/Insights and read states; actual private/source/device behavior remains separate |
-| 5 | Other existing sport surfaces (`nba/NbaApp.jsx`, `Games.jsx`, `Bets.jsx`, `BetEditor.jsx`) | No NBA preview routes | Verify scope and existing source states, then cover the native views; do not add a new sport or infer deployed availability |
+| 4 | FEPL Fantasy (`epl/fantasy/EplFantasy.jsx`) | Sixteen FEPL states, expanded own standing and two Info views approved at `ad99d39390d63295cf87995d00558fb0a500c875` (38 captures) | Actual private/source/device behavior remains separate |
+| 5 | Other existing sport surfaces (`nba/NbaApp.jsx`, `Games.jsx`, `Bets.jsx`, `BetEditor.jsx`) | Scope checked: October 29 decision and current sportOptions/Frame hide NBA from navigation; retained saved links still open records. No NBA captures | Preserve hidden navigation and retained records. No new entry point or deployment claim; retained-route visuals remain a separate coverage item |
 
 The EPL correction nine-state batch at
 `d340a248cf0e6696ca83d68c46aa6398ffb27ff1` was approved in both themes by Sean:
@@ -25,9 +25,10 @@ remain separate from visual acceptance.
 
 ## Areas requiring reconciliation before declaring the first project finished
 
-- Account History: compare the native `me/History.jsx`, changes, older records
-  and bet-history views with the approved Play score/history and Bets previews.
-  Their approval does not automatically cover every account-history panel.
+- Account History: native Guess weeks/week/game/owner-changes now have a prepared
+  nineteen-state batch in both themes (44 captures). Bets weeks and Older records
+  remain next; earlier Play score/history and Bets corrections do not automatically
+  cover these account-history views.
 - NFL game and action layers: map `shell/registry.jsx`, Play/Bets subviews and
   modal/guard branches to exact existing captures. In particular, check the
   forfeit/reveal dialog, personal/everyone pick sheets, Virtual Units entry and
@@ -82,7 +83,7 @@ references/privacy/device behavior remains separate. FEPL Fantasy is prepared be
 ## Current FEPL Fantasy delivery
 
 Sixteen states, expanded own standing and source/estimate Info are supplied in
-both themes (38 captures), awaiting visual approval. Four tabs and WeeklyLine
+both themes (38 captures), approved at `ad99d39390d63295cf87995d00558fb0a500c875`. Four tabs and WeeklyLine
 use unchanged native panels. The wrapper replaces claimed saved-source time with
 an illustrative-data footer and disables retry haptics. Eight fictional teams
 have eleven fictional starters and three bench players each. No private roster,
@@ -98,3 +99,22 @@ No writes, provider/auth reads, storage changes, bundle intervals, browser
 popups/dialogs or page errors observed. Remaining existing NBA exposure/scope,
 account history, NFL action layers and shell coverage need reconciliation;
 none is automatically complete. Deferred avatar/photos/awards remain held.
+
+## Current Account Guess History delivery
+
+Nineteen states plus expanded game and source/rules Info are supplied in both
+themes (44 captures), awaiting visual approval. Native five-block presentation
+is compared against explicit injected-read/fixed-clock/haptic/mark-only/math
+adapters; format/status/hidden/points/change helpers remain unchanged. Inputs
+are fictional/math examples, never actual saved history or bookmaker quotes.
+Hidden rows carry no guess/reference/points and no private owner sections. No
+source/observation/save/change times are supplied. Current per-game copy,
+pending/closed/active draft distinctions, sit-out, practice, late, ruled and
+no-ballot labels remain.
+
+Fourteen native tests, 152 layouts, 38 flows, 304 loaded separate marks, sixteen
+Info layout/Escape/focus checks, six prior mounts, source/fixture/brand/syntax/
+diff checks passed. No API/auth/provider read, writes, storage changes, polling,
+bundle intervals, browser popup/dialog or page error observed. Bets weeks and
+Older records are next; NFL layers/shared shell and retained-route coverage
+remain explicit. No whole-project completion, production integration or release.

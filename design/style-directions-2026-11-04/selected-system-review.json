@@ -1334,13 +1334,146 @@
         "actions": [
           "detail:profile"
         ]
+      },
+      {
+        "id": "history-weeks",
+        "name": "Guess History - Weeks",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "history-week",
+        "name": "Guess History - Week",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "history-total",
+        "name": "Guess History - Total",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "history-other-hidden",
+        "name": "Guess History - Other Hidden",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "history-removed",
+        "name": "Guess History - Removed",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "history-sat-out",
+        "name": "Guess History - Sat Out",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "history-practice",
+        "name": "Guess History - Practice",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "history-empty",
+        "name": "Guess History - Empty",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "history-loading",
+        "name": "Guess History - Loading",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "history-failed",
+        "name": "Guess History - Failed",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "history-records-off",
+        "name": "Guess History - Records Off",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "history-changes-loading",
+        "name": "Guess History - Changes Loading",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "history-changes-failed",
+        "name": "Guess History - Changes Failed",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "history-changes-empty",
+        "name": "Guess History - Changes Empty",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "history-changes-held",
+        "name": "Guess History - Changes Held",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "history-draft-active",
+        "name": "Guess History - Draft Active",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "history-late",
+        "name": "Guess History - Late",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "history-ruled",
+        "name": "Guess History - Ruled",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "history-no-ballot",
+        "name": "Guess History - No Ballot",
+        "actions": [
+          "detail:profile"
+        ]
       }
     ]
   },
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "EPL/epl-fantasy-matchup",
+    "next": "Account/history-weeks",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -4165,7 +4298,7 @@
     "acceptanceScope": "Supplied 15 moneyline/leaderboard states plus expanded fictional reveal, both themes. Visual direction only; real quotes, saves/locks/reveal privacy, device acceptance and whole-app completion remain separate."
   },
   "eplFantasyPreview": {
-    "status": "Prepared for visual approval in both themes",
+    "status": "Approved for supplied visual direction in both themes",
     "prepared": "2026-11-06",
     "views": [
       "matchup",
@@ -4261,6 +4394,159 @@
     ],
     "captureScope": "Sixteen fixed states, expanded own standing, source Info and native win-chance Info in both themes: 38 captures inspected. Normal screens extend to fit all content; rosters include all eight teams, not a truncated list. Info screenshots show the scrollable modal opening; full scroll/Escape/focus checked separately.",
     "approvalScope": "Awaiting supplied FEPL Fantasy visual direction only. Live Sleeper completeness/source times, private permission behavior, actual inferred opponents/scoring/rosters, physical-device acceptance and whole-app completion remain separate.",
-    "next": "Remaining native coverage reconciliation: verify existing NBA surface scope/exposure, Account History, NFL action layers and shared shell against supplied approvals. Do not add a sport or reopen an approved state under a new name. New avatars/photos and awards remain held."
+    "next": "Remaining native coverage reconciliation: verify existing NBA surface scope/exposure, Account History, NFL action layers and shared shell against supplied approvals. Do not add a sport or reopen an approved state under a new name. New avatars/photos and awards remain held.",
+    "accepted": "2026-11-06",
+    "confirmation": "Looks good in both themes. Continue with the next mockups.",
+    "reviewedCommit": "ad99d39390d63295cf87995d00558fb0a500c875",
+    "reviewedCaptures": [
+      "epl-fantasy-ambiguous-dark-phone.png",
+      "epl-fantasy-ambiguous-light-phone.png",
+      "epl-fantasy-failed-dark-phone.png",
+      "epl-fantasy-failed-light-phone.png",
+      "epl-fantasy-forbidden-dark-phone.png",
+      "epl-fantasy-forbidden-light-phone.png",
+      "epl-fantasy-insights-dark-phone.png",
+      "epl-fantasy-insights-gaps-dark-phone.png",
+      "epl-fantasy-insights-gaps-light-phone.png",
+      "epl-fantasy-insights-light-phone.png",
+      "epl-fantasy-insights-no-detail-dark-phone.png",
+      "epl-fantasy-insights-no-detail-light-phone.png",
+      "epl-fantasy-loading-dark-phone.png",
+      "epl-fantasy-loading-light-phone.png",
+      "epl-fantasy-matchup-dark-phone.png",
+      "epl-fantasy-matchup-gaps-dark-phone.png",
+      "epl-fantasy-matchup-gaps-light-phone.png",
+      "epl-fantasy-matchup-light-phone.png",
+      "epl-fantasy-no-data-dark-phone.png",
+      "epl-fantasy-no-data-light-phone.png",
+      "epl-fantasy-no-repeat-dark-phone.png",
+      "epl-fantasy-no-repeat-light-phone.png",
+      "epl-fantasy-no-team-dark-phone.png",
+      "epl-fantasy-no-team-light-phone.png",
+      "epl-fantasy-off-dark-phone.png",
+      "epl-fantasy-off-light-phone.png",
+      "epl-fantasy-rosters-dark-phone.png",
+      "epl-fantasy-rosters-light-phone.png",
+      "epl-fantasy-source-info-dark-phone.png",
+      "epl-fantasy-source-info-light-phone.png",
+      "epl-fantasy-standings-dark-phone.png",
+      "epl-fantasy-standings-expanded-dark-phone.png",
+      "epl-fantasy-standings-expanded-light-phone.png",
+      "epl-fantasy-standings-light-phone.png",
+      "epl-fantasy-standings-missing-dark-phone.png",
+      "epl-fantasy-standings-missing-light-phone.png",
+      "epl-fantasy-win-info-dark-phone.png",
+      "epl-fantasy-win-info-light-phone.png"
+    ],
+    "acceptanceScope": "Supplied sixteen FEPL states plus expanded standing and source/estimate Info, both themes. Visual direction only; real private/source/roster/inference/device behavior and whole-app completion remain separate."
+  },
+  "accountGuessHistoryPreview": {
+    "status": "Prepared for visual approval in both themes",
+    "prepared": "2026-11-06",
+    "views": [
+      "weeks",
+      "week",
+      "total",
+      "other-hidden",
+      "removed",
+      "sat-out",
+      "practice",
+      "empty",
+      "loading",
+      "failed",
+      "records-off",
+      "changes-loading",
+      "changes-failed",
+      "changes-empty",
+      "changes-held",
+      "draft-active",
+      "late",
+      "ruled",
+      "no-ballot"
+    ],
+    "nativePreservation": "HistoryGuess, WeekList, WeekDetail, GameRow and OwnChanges presentation compared against native source with explicit adapters. Unchanged entryFor/weekStatus/weekPointsWords/gameRow/changeLines/guessWords and UI primitives retained. Native About History topic unchanged.",
+    "adaptations": "Inject local app/rules/read/args/change states instead of hooks; use fixed data.now without wall clock fallback; haptics off on isolated Buttons; native Matchup codes=false retains full accessible names and separate registered marks; for exampleMath only, label Example comparison and rule-math/no bookmaker quote or observation time instead of saved-reference claims. Header mirrors History Back/title/Info/view choices; only Guess content is supplied this batch. Other view buttons and Back are no-action notices. Season/retry perform no read.",
+    "fixtures": "All names, guesses, references, points, eligibility/sit-out states, matchups, clock and changes are synthetic. No real fixture/kickoff, private pick, source, quote observation, save/submission or change time is supplied. Mathematical references have exampleMath=true, null source and observedAt. Hidden rows carry only hidden markers with no guess/reference/points; their standalone scenario uses unlocked own entries and future fictional kickoffs.",
+    "rulesAndMath": "Injected current rules sentFinal=true, revealAt=kickoff, lateWindow=kickoff. Native pickPoints yields 9+8+4=21 for three mathematical comparisons; pending line and closed/active unlocked draft stay unscored. Sit-out retains one locked 9-point example; practice/ineligible says not eligible rather than zero. Changes illustrate draft, changed draft, then lock-in; no new post-lock edit flow. Null times use native Time not recorded. Changes are scoped to sample week nine; other own weeks receive an empty example, other people receive no owner sections. Native late, ruled-eligible/commissioner-ruled/original-time-unknown and no-ballot labels are included as fictional status examples, not actual rulings.",
+    "behavior": "Local player/market/week/all-weeks selection only. Optional records failure leaves history available; change loading/failure/empty/held counts remain independent of game rows. Generic history failure/loading contain no week data. Retry/season/back/other-view actions cannot fake a read or navigate accounts. No API/hook/controller, auth/provider read, storage, polling, interval, actual save or account change.",
+    "verification": {
+      "responsiveLayouts": 152,
+      "historyScenarioFlows": 38,
+      "loadedIndividualMarks": 304,
+      "infoLayoutAndEscapeFocus": 16,
+      "priorViews": 6,
+      "nativeHistoryTests": 14,
+      "nativePresentationBlocksCompared": 5,
+      "fixtureStates": 19,
+      "mathematicalReferencesChecked": 204,
+      "hiddenRowsWithoutValues": 480,
+      "weeklyExamplePoints": 21,
+      "pendingAndClosedDraftDistinct": true,
+      "currentPerGameCopy": true,
+      "sitOutNotZero": true,
+      "practiceNotScored": true,
+      "draftThenLockChangeOrder": true,
+      "noSaveQuoteOrChangeTimestamps": true,
+      "hiddenBeforeFictionalKickoff": true,
+      "apiHookStorageTimerExclusions": true,
+      "storageWrites": 0,
+      "bundleIntervals": 0,
+      "pageErrors": 0,
+      "nonGETRequests": 0,
+      "providerAuthReads": 0,
+      "browserDialogs": 0,
+      "popups": 0,
+      "brandQA": true,
+      "lateRuledNoBallotCases": true
+    },
+    "captures": [
+      "account-history-changes-empty-dark-phone.png",
+      "account-history-changes-empty-light-phone.png",
+      "account-history-changes-failed-dark-phone.png",
+      "account-history-changes-failed-light-phone.png",
+      "account-history-changes-held-dark-phone.png",
+      "account-history-changes-held-light-phone.png",
+      "account-history-changes-loading-dark-phone.png",
+      "account-history-changes-loading-light-phone.png",
+      "account-history-draft-active-dark-phone.png",
+      "account-history-draft-active-light-phone.png",
+      "account-history-empty-dark-phone.png",
+      "account-history-empty-light-phone.png",
+      "account-history-failed-dark-phone.png",
+      "account-history-failed-light-phone.png",
+      "account-history-late-dark-phone.png",
+      "account-history-late-light-phone.png",
+      "account-history-loading-dark-phone.png",
+      "account-history-loading-light-phone.png",
+      "account-history-no-ballot-dark-phone.png",
+      "account-history-no-ballot-light-phone.png",
+      "account-history-other-hidden-dark-phone.png",
+      "account-history-other-hidden-light-phone.png",
+      "account-history-practice-dark-phone.png",
+      "account-history-practice-light-phone.png",
+      "account-history-records-off-dark-phone.png",
+      "account-history-records-off-light-phone.png",
+      "account-history-removed-dark-phone.png",
+      "account-history-removed-light-phone.png",
+      "account-history-ruled-dark-phone.png",
+      "account-history-ruled-light-phone.png",
+      "account-history-rules-info-dark-phone.png",
+      "account-history-rules-info-light-phone.png",
+      "account-history-sat-out-dark-phone.png",
+      "account-history-sat-out-light-phone.png",
+      "account-history-source-info-dark-phone.png",
+      "account-history-source-info-light-phone.png",
+      "account-history-total-dark-phone.png",
+      "account-history-total-light-phone.png",
+      "account-history-week-dark-phone.png",
+      "account-history-week-expanded-dark-phone.png",
+      "account-history-week-expanded-light-phone.png",
+      "account-history-week-light-phone.png",
+      "account-history-weeks-dark-phone.png",
+      "account-history-weeks-light-phone.png"
+    ],
+    "captureScope": "Nineteen states plus expanded mathematical game row and source/rules Info in both themes (44 inspected PNGs). Extended ordinary captures fit all content; modal captures show scrollable opening. Selected other-player chip scrolled into view for its capture; no app scroll behavior changed.",
+    "approvalScope": "Supplied Account History Guess weeks, week/game detail, owner timeline and read-state visuals only; Bets weeks and Older records still need their own batch. Real private authorization, record completeness/provenance, clocks, saved references, phone behavior and whole-app completion remain separate.",
+    "next": "Account History Bets weeks and Older records, then NFL action/shared-shell and retained-route coverage reconciliation. NBA remains hidden from navigation per October 29; retained NBA records are not deleted or newly exposed. New avatars/photos and awards remain held."
   }
 }

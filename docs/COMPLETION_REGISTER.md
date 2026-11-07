@@ -1,5 +1,64 @@
 # Guess The Line — current completion register
 
+## Account Guess History mockups prepared — November 6, 2026
+
+Account → History → Guess now carries the selected dark/Porcelain system:
+season/player/market controls, week list, opened Spread/Total weeks, game
+comparison disclosures, own draft/change timeline and independent read states.
+Five native presentation blocks are source-compared with explicit adapters:
+injected local reads/args/rules, fixed data clock, haptics off, mark-only native
+matchups and labelled mathematical comparisons. Pure native formatting/status/
+points/hidden/change helpers remain unchanged. The native About History topic
+is retained. Header Back and History choices are shown; only Guess content is
+supplied this batch, with no-action notices for other view/back/season/retry.
+
+All identities, matchups, guesses, comparisons, points and change events are
+fictional or mathematical. No actual fixture/kickoff, private pick, sportsbook
+quote/source/observation, save/submission or change timestamp is invented.
+Mathematical references say Example comparison and rule-math/no bookmaker quote;
+source/observedAt stay null. Native pickPoints gives 9+8+4=21. Pending references,
+unlocked active drafts and drafts closed at kickoff remain unscored. Current
+sentFinal/revealAt/lateWindow rules preserve per-game lock-in/kickoff wording.
+Sit-out retains its one already locked example; practice says not eligible.
+Owner changes illustrate draft edits then lock-in, not a new post-lock edit.
+Another player has hidden markers only and no owner-only timeline/drafts.
+
+Nineteen states plus expanded game and two Info views in both themes produce
+44 inspected phone captures. Cases include removed members, sit-out, practice,
+active/closed draft, empty/loading/failed history, optional records failure,
+and loading/failed/empty/held changes. Late, commissioner-ruled/eligible and
+no-ballot status examples are included. Local controls never read/save accounts.
+Bets weeks and Older records remain next, separately from approved Play scores
+and Bets corrections. NBA is intentionally hidden from navigation (October 29
+record and current sportOptions/Frame); retained links and records are preserved,
+not new navigation targets or completed review evidence.
+
+Checks passed: fourteen existing history-formatting tests, five native source
+comparisons, nineteen fixture cases, 204 mathematical reference checks and 480
+hidden rows without values across fixtures; 152 layouts, 38 scenario flows,
+304 loaded separate marks, sixteen Info layout/scroll/Escape/focus checks and
+six prior mounts. Build, Brand QA, syntax/diff and API/hook/storage/timer
+exclusions passed. No writes, provider/auth reads, storage changes, bundle
+intervals, browser popups/dialogs or page errors observed. 320/390/768/1440 bounds,
+44px controls and footer reachability checked separately from extended captures.
+
+[Native coverage queue](../design/style-directions-2026-11-04/NATIVE_COVERAGE_REVIEW.md) retains the remaining History,
+NFL action/shared-shell and retained-route scope. Real records, authorization,
+source completeness, submission references, clocks and phone acceptance remain
+separate. Whole-app completion is not established. No production integration,
+merge/deploy/migration or frozen-v62 change; avatars/photos/awards and parked
+Signal files remain held.
+
+## FEPL Fantasy direction approved — November 6, 2026
+
+Sean confirmed: "Looks good in both themes. Continue with the next mockups."
+This accepts the supplied sixteen FEPL states, expanded own standing and source/
+estimate Info in both themes at `ad99d39390d63295cf87995d00558fb0a500c875`
+(38 captures). Actual private/source/roster/inference/device behavior and whole-app
+completion remain separate. The structured record keeps the exact confirmation
+and capture list.
+
+
 ## FEPL Fantasy mockups prepared — November 6, 2026
 
 Matchup, Standings, Rosters and Insights now carry the selected dark/Porcelain
