@@ -1,5 +1,27 @@
 # Guess The Line — current completion register
 
+## NBA parked; current visual review reconciled — November 6, 2026
+
+Sean answered “Parked for now” to the retained NBA scope question. Existing
+NBA Games/private Bets/History/editor visuals are excluded from this visual
+pass. NBA stays hidden from shared navigation; its existing code, saved routes,
+records and APIs are untouched. No NBA mockups were made. A later owner request
+is required to resume that area. This parks NBA only, not the entire project.
+
+The eight EPL shell captures remain approved in both themes. The outstanding
+visual sign-off recorded in the register is the existing
+[NFL actions and shared-navigation set](../design/style-directions-2026-11-04/NFL_ACTIONS_NAVIGATION_REVIEW.md). It already has 106
+phone captures; the two shown Virtual-minimum captures are approved, leaving
+104 captures without an explicit recorded visual approval. Those cover
+reveal/recovery, saved picks, one-game league bets, sharing/reactions, entry
+variants, Menu and shared-frame views. Navigation retains Sean’s standing
+pass-unless-an-issue-is-reported instruction; the remaining request is visual
+sign-off. Existing captures are reused rather than regenerated under new names.
+
+No new avatar/photo options or awards/celebrations are started. Production
+integration, actual account/source/device acceptance and whole-project
+completion remain separate. Parked Signal files are unchanged/unpublished.
+
 ## EPL shell mockups approved — November 6, 2026
 
 Sean replied “Looks good continue” to the eight EPL league/History/Bets/Info

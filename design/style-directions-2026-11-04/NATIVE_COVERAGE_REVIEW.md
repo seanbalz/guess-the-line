@@ -15,7 +15,7 @@ reports an issue; technical bounds/focus checks continue separately.
 | 2 | EPL Home and draft recovery (`EplHome.jsx`, `PickATeam.jsx`) | Home/recovery/source Info approved in both themes at `d2ead64e55adb3d8c3b1ee7d55505236f995bc90`; earlier draft/queue/confirmation approvals retained | Real data, permission, clock/turn and device behavior remain separate |
 | 3 | EPL moneyline (`epl/guess/EplGuess.jsx`, `GuessCard.jsx`, `EplGuessLeaderboard.jsx`) | Fifteen-state batch and expanded fictional reveal approved in both themes at `6c54342754972f1a31ec5b42842adae66e2cf4ba` | Real quotes, saves/locks/reveal/privacy and device behavior remain separate |
 | 4 | FEPL Fantasy (`epl/fantasy/EplFantasy.jsx`) | Sixteen FEPL states, expanded own standing and two Info views approved at `ad99d39390d63295cf87995d00558fb0a500c875` (38 captures) | Actual private/source/device behavior remains separate |
-| 5 | Other existing sport surfaces (`nba/NbaApp.jsx`, `Games.jsx`, `Bets.jsx`, `BetEditor.jsx`) | Scope checked: October 29 decision and current sportOptions/Frame hide NBA from navigation; retained saved links still open records. No NBA captures | Preserve hidden navigation and retained records. No new entry point or deployment claim; retained-route visuals remain a separate coverage item |
+| 5 | Other existing sport surfaces (`nba/NbaApp.jsx`, `Games.jsx`, `Bets.jsx`, `BetEditor.jsx`) | Scope checked: October 29 decision and current sportOptions/Frame hide NBA from navigation; retained saved links still open records. No NBA captures | Parked by Sean: “Parked for now.” Excluded from this visual pass. Preserve hidden navigation and all existing saved routes/records; resume visual work only when requested |
 
 The EPL correction nine-state batch at
 `d340a248cf0e6696ca83d68c46aa6398ffb27ff1` was approved in both themes by Sean:
@@ -37,7 +37,7 @@ remain separate from visual acceptance.
   failure are supplied below. Existing switcher/invite/general recovery and
   Menu destinations retain scoped approvals. EPL league/History/Bets states are
   approved at `c6fb2b44bacc90fa44ba89e8932da7343e20cf4b` (eight captures).
-  Retained NBA-route scope is awaiting the single owner choice below.
+  Retained NBA visuals are parked by Sean and excluded from this visual pass.
 - Review notes and exports remain visual evidence; hosted data, physical-device
   behavior, release gates and production integration require their own evidence.
 
@@ -289,3 +289,25 @@ NFL/EPL navigation. A single owner scope question is pending before new NBA
 mockups are made: include these existing pages in this visual pass, or leave
 them parked. Existing records/routes, deferred avatar/photo/award work and
 parked Signal files are preserved. No merge, deploy, migration or account read.
+
+## NBA parked; current visual review reconciled — November 6, 2026
+
+Sean answered “Parked for now” to the retained NBA scope question. Existing
+NBA Games/private Bets/History/editor visuals are excluded from this visual
+pass. NBA stays hidden from shared navigation; its existing code, saved routes,
+records and APIs are untouched. No NBA mockups were made. A later owner request
+is required to resume that area. This parks NBA only, not the entire project.
+
+The eight EPL shell captures remain approved in both themes. The outstanding
+visual sign-off recorded in the register is the existing
+[NFL actions and shared-navigation set](NFL_ACTIONS_NAVIGATION_REVIEW.md). It already has 106
+phone captures; the two shown Virtual-minimum captures are approved, leaving
+104 captures without an explicit recorded visual approval. Those cover
+reveal/recovery, saved picks, one-game league bets, sharing/reactions, entry
+variants, Menu and shared-frame views. Navigation retains Sean’s standing
+pass-unless-an-issue-is-reported instruction; the remaining request is visual
+sign-off. Existing captures are reused rather than regenerated under new names.
+
+No new avatar/photo options or awards/celebrations are started. Production
+integration, actual account/source/device acceptance and whole-project
+completion remain separate. Parked Signal files are unchanged/unpublished.

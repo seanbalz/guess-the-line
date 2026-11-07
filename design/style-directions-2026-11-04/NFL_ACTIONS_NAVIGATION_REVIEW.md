@@ -4,6 +4,12 @@ Visual approval pending. Both themes use the selected Prism Glass system. All re
 
 **Units: quick choices start at 0.5U; Custom accepts 0.01U–100U in Virtual; +/− changes by 0.1U per tap.** Smaller amounts are entered through Custom, without a 0.01U quick chip. This direction is applied to the Virtual slip and the manual tracked-bet preview. Production rules are unchanged.
 
+Current scope update: NBA is parked by Sean and excluded from this visual pass.
+The two shown Virtual-minimum captures are already approved at
+`62a64773b544fbb8ffe679d8f6a8dc1fae552b9f`; the remaining 104 captures below
+still lack explicit recorded visual sign-off. Navigation follows the standing
+pass-unless-reported instruction. This page reuses the existing mockups.
+
 ## Main examples
 
 | Mockup | Dark | Light |
