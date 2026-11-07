@@ -1,7 +1,7 @@
 {
   "kind": "GTL_SELECTED_SYSTEM_REVIEW",
   "version": 1,
-  "status": "Twenty league-wording captures approved. Final identity inventory repaired one Home detail circle gap; one compact team-reference format choice remains, with visual comparison and consolidated handoff prepared.",
+  "status": "Full pill with smaller team name and location requested for compact team labels; two placement mockups prepared in both themes. Owner clarification pending; production unchanged.",
   "darkSource": "lime-priority-preview.json",
   "lightSource": "light-mode-options.json",
   "dark": {
@@ -1994,7 +1994,7 @@
         "scope": "Current supplied whole-view capture; later changed placements require their own review."
       }
     },
-    "next": "Choose compact team-reference format, then apply it to the identified native presentation labels.",
+    "next": "Confirm full-pill team-name/location placement, then apply the chosen design to the identified typed label contexts.",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -2075,9 +2075,9 @@
       "Navigation bubbles look empty and boring"
     ],
     "pendingClarification": {
-      "question": "For compact bet/history labels such as “DEN −3.5,” should I show a small circled team logo beside “−3.5,” and use full team names in longer explanations?",
-      "status": "Awaiting owner answer; visual A/B comparison supplied.",
-      "recommended": "A"
+      "question": "Do you mean the pill contains the circled logo and number, with “Broncos” in smaller text underneath and “Denver” below the name?",
+      "status": "Awaiting owner answer; both full-pill placements shown visually.",
+      "choices": "01 below the pill; 02 inside the pill."
     },
     "contentRevision": {
       "authorization": "Sean confirmed useful miniature content previews",
@@ -5866,16 +5866,16 @@
   "currentVisualPassReconciliation": {
     "nba": "Parked by owner and excluded from this visual pass; no NBA mockups made.",
     "eplShell": "The eight supplied EPL league/History/Bets/Info captures are approved in both themes at c6fb2b44bacc90fa44ba89e8932da7343e20cf4b.",
-    "remainingVisualReview": "TEAM_IDENTITY_CLOSEOUT_REVIEW.md",
-    "remainingScope": "Compact team-reference format choice in History/Bets/shared sheets, followed by targeted rendering. Existing colors, typography, materials, circles, league wording and reviewed screens stay approved.",
+    "remainingVisualReview": "TEAM_VALUE_PILL_REVIEW.md",
+    "remainingScope": "Full pill requested for compact team labels, with smaller name and location. Confirm placement and illustrated city/region interpretation before changing existing labels. Prior colors, materials, typography, circles/G exclusion and league wording stay approved.",
     "alreadyApprovedVirtualCaptures": [
       "nfl-actions-virtual-minimum-dark-phone.png",
       "nfl-actions-virtual-minimum-light-phone.png"
     ],
     "pendingCaptureCount": 2,
     "pendingCaptures": [
-      "team-label-format-dark-phone.png",
-      "team-label-format-light-phone.png"
+      "team-value-pill-dark-phone.png",
+      "team-value-pill-light-phone.png"
     ],
     "held": "New avatar/photo choices, new award/celebration exploration and parked Signal assets remain held while the first visual project is unfinished.",
     "production": "No production integration, deployment or whole-project completion is claimed.",
@@ -5885,7 +5885,7 @@
     "overviewCloseout": "All fourteen supplied captures approved at 6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd.",
     "leagueLogoSelection": "02 Glass circles selected at a234f2f4bcddd8ec46218169f0110ff7dc395c0a; sixteen current placement captures supplied.",
     "teamLeagueCircles": "All twenty supplied circle captures approved at d109e5386b49093f66b173492261bbb5e126739a (“Good.. continue”); G excluded.",
-    "nextAfterCopyReview": "Apply the owner-chosen compact team identity format in context, retain explicit prior approvals, then finalize the consolidated design handoff. Production integration and deferred feature work remain separate."
+    "nextAfterCopyReview": "Apply the confirmed pill/name/location arrangement in typed context, preserving original values and routes; then finalize the selected-design handoff. Production and deferred features remain separate."
   },
   "overviewCloseoutReview": {
     "status": "Approved: fourteen supplied overview/ticket/entry captures in both themes",
@@ -6742,7 +6742,7 @@
       "nonIdentityCollisions": "MIN in the Premier League timer means minutes; NEW in the app-invite proposal label is an adjective; NO in fixture notices means no reads/saves. These are not team references."
     },
     "comparison": {
-      "status": "Awaiting owner answer; neither option applied to existing History/Bets/sheet text.",
+      "status": "Superseded by the requested full-pill/name/location revision. Neither earlier A/B option was selected; current placement clarification is in teamValuePillRevision.",
       "question": "For compact bet/history labels such as “DEN −3.5,” should I show a small circled team logo beside “−3.5,” and use full team names in longer explanations?",
       "A": "Circled logo beside compact number; full team names in explanations (recommended).",
       "B": "Full team names beside compact number and in explanations.",
@@ -6782,5 +6782,67 @@
     "providerAuthReads": 0,
     "resourceFailures": 0,
     "OSDialogs": 0
+  },
+  "teamValuePillRevision": {
+    "date": "2026-11-07",
+    "status": "Full-pill revision requested; two name/location placements mocked, awaiting owner clarification. No placement selected.",
+    "userRequest": "Make it a full pill with the name smaller under it and their location",
+    "supersedes": "The unchosen A/B compact logo-versus-full-name comparison. No A/B approval is inferred.",
+    "index": "TEAM_VALUE_PILL_REVIEW.md",
+    "viewer": "team-value-pill-review.html",
+    "shape": "Full-width capped 270px glass capsule, 999px radius, circled 38px team mark and 30px value. Selected theme recipes retained.",
+    "details": "13px team name, 12px muted city/region illustration. Existing example uses Broncos / Denver. Original logo stays in its own circle.",
+    "candidatePlacements": [
+      {
+        "id": "01",
+        "value": "below",
+        "description": "Logo and value inside the pill; team name and city/region below the pill."
+      },
+      {
+        "id": "02",
+        "value": "inside",
+        "description": "Logo and value on the upper row; smaller name and city/region inside the pill underneath."
+      }
+    ],
+    "selectedPlacement": null,
+    "clarification": {
+      "question": "Do you mean the pill contains the circled logo and number, with “Broncos” in smaller text underneath and “Denver” below the name?",
+      "status": "Awaiting owner answer",
+      "options": [
+        "Yes — name and city/region below the pill (recommended)",
+        "Keep the name and city/region inside the pill"
+      ]
+    },
+    "locationMeaning": "Denver is illustrated from the existing Denver Broncos identity as a city/region label. This interpretation is included in the pending question; no stadium, GPS, live venue lookup or broader location map is created.",
+    "fixtureMeaning": "−3.5 and example comparison −4 are reused from the existing fictional History math example. No real saved record, bookmaker quote, source time or result is supplied.",
+    "verification": {
+      "themeLayouts": 8,
+      "placementLayouts": 16,
+      "widths": [
+        320,
+        390,
+        768,
+        1440
+      ],
+      "decodedImages": 16,
+      "checks": "Full capsule shape; smaller name; inside/below placement; intact contain-fit logo in its own circle; same example values; no horizontal overflow.",
+      "pageErrors": 0,
+      "externalRequests": 0,
+      "nonGETRequests": 0,
+      "inspectedCaptures": 2
+    },
+    "captures": [
+      {
+        "file": "previews/team-value-pill-dark-phone.png",
+        "theme": "dark",
+        "sha256": "d116419b6cb6d2f02daf7681492d0f7da2df312971bf3a71fc231799c3556671"
+      },
+      {
+        "file": "previews/team-value-pill-light-phone.png",
+        "theme": "light",
+        "sha256": "5ddae0ede23a8a797d4cd811a701fc53b16e6349a802bee92dd41d746b1984a3"
+      }
+    ],
+    "production": "Existing History/Bets/sheet labels and production code are unchanged while clarification is pending. This is an isolated layout proposal."
   }
 }

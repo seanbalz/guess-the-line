@@ -1,5 +1,8 @@
 # Final team-identity inventory and compact labels
 
+The unchosen A/B label comparison below is superseded by Sean’s November 7
+[full-pill/name/location revision](TEAM_VALUE_PILL_REVIEW.md). Previous approval and Home circle-repair evidence remain valid.
+
 Sean's **“Good”** approves the twenty supplied league-wording captures in both
 themes at `5fe706bc7f1ecea2d51ab2b5f40d486f7d050718`, answering “Do these wording
 updates look good in both themes?” Earlier circle, G-exclusion and screen

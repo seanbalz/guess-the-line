@@ -1,7 +1,7 @@
 # Selected Prism Glass design handoff
 
-Owner: Sean Balsiger. Consolidated November 6, 2026. **Approved design recipes,
-with one compact team-reference choice still pending.** This document is a
+Owner: Sean Balsiger. Consolidated November 6; updated November 7, 2026.
+**Approved global recipes; requested compact pill placement still pending.** This document is a
 reference for implementation and review, not a production release record.
 
 ## Design authority and scope
@@ -74,17 +74,21 @@ assets with provenance/notices, not GTL branding or a claimed reuse license.
 
 ## Remaining visual closeout
 
-[Compact team-reference comparison](TEAM_IDENTITY_CLOSEOUT_REVIEW.md): A uses
-a circled logo beside a short number and full names in explanations; B uses
-full names in both places. Owner answer is pending. The final inventory found
-these references in History/Bets/shared-sheet presentation, and corrected two
-bare Home/game logos by applying the already approved circle rule. Do not
-revisit settled palettes, fonts, materials, G or circle selection for this task.
+[Full-pill team-reference revision](TEAM_VALUE_PILL_REVIEW.md): Sean requested
+a complete pill containing the circled logo/value, with smaller team name
+and location. This supersedes the earlier unchosen A/B treatment. Two label
+placements are shown: 01 below the capsule and 02 inside it. Owner answer is
+pending. Denver is illustrated as a city/region word from the existing team
+name; the question includes that interpretation. No broader venue/location
+catalog or geolocation integration is created.
 
-After the choice, update the identified presentation labels with typed team/
-game context, retain values and hidden/fallback semantics, supply the targeted
-mockups and finalize this handoff's visual status. Avoid global string
-replacement: MIN can mean minutes, NEW is a status word and NO can be a notice.
+After placement confirmation, update the identified History/Bets/shared-sheet
+presentation labels using typed team/game context. Preserve original values,
+hidden/fallback semantics, code/source literals and stored IDs. Supply targeted
+mockups and finalize the handoff's visual status. Avoid broad token replacement:
+MIN can mean minutes, NEW is a status word and NO can be a notice. The final
+inventory's Home/game circle correction remains valid. Do not revisit settled
+palettes, fonts, materials, the G exclusion or circle selection for this task.
 
 ## Production boundary and implementation handoff
 

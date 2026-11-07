@@ -1,5 +1,29 @@
 # GUESS THE LINE — BRAND & DESIGN SYSTEM v1.0
 
+## Full-pill team-label revision prepared — November 7, 2026
+
+Sean requested a full pill with the name smaller underneath and the team's
+location. This supersedes the earlier unchosen A/B compact-label comparison;
+no A/B approval is recorded. [Two placements in both themes](../design/style-directions-2026-11-04/TEAM_VALUE_PILL_REVIEW.md) show the
+requested capsule with its existing circled logo/value and smaller Broncos /
+Denver lines: 01 below the pill, 02 inside. The active one-question clarification
+asks which placement he means, including city/region as the illustrated
+location interpretation. Neither placement is selected or applied to existing
+History/Bets/shared-sheet labels while that answer is pending.
+
+Selected theme/material/type/G-exclusion/circle decisions are retained. The
+example's −3.5 and comparison −4 reuse existing fictional History math values;
+no saved record, bookmaker quote, source time, live venue or broader location
+catalog is supplied. Name 13px, location 12px, value 30px, logo circle 38px.
+Eight theme layouts / sixteen placement layouts and sixteen image decodes
+passed at four widths; both captures inspected. No page errors, external
+browser requests or non-GET requests observed. Static proposal only: no native
+production/bundle/controller, data/permission, merge/deploy/migration change.
+
+The design handoff points to this revised pending choice. Earlier approvals
+remain closed; NBA, new avatars/photos/awards and parked Signal files stay held.
+No first-project completion claim while the label arrangement is unresolved.
+
 ## Wording approved; final identity inventory and handoff prepared — November 6, 2026
 
 Sean answered “Good” to the twenty full-name wording captures in both themes
