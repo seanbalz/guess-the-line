@@ -1,7 +1,7 @@
 # Selected Prism Glass design handoff
 
 Owner: Sean Balsiger. Consolidated November 6; updated November 7, 2026.
-**Approved global recipes; requested compact pill placement still pending.** This document is a
+**Approved global recipes; fuller pick-focused scorecard pending visual review.** This document is a
 reference for implementation and review, not a production release record.
 
 ## Design authority and scope
@@ -74,21 +74,25 @@ assets with provenance/notices, not GTL branding or a claimed reuse license.
 
 ## Remaining visual closeout
 
-[Full-pill team-reference revision](TEAM_VALUE_PILL_REVIEW.md): Sean requested
-a complete pill containing the circled logo/value, with smaller team name
-and location. This supersedes the earlier unchosen A/B treatment. Two label
-placements are shown: 01 below the capsule and 02 inside it. Owner answer is
-pending. Denver is illustrated as a city/region word from the existing team
-name; the question includes that interpretation. No broader venue/location
-catalog or geolocation integration is created.
+[Pick-focused scorecard](PICK_SCORECARD_REVIEW.md): Sean rejected both
+full-pill placements as empty and requested a fuller scorecard. He explicitly
+selected the pick-focused direction. The old placement question is superseded;
+this single new composition is pending visual review in both themes.
 
-After placement confirmation, update the identified History/Bets/shared-sheet
-presentation labels using typed team/game context. Preserve original values,
-hidden/fallback semantics, code/source literals and stored IDs. Supply targeted
-mockups and finalize the handoff's visual status. Avoid broad token replacement:
-MIN can mean minutes, NEW is a status word and NO can be a notice. The final
-inventory's Home/game circle correction remains valid. Do not revisit settled
-palettes, fonts, materials, the G exclusion or circle selection for this task.
+It includes opponent, team and market, saved guess, example comparison,
+difference, points, status and a comparison chart. The existing fictional
+History fixture proves the displayed math; this is not a real record or quote.
+After visual review, adapt History/Bets/shared-sheet presentation using typed
+team/game/mode context. Guess points do not apply to tracked sportsbook bets.
+Preserve original values, reveal/fallback semantics, literals and stored IDs.
+Supply targeted changed-context visuals, then finalize the visual handoff.
+Avoid broad replacement of MIN/NEW/NO. Earlier global approvals stay closed.
+
+The [deployment roadmap](DESIGN_DEPLOYMENT_ROADMAP.md) groups subsequent work
+into five workstreams: production design implementation; actual data and
+interaction integration; regression/CI reconciliation; actual candidate phone
+acceptance; approved release and hosted verification. This is not five small
+fixes. Held avatars/awards and parked NBA are not release prerequisites.
 
 ## Production boundary and implementation handoff
 

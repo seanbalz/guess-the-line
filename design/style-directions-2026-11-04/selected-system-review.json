@@ -1,7 +1,7 @@
 {
   "kind": "GTL_SELECTED_SYSTEM_REVIEW",
   "version": 1,
-  "status": "Full pill with smaller team name and location requested for compact team labels; two placement mockups prepared in both themes. Owner clarification pending; production unchanged.",
+  "status": "Both empty full-pill placements rejected; pick-focused scorecard explicitly selected as direction. One fuller scorecard supplied in both themes, pending visual approval. Five deployment workstreams documented; production unchanged.",
   "darkSource": "lime-priority-preview.json",
   "lightSource": "light-mode-options.json",
   "dark": {
@@ -1994,7 +1994,7 @@
         "scope": "Current supplied whole-view capture; later changed placements require their own review."
       }
     },
-    "next": "Confirm full-pill team-name/location placement, then apply the chosen design to the identified typed label contexts.",
+    "next": "Review the fuller pick-focused scorecard in both themes, then adapt identified typed contexts and finalize the visual handoff. Follow five-workstream production roadmap.",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -2074,11 +2074,7 @@
       "Missing team marks/abbreviations in the mockup",
       "Navigation bubbles look empty and boring"
     ],
-    "pendingClarification": {
-      "question": "Do you mean the pill contains the circled logo and number, with “Broncos” in smaller text underneath and “Denver” below the name?",
-      "status": "Awaiting owner answer; both full-pill placements shown visually.",
-      "choices": "01 below the pill; 02 inside the pill."
-    },
+    "pendingClarification": null,
     "contentRevision": {
       "authorization": "Sean confirmed useful miniature content previews",
       "state": "Reopened Home/Play/Bets current whole-view flags closed at 6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd; remaining areas retain scoped reviews.",
@@ -5866,16 +5862,16 @@
   "currentVisualPassReconciliation": {
     "nba": "Parked by owner and excluded from this visual pass; no NBA mockups made.",
     "eplShell": "The eight supplied EPL league/History/Bets/Info captures are approved in both themes at c6fb2b44bacc90fa44ba89e8932da7343e20cf4b.",
-    "remainingVisualReview": "TEAM_VALUE_PILL_REVIEW.md",
-    "remainingScope": "Full pill requested for compact team labels, with smaller name and location. Confirm placement and illustrated city/region interpretation before changing existing labels. Prior colors, materials, typography, circles/G exclusion and league wording stay approved.",
+    "remainingVisualReview": "PICK_SCORECARD_REVIEW.md",
+    "remainingScope": "Review one fuller pick-focused scorecard in both themes, following explicit focus answer. Prior global recipes and approvals stay closed. Both earlier full-pill placements rejected.",
     "alreadyApprovedVirtualCaptures": [
       "nfl-actions-virtual-minimum-dark-phone.png",
       "nfl-actions-virtual-minimum-light-phone.png"
     ],
     "pendingCaptureCount": 2,
     "pendingCaptures": [
-      "team-value-pill-dark-phone.png",
-      "team-value-pill-light-phone.png"
+      "pick-scorecard-dark-phone.png",
+      "pick-scorecard-light-phone.png"
     ],
     "held": "New avatar/photo choices, new award/celebration exploration and parked Signal assets remain held while the first visual project is unfinished.",
     "production": "No production integration, deployment or whole-project completion is claimed.",
@@ -5885,7 +5881,7 @@
     "overviewCloseout": "All fourteen supplied captures approved at 6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd.",
     "leagueLogoSelection": "02 Glass circles selected at a234f2f4bcddd8ec46218169f0110ff7dc395c0a; sixteen current placement captures supplied.",
     "teamLeagueCircles": "All twenty supplied circle captures approved at d109e5386b49093f66b173492261bbb5e126739a (“Good.. continue”); G excluded.",
-    "nextAfterCopyReview": "Apply the confirmed pill/name/location arrangement in typed context, preserving original values and routes; then finalize the selected-design handoff. Production and deferred features remain separate."
+    "nextAfterCopyReview": "After scorecard visual review, adapt typed History/Bets/shared-sheet contexts, preserving mode semantics, values and reveal gates; finalize handoff and proceed through five production workstreams."
   },
   "overviewCloseoutReview": {
     "status": "Approved: fourteen supplied overview/ticket/entry captures in both themes",
@@ -6698,7 +6694,7 @@
     }
   },
   "finalTeamIdentityAudit": {
-    "status": "Completed readback inventory; Home/game missing circles repaired. Compact team-reference format choice pending.",
+    "status": "Readback inventory completed; Home/game circles repaired. Compact label formats rejected; fuller pick-focused scorecard now pending visual review.",
     "index": "TEAM_IDENTITY_CLOSEOUT_REVIEW.md",
     "handoff": "SELECTED_DESIGN_HANDOFF.md",
     "registeredViews": 268,
@@ -6742,7 +6738,7 @@
       "nonIdentityCollisions": "MIN in the Premier League timer means minutes; NEW in the app-invite proposal label is an adjective; NO in fixture notices means no reads/saves. These are not team references."
     },
     "comparison": {
-      "status": "Superseded by the requested full-pill/name/location revision. Neither earlier A/B option was selected; current placement clarification is in teamValuePillRevision.",
+      "status": "Earlier A/B and later full-pill placements superseded; both full-pill placements explicitly rejected. Latest visual proposal: pickScorecardRefinement.",
       "question": "For compact bet/history labels such as “DEN −3.5,” should I show a small circled team logo beside “−3.5,” and use full team names in longer explanations?",
       "A": "Circled logo beside compact number; full team names in explanations (recommended).",
       "B": "Full team names beside compact number and in explanations.",
@@ -6785,7 +6781,7 @@
   },
   "teamValuePillRevision": {
     "date": "2026-11-07",
-    "status": "Full-pill revision requested; two name/location placements mocked, awaiting owner clarification. No placement selected.",
+    "status": "Rejected in both shown placements; superseded by pick-focused scorecard refinement.",
     "userRequest": "Make it a full pill with the name smaller under it and their location",
     "supersedes": "The unchosen A/B compact logo-versus-full-name comparison. No A/B approval is inferred.",
     "index": "TEAM_VALUE_PILL_REVIEW.md",
@@ -6807,13 +6803,13 @@
     "selectedPlacement": null,
     "clarification": {
       "question": "Do you mean the pill contains the circled logo and number, with “Broncos” in smaller text underneath and “Denver” below the name?",
-      "status": "Awaiting owner answer",
+      "status": "Superseded by rejection and the explicit pick-focused scorecard answer; no placement approval inferred.",
       "options": [
         "Yes — name and city/region below the pill (recommended)",
         "Keep the name and city/region inside the pill"
       ]
     },
-    "locationMeaning": "Denver is illustrated from the existing Denver Broncos identity as a city/region label. This interpretation is included in the pending question; no stadium, GPS, live venue lookup or broader location map is created.",
+    "locationMeaning": "Denver illustrates the team market from the existing identity, not stadium/GPS data; the old placement question is superseded.",
     "fixtureMeaning": "−3.5 and example comparison −4 are reused from the existing fictional History math example. No real saved record, bookmaker quote, source time or result is supplied.",
     "verification": {
       "themeLayouts": 8,
@@ -6843,6 +6839,91 @@
         "sha256": "5ddae0ede23a8a797d4cd811a701fc53b16e6349a802bee92dd41d746b1984a3"
       }
     ],
-    "production": "Existing History/Bets/sheet labels and production code are unchanged while clarification is pending. This is an isolated layout proposal."
+    "production": "Existing History/Bets/sheet labels and production code unchanged. Both placements rejected; review pickScorecardRefinement instead.",
+    "rejection": {
+      "userStatement": "Neither option looks good",
+      "reason": "I’d like it to give a bit more information kind of like a scorecard.. it looks too empty",
+      "supersededBy": "pickScorecardRefinement"
+    }
+  },
+  "pickScorecardRefinement": {
+    "date": "2026-11-07",
+    "status": "Pending visual review; focus selected, rendering not yet approved",
+    "userRequest": "I’d like it to give a bit more information kind of like a scorecard.. it looks too empty",
+    "focus": {
+      "question": "Should this scorecard focus on your pick—opponent, guess, comparison, points and status—or on the game itself—score/kickoff and team stats?",
+      "answer": "Pick-focused scorecard (recommended)",
+      "status": "Explicitly selected"
+    },
+    "supersedes": "Both rejected full-pill placements, not earlier approved global recipes",
+    "index": "PICK_SCORECARD_REVIEW.md",
+    "viewer": "pick-scorecard-review.html",
+    "composition": "One fuller scorecard: opponent and own circled team marks; full internal pill with smaller team/market; saved guess; comparison; difference; points ring; locked status and shared-scale comparison chart.",
+    "fixture": {
+      "source": "account-history-examples.mjs historyExample('week')",
+      "week": 9,
+      "home": "DEN",
+      "away": "SEA",
+      "guess": -3.5,
+      "comparison": -4,
+      "difference": 0.5,
+      "points": 9,
+      "maximumPoints": 10,
+      "lockedIn": true,
+      "exampleMath": true,
+      "sourceName": null,
+      "observedAt": null,
+      "meaning": "Fictional History rule-math example; no actual saved record, bookmaker quote or verified schedule. Local fixture assertions executed."
+    },
+    "graphMeaning": "Points ring shows 9/10 points, not win probability. Linear chart scale −5 to −2 places comparison −4 and guess −3.5 correctly.",
+    "verification": {
+      "themeLayouts": 8,
+      "widths": [
+        320,
+        390,
+        768,
+        1440
+      ],
+      "decodedImages": 16,
+      "noHorizontalOverflow": true,
+      "noClippedLabels": true,
+      "individualCircles": true,
+      "containFit": true,
+      "chartScaleVerified": true,
+      "pointsRingRatioVerified": true,
+      "pageErrors": 0,
+      "resourceFailures": 0,
+      "externalRequests": 0,
+      "nonGETRequests": 0,
+      "inspectedCaptures": 2
+    },
+    "captures": [
+      {
+        "file": "previews/pick-scorecard-dark-phone.png",
+        "theme": "dark",
+        "sha256": "143c10a2b1959ba47c2d27741ad1aba2dfe7a167ce3709a93e69ef25b363a828"
+      },
+      {
+        "file": "previews/pick-scorecard-light-phone.png",
+        "theme": "light",
+        "sha256": "f542c2f66b8871f7be09b70ef47ed618ee8cc3ad2d49f539b8e6f446f2dc8435"
+      }
+    ],
+    "production": "Isolated static visual proposal only. No production entry, controller, account read/save, merge, deployment or migration.",
+    "next": "Obtain visual review, then adapt typed contexts with appropriate mode-specific values and reveal/fallback rules; no generic Guess points on actual sportsbook tickets."
+  },
+  "designDeploymentRoadmap": {
+    "index": "DESIGN_DEPLOYMENT_ROADMAP.md",
+    "afterScorecardWorkstreams": 5,
+    "meaning": "Planning groups, not five small fixes or an exhaustive issue count. Production integration remains substantial.",
+    "workstreams": [
+      "Production design implementation",
+      "Actual data and interaction integration",
+      "Regression and CI reconciliation",
+      "Release-candidate phone acceptance",
+      "Approved release and hosted verification"
+    ],
+    "heldFeaturesArePrerequisites": false,
+    "productionReady": false
   }
 }

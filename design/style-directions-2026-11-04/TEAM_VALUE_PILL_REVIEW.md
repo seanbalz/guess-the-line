@@ -1,5 +1,10 @@
 # Full pill with smaller team name and location
 
+> Superseded November 7: Sean rejected both placements (“Neither option looks
+> good”) and requested more information like a scorecard. He then selected the
+> pick-focused direction. The placement question below is historical, not
+> pending. See [the current scorecard](PICK_SCORECARD_REVIEW.md).
+
 Sean requested: **“Make it a full pill with the name smaller under it and
 their location.”** This replaces the earlier unchosen compact-label A/B
 comparison. No prior A/B selection is inferred.

@@ -1,5 +1,31 @@
 # GUESS THE LINE — BRAND & DESIGN SYSTEM v1.0
 
+## Pick-focused scorecard and deployment roadmap — November 7, 2026
+
+Sean rejected both previous full-pill placements as too empty and explicitly
+selected “Pick-focused scorecard (recommended)”. The old placement question is
+superseded. [One fuller composition in both themes](../design/style-directions-2026-11-04/PICK_SCORECARD_REVIEW.md)
+adds opponent, team/market, saved guess, comparison, difference, points ring,
+status and a shared-scale chart. Visual approval is pending; earlier global
+palette/material/type/circle/G-exclusion/wording approvals stay closed.
+
+Existing fictional History values were asserted against the fixture: −3.5,
+comparison −4, difference 0.5, locked status, 9/10 example points. No actual
+saved record, bookmaker quote, time or verified schedule is claimed. Eight
+theme layouts at four widths, sixteen image decodes, chart/ring math and no
+overflow/clipped labels passed; both captures inspected. Zero observed page
+errors, failed resources, external browser requests or non-GET requests.
+
+The [five-workstream deployment roadmap](../design/style-directions-2026-11-04/DESIGN_DEPLOYMENT_ROADMAP.md)
+separates production implementation, actual data/interaction integration,
+regression/CI, release-candidate phone acceptance and approved hosted release.
+Production styling is not yet integrated. Main CI was green at the checked
+SHA; the prior draft head had five EPL timing/order failures across two test
+shards, with root cause unestablished. Exact integrated source must pass.
+No production/controller/data change, merge, deployment or migration here.
+NBA, new avatars/photos/awards and unpublished Signal files remain held.
+
+
 ## Full-pill team-label revision prepared — November 7, 2026
 
 Sean requested a full pill with the name smaller underneath and the team's
