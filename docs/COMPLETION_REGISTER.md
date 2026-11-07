@@ -18,8 +18,15 @@ focused Node contracts passed, including historical-data and image provenance.
 Browser checks cover both themes, 320/390 widths, wider fonts, keyboard focus,
 screen-reader labels, no hidden-pick leaks and restoration of other pages.
 Source review found and fixed Total-market navigation, expired-game counts,
-stale score filters and silently consumed streak moments. Exact-source CI and
-the protected frontend release remain pending; this entry does not claim hosting.
+stale score filters and silently consumed streak moments. All 12 exact-main checks
+passed. **Released** from `4c6e91bba6f95cb20197c39185e91a58ce2b9b66` through
+protected frontend run
+[42400945688](https://github.com/seanbalz/guess-the-line/actions/runs/42400945688):
+Pages `f31193e9`, 127 production asset URLs matched at 18:25:28 UTC. API v50,
+all worker metadata and migration history are unchanged; no SQL was applied.
+See the [release record](RELEASE_2026_11_07_APPROVED_HOME.md) for full hashes,
+pending M-33/M-34/M-35, rollback and verification limits. Signed-in and physical
+iPhone acceptance are separate from these hosted checks.
 
 
 ## D-69 design overhaul, step 3: Research — November 4, 2026
