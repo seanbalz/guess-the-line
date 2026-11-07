@@ -3,8 +3,9 @@
 Sean said **“Looks good. All logos should have circles”** after the league
 placements at `935f457b9219b51376f3be4405f2109759bdd895`, then clarified
 **“Team and league logos only (recommended)”**. The GTL G is excluded.
-The supplied league placements are approved; these updated captures show the
-authorized extension to team marks in both themes.
+The supplied league and team-circle placements are now approved by Sean
+(“Good.. continue”), reviewed at `d109e5386b49093f66b173492261bbb5e126739a`.
+[Current full-name wording review](LEAGUE_WORDING_REVIEW.md) preserves this approval.
 
 | Current mockup | Dark | Light |
 |---|---|---|
@@ -57,7 +58,7 @@ changed. Standalone preview stylesheet injection only; no production source
 or bundle entry changed. Brand QA, syntax, JSON, hashes and links are checked
 before publication. No merge, deployment or migration.
 
-The earlier question about full league names versus logos in explanatory
-text remains unanswered; this shape clarification does not decide wording.
+The explanatory wording question is now resolved: full league names in
+explanations, logos in navigation. See the current wording review linked above.
 NBA is parked. New avatars/photos and popup/award exploration remain held,
 and the three parked Signal files remain untouched and unpublished.

@@ -1,5 +1,36 @@
 # Guess The Line — current completion register
 
+## Circle set approved; full league names applied — November 6, 2026
+
+Sean's “Good.. continue” approves the twenty team/league circle captures at
+`d109e5386b49093f66b173492261bbb5e126739a`. He then explicitly selected
+“Full names in explanations; logos in navigation (recommended)”. The prior
+wording question is resolved. Use National Football League and Premier League
+in explanatory copy and descriptive labels; retain the selected circular marks
+in navigation. FEPL remains the existing named league identity; G exclusion
+and all prior scoped circle/screen approvals remain.
+
+[Twenty updated copy/layout captures](../design/style-directions-2026-11-04/LEAGUE_WORDING_REVIEW.md) show six overviews, both native
+sport frames, History's expanded action and explanatory Info in both themes.
+Current copy/layout review is pending. A display-only adapter expands text
+and descriptive attributes while preserving original controls, route/option
+values, native callbacks, user-entered fields and code/source literals. Native
+production source and bundle inputs are unchanged; no rebuild required.
+
+144 responsive layouts/wording checks across 18 views, twelve action/input
+checks and two Info checks passed. All 268 registered views were also swept
+through review controls in both themes at 390px: 536 readbacks, no residual
+NFL/EPL display text outside documented exclusions or horizontal phone
+overflow. All twenty captures inspected. No observed page errors, provider/
+auth reads, non-GET requests, resource failures, console errors, storage writes
+or OS dialogs. This is automated rendering/wording evidence, not fresh owner
+acceptance of every state or actual production behavior.
+
+The History unavailable notice is the same existing state with fuller names,
+not missing-data inference or a new restriction. Six-screen gallery refreshed.
+No merge, deployment, migration or whole-project completion claim. NBA stays
+parked; new avatars/photos/awards and parked Signal files remain held.
+
 ## Individual circles for all team/league mockup marks — November 6, 2026
 
 Sean accepted the sixteen league-circle placements at

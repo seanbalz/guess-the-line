@@ -1,7 +1,7 @@
 {
   "kind": "GTL_SELECTED_SYSTEM_REVIEW",
   "version": 1,
-  "status": "Team and league mockup logos now use individual circles; GTL G explicitly excluded. Updated captures supplied; explanatory wording and production acceptance remain separate.",
+  "status": "Team/league circle captures approved; full league names in explanations and logo navigation explicitly selected and applied. Twenty updated wording captures supplied; production remains separate.",
   "darkSource": "lime-priority-preview.json",
   "lightSource": "light-mode-options.json",
   "dark": {
@@ -1994,7 +1994,7 @@
         "scope": "Current supplied whole-view capture; later changed placements require their own review."
       }
     },
-    "next": "League logo switcher comparison",
+    "next": "Full-name explanations with circular logo navigation — updated copy/layout review",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -2074,11 +2074,7 @@
       "Missing team marks/abbreviations in the mockup",
       "Navigation bubbles look empty and boring"
     ],
-    "pendingClarification": {
-      "question": "For explanatory text such as “View NFL history,” should we use the full league name or replace the league reference with a logo too?",
-      "recommended": "Keep full league names in explanatory text; logos identify navigation/buttons.",
-      "status": "Awaiting owner answer; existing explanatory wording remains unchanged."
-    },
+    "pendingClarification": null,
     "contentRevision": {
       "authorization": "Sean confirmed useful miniature content previews",
       "state": "Reopened Home/Play/Bets current whole-view flags closed at 6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd; remaining areas retain scoped reviews.",
@@ -2105,7 +2101,7 @@
     "defaultPreview": "03 Glossy glass, selected by Sean accepting the assistant recommendation",
     "assets": "visual-assets/sources.json",
     "leagueMarks": "Circle league placements approved at 935f457b9219b51376f3be4405f2109759bdd895. New team/league-only circle scope applied; updated team placements supplied. GTL G excluded.",
-    "screenAcceptance": "Reopened Home/Play/Bets whole-view flags closed at 6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd; later specialized approvals remain scoped. League logo changes pending."
+    "screenAcceptance": "Earlier scoped screen approvals and supplied team/league circle captures retained; current expanded wording captures are supplied for visual review."
   },
   "iconSelection": {
     "id": "3",
@@ -5866,43 +5862,44 @@
   "currentVisualPassReconciliation": {
     "nba": "Parked by owner and excluded from this visual pass; no NBA mockups made.",
     "eplShell": "The eight supplied EPL league/History/Bets/Info captures are approved in both themes at c6fb2b44bacc90fa44ba89e8932da7343e20cf4b.",
-    "remainingVisualReview": "TEAM_LEAGUE_CIRCLES_REVIEW.md",
-    "remainingScope": "Review current team/league circle placements. Prior full-name-versus-logo explanatory-text clarification remains unanswered; do not infer its answer from circle shape scope.",
+    "remainingVisualReview": "LEAGUE_WORDING_REVIEW.md",
+    "remainingScope": "Review current full-name explanatory wording with approved circular team/league logos. No unanswered league wording or G-circle scope question remains. Production integration/device/source acceptance and deferred work stay separate.",
     "alreadyApprovedVirtualCaptures": [
       "nfl-actions-virtual-minimum-dark-phone.png",
       "nfl-actions-virtual-minimum-light-phone.png"
     ],
     "pendingCaptureCount": 20,
     "pendingCaptures": [
-      "team-league-circles-home-dark-phone.png",
-      "team-league-circles-home-light-phone.png",
-      "team-league-circles-play-dark-phone.png",
-      "team-league-circles-play-light-phone.png",
-      "team-league-circles-bets-dark-phone.png",
-      "team-league-circles-bets-light-phone.png",
-      "team-league-circles-research-dark-phone.png",
-      "team-league-circles-research-light-phone.png",
-      "team-league-circles-epl-dark-phone.png",
-      "team-league-circles-epl-light-phone.png",
-      "team-league-circles-account-dark-phone.png",
-      "team-league-circles-account-light-phone.png",
-      "team-league-circles-teams-dark-phone.png",
-      "team-league-circles-teams-light-phone.png",
-      "team-league-circles-draft-dark-phone.png",
-      "team-league-circles-draft-light-phone.png",
-      "team-league-circles-ticket-dark-phone.png",
-      "team-league-circles-ticket-light-phone.png",
-      "team-league-circles-fepl-dark-phone.png",
-      "team-league-circles-fepl-light-phone.png"
+      "league-wording-home-dark-phone.png",
+      "league-wording-home-light-phone.png",
+      "league-wording-play-dark-phone.png",
+      "league-wording-play-light-phone.png",
+      "league-wording-bets-dark-phone.png",
+      "league-wording-bets-light-phone.png",
+      "league-wording-research-dark-phone.png",
+      "league-wording-research-light-phone.png",
+      "league-wording-epl-dark-phone.png",
+      "league-wording-epl-light-phone.png",
+      "league-wording-account-dark-phone.png",
+      "league-wording-account-light-phone.png",
+      "league-wording-native-nfl-dark-phone.png",
+      "league-wording-native-nfl-light-phone.png",
+      "league-wording-native-epl-dark-phone.png",
+      "league-wording-native-epl-light-phone.png",
+      "league-wording-history-dark-phone.png",
+      "league-wording-history-light-phone.png",
+      "league-wording-info-dark-phone.png",
+      "league-wording-info-light-phone.png"
     ],
     "held": "New avatar/photo choices, new award/celebration exploration and parked Signal assets remain held while the first visual project is unfinished.",
     "production": "No production integration, deployment or whole-project completion is claimed.",
     "nflActions": "All 106 supplied captures approved: remaining 104 at 9c2aa961f14f6a68cc51858e777c4e0796a9b5e5 plus two prior Virtual-minimum captures.",
-    "openRequirementAudit": "Circle shape is now consistent across known team/league components. This does not establish all identity abbreviations replaced, every nested state accepted, or production integration.",
+    "openRequirementAudit": "All 268 registered mockup routes were swept in both themes at 390px for unexpanded NFL/EPL display text outside documented exclusions and horizontal overflow; no issues. This does not claim replacement of every team-code literal, actual production behavior or whole-project completion.",
     "approvedNFLActionCaptureCount": 106,
     "overviewCloseout": "All fourteen supplied captures approved at 6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd.",
     "leagueLogoSelection": "02 Glass circles selected at a234f2f4bcddd8ec46218169f0110ff7dc395c0a; sixteen current placement captures supplied.",
-    "teamLeagueCircles": "Explicit all-team/league circle instruction applied to known paired-viewer logo containers; GTL G excluded by owner."
+    "teamLeagueCircles": "All twenty supplied circle captures approved at d109e5386b49093f66b173492261bbb5e126739a (“Good.. continue”); G excluded.",
+    "nextAfterCopyReview": "Finish remaining team-identity abbreviation inventory, then consolidate the selected design handoff. Preserve explicit prior approvals; do not reopen them without an identified issue. Production integration and deferred feature work remain separate."
   },
   "overviewCloseoutReview": {
     "status": "Approved: fourteen supplied overview/ticket/entry captures in both themes",
@@ -6192,7 +6189,7 @@
       "reviewedCommit": "a234f2f4bcddd8ec46218169f0110ff7dc395c0a",
       "scope": "Circle treatment selected from both theme comparison boards; placement integration captures are reviewed separately."
     },
-    "remaining": "After owner selection, carry the chosen header placement into the paired viewer and reconcile other visible sport/team abbreviation placements; these options do not establish app-wide replacement or production acceptance.",
+    "remaining": "02 selected and applied; supplied league placements approved. Team/league-only circle extension also approved. The full-name explanatory wording choice is resolved in leagueWordingSelection; current rendered wording captures await review.",
     "held": "NBA parked. New avatar/photo and popup/award work held. Three parked Signal files untouched and unpublished. No merge/deploy/migration."
   },
   "leagueLogoSelection": {
@@ -6334,7 +6331,7 @@
       "inspectedCaptures": 16,
       "accountCapture": "1100px extended phone height keeps the fixture footer fully visible."
     },
-    "remaining": "Scope clarification for explanatory league references is pending; this header adapter does not claim all app/team abbreviations replaced or production acceptance.",
+    "remaining": "The explanatory wording question is resolved by leagueWordingSelection. Circle placements retain their recorded approval; actual production/source/device acceptance remains separate.",
     "placementApproval": {
       "status": "approved for supplied placements",
       "userStatement": "Looks good. All logos should have circles",
@@ -6343,7 +6340,7 @@
     }
   },
   "teamLeagueCircleSelection": {
-    "status": "Applied to known team-logo containers throughout the paired mockup viewer; supplied updated captures for visual review. League placements remain approved.",
+    "status": "Approved for the twenty supplied team/league-circle captures in both themes; production and unseen states remain separate.",
     "userStatement": "Looks good. All logos should have circles",
     "scopeQuestion": "Should the circular background also apply to the lime G app logo, or only team and league logos?",
     "scopeAnswer": "Team and league logos only (recommended)",
@@ -6498,10 +6495,195 @@
       "finalConsoleErrors": 0
     },
     "approval": {
-      "status": "Circle rule authorized; updated whole-view captures supplied, no blanket app/production acceptance inferred.",
-      "scope": "Team/league marks only; existing GTL G geometry and presentation explicitly excluded by owner."
+      "status": "approved",
+      "userStatement": "Good.. continue",
+      "reviewedCommit": "d109e5386b49093f66b173492261bbb5e126739a",
+      "reviewedCaptures": [
+        "previews/team-league-circles-home-dark-phone.png",
+        "previews/team-league-circles-home-light-phone.png",
+        "previews/team-league-circles-play-dark-phone.png",
+        "previews/team-league-circles-play-light-phone.png",
+        "previews/team-league-circles-bets-dark-phone.png",
+        "previews/team-league-circles-bets-light-phone.png",
+        "previews/team-league-circles-research-dark-phone.png",
+        "previews/team-league-circles-research-light-phone.png",
+        "previews/team-league-circles-epl-dark-phone.png",
+        "previews/team-league-circles-epl-light-phone.png",
+        "previews/team-league-circles-account-dark-phone.png",
+        "previews/team-league-circles-account-light-phone.png",
+        "previews/team-league-circles-teams-dark-phone.png",
+        "previews/team-league-circles-teams-light-phone.png",
+        "previews/team-league-circles-draft-dark-phone.png",
+        "previews/team-league-circles-draft-light-phone.png",
+        "previews/team-league-circles-ticket-dark-phone.png",
+        "previews/team-league-circles-ticket-light-phone.png",
+        "previews/team-league-circles-fepl-dark-phone.png",
+        "previews/team-league-circles-fepl-light-phone.png"
+      ],
+      "scope": "Twenty current team/league circle captures; G exclusion retained. Not production acceptance or blanket approval of unseen states."
     },
     "unchanged": "Source artwork, team names, loaded/fallback semantics, G logo, avatar initials, data/scoring, actions and native production sources.",
-    "priorProseQuestion": "The earlier full-name-versus-logo explanatory-text question is not answered by the circle-shape clarification; existing wording remains unchanged."
+    "priorProseQuestion": "Resolved by the explicit full-names-in-explanations/logos-in-navigation answer recorded in leagueWordingSelection."
+  },
+  "leagueWordingSelection": {
+    "status": "Selected wording applied across the paired mockup viewer; twenty updated captures supplied for visual review.",
+    "question": "For explanatory text such as “View NFL history,” should the league reference use a logo or the full name? I recommend full names in explanations and logos in navigation.",
+    "answer": "Full names in explanations; logos in navigation (recommended)",
+    "recipe": "National Football League and Premier League in explanations, captions and accessible descriptive labels; existing selected circular league logos in navigation.",
+    "implementation": "selected-league-wording.js",
+    "preserved": "Original button nodes, native route/state identifiers, sport option values, typed/select values, code/source literals and existing GTL G. No stored/private data read or change.",
+    "excluded": "The display adapter skips navigation sport controls, user input/select content and code/pre literals. FEPL is a named league identity, not an EPL abbreviation, and stays unchanged.",
+    "index": "LEAGUE_WORDING_REVIEW.md",
+    "captures": [
+      {
+        "file": "previews/league-wording-home-dark-phone.png",
+        "view": "Home",
+        "theme": "dark",
+        "sha256": "53604c72bd7a38025d25a3d471a8c10778abebe46bec5e02062304ebe9070a07"
+      },
+      {
+        "file": "previews/league-wording-home-light-phone.png",
+        "view": "Home",
+        "theme": "light",
+        "sha256": "87b61ca78e6352266ceca8fb1bf8849fb49f38a742c0d6f4493d2f2d511d54a5"
+      },
+      {
+        "file": "previews/league-wording-play-dark-phone.png",
+        "view": "Play",
+        "theme": "dark",
+        "sha256": "77deee501c4c6c4754bb976c65892e7e900b141903090dc209ab3947c9feb416"
+      },
+      {
+        "file": "previews/league-wording-play-light-phone.png",
+        "view": "Play",
+        "theme": "light",
+        "sha256": "724a9dd350528c41f0e403145e7c38e11bb12717d76ab92bbdce0196b23e80d3"
+      },
+      {
+        "file": "previews/league-wording-bets-dark-phone.png",
+        "view": "Bets",
+        "theme": "dark",
+        "sha256": "b78e60cb906887bde69dcc7accd63fac15ecc743f59191599e5b9aa42ac228a9"
+      },
+      {
+        "file": "previews/league-wording-bets-light-phone.png",
+        "view": "Bets",
+        "theme": "light",
+        "sha256": "0c286598c16462f5995b77e99fa4382d816f2321dd941cdb1131daed445cd136"
+      },
+      {
+        "file": "previews/league-wording-research-dark-phone.png",
+        "view": "Research",
+        "theme": "dark",
+        "sha256": "5a1515e3396ffd9f1bfcadd09c04f68276eba2f599c756b1450e2149446ec38c"
+      },
+      {
+        "file": "previews/league-wording-research-light-phone.png",
+        "view": "Research",
+        "theme": "light",
+        "sha256": "09390300ff698fd67a65cd51034c33a903c478aec18770b47d77fb9357a3efef"
+      },
+      {
+        "file": "previews/league-wording-epl-dark-phone.png",
+        "view": "Premier League overview",
+        "theme": "dark",
+        "sha256": "522bf4a46b3e1407116c1ed7226af16a00676cd404778738596c801688f2e178"
+      },
+      {
+        "file": "previews/league-wording-epl-light-phone.png",
+        "view": "Premier League overview",
+        "theme": "light",
+        "sha256": "6617a66c24db507d949a394ee40ba94df7c89e5026eba9107fb1845455176e6c"
+      },
+      {
+        "file": "previews/league-wording-account-dark-phone.png",
+        "view": "Account",
+        "theme": "dark",
+        "sha256": "7710484afa76ea737b2ddb2cb15f56d2ed8d2b753e4a493f73bd8e766d916c74"
+      },
+      {
+        "file": "previews/league-wording-account-light-phone.png",
+        "view": "Account",
+        "theme": "light",
+        "sha256": "7e1de91d9575f60310f6476bee01fb6e2597f93d9e345ed1f41a6071020de04a"
+      },
+      {
+        "file": "previews/league-wording-native-nfl-dark-phone.png",
+        "view": "Native National Football League frame",
+        "theme": "dark",
+        "sha256": "3fd4582ad8a02007b3a54c0a39db877b015a2103162371a225c6f860c39cab9b"
+      },
+      {
+        "file": "previews/league-wording-native-nfl-light-phone.png",
+        "view": "Native National Football League frame",
+        "theme": "light",
+        "sha256": "a6a2d385673ed9ee8b75a85945acf9b93936bff3810b79326129317333aeeddb"
+      },
+      {
+        "file": "previews/league-wording-native-epl-dark-phone.png",
+        "view": "Native Premier League frame",
+        "theme": "dark",
+        "sha256": "4d1b341d2242d381b27e36a24829b650a6025f26c27daae30fab620830fd1f9d"
+      },
+      {
+        "file": "previews/league-wording-native-epl-light-phone.png",
+        "view": "Native Premier League frame",
+        "theme": "light",
+        "sha256": "70af88a50af43f3fea06daaa786d9cd633b24623806bcceab8528d6fa0c75a88"
+      },
+      {
+        "file": "previews/league-wording-history-dark-phone.png",
+        "view": "Premier League History and history link",
+        "theme": "dark",
+        "sha256": "9b06e6b92528b5d4aa92e4dd41eae0ab6019cbb8b509046dd29282c084e59ae2"
+      },
+      {
+        "file": "previews/league-wording-history-light-phone.png",
+        "view": "Premier League History and history link",
+        "theme": "light",
+        "sha256": "669196896a02c62b5de532f236c3426ec092e52480ce7b607c6f73f29501d0d3"
+      },
+      {
+        "file": "previews/league-wording-info-dark-phone.png",
+        "view": "Premier League explanatory Info",
+        "theme": "dark",
+        "sha256": "d77479c30c9f1639b4d21820d2e71e6463fd8c848cb24ff2eb8c4ea310bc8f2a"
+      },
+      {
+        "file": "previews/league-wording-info-light-phone.png",
+        "view": "Premier League explanatory Info",
+        "theme": "light",
+        "sha256": "e501793e2d4f5a4defef36e5ce33aa88d7066fcdeb633f5c9456c371c65bd629"
+      }
+    ],
+    "verification": {
+      "responsiveViews": 18,
+      "responsiveLayouts": 144,
+      "widths": [
+        320,
+        390,
+        768,
+        1440
+      ],
+      "wordingChecks": 144,
+      "actionAndInputChecks": 12,
+      "InfoChecks": 2,
+      "registeredRoutesCheckedAt390": 268,
+      "allRouteThemeChecks": 536,
+      "allRouteIssues": 0,
+      "pageErrors": 0,
+      "nonGETRequests": 0,
+      "providerAuthReads": 0,
+      "resourceFailures": 0,
+      "consoleErrors": 0,
+      "OSDialogs": 0,
+      "storageWrites": 0,
+      "inspectedCaptures": 20,
+      "allRouteScope": "Switched every registered screen/layer through the review controls in both themes; no unexpanded NFL/EPL text outside documented exclusions, horizontal phone overflow or state-selection errors observed. This is automated readback, not owner acceptance of every state."
+    },
+    "approval": {
+      "status": "Wording rule explicitly selected; updated capture placement review pending",
+      "scope": "Full league names in explanations and logos in navigation. Existing team/league circles and G exclusion remain approved."
+    }
   }
 }
