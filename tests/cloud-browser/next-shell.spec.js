@@ -381,13 +381,22 @@ test.describe('the real app', () => {
         await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
         // D-44: the top bar's logo is the G alone in the theme's accent-ink, with no tile, edge or shadow behind it or
         // on its svg.
-        for (const part of ['.gx-mono', '.gx-mono-svg']) {
+        for (const part of ['.gx-prism-brand', '.gx-prism-brand img:visible']) {
           const mark = page.locator(`.gx-topbar ${part}`);
           await expect(mark).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
           await expect(mark).toHaveCSS('background-image', 'none');
           await expect(mark).toHaveCSS('box-shadow', 'none');
-          await expect(mark).toHaveCSS('color', theme === 'dark' ? 'rgb(184, 243, 75)' : 'rgb(59, 99, 9)');
         }
+        await expect(page.locator('.gx-prism-brand img:visible')).toHaveJSProperty('complete', true);
+        expect(await page.locator('.gx-prism-brand img:visible').evaluate(img => img.naturalWidth)).toBeGreaterThan(0);
+        const sports = page.getByRole('navigation', { name: 'Sports' });
+        await expect(sports.getByRole('button', { name: 'National Football League', exact: true })).toHaveAttribute('aria-pressed', 'true');
+        await expect(sports.getByRole('button', { name: 'NBA', exact: true })).toHaveCount(0);
+        const circle = await sports.locator('.gx-sport-mark').first().evaluate(el => {
+          const box = el.getBoundingClientRect(), image = el.querySelector('img');
+          return { width: box.width, height: box.height, radius: getComputedStyle(el).borderRadius, fit: getComputedStyle(image).objectFit, loaded: image.complete && image.naturalWidth > 0 };
+        });
+        expect(circle).toEqual({ width: 52, height: 52, radius: '999px', fit: 'contain', loaded: true });
         for (const width of [390, 320]) {
           await page.setViewportSize({ width, height: 844 });
           await phoneChecks(page);
@@ -446,13 +455,13 @@ async function harnessBundle() {
   const css = files.filter(f => f.type === 'asset' && f.fileName.endsWith('.css'));
   expect(js.map(f => f.fileName)).toEqual(['harness.js']);
   expect(css).toHaveLength(1);
-  bundle = { js: js[0].code, css: String(css[0].source), cssName: css[0].fileName };
+  bundle = { js: js[0].code, css: String(css[0].source), cssName: css[0].fileName, assets: new Map(files.filter(f => f.type === 'asset' && /\.(svg|png)$/.test(f.fileName)).map(f => ['/' + f.fileName, f.source])) };
   return bundle;
 }
 
 /** Serves the harness at `fragment`; every other origin is refused and recorded. */
 async function harness(page, fragment = '') {
-  const { js, css, cssName } = await harnessBundle();
+  const { js, css, cssName, assets } = await harnessBundle();
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Shell</title><link rel="icon" href="data:,"><link rel="stylesheet" href="/${cssName}"></head><body><div id="root"></div><script type="module" src="/harness.js"></script></body></html>`;
   const seen = { other: [] };
   await page.route('**/*', route => {
@@ -461,6 +470,7 @@ async function harness(page, fragment = '') {
     if (url.pathname === '/') return route.fulfill({ status: 200, contentType: 'text/html', body: html });
     if (url.pathname === '/harness.js') return route.fulfill({ status: 200, contentType: 'text/javascript', body: js });
     if (url.pathname === `/${cssName}`) return route.fulfill({ status: 200, contentType: 'text/css', body: css });
+    if (assets.has(url.pathname)) return route.fulfill({ status: 200, contentType: url.pathname.endsWith('.svg') ? 'image/svg+xml' : 'image/png', body: assets.get(url.pathname) });
     return route.fulfill({ status: 404, body: '' });
   });
   const errors = [];

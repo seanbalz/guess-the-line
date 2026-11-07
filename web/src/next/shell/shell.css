@@ -35,6 +35,7 @@
   flex: none;
   padding-top: env(safe-area-inset-top, 0px);
   background: var(--gx-canvas);
+  background-image: var(--gx-card-face);
   border-bottom: 1px solid var(--gx-border);
 }
 .gx-topbar-inner {
@@ -181,7 +182,8 @@
   z-index: var(--gx-z-tabbar);
   height: calc(var(--gx-size-tabbar) + env(safe-area-inset-bottom, 0px));
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  background: var(--gx-surface-1);
+  background: var(--gx-canvas);
+  background-image: var(--gx-card-face);
   border-top: 1px solid var(--gx-border);
 }
 .gx-tabbar-inner {
@@ -204,7 +206,7 @@
   color: var(--gx-text-2);
 }
 .gx-tab .gx-ic { color: var(--gx-text-3); }
-.gx-tab-icon { position: relative; display: block; width: 24px; height: 24px; }
+.gx-tab-icon { position: relative; display: grid; place-items: center; width: 32px; height: 32px; border: 1px solid var(--gx-icon-edge); border-radius: var(--gx-radius-xs); background: var(--gx-icon-face); box-shadow: var(--gx-icon-depth); isolation: isolate; }
 .gx-tab-label { font: 600 16px/20px var(--gx-font-body); }
 .gx-tab--on { color: var(--gx-text-1); }
 .gx-tab--on .gx-tab-label { font-weight: 700; }
@@ -268,4 +270,28 @@
      <main> itself. */
   .gx .gx-main[data-tab-enter="fade"] > .gx-screen,
   .gx .gx-main[data-tab-enter="fade"] > .gx-kept > .gx-screen { animation: gx-fade-in var(--gx-dur-quick) var(--gx-ease-standard); }
+}
+
+/* Shared selected identity: each sport has its own 52px circle; the G is excluded. */
+.gx-prism-brand { display: grid; place-items: center; width: 44px; height: 44px; }
+.gx-prism-brand img { display: block; width: 42px; height: 36px; object-fit: contain; }
+.gx .gx-prism-light { display: none; }
+:root[data-theme="light"] .gx:not([data-theme="dark"]) .gx-prism-dark,
+.gx[data-theme="light"] .gx-prism-dark { display: none; }
+:root[data-theme="light"] .gx:not([data-theme="dark"]) .gx-prism-light,
+.gx[data-theme="light"] .gx-prism-light { display: block; }
+.gx-sport-controls { display: flex; justify-content: center; padding: 8px 16px; }
+.gx-sport-mark { display: grid; place-items: center; flex: none; width: 52px; height: 52px; padding: 9px; border: 1px solid var(--gx-glass-line); border-radius: var(--gx-radius-pill); background: var(--gx-card-face); box-shadow: var(--gx-e1); -webkit-backdrop-filter: var(--gx-glass-blur); backdrop-filter: var(--gx-glass-blur); }
+.gx-sport-mark[aria-pressed="true"] { border: 2px solid var(--gx-accent-ink); background: linear-gradient(var(--gx-accent-tint),var(--gx-accent-tint)),var(--gx-card-face); }
+.gx-sport-mark img { width: 30px; height: 32px; object-fit: contain; }
+.gx:not(.gx-home-design) .gx-tab-icon::after { content: ''; position: absolute; z-index: -1; inset: 2px 4px 52%; border-radius: var(--gx-radius-xs); background: var(--gx-icon-shine); pointer-events: none; }
+.gx:not(.gx-home-design) .gx-tab-icon .gx-ic { stroke-width: 1.8; }
+.gx:not(.gx-home-design) .gx-tab-icon .gx-counter { top: 2px; }
+@media (prefers-reduced-transparency: reduce) {
+  .gx-sport-mark { background: var(--gx-surface-1); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+@media (forced-colors: active) {
+  .gx-sport-mark, .gx-tab-icon { border: 1px solid CanvasText; background: Canvas; color: CanvasText; }
+  .gx-sport-mark[aria-pressed="true"] { border: 2px solid Highlight; }
+  .gx:not(.gx-home-design) .gx-tab-icon::after { display: none; }
 }

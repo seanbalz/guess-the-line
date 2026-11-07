@@ -13,4 +13,4 @@
 .gx .gx-tiles > li { display: flex; min-width: 0; }
 /* A tile that has nothing to show yet (its own read loading or off) leaves no empty cell. */
 .gx .gx-tiles > li:empty { display: none; }
-.gx .gx-tiles .gx-nest-tile { background: var(--gx-surface-1); }
+.gx .gx-tiles .gx-nest-tile { background: var(--gx-card-face); }

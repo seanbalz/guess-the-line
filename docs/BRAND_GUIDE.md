@@ -1,5 +1,27 @@
 # GUESS THE LINE — BRAND & DESIGN SYSTEM v1.0
 
+## Approved shared Prism foundation — November 7, 2026
+
+Sean authorized the remaining selected visual updates after reviewing the November
+4–7 Prism Glass mockups. The selected-system review at commit
+`3ac2eb50513ba73447ef890e4a47863cde7bdd76` is the recipe authority;
+PR #491 is source material only. Shared native tokens now carry the selected
+charcoal gradient / Porcelain canvas, ivory / deep-green ink, system typography,
+28px floating glass cards and transparent primary actions with a full 3px green
+outline. Lucide geometry stays; shell icons use the selected glossy glass material.
+Muted and semantic colors keep their meanings and tested contrast.
+
+Each team and league mark has its own circle with contain-fit artwork and the
+existing decode/error fallback. The selected hybrid G has no circle. Sport control
+accessible names use National Football League and Premier League; the existing
+access, route values, dirty-draft guards and hidden NBA remain. The shared shell
+retains its separate league switcher outside the Home landing. Asset provenance
+is recorded in `web/src/next/ui/brand-assets/sources.json`.
+
+This foundation does not establish completion of the remaining per-screen layouts,
+actual-phone acceptance, merge or deployment. Home files and additive `home-*`
+tokens remain separately scoped as described below.
+
 ## Approved Home release — November 7, 2026
 
 Sean approved the two `league-wording-home` phone mockups at review commit
@@ -243,7 +265,7 @@ its first six units follow 30 ms apart (160 ms), a restored parent settles (200 
 screen (160 ms). The bars never animate.
 
 ### Themes, contrast and other modes
-- Dark is the default. Light applies when `Theme.jsx` sets `data-theme="light"` on `<html>` (it resolves System), or `data-theme="light"` on the app root. Light keeps the layout; glows become 2px rings; every lime fill gets a 1px `accent-ink` edge, since lime on the light surfaces is only 1.07 to 1.32:1 (1.07 on surface-3, 1.32 on white; the edge is 7.06:1 on white).
+- Dark is the default. Light applies when `Theme.jsx` sets `data-theme="light"` on `<html>` (it resolves System), or `data-theme="light"` on the app root. Light keeps the layout; glows become 2px rings; every lime fill gets a 1px `accent-ink` edge, since lime on the light surfaces is only 1.08 to 1.23:1 (the outlined primary now uses accent-ink directly).
 - Checked on the token values for both themes (`tests/next-tokens.test.mjs`): at least 4.5:1 for every text and icon color on every surface and on your-row tint, each state color and `text-1`/`text-2` on the state tints, text on lime and on solid state fills; at least 3:1 for control outlines, the focus ring and the edge of a lime fill. Lowest text pairs: dark `text-3` on your-row tint 4.80, light `win` on surface-3 4.87. Lowest outline: light `border-strong` on surface-3 3.39. Avatar initials 9.41 (Iris) to 13.94 (Butter).
 - Known limits, handled by rule 7: win and lime are close in lightness, live and loss are similar in lightness, and the `border` hairline is decorative.
 - Forced colors (Windows high contrast): controls draw a real border; selected chips, odds buttons and segments use Highlight.

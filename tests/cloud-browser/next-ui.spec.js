@@ -407,7 +407,7 @@ test('D-46: an official logo that fails to load is replaced by the team\'s origi
   expect(await seahawks.locator('img').evaluate(img => getComputedStyle(img).backgroundColor)).toBe('rgba(0, 0, 0, 0)');
 });
 
-for (const theme of ['dark', 'light']) test(`D-46: official logos sit in the tile with no backing chip (${theme})`, async ({ page }) => {
+for (const theme of ['dark', 'light']) test(`Prism: each official team logo has its own circular glass background (${theme})`, async ({ page }) => {
   await open(page, { theme });
   const every = page.getByRole('group', { name: 'Every team' });
   await every.scrollIntoViewIfNeeded();
@@ -417,9 +417,31 @@ for (const theme of ['dark', 'light']) test(`D-46: official logos sit in the til
     await expect(mark).toHaveClass(/gx-team--loaded/, { timeout: 15000 });
     const img = await mark.locator('img').evaluate(el => {
       const box = el.getBoundingClientRect(), tile = el.parentElement.getBoundingClientRect();
-      return { background: getComputedStyle(el).backgroundColor, inside: box.left >= tile.left && box.right <= tile.right && box.top >= tile.top && box.bottom <= tile.bottom };
+      return { background: getComputedStyle(el).backgroundColor, inside: box.left >= tile.left && box.right <= tile.right && box.top >= tile.top && box.bottom <= tile.bottom, circular: Math.abs(tile.width-tile.height)<0.1 && getComputedStyle(el.parentElement).borderRadius === '50%', fit: getComputedStyle(el).objectFit };
     });
-    expect(img, code).toEqual({ background: 'rgba(0, 0, 0, 0)', inside: true });
+    expect(img, code).toEqual({ background: 'rgba(0, 0, 0, 0)', inside: true, circular: true, fit: 'contain' });
+  }
+});
+
+for (const theme of ['dark', 'light']) test(`${theme}: 24px three-letter fallbacks stay inside their circle when all artwork fails`, async ({ page }) => {
+  const codes = ['NYG', 'WAS', 'BUF'];
+  const fail = codes.flatMap(code => [`/team-logos/${code.toLowerCase()}.png`, `/team-logos/badges/${code.toLowerCase()}.svg`]);
+  await open(page, { theme, fail });
+  const every = page.getByRole('group', { name: 'Every team' });
+  await every.scrollIntoViewIfNeeded();
+  for (const code of codes) {
+    const mark = every.getByRole('img', { name: code, exact: true });
+    await expect(mark).toHaveAttribute('data-mark', 'letters');
+    await expect(mark.locator('.gx-team-code')).toBeVisible();
+    await expect(mark.locator('.gx-team-code')).toHaveText(code);
+    const box = await mark.evaluate(el => {
+      const circle = el.getBoundingClientRect();
+      const range = document.createRange(); range.selectNodeContents(el.querySelector('.gx-team-code'));
+      // Range reports the unadjusted advance for SVG textLength; the text element's box measures painted glyphs.
+      const text = el.querySelector('.gx-team-code text')?.getBoundingClientRect() ?? range.getBoundingClientRect();
+      return {width:circle.width,height:circle.height,inside:text.left>=circle.left+1 && text.right<=circle.right-1 && text.top>=circle.top+1 && text.bottom<=circle.bottom-1};
+    });
+    expect(box, code).toEqual({width:24,height:24,inside:true});
   }
 });
 
@@ -429,6 +451,18 @@ test('reduced motion stops the kit\'s motion', async ({ page }) => {
   await page.getByRole('button', { name: 'Open the game sheet' }).click();
   const names = await page.evaluate(() => [...document.querySelectorAll('.gx *')].map(el => getComputedStyle(el).animationName).filter(n => n !== 'none'));
   expect(names).toEqual([]);
+});
+
+for (const theme of ['dark', 'light']) test(`${theme}: reduced transparency keeps cards readable with an opaque surface`, async ({ page }) => {
+  const session = await page.context().newCDPSession(page);
+  await session.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-transparency', value: 'reduce' }] });
+  await open(page, { theme });
+  expect(await page.evaluate(() => matchMedia('(prefers-reduced-transparency: reduce)').matches)).toBe(true);
+  const surface = await tokenColor(page, '--gx-surface-1');
+  const card = page.locator('.gx-card').first();
+  await expect(card).toHaveCSS('background-color', surface);
+  await expect(card).toHaveCSS('background-image', 'none');
+  await expect(card).toHaveCSS('backdrop-filter', 'none');
 });
 
 // ---------- design audit quick wins (kit), November 4, 2026 ----------

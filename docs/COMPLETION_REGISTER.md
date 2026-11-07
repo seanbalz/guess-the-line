@@ -1,5 +1,18 @@
 # Guess The Line — current completion register
 
+## Selected Prism shared native foundation — November 7, 2026
+
+Locally checked on `codex/confirmed-prism-shared-2026-11-07`, based on fresh main
+`42a5ad9930a5712c6b357564701fbb5628b12b43`. Shared palette/type, floating cards,
+gloss/outlined primary, native hybrid G and circular team/league identity are
+adapted from the selected review recipes; Home files/tokens are retained.
+[Scope and verification](PRISM_SHARED_NATIVE_2026_11_07.md) records 32 token/brand,
+58 component, 53 shell/UI browser and 13 final focused browser checks, with
+native phone captures. Native-frame and prototype header/dock placements differ;
+structural placement remains held for the parent’s pointed owner question.
+Unpublished local handoff only: no PR, merge, deployment or data/API/SQL change.
+Remaining per-screen compositions and real-phone acceptance are separate work.
+
 ## Approved Prism Glass Home — November 7, 2026
 
 Sean approved the exact Dark/Light Home mockups and instructed “Good deploy.”
