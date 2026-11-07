@@ -1,6 +1,7 @@
 # Overview and ticket screens — phone review
 
-Fourteen current captures, seven views in both themes. **Visual approval pending.**
+Fourteen current captures, seven views in both themes. **Approved by Sean in both themes** (“Approved continue”), reviewed at
+`6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd`.
 The remaining NFL action/shared-navigation set is approved at
 `9c2aa961f14f6a68cc51858e777c4e0796a9b5e5`; this review preserves that approval.
 

@@ -1,5 +1,34 @@
 ## NBA parked; current visual review reconciled — November 6, 2026
 
+## Overview/ticket set approved; league-logo choices prepared — November 6, 2026
+
+Sean answered “Approved continue” to the fourteen current overview/ticket/entry
+captures in both themes at `6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd`. This
+closes the older Home/Play/Bets whole-view re-review flags and accepts the
+supplied open/settled ticket and selection/terms views. Earlier scoped NFL/EPL
+approvals remain valid; no actual production save/device acceptance is inferred.
+
+The next active requirement is league-logo replacement, brought into this
+project by Sean on November 4. [Five switcher tile treatments](LEAGUE_LOGO_SWITCHER_REVIEW.md) now show
+the official NFL shield and theme-appropriate Premier League lion, with each
+logo on its own glass tile and accessible full names. Recommendation: 01,
+rounded glass squares with a lime active outline. Six captures include both
+theme comparison boards and 01 with each league active in fictional context.
+Choice is pending; no approved viewer or production header was replaced.
+
+32 responsive layouts, 48 pointer/keyboard selection checks and 56 image
+decodes passed; all six final captures inspected. No observed page errors,
+external browser requests, non-GET requests, storage writes or OS dialogs.
+The new source register preserves official-site asset URLs, hashes and
+identification-only scope; no licensing or affiliation is claimed. Original
+colors/proportions and selected GTL recipes are retained.
+
+After selection, carry that placement into the viewer and reconcile remaining
+sport/team abbreviation placements before claiming full replacement. NBA stays
+parked; new avatars/photos and popup/award exploration remain held. No native
+production code, scoring, provider, migration, merge or deploy change. Parked
+Signal files are untouched and unpublished.
+
 ## NFL set approved; older overview/ticket review prepared — November 6, 2026
 
 Sean answered “Approved” to the remaining NFL action/shared-navigation set in

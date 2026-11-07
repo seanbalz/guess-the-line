@@ -1,7 +1,7 @@
 {
   "kind": "GTL_SELECTED_SYSTEM_REVIEW",
   "version": 1,
-  "status": "Scoped NFL/EPL batches approved; reopened Home/Play/Bets and original ticket/entry whole-view closeout prepared for owner review. Production integration and whole-project completion remain pending.",
+  "status": "All supplied overview/ticket closeout captures approved; next is the outstanding league-logo switcher visual comparison. Production integration remains separate.",
   "darkSource": "lime-priority-preview.json",
   "lightSource": "light-mode-options.json",
   "dark": {
@@ -1962,8 +1962,39 @@
   },
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
-    "accepted": {},
-    "next": "Home/overview",
+    "accepted": {
+      "Home/overview": {
+        "themes": [
+          "dark",
+          "light"
+        ],
+        "status": "approved",
+        "userStatement": "Approved continue",
+        "reviewedCommit": "6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd",
+        "scope": "Current supplied whole-view capture; later changed placements require their own review."
+      },
+      "Play/overview": {
+        "themes": [
+          "dark",
+          "light"
+        ],
+        "status": "approved",
+        "userStatement": "Approved continue",
+        "reviewedCommit": "6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd",
+        "scope": "Current supplied whole-view capture; later changed placements require their own review."
+      },
+      "Bets/overview": {
+        "themes": [
+          "dark",
+          "light"
+        ],
+        "status": "approved",
+        "userStatement": "Approved continue",
+        "reviewedCommit": "6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd",
+        "scope": "Current supplied whole-view capture; later changed placements require their own review."
+      }
+    },
+    "next": "League logo switcher comparison",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -1997,7 +2028,7 @@
           "dark",
           "light"
         ],
-        "status": "Reopened after Sean said he had not looked closely",
+        "status": "Closed by explicit whole-view approval at 6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd",
         "previousAcceptance": {
           "themes": [
             "dark",
@@ -2012,7 +2043,7 @@
           "dark",
           "light"
         ],
-        "status": "Reopened after Sean said he had not looked closely",
+        "status": "Closed by explicit whole-view approval at 6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd",
         "previousAcceptance": {
           "themes": [
             "dark",
@@ -2027,7 +2058,7 @@
           "dark",
           "light"
         ],
-        "status": "Reopened after Sean said he had not looked closely",
+        "status": "Closed by explicit whole-view approval at 6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd",
         "previousAcceptance": {
           "themes": [
             "dark",
@@ -2046,7 +2077,7 @@
     "pendingClarification": null,
     "contentRevision": {
       "authorization": "Sean confirmed useful miniature content previews",
-      "state": "Implemented for re-review",
+      "state": "Reopened Home/Play/Bets current whole-view flags closed at 6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd; remaining areas retain scoped reviews.",
       "yardLineConcern": "Decorative field graphic removed; clean full-name matchup summary used",
       "sparseCardConcern": "Game, trend, player-usage, team and community previews added",
       "teamMarks": "Remain in held phase; no logo assets or icon redesign introduced"
@@ -2061,7 +2092,7 @@
       "Bets",
       "Research"
     ],
-    "status": "Implemented for review; not visually accepted"
+    "status": "Home/Play/Bets current whole-view captures approved at 6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd; Research retains its separately recorded scoped reviews."
   },
   "visualExpansion": {
     "authorized": "2026-11-04",
@@ -2069,8 +2100,8 @@
     "options": "icon-treatment-options.html",
     "defaultPreview": "03 Glossy glass, selected by Sean accepting the assistant recommendation",
     "assets": "visual-assets/sources.json",
-    "leagueMarks": "Not added; league-wide replacements remain outstanding",
-    "screenAcceptance": "All previous screen approvals remain reopened"
+    "leagueMarks": "Five NFL/EPL switcher options prepared for owner selection; not yet applied across the selected viewer or production. See leagueLogoSwitcherReview.",
+    "screenAcceptance": "Reopened Home/Play/Bets whole-view flags closed at 6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd; later specialized approvals remain scoped. League logo changes pending."
   },
   "iconSelection": {
     "id": "3",
@@ -2085,16 +2116,17 @@
     "id": "compact",
     "date": "2026-11-05",
     "basis": "Sean selected compact version from side-by-side Home comparison",
-    "scope": "Home action card in both mockup themes; whole-screen acceptance remains pending",
+    "scope": "Home compact action card selected in both themes; current whole-view Home capture additionally approved at 6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd.",
     "headline": "Finish your picks",
     "dialSize": "60px",
     "cardPadding": "18px",
     "savedHeight": "approximately 108px",
-    "comparison": "home-compact-review.html"
+    "comparison": "home-compact-review.html",
+    "wholeViewApproval": "Current Home capture approved at 6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd"
   },
   "homeMatchupMarks": {
     "date": "2026-11-05",
-    "status": "Implemented for visual review, not new screen acceptance",
+    "status": "Approved in supplied Home whole-view capture at 6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd",
     "scope": "Both teams in each Home matchup row, dark and light",
     "pairs": [
       [
@@ -2132,7 +2164,7 @@
   },
   "betsTicketVisuals": {
     "date": "2026-11-05",
-    "status": "Mocked for review; acceptance pending",
+    "status": "Approved in supplied Bets whole-view capture at 6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd",
     "scope": "Replace 01/02 ticket blocks with selected glossy ticket glyphs and add Pending/Settled badges in both themes",
     "fixtures": "Original titles, ticket status, +0.75U result and native actions retained",
     "delivery": "Owner is on phone and cannot use local files or localhost. Present screenshots inline with phone-accessible image URLs.",
@@ -2764,7 +2796,7 @@
   },
   "betsTicketDetailPreview": {
     "prepared": "2026-11-06",
-    "status": "Mocked; awaiting Sean visual approval",
+    "status": "Current supplied open/settled receipt and selection/terms whole views approved at 6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd; advanced/specialized states retain their separate recorded scopes.",
     "views": [
       "selected-system-review.html?screen=Bets&layer=ticket",
       "selected-system-review.html?screen=Bets&layer=tracking"
@@ -2827,7 +2859,12 @@
     ],
     "delivery": "Phone-width extended-height captures; terms view 1300px. Not physical-device acceptance.",
     "production": "Unchanged; no account writes, merge or deployment",
-    "deferred": "Player suggestions, further prop/correction/tail/settlement and other unseen states remain unreviewed. New avatars, awards and parked Signal branding remain held."
+    "deferred": "Player suggestions, further prop/correction/tail/settlement and other unseen states remain unreviewed. New avatars, awards and parked Signal branding remain held.",
+    "wholeViewApproval": {
+      "status": "approved",
+      "reviewedCommit": "6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd",
+      "scope": "Supplied open/settled receipt and selection/terms scroll captures; no live save or production behavior acceptance."
+    }
   },
   "betsEntryControlsRevision": {
     "prepared": "2026-11-06",
@@ -5825,37 +5862,30 @@
   "currentVisualPassReconciliation": {
     "nba": "Parked by owner and excluded from this visual pass; no NBA mockups made.",
     "eplShell": "The eight supplied EPL league/History/Bets/Info captures are approved in both themes at c6fb2b44bacc90fa44ba89e8932da7343e20cf4b.",
-    "remainingVisualReview": "OVERVIEW_CLOSEOUT_REVIEW.md",
-    "remainingScope": "Older explicitly reopened Home/Play/Bets overview records and original tracked-ticket/entry whole-view records still lack explicit acceptance. Later component or specialized-state approvals are retained, without treating them as blanket overview acceptance.",
+    "remainingVisualReview": "LEAGUE_LOGO_SWITCHER_REVIEW.md",
+    "remainingScope": "Previously requested NFL/EPL league-logo replacement, preserving each logo in a separate selected-style glass tile. No new avatar/photo/award work.",
     "alreadyApprovedVirtualCaptures": [
       "nfl-actions-virtual-minimum-dark-phone.png",
       "nfl-actions-virtual-minimum-light-phone.png"
     ],
-    "pendingCaptureCount": 14,
+    "pendingCaptureCount": 6,
     "pendingCaptures": [
-      "overview-closeout-home-dark-phone.png",
-      "overview-closeout-home-light-phone.png",
-      "overview-closeout-play-dark-phone.png",
-      "overview-closeout-play-light-phone.png",
-      "overview-closeout-bets-dark-phone.png",
-      "overview-closeout-bets-light-phone.png",
-      "overview-closeout-settled-ticket-dark-phone.png",
-      "overview-closeout-settled-ticket-light-phone.png",
-      "overview-closeout-open-ticket-dark-phone.png",
-      "overview-closeout-open-ticket-light-phone.png",
-      "overview-closeout-entry-selection-dark-phone.png",
-      "overview-closeout-entry-selection-light-phone.png",
-      "overview-closeout-entry-terms-dark-phone.png",
-      "overview-closeout-entry-terms-light-phone.png"
+      "league-logo-options-dark-phone.png",
+      "league-logo-options-light-phone.png",
+      "league-logo-nfl-context-dark-phone.png",
+      "league-logo-nfl-context-light-phone.png",
+      "league-logo-epl-context-dark-phone.png",
+      "league-logo-epl-context-light-phone.png"
     ],
     "held": "New avatar/photo choices, new award/celebration exploration and parked Signal assets remain held while the first visual project is unfinished.",
     "production": "No production integration, deployment or whole-project completion is claimed.",
     "nflActions": "All 106 supplied captures approved: remaining 104 at 9c2aa961f14f6a68cc51858e777c4e0796a9b5e5 plus two prior Virtual-minimum captures.",
-    "openRequirementAudit": "The earlier league-wide logo replacement request is not established as fulfilled by the current NFL/EPL text selector. Current rendered frame approval does not silently close that separate requirement. Reconcile scope before claiming the first project finished.",
-    "approvedNFLActionCaptureCount": 106
+    "openRequirementAudit": "League-logo replacement is active in the current project per November 4 authorization; preparing five switcher treatments before owner selection. Production/source/device acceptance remains separate.",
+    "approvedNFLActionCaptureCount": 106,
+    "overviewCloseout": "All fourteen supplied captures approved at 6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd."
   },
   "overviewCloseoutReview": {
-    "status": "Prepared: fourteen current phone captures, owner whole-view approval pending",
+    "status": "Approved: fourteen supplied overview/ticket/entry captures in both themes",
     "reason": "The final approval audit found explicit unresolved overview/ticket statuses outside the newly approved NFL batch. These are existing views, not new feature proposals or changes to approved components.",
     "views": [
       "Home/overview",
@@ -6022,8 +6052,123 @@
     },
     "dataScope": "Root overview numbers are illustrative. Ticket selections reuse previously reviewed public historical Week 8 references, not fresh quotes or submission-time references. Book, odds and quote/placement times remain unknown/blank. Receipts are fictional; no account read or save.",
     "approval": {
-      "status": "pending",
-      "scope": "Only the fourteen supplied current overview/ticket/entry captures; existing component and specialized-state approvals remain valid."
+      "status": "approved",
+      "scope": "Only the fourteen supplied current overview/ticket/entry captures; existing component and specialized-state approvals remain valid.",
+      "userStatement": "Approved continue",
+      "question": "Do these overview and ticket screens look good in both themes?",
+      "reviewedCommit": "6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd",
+      "reviewedCaptures": [
+        "previews/overview-closeout-home-dark-phone.png",
+        "previews/overview-closeout-home-light-phone.png",
+        "previews/overview-closeout-play-dark-phone.png",
+        "previews/overview-closeout-play-light-phone.png",
+        "previews/overview-closeout-bets-dark-phone.png",
+        "previews/overview-closeout-bets-light-phone.png",
+        "previews/overview-closeout-settled-ticket-dark-phone.png",
+        "previews/overview-closeout-settled-ticket-light-phone.png",
+        "previews/overview-closeout-open-ticket-dark-phone.png",
+        "previews/overview-closeout-open-ticket-light-phone.png",
+        "previews/overview-closeout-entry-selection-dark-phone.png",
+        "previews/overview-closeout-entry-selection-light-phone.png",
+        "previews/overview-closeout-entry-terms-dark-phone.png",
+        "previews/overview-closeout-entry-terms-light-phone.png"
+      ]
     }
+  },
+  "leagueLogoSwitcherReview": {
+    "status": "Five visual options prepared in both themes; owner choice pending. No selected-system or production replacement yet.",
+    "authorization": "November 4 visualExpansion brings team/league logos and icon choices into this current project; latest Approved continue accepts fourteen existing overview/ticket captures and continues the work.",
+    "index": "LEAGUE_LOGO_SWITCHER_REVIEW.md",
+    "viewer": "league-logo-switcher-review.html",
+    "options": [
+      {
+        "id": "01",
+        "name": "Rounded glass squares",
+        "recommended": true
+      },
+      {
+        "id": "02",
+        "name": "Glass circles"
+      },
+      {
+        "id": "03",
+        "name": "Compact glass capsules"
+      },
+      {
+        "id": "04",
+        "name": "Lifted lime glass"
+      },
+      {
+        "id": "05",
+        "name": "Quiet glass + underline"
+      }
+    ],
+    "preserved": "Selected G geometry/finish, charcoal and Porcelain recipes, ivory/ink type, floating clear glass, selective lime; original league marks retain aspect/color, with official white/purple PL variants by theme. Each tile has its own border/background/shadow; no shared backdrop.",
+    "sourceRegister": "visual-assets/league-marks/sources.json",
+    "scope": "Logo-only sport switcher comparison; accessible full league names, native-button semantics, title and visible focus retained. Context card actions are static illustration; no app route or data logic. Existing initials are retained, not avatar work.",
+    "verification": {
+      "responsiveLayouts": 32,
+      "widths": [
+        320,
+        390,
+        768,
+        1440
+      ],
+      "selectionChecks": 48,
+      "visibleDecodedImages": 56,
+      "captureCount": 6,
+      "inspectedCaptures": 6,
+      "pageErrors": 0,
+      "nonGETRequests": 0,
+      "externalBrowserRequests": 0,
+      "OSDialogs": 0,
+      "storageWrites": 0,
+      "checks": "Both NFL/EPL active states, keyboard Enter/focus, one selected item, min44px buttons, independent tile backgrounds/shadows, contain-aspect images and no horizontal overflow."
+    },
+    "captures": [
+      {
+        "file": "previews/league-logo-options-dark-phone.png",
+        "view": "options",
+        "theme": "dark",
+        "sha256": "5403c37a5ebeb38d7602a82e6a177f6ccc1a3edfb7f0cbfae4e77f12c48c18a7"
+      },
+      {
+        "file": "previews/league-logo-options-light-phone.png",
+        "view": "options",
+        "theme": "light",
+        "sha256": "478f9032c2fe28af9839c5880185aece17db003a310d0976e1379a64d1dea3e6"
+      },
+      {
+        "file": "previews/league-logo-nfl-context-dark-phone.png",
+        "view": "nfl-context",
+        "theme": "dark",
+        "sha256": "ddd733c8268c04490c56094ba6c6d72fb94073b819452b9d275a219e3528a0f1"
+      },
+      {
+        "file": "previews/league-logo-nfl-context-light-phone.png",
+        "view": "nfl-context",
+        "theme": "light",
+        "sha256": "03904a39dd28c44ec96d3a4d8af73e8e86d19480661d94c7bd83f50585d0e89d"
+      },
+      {
+        "file": "previews/league-logo-epl-context-dark-phone.png",
+        "view": "epl-context",
+        "theme": "dark",
+        "sha256": "e64b7719284259124cad2d0ee95eac482456b7adb11d199be4593d94b0145769"
+      },
+      {
+        "file": "previews/league-logo-epl-context-light-phone.png",
+        "view": "epl-context",
+        "theme": "light",
+        "sha256": "4ed62d2b441cb0b4e97f7a914f28e48c581ad0dafd9f86eb924b1fad58ec67ec"
+      }
+    ],
+    "approval": {
+      "status": "pending",
+      "question": "Which league-logo tile style should we use?",
+      "recommendation": "01"
+    },
+    "remaining": "After owner selection, carry the chosen header placement into the paired viewer and reconcile other visible sport/team abbreviation placements; these options do not establish app-wide replacement or production acceptance.",
+    "held": "NBA parked. New avatar/photo and popup/award work held. Three parked Signal files untouched and unpublished. No merge/deploy/migration."
   }
 }
