@@ -1,4 +1,33 @@
 # GUESS THE LINE — BRAND & DESIGN SYSTEM v1.0
+
+## Prism Glass production foundation — November 7, 2026
+
+The approved November 4–7 mockups supersede older D-38/D-55 palette, material
+and typography recipes below for this implementation. Sean approved the fuller
+pick-focused scorecard (“Perfect”) and authorized native production work. See
+[implementation and approval provenance](PRISM_PRODUCTION_IMPLEMENTATION.md).
+This is task-branch implementation, not a production deployment record.
+
+Use charcoal `#202126`, ivory `#F3E9D7`, muted `#C4B9A6` and lime `#B8F34B`
+in Dark; Porcelain `#E9ECE8`, ink `#243128`, muted `#536252` and deep green
+`#3B6309` in Light. Exact gradients, 28px glass cards, inset gloss/depth,
+18px blur and transparent 3px outlined primary actions are in
+`design/tokens-next.json` and matching native tokens. Flat solid surfaces are
+the readable fallback for controls, modal content and reduced transparency.
+Headings use sentence case and the selected native-first stack:
+`-apple-system, BlinkMacSystemFont, Inter, "Segoe UI", sans-serif`.
+Inter is the only new-app webfont fallback; tabular numbers remain mandatory.
+
+Every team mark has its own circular glass background with contain-fit art;
+the G is excluded. Existing fallback letters remain until decode or on asset
+failure. Semantic win/loss/data colors and labels retain their meaning. In
+this palette, lime on the light surfaces is only 1.08 to 1.23:1; use the
+deep-green action outline and accent ink. Automated contrast gates remain
+4.5:1 for text and 3:1 for control edges. Older recorded palette ratios below
+are historical. The hybrid G finish, league navigation/wording, typed scorecard
+contexts and section-specific refinements are tracked separately; no frozen
+tracker, scoring/privacy/source boundary or stored record changes here.
+
 Status: canonical for all product UI, documents, dashboards, presentations, notifications, iOS, and agent-generated assets. Updated 2026-10-08.
 The new app (D-38, `web/src/next/`) follows the [D-38 section](#d-38-redesign-system-the-new-app--october-14-2026) at the end of this guide. Since D-65 (October 28, 2026) it is the only app; the old app is no longer built or served. Everything above is the old app's legacy styling, which only the sign-in screen (until build plan stage 76) and the local engineering dashboard still use.
 

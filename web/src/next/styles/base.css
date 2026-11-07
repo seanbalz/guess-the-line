@@ -10,7 +10,7 @@
 .gx {
   min-height: 100vh;
   min-height: 100dvh;
-  background: var(--gx-wash) no-repeat top / 100% 320px, var(--gx-canvas);
+  background: var(--gx-canvas-gradient);
   color: var(--gx-text-1);
   font: 500 16px/24px var(--gx-font-body);
   font-synthesis: none;

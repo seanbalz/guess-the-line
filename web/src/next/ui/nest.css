@@ -16,9 +16,10 @@
 .gx .gx-nest-card {
   display: flex; flex-direction: column; gap: var(--gx-space-4); min-width: 0;
   margin-inline: calc(var(--gx-nest-depth) * var(--gx-nest-step)); padding: var(--gx-space-4);
-  border: 1px solid var(--gx-border); border-radius: var(--gx-radius-lg); background: var(--gx-surface-2);
+  border: 1px solid var(--gx-glass-line); border-radius: var(--gx-radius-lg); background: var(--gx-card-face);
+  box-shadow: var(--gx-e1); -webkit-backdrop-filter: var(--gx-glass-blur); backdrop-filter: var(--gx-glass-blur);
 }
-.gx .gx-nest[data-depth="0"] .gx-nest-card { background: var(--gx-surface-1); }
+.gx .gx-nest[data-depth="0"] .gx-nest-card { background: var(--gx-card-face); }
 .gx .gx-nest-head { display: flex; align-items: center; justify-content: space-between; gap: var(--gx-space-2); min-width: 0; }
 .gx .gx-nest-title { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .gx .gx-nest-title:focus { outline: none; }
@@ -27,11 +28,11 @@
 .gx .gx-nest-list { display: flex; flex-direction: column; gap: var(--gx-space-3); margin: 0; padding: 0; list-style: none; }
 .gx .gx-nest-tile {
   display: flex; flex-direction: column; gap: var(--gx-space-2); width: 100%; min-width: 0; min-height: var(--gx-size-touch);
-  padding: var(--gx-space-3); border: 1px solid var(--gx-border); border-radius: var(--gx-radius-md);
-  background: var(--gx-surface-3); color: var(--gx-text-1); font: inherit; text-align: left;
+  padding: var(--gx-space-3); border: 1px solid var(--gx-glass-line); border-radius: var(--gx-radius-md);
+  background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); color: var(--gx-text-1); font: inherit; text-align: left;
 }
 .gx button.gx-nest-tile { cursor: pointer; }
-.gx .gx-nest[data-depth="0"] .gx-nest-tile { background: var(--gx-surface-2); }
+.gx .gx-nest[data-depth="0"] .gx-nest-tile { background: var(--gx-card-face); }
 .gx .gx-nest-tile-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--gx-space-2); min-width: 0; }
 .gx .gx-nest-num { white-space: nowrap; }
 /* D-75 glass trend tiles, hero and chart card: one number each; the glass and data tokens carry both themes. */

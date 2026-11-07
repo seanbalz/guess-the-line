@@ -59,13 +59,13 @@ test('radius, spacing, motion and type-scale tokens are exported as CSS variable
   }
 });
 
-// Board item 73: the browser bar and the installed app's frame use the new app's canvas for each theme (D-38: #070B16
-// dark, #EEF1F6 light), never the old app's navy or light page color. index.html names both before the app starts, and
+// The browser bar and installed app frame use the selected charcoal/Porcelain canvas,
+// never the legacy navy/light colors. index.html names both before the app starts, and
 // Theme.jsx sets both tags to the theme in use once it resolves the device choice (checked in a browser by
 // tests/cloud-browser/next-brand-chrome.spec.js).
 test('index.html theme-color: one tag per color scheme, the new app canvas; the old app colors never come back', () => {
   const next = JSON.parse(fs.readFileSync(path.join(root, 'design/tokens-next.json'), 'utf8'));
-  assert.deepEqual(next.themeColor, { dark: '#070B16', light: '#EEF1F6' });
+  assert.deepEqual(next.themeColor, { dark: '#202126', light: '#E9ECE8' });
   const html = fs.readFileSync(path.join(root, 'web/index.html'), 'utf8');
   const metas = [...html.matchAll(/<meta name="theme-color"([^>]*)\/>/g)].map(([, attrs]) => ({ media: attrs.match(/media="([^"]+)"/)?.[1] ?? null, content: attrs.match(/content="([^"]+)"/)?.[1] }));
   assert.deepEqual(metas, [

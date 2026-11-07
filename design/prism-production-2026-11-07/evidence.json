@@ -1,0 +1,88 @@
+{
+  "date": "2026-11-07",
+  "kind": "PRISM_NATIVE_FOUNDATION_REVIEW",
+  "baseMain": "7604cee25f4182d7c5262217c05f20d84b2994e3",
+  "approvedDesignSource": "3ac2eb50513ba73447ef890e4a47863cde7bdd76",
+  "scorecardApproval": {
+    "statement": "Perfect",
+    "scope": "Both supplied fuller pick-focused scorecard themes"
+  },
+  "implementationAuthorization": "Move forward with rec",
+  "status": "Native shared design foundation implemented; full redesign integration and release remain open",
+  "captures": [
+    {
+      "file": "previews/home-dark-phone.png",
+      "theme": "dark",
+      "area": "home",
+      "sha256": "183f5df8a7dda6e6f1680db568b03f7a60c940257a6925c6ee36fc6f57598fc3",
+      "kind": "Native production component capture using disposable local SQL fixtures; no hosted account data"
+    },
+    {
+      "file": "previews/home-light-phone.png",
+      "theme": "light",
+      "area": "home",
+      "sha256": "f8df9542f4c8f15356a46d8cfc2734ef97261718bc09cd7dbce421b1075f60ab",
+      "kind": "Native production component capture using disposable local SQL fixtures; no hosted account data"
+    },
+    {
+      "file": "previews/research-games-dark-phone.png",
+      "theme": "dark",
+      "area": "research-games",
+      "sha256": "6b87ade5bfd019627918f70eec1f4d361691c6a7d377a8192f5739075281d235",
+      "kind": "Native production component capture using disposable local SQL fixtures; no hosted account data"
+    },
+    {
+      "file": "previews/research-games-light-phone.png",
+      "theme": "light",
+      "area": "research-games",
+      "sha256": "a53271fe9979211533db7d2e27875b3390643c5ea8a4594e5aa56e206f8b7143",
+      "kind": "Native production component capture using disposable local SQL fixtures; no hosted account data"
+    }
+  ],
+  "sourceFiles": [
+    "design/tokens-next.json",
+    "web/src/next/styles/tokens.css",
+    "web/src/next/styles/base.css",
+    "web/src/next/styles/components.css",
+    "web/src/next/ui/nest.css",
+    "web/src/next/ui/tile.css",
+    "web/src/next/shell/shell.css"
+  ],
+  "verification": {
+    "tokenAndFontTests": 22,
+    "vitestFiles": 85,
+    "vitestTests": 889,
+    "uiKitBrowserBatch": 28,
+    "nativeAccessibilityBatch": 11,
+    "nativeFlowsBatch": 24,
+    "browserBatchOverlap": 6,
+    "browserUniqueCases": 57,
+    "affectedEplSqlTests": 21,
+    "productionBuild": true,
+    "typecheck": true,
+    "brandQA": true,
+    "fullNodeSuite": {
+      "tests": 2931,
+      "passed": 2931,
+      "failed": 0,
+      "skipped": 0,
+      "note": "Full rerun after timing/Windows test repairs, followed by affected token, component and full UI-kit verification after the fallback-only repair"
+    },
+    "independentReview": "One P2 smallest-circle fallback clipping finding fixed; no remaining important findings on re-review"
+  },
+  "limits": [
+    "No hosted account read/write, production deploy or migration",
+    "Chromium and disposable PGlite evidence, not physical iPhone or hosted acceptance",
+    "Windows POSIX mode bits do not establish NTFS ACL privacy; POSIX permissions remain checked on POSIX",
+    "Hybrid G finish, league navigation/wording, typed scorecard and section-specific layouts and approved interaction refinements remain following slices"
+  ],
+  "productionSourceSha256": {
+    "design/tokens-next.json": "5fe84899e864e07053e0c6e0938ebbc1f7572722d4267c75523df04a3aff021f",
+    "web/src/next/styles/tokens.css": "86a63272a78c3f355d6fdc7264466c802687de76f1a7301f69067cdd3b7b427f",
+    "web/src/next/styles/base.css": "1c73f55a5ff47225f7a136165ccce52c1c911eb590b77ac7397a1c7d1195c050",
+    "web/src/next/styles/components.css": "8cc8207f96149bcad38954e66357b0f4dd5f4e13654c3e324cc939c5512be3d5",
+    "web/src/next/ui/nest.css": "004525006459889dc57d125311a3dc36a075a6b5f02e398b1e17b78a8ce13098",
+    "web/src/next/ui/tile.css": "af45d14414eff372692ac5c6c34785096ddc1bd0f1ca02a263c5bfdb78facc8d",
+    "web/src/next/shell/shell.css": "57bee3478112885991af20a3cb612fd8df8ea516052fe0f3e76d7a180efd06e1"
+  }
+}

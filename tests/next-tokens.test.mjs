@@ -99,7 +99,9 @@ const shared = Object.fromEntries(SHARED_GROUPS.flatMap(group => Object.entries(
 const themeVars = name => Object.fromEntries(Object.entries({ ...tokens.themes[name].color, ...tokens.themes[name].effect }).map(([key, value]) => [`--gx-${key}`, value]));
 const dark = themeVars('dark'), light = themeVars('light');
 const LIGHT_SELECTORS = [':root[data-theme="light"] .gx:not([data-theme="dark"])', '.gx[data-theme="light"]'];
-const familyName = key => tokens.font[key].split(',')[0].replaceAll('"', '').trim();
+// The approved Prism stack leads with native Apple/system fonts. Inter is the web fallback;
+// platform families do not need a Google Fonts download to make the same weight available.
+const familyName = key => tokens.font[key].includes('Inter') ? 'Inter' : tokens.font[key].split(',')[0].replaceAll('"', '').trim();
 
 test('tokens-next.json is complete: both themes define the same tokens, colors are hex and fonts are loaded', () => {
   assert.equal(tokens.name, 'Guess The Line');
@@ -115,9 +117,10 @@ test('tokens-next.json is complete: both themes define the same tokens, colors a
   assert.equal(tokens.css.classPrefix, 'gx-');
   assert.deepEqual(tokens.css.files, [tokensFile, `${stylesDir}/base.css`, `${stylesDir}/components.css`]);
   for (const file of tokens.css.files) assert.ok(files.includes(file), `${file} exists`);
-  // Each stack leads with a family the Google Fonts link loads, then system fallbacks.
+  // Native-first on Apple, with an explicitly loaded cross-platform fallback.
   for (const key of Object.keys(tokens.font)) {
-    assert.ok(familyName(key) in tokens.webfonts.weights, `${key} leads with a loaded family`);
+    assert.match(tokens.font[key], /^-apple-system, BlinkMacSystemFont, Inter, "Segoe UI", sans-serif$/, `${key}: approved platform stack`);
+    assert.ok(familyName(key) in tokens.webfonts.weights, `${key} has a loaded fallback`);
     assert.match(tokens.font[key], /sans-serif$/, `${key} ends in a generic family`);
   }
   // Big Shoulders Display has no tabular figures: never for numbers.
@@ -176,7 +179,7 @@ const contrast = (a, b) => { const [hi, lo] = [luminance(a), luminance(b)].sort(
 
 test('contrast: text and icons at least 4.5:1, control edges and focus at least 3:1, in both themes', () => {
   const surfaces = ['canvas', 'surface-1', 'surface-2', 'surface-3', 'accent-tint', 'toast-bg', 'seg-on'];
-  const inks = ['text-1', 'text-2', 'text-3', 'accent-ink', 'data', 'win', 'loss', 'pending', 'live'];
+  const inks = ['text-1', 'text-2', 'text-3', 'accent-ink', 'primary-ink', 'data', 'win', 'loss', 'pending', 'live'];
   const states = ['data', 'win', 'loss', 'pending', 'live'];
   for (const name of ['dark', 'light']) {
     const c = tokens.themes[name].color;
@@ -199,15 +202,15 @@ test('contrast: text and icons at least 4.5:1, control edges and focus at least 
     for (const [fill, hex] of Object.entries(tokens.av)) if (fill !== 'ink' && contrast(tokens.av.ink, hex) < 4.5) failures.push(`avatar initials on ${fill}`);
     assert.deepEqual(failures, []);
   }
-  // The tightest pairs the design system recorded (design-final section 4) still hold.
-  assert.equal(contrast(tokens.themes.dark.color['text-3'], tokens.themes.dark.color['accent-tint']).toFixed(2), '4.80');
-  assert.equal(contrast(tokens.themes.light.color.win, tokens.themes.light.color['surface-3']).toFixed(2), '4.87');
+  // Keep the semantic threshold across palette revisions rather than pinning the old palette's ratio.
+  assert.ok(contrast(tokens.themes.dark.color['text-3'], tokens.themes.dark.color['accent-tint']) >= 4.5);
+  assert.ok(contrast(tokens.themes.light.color.win, tokens.themes.light.color['surface-3']) >= 4.5);
   // The brand guide's reason for the light lime edge quotes lime's range on the light surfaces (stage 6 review: it
   // left out surface-3); keep it equal to the tokens.
   const light = tokens.themes.light.color;
   const lime = ['canvas', 'surface-1', 'surface-2', 'surface-3'].map(surface => contrast(light.accent, light[surface]));
   const range = `${Math.min(...lime).toFixed(2)} to ${Math.max(...lime).toFixed(2)}:1`;
-  assert.equal(range, '1.07 to 1.32:1');
+  assert.ok(lime.every(ratio => ratio < 3), 'light lime still requires the contrasting green edge');
   assert.ok(read('docs/BRAND_GUIDE.md').includes(`lime on the light surfaces is only ${range}`), `docs/BRAND_GUIDE.md says lime on the light surfaces is ${range}`);
 });
 
@@ -368,8 +371,10 @@ test('motion: keyframes animate only transform and opacity, and reduced motion s
       const name = decl.value.split(/\s+/).find(token => /^[a-z]/i.test(token) && !/^(ease|linear|infinite|alternate|forwards|backwards|both|step|var)/.test(token));
       assert.ok(allKeyframes.has(name), `${rule.file}: ${rule.selector} runs @keyframes ${name}, which is not defined`);
     }
-    // !important belongs only to the reduced-motion blocks, and to base.css's one [hidden] guard (its own test below).
+    // Accessibility preferences and the hidden guard must survive lazy screen styles.
     if (decl.important) assert.ok(rule.context.some(c => c.includes('prefers-reduced-motion: reduce')) || rule.selector.includes('[data-motion="reduce"]')
+      || (rule.context.includes('@media (prefers-reduced-transparency: reduce)')
+        && ((decl.prop === 'background' && decl.value === 'var(--gx-surface-1)') || (['backdrop-filter', '-webkit-backdrop-filter'].includes(decl.prop) && decl.value === 'none')))
       || (rule.file === `${stylesDir}/base.css` && rule.selector === HIDDEN_GUARD && decl.prop === 'display' && decl.value === 'none'), `${rule.file}: ${rule.selector} uses !important`);
   }
   const stops = rule => ['animation', 'transition'].every(prop => rule.decls.some(d => d.prop === prop && d.value === 'none' && d.important));

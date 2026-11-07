@@ -1,8 +1,8 @@
 {
   "name": "Guess The Line",
-  "system": "D-38 redesign: Arena with three grafts",
-  "version": "2.0.0",
-  "status": "Approved with the D-38 prototype (canvas version 2), October 14, 2026; D-55 glow, glass, chart and soft-card tokens approved October 21, 2026 (round 3 boards). Used only by the new app in web/src/next. design/tokens.json stays for the old app.",
+  "system": "Prism Glass: selected charcoal and Porcelain production foundation",
+  "version": "3.0.0",
+  "status": "Selected Prism recipes approved November 4–7, 2026; production implementation authorized November 7. Native foundation implemented in task branch; release and real-phone acceptance are separate. Legacy design/tokens.json is unchanged.",
   "css": {
     "root": ".gx",
     "classPrefix": "gx-",
@@ -16,18 +16,22 @@
     "motionAttribute": "data-motion"
   },
   "webfonts": {
-    "stylesheet": "https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Big+Shoulders+Display:wght@700;800&family=Figtree:wght@400;500;600;700;800&display=swap",
+    "stylesheet": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap",
     "preconnect": "https://fonts.gstatic.com",
     "weights": {
-      "Barlow Condensed": [500, 600, 700],
-      "Big Shoulders Display": [700, 800],
-      "Figtree": [400, 500, 600, 700, 800]
+      "Inter": [
+        400,
+        500,
+        600,
+        700,
+        800
+      ]
     }
   },
   "font": {
-    "display": "\"Big Shoulders Display\", Impact, \"Arial Narrow\", sans-serif",
-    "num": "\"Barlow Condensed\", \"Arial Narrow\", sans-serif",
-    "body": "Figtree, system-ui, -apple-system, \"Segoe UI\", sans-serif"
+    "display": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif",
+    "num": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif",
+    "body": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
   },
   "space": {
     "1": "4px",
@@ -43,9 +47,9 @@
   },
   "radius": {
     "xs": "6px",
-    "sm": "10px",
-    "md": "16px",
-    "lg": "24px",
+    "sm": "20px",
+    "md": "28px",
+    "lg": "28px",
     "pill": "999px"
   },
   "dur": {
@@ -94,42 +98,147 @@
     "sand": "#DCCDAE"
   },
   "type": {
-    "display": { "family": "display", "weight": 800, "size": "40px", "lineHeight": "40px", "transform": "uppercase", "tracking": "0.01em", "use": "Home hero line, celebration title. One per screen at most." },
-    "title": { "family": "display", "weight": 800, "size": "28px", "lineHeight": "32px", "transform": "uppercase", "tracking": "0.01em", "use": "The one screen title." },
-    "section": { "family": "display", "weight": 700, "size": "20px", "lineHeight": "24px", "transform": "uppercase", "tracking": "0.04em", "use": "Section heads, sheet and dialog titles." },
-    "team": { "family": "num", "weight": 700, "size": "20px", "lineHeight": "24px", "transform": "uppercase", "tracking": "0.02em", "tabular": true, "use": "Team abbreviations." },
-    "body": { "family": "body", "weight": 500, "size": "16px", "lineHeight": "24px", "use": "Reading text and inputs (16px stops iPhone zoom)." },
-    "strong": { "family": "body", "weight": 700, "size": "16px", "lineHeight": "24px", "use": "Names, button labels." },
-    "label": { "family": "body", "weight": 600, "size": "14px", "lineHeight": "20px", "tracking": "0.01em", "use": "Chip captions, small labels. Not for tappable text." },
-    "meta": { "family": "body", "weight": 500, "size": "13px", "lineHeight": "18px", "tracking": "0.01em", "use": "Kickoff, source and age." },
-    "micro": { "family": "body", "weight": 700, "size": "12px", "lineHeight": "16px", "transform": "uppercase", "tracking": "0.06em", "use": "Status pills and counters only. The floor." },
-    "n-xl": { "family": "num", "weight": 700, "size": "56px", "lineHeight": "56px", "tabular": true, "use": "Home countdown only." },
-    "n-l": { "family": "num", "weight": 700, "size": "32px", "lineHeight": "32px", "tabular": true, "use": "Final scores, your guess readout." },
-    "n-m": { "family": "num", "weight": 600, "size": "24px", "lineHeight": "28px", "tracking": "0.01em", "tabular": true, "use": "Lines on cards, board values." },
-    "n-s": { "family": "num", "weight": 600, "size": "18px", "lineHeight": "22px", "tracking": "0.01em", "tabular": true, "use": "Odds lines, chip numbers, small stats." },
-    "n-xs": { "family": "num", "weight": 600, "size": "16px", "lineHeight": "20px", "tracking": "0.01em", "tabular": true, "use": "Odds prices, to-win amounts." }
+    "display": {
+      "family": "display",
+      "weight": 600,
+      "size": "40px",
+      "lineHeight": "40px",
+      "transform": "none",
+      "tracking": "-0.02em",
+      "use": "Home hero line, celebration title. One per screen at most."
+    },
+    "title": {
+      "family": "display",
+      "weight": 600,
+      "size": "28px",
+      "lineHeight": "32px",
+      "transform": "none",
+      "tracking": "-0.02em",
+      "use": "The one screen title."
+    },
+    "section": {
+      "family": "display",
+      "weight": 600,
+      "size": "20px",
+      "lineHeight": "24px",
+      "transform": "none",
+      "tracking": "-0.02em",
+      "use": "Section heads, sheet and dialog titles."
+    },
+    "team": {
+      "family": "num",
+      "weight": 700,
+      "size": "20px",
+      "lineHeight": "24px",
+      "transform": "uppercase",
+      "tracking": "0.02em",
+      "tabular": true,
+      "use": "Team names beside contextual marks; stored team codes remain unchanged."
+    },
+    "body": {
+      "family": "body",
+      "weight": 500,
+      "size": "16px",
+      "lineHeight": "24px",
+      "use": "Reading text and inputs (16px stops iPhone zoom)."
+    },
+    "strong": {
+      "family": "body",
+      "weight": 700,
+      "size": "16px",
+      "lineHeight": "24px",
+      "use": "Names, button labels."
+    },
+    "label": {
+      "family": "body",
+      "weight": 600,
+      "size": "14px",
+      "lineHeight": "20px",
+      "tracking": "0.01em",
+      "use": "Chip captions, small labels. Not for tappable text."
+    },
+    "meta": {
+      "family": "body",
+      "weight": 500,
+      "size": "13px",
+      "lineHeight": "18px",
+      "tracking": "0.01em",
+      "use": "Kickoff, source and age."
+    },
+    "micro": {
+      "family": "body",
+      "weight": 700,
+      "size": "12px",
+      "lineHeight": "16px",
+      "transform": "uppercase",
+      "tracking": "0.06em",
+      "use": "Status pills and counters only. The floor."
+    },
+    "n-xl": {
+      "family": "num",
+      "weight": 700,
+      "size": "56px",
+      "lineHeight": "56px",
+      "tabular": true,
+      "use": "Home countdown only."
+    },
+    "n-l": {
+      "family": "num",
+      "weight": 700,
+      "size": "32px",
+      "lineHeight": "32px",
+      "tabular": true,
+      "use": "Final scores, your guess readout."
+    },
+    "n-m": {
+      "family": "num",
+      "weight": 600,
+      "size": "24px",
+      "lineHeight": "28px",
+      "tracking": "0.01em",
+      "tabular": true,
+      "use": "Lines on cards, board values."
+    },
+    "n-s": {
+      "family": "num",
+      "weight": 600,
+      "size": "18px",
+      "lineHeight": "22px",
+      "tracking": "0.01em",
+      "tabular": true,
+      "use": "Odds lines, chip numbers, small stats."
+    },
+    "n-xs": {
+      "family": "num",
+      "weight": 600,
+      "size": "16px",
+      "lineHeight": "20px",
+      "tracking": "0.01em",
+      "tabular": true,
+      "use": "Odds prices, to-win amounts."
+    }
   },
   "themeColor": {
-    "dark": "#070B16",
-    "light": "#EEF1F6"
+    "dark": "#202126",
+    "light": "#E9ECE8"
   },
   "themes": {
     "dark": {
       "colorScheme": "dark",
       "color": {
-        "canvas": "#070B16",
-        "surface-1": "#111A2D",
-        "surface-2": "#1B253B",
-        "surface-3": "#26314B",
-        "border": "#303D57",
-        "border-strong": "#7A89A6",
-        "text-1": "#F5F7FB",
-        "text-2": "#BAC6D8",
-        "text-3": "#95A2BB",
+        "canvas": "#202126",
+        "surface-1": "#292B30",
+        "surface-2": "#2E3035",
+        "surface-3": "#33353A",
+        "border": "#FFFFFF38",
+        "border-strong": "#969B94",
+        "text-1": "#F3E9D7",
+        "text-2": "#C4B9A6",
+        "text-3": "#C4B9A6",
         "accent": "#B8F34B",
         "accent-text": "#101B0A",
         "accent-ink": "#B8F34B",
-        "accent-tint": "#283831",
+        "accent-tint": "#2B3521",
         "data": "#38BDF8",
         "data-tint": "#17344D",
         "win": "#34D399",
@@ -140,25 +249,26 @@
         "pending-tint": "#32312C",
         "live": "#D08CFF",
         "live-tint": "#332F53",
-        "on-state": "#070B16",
+        "on-state": "#202126",
         "focus": "#38BDF8",
-        "overlay": "#070B16CC",
-        "toast-bg": "#26314B",
-        "seg-on": "#26314B",
-        "glass": "#FFFFFF1A",
-        "glass-line": "#FFFFFF33",
+        "overlay": "#17181DCC",
+        "toast-bg": "#292B30",
+        "seg-on": "#33353A",
+        "glass": "#FFFFFF14",
+        "glass-line": "#FFFFFF38",
         "track": "#FFFFFF29",
-        "hero-base": "#0C2540",
-        "hero-text-2": "#C9DCEB",
-        "chart-line": "#F5F7FB",
+        "hero-base": "#292B30",
+        "hero-text-2": "#C4B9A6",
+        "chart-line": "#F3E9D7",
         "glow-1": "#7DD3FC",
         "glow-2": "#34D399",
         "glow-3": "#B8F34B",
         "bar-1": "#7DD3FC",
-        "bar-2": "#34D399"
+        "bar-2": "#34D399",
+        "primary-ink": "#F3E9D7"
       },
       "effect": {
-        "e1": "inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 1px 2px rgba(0, 0, 0, 0.35)",
+        "e1": "inset 0 1px 0 #FFFFFF80, 0 4px 6px #00000070, 0 18px 28px #000000A6",
         "e2": "0 8px 24px rgba(0, 0, 0, 0.45)",
         "e3": "0 -16px 48px rgba(0, 0, 0, 0.6)",
         "glow-accent": "0 0 0 1px rgba(184, 243, 75, 0.6), 0 0 20px rgba(184, 243, 75, 0.3)",
@@ -167,28 +277,32 @@
         "lime-edge": "0 0 0 0 transparent",
         "av-ring": "0 0 0 0 transparent",
         "float-ring": "0 0 0 0 transparent",
-        "hero-shadow": "var(--gx-e1)",
-        "wash": "radial-gradient(120% 40% at 50% 0%, rgba(30, 99, 144, 0.35), transparent 60%)",
-        "yardlines": "repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 24px)",
-        "hero-card": "radial-gradient(110% 60% at 90% 25%, #1E6390 0%, rgba(30, 99, 144, 0) 62%), linear-gradient(170deg, #154870 0%, #0C2540 55%, #0A1730 100%)",
-        "hero-ring": "0 0 0 1px rgba(125, 211, 252, 0.3), 0 18px 48px rgba(0, 0, 0, 0.45)",
-        "glass-shadow": "inset 0 0 0 1px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 6px 18px rgba(0, 0, 0, 0.25)",
-        "glass-blur": "blur(14px)",
-        "chart-glow": "0.6"
+        "hero-shadow": "inset 0 1px 0 #FFFFFF80, 0 4px 6px #00000070, 0 18px 28px #000000A6",
+        "wash": "none",
+        "yardlines": "none",
+        "hero-card": "linear-gradient(135deg,#FFFFFF14,#FFFFFF06)",
+        "hero-ring": "inset 0 1px 0 #FFFFFF80, 0 4px 6px #00000070, 0 18px 28px #000000A6",
+        "glass-shadow": "inset 0 1px 0 #FFFFFF80, 0 4px 8px #00000030",
+        "glass-blur": "blur(18px)",
+        "chart-glow": "0.6",
+        "canvas-gradient": "linear-gradient(150deg,#2A2D37 0%,#202126 50%,#17181D 100%)",
+        "card-face": "linear-gradient(135deg,#FFFFFF14,#FFFFFF06)",
+        "primary-shadow": "inset 0 1px 0 #FFFFFF26, 0 8px 16px #00000080",
+        "secondary-shadow": "inset 0 1px 0 #FFFFFF40, 0 4px 8px #00000040"
       }
     },
     "light": {
       "colorScheme": "light",
       "color": {
-        "canvas": "#EEF1F6",
-        "surface-1": "#FFFFFF",
-        "surface-2": "#F3F5F9",
-        "surface-3": "#E3E8F0",
-        "border": "#D3DAE5",
-        "border-strong": "#6E7D96",
-        "text-1": "#0B1020",
-        "text-2": "#3C4A63",
-        "text-3": "#526078",
+        "canvas": "#E9ECE8",
+        "surface-1": "#F6F8F3",
+        "surface-2": "#EFF2EC",
+        "surface-3": "#E5EAE2",
+        "border": "#FFFFFFD9",
+        "border-strong": "#687462",
+        "text-1": "#243128",
+        "text-2": "#536252",
+        "text-3": "#536252",
         "accent": "#B8F34B",
         "accent-text": "#101B0A",
         "accent-ink": "#3B6309",
@@ -205,23 +319,24 @@
         "live-tint": "#F5E8FF",
         "on-state": "#FFFFFF",
         "focus": "#03658A",
-        "overlay": "#0B102099",
-        "toast-bg": "#FFFFFF",
-        "seg-on": "#FFFFFF",
-        "glass": "#FFFFFF",
-        "glass-line": "#E3E8F0",
+        "overlay": "#24312899",
+        "toast-bg": "#F6F8F3",
+        "seg-on": "#F6F8F3",
+        "glass": "#FFFFFFC7",
+        "glass-line": "#FFFFFFD9",
         "track": "#E3E8F0",
-        "hero-base": "#FFFFFF",
-        "hero-text-2": "#3C4A63",
+        "hero-base": "#F6F8F3",
+        "hero-text-2": "#536252",
         "chart-line": "#03658A",
         "glow-1": "#7DD3FC",
         "glow-2": "#6EE7B7",
         "glow-3": "#D9F99D",
         "bar-1": "#0284C7",
-        "bar-2": "#059669"
+        "bar-2": "#059669",
+        "primary-ink": "#2C4617"
       },
       "effect": {
-        "e1": "0 0 0 1px #E3E8F0, 0 8px 24px rgba(11, 16, 32, 0.07)",
+        "e1": "inset 0 1px 0 #FFFFFF, 0 4px 6px #20302412, 0 18px 28px #20302424",
         "e2": "0 8px 24px rgba(11, 16, 32, 0.12)",
         "e3": "0 -12px 40px rgba(11, 16, 32, 0.16)",
         "glow-accent": "0 0 0 2px #3B6309",
@@ -230,14 +345,18 @@
         "lime-edge": "inset 0 0 0 1px #3B6309",
         "av-ring": "0 0 0 1px #D3DAE5",
         "float-ring": "0 0 0 1px #6E7D96",
-        "hero-shadow": "var(--gx-e2)",
+        "hero-shadow": "inset 0 1px 0 #FFFFFF, 0 4px 6px #20302412, 0 18px 28px #20302424",
         "wash": "none",
         "yardlines": "none",
-        "hero-card": "linear-gradient(170deg, #FFFFFF 0%, #F4F9FD 100%)",
-        "hero-ring": "0 0 0 1px #E3E8F0, 0 10px 30px rgba(11, 16, 32, 0.08)",
-        "glass-shadow": "0 0 0 1px #E3E8F0, 0 6px 18px rgba(11, 16, 32, 0.07)",
-        "glass-blur": "none",
-        "chart-glow": "0"
+        "hero-card": "linear-gradient(135deg,#FFFFFFC7,#FFFFFF66)",
+        "hero-ring": "inset 0 1px 0 #FFFFFF, 0 4px 6px #20302412, 0 18px 28px #20302424",
+        "glass-shadow": "inset 0 1px 0 #FFFFFF, 0 4px 8px #20302420",
+        "glass-blur": "blur(18px)",
+        "chart-glow": "0",
+        "canvas-gradient": "linear-gradient(150deg,#FAFBF6,#E9ECE8 55%,#E0E7DE)",
+        "card-face": "linear-gradient(135deg,#FFFFFFC7,#FFFFFF66)",
+        "primary-shadow": "inset 0 1px 0 #FFFFFFCC, 0 8px 16px #24332318",
+        "secondary-shadow": "inset 0 1px 0 #FFFFFFCC, 0 4px 8px #24332312"
       }
     }
   }

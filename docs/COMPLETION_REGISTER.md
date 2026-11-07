@@ -1,5 +1,38 @@
 # Guess The Line — current completion register
 
+## Prism Glass — native production foundation implemented, November 7, 2026
+
+Sean approved the fuller pick-focused scorecard (“Perfect”) at
+`3ac2eb50513ba73447ef890e4a47863cde7bdd76` and authorized production work
+(“Move forward with rec”). [Implementation and verification](PRISM_PRODUCTION_IMPLEMENTATION.md)
+record the first native slice on a fresh-main task branch: matching production
+tokens, charcoal/Porcelain gradients, ivory/ink, native-first typography,
+floating glass cards/nesting, transparent outlined actions, shared shell
+surfaces and separate team circles with preserved decode/error fallbacks.
+No preview iframe/DOM adapter or fictional fixture entered the production app.
+
+Full Node rerun: 2,931 pass, zero fail/skip. Full Vitest after fallback repair:
+85 files / 889 tests pass. Typecheck, production build and Brand QA pass.
+Browser batches verified kit accessibility, native Home/Research/shell in both
+themes and real local Play/Bets flows; [four inspected native captures](../design/prism-production-2026-11-07/README.md)
+use disposable SQL fixtures, not hosted account data. Independent review found
+and resolved 24px three-letter fallback clipping; focused failure/decoding
+checks pass. Final kit evidence is linked from that capture record.
+
+The five EPL timing failures were reproduced on unchanged main and repaired
+in test fixtures by establishing a future database deadline. All 21 affected
+tests pass. A reproduced Windows POSIX-mode/file-symlink test incompatibility
+was repaired without changing the intake implementation or claiming NTFS ACL
+verification. Production SQL, rules, providers, permissions and saved data
+are unchanged. Main/other worktrees and parked Signal files remain untouched.
+
+The full redesign remains in progress: hybrid G finish, league navigation and
+wording, compact Home composition, typed scorecards/record labels, other
+section-specific arrangements and approved interaction refinements follow.
+Real-phone acceptance, exact-main CI, merge, protected readiness and release
+verification remain separate. No merge, deployment or migration here; frozen
+v62 and held avatars/photos/awards/NBA scope are preserved.
+
 ## D-69 design overhaul, step 3: Research — November 4, 2026
 
 Built on `claude/overhaul-step3-research` from the
