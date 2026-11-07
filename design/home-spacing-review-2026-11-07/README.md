@@ -1,6 +1,11 @@
 # Home spacing review — November 7, 2026
 
-Owner: Sean Balsiger. Status: **proposed mockups; not approved or deployed**.
+Owner: Sean Balsiger. Status: **approved and implemented locally; release pending**.
+
+Sean approved the exact Dark/Light review visuals and `preview.css` at review
+commit `5faead67b9a66091c595168d89bfe21556dec01f`, saying **“That looks better.
+Continue to deploy.”** The implementation ports those rules into the existing
+`web/src/next/home/approvedHome.css` declarations, limited to NFL Home.
 
 Sean requested better formatting and spacing across the page after the approved
 Home deployment. This review covers the NFL Home landing, retaining its selected
@@ -8,7 +13,7 @@ glass finish, colors, typography, content order, figures and controls. It does n
 extend the Home redesign to other pages. The Spread / Total selector and each
 team's individual circular background remain.
 
-## Proposed result
+## Approved result
 
 | Dark | Light |
 | --- | --- |
@@ -31,7 +36,7 @@ Compare the current source: [Dark top](before-dark-top.png),
 [Light overview](before-light-overview.png). Both variants use the same local
 fictional fixture, not a signed-in production account.
 
-## Recommendation
+## Approved layout
 
 Use balanced spacing: 16px page gutters and section gaps, 12–16px card padding,
 and a shared alignment grid. Move the progress ring alongside the action text;
@@ -62,11 +67,13 @@ its wrapper becomes layout-transparent; reduced motion remains respected.
 
 ## Evidence and boundaries
 
-The browser renders unchanged app source from main
+The original mockup browser rendered unchanged app source from main
 `42a5ad9930a5712c6b357564701fbb5628b12b43` (the deployed Home source plus its
-release record). [preview.css](preview.css) is injected into the browser only;
-the app does not import it. No app, API, database, migration, provider or build
-configuration file is changed. No release has been dispatched for this review.
+release record). [preview.css](preview.css) was injected into the review browser only;
+the app does not import that review artifact. The implementation changes only
+Home CSS and approval/status documentation. API, database, migration, provider,
+controllers, source data and build configuration remain unchanged. No release
+has been dispatched for this spacing update.
 
 The fixture uses the repository's real cloud handler and all local migrations on
 PGlite, with `createCommunityWorld` and `seedFinishedWeek`. Accounts, rank, points,
@@ -95,7 +102,22 @@ scroll-padding selector specificity as the existing Home stylesheet. It does not
 change that production rule or claim a physical-device test.
 
 [evidence.json](evidence.json) records dimensions, results and file hashes.
-Approval of these exact visuals is still required under Sean's standing
-mockup-first instruction. After approval, port only these Home layout overrides,
-run the relevant source/browser checks, and use the protected manual release
-workflow with fresh exact-source evidence.
+Sean's approval satisfies his standing mockup-first instruction for these exact
+visuals. Release remains subject to the protected manual workflow with fresh
+exact-source evidence.
+
+## Implementation verification
+
+The source preserves the selected Home tokens, fonts, glass finish, content and
+44px targets, with 80px charts and 15px SVG rank labels. The ring shares the
+wrapper's existing named pop animation (equivalent to the preview's inheritance);
+the canonical reduced-motion guards still stop both. Safe-area and focus-scroll
+padding rules are retained. No additional duplicate preview cascade is imported.
+
+Local checks: the canonical token and Home model/hero/moment suites passed 54/54;
+seven existing Home component suites passed 53/53. The existing Home and
+scroll/navigation browser specs passed 7/7 (no skips), including both-theme
+320/390px layout/axe, hidden-market leak/no-write checks, navigation restoration
+and cross-page scrolling/focus checks. The browser command built the current
+cloud-test app successfully. These checks use local fictional PGlite accounts;
+production deployment and physical-phone acceptance remain separate.
