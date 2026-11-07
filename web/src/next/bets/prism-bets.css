@@ -1,0 +1,39 @@
+/* Approved Prism receipts, performance and manual-entry controls. These selectors
+   stay inside native Bets; the shared tokens own the selected material recipes. */
+.gx .gx-bets .gx-tracked-feed { gap: var(--gx-space-6); }
+.gx .gx-bets .gx-tracked-row { padding: 0; }
+.gx .gx-bets .gx-tracked-expanded { padding: var(--gx-space-5) var(--gx-space-4); }
+.gx .gx-bets .gx-tracked-head { padding: 0; gap: var(--gx-space-3); }
+.gx .gx-bets .gx-tracked-title { padding: 0; margin: var(--gx-space-5) 0; }
+.gx .gx-bets .gx-tracked-title h2 { font: 600 23px/1.3 var(--gx-font-body); letter-spacing: -.7px; margin: 0; }
+.gx .gx-bets .gx-tracked-price { font: 600 16px/1.6 var(--gx-font-body); color: var(--gx-text-1); }
+.gx .gx-bets .gx-tracked-price--unknown { max-width: 68px; text-align: end; font: 500 13px/1.6 var(--gx-font-body); color: var(--gx-text-2); }
+.gx .gx-bets .gx-tracked-legs { grid-template-columns: minmax(0,1fr); padding: 0; gap: var(--gx-space-4); }
+.gx .gx-bets .gx-tracked-legs > li { display: grid; justify-items: center; text-align: center; gap: var(--gx-space-3); padding: var(--gx-space-5) var(--gx-space-3); border: 1px solid var(--gx-glass-line); border-radius: 22px; background: var(--gx-glass); box-shadow: var(--gx-glass-shadow); }
+.gx .gx-bets .gx-tracked-matchup .gx-mu-row { justify-content: center; gap: var(--gx-space-4); }
+.gx .gx-bets .gx-tracked-pick { color: var(--gx-accent-ink); font: 600 24px/1.4 var(--gx-font-num); font-variant-numeric: tabular-nums; }
+.gx .gx-bets .gx-tracked-single .gx-tracked-pick { font-size: 24px; line-height: 1.4; }
+.gx .gx-bets .gx-tracked-money { margin: var(--gx-space-6) 0; padding: var(--gx-space-4) 0; border-block: 1px solid var(--gx-glass-line); }
+.gx .gx-bets .gx-tracked-money dd { font: 600 26px/1.3 var(--gx-font-num); font-variant-numeric: tabular-nums; letter-spacing: -.7px; }
+.gx .gx-bets .gx-tracked-context { padding: 0; }
+.gx .gx-bets :is(.gx-tracked-menu,.gx-tracked-collapse) { border: 1px solid var(--gx-border); background: var(--gx-glass); box-shadow: var(--gx-glass-shadow); border-radius: 14px; color: var(--gx-accent-ink); }
+.gx .gx-bets .gx-tracked-preview { padding: var(--gx-space-5) var(--gx-space-4); gap: 18px; }
+.gx .gx-bets .gx-tracked-preview-money { padding-top: 18px; }
+.gx .gx-bets .gx-tracked-preview-money strong { font: 600 22px/1.4 var(--gx-font-num); font-variant-numeric: tabular-nums; }
+.gx .gx-bets .gx-tracked-detail { padding: var(--gx-space-5) 0 0; }
+.gx .gx-bets .gx-overview-card { padding: var(--gx-space-5) var(--gx-space-4); gap: 18px; }
+.gx .gx-bets .gx-overview-card h2 { font: 600 18px/1.5 var(--gx-font-body); margin: 0; }
+.gx .gx-bets .gx-overview-bar-row > strong { color: var(--gx-accent-ink); }
+.gx .gx-bets .gx-overview-bar-track > span { background-image: linear-gradient(90deg,var(--gx-accent-ink),var(--gx-accent-ink)); }
+.gx .gx-bets .gx-overview-result-key > button { background: var(--gx-glass); box-shadow: var(--gx-glass-shadow); border-radius: 14px; }
+.gx .gx-bets :is(.gx-overview-options > .gx-seg,.gx-bets-views) { border: 1px solid var(--gx-border); border-radius: 20px; background: var(--gx-glass); padding: 5px; gap: 6px; }
+.gx .gx-bets :is(.gx-seg-btn--on,.gx-bets-views [aria-pressed="true"]) { background: var(--gx-accent-tint); border-color: var(--gx-accent-ink); color: var(--gx-accent-ink); box-shadow: var(--gx-glass-shadow); }
+@media (max-width: 359px) {
+  .gx .gx-bets .gx-tracked-title h2 { font-size: 20px; }
+  .gx .gx-bets :is(.gx-tracked-expanded,.gx-overview-card) { padding: 18px 12px; }
+}
+@media (forced-colors: active) {
+  .gx .gx-bets :is(.gx-tracked-row,.gx-overview-card,.gx-tracked-legs > li) { border-color: CanvasText; }
+  .gx .gx-bets .gx-seg-btn--on { outline: 2px solid Highlight; }
+  .gx .gx-bets .gx-overview-bar-track > span { background: CanvasText; }
+}

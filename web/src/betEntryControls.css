@@ -77,6 +77,16 @@
   text-align: center;
   overflow-wrap: anywhere;
 }
+.social-ticket-adjustment {
+  display: grid;
+  grid-template-columns: 48px minmax(0,1fr) 48px;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.social-ticket-adjustment > button { display: grid; place-items: center; min-height: 48px; padding: 8px; }
+.social-ticket-adjustment output { text-align: center; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.social-ticket-step-note { color: var(--muted); }
 .social-entry-custom {
   display: grid;
   gap: var(--space-2, 8px);

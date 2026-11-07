@@ -32,7 +32,7 @@ export function TrackedBetRow({entry,games,unitCash,children}) {
   const shortRisk=cash(entry.stakeUnits)||(known(entry.stakeUnits)?fmtU(entry.stakeUnits):null),shortReturn=pending?(cash(result)||(known(result)?fmtU(result):null)):known(result)?fmtAmt(result):null;
   const returnLabel=pending?'Total return':'Net units',unknown=(label,value)=>value===null?`${label} · unknown`:label;
   const resultClass=!pending&&result>0?'gx-c-win':!pending&&result<0?'gx-c-loss':undefined;
-  return <article className="gx-tracked-row" aria-label={`${parlay?`${entry.legs.length}-leg parlay`:entry.legs[0]?.selection||'Tracked bet'} · ${status}`}>
+  return <article className="gx-tracked-row gx-card" aria-label={`${parlay?`${entry.legs.length}-leg parlay`:entry.legs[0]?.selection||'Tracked bet'} · ${status}`}>
     <button type="button" ref={preview} className="gx-tracked-preview" hidden={expanded} aria-label={`Expand ${title}`} aria-expanded={expanded} aria-controls={`${id}-ticket`} aria-describedby={`${id}-meta ${id}-money`} onClick={showTicket}>
       <span id={`${id}-meta`} className="gx-tracked-preview-head"><span>{source||'Book unknown'}</span><Pill tone={tone}>{status}</Pill></span>
       <span className="gx-tracked-preview-heading"><strong>{title}</strong><ChevronRight size={20} aria-hidden="true"/></span>
@@ -49,7 +49,7 @@ export function TrackedBetRow({entry,games,unitCash,children}) {
     <div className="gx-tracked-title"><h2>{title}{allTouchdowns&&<small>Anytime touchdowns</small>}</h2><span className={Number.isFinite(entry.odds)?'gx-tracked-price':'gx-tracked-price gx-tracked-price--unknown'}>{odds}</span></div>
     <ol className={parlay?'gx-tracked-legs':'gx-tracked-legs gx-tracked-single'} aria-label="Ticket selections">{entry.legs.map((leg,index)=>{
       const game=games.find(item=>item.id===leg.gameId),words=trackedLeg(leg);
-      return <li key={index}><span className="gx-tracked-matchup">{game?<Matchup away={game.awayCode||game.away} home={game.homeCode||game.home}/>:leg.gameId}</span>{parlay&&<strong className="gx-tracked-player">{words.name}</strong>}{words.pick&&<strong className="gx-tracked-pick">{words.pick}</strong>}{!allTouchdowns&&<span className="gx-tracked-market">{words.stat}</span>}</li>;
+      return <li key={index}><span className="gx-tracked-matchup">{game?<Matchup away={game.awayCode||game.away} home={game.homeCode||game.home} size={48} codes={false}/>:leg.gameId}</span>{parlay&&<strong className="gx-tracked-player">{words.name}</strong>}{words.pick&&<strong className="gx-tracked-pick">{words.pick}</strong>}{!allTouchdowns&&<span className="gx-tracked-market">{words.stat}</span>}</li>;
     })}</ol>
     <dl className="gx-tracked-money"><div><dt>{unknown('Risk',risk)}</dt><dd className="gx-n-m">{risk??DASH}{cash(entry.stakeUnits)&&<small>{unitText(entry.stakeUnits)}</small>}</dd></div><div><dt>{unknown(pending?'To return':'Net units',returned)}</dt><dd className={cx('gx-n-m',resultClass)}>{returned??DASH}<small>{pending?'Includes stake':'Player reported'}</small></dd></div></dl>
     <footer className="gx-tracked-context"><div className="gx-tracked-tags"><span>Week {entry.week}</span>{entry.countsForRecord===false&&<span>Excluded</span>}{entry.lateEntry&&<span>Recorded after kickoff</span>}</div><button type="button" className="gx-tracked-menu" aria-label="Ticket details" aria-expanded={open} aria-controls={`${id}-history`} onClick={()=>setOpen(v=>!v)}>Ticket details<ChevronDown size={16} aria-hidden="true"/></button></footer>

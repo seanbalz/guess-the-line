@@ -18,6 +18,8 @@ import { draftParts, savedTicketToast } from './recommendationReview.js';
 import { recommendationMarket } from '../../../../shared/recommended-bets.mjs';
 import './bets.css';
 import '../../liveBets.css';
+import './prism-bets.css';
+import '../../prismBets.css';
 
 const SocialBetTracker = lazy(() => import('../../SocialBetTracker.jsx'));
 // Each view's fine print, behind the title's ⓘ (D-55).
@@ -114,7 +116,7 @@ function BetsDetail() {
   const topic = destination === 'everyone' ? 'everyone' : TOPIC[view];
   if (view === 'research') return <>
     <Deferred resetKey={`${app.accountId}:research`} label="research recommendations"><ResearchAssessments key={app.accountId} onDirty={dirty} onTrack={trackRecommendation}/></Deferred>
-    {ticketRequest?.accountId === app.accountId && <Deferred resetKey={ticketRequest.id} label="bet review"><SocialBetTracker key={ticketRequest.id} player={app.accountId} reviewOnly initialView="mybets" ticketRequest={ticketRequest} onReviewDone={reviewDone} onDirty={reviewDirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred>}
+    {ticketRequest?.accountId === app.accountId && <div className="gx-bets gx-live-workflow"><Deferred resetKey={ticketRequest.id} label="bet review"><SocialBetTracker key={ticketRequest.id} player={app.accountId} reviewOnly initialView="mybets" ticketRequest={ticketRequest} onReviewDone={reviewDone} onDirty={reviewDirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred></div>}
   </>;
   return <section className="gx-screen gx-bets gx-live-workflow" aria-labelledby="gx-bets-title">
     <header className="gx-bets-heading">

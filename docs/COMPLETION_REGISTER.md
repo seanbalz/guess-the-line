@@ -16,6 +16,20 @@ has one owner question pending; structural changes are held without removing
 existing league switching. Virtual finer-unit entry has a documented API/SQL
 compatibility dependency. **Remaining rollout not merged or deployed.**
 
+## Selected Prism Bets native slice — November 7, 2026
+
+Locally checked on `codex/confirmed-prism-bets-2026-11-07`, over fresh main and
+the shared native foundation. Reviewed receipts, detailed analytics and manual entry/result/
+correction presentation use real controllers; exact terms, cash/units, missing
+sources/times, complete-leg validation and save recovery remain. Custom 0.01U
+tracked saves are compatible; Virtual half-unit writers remain unchanged with
+their concrete dependency recorded in [scope and verification](PRISM_BETS_NATIVE_2026_11_07.md).
+Unpublished area handoff only; no migration, PR, merge, hosted release or full
+redesign/actual-phone acceptance is claimed. Independent review found no blocking
+regression in this slice, but the approved Bets landing summary/chart, Tickets
+and Recommended card composition still needs its native port. Full overview,
+open/parlay, selection and correction/audit visual closeout remains separate.
+
 ## Selected Prism shared native foundation — November 7, 2026
 
 Locally checked on `codex/confirmed-prism-shared-2026-11-07`, based on fresh main
