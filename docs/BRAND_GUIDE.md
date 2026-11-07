@@ -1,4 +1,33 @@
 # GUESS THE LINE — BRAND & DESIGN SYSTEM v1.0
+
+## Approved Home release — November 7, 2026
+
+Sean approved the two `league-wording-home` phone mockups at review commit
+`3ac2eb50513ba73447ef890e4a47863cde7bdd76` and said **“Good deploy”**.
+This approval covers the National Football League Home landing only. It replaces
+Home's previous countdown and six-tile composition with the compact progress
+ring, separate season stats, graphical League/Research shortcuts, two upcoming
+game rows and Community activity card. Sean separately selected a Spread / Total
+selector for season rank and accuracy points; these markets must never be summed.
+
+Home uses the selected glossy-edge/frosted-center G (lime in Dark, deep green in
+Light), charcoal gradient / pale green canvas, ivory / dark-green text, floating
+glass cards and transparent primary button with the full green outline. The
+canonical `home-*` colors/effects and native Home font are additive entries in
+`design/tokens-next.json`. They apply only under `.gx-home-design`; all other
+page layouts and existing global tokens retain their current design. Each team
+and league mark has its own circle; the G has no circle. The sport switch keeps
+its existing access rules. Browser chrome follows Home while it is mounted and
+restores the existing theme when leaving it.
+
+Use live shared reads for player figures. Home's mini Research chart is explicitly
+historical scoring (2026 weeks 1–6), derived from the fingerprinted public
+nflverse subset, with no forecast or invented bookmaker quote. Asset sources and
+hashes are in `web/src/next/home/assets/sources.json`. League marks identify the
+sport and are third-party trademarks; no license, affiliation or endorsement is
+claimed. The [Home release plan](APPROVED_HOME_RELEASE_2026_11_07.md) records the
+exact approval and verification scope. The broader foundation PR #491 is excluded.
+
 Status: canonical for all product UI, documents, dashboards, presentations, notifications, iOS, and agent-generated assets. Updated 2026-10-08.
 The new app (D-38, `web/src/next/`) follows the [D-38 section](#d-38-redesign-system-the-new-app--october-14-2026) at the end of this guide. Since D-65 (October 28, 2026) it is the only app; the old app is no longer built or served. Everything above is the old app's legacy styling, which only the sign-in screen (until build plan stage 76) and the local engineering dashboard still use.
 

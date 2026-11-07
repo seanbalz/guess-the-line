@@ -326,17 +326,10 @@ for (const view of ['next']) test(`${view} sport entry/return, NFL and NBA draft
     await page.getByRole('button', { name: 'NFL', exact: true }).click();
     await expect(page.locator('.gx-nba')).toHaveCount(0);
     await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
-    // The sport row sits outside the sticky top bar, which keeps its token height: sticky Research group headings
-    // and Play's focus scroll margin are offset by --gx-size-topbar.
+    // Approved Home puts the league marks inside its header; other pages keep the existing sport row.
     await page.setViewportSize({ width: 390, height: 844 });
-    const bar = await page.locator('.gx-topbar').evaluate(el => {
-      const css = getComputedStyle(el);
-      return { height: el.getBoundingClientRect().height, expected: parseFloat(css.getPropertyValue('--gx-size-topbar')) + parseFloat(css.paddingTop) + parseFloat(css.borderBottomWidth) };
-    });
-    expect(bar.expected).toBeGreaterThanOrEqual(56);
-    expect(bar.height).toBe(bar.expected);
-    await expect(page.locator('.gx-topbar .gx-sport-controls')).toHaveCount(0);
-    await expect(page.locator('.gx-sport-controls').getByRole('group', { name: 'Sport', exact: true })).toBeVisible();
+    await expect(page.locator('.gx-topbar .gx-home-sports')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'National Football League', exact: true })).toHaveAttribute('aria-pressed', 'true');
     await expect(page.getByRole('button', { name: 'NBA', exact: true })).toHaveCount(0);
     // NBA is hidden from the switch; retained bookmarked routes still honor unsaved-draft guards.
     await page.setViewportSize({ width: 1440, height: 1000 });

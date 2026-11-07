@@ -13,6 +13,7 @@ async function open(page, account = 'sean') {
   await page.goto('about:blank');
   await page.goto('/');
   await signIn(page, account, { navigate: false });
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: /^Play(,|$)/ }).click();
   await page.getByRole('button', { name: /^League: .*\. Switch league$/ }).click();
 }
 async function setup(page, baseURL) {

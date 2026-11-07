@@ -132,6 +132,8 @@ test('only his leagues, the Community first; a choice is kept across a reload; a
     const calls = apiCalls(page);
     await openNewApp(page, 'luke');
     await expect(tabBar(page)).toBeVisible();
+    // Approved Home uses league marks in its header; the existing league picker remains on Play.
+    await tabBar(page).getByRole('button', { name: /^Play(,|$)/ }).click();
     await expect(pill(page)).toHaveAccessibleName('League: Community. Switch league');
     // The Play counter: both of this week's ballots are still due for Luke.
     await expect(tab(page, 'Play, 2 ballots due')).toBeVisible();
@@ -262,6 +264,7 @@ test('invites: the saved link opens the switcher with Join and Dismiss; an expir
     await switcher(page).getByRole('button', { name: 'Join with your invite link' }).click();
     await expect(switcher(page)).toHaveCount(0);
     await expect(toast(page, 'You’re in Fixture Friends')).toBeVisible();
+    await tabBar(page).getByRole('button', { name: /^Play(,|$)/ }).click();
     await expect(pill(page)).toHaveAccessibleName('League: Fixture Friends. Switch league');
     expect(await page.evaluate(() => sessionStorage.getItem('gtl.pendingInvitation'))).toBeNull();
 

@@ -42,6 +42,12 @@ function rows(html) {
   });
 }
 /** Each of Home's tiles (the kit's Tile: a button with its label and its glyph) as [its label, its Lucide glyph]. */
+function homeLinks(html) {
+  return nodes(html).filter(n => n.tag === 'button' && /\bgx-home-nav-card\b/.test(n.attrs?.class ?? '')).map(row => {
+    const svg = [...walk(row)].find(n => n.tag === 'svg');
+    return [row.attrs['aria-label'], (svg?.attrs.class ?? '').split(' ').find(c => c.startsWith('lucide-'))];
+  });
+}
 function tiles(html) {
   return nodes(html).filter(n => n.tag === 'button' && /\bgx-tile\b/.test(n.attrs?.class ?? '')).map(tile => {
     const label = [...walk(tile)].find(n => /\bgx-nest-tile-label\b/.test(n.attrs?.class ?? ''));
@@ -58,7 +64,7 @@ describe('A9: one glyph per destination on the landings', () => {
   it('no two rows on one screen share a glyph', () => {
     for (const [name, html] of Object.entries(screens)) {
       expect(markupProblems(html), name).toEqual([]);
-      const list = ['Home', 'Research'].includes(name) ? tiles(html) : rows(html);
+      const list = name === 'Home' ? homeLinks(html) : name === 'Research' ? tiles(html) : rows(html);
       expect(list.length, `${name} has destination rows`).toBeGreaterThan(0);
       expect(list.filter(([, glyph]) => !glyph), `${name}: every row has a glyph`).toEqual([]);
       expect(duplicates(list), name).toEqual([]);
@@ -66,7 +72,7 @@ describe('A9: one glyph per destination on the landings', () => {
     expect(rows(screens.Bets).map(([title]) => title)).toEqual(['Overview', 'Active tickets', 'Settled tickets', 'Research recommendations', 'Your guess vs. market', 'Virtual Units', 'Everyone’s picks']);
     expect(tiles(screens.Research).map(([title]) => title)).toEqual(['Games', 'Trends', 'Fantasy', 'Teams']);
     expect(rows(screens.Research), 'Research’s destinations are tiles, not rows').toEqual([]);
-    expect(tiles(screens.Home).map(([title]) => title)).toEqual(['Spread rank', 'Total rank', 'Who’s in', 'Awards', 'My bets', 'Trends']);
+    expect(homeLinks(screens.Home).map(([title]) => title)).toEqual(['League. Spread Community standings', 'Research. Explore games and trends']);
     expect(rows(screens.Home), 'Home’s destinations are tiles, not rows').toEqual([]);
   });
 
@@ -78,8 +84,7 @@ describe('A9: one glyph per destination on the landings', () => {
     expect(tileGlyph(screens.Research, 'Fantasy')).toBe(glyphOf('fantasy'));
     expect(tileGlyph(screens.Research, 'Games')).toBe(glyphOf('games'));
     expect(tileGlyph(screens.Research, 'Teams')).toBe(glyphOf('teams'));
-    expect(tileGlyph(screens.Home, 'Trends')).toBe(glyphOf('trends'));
-    expect(tileGlyph(screens.Home, 'My bets')).toBe(glyphOf('activeTickets'));
+    expect(homeLinks(screens.Home).map(([,glyph]) => glyph)).toEqual(['lucide-users', 'lucide-chart-line']);
     expect(glyph(screens.Bets, 'Active tickets')).toBe(glyphOf('activeTickets'));
   });
 

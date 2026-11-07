@@ -50,7 +50,7 @@ async function targets44(scope) {
   }
 }
 
-test('without M-25: the Badges tile on Play says "coming soon", so do Home’s Awards tile and the screen', async ({ page, baseURL }) => {
+test('without M-25: Home remains usable; Play and the awards screen say coming soon', async ({ page, baseURL }) => {
   const world = await communityWorld(page, baseURL, { migrations: BEFORE_M25 });
   expect((await world.api('luke', 'league/features', {})).status).toBe(404);
   await openNewApp(page);
@@ -59,11 +59,7 @@ test('without M-25: the Badges tile on Play says "coming soon", so do Home’s A
   await expect(page.getByRole('button', { name: 'Badges, coming soon' })).toBeVisible();
   await tabs(page).getByRole('button', { name: /^Home(,|$)/ }).click();
   await expect(page.locator('[data-landing="home"]')).toBeVisible();
-  // D-69 step 2 (H1A): the Awards tile is always one of Home's six; without M-25 it says so, with no number and no NEW.
-  const awards = page.locator('[data-tile="awards"]').getByRole('button');
-  await expect(awards).toHaveAccessibleName('Awards, coming soon');
-  await expect(awards.locator('.gx-nest-num')).toHaveText('—');
-  await expect(awards.locator('.gx-new')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Continue picks', exact: true })).toBeVisible();
   await page.goto('/#play/features');
   await expect(page.getByText('Badges and awards are coming soon.')).toBeVisible();
   expect(world.errors).toEqual([]);
@@ -173,19 +169,15 @@ test('reduced motion: the celebration still says what happened, with no animatio
   expect(world.errors).toEqual([]);
 });
 
-test('Home\'s Awards tile and the League board\'s "Won Week 4" show once the job has run, and open the screen', async ({ page, baseURL }) => {
+test('Play awards and the League board remain reachable from approved Home', async ({ page, baseURL }) => {
   const world = await communityWorld(page, baseURL, { migrations: ALL });
   await seedFinishedWeek(world);
   expect((await world.api('sean', 'league/features/run', {})).status).toBe(200);
   await openNewApp(page, '#home');
   await expect(page.locator('[data-landing="home"]')).toBeVisible();
-  // D-69 step 2 (H1A): the awards card became the Awards tile (the week's award count, Luke's own award named).
-  const awards = page.locator('[data-tile="awards"]').getByRole('button');
-  await expect(awards).toHaveAccessibleName('Awards, 7 in Week 4, you won Spread winner');
-  await expect(awards).toContainText('Week 4 · You won Spread winner');
-  // The first read on this device seeds what Luke has seen: no celebration on page load.
   await expect(page.getByRole('dialog', { name: 'New results' })).toHaveCount(0);
-  await awards.click();
+  await tabs(page).getByRole('button', { name: /^Play(,|$)/ }).click();
+  await page.locator('[data-play-tile="badges"]').getByRole('button').click();
   await expect(page).toHaveURL(/#play\/features/);
   await page.goto('/#play/league?view=board');
   const board = page.getByRole('list', { name: 'Spread season standings' });
@@ -216,12 +208,10 @@ test('D-69 (the review race): a scroll press on the launch screen is not a navig
   const hero = page.locator('[data-home="hero"]');
   await expect(hero).toBeVisible();
   await hero.getByRole('heading', { level: 2 }).click(); // a trusted press on words (a scroll touch), not a navigation
+  const featuresRead = page.waitForResponse(response => response.url().endsWith('/league/features') && response.status() === 200);
   release();
-  // The away results wait as NEW on the Awards tile, with the newest of Luke's own awards named "New:".
-  const awards = page.locator('[data-tile="awards"]');
-  await expect(awards.locator('.gx-new')).toBeVisible();
-  await expect(awards.getByRole('button')).toHaveAccessibleName(/^Awards, 7 in Week 4, new: .+$/);
-  await expect(awards.locator('.gx-tile-sub')).toHaveText(/^Week 4 · New: .+$/);
+  // Home reports away results; their visible destination remains the Play card.
+  await featuresRead;
   // Let the read's effects and any overlay they open commit before looking.
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(resolve, 0)))));
   const flash = page.getByRole('dialog', { name: 'New results' });

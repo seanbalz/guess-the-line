@@ -312,15 +312,17 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
 
   const tabFade = useTabFade(state.tab, state.nav);
   const Screen = screens[state.tab] ?? (state.tab === 'research' ? screens[state.views.research.section === 'fantasy' ? 'fantasy' : 'lines'] : null);
+  // Only the actual NFL Home landing is approved for this release. Other tabs, EPL and test harnesses retain their frame.
+  const homeDesign = Screen === SCREENS.home && router === NFL_ROUTER && !cover && !state.page && state.tab === 'home' && !isDetail(state);
   const style = { '--gx-dock-space': `${dockHeight > 0 ? dockHeight + 8 : 0}px` };
   return (
     <ShellContext.Provider value={value}>
       <MomentsProvider key={member?.id ?? 'signed-out'} account={member?.id} showOverlay={actions.showOverlay}>
-      <div className={`gx ${className}`.trim()} data-motion={reduceMotion ? 'reduce' : undefined} style={style}>
+      <div className={`gx ${homeDesign?'gx-home-design ':''}${className}`.trim()} data-motion={reduceMotion ? 'reduce' : undefined} style={style}>
         <div className="gx-app" inert={modalOpen(state)}>
           <a className="gx-sr-only gx-skip-link" href="#main" onClick={event => { event.preventDefault(); document.getElementById('main')?.focus(); }}>Skip to main content</a>
-          <TopBar leagueName={league.name} you={member} onHome={onHome} onLeague={() => actions.openSheet('sh.switcher')} onMenu={() => actions.openSheet('sh.menu')}/>
-          <SportControls/>
+          <TopBar leagueName={league.name} you={member} onHome={onHome} onLeague={() => actions.openSheet('sh.switcher')} onMenu={() => actions.openSheet('sh.menu')} homeDesign={homeDesign}/>
+          {!homeDesign?<SportControls/>:null}
           <main className="gx-main" id="main" tabIndex={-1} data-tab-enter={tabFade ? 'fade' : undefined}>
             <OfflineBanner offline={!online} onRetry={onRetry}/>
             {!cover && !state.page && (state.trail.length > 0 || isDetail(state)) ? <DetailBack onBack={actions.back}/> : null}

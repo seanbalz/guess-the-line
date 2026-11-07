@@ -184,6 +184,11 @@ test('the apps keep separate shells and allow only documented workflow and pick-
     for (const spec of importsOf(text)) {
       if (!spec.startsWith('.')) continue;
       const target = path.relative(path.join(root, 'web/src'), path.resolve(path.join(root, path.dirname(file)), spec));
+      // Home's browser chrome reads canonical design tokens, never an old screen or shell.
+      if (file === 'web/src/next/home/HomeBrand.jsx' && spec === '../../../../design/tokens-next.json') {
+        assertNamedAccess(text, spec, ['homeThemeColor', 'themeColor'], file);
+        continue;
+      }
       if (adapters[file]?.includes(target)) continue;
       if (namedOnly[target]) {
         assertNamedAccess(text, spec, namedOnly[target], file);

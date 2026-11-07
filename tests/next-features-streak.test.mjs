@@ -24,7 +24,7 @@ function rig(storage = memory()) {
 
 test('detector: your Pick streak as one small moment named by season, length and best; none for 0, no read or another player', () => {
   const m = pickStreakMoment(reply(4, 6), YOU);
-  assert.deepEqual(m, { id: 'streak:pick:2026:4:6', kind: 'streak', scopes: [SCOPES.features, SCOPES.home], title: 'Pick streak', meta: '4 weeks in a row' });
+  assert.deepEqual(m, { id: 'streak:pick:2026:4:6', kind: 'streak', scopes: [SCOPES.features], title: 'Pick streak', meta: '4 weeks in a row' });
   assert.equal(sizeOf(m.kind), 'small');
   assert.equal(pickStreakMoment(reply(1), YOU).meta, '1 week in a row');
   assert.equal(pickStreakMoment(reply(5, 3), YOU).id, 'streak:pick:2026:5:5', 'a best below the current reads as the current');

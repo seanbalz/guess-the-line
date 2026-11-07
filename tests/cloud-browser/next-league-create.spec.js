@@ -10,6 +10,7 @@ async function open(page) {
   await page.evaluate(() => localStorage.setItem('gtl.app', 'next'));
   await page.goto('about:blank'); await page.goto('/');
   await signIn(page, 'luke', { navigate: false });
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: /^Play(,|$)/ }).click();
   await page.getByRole('button', { name: /^League: .*\. Switch league$/ }).click();
   await page.getByRole('button', { name: 'Create a league', exact: true }).click();
   await expect(page.getByLabel('League name', { exact: true })).toBeVisible();

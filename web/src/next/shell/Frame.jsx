@@ -10,24 +10,28 @@ import { navigateSport } from '../nba/route.js';
 import { EplAccessContext, sportOptions } from '../epl/route.js';
 import { SportNavigationContext, sportSwitchHash } from '../sportSwitch.js';
 import { SHELL_COPY, TABS, TAB_INFO, leagueLabel, tabBadge } from './tabs.js';
+import { HomeBrand } from '../home/HomeBrand.jsx';
+import homeNfl from '../home/assets/nfl.png';
+import homePremierDark from '../home/assets/premier-league-white.svg';
+import homePremierLight from '../home/assets/premier-league-purple.svg';
 
 // Four primary destinations, using the shared original icon language.
 const TAB_ICONS = { home: 'house', play: 'target', bets: 'ticket', research: 'chart' };
 
 /** Top bar (spec 1.3): the Field monogram (to Home), the league pill (the switcher) and your avatar (the menu). */
-export function TopBar({ leagueName, you, onHome, onLeague, onMenu }) {
+export function TopBar({ leagueName, you, onHome, onLeague, onMenu, homeDesign = false }) {
   return (
     <header className="gx-topbar">
       <div className="gx-topbar-inner">
         <button type="button" className="gx-top-btn" aria-label={SHELL_COPY.home} onClick={onHome}>
-          <FieldMark size={32}/>
+          {homeDesign?<HomeBrand/>:<FieldMark size={32}/>}
         </button>
-        <button type="button" className="gx-league-btn" aria-label={leagueLabel(leagueName)} onClick={onLeague}>
+        {homeDesign?<SportControls marks/>:<button type="button" className="gx-league-btn" aria-label={leagueLabel(leagueName)} onClick={onLeague}>
           <span className="gx-league-pill">
             <span className="gx-league-name gx-truncate">{leagueName}</span>
             <Icon icon="chevronDown" size={16}/>
           </span>
-        </button>
+        </button>}
         <button type="button" className="gx-top-btn" aria-label={SHELL_COPY.menu} onClick={onMenu}>
           <Avatar id={you.id} name={you.name} size={32}/>
         </button>
@@ -40,10 +44,12 @@ export function TopBar({ leagueName, you, onHome, onLeague, onMenu }) {
  * The NFL/EPL selector, a plain row right after the top bar. NBA is hidden from this navigation. It stays out of the sticky
  * bar so the bar keeps its --gx-size-topbar height, which sticky headings and focus scroll margins rely on.
  */
-export function SportControls() {
+export function SportControls({ marks = false }) {
   const epl = useContext(EplAccessContext);
   const { sport, change } = useContext(SportNavigationContext);
-  return <nav className="gx-sport-controls" aria-label="Sports"><Segmented label="Sport" value={sport} options={sportOptions(epl)} onChange={value => change ? change(value) : navigateSport(sportSwitchHash(value, window.location.hash))}/></nav>;
+  const choose=value=>change?change(value):navigateSport(sportSwitchHash(value,window.location.hash));
+  if(marks)return <nav className="gx-home-sports" aria-label="Sports"><div className="gx-hstack gx-gap-8" role="group" aria-label="Sport">{sportOptions(epl).map(option=><button key={option.value} type="button" className="gx-home-sport" aria-label={option.value==='nfl'?'National Football League':'Premier League'} aria-pressed={sport===option.value} onClick={()=>choose(option.value)}>{option.value==='nfl'?<img src={homeNfl} alt=""/>:<><img className="gx-home-pl-dark" src={homePremierDark} alt=""/><img className="gx-home-pl-light" src={homePremierLight} alt=""/></>}</button>)}</div></nav>;
+  return <nav className="gx-sport-controls" aria-label="Sports"><Segmented label="Sport" value={sport} options={sportOptions(epl)} onChange={choose}/></nav>;
 }
 
 /** Shared detail navigation stays above the destination's own title. */

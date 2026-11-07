@@ -110,7 +110,7 @@ test.describe('the real app', () => {
       await expect(title(page, 'Home')).toBeVisible();
       await expect(tabBar(page).locator('.gx-tab-label')).toHaveText(TABS);
       await expect(tab(page, 'Home')).toHaveAttribute('aria-current', 'page');
-      await expect(page.getByRole('button', { name: 'League: Community. Switch league' })).toContainText('Community');
+      await expect(page.getByRole('button', { name: 'National Football League', exact: true })).toHaveAttribute('aria-pressed', 'true');
       await expect(page.getByRole('button', { name: 'Your menu' })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Guess The Line, home' })).toBeVisible();
       // Home shows already, so it comes last: tapping the tab showing adds no history entry.
@@ -131,10 +131,11 @@ test.describe('the real app', () => {
       }
       // The tab bar and top bar stay put while the page scrolls under them.
       const bar = await tabBar(page).boundingBox();
-      expect(Math.round(bar.y + bar.height)).toBe(844);
+      expect(Math.round(bar.y + bar.height)).toBe(832); // Approved Home floats 12px above the viewport edge.
       await tab(page, 'Research').click();
       await page.reload();
       await expect(title(page, 'Research')).toBeVisible();
+      await expect(page.getByRole('button', { name: 'League: Community. Switch league' })).toContainText('Community');
       await expect(tab(page, 'Research')).toHaveAttribute('aria-current', 'page');
       // Entries: Play, Bets, Research, Home, Research (reloaded).
       await page.goBack();
@@ -274,7 +275,7 @@ test.describe('the real app', () => {
         else await page.goto('/#groups');
         await expect(switcher).toBeVisible();
         await expect(switcher).toBeFocused();
-        await expect(page.locator('.gx-app h1')).toHaveText('Home');
+        await expect(page.locator('.gx-app h1')).toHaveAccessibleName('Home');
         await phoneChecks(page);
         await page.goBack();
         await expect(switcher).toHaveCount(0);

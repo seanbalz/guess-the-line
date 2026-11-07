@@ -25,7 +25,7 @@ test.beforeEach(() => test.skip(!pgliteAvailable, 'Local PGlite required; never 
 const LUKE = ACCOUNTS.luke.id;
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 // CI's Linux runner falls back to wider letters than Windows draws; this probe reproduces a 320 px overflow seen only there.
-const WIDE_FONT = '.gx { --gx-font-body: Verdana, "DejaVu Sans", sans-serif !important; }';
+const WIDE_FONT = '.gx { --gx-font-home: Verdana, "DejaVu Sans", sans-serif !important; --gx-font-body: Verdana, "DejaVu Sans", sans-serif !important; }';
 const api = name => url => url.origin === SUPABASE && url.pathname === `/functions/v1/gtl-api/${name}`;
 const tabs = page => page.getByRole('navigation', { name: 'Main' });
 const homeTab = page => tabs(page).getByRole('button', { name: /^Home(, .+)?$/ });
@@ -148,7 +148,7 @@ test('Who’s in is a Home layer: the tile opens #home?layer=who with its headin
     await openHome(page);
     const who = tileButton(page, 'who');
     // Troy has sent his Spread ballot; Luke keeps a draft and Sean has none.
-    await expect(who).toHaveAccessibleName('Who’s in, 1 of 3 Spread ballots in');
+    await expect(who).toHaveAccessibleName('Community, Who’s in, 3 members');
     await who.click();
     await expect(page).toHaveURL(/#home\?layer=who$/);
     const layer = whoLayer(page);
@@ -216,7 +216,7 @@ test('This week: the next games as tiles with your own Spread word; a tile opens
     const section = page.locator('[data-home="week"]');
     await expect(section.getByRole('heading', { name: 'This week', level: 2 })).toBeVisible();
     await expect(section).toContainText(`Week ${week} · ${world.state.games.length} games`);
-    await expect(gameTiles(page)).toHaveCount(Math.min(4, world.state.games.length));
+    await expect(gameTiles(page)).toHaveCount(Math.min(2, world.state.games.length));
     // The window's first tile is the first game not yet kicked off by the server's clock.
     const firstId = await gameTiles(page).first().getAttribute('data-game-tile');
     expect(firstId).toBe(world.state.games[0].id);
@@ -240,7 +240,7 @@ test('This week: the next games as tiles with your own Spread word; a tile opens
 });
 
 test('a focused game tile that kicks off and leaves the window hands focus to the first tile still in it, never to the page', async ({ page, baseURL }) => {
-  // Six games, an hour apart, so the four-tile window moves as games kick off. The server's clock is /personal's `now`:
+  // Six games, an hour apart, so the two-row window moves as games kick off. The server's clock is /personal's `now`:
   // the PGlite world answers with the database's real time, so the reply's `now` is moved forward here, and a refresh
   // (the app's own "back online" read) brings it in, as a later read would.
   const world = await draftWeek(page, baseURL, { games: 6 });
@@ -250,28 +250,28 @@ test('a focused game tile that kicks off and leaves the window hands focus to th
     await openHome(page);
     const games = world.state.games, ids = () => gameTiles(page).evaluateAll(items => items.map(li => li.dataset.gameTile));
     const kickoff = i => Date.parse(games[i].kickoff);
-    expect(await ids()).toEqual(games.slice(0, 4).map(game => game.id));
+    expect(await ids()).toEqual(games.slice(0, 2).map(game => game.id));
     await page.locator(`#gx-h-game-${games[0].id}`).focus();
     expect(await focused(page)).toBe(`#gx-h-game-${games[0].id}`);
 
     // The first game kicks off: its tile leaves the window, and focus goes to the first tile that remains.
     serverNow = new Date(kickoff(0) + 60_000).toISOString();
     await page.evaluate(() => window.dispatchEvent(new Event('online')));
-    await expect.poll(ids).toEqual(games.slice(1, 5).map(game => game.id));
+    await expect.poll(ids).toEqual(games.slice(1, 3).map(game => game.id));
     await expect(page.locator(`#gx-h-game-${games[1].id}`)).toBeFocused();
     expect(await focused(page)).not.toBe('body');
 
     // Every game kicks off: the window is the week's last four, each "Closed at kickoff", and focus moves on again.
     serverNow = new Date(kickoff(games.length - 1) + 60_000).toISOString();
     await page.evaluate(() => window.dispatchEvent(new Event('online')));
-    await expect.poll(ids).toEqual(games.slice(-4).map(game => game.id));
+    await expect.poll(ids).toEqual(games.slice(-4, -2).map(game => game.id));
     await expect(page.locator(`#gx-h-game-${games[2].id}`)).toBeFocused();
-    await expect(gameTiles(page).locator('.gx-h-game-state')).toHaveText(Array(4).fill('Closed at kickoff'));
+    await expect(gameTiles(page).locator('.gx-h-game-state')).toHaveText(Array(2).fill('Closed at kickoff'));
     // The window never empties while the week has games, so the heading fallback (no tile left) is a unit test only
     // (tests/next-home-focus.test.jsx); here focus never drops to the page.
     expect(await focused(page)).not.toBe('body');
     await sweepHome(page, 'kicked off', async () => {
-      await expect(gameTiles(page).locator('.gx-h-game-state')).toHaveText(Array(4).fill('Closed at kickoff'));
+      await expect(gameTiles(page).locator('.gx-h-game-state')).toHaveText(Array(2).fill('Closed at kickoff'));
     });
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
@@ -294,9 +294,9 @@ async function rankMoveOnYourScore(page, baseURL, { account, from, name, big }) 
       [momentsKey(id)]: JSON.stringify(['source:rank:community:guess_spread']) }, account);
     const spread = tileButton(page, 'spread'), flash = page.getByRole('dialog');
     const pop = page.locator('.gx-ys-rank[data-moment="pop"]'), momentId = 'rank:community:guess_spread:1';
-    await expect(spread).toHaveAccessibleName(`${name}, new`);
+    await expect(spread).toHaveAccessibleName(/Spread Community rank.*new$/);
     await expect(page.locator('[data-tile="spread"] .gx-new')).toBeVisible();
-    await expect(tileButton(page, 'total')).not.toHaveAccessibleName(/, new$/);
+    await expect(page.getByRole('group',{name:'Season market'}).getByRole('button',{name:'Total',exact:true})).toHaveAttribute('aria-pressed','false');
     await page.waitForTimeout(800);
     await expect(flash, 'nothing plays on the launch screen').toHaveCount(0);
     await expect(page.locator('[data-moment="pop"]')).toHaveCount(0);
@@ -338,11 +338,11 @@ async function rankMoveOnYourScore(page, baseURL, { account, from, name, big }) 
     await expect(page).toHaveURL(/#home$/);
     await expect(hero(page)).toBeVisible();
     await expect(page.locator('#gx-h-tile-spread')).toBeFocused();
-    await expect(spread).toHaveAccessibleName(name);
+    await expect(spread).toHaveAccessibleName(/Spread Community rank.*Open your score$/);
     await expect(page.locator('[data-tile="spread"] .gx-new')).toHaveCount(0);
     // Once: after a reload the tile has no NEW and Your score plays nothing.
     await page.reload();
-    await expect(spread).toHaveAccessibleName(name);
+    await expect(spread).toHaveAccessibleName(/Spread Community rank.*Open your score$/);
     await spread.click();
     await expect(page.locator('.gx-ys-rank')).toBeVisible();
     await page.waitForTimeout(800);
@@ -379,9 +379,9 @@ test('a waiting Whole week locked moment never plays on launch; it pops on Home�
       document.addEventListener('animationstart', event => window.__anims.push({ name: event.animationName, cls: event.target.getAttribute?.('class') ?? '', market: event.target.closest?.('[data-market]')?.dataset.market ?? '' }), true);
     });
     await openHome(page, { [momentsKey(LUKE)]: JSON.stringify([`source:${WEEK_LOCKED_SOURCE}`]) });
-    const spreadMeter = hero(page).locator('[data-home="status"] > li[data-market="guess_spread"]');
-    await expect(spreadMeter).toHaveText(`Spread · ${games} of ${games} locked`);
-    await expect(hero(page).locator('[data-home="status"] > li[data-market="guess_total"]')).toHaveText(`Total · 0 of ${games} locked`);
+    const spreadMeter = hero(page).locator('.gx-home-progress');
+    await expect(spreadMeter).toContainText(`${games} Total picks left`);
+    await expect(spreadMeter.getByRole('img')).toHaveAttribute('aria-label',`0 of ${games} picks locked in`);
     await page.waitForTimeout(1200);
     // The LIVE dot is the one loop, and the countdown's digit tick belongs to the clock, not to the page load.
     const onLoad = await page.evaluate(() => window.__anims.filter(a => a.name !== 'gx-live-pulse' && !(a.name === 'gx-rise-in' && /(^|\s)gx-cd-tick(\s|$)/.test(a.cls))));
@@ -396,19 +396,19 @@ test('a waiting Whole week locked moment never plays on launch; it pops on Home�
     await page.evaluate(() => { window.__anims = []; });
     await homeTab(page).click();
     await expect(spreadMeter).toHaveAttribute('data-moment', 'pop');
-    await expect(hero(page).locator('[data-home="status"] > li[data-market="guess_total"]')).not.toHaveAttribute('data-moment', /./);
-    await expect.poll(() => page.evaluate(() => window.__anims.some(a => a.market === 'guess_spread' && /gx-h-meter/.test(a.cls)))).toBe(true);
+
+    await expect.poll(() => page.evaluate(() => window.__anims.some(a => /gx-home-progress/.test(a.cls)))).toBe(true);
     expect(await seen(page)).toContain(momentId);
     // Once: a reload and another visit never replay it.
     await page.reload();
-    await expect(spreadMeter).toHaveText(`Spread · ${games} of ${games} locked`);
+    await expect(spreadMeter).toContainText(`${games} Total picks left`);
     await tabs(page).getByRole('button', { name: /^Research(, .+)?$/ }).click();
     await homeTab(page).click();
     await expect(hero(page)).toBeVisible();
     await page.waitForTimeout(600);
     await expect(page.locator('[data-moment="pop"]')).toHaveCount(0);
     await sweepHome(page, 'week locked', async () => {
-      await expect(spreadMeter).toHaveText(`Spread · ${games} of ${games} locked`);
+      await expect(spreadMeter).toContainText(`${games} Total picks left`);
     });
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
@@ -442,29 +442,17 @@ test('the landing skeleton holds the next-move card’s height at 390 px, so the
   } finally { await world.db.close(); }
 });
 
-test('C9 and the phone rules: the meters share a row on a 390 px phone and stack at 320, in both themes and the wide font; Home and Who’s in pass the phone rules', async ({ page, baseURL }) => {
-  const world = await draftWeek(page, baseURL);
-  try {
-    await openHome(page);
-    const games = world.state.games.length;
-    await expect(hero(page).locator('[data-home="eyebrow"]')).toHaveText(`Week ${world.state.league.week} · Your next move`);
-    await expect(hero(page).locator('[data-home="status"] > li')).toHaveText([`Spread · ${games} of ${games} picked`, `Total · 0 of ${games} picked`]);
-    // Distinct row tops: 1 = the two meters share a row, 2 = stacked.
-    const rows = () => hero(page).locator('[data-home="status"] > li').evaluateAll(items => new Set(items.map(li => Math.round(li.getBoundingClientRect().top))).size);
-    for (const { theme, width, wide = false, columns } of [{ theme: 'dark', width: 390, columns: 1 }, { theme: 'light', width: 390, columns: 1 },
-      { theme: 'light', width: 390, wide: true, columns: 1 }, { theme: 'dark', width: 320, columns: 2 }, { theme: 'light', width: 320, wide: true, columns: 2 }]) {
-      const label = `${theme} ${width}${wide ? ' wide font' : ''}`;
-      await load(page, { theme, width, wide }, '#home', hero);
-      expect(await rows(), `${label}: ${columns === 1 ? 'one row' : 'stacked'}`).toBe(columns);
-      // 24 px padding on the card, a 12 px gap between the meters (C9's 332 px rule counts on both).
-      expect(await hero(page).evaluate(el => getComputedStyle(el).paddingLeft)).toBe('24px');
-      expect(await hero(page).locator('[data-home="status"]').evaluate(el => getComputedStyle(el).columnGap)).toBe('12px');
-      await phoneRules(page, `${label} #home`);
-      await load(page, { theme, width, wide }, '#home?layer=who', whoLayer);
-      await phoneRules(page, `${label} #home?layer=who`);
-    }
-    expect(world.errors).toEqual([]);
-  } finally { await world.db.close(); }
+test('approved Home compact ring and separate season selector fit both themes, widths and wider fonts',async({page,baseURL})=>{
+ const world=await draftWeek(page,baseURL);
+ try{
+  await openHome(page);
+  await sweepHome(page,'approved Home',async()=>{
+   await expect(hero(page).getByRole('heading',{level:2})).toHaveText('Finish your picks');
+   expect(await hero(page).evaluate(el=>getComputedStyle(el).paddingLeft)).toBe('18px');
+   await expect(page.getByRole('group',{name:'Season market'})).toBeVisible();
+  });
+  expect(world.errors).toEqual([]);
+ }finally{await world.db.close();}
 });
 
 test('the phone rules on Home when every ballot is sent: "Your week", "Week N locked in", each game "Locked in"', async ({ page, baseURL }) => {
@@ -476,10 +464,10 @@ test('the phone rules on Home when every ballot is sent: "Your week", "Week N lo
     await sendBallot(world, 'luke', 'guess_total', picks([44, 51]));
     await openHome(page);
     await sweepHome(page, 'sent', async () => {
-      await expect(hero(page).locator('[data-home="eyebrow"]')).toHaveText('Your week');
+      await expect(hero(page).locator('.gx-home-kicker')).toHaveText('Your week');
       await expect(hero(page).getByRole('heading', { level: 2 })).toHaveText(`Week ${week} locked in`);
-      await expect(hero(page).locator('[data-home="status"] > li')).toHaveText(['Spread · sent', 'Total · sent']);
-      await expect(gameTiles(page).locator('.gx-h-game-state')).toHaveText(Array(games.length).fill('Locked in'));
+      await expect(hero(page).getByRole('img')).toHaveAttribute('aria-label',`${games.length} of ${games.length} picks submitted`);
+      await expect(gameTiles(page).locator('.gx-h-game-state')).toHaveText(Array(Math.min(2,games.length)).fill('Locked in'));
     });
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
@@ -493,8 +481,8 @@ test('the phone rules on Home when every market is sat out: "Week N sat out", ea
     await openHome(page);
     await sweepHome(page, 'sat out', async () => {
       await expect(hero(page).getByRole('heading', { level: 2 })).toHaveText(`Week ${week} sat out`);
-      await expect(hero(page).locator('[data-home="status"] > li')).toHaveText(['Spread · sat out', 'Total · sat out']);
-      await expect(gameTiles(page).locator('.gx-h-game-state')).toHaveText(Array(games.length).fill('Skipped'));
+      await expect(hero(page).getByRole('img')).toHaveAttribute('aria-label',`0 of ${games.length} picks sat out`);
+      await expect(gameTiles(page).locator('.gx-h-game-state')).toHaveText(Array(Math.min(2,games.length)).fill('Skipped'));
     });
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }

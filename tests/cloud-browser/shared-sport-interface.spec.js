@@ -6,7 +6,7 @@ import { layoutProblems } from '../helpers/phone-layout.mjs';
 test.setTimeout(90000);
 test.beforeEach(() => test.skip(!pgliteAvailable, 'Disposable PGlite required.'));
 const nav = page => page.getByRole('navigation', { name: 'Main', exact: true });
-const sport = (page, name) => page.getByRole('group', { name: 'Sport', exact: true }).getByRole('button', { name, exact: true });
+const sport = (page, name) => page.getByRole('group', { name: 'Sport', exact: true }).getByRole('button', { name: name === 'NFL' ? /^(NFL|National Football League)$/ : /^(EPL|Premier League)$/ });
 async function fixture(page, baseURL, options = {}) {
   const world = await communityWorld(page, baseURL, options), calls = [], guessReads = [];
   page.on('request', request => {
