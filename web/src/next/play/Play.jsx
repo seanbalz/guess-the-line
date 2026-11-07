@@ -5,7 +5,7 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { useAppData, useSharedRead } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
-import { Button, Meter, NextMoveCard, StaleLine } from '../ui/index.js';
+import { Button, Card, Meter, NextMoveCard, StaleLine } from '../ui/index.js';
 import '../ui/focusLanding.css';
 import { HomeGuide } from '../home/HomeGuide.jsx';
 import { useAccountPreferences } from '../me/AccountPreferences.jsx';
@@ -22,6 +22,7 @@ import { WeeklyScore } from './WeeklyScore.jsx';
 import { ScoreTile } from './ScoreTile.jsx';
 import { CompareTile } from './CompareTile.jsx';
 import { PlayTile } from './PlayTile.jsx';
+import { PlayOverviewPicks } from './PlayOverviewPicks.jsx';
 import { CLOSED_LAYER, PLAY_ROOT, openPlay } from './PlayLayer.jsx';
 import { ballotTile, otherMarket, playHero } from './landing.js';
 import { weekLockedId } from './moments.js';
@@ -51,10 +52,12 @@ export function Play() {
 
 function PlayLanding() {
   const app = useAppData(), shell = useShell(), data = app.community.data;
+  const personal = useSharedRead('personal');
   const preferences = useAccountPreferences(app);
   useMomentScope(SCOPES.play);
   const heroButton = useRef(null), pointsTile = useRef(null);
   const hero = data ? playHero(data) : null, week = data?.week ?? null;
+  const overview = personal.data?.rules?.perGameScoring === true && week && personal.data.season === week.season && personal.data.week === week.week ? personal.data : null;
   const other = otherMarket(hero?.market ?? 'spread'), tile = ballotTile(data, other);
   const lockedId = mode => (week && Number.isInteger(week.season) ? weekLockedId(week.season, week.week, mode) : '');
   // NEW on the ballot tile only when this week's Whole week locked moment waits for this tile's market's picks card (each
@@ -69,7 +72,11 @@ function PlayLanding() {
   const onPromptGone = () => (heroButton.current ?? pointsTile.current)?.focus();
   return <div className="gx-screen gx-play-landing" data-landing="play">
     <div className="gx-focus-heading"><h1 className="gx-t-title">Play</h1>{hero?.week != null && <p className="gx-t-meta">Week {hero.week}</p>}</div>
-    {hero ? <NextMoveCard className="gx-play-hero" data-play="hero" data-hero={hero.kind} eyebrow={hero.eyebrow} title={hero.title}
+    <Card as="section" className="gx-play-picks-card" aria-label="Your picks">
+    {overview ? <PlayOverviewPicks data={overview} market={hero?.market} onMarket={openPicks}
+      onGame={(market, pickGame) => openPlay(shell, 'picks', { market: market === 'guess_total' ? 'total' : 'spread', season: week.season, week: week.week, pickGame })}
+      pointsButton={<PointsTile compact ref={pointsTile} onOpen={() => openPlay(shell, 'points')}/>}/>
+      : hero ? <NextMoveCard className="gx-play-hero" data-play="hero" data-hero={hero.kind} eyebrow={hero.eyebrow} title={hero.title}
       picture={hero.progress ? <Meter value={hero.progress.done} max={hero.progress.of} className="gx-play-hero-meter"/> : null}
       line={hero.line} lineProps={{ 'data-play': 'hero-line', 'data-moment': heroPop ? 'pop' : undefined }}
       action={{ ref: heroButton, label: hero.action, onClick: () => go(hero.target) }}/>
@@ -77,14 +84,18 @@ function PlayLanding() {
       : <PlayLoading>Loading your picks…</PlayLoading>}
     {/* A failed refresh keeps the last good copy with its error noted (data/store.js): say so under the card. */}
     {data && (app.community.status === 'error' || app.community.error) ? <StaleLine className="gx-play-state-line" onRefresh={() => app.refresh({ only: ['community'] })}/> : null}
+    {overview && personal.error ? <p className="gx-t-meta gx-c-2" role="status">Your picks could not refresh. Showing the last loaded copy.</p> : null}
     <ReminderPrompt key={app.accountId} onGone={onPromptGone}/>
-    <ul className="gx-tiles gx-play-tiles" aria-label="Play sections" data-play="tiles">
+    {!overview ? <ul className="gx-tiles gx-play-tiles" aria-label="Play sections" data-play="tiles">
       <li data-play-tile="ballot" data-moment={tilePop ? 'pop' : undefined}><PlayTile icon="target" label={tile.label} big={tile.big} sub={tile.sub} tone={tile.tone} ariaLabel={waiting ? `${tile.ariaLabel}, new` : tile.ariaLabel} isNew={waiting} onClick={() => openPicks(other)}/></li>
       <li data-play-tile="points"><PointsTile ref={pointsTile} onOpen={() => openPlay(shell, 'points')}/></li>
-      <li data-play-tile="score"><ScoreTile onOpen={patch => openPlay(shell, 'score', patch)}/></li>
+    </ul> : null}
+    </Card>
+    <div data-play-tile="score"><ScoreTile expanded onOpen={patch => openPlay(shell, 'score', patch)}/></div>
+    <ul className="gx-tiles gx-play-support-tiles" aria-label="More Play sections">
       <li data-play-tile="league"><LeagueTile onOpen={() => openPlay(shell, 'league')}/></li>
       <li data-play-tile="badges"><BadgesTile onOpen={() => openPlay(shell, 'features')}/></li>
-      <li data-play-tile="compare"><CompareTile onOpen={view => openPlay(shell, 'compare', view)}/></li>
+      {!overview ? <li data-play-tile="compare"><CompareTile onOpen={view => openPlay(shell, 'compare', view)}/></li> : null}
     </ul>
     <details className="gx-focus-help"><summary className="gx-t-strong">How to play</summary><HomeGuide key={app.accountId} preferences={preferences} perGame={data?.rules?.perGameScoring === true}/></details>
   </div>;

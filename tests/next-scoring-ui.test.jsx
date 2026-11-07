@@ -23,7 +23,8 @@ describe('Your score (D-69, mockup Q1-B)', () => {
     expect(markupProblems(html)).toEqual([]);
     const text = words(html);
     expect(html).toContain('aria-label="Personal score summary"');
-    expect(text).toContain('Week 6 · Spread 8 points');
+    expect(text).toContain('Week 6 · Spread Accuracy points');
+    expect(html).toContain('aria-label="8 of 10 possible points"');
     expect(text).toContain('Line DEN −5 · You DEN −3 · off by 2');
     expect(text).toContain('8 / 10');
     expect(text).toContain('Week 6 · all games scored'); // the layer's one meta line
@@ -32,9 +33,10 @@ describe('Your score (D-69, mockup Q1-B)', () => {
     expect(html).not.toContain('Standings · games started');
     expect(text).toContain('Refresh scores'); expect(text).toContain('View this week’s picks'); expect(text).toContain('Compare players');
   });
-  it('the hero and the game layer put a real space between the number and the word "points" (copy-paste and screen readers read "8 points")', () => {
+  it('the accuracy ring names its actual score and denominator; the game layer separates the number and points', () => {
     const hero = render();
-    expect(hero).toMatch(/>8<\/span>\s+<span class="gx-t-body gx-c-2">points<\/span>/);
+    expect(hero).toContain('role="img" aria-label="8 of 10 possible points"');
+    expect(hero).toContain('stroke-dasharray="80 100"');
     const layer = render({ scoreGame: game.id });
     expect(layer).toMatch(/>8<\/span>\s+<span class="gx-t-body gx-c-2">\/ 10 points<\/span>/);
   });

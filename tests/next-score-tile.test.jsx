@@ -73,3 +73,26 @@ describe('ScoreTile (P1B)', () => {
     expect(tile({ loading: false, data: null, error: { status: 500 }, retry() {} })).toMatchObject({ big: '—', sub: 'Open to retry' });
   });
 });
+
+describe('approved full-width Play season card', () => {
+  const expanded = data => {
+    useAppData.mockReturnValue(app); useLeagueRead.mockReturnValue({ data, loading: false, error: null, retry() {} });
+    return renderToStaticMarkup(<ScoreTile expanded onOpen={() => {}}/>);
+  };
+  it('uses only the selected market’s authoritative personal week totals and preserves genuine zeroes', () => {
+    const data = structuredClone(history);
+    data.weeks = [week(7, 6), week(8, 0)];
+    data.weeks[0].entries.push({ userId: ME, mode: 'guess_total', eligible: true, weekPoints: 999, picks: [] });
+    const html = expanded(data);
+    expect(html).toContain('Personal season accuracy points · Spread');
+    expect(html).toContain('Week 7: 6 cumulative personal points, Week 8: 6 cumulative personal points');
+    expect(html).not.toContain('999');
+    expect(html).not.toContain('No scored games yet');
+  });
+  it('keeps missing weeks out of the line graph instead of plotting zero or joining across missing data', () => {
+    const html = expanded(history);
+    expect(html).toContain('Unscored weeks have no value.');
+    expect(html).not.toContain('gx-play-score-chart');
+    expect(html).toContain('Week 7: 6 points · Week 8: 10 points');
+  });
+});

@@ -1,0 +1,35 @@
+/* Approved Spread/Total draft and confirmation composition. Native controls, guards and receipts own behavior. */
+.gx .gx-play-game { gap: var(--gx-space-5); }
+.gx .gx-play-matchup-card, .gx .gx-play-entry-card { padding: var(--gx-space-5) var(--gx-space-4); border: 1px solid var(--gx-glass-line); border-radius: var(--gx-radius-md); background: var(--gx-hero-card); box-shadow: var(--gx-e1); backdrop-filter: var(--gx-glass-blur); }
+.gx .gx-play-matchup-card { gap: var(--gx-space-4); }
+.gx .gx-play-entry-card { display: flex; flex-direction: column; gap: var(--gx-space-4); }
+.gx .gx-play-entry-heading { display: flex; align-items: center; justify-content: space-between; gap: var(--gx-space-2); }
+.gx .gx-play-entry-heading > div { display: flex; flex-direction: column; gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-play-entry-heading h3, .gx .gx-play-entry-heading p { margin: 0; }
+.gx .gx-play-hidden { display: flex; align-items: center; justify-content: center; gap: var(--gx-space-2); text-align: center; }
+.gx .gx-play-hidden .gx-ic { flex: none; }
+.gx .gx-play-final-note { text-align: center; margin: 0; }
+.gx .gx-play-entry-card .gx-guess { display: grid; gap: var(--gx-space-4); }
+.gx .gx-play-entry-card .gx-guess-teams { display: grid; grid-template-columns: minmax(44px, 1fr) minmax(44px, .72fr) minmax(44px, 1fr); gap: var(--gx-space-2); }
+.gx .gx-play-entry-card .gx-guess-team { min-width: 0; min-height: 48px; padding: var(--gx-space-2) var(--gx-space-1); font: 600 16px/20px var(--gx-font-body); white-space: normal; overflow-wrap: anywhere; }
+.gx .gx-play-entry-card .gx-guess-nums { display: grid; grid-template-columns: repeat(4, minmax(44px, 1fr)); gap: var(--gx-space-2); }
+.gx .gx-play-entry-card .gx-guess-head, .gx .gx-play-entry-card .gx-guess-typed { grid-column: 1 / -1; }
+.gx .gx-play-entry-card .gx-guess-num, .gx .gx-play-entry-card .gx-guess-more { min-width: 0; min-height: var(--gx-size-touch); margin: 0; padding-inline: var(--gx-space-1); }
+.gx .gx-play-entry-card .gx-guess-keys { display: none; }
+.gx .gx-play-entry-card .gx-guess-fine { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; gap: var(--gx-space-2); }
+.gx .gx-play-entry-card .gx-guess-call { text-align: center; }
+.gx .gx-play-entry-card .gx-guess-summary { min-width: 0; color: var(--gx-accent-ink); white-space: normal; }
+.gx .gx-play-entry-card > .gx-btn { width: 100%; }
+.gx .gx-play-confirm .gx-dialog-actions { display: grid; gap: var(--gx-space-3); }
+.gx .gx-play-confirm-call { display: flex; flex-direction: column; gap: var(--gx-space-2); min-width: 0; padding: var(--gx-space-5) var(--gx-space-4); border: 1px solid var(--gx-glass-line); border-radius: var(--gx-radius-sm); background: var(--gx-accent-tint); box-shadow: var(--gx-glass-shadow); }
+.gx .gx-play-confirm-call strong { overflow-wrap: anywhere; }
+@media (max-width: 359px) {
+  .gx .gx-play-matchup-card, .gx .gx-play-entry-card { padding: var(--gx-space-4) var(--gx-space-3); }
+  .gx .gx-play-entry-card .gx-guess-teams { gap: var(--gx-space-1); }
+}
+@media (forced-colors: active) {
+  .gx .gx-play-matchup-card, .gx .gx-play-entry-card, .gx .gx-play-confirm-call { border-color: CanvasText; }
+}
+/* These approved screens float their actual content cards on the canvas. Nest still owns routes, lips and focus. */
+.gx .gx-per-game--nest > .gx-nest > .gx-nest-card { margin-inline: 0; padding: 0; border: 0; background: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.gx .gx-per-game--nest > .gx-nest > .gx-nest-card::before { display: none; }

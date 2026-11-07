@@ -1,3 +1,37 @@
 /* D-69 step 1 (Sean's P1B): the Play landing. One glow card (the kit's NextMoveCard) holds the next move; six tiles sit
    under it in two columns on the page. Tokens only. */
 .gx .gx-play-landing { gap: var(--gx-space-3); }
+/* Approved overview hierarchy: grouped picks, a full-width personal score chart, then supporting sections. */
+.gx .gx-play-landing { gap: var(--gx-space-5); }
+.gx .gx-play-picks-card { display: flex; flex-direction: column; gap: var(--gx-space-4); min-width: 0; padding: var(--gx-space-5); }
+.gx .gx-play-picks-card .gx-play-hero { margin: 0; }
+.gx .gx-play-picks-card > .gx-tiles { gap: var(--gx-space-3); }
+.gx .gx-play-score-card { padding: var(--gx-space-5); border-color: var(--gx-accent-ink); }
+.gx .gx-play-score-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--gx-space-2); }
+.gx .gx-play-score-heading h2, .gx .gx-play-score-card p { margin: 0; }
+.gx .gx-play-score-chart { display: flex; flex-direction: column; gap: var(--gx-space-3); min-width: 0; }
+.gx .gx-play-score-chart > svg { display: block; height: 100px; width: 100%; }
+.gx .gx-play-score-chart .gx-tc-mini-line { stroke: var(--gx-accent-ink); }
+.gx .gx-play-score-chart .gx-tc-mini-area { fill: var(--gx-accent-tint); }
+.gx .gx-play-score-chart > span { display: flex; justify-content: space-between; gap: var(--gx-space-2); }
+.gx .gx-play-support-tiles { gap: var(--gx-space-4); }
+@media (max-width: 359px) {
+  .gx .gx-play-picks-card, .gx .gx-play-score-card { padding: var(--gx-space-4); }
+  .gx .gx-play-picks-card > .gx-tiles { grid-template-columns: minmax(0, 1fr); }
+}
+/* The confirmed overview holds two real games, one card each, with the three existing entry destinations above. */
+.gx .gx-play-overview-picks { display: flex; flex-direction: column; gap: var(--gx-space-4); min-width: 0; }
+.gx .gx-play-overview-picks h2 { margin: 0; }
+.gx .gx-play-overview-count { display: flex; justify-content: space-between; gap: var(--gx-space-2); }
+.gx .gx-play-overview-markets { display: flex; flex-wrap: wrap; gap: var(--gx-space-2); }
+.gx .gx-play-overview-markets .gx-btn { min-width: var(--gx-size-touch); }
+.gx .gx-play-overview-markets .gx-btn[aria-pressed="true"] { color: var(--gx-accent-ink); border-color: var(--gx-accent-ink); background: var(--gx-accent-tint); }
+.gx .gx-play-overview-games { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-3); }
+.gx .gx-play-overview-game { display: flex; flex-direction: column; gap: var(--gx-space-4); min-width: 0; padding: var(--gx-space-4); border-color: var(--gx-accent-ink); color: var(--gx-text-1); font: inherit; text-align: left; cursor: pointer; }
+.gx .gx-play-overview-matchup { display: flex; align-items: center; justify-content: space-around; gap: var(--gx-space-2); }
+.gx .gx-play-overview-matchup > span { display: flex; flex-direction: column; align-items: center; gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-play-overview-matchup strong, .gx .gx-play-overview-matchup small { font: 600 13px/18px var(--gx-font-body); overflow-wrap: anywhere; }
+.gx .gx-play-overview-matchup small { color: var(--gx-text-2); }
+@media (max-width: 600px) {
+  .gx .gx-play-overview-games { grid-template-columns: minmax(0, 1fr); }
+}

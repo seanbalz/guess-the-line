@@ -8,18 +8,20 @@ import { SCOPES } from '../../moments/catalog.js';
 import { PlayTile } from '../PlayTile.jsx';
 import { pointsTile } from './pointsModel.js';
 import { usePointsMoments, usePointsRead } from './PointsBallot.jsx';
+import { Button, NewPill } from '../../ui/index.js';
 
 /** `ref` reaches the tile's button: the landing returns focus there when the reminder prompt under it leaves. */
-export function PointsTile({ ref, onOpen }) {
+export function PointsTile({ ref, onOpen, compact = false }) {
   const app = useAppData();
-  return <PointsTileView ref={ref} read={usePointsRead(app)} onOpen={onOpen}/>;
+  return <PointsTileView ref={ref} read={usePointsRead(app)} onOpen={onOpen} compact={compact}/>;
 }
 
 /** One read state of the tile (tests render each one). */
-export function PointsTileView({ ref, read, onOpen }) {
+export function PointsTileView({ ref, read, onOpen, compact = false }) {
   usePointsMoments(read);
   const isNew = useNewCount(SCOPES.points) > 0;
   const tile = pointsTile(read.data, read.error);
+  if (compact) return <Button ref={ref} data-overview-points aria-label={isNew ? `${tile.label}, new result` : tile.label} title={tile.label} onClick={onOpen}>Points{isNew ? <NewPill/> : null}</Button>;
   return <PlayTile ref={ref} label="Guess the Points" icon="people" big={tile.big} sub={tile.sub} tone={tile.tone} isNew={isNew}
     ariaLabel={isNew ? `${tile.label}, new result` : tile.label} onClick={onOpen}/>;
 }

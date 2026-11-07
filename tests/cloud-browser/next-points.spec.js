@@ -336,7 +336,7 @@ test('Pick reminders: the Points prompt and the Menu switch ask permission only 
   const prompt = page.getByRole('region', { name: 'Get a nudge before picks are due' });
   await expect(prompt).toBeVisible();
   // The prompt follows the first card, before the tiles, and offers no lime button.
-  await expect(page.locator('[data-play="hero"] ~ [data-reminder-prompt] ~ [data-play="tiles"]')).toHaveCount(1);
+  await expect(page.locator('.gx-play-picks-card [data-reminder-prompt]')).toHaveCount(1);
   await expect(prompt.locator('.gx-btn--primary')).toHaveCount(0);
   expect(await page.evaluate(() => window.__permissionAsks), 'never asked on load').toBe(0);
   await themesAndWidths(page, info, 'reminders-prompt');
@@ -365,7 +365,8 @@ test('Pick reminders: the Points prompt and the Menu switch ask permission only 
   // "Not now" retires the prompt for this account on this device, focus returns to the first card's button, and a reload keeps it away.
   await prompt.getByRole('button', { name: 'Not now', exact: true }).click();
   await expect(prompt).toHaveCount(0);
-  await expect(page.locator('[data-play="hero"] .gx-btn--primary')).toBeFocused();
+  await expect(page.locator('[data-overview-points]')
+    .or(page.locator('[data-play="hero"] .gx-btn--primary')).first()).toBeFocused();
   await page.reload();
   await expect(page.locator('[data-landing="play"]')).toBeVisible();
   await expect(page.getByRole('button', { name: /^Guess the Points, / })).toBeVisible();

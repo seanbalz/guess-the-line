@@ -3,12 +3,14 @@
 // the game layer shows only your own guess and its saved line (D-31). The list is the `score` layer; a game is the
 // `score:game:<id>` layer at the `scoreGame` address key, so a reload or a shared link reopens it and Back closes it.
 // A newly scored Bullseye and a final week are big moments in the score scope, reported from a fresh read only.
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { communityApi } from '../../api.js';
 import { show } from '../../communityFormat.js';
 import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
-import { Button, InfoButton, Matchup, Move, Pill, Segmented, Skeleton, cx, matchupWords } from '../ui/index.js';
+import { Button, InfoButton, Matchup, Move, Pill, Segmented, Skeleton, TeamMark, cx, matchupWords } from '../ui/index.js';
+import { shortName } from '../../communityFormat.js';
+import { AccuracyRing } from './AccuracyRing.jsx';
 import { CountUp } from '../ui/CountUp.jsx';
 import { useLeagueRead } from '../league/useLeagueRead.jsx';
 import { useMomentScope, usePopped } from '../moments/MomentsProvider.jsx';
@@ -20,10 +22,10 @@ import { PlayLayer } from './PlayLayer.jsx';
 import { PlayEmpty, PlayFailure } from './PlayStates.jsx';
 import { receiptDetails } from './ScoreReceipt.jsx';
 import { WeekChips } from './WeekChips.jsx';
-import { SCORE_MARKETS, modeOf, ownEntry, scoreRows, scoreSummary } from './scoring.js';
+import { SCORE_MARKETS, modeOf, number, ownEntry, scoreRows, scoreSummary } from './scoring.js';
 import { useScoreMoments, useSeasonRanks } from './scoreHooks.js';
 import { weekFinal } from './scoreMoments.js';
-import { gameView, heroModel, layerMeta, rowView, scoreFinePrint } from './yourScore.js';
+import { gameView, heroModel, layerMeta, rowView, scoreFinePrint, sideText } from './yourScore.js';
 import './scores.css';
 import './yourScore.css';
 
@@ -89,16 +91,20 @@ export function WeeklyScoreContent({ data, view, rank = null, loading = false, e
 function ScoreList({ data, mode, weeks, weekNumber, week, entry, all, rows, filters, filtered, rank, onChange, onRefresh, onPicks }) {
   const hero = heroModel({ mode, week: weekNumber, entry, rows, filtered });
   const now = Date.parse(data.now ?? '');
+  const [historyOpen, setHistoryOpen] = useState(false);
   return <>
+    <Segmented label="Score view" options={[{ value: 'week', label: 'Weekly score' }, { value: 'history', label: 'History' }]} value={historyOpen ? 'history' : 'week'} onChange={value => setHistoryOpen(value === 'history')}/>
+    <Segmented label="Score market" options={SCORE_MARKETS} value={mode} onChange={market => onChange({ market })}/>
+    {historyOpen ? <ScoreHistory data={data} weeks={weeks} mode={mode} onWeek={n => { setHistoryOpen(false); onChange({ week: n, matchup: '', team: '' }); }}/>: <>
     <p className="gx-t-meta gx-c-2 gx-ys-meta">{layerMeta({ week: weekNumber, known: !!week, summary: scoreSummary(all), final: weekFinal(week, entry, now) })}</p>
     <WeekChips label="Week" weeks={weeks.map(item => item.week).sort((a, b) => a - b)} week={weekNumber} onWeek={n => onChange({ week: n, matchup: '' })}
       seasons={data.seasons || []} season={data.season} onSeason={year => onChange({ season: year, week: null, matchup: '' })}/>
-    <Segmented label="Score market" options={SCORE_MARKETS} value={mode} onChange={market => onChange({ market })}/>
     <FilterToggle label="Filter games" active={filtered}><ScoreFilters week={week} filters={filters} onChange={onChange}/></FilterToggle>
-    <ScoreHero hero={hero} rank={filtered ? null : rank} mode={mode} account={data.viewer} figure={`score.${mode}.${data.season}.${weekNumber}`}/>
+    <ScoreHero hero={hero} possible={scoreSummary(rows).scored * 10} rank={filtered ? null : rank} mode={mode} account={data.viewer} figure={`score.${mode}.${data.season}.${weekNumber}`}/>
     {!week ? <PlayEmpty>No scoring record for this week. Choose another week.</PlayEmpty>
       : !rows.length ? <PlayEmpty>No games match both filters. Clear filters to see this week.</PlayEmpty>
-        : <ul className="gx-ys-rows" aria-label={`Week ${weekNumber} games`}>{rows.map(item => <ScoreRow key={`${week.season}:${week.week}:${mode}:${item.game.id}`} row={item} mode={mode} onOpen={() => onChange({ scoreGame: item.game.id })}/>)}</ul>}
+        : <ScoreGames key={`${data.season}:${weekNumber}:${mode}:${filters.team}:${filters.matchup}`} rows={rows} week={weekNumber} mode={mode} onOpen={id => onChange({ scoreGame: id })}/>}
+    </>}
     <div className="gx-score-navigation">
       <Button onClick={onRefresh}>Refresh scores</Button>
       {week && <Button onClick={() => onPicks({ season: week.season, week: week.week, market: mode })}>View this week’s picks</Button>}
@@ -107,21 +113,41 @@ function ScoreList({ data, mode, weeks, weekNumber, week, entry, all, rows, filt
   </>;
 }
 
+function ScoreGames({ rows, week, mode, onOpen }) {
+  const [all, setAll] = useState(false);
+  return <><ul className="gx-ys-rows" aria-label={`Week ${week} games`}>{(all ? rows : rows.slice(0, 6)).map(row => <ScoreRow key={row.game.id} row={row} mode={mode} onOpen={() => onOpen(row.game.id)}/>)}</ul>
+    {rows.length > 6 && <Button block onClick={() => setAll(value => !value)}>{all ? 'Show first 6 games' : `Show all ${rows.length} games`}</Button>}</>;
+}
+
+/** Fixed 0–10 points/game scale. Missing weeks stay visible without a bar or a fictional zero. */
+function ScoreHistory({ data, weeks, mode, onWeek }) {
+  return <section className="gx-card gx-ys-history" aria-label="Score history"><h3 className="gx-t-section">Score history</h3>
+    <p className="gx-t-meta gx-c-2">Personal accuracy points per scored game · {mode === 'guess_total' ? 'Total' : 'Spread'}</p>
+    <div className="gx-ys-history-axis gx-t-meta gx-c-2"><span>0</span><span>5</span><span>10 points / game</span></div>
+    {weeks.slice().reverse().map(week => {
+      const entry = ownEntry(week, data.viewer, mode), summary = scoreSummary(scoreRows(week, entry));
+      const avg = summary.scored ? summary.points / summary.scored : null;
+      return <button type="button" className="gx-ys-history-week" key={week.week} onClick={() => onWeek(week.week)} aria-label={`Week ${week.week}, ${avg === null ? 'no scored games' : `${show(summary.points)} points, ${show(avg)} per scored game`}`}>
+        <span className="gx-ys-history-label"><strong>Week {week.week}</strong><span className="gx-n-m">{avg === null ? '—' : show(avg)}<small className="gx-t-meta gx-c-2"> / game</small></span></span>
+        {avg !== null ? <span className="gx-ys-bar" aria-hidden="true"><span style={{ width: `${Math.max(0, Math.min(100, avg * 10))}%` }}/></span> : null}
+        <span className="gx-t-meta gx-c-2">{summary.scored ? `${show(summary.points)} points · ${summary.scored} scored ${summary.scored === 1 ? 'game' : 'games'}` : 'No scored games'} · Open week →</span>
+      </button>;
+    })}</section>;
+}
+
 /** The week's hero (Q1-B): the total counting up from what this device last showed, the season rank chip, the bar. */
-function ScoreHero({ hero, rank, mode, account, figure }) {
-  return <section className="gx-ys-hero" aria-label="Personal score summary">
+function ScoreHero({ hero, possible, rank, mode, account, figure }) {
+  return <section className="gx-card gx-ys-hero" aria-label="Personal score summary">
     <div className="gx-ys-hero-top">
+      <AccuracyRing share={hero.share} label={hero.meterLabel ?? 'No scored points yet'}>
+        {hero.points === null ? <strong className="gx-n-l">—</strong> : hero.count ? <CountUp className="gx-n-l" value={hero.points} account={account} figure={figure}/> : <strong className="gx-n-l">{show(hero.points)}</strong>}<small className="gx-t-meta">{hero.bar === null ? 'Not scored' : `of ${possible}`}</small>
+      </AccuracyRing>
       <div className="gx-ys-hero-head">
         <h3 className="gx-t-micro gx-c-2">{hero.eyebrow}</h3>
-        <p className="gx-ys-total">
-          {hero.points === null ? <span className="gx-n-xl gx-c-3">—</span>
-            : hero.count ? <CountUp className="gx-n-xl" value={hero.points} account={account} figure={figure}/> : <span className="gx-n-xl">{show(hero.points)}</span>}
-          {' '}<span className="gx-t-body gx-c-2">points</span>
-        </p>
+        <p className="gx-t-strong">Accuracy points</p>
       </div>
       {rank ? <SeasonRankChip rank={rank} mode={mode}/> : null}
     </div>
-    {hero.bar !== null ? <span className="gx-ys-meter" role="img" aria-label={hero.meterLabel}><span style={{ width: `${hero.bar}%` }}></span></span> : null}
     {hero.line ? <p className="gx-t-meta gx-c-2">{hero.line}</p> : null}
     {hero.note ? <p className="gx-t-body">{hero.note}</p> : null}
   </section>;
@@ -142,16 +168,27 @@ function SeasonRankChip({ rank, mode }) {
 function ScoreRow({ row, mode, onOpen }) {
   const v = rowView(row, mode);
   return <li>
-    <button type="button" className="gx-ys-row" data-game={row.game.id} onClick={onOpen}>
+    <button type="button" className="gx-card gx-ys-row" data-game={row.game.id} onClick={onOpen}>
       <span className="gx-ys-row-top">
-        <Matchup away={row.game.awayCode} home={row.game.homeCode} size={24}/>
+        <ScoreMatchup game={row.game}/>
         {v.bullseye ? <span className="gx-t-micro gx-ys-bull">Bullseye</span> : null}
         <span className={cx('gx-ys-pill', v.pill.number ? 'gx-n-s' : 'gx-t-micro')} data-tier={v.pill.tier}>{v.pill.text}</span>
       </span>
+      {row.points !== null && number(row.reference?.value) !== null && row.guess !== null ? <ScorePair row={row} mode={mode}/> : null}
       <span className="gx-t-meta gx-c-2 gx-ys-row-meta">{v.meta}</span>
       {v.share !== null ? <span className="gx-ys-bar" data-tier={v.pill.tier} aria-hidden="true"><span style={{ width: `${Math.round(v.share * 1000) / 10}%` }}></span></span> : null}
     </button>
   </li>;
+}
+
+function ScoreMatchup({ game, large = false }) {
+  return <span className={cx('gx-mu', 'gx-ys-matchup', large && 'gx-ys-matchup--large')} role="img" aria-label={matchupWords(game.awayCode, game.homeCode)}>
+    <span><TeamMark code={game.awayCode} size={large ? 48 : 32} decorative/><strong>{shortName(game.awayCode)}</strong></span><small>at</small>
+    <span><TeamMark code={game.homeCode} size={large ? 48 : 32} decorative/><strong>{shortName(game.homeCode)}</strong></span>
+  </span>;
+}
+function ScorePair({ row, mode }) {
+  return <span className="gx-ys-pair"><span><small>Saved scoring line</small><strong>{sideText(mode, row.game, row.reference.value)}</strong></span><span><small>Your guess</small><strong>{sideText(mode, row.game, row.guess)}</strong></span></span>;
 }
 
 /** The filters behind the filter button: Team (either side) AND Matchup, and Clear filters. */
@@ -168,18 +205,20 @@ export function ScoreFilters({ week, filters, onChange }) {
 function GameBody({ row, mode, week }) {
   if (!row) return <PlayEmpty>This game is not in this week.</PlayEmpty>;
   const v = gameView({ row, mode, week });
-  return <>
+  return <section className="gx-card gx-ys-game-detail" aria-label="Game accuracy">
     <p className="gx-t-meta gx-c-2 gx-ys-meta">{v.meta}</p>
+    <ScoreMatchup game={row.game} large/>
     {v.scored || v.late ? <div className="gx-ys-game-top">
       {v.scored ? <p className="gx-ys-points"><span className="gx-n-xl">{show(v.points)}</span>{' '}<span className="gx-t-body gx-c-2">/ 10 points</span></p> : null}
       {v.bullseye ? <span className="gx-t-micro gx-ys-bull">Bullseye</span> : null}
       {v.late ? <Pill tone="pending">{v.late}</Pill> : null}
     </div> : null}
     {v.sentence ? <p className="gx-t-strong">{v.sentence}</p> : null}
+    {v.line ? <ScorePair row={row} mode={mode}/> : null}
     {v.line ? <NumberLine line={v.line}/> : v.you ? <p className="gx-t-body">You · {v.you}</p> : null}
     {v.line ? <p className="gx-t-meta gx-c-2">Each half point off costs 1 point.</p> : null}
     <p className="gx-t-meta gx-c-2">Kickoff {fmtFull(row.game.kickoff)}</p>
-  </>;
+  </section>;
 }
 
 /** The saved line as a sky tick, your guess as a lime dot and the gap between them (it grows on open, scaleX only). */

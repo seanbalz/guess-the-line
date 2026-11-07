@@ -108,7 +108,7 @@ describe('Play › Points, the week card (P4A)', () => {
     };
     for (const [name, [word, value, label]] of Object.entries(expected)) {
       const node = tile(html, name);
-      expect(text(node).replace(/\s+/g, ' ').trim()).toBe(`${name} ${word} Fixture ${name} Player ${value}`);
+      expect(text(node).replace(/\s+/g, ' ').trim()).toBe(`${name} ${word} PIT Fixture ${name} Player ${value}`);
       expect(node.attrs['aria-label']).toBe(label);
       expect(dataNumbers(node), name).toBeLessThanOrEqual(6);
       // D-31: the number line and the House stay in the slot's layer, behind the viewer's own lock or kickoff.

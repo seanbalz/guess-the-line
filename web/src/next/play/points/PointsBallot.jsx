@@ -22,7 +22,8 @@ import { SCOPES } from '../../moments/catalog.js';
 import { PlayEmpty, PlayFailure, PlayLoading } from '../PlayStates.jsx';
 import { PlayLayer } from '../PlayLayer.jsx';
 import { PlayTile } from '../PlayTile.jsx';
-import { Avatar, AvatarStack, Button, Card, CardButton, Dialog, Icon, InfoButton, Matchup, Pill, Skeleton } from '../../ui/index.js';
+import { Avatar, AvatarStack, Button, Card, CardButton, Dialog, Icon, InfoButton, Matchup, Pill, Skeleton, TeamMark, matchupWords } from '../../ui/index.js';
+import { PointsObserved, PointsWeekContext } from './PointsObserved.jsx';
 import { INFO } from '../../info.js';
 import { GUESS_MAX, GUESS_MIN, SLOT_NAMES, boardTile, closestLine, comingSoon, editable, isExact, kickoffText, matchupCodes, matchupText, numberLine, publishTarget, pts, resultTiles, slotStatus, slotTile, step, weekBar, weekLine } from './pointsModel.js';
 import { pointsMoments, pointsSource } from './pointsMoments.js';
@@ -31,9 +32,9 @@ import { ProfileView, SlotContext } from './SlotContext.jsx';
 import { CONTEXT_COPY, contextSettings } from './pointsContext.js';
 import './points.css';
 
-/** The slot's game as marks (D-62), or the player's team as text when the game key has another form. */
+/** The slot's full matchup name in its metadata, or its team text when the game key has another form. */
 function SlotGame({ codes, text }) {
-  return codes ? <Matchup away={codes.away} home={codes.home}/> : text;
+  return codes ? matchupWords(codes.away, codes.home) : text;
 }
 
 /**
@@ -124,24 +125,27 @@ export function PointsBallotView({ app, shell, read }) {
 function WeekCard({ data, viewer, onSlot, onBoard }) {
   const bar = weekBar(data), board = boardTile(data, viewer);
   return <>
+    <div className="gx-pt-week-heading"><p className="gx-t-micro gx-c-accent">Five players · Full PPR</p><h3 className="gx-t-section">Your weekly lineup</h3></div>
     <span className="gx-pt-bar" role="img" aria-label={bar.label} data-points-bar>
-      {bar.parts.map(part => <span key={part.slot} className={`gx-pt-bar-part gx-pt-bar-part--${part.state}`}></span>)}
+      {bar.parts.map(part => <span key={part.slot} className={`gx-pt-bar-part gx-pt-bar-part--${part.state}`} aria-hidden="true">{part.state === 'locked' ? <Icon icon="check" size={13}/> : part.slot}</span>)}
     </span>
     <p className="gx-t-meta" data-points-summary>{weekLine(data)}</p>
-    <ul className="gx-nest-grid gx-pt-grid" aria-label={`Week ${data.week} Points players`}>
-      {data.slots.map(slot => <li key={slot.slot}><SlotTile slot={slot} weekStatus={data.result?.status} onOpen={() => onSlot(slot.slot)}/></li>)}
+    <PointsWeekContext data={data}>{fantasy => <ul className="gx-nest-grid gx-pt-grid" aria-label={`Week ${data.week} Points players`}>
+      {data.slots.map(slot => <li key={slot.slot}><SlotTile slot={slot} fantasy={fantasy} settings={contextSettings(data)} weekStatus={data.result?.status} onOpen={() => onSlot(slot.slot)}/></li>)}
       <li><PlayTile label="Points board" icon="trophy" big={board.big} sub={board.sub} ariaLabel={board.label} onClick={onBoard}/></li>
-    </ul>
+    </ul>}</PointsWeekContext>
   </>;
 }
 
 /** One glow tile (P4A): the position, its status word, the player and one value line. Its id lets Back return focus to it. */
-function SlotTile({ slot, weekStatus, onOpen }) {
+function SlotTile({ slot, fantasy, settings, weekStatus, onOpen }) {
   const tile = slotTile(slot, weekStatus);
   return <CardButton variant="hero" id={`gx-pt-slot-${slot.slot}`} className="gx-pt-slot gx-vstack gx-gap-8" aria-label={tile.label} data-slot={slot.slot} onClick={onOpen}>
     <span className="gx-pt-slot-top"><span className="gx-t-section">{tile.code}</span><span className="gx-pt-word gx-t-micro">{tile.word}</span></span>
+    <TeamMark code={slot.team} size={48} decorative/>
     <span className="gx-t-strong gx-pt-slot-name">{tile.name}</span>
     <span className={tile.number ? 'gx-n-s' : 'gx-t-meta gx-pt-sub'}>{tile.value}</span>
+    <PointsObserved snapshot={fantasy} slot={slot} settings={settings} compact/>
   </CardButton>;
 }
 
@@ -284,16 +288,22 @@ export function SlotLayer({ data, slot, viewer, profile = false, setDirty, onPro
   const settled = (slot.state === 'scored' || slot.closed) && slot.state !== 'void';
   const closest = closestLine(slot, viewer);
   return <>
+    <Card as="header" className="gx-pt-player gx-vstack gx-gap-16">
+      <p className="gx-t-meta gx-pt-sub">{SLOT_NAMES[slot.slot]} · <SlotGame codes={matchupCodes(slot)} text={matchupText(slot)}/> · {can ? 'locks ' : ''}{kickoffText(slot.kickoff)}</p>
+      <h3 className="gx-t-section">{slot.name}</h3>
+      {matchupCodes(slot) ? <Matchup away={matchupCodes(slot).away} home={matchupCodes(slot).home} size={48} layout="stack"/> : <TeamMark code={slot.team} size={48} decorative/>}
+    </Card>
     <Card variant="hero" className="gx-vstack gx-gap-12 gx-pt-card">
       <span className="gx-pt-word gx-t-micro">{status}</span>
-      <p className="gx-t-meta gx-pt-sub">{SLOT_NAMES[slot.slot]} · <SlotGame codes={matchupCodes(slot)} text={matchupText(slot)}/> · {can ? 'locks ' : ''}{kickoffText(slot.kickoff)}</p>
       {settled && <><Tiles slot={slot}/>{isExact(slot) && <Pill tone="win" className="gx-pt-exact">Exact · 10 points</Pill>}{closest && <p className="gx-t-body">{closest}</p>}</>}
       {slot.state === 'void' && <p className="gx-t-body">Void for everyone. This week’s maximum drops by 10.</p>}
       {!can && !settled && slot.own?.locked && slot.state !== 'void' && <ValueRow label="You" value={slot.own.guess}/>}
       {can ? <section className="gx-vstack gx-gap-12" aria-label="Your guess">
+        <p className="gx-t-micro gx-c-accent">Your fantasy points guess</p>
         <Stepper value={value} onChange={choose} disabled={busy || Boolean(pending)}/>
         <Button block disabled={busy || !dirty || Boolean(pending)} onClick={() => send('draft')}>{busy ? 'Saving…' : 'Save draft'}</Button>
         <Button variant="primary" block disabled={busy || value === null || Boolean(pending)} onClick={() => setConfirm(true)}>{value === null ? 'Choose a guess to lock in' : `Lock in ${value}`}</Button>
+        <p className="gx-t-meta gx-pt-sub gx-pt-center">Final for this player. Other slots stay separate.</p>
         <LockedInFaces slot={slot}/>
       </section> : <Revealed slot={slot} viewer={viewer}/>}
     </Card>
@@ -301,7 +311,8 @@ export function SlotLayer({ data, slot, viewer, profile = false, setDirty, onPro
     {pending && <Card className="gx-vstack gx-gap-12"><p className="gx-t-body">Your last save is unconfirmed.</p><Button disabled={busy} onClick={() => send(pending.action, true)}>Retry same save</Button></Card>}
     {error && <p className="gx-t-body gx-c-loss" role="alert">{error}</p>}
     <p className="gx-t-body" role="status">{notice}</p>
-    {can && <Dialog open={confirm} title={`Lock in ${value}?`} text={`${slot.name} (${slot.slot}): ${value} fantasy points. This guess is final. Everyone’s guesses and the House open to you.`} onClose={() => { if (!busy) setConfirm(false); }}>
+    {can && <Dialog className="gx-play-confirm" open={confirm} title={`Lock in ${value}?`} text={`${slot.name} (${slot.slot}): ${value} fantasy points. This guess is final. Everyone’s guesses and the House open to you.`} onClose={() => { if (!busy) setConfirm(false); }}>
+      <div className="gx-play-confirm-call"><span className="gx-t-micro gx-c-accent">{slot.slot} · Your guess</span><strong className="gx-n-l">{value} fantasy points</strong><small className="gx-t-meta gx-pt-sub">{slot.name}</small></div>
       <Button onClick={() => setConfirm(false)}>Keep editing</Button>
       <Button variant="primary" disabled={busy} onClick={() => send('lock')}>Confirm lock-in</Button>
     </Dialog>}

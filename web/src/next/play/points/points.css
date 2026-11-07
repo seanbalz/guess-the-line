@@ -176,3 +176,40 @@
   .gx .gx-pt-line-tick,
   .gx .gx-pt-bar-part--locked { background: CanvasText; }
 }
+/* Approved Points lineup, player entry and observed production context; no House estimate in these charts. */
+.gx .gx-pt-week-heading { display: flex; flex-direction: column; gap: var(--gx-space-2); }
+.gx .gx-pt-week-heading > * { margin: 0; }
+.gx .gx-pt-bar { gap: var(--gx-space-2); }
+.gx .gx-pt-bar-part { display: flex; align-items: center; justify-content: center; height: 28px; border: 1px solid var(--gx-glass-line); border-radius: var(--gx-radius-xs); background: var(--gx-glass); box-shadow: var(--gx-glass-shadow); color: var(--gx-text-2); font: 700 12px/16px var(--gx-font-body); text-transform: uppercase; }
+.gx .gx-pt-bar-part--locked { color: var(--gx-accent-ink); border-color: var(--gx-accent-ink); background: var(--gx-accent-tint); }
+.gx .gx-pt-bar-part--draft { color: var(--gx-pending); background: var(--gx-glass); }
+.gx .gx-pt-slot { min-height: 180px; align-items: flex-start; justify-content: flex-start; gap: var(--gx-space-2); padding: var(--gx-space-4) var(--gx-space-3); }
+.gx .gx-pt-slot-top { width: 100%; }
+.gx .gx-pt-slot-top > .gx-t-section { color: var(--gx-accent-ink); }
+.gx .gx-pt-slot-name { min-height: 0; }
+.gx .gx-pt-slot > .gx-n-s { color: var(--gx-accent-ink); }
+.gx .gx-pt-observed { display: flex; flex-direction: column; gap: var(--gx-space-2); min-width: 0; width: 100%; }
+.gx .gx-pt-spark { display: block; height: 70px; width: 100%; }
+.gx .gx-pt-spark > svg { display: block; height: 100%; width: 100%; }
+.gx .gx-pt-observed--compact { margin-top: auto; }
+.gx .gx-pt-observed--compact .gx-pt-spark { height: 32px; }
+.gx .gx-pt-observed .gx-tc-mini-line { stroke: var(--gx-accent-ink); }
+.gx .gx-pt-observed .gx-tc-mini-area { fill: var(--gx-accent-tint); }
+.gx .gx-pt-player { padding: var(--gx-space-5) var(--gx-space-4); }
+.gx .gx-pt-player h3 { margin: 0; }
+.gx .gx-pt-player > .gx-mu { align-self: center; }
+.gx .gx-pt-card { padding: var(--gx-space-5) var(--gx-space-4); gap: var(--gx-space-4); }
+.gx .gx-pt-card .gx-pt-big { min-height: 70px; }
+.gx .gx-pt-step { border: 1px solid var(--gx-glass-line); border-radius: var(--gx-radius-sm); }
+.gx .gx-pt-context { padding: var(--gx-space-5) var(--gx-space-4); gap: var(--gx-space-4); }
+.gx .gx-pt-context-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-3); }
+.gx .gx-pt-context-tile { gap: var(--gx-space-2); padding: var(--gx-space-4) var(--gx-space-3); background: var(--gx-glass); box-shadow: var(--gx-glass-shadow); border: 1px solid var(--gx-glass-line); }
+.gx .gx-pt-context-tile:last-child { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+.gx .gx-pt-context-tile:last-child dd:last-child { grid-column: 1 / -1; }
+@media (max-width: 359px) {
+  .gx .gx-pt-player, .gx .gx-pt-card, .gx .gx-pt-context { padding: var(--gx-space-4) var(--gx-space-3); }
+  .gx .gx-pt-context-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* The Points lineup/slot/profile share the native nesting controller, with the approved floating content cards. */
+.gx .gx-nest.gx-pt > .gx-nest-card { margin-inline: 0; padding: 0; border: 0; background: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.gx .gx-nest.gx-pt > .gx-nest-card::before { display: none; }

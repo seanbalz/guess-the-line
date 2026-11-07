@@ -8,6 +8,7 @@ import { Boundary } from '../../shell/Boundary.jsx';
 import { Button, Card, Skeleton } from '../../ui/index.js';
 import { retryViewImport } from '../../ui/retryViewImport.js';
 import { CONTEXT_COPY, contextNumber, gamesText, slotContext } from './pointsContext.js';
+import { PointsObserved } from './PointsObserved.jsx';
 
 const importProfile = retryViewImport(() => import('./PointsProfile.jsx'));
 const loadProfile = () => lazy(importProfile);
@@ -68,6 +69,7 @@ export function SlotContext({ week, slot, snapshot: state, settings, onProfile }
         <Tile label={context.opponent ? `${context.opponent} allows` : 'Opponent allows'} value={context.allowed?.value ?? null}
           note={context.allowed ? `to ${context.allowed.positions} · ${gamesText(context.allowed.games)}` : 'not in this data'} missing="not available"/>
       </dl>
+      <PointsObserved snapshot={state} slot={slot} settings={settings}/>
       <p className="gx-t-meta gx-pt-sub" data-points-report>{report}</p>
       {context.found ? <Button variant="ghost" iconEnd="chevronRight" onClick={onProfile} aria-label={`${CONTEXT_COPY.profile}: ${slot.name}`}>{CONTEXT_COPY.profile}</Button> : null}
     </>;

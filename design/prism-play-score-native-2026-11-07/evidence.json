@@ -1,0 +1,140 @@
+{
+  "date": "2026-11-07",
+  "authorityCommit": "3ac2eb50513ba73447ef890e4a47863cde7bdd76",
+  "sourceBase": "42a5ad9930a5712c6b357564701fbb5628b12b43",
+  "sharedFoundation": "1e104fdf1266660a84c98971ddae91d9c153be68",
+  "data": "Fictional native route/controller test fixtures only; no hosted account/quote reads.",
+  "captures": [
+    {
+      "file": "prism-play-dark-phone.png",
+      "sha256": "8e9e74de51afc881cd721d558a930f109b7ae2e3ea3ba454a2650dc2a6f5d87b",
+      "fixture": true,
+      "viewportWidth": 390,
+      "capture": "Native full-page/element capture; existing fixed chrome remains at capture scroll/viewport position."
+    },
+    {
+      "file": "prism-play-light-phone.png",
+      "sha256": "3a38ae4f27925fc7e5ddd8f545f2ee2c1b0491697f7f47c42f176f69d2836fd4",
+      "fixture": true,
+      "viewportWidth": 390,
+      "capture": "Native full-page/element capture; existing fixed chrome remains at capture scroll/viewport position."
+    },
+    {
+      "file": "prism-score-dark-phone.png",
+      "sha256": "217678f7a2b119b9b18d7e65279df3bf00d7340cbe74352a0b7bdc408e1232b6",
+      "fixture": true,
+      "viewportWidth": 390,
+      "capture": "Native full-page/element capture; existing fixed chrome remains at capture scroll/viewport position."
+    },
+    {
+      "file": "prism-score-light-phone.png",
+      "sha256": "3e66c67d25c4a33485ddd0160132eacadccba14b692e83e35f33ae0985701f30",
+      "fixture": true,
+      "viewportWidth": 390,
+      "capture": "Native full-page/element capture; existing fixed chrome remains at capture scroll/viewport position."
+    },
+    {
+      "file": "prism-score-history-light-phone.png",
+      "sha256": "824892e6b1f328a01341e29533ec34fe751d61410877afeebfe416d938040137",
+      "fixture": true,
+      "viewportWidth": 390,
+      "capture": "Native full-page/element capture; existing fixed chrome remains at capture scroll/viewport position."
+    },
+    {
+      "file": "per-game-picks-390-dark.png",
+      "sha256": "761b1582ebe4c74e6555e8626d11dc4e54d7dc34166be33f925f69c311061b22",
+      "fixture": true,
+      "viewportWidth": 390,
+      "capture": "Native full-page/element capture; existing fixed chrome remains at capture scroll/viewport position."
+    },
+    {
+      "file": "per-game-picks-390-light.png",
+      "sha256": "fd734a0a40b2371255f557b7a7c8efda846d8d368ef663bc6e8b15f76efe6c07",
+      "fixture": true,
+      "viewportWidth": 390,
+      "capture": "Native full-page/element capture; existing fixed chrome remains at capture scroll/viewport position."
+    },
+    {
+      "file": "score-game-390-dark.png",
+      "sha256": "b5df315d635cceaf01ae53545e9caa9231866bd74bb45e0026289dbb077d8c47",
+      "fixture": true,
+      "viewportWidth": 390,
+      "capture": "Native full-page/element capture; existing fixed chrome remains at capture scroll/viewport position."
+    },
+    {
+      "file": "score-game-390-light.png",
+      "sha256": "00b0b3f7b35e8034495effd5823ef24335461e840e3bf79a14b9782cf51a9a1a",
+      "fixture": true,
+      "viewportWidth": 390,
+      "capture": "Native full-page/element capture; existing fixed chrome remains at capture scroll/viewport position."
+    },
+    {
+      "file": "points-ballot-390-dark.png",
+      "sha256": "e3796010a558c3404d8727c45e775aa2aca02e8b5c167f714fd5c7b4c7fa1f15",
+      "fixture": true,
+      "viewportWidth": 390,
+      "capture": "Native full-page/element capture; existing fixed chrome remains at capture scroll/viewport position."
+    },
+    {
+      "file": "points-ballot-390-light.png",
+      "sha256": "c655a9a7741760535f984fdfc0e796b94e2d20efaef3a8e6e2a98b4a406a413c",
+      "fixture": true,
+      "viewportWidth": 390,
+      "capture": "Native full-page/element capture; existing fixed chrome remains at capture scroll/viewport position."
+    },
+    {
+      "file": "points-slot-editor-390.png",
+      "sha256": "48e9df11bbc3ae82ad056d7a1f2a220d79010d32da2f67fefc510112fcca714a",
+      "fixture": true,
+      "viewportWidth": 390,
+      "capture": "Native full-page/element capture; existing fixed chrome remains at capture scroll/viewport position."
+    },
+    {
+      "file": "points-context-strip-390-dark.png",
+      "sha256": "b2835734389640e199a7c62b791921a3ca03d29434a4f130f0494acb226a85b0",
+      "fixture": true,
+      "viewportWidth": 390,
+      "capture": "Native full-page capture of fictional observed production; House gate remains closed."
+    },
+    {
+      "file": "points-context-strip-390-light.png",
+      "sha256": "c972a7c53d197fa5f6408b9046ad637e3a9669234991ba922c205c7c231af64c",
+      "fixture": true,
+      "viewportWidth": 390,
+      "capture": "Native full-page capture of fictional observed production; House gate remains closed."
+    },
+    {
+      "file": "points-context-profile-locked-390-dark.png",
+      "sha256": "6331213b6b09a99fc4ab022210e11a69f66fb8c88686f5851e7f3a5437d0e267",
+      "fixture": true,
+      "viewportWidth": 390,
+      "capture": "Native full-page capture of fictional observed production; House gate remains closed."
+    },
+    {
+      "file": "points-context-profile-locked-390-light.png",
+      "sha256": "19128c3b4ce007840e11d585b6a9ba628d5cb98001eb4da1fc6410f8050d0056",
+      "fixture": true,
+      "viewportWidth": 390,
+      "capture": "Native full-page capture of fictional observed production; House gate remains closed."
+    }
+  ],
+  "verification": {
+    "nodeContracts": 47,
+    "affectedVitest": 112,
+    "existingBrowserRegressions": 28,
+    "finalFocusedBrowser": 4,
+    "finalPointsContextBrowser": 1,
+    "typecheck": "pass",
+    "cloudBuild": "pass",
+    "bundlePrivacyScan": "pass",
+    "hostedBoundary": "Not run; owned worktree has no .env.cloud.",
+    "fullVitest": "Two unrelated foundation EPL label assertions passed to parent; no full-suite green claim.",
+    "finalKeyboardOnlyBrowser": {
+      "passed": 1,
+      "case": "next-points.spec.js:228 keyboard only, with reduced motion",
+      "unchangedAssertions": true,
+      "retries": 0,
+      "durationSeconds": 2.7
+    }
+  }
+}

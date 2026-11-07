@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { ALL, HOSTED } from '../migrations.mjs';
 import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
-import { chooseMarket, openGame, openWeek } from './play-nest.mjs';
+import { openPicksWeek, chooseMarket, openGame, openWeek } from './play-nest.mjs';
 
 // UI contract checks use fictional reads/writes over a local account fixture. SQL authority is tested separately.
 test.use({ viewport: { width: 390, height: 844 } });
@@ -37,7 +37,7 @@ async function fixture(page, baseURL, { beforePlay } = {}) {
   await signIn(page, 'luke');
   if (beforePlay) { await expect(tabs(page)).toBeVisible(); await beforePlay(personal); }
   await tabs(page).getByRole('button', { name: /^Play(,|$)/ }).click();
-  await page.getByRole('button', { name: 'Make picks', exact: true }).click();
+  await openPicksWeek(page);
   await expect(page.locator('.gx-per-game')).toBeVisible();
   return { ...world, personal, writes, control };
 }
@@ -96,7 +96,7 @@ test('one guess locks after confirmation, keeps the other market open, and links
     await expect(page.locator('.gx-nest-card')).toContainText('/ 10 points'); // a reload reopens the layer
     await shots(page, info, 'score-game');
     await page.getByRole('button', { name: 'Back to Your score', exact: true }).click();
-    await expect(page.getByRole('region', { name: 'Personal score summary' })).toContainText('8 points');
+    await expect(page.getByRole('region', { name: 'Personal score summary' }).getByRole('img', { name: '8 of 10 possible points', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'About your scores', exact: true }).click();
     await expect(page.getByRole('dialog', { name: 'About your scores' })).toContainText('8 personal points waiting for kickoff');
     await page.keyboard.press('Escape');
@@ -109,7 +109,7 @@ test('one guess locks after confirmation, keeps the other market open, and links
     await page.getByRole('button', { name: `Week ${world.personal.week - 1}`, exact: true }).click();
     await expect(page.getByText('No saved Spread guesses for this week.')).toBeVisible();
     await page.getByRole('button', { name: `Week ${world.personal.week}`, exact: true }).click();
-    await expect(page.getByRole('region', { name: 'Personal score summary' })).toContainText('8 points');
+    await expect(page.getByRole('region', { name: 'Personal score summary' }).getByRole('img', { name: '8 of 10 possible points', exact: true })).toBeVisible();
     await shots(page, info, 'weekly-score');
     // Back closes one layer: a row opens its game and the browser Back button returns to the list.
     await page.locator('.gx-ys-row').first().click();
@@ -147,7 +147,7 @@ test('native sit-out keeps an existing lock and unsaved draft, confirms through 
     });
     await signIn(page, 'luke');
     await tabs(page).getByRole('button', { name: /^Play(,|$)/ }).click();
-    await page.getByRole('button', { name: 'Make picks', exact: true }).click();
+    await openPicksWeek(page);
     await expect(page.locator('.gx-per-game')).toBeVisible();
     const [first, second] = world.state.games, card = await choose(page, first.id);
     await card.getByRole('button', { name: 'Lock in Spread' }).click();

@@ -30,6 +30,22 @@ regression in this slice, but the approved Bets landing summary/chart, Tickets
 and Recommended card composition still needs its native port. Full overview,
 open/parlay, selection and correction/audit visual closeout remains separate.
 
+## Approved Prism native Play, Points and Score — November 7, 2026
+
+Locally implemented in the owned `codex/confirmed-prism-play-score-2026-11-07`
+worktree from fresh main `42a5ad9930a5712c6b357564701fbb5628b12b43`, with the
+shared Prism foundation for QA. [Scope, approval mapping and evidence](PRISM_PLAY_SCORE_NATIVE_2026_11_07.md)
+cover the confirmed overview, draft/confirmation, Points lineup/context and
+score/history arrangements against actual native readers/controllers. Markets,
+final per-game locks, drafts, missing data and reveal/source gates remain native.
+28 existing isolated Play/Points/Score browser regressions passed; focused
+zero/missing/privacy/responsive checks and native fixture captures are recorded.
+Local handoff only: no push/PR, merge, deployment, SQL/API or collector change.
+Held shell positions, whole-app release and physical-phone acceptance are separate.
+Parent review found no new writer/privacy/scoring defect, but selected outlined
+controls, the Points usage profile/opponent strip and score metadata/chart order
+still need their confirmed presentations. This area is not marked complete.
+
 ## Selected Prism shared native foundation — November 7, 2026
 
 Locally checked on `codex/confirmed-prism-shared-2026-11-07`, based on fresh main
