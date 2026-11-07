@@ -1,5 +1,20 @@
 # Guess The Line — current completion register
 
+## Home spacing review — November 7, 2026
+
+Sean requested better format and spacing after the Home release. A
+[Dark/Light mockup review](../design/home-spacing-review-2026-11-07/README.md)
+uses unchanged current-main app source with browser-only layout overrides.
+The proposed balanced layout removes compounded gaps, aligns progress/stat/
+shortcut graphics with text and compacts matchup rows. At 390px the same
+fictional fixture is 1,279px tall instead of 1,561px (18.1% shorter).
+Thirty layout cases passed across both themes, native/wider fonts and simulated
+phone insets; 24 keyboard-focus observations cleared the bottom bar. Axe found
+zero violations in either theme, with translucent contrast evaluation incomplete;
+the existing token suite passed 15/15. These are local browser checks, not
+physical-phone acceptance. **Mockups awaiting Sean's approval; app source and
+production remain unchanged.** No release or migration was run for this review.
+
 ## Approved Prism Glass Home — November 7, 2026
 
 Sean approved the exact Dark/Light Home mockups and instructed “Good deploy.”
