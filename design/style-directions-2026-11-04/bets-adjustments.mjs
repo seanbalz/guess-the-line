@@ -11,7 +11,8 @@ export function adjustOdds(value,direction,step){
 export function adjustUnits(value,direction,step){
  if(value===''||value==null)return null;
  const n=Number(value);
- if(!Number.isFinite(n)||n<.0001||n>10000||Math.abs(n*10000-Math.round(n*10000))>1e-7||![1,-1].includes(direction)||!(step>0))return null;
+ if(!Number.isFinite(n)||n<.01||n>10000||Math.abs(n*10000-Math.round(n*10000))>1e-7||![1,-1].includes(direction)||!(step>0))return null;
  const next=Math.round(n*10000)+direction*Math.round(step*10000);
- return next>=1&&next<=100000000?next/10000:null;
+ const clamped=Math.max(100,next);
+ return clamped<=100000000&&clamped!==Math.round(n*10000)?clamped/10000:null;
 }

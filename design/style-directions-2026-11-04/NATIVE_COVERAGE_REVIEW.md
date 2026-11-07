@@ -28,16 +28,15 @@ remain separate from visual acceptance.
 - Account History: nineteen Guess states and expanded/source/rules views were
   approved at `e585b0afa23deb49996f4b044010d5b41656d5ce` (44 captures). Bets weeks
   and all seven Older sections now have 24 states plus expanded/Info variants
-  prepared in both themes (60 captures), awaiting visual approval. Earlier Play
+  approved in both themes at `5c4210863f486bf77b1fec251073b26a55d5d89e` (60 captures). Earlier Play
   scores/Bets corrections are not substituted for this account-history evidence.
-- NFL game and action layers: map `shell/registry.jsx`, Play/Bets subviews and
-  modal/guard branches to exact existing captures. In particular, check the
-  forfeit/reveal dialog, personal/everyone pick sheets, Virtual Units entry and
-  feed pick/reactor sheets before scheduling any missing visual batch. Avoid
-  reopening already approved states under another label.
-- Shared shell: compare the existing Menu, sport switch, league switch and
-  download/recovery layers to the supplied Account/access/continuity approvals.
-  EPL's native leagues and history placeholders need their own scope check.
+- NFL action layers: the scoped batch below now covers native forfeit/reveal,
+  personal/everyone picks, game bets, Virtual entry, feed picks/reactors and
+  recovery/guard states. Owner visual approval is pending for 106 captures.
+- Shared shell: native Menu, header, sports and four-tab placement plus layer
+  failure are supplied below. Existing switcher/invite/general recovery and
+  Menu destinations retain scoped approvals. EPL league/history placeholders
+  and retained NBA route visuals remain reconciliation items.
 - Review notes and exports remain visual evidence; hosted data, physical-device
   behavior, release gates and production integration require their own evidence.
 
@@ -123,7 +122,7 @@ remain explicit. No whole-project completion, production integration or release.
 ## Current Bets weeks / Older records delivery
 
 24 states plus four expanded views and source/rules Info are supplied in both
-themes (60 captures), awaiting visual approval. Both native feature files are
+themes (60 captures), approved at `5c4210863f486bf77b1fec251073b26a55d5d89e`. Both native feature files are
 isolated/source-compared; all seven sections remain. Native record/outcome,
 qualification, Challenge grading, note/forecast changes, archived-journal
 accounting, slips, comparison snapshots and benchmark visibility are retained.
@@ -139,3 +138,67 @@ still opens while records is unavailable. Actual server permissions/history/
 source/settlement/import/freeze/device acceptance stays separate. Remaining NFL
 sheets, shared-shell and retained-route reconciliation follows; whole-app work
 is not complete. Avatars/photos and awards stay held.
+
+## Current NFL actions / shared frame delivery
+
+## NFL actions and shared navigation mockups prepared — November 6, 2026
+
+[Phone review index: all 106 captures](NFL_ACTIONS_NAVIGATION_REVIEW.md).
+
+Sean approved the prior 60 Bets weeks / Older records captures at
+`5c4210863f486bf77b1fec251073b26a55d5d89e`: “Looks good in both themes.
+Continue with the remaining NFL action and shared-navigation mockups.”
+That approval is recorded at its exact capture scope.
+
+This batch adds 43 core states in both themes: whole-week sit-out/reveal and
+its uncertain-close warning, saved Spread/Total/draft/pending/stale/scope states,
+one-game league bets, feed pick sharing and reaction lists, Virtual Units and
+its slip, native Menu gates/busy sign-out, NFL/EPL/native four-tab frame, and a
+layer-open-failure toast. Existing switcher/invite/reaction-chooser/general
+recovery and Menu-destination approvals are retained rather than duplicated.
+Native navigation bodies are labelled context specimens, not replacement
+features. Empty tab slots avoid invented counters; NBA stays hidden.
+
+Sean then requested units down to **0.01U** and selected **0.1U per +/− tap**.
+The Virtual and manual tracking preview controls now include the quick minimum
+and custom entry. The Virtual field blocks invalid amounts, accepts hundredths,
+keeps the 100U maximum, and freezes editing in busy/uncertain states. Manual
+tracking preserves Unknown, existing precision and 10000U maximum. Existing
+saved records and qualification thresholds stay intact. Native production
+Virtual code still has its 0.5U floor; implementation/API/database compatibility
+and deployment are separate unfinished work.
+
+Ten native presentation files are source-compared after explicit adapters:
+injected contexts/read/write states, no-op notices, haptics off, selected logo,
+mark-only matchups, omitted real metadata times and the requested unit controls.
+Native formatting/gameGuesses/everyoneBoard/accuracy, initial avatars, reaction
+glyphs, Menu gates and Sheet/Dialog/Info behavior remain. Native API/auth/read/
+write/polling/storage/timer controllers are excluded. New annotation Info stops
+nested cancel/close from dismissing its parent. The unconfirmed close warning
+uses existing words in a native Dialog storyboard, without an OS prompt or a
+recovery marker. No preview action fabricates saved/revealed/shared success.
+
+All identities, picks, terms, outcomes/counts and fixed recovery/confirmed states
+are fictional. Math examples give 8 accuracy points for one-point error and a
+normalized +0.91U entered-price result. Hidden guesses lack pick/error/points/
+rank; closed bets lack terms/results. No real fixture, quote, kickoff,
+observation, save receipt, post, reaction or transaction is supplied. Offer
+timestamps remain null; example terms cannot qualify as live prices.
+
+61 existing native tests passed (25 Node, 36 Vitest). Browser checks include
+336 baseline responsive layouts, 56 revised Virtual and 8 revised tracking
+layouts, 48 revised saved-pick layouts/12 flows, 84 baseline flows, 16 decimal-entry flows, 68 loaded separate marks,
+10 modal keyboard/focus checks, 10 Info checks and six prior mounts. Source,
+fixture, unit clamp/step, UTF-8, bundle exclusion, Brand, syntax and diff checks
+passed. Instrumented core/modal passes observed no provider/auth reads, writes,
+storage changes, bundle intervals, popup/OS dialog or page error; revised entry
+checks observed no page errors or non-GET requests. Build: 1810 inputs,
+927553-byte JS. 106 inspected captures include five scrolled sheet pairs and
+four rule/example Info pairs, plus revised tracking. Current owner approval is
+pending; navigation retains Sean’s standing pass-unless-reported instruction.
+
+Only preview assets/evidence change. No production controller, scoring,
+collector, migration, frozen v62, account data, merge or deploy change.
+Retained-route reconciliation and whole-app implementation/acceptance remain
+unfinished. New avatars/photos/awards stay held; parked Signal files are
+untouched and unpublished.

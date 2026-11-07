@@ -9,6 +9,10 @@ Promise.all([read('populated-research-data.json'),read('populated-fantasy-data.j
  const title=d.querySelector('.detail-close~.screen-top .page-title');
 
 
+ const actionLayer=document.getElementById('review-layer')?.value;
+ if(d.getElementById('screen')?.value==='Account'&&title?.textContent==='Profile & account'&&actionLayer?.startsWith('action-')){
+  const stack=d.querySelector('.detail-close~.stack');if(!stack)return;const root=d.createElement('div');root.className='populated-research-root gx';root.dataset.theme=frame.dataset.reviewTheme;root.dataset.researchView='nfl-actions';stack.replaceChildren(root);d.querySelector('.fixture').textContent='FICTIONAL ACTION EXAMPLES · NO ACCOUNT READS OR WRITES';roots.get(frame)?.unmount();roots.set(frame,frame.contentWindow.GTLPopulatedResearch.mountNflActions(root,actionLayer.slice(7)));return;
+ }
  const recordsLayer=document.getElementById('review-layer')?.value;
  if(d.getElementById('screen')?.value==='Account'&&title?.textContent==='Profile & account'&&["records-bets", "records-bets-empty", "records-bets-loading", "records-bets-unavailable", "records-bets-failed", "records-weeks-loading", "records-weeks-failed", "records-no-weeks", "records-older", "records-challenge", "records-saved", "records-forecasts", "records-journal", "records-slips", "records-archives", "records-benchmark", "records-benchmark-unfrozen", "records-older-loading", "records-older-failed", "records-older-off", "records-older-empty", "records-slips-loading", "records-slips-failed", "records-slips-empty"].includes(recordsLayer)){
   const stack=d.querySelector('.detail-close~.stack');if(!stack)return;

@@ -1,5 +1,67 @@
 # Guess The Line — current completion register
 
+## NFL actions and shared navigation mockups prepared — November 6, 2026
+
+[Phone review index: all 106 captures](../design/style-directions-2026-11-04/NFL_ACTIONS_NAVIGATION_REVIEW.md).
+
+Sean approved the prior 60 Bets weeks / Older records captures at
+`5c4210863f486bf77b1fec251073b26a55d5d89e`: “Looks good in both themes.
+Continue with the remaining NFL action and shared-navigation mockups.”
+That approval is recorded at its exact capture scope.
+
+This batch adds 43 core states in both themes: whole-week sit-out/reveal and
+its uncertain-close warning, saved Spread/Total/draft/pending/stale/scope states,
+one-game league bets, feed pick sharing and reaction lists, Virtual Units and
+its slip, native Menu gates/busy sign-out, NFL/EPL/native four-tab frame, and a
+layer-open-failure toast. Existing switcher/invite/reaction-chooser/general
+recovery and Menu-destination approvals are retained rather than duplicated.
+Native navigation bodies are labelled context specimens, not replacement
+features. Empty tab slots avoid invented counters; NBA stays hidden.
+
+Sean then requested units down to **0.01U** and selected **0.1U per +/− tap**.
+The Virtual and manual tracking preview controls now include the quick minimum
+and custom entry. The Virtual field blocks invalid amounts, accepts hundredths,
+keeps the 100U maximum, and freezes editing in busy/uncertain states. Manual
+tracking preserves Unknown, existing precision and 10000U maximum. Existing
+saved records and qualification thresholds stay intact. Native production
+Virtual code still has its 0.5U floor; implementation/API/database compatibility
+and deployment are separate unfinished work.
+
+Ten native presentation files are source-compared after explicit adapters:
+injected contexts/read/write states, no-op notices, haptics off, selected logo,
+mark-only matchups, omitted real metadata times and the requested unit controls.
+Native formatting/gameGuesses/everyoneBoard/accuracy, initial avatars, reaction
+glyphs, Menu gates and Sheet/Dialog/Info behavior remain. Native API/auth/read/
+write/polling/storage/timer controllers are excluded. New annotation Info stops
+nested cancel/close from dismissing its parent. The unconfirmed close warning
+uses existing words in a native Dialog storyboard, without an OS prompt or a
+recovery marker. No preview action fabricates saved/revealed/shared success.
+
+All identities, picks, terms, outcomes/counts and fixed recovery/confirmed states
+are fictional. Math examples give 8 accuracy points for one-point error and a
+normalized +0.91U entered-price result. Hidden guesses lack pick/error/points/
+rank; closed bets lack terms/results. No real fixture, quote, kickoff,
+observation, save receipt, post, reaction or transaction is supplied. Offer
+timestamps remain null; example terms cannot qualify as live prices.
+
+61 existing native tests passed (25 Node, 36 Vitest). Browser checks include
+336 baseline responsive layouts, 56 revised Virtual and 8 revised tracking
+layouts, 48 revised saved-pick layouts/12 flows, 84 baseline flows, 16 decimal-entry flows, 68 loaded separate marks,
+10 modal keyboard/focus checks, 10 Info checks and six prior mounts. Source,
+fixture, unit clamp/step, UTF-8, bundle exclusion, Brand, syntax and diff checks
+passed. Instrumented core/modal passes observed no provider/auth reads, writes,
+storage changes, bundle intervals, popup/OS dialog or page error; revised entry
+checks observed no page errors or non-GET requests. Build: 1810 inputs,
+927553-byte JS. 106 inspected captures include five scrolled sheet pairs and
+four rule/example Info pairs, plus revised tracking. Current owner approval is
+pending; navigation retains Sean’s standing pass-unless-reported instruction.
+
+Only preview assets/evidence change. No production controller, scoring,
+collector, migration, frozen v62, account data, merge or deploy change.
+Retained-route reconciliation and whole-app implementation/acceptance remain
+unfinished. New avatars/photos/awards stay held; parked Signal files are
+untouched and unpublished.
+
 ## History Bets weeks and Older records mockups prepared — November 6, 2026
 
 [Phone review index: all sixty captures](../design/style-directions-2026-11-04/HISTORY_BETS_OLDER_REVIEW.md).

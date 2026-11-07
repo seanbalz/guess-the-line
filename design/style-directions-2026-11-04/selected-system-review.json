@@ -1635,13 +1635,314 @@
         "actions": [
           "detail:profile"
         ]
+      },
+      {
+        "id": "action-forfeit-ready",
+        "name": "NFL / shared · forfeit ready",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-forfeit-loading",
+        "name": "NFL / shared · forfeit loading",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-forfeit-unconfirmed",
+        "name": "NFL / shared · forfeit unconfirmed",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-forfeit-busy",
+        "name": "NFL / shared · forfeit busy",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-forfeit-expired",
+        "name": "NFL / shared · forfeit expired",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-forfeit-done",
+        "name": "NFL / shared · forfeit done",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-forfeit-scope",
+        "name": "NFL / shared · forfeit scope",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-saved-pick",
+        "name": "NFL / shared · saved pick",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-saved-total",
+        "name": "NFL / shared · saved total",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-saved-draft",
+        "name": "NFL / shared · saved draft",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-saved-pending",
+        "name": "NFL / shared · saved pending",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-saved-stale",
+        "name": "NFL / shared · saved stale",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-saved-scope",
+        "name": "NFL / shared · saved scope",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-game-bets",
+        "name": "NFL / shared · game bets",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-game-bets-loading",
+        "name": "NFL / shared · game bets loading",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-game-bets-failed",
+        "name": "NFL / shared · game bets failed",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-game-bets-empty",
+        "name": "NFL / shared · game bets empty",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-feed-picks",
+        "name": "NFL / shared · feed picks",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-feed-hidden",
+        "name": "NFL / shared · feed hidden",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-feed-picks-loading",
+        "name": "NFL / shared · feed picks loading",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-feed-picks-failed",
+        "name": "NFL / shared · feed picks failed",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-feed-picks-empty",
+        "name": "NFL / shared · feed picks empty",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-feed-share-uncertain",
+        "name": "NFL / shared · feed share uncertain",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-reactors",
+        "name": "NFL / shared · reactors",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-reactors-loading",
+        "name": "NFL / shared · reactors loading",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-reactors-failed",
+        "name": "NFL / shared · reactors failed",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-reactors-empty",
+        "name": "NFL / shared · reactors empty",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-virtual",
+        "name": "NFL / shared · virtual",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-virtual-slip",
+        "name": "NFL / shared · virtual slip",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-virtual-locked",
+        "name": "NFL / shared · virtual locked",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-virtual-no-offer",
+        "name": "NFL / shared · virtual no offer",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-virtual-busy",
+        "name": "NFL / shared · virtual busy",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-virtual-uncertain",
+        "name": "NFL / shared · virtual uncertain",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-menu",
+        "name": "NFL / shared · menu",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-menu-admin",
+        "name": "NFL / shared · menu admin",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-menu-no-reminders",
+        "name": "NFL / shared · menu no reminders",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-menu-busy",
+        "name": "NFL / shared · menu busy",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-navigation-nfl",
+        "name": "NFL / shared · navigation nfl",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-navigation-epl",
+        "name": "NFL / shared · navigation epl",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-navigation-nfl-only",
+        "name": "NFL / shared · navigation nfl only",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-navigation-layer-failed",
+        "name": "NFL / shared · navigation layer failed",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-forfeit-close-warning",
+        "name": "NFL / shared · forfeit close warning",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "action-virtual-minimum",
+        "name": "NFL / shared · 0.01U slip minimum",
+        "actions": [
+          "detail:profile"
+        ]
       }
     ]
   },
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "Account/records-bets",
+    "next": "Account/action-forfeit-ready",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -2562,7 +2863,14 @@
       "bets-odds-units-adjusted-light-phone.png",
       "bets-more-books-light-phone.png"
     ],
-    "acceptanceScope": "Supplied 12 upfront/33 searchable manual source choices and odds/unit steppers at 5 points/0.25U. Not all unseen source states, real account writes or whole-project completion."
+    "acceptanceScope": "Supplied 12 upfront/33 searchable manual source choices and odds/unit steppers at 5 points/0.25U. Not all unseen source states, real account writes or whole-project completion.",
+    "supersededUnitControls": {
+      "date": "2026-11-06",
+      "newMinimum": 0.01,
+      "newTapStep": 0.1,
+      "record": "nflActionsNavigationPreview.unitsDecision",
+      "scope": "Earlier 0.25U/capture acceptance preserved as history; current preview controls and new tracking captures use the newer explicit owner instruction."
+    }
   },
   "eplDraftPreview": {
     "prepared": "2026-11-06",
@@ -4768,7 +5076,7 @@
     "acceptanceScope": "Supplied nineteen Guess History states plus expanded game/source/rules Info in both themes (44 captures). Visual direction only; actual private records, sources, timestamps/references, device behavior and whole-app completion remain separate."
   },
   "historyBetsOlderPreview": {
-    "status": "Prepared for visual approval in both themes",
+    "status": "Approved for the 60 reviewed captures in both themes; production and whole-app acceptance remain separate.",
     "prepared": "2026-11-06",
     "views": [
       "bets",
@@ -4897,6 +5205,335 @@
     "captureScope": "Twenty-four states, four expanded note/journal/archive/benchmark views and source/rules Info, both themes: 60 inspected PNGs. Extended ordinary captures fit content; modal opening captures remain scrollable, with full scroll/Escape/focus checked separately.",
     "approvalScope": "Supplied Bets weeks and seven Older record sections/read-state visual direction only. Actual authorization/redaction, saved record completeness/account scope, timestamps/source provenance, settlement, historical imports/freeze validity and phone acceptance require separate evidence. No whole-app completion or release.",
     "next": "Reconcile remaining NFL game/action sheets, shared Menu/sport/league/download layers and retained-route coverage against exact supplied captures. Do not reopen approved views or expose hidden NBA navigation. New avatar/photos and awards remain held.",
-    "reviewIndex": "HISTORY_BETS_OLDER_REVIEW.md"
+    "reviewIndex": "HISTORY_BETS_OLDER_REVIEW.md",
+    "approval": {
+      "status": "approved for reviewed captures in both themes",
+      "reviewedCommit": "5c4210863f486bf77b1fec251073b26a55d5d89e",
+      "userStatement": "Looks good in both themes. Continue with the remaining NFL action and shared-navigation mockups.",
+      "scope": "All 60 published Bets weeks and Older records captures in HISTORY_BETS_OLDER_REVIEW.md. Does not establish production acceptance or whole-app completion."
+    }
+  },
+  "nflActionsNavigationPreview": {
+    "status": "Prepared for owner visual review in both themes; approval pending",
+    "scenarios": [
+      "forfeit-ready",
+      "forfeit-close-warning",
+      "forfeit-loading",
+      "forfeit-unconfirmed",
+      "forfeit-busy",
+      "forfeit-expired",
+      "forfeit-done",
+      "forfeit-scope",
+      "saved-pick",
+      "saved-total",
+      "saved-draft",
+      "saved-pending",
+      "saved-stale",
+      "saved-scope",
+      "game-bets",
+      "game-bets-loading",
+      "game-bets-failed",
+      "game-bets-empty",
+      "feed-picks",
+      "feed-hidden",
+      "feed-picks-loading",
+      "feed-picks-failed",
+      "feed-picks-empty",
+      "feed-share-uncertain",
+      "reactors",
+      "reactors-loading",
+      "reactors-failed",
+      "reactors-empty",
+      "virtual",
+      "virtual-minimum",
+      "virtual-slip",
+      "virtual-locked",
+      "virtual-no-offer",
+      "virtual-busy",
+      "virtual-uncertain",
+      "menu",
+      "menu-admin",
+      "menu-no-reminders",
+      "menu-busy",
+      "navigation-nfl",
+      "navigation-epl",
+      "navigation-nfl-only",
+      "navigation-layer-failed"
+    ],
+    "held": "New avatar/photo choices, new awards/celebrations, and parked Signal files.",
+    "prepared": "2026-11-06",
+    "reviewIndex": "NFL_ACTIONS_NAVIGATION_REVIEW.md",
+    "nativeSourceFiles": {
+      "play/ForfeitDialog.jsx": "0c9bd736f07fdba8c73fb17d911b29ed83b36a7ea9c3859c43417694d5584776",
+      "lines/YourPickSheet.jsx": "58bc60df545299a3121de866e0d61fd21b7341021df58336399f95984d01ddaa",
+      "lines/EveryoneGuesses.jsx": "c0e2e1d1d61bcad8d9d0a72e8d471db1379cd7f27a6c33194b536dd2de9c00a6",
+      "bets/GameBetsSheet.jsx": "44f7f861225d0580c4177b217e807992f0cce08e77029688c4d6c401cea1844e",
+      "bets/EveryoneBets.jsx": "bbe26a4ef35333f2ee48ec81ccdcda04d59246699376295034454325db700286",
+      "bets/PlaceBets.jsx": "2f5b2e330dae36f795b1e37a84512914f9bb32cd0f5148b592b60323f15fd3f0",
+      "feed/PicksSheet.jsx": "e458fdaec2661bbd8bd585120f73510eddf8059954ca051ec176fea10ea3cbfe",
+      "feed/ReactorsSheet.jsx": "d728bb7db83bc52927bc510acfd2e07dec01083d2ba725f517a1cd5ca60d3f35",
+      "me/MenuSheet.jsx": "30b40cc4efd5d147932512a99b00d3937fc07d6112131c5f202b7ef9a31b3c94",
+      "shell/Frame.jsx": "fc9f40d0f8dbfdf4d16a739ef9ee41e371c4fa75580faf44624ffafe39b8f21c"
+    },
+    "sourcePreservation": "Ten native presentation files are source-compared after explicit read/controller injection. Native gameGuesses/everyoneBoard/accuracy, formatting, initial avatars, existing reaction glyphs, native Sheet/Dialog/Info and Menu permissions remain. Controllers, API/auth, storage and timers are excluded.",
+    "adaptations": "Selected hybrid G; mark-only native Matchup with separate glass tiles; Button haptics off; example metadata omits real receipt/kickoff/reference timestamps. Presentation/read states and callbacks are injected. Native Menu subviews, switcher and general recovery already have approved captures and are referenced rather than duplicated. Native tabBadge uses an empty preview slot map, so no invented badge counts. The navigation body is a labelled context specimen, not a replacement destination feature. New annotation Info stops nested close/cancel bubbling. Forfeit uncertain-close uses the existing warning in a native Dialog storyboard, without an OS prompt or marker change.",
+    "fixtures": "Fictional identities, picks, entered terms, outcomes, counts and fixed read/write states only. Accuracy math gives 8 points for a one-point error. A sample entered −110 term gives +0.91U on 1U in the already-normalized outcome example. No actual fixture/kickoff, saved pick, quote, observation, save receipt, post, reaction, sign-out or transaction is claimed. Hidden guesses have no pick/points/error/rank; closed bets have no terms/results. All entry offer observedAt fields stay null and are not eligible live prices.",
+    "behavior": "Local unit values, quick chips, sport/tab selection, modal opens/closes and no-read notices only. Share/confirm/place/refresh/signout cannot save or create a successful state. Busy and uncertain fixed states keep their guards. Four native tabs and NFL/EPL access options remain; NBA stays hidden.",
+    "unitsDecision": {
+      "minimum": 0.01,
+      "buttonStep": 0.1,
+      "quickMinimumChip": true,
+      "customEntry": true,
+      "userMinimumStatement": "units should be able to go as low as .01U",
+      "userStepAnswer": "0.1U per tap",
+      "scope": "Virtual Units and manual tracked-bet visual entry controls. Current production minimum/step are not changed by this preview-only work. Existing saved records and qualification thresholds are preserved.",
+      "virtualPrecision": 0.01,
+      "virtualMaximumUnchanged": 100,
+      "trackingMaximumUnchanged": 10000,
+      "limits": "The virtual custom field blocks blank, subminimum, overmaximum and excess precision values before the no-write preview action. Manual tracking retains its native field precision/Unknown option but enforces 0.01 as this preview field minimum. Native production migration/API work remains to be assessed separately."
+    },
+    "captures": [
+      "nfl-actions-feed-hidden-dark-phone.png",
+      "nfl-actions-feed-hidden-light-phone.png",
+      "nfl-actions-feed-picks-dark-phone.png",
+      "nfl-actions-feed-picks-empty-dark-phone.png",
+      "nfl-actions-feed-picks-empty-light-phone.png",
+      "nfl-actions-feed-picks-failed-dark-phone.png",
+      "nfl-actions-feed-picks-failed-light-phone.png",
+      "nfl-actions-feed-picks-light-phone.png",
+      "nfl-actions-feed-picks-loading-dark-phone.png",
+      "nfl-actions-feed-picks-loading-light-phone.png",
+      "nfl-actions-feed-share-uncertain-dark-phone.png",
+      "nfl-actions-feed-share-uncertain-light-phone.png",
+      "nfl-actions-forfeit-busy-dark-phone.png",
+      "nfl-actions-forfeit-busy-light-phone.png",
+      "nfl-actions-forfeit-close-warning-dark-phone.png",
+      "nfl-actions-forfeit-close-warning-light-phone.png",
+      "nfl-actions-forfeit-done-dark-phone.png",
+      "nfl-actions-forfeit-done-light-phone.png",
+      "nfl-actions-forfeit-expired-dark-phone.png",
+      "nfl-actions-forfeit-expired-light-phone.png",
+      "nfl-actions-forfeit-loading-dark-phone.png",
+      "nfl-actions-forfeit-loading-light-phone.png",
+      "nfl-actions-forfeit-ready-dark-phone.png",
+      "nfl-actions-forfeit-ready-light-phone.png",
+      "nfl-actions-forfeit-scope-dark-phone.png",
+      "nfl-actions-forfeit-scope-light-phone.png",
+      "nfl-actions-forfeit-unconfirmed-dark-phone.png",
+      "nfl-actions-forfeit-unconfirmed-light-phone.png",
+      "nfl-actions-game-bets-dark-phone.png",
+      "nfl-actions-game-bets-empty-dark-phone.png",
+      "nfl-actions-game-bets-empty-light-phone.png",
+      "nfl-actions-game-bets-failed-dark-phone.png",
+      "nfl-actions-game-bets-failed-light-phone.png",
+      "nfl-actions-game-bets-light-phone.png",
+      "nfl-actions-game-bets-loading-dark-phone.png",
+      "nfl-actions-game-bets-loading-light-phone.png",
+      "nfl-actions-game-bets-scrolled-dark-phone.png",
+      "nfl-actions-game-bets-scrolled-light-phone.png",
+      "nfl-actions-info-bets-rules-dark-phone.png",
+      "nfl-actions-info-bets-rules-light-phone.png",
+      "nfl-actions-info-community-rules-dark-phone.png",
+      "nfl-actions-info-community-rules-light-phone.png",
+      "nfl-actions-info-examples-dark-phone.png",
+      "nfl-actions-info-examples-light-phone.png",
+      "nfl-actions-info-saved-rules-dark-phone.png",
+      "nfl-actions-info-saved-rules-light-phone.png",
+      "nfl-actions-menu-admin-dark-phone.png",
+      "nfl-actions-menu-admin-light-phone.png",
+      "nfl-actions-menu-busy-dark-phone.png",
+      "nfl-actions-menu-busy-light-phone.png",
+      "nfl-actions-menu-dark-phone.png",
+      "nfl-actions-menu-light-phone.png",
+      "nfl-actions-menu-no-reminders-dark-phone.png",
+      "nfl-actions-menu-no-reminders-light-phone.png",
+      "nfl-actions-navigation-epl-dark-phone.png",
+      "nfl-actions-navigation-epl-light-phone.png",
+      "nfl-actions-navigation-layer-failed-dark-phone.png",
+      "nfl-actions-navigation-layer-failed-light-phone.png",
+      "nfl-actions-navigation-nfl-dark-phone.png",
+      "nfl-actions-navigation-nfl-light-phone.png",
+      "nfl-actions-navigation-nfl-only-dark-phone.png",
+      "nfl-actions-navigation-nfl-only-light-phone.png",
+      "nfl-actions-reactors-dark-phone.png",
+      "nfl-actions-reactors-empty-dark-phone.png",
+      "nfl-actions-reactors-empty-light-phone.png",
+      "nfl-actions-reactors-failed-dark-phone.png",
+      "nfl-actions-reactors-failed-light-phone.png",
+      "nfl-actions-reactors-light-phone.png",
+      "nfl-actions-reactors-loading-dark-phone.png",
+      "nfl-actions-reactors-loading-light-phone.png",
+      "nfl-actions-saved-draft-dark-phone.png",
+      "nfl-actions-saved-draft-light-phone.png",
+      "nfl-actions-saved-pending-dark-phone.png",
+      "nfl-actions-saved-pending-light-phone.png",
+      "nfl-actions-saved-pick-dark-phone.png",
+      "nfl-actions-saved-pick-light-phone.png",
+      "nfl-actions-saved-scope-dark-phone.png",
+      "nfl-actions-saved-scope-light-phone.png",
+      "nfl-actions-saved-stale-dark-phone.png",
+      "nfl-actions-saved-stale-light-phone.png",
+      "nfl-actions-saved-total-dark-phone.png",
+      "nfl-actions-saved-total-light-phone.png",
+      "nfl-actions-tracked-minimum-dark-phone.png",
+      "nfl-actions-tracked-minimum-light-phone.png",
+      "nfl-actions-virtual-busy-dark-phone.png",
+      "nfl-actions-virtual-busy-light-phone.png",
+      "nfl-actions-virtual-busy-scrolled-dark-phone.png",
+      "nfl-actions-virtual-busy-scrolled-light-phone.png",
+      "nfl-actions-virtual-dark-phone.png",
+      "nfl-actions-virtual-light-phone.png",
+      "nfl-actions-virtual-locked-dark-phone.png",
+      "nfl-actions-virtual-locked-light-phone.png",
+      "nfl-actions-virtual-minimum-dark-phone.png",
+      "nfl-actions-virtual-minimum-light-phone.png",
+      "nfl-actions-virtual-minimum-scrolled-dark-phone.png",
+      "nfl-actions-virtual-minimum-scrolled-light-phone.png",
+      "nfl-actions-virtual-no-offer-dark-phone.png",
+      "nfl-actions-virtual-no-offer-light-phone.png",
+      "nfl-actions-virtual-slip-dark-phone.png",
+      "nfl-actions-virtual-slip-light-phone.png",
+      "nfl-actions-virtual-slip-scrolled-dark-phone.png",
+      "nfl-actions-virtual-slip-scrolled-light-phone.png",
+      "nfl-actions-virtual-uncertain-dark-phone.png",
+      "nfl-actions-virtual-uncertain-light-phone.png",
+      "nfl-actions-virtual-uncertain-scrolled-dark-phone.png",
+      "nfl-actions-virtual-uncertain-scrolled-light-phone.png"
+    ],
+    "verification": {
+      "coreScenarios": 43,
+      "phoneCaptures": 106,
+      "baselineResponsiveLayouts": 336,
+      "revisedVirtualResponsiveLayouts": 56,
+      "revisedTrackedResponsiveLayouts": 8,
+      "baselineScenarioFlows": 84,
+      "decimalEntryFlows": 16,
+      "loadedIndividualMarks": 68,
+      "modalKeyboardChecks": 10,
+      "infoChecks": 10,
+      "priorViews": 6,
+      "nativeNodeTests": 25,
+      "nativeVitestTests": 36,
+      "sourceComparedFiles": 10,
+      "buildInputs": 1810,
+      "bundleBytes": 927553,
+      "unitBoundsAndClamping": "checked separately for virtual preview and manual tracking; production .5U minimum unchanged",
+      "noEffects": "No provider/auth reads, non-GET requests, storage writes, bundle intervals, browser popup/OS dialog or page error observed in instrumented core flow/modal passes; revised entry checks observed no page errors or non-GET requests.",
+      "revisedSavedResponsiveLayouts": 48,
+      "revisedSavedFlows": 12
+    },
+    "approval": {
+      "status": "pending",
+      "scope": "Only captures listed in this record, including the reopened manual tracking unit-control placement. Existing earlier approvals remain scoped."
+    },
+    "revealExample": "Saved locked picks open the same game/market to community guesses. The draft keeps the foreign locked guess hidden with no value in its payload. Foreign points/ranks are not invented.",
+    "captureSha256": {
+      "nfl-actions-feed-hidden-dark-phone.png": "4b93fa1f87a6af7e7b992ec58c2078ca5d99e17e36c8477688656b82cb4acc5a",
+      "nfl-actions-feed-hidden-light-phone.png": "b9e4f4d3070e84a6cde1a068901aafe41489e636d7456fa862df50d30e9a279e",
+      "nfl-actions-feed-picks-dark-phone.png": "41f75f8b44e181f93abbfbd211850612c4e034b82b498dff29d4dff8b5a5f2ef",
+      "nfl-actions-feed-picks-empty-dark-phone.png": "42236c7df7602bae539160f2526372dfa700ef3fa7021fc418e60fd1418a6c27",
+      "nfl-actions-feed-picks-empty-light-phone.png": "7c20e759c083cc31c24ecaed317ead1bdf2bdeb31c5ebe5992da6f9bdf04e10f",
+      "nfl-actions-feed-picks-failed-dark-phone.png": "37ecbb024d0d24263db9d52f4fdd8ecdd788604dc933e1602ca1714a34460947",
+      "nfl-actions-feed-picks-failed-light-phone.png": "6cb2d408a93c7baae16f55b6c4e4cad2d3bb174de5e600bdba2a13137b29b7cb",
+      "nfl-actions-feed-picks-light-phone.png": "87f586ce8a2a7aef489ec1b962828d3d48c882aacc63367f052ecc233413f567",
+      "nfl-actions-feed-picks-loading-dark-phone.png": "338bff55289c93ae14a7a92b2cd8342a8c7f82ef0f1bc89d16d908a77391636b",
+      "nfl-actions-feed-picks-loading-light-phone.png": "ef74ea86b3aa79cede69ef5162ad9b2255f4abbdb71d93fefb2e5e671a50f3d1",
+      "nfl-actions-feed-share-uncertain-dark-phone.png": "824a81001c25fb1d902484f3edc0dce80e2775f29dcff1b2b2d0c051189154be",
+      "nfl-actions-feed-share-uncertain-light-phone.png": "b7ea7c0b0c29b6530783afd23e0bc721ec82f84aacef1afe59174e0965f00300",
+      "nfl-actions-forfeit-busy-dark-phone.png": "040e9be802ea6eaed9ca515675ec68518bcb82480497d2b139348b8fad23777b",
+      "nfl-actions-forfeit-busy-light-phone.png": "ce599a1599e02598d1d3cbe9d1a7c5ef97fa4d0d541f39debfd16c647121b080",
+      "nfl-actions-forfeit-close-warning-dark-phone.png": "17f3d3e628c3a2f44e59b3c2af359bb7186795498c3b2d6d41508d994dfdf42d",
+      "nfl-actions-forfeit-close-warning-light-phone.png": "27bfcb3043a5b7abf6f9876630ee5e7542a7f519014c8caca2d15e66c3e21a58",
+      "nfl-actions-forfeit-done-dark-phone.png": "9c01c97f96daaafc71ff305a1a734272d6ea44d3ef6547a37482cef9d6c2aedc",
+      "nfl-actions-forfeit-done-light-phone.png": "aba0e2ac3a211957d40b18c4137a702a06a0b57f9777e48d65f2ecf667a1249f",
+      "nfl-actions-forfeit-expired-dark-phone.png": "85cbd929a6221bbe90a4a08cabbee2911ff2c54f0b0a330caf58d53703bd03b3",
+      "nfl-actions-forfeit-expired-light-phone.png": "4ec2c8fb57bdbeaa0f469c1ed6ae88c345c285b35f640ab580b7b16d22e7eaa8",
+      "nfl-actions-forfeit-loading-dark-phone.png": "5704e50e2782f9d0c3606bd8620368e2777777f2d8c31ebf9242a759d9827ade",
+      "nfl-actions-forfeit-loading-light-phone.png": "844b40c99315cde7932278299e1c4d534f32b115b87202fbffc5171746d03ef3",
+      "nfl-actions-forfeit-ready-dark-phone.png": "dcfd5ec91642bec7d3b484151127e268f482911471b5baa0b3e26370d7edc92b",
+      "nfl-actions-forfeit-ready-light-phone.png": "cc8aac2938975787f57b435af215d3c028ee6258940aafc2b19cf65def54751d",
+      "nfl-actions-forfeit-scope-dark-phone.png": "881e156bddb329be290e4d2595d6e6d4bec151a83614907a97f8f2dbfa4566d5",
+      "nfl-actions-forfeit-scope-light-phone.png": "bda9196e5928a5293ace51b4150dd121c654b2fd83c8828be628cd0336729478",
+      "nfl-actions-forfeit-unconfirmed-dark-phone.png": "2974b201bc02da6cc82b7c11051e7bde1e856adb48d6f1b52d93ac0158fb8bfe",
+      "nfl-actions-forfeit-unconfirmed-light-phone.png": "677baf1a2d1ed64512093cbe3e14836db44d9e509d3fb65fa5557ae2e3dd4f0c",
+      "nfl-actions-game-bets-dark-phone.png": "52e5cd7c8862c7a4343f3e41bae6070617eeb7ac0a460ac438fa450f6129c476",
+      "nfl-actions-game-bets-empty-dark-phone.png": "17c8db456d9734f12695ab28777bcb7af2c790ee91d08bce50d63b90dba7e257",
+      "nfl-actions-game-bets-empty-light-phone.png": "64a4faa9baf6f8650dde760665c52983491b7d77b9bd10686e94a8ede3ad6fd7",
+      "nfl-actions-game-bets-failed-dark-phone.png": "69d899ba1462d769d3bf40a713d90faf6fd352dba42d7a869bb541526ccc005d",
+      "nfl-actions-game-bets-failed-light-phone.png": "eae4a7c5e5944db2df44690d56be9a57926f1a241f7248f2b8bbf7232d47165f",
+      "nfl-actions-game-bets-light-phone.png": "5cfeaeb28a2f4790fd2b4b135739ef8564f3232e7b583bc6419149d9a9848e16",
+      "nfl-actions-game-bets-loading-dark-phone.png": "50a293b99c4cec10baf7d2589e4e71a8776252a938f0403a72e8be40f7a74bce",
+      "nfl-actions-game-bets-loading-light-phone.png": "911f9d86b5a5f794c728d0626ef0e503676afc093094ed58a5a76f533bee72a0",
+      "nfl-actions-game-bets-scrolled-dark-phone.png": "80e48b9632a3b19df21041e89490ae38f7adc42dbd1fc0509725c0bae94fca1b",
+      "nfl-actions-game-bets-scrolled-light-phone.png": "d8863f0a2663f7f7b00f9e52bfc674e4db53a6a02649530657f0a5da2b64f97e",
+      "nfl-actions-info-bets-rules-dark-phone.png": "d9e0d6d7b1f15f92a95bd06e98978e6deee0ef57e03698281cfc6c6d1831d0b5",
+      "nfl-actions-info-bets-rules-light-phone.png": "6d7046f60d9ae97be4d8b5761c60748a89b7d7478c00a0e4701e2918355a8938",
+      "nfl-actions-info-community-rules-dark-phone.png": "be7e75a592bebcef9be384adc41b9f90e56438de8b6f1c541af7cee7105a6061",
+      "nfl-actions-info-community-rules-light-phone.png": "074ee208bc9d0a8c50a2cd49a65b7c92fd8e6591f9276f53ec566b193d78a1ed",
+      "nfl-actions-info-examples-dark-phone.png": "6580db08bd10455cc1f0486ab1121fa2b1e728733626d1f42760c4faf6afb425",
+      "nfl-actions-info-examples-light-phone.png": "71ec080bae586478d99e51d6727a4ec70ee4581ff2f0647c534426ecbd96d8ad",
+      "nfl-actions-info-saved-rules-dark-phone.png": "f97238a1f806f264ee41bf8c6bf50b1978ee38e224bd73af6e9dad4657bbcaa6",
+      "nfl-actions-info-saved-rules-light-phone.png": "d30d1bc7e8634b8eacad45391dd5df5d9170516e45365e968df9c1b5ad6289d0",
+      "nfl-actions-menu-admin-dark-phone.png": "8568b559493ab9d0167db816e507bc02eb736f63b9a8f67af81e14bee18965e6",
+      "nfl-actions-menu-admin-light-phone.png": "6250b0c3bafd3b215e1c9d7991ebe30aa0ed8847ab640ce6360fd37f3997e9be",
+      "nfl-actions-menu-busy-dark-phone.png": "1f8bf0393e6f046419829051c815bdefb78803110ea27af502b07b4a90b39f15",
+      "nfl-actions-menu-busy-light-phone.png": "5bee6990bbd7f66771efca3805c0e1b73645df192189744ae5063365b70765cc",
+      "nfl-actions-menu-dark-phone.png": "6fa6c8f0dbc7a5788e6b60dc35d7e0f19c4d5c1b6c41ebbb418c4059b8f9704d",
+      "nfl-actions-menu-light-phone.png": "095f30c16c8102ff5581ffc45c3210cf859873e9ec47cdc504b6b0a86917d904",
+      "nfl-actions-menu-no-reminders-dark-phone.png": "407e9e0bf5bbdf9a09d6799b50774c28819eed8f675c63e6da6f4986aca3db6b",
+      "nfl-actions-menu-no-reminders-light-phone.png": "ddcff7eae7324344349503442914abc8b44b58af948ed525d65010b4543496ea",
+      "nfl-actions-navigation-epl-dark-phone.png": "c0caaf873dceda8658c6d9906c1eed2306f6cfc388daad161fe76763f2e3b0d4",
+      "nfl-actions-navigation-epl-light-phone.png": "4a843c2fdfbaec18cbafc15c485be505f7e05bf88df02b41bfc1cf8d1d48f490",
+      "nfl-actions-navigation-layer-failed-dark-phone.png": "0e4f72d8585b7e516aeab17326ff260c4917665f3c2345f12297965162550537",
+      "nfl-actions-navigation-layer-failed-light-phone.png": "19244b678aa0315f606c2356436085c26bf11e1a5766649ff21983ff6700f5d8",
+      "nfl-actions-navigation-nfl-dark-phone.png": "fd7b045f4e975e5a009e83f316972450409f78919281c524d3b619fc2acadbd6",
+      "nfl-actions-navigation-nfl-light-phone.png": "119dfebf989a0da21f2c367014d3b05d00733c6ab2d080bd44ac2d451aa5f994",
+      "nfl-actions-navigation-nfl-only-dark-phone.png": "5574c9f5405ebb6847281e63ba8ced931b2b0dde8f87314c1c9d80c9bdf81e00",
+      "nfl-actions-navigation-nfl-only-light-phone.png": "6bebc37e4dd808ed527c21000c36cae3bab90d434a6438affb4a472cfbd27872",
+      "nfl-actions-reactors-dark-phone.png": "2a92d273fbf20bb643789c3302aa43e61756bb800c3cd39956edb0bd961ba104",
+      "nfl-actions-reactors-empty-dark-phone.png": "de556fa41bb2f8d57efbbf044988070a7993b8e6585c770fcdfca84e3d05f1af",
+      "nfl-actions-reactors-empty-light-phone.png": "c6b951b2d5acadd3f5ee8d6ab0ca18ec785011032986110715406abc3cd499be",
+      "nfl-actions-reactors-failed-dark-phone.png": "6362d677b0a4b017fc5dfc42e9161445f8db8ef6ed0515dffb4ab7e4c4969277",
+      "nfl-actions-reactors-failed-light-phone.png": "8adfd3dab24907763c59c7743e51748ca135aaaea840f7a2a96663d0a6562865",
+      "nfl-actions-reactors-light-phone.png": "3da2a0185838b5f093fe5b0914939fda964eeb1ddc4d0888a8fed3ae44c80921",
+      "nfl-actions-reactors-loading-dark-phone.png": "4688e3262c6a088c49afa0dee460e9686668d3b8e66a44b0ac3ebbbd8343db1a",
+      "nfl-actions-reactors-loading-light-phone.png": "c4579545eedbe006cb37c9c7d312292db17ab294c27b92ae0920e66b44d71954",
+      "nfl-actions-saved-draft-dark-phone.png": "af94ad625b35ce9fc3060255ba5fc1eabbca61e04817608ddf5a08ebec236aae",
+      "nfl-actions-saved-draft-light-phone.png": "e768e5f02c62bb177ef9683abed968641eaa14be988fefc1cf2050e3477e9807",
+      "nfl-actions-saved-pending-dark-phone.png": "224288870a0737fe8df9a725db49c83bed87c747abcaac993ec3edbbf25e801e",
+      "nfl-actions-saved-pending-light-phone.png": "9a5dfb29f46f1ebc1508983f686111fe6c91697b77924c0eb6be736ab4a8b415",
+      "nfl-actions-saved-pick-dark-phone.png": "8e3465c8721d66611812cd722544807179cace845983d39a91fc9259568dbe8a",
+      "nfl-actions-saved-pick-light-phone.png": "28224e2180a586bbf147d5b39fe67e097e63386597789121c9a0514d08ce8509",
+      "nfl-actions-saved-scope-dark-phone.png": "a27ad8c909dcd042f99facf2eaf174c59bad8fc7116c9b7ca8fca3a43e5aa3a0",
+      "nfl-actions-saved-scope-light-phone.png": "965785496a3f453b0a0f4914bed34d7cc510620e36ed386eac6c6b7292db0fe3",
+      "nfl-actions-saved-stale-dark-phone.png": "c10af8bdcfb97855cfd1272bad3fb1476ee576cefd96022ed409d1d7409bd227",
+      "nfl-actions-saved-stale-light-phone.png": "64fd652bd02896868e5fecde86714214533dce2139f5c7db3df84325d3556169",
+      "nfl-actions-saved-total-dark-phone.png": "26b951ceb986c0e0421d29831f3aa45e78562c8ff46e5541c17b3c663de3502a",
+      "nfl-actions-saved-total-light-phone.png": "6d1a97c41a25d5d81026d9b8e4c1bdd4848060a3a5d6a8f1073a751678a3da06",
+      "nfl-actions-tracked-minimum-dark-phone.png": "e6891ea9d3bc90e00fa6f4a1c61c75f15d3f5a920c6861122be17628fb1fbd97",
+      "nfl-actions-tracked-minimum-light-phone.png": "21d81687c44df58a415532c88deea46feca24dac30d935139701af5ad973e3e3",
+      "nfl-actions-virtual-busy-dark-phone.png": "2881828c8f9873556320e4dfede3aeb35315a92c63ce4ba1d849ec5b923408c5",
+      "nfl-actions-virtual-busy-light-phone.png": "44fcf48d1379329decd45a950f3ccdfb3b37ff3bb04a4e8c0c58bb68bf5bda6f",
+      "nfl-actions-virtual-busy-scrolled-dark-phone.png": "13950c32ee08b38751009ee260d135caee64eab5db3a3fe4e38d66087c7cf243",
+      "nfl-actions-virtual-busy-scrolled-light-phone.png": "a81763dd418b95ab2d2c9b17cfe9d9a7579556ca816433d4812390b4d52f7f6d",
+      "nfl-actions-virtual-dark-phone.png": "2a9420f6279a4f6a7930b5ff1d90d7bbc66930a7796cff23f95792c2b18a5e5b",
+      "nfl-actions-virtual-light-phone.png": "7cd4de18b3601b9b1f51615cc7a9748f76e74423682e42935baaab08ccb1e8a2",
+      "nfl-actions-virtual-locked-dark-phone.png": "12cdb77dcaef193db07f47d320d1f6f4b604145b421d594fa608a4760d9e398c",
+      "nfl-actions-virtual-locked-light-phone.png": "85914c4646de1db4b0a4ce18946a60515e026fa04268bd80316fa423cbb65219",
+      "nfl-actions-virtual-minimum-dark-phone.png": "32a41025f88cf4cbcca0e331be4a24b24dae4e01df71de96c17dd168d225ffd7",
+      "nfl-actions-virtual-minimum-light-phone.png": "b3bc30d12727c2d52518114c0d20cf1bd33b3f6f0c092ce3acb5623e4abe3781",
+      "nfl-actions-virtual-minimum-scrolled-dark-phone.png": "a5ab8981069d3710b8a87b1df656e1c85e30c0e9e1ac600dee11c02e55fd2355",
+      "nfl-actions-virtual-minimum-scrolled-light-phone.png": "ec5fbba03cf5c62a00ea75dcda2d56461ef4cf3a1ce14b06a40aca6b0f2321d0",
+      "nfl-actions-virtual-no-offer-dark-phone.png": "19399931a05974d86296c89312f0607b11bdc2e2f1859b3bc3347279dadd2a4c",
+      "nfl-actions-virtual-no-offer-light-phone.png": "d020f91aa6e393bbdd2cf7dad5b551379f2dd401f59943206578bdf61056eace",
+      "nfl-actions-virtual-slip-dark-phone.png": "61508fb20967296ae9fcfba67d5c479d0bce66164da5f64751ed6a4efcf7ba9e",
+      "nfl-actions-virtual-slip-light-phone.png": "a648cd1b40ca1ba1233565c1b64a62c7874517b67010de324c2560a3ad708715",
+      "nfl-actions-virtual-slip-scrolled-dark-phone.png": "d171650f56ad0406fc13043ac550110ecf81a289735ef495331ce698b34729e2",
+      "nfl-actions-virtual-slip-scrolled-light-phone.png": "2adbad246b1c54e8f31138f9ab450bf6f1afbd045976f651cec9603d4984f07a",
+      "nfl-actions-virtual-uncertain-dark-phone.png": "1d35562638ec4aadaad0ec1b93531e337ebb0d46813cf0ad3cf6ae09bf22c9d7",
+      "nfl-actions-virtual-uncertain-light-phone.png": "2f369c970fe7b3b119e4ae3ef1fd3126c9a45034427f4f5f720b647a053d8653",
+      "nfl-actions-virtual-uncertain-scrolled-dark-phone.png": "a45e1921e70418309d0537d76749cc1478d12dda2a92146832927b6ebd9e6fc7",
+      "nfl-actions-virtual-uncertain-scrolled-light-phone.png": "f4208ae3dfb8dbbd67563dac0c8684301d1558000332aba6e4d02382bf666188"
+    }
   }
 }
