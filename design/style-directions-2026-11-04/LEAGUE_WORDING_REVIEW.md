@@ -6,7 +6,8 @@ Sean selected **“Full names in explanations; logos in navigation
 at `d109e5386b49093f66b173492261bbb5e126739a`; the GTL G remains excluded.
 
 These current captures apply the wording choice to the existing mockups in
-both themes. **Current copy/layout review pending**; previous visual approvals
+both themes. **Approved in both themes** (“Good”), reviewed at
+`5fe706bc7f1ecea2d51ab2b5f40d486f7d050718`; previous visual approvals
 remain valid within their recorded scopes.
 
 | Updated mockup | Dark | Light |

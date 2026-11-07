@@ -1,7 +1,7 @@
 {
   "kind": "GTL_SELECTED_SYSTEM_REVIEW",
   "version": 1,
-  "status": "Team/league circle captures approved; full league names in explanations and logo navigation explicitly selected and applied. Twenty updated wording captures supplied; production remains separate.",
+  "status": "Twenty league-wording captures approved. Final identity inventory repaired one Home detail circle gap; one compact team-reference format choice remains, with visual comparison and consolidated handoff prepared.",
   "darkSource": "lime-priority-preview.json",
   "lightSource": "light-mode-options.json",
   "dark": {
@@ -1994,7 +1994,7 @@
         "scope": "Current supplied whole-view capture; later changed placements require their own review."
       }
     },
-    "next": "Full-name explanations with circular logo navigation — updated copy/layout review",
+    "next": "Choose compact team-reference format, then apply it to the identified native presentation labels.",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -2074,7 +2074,11 @@
       "Missing team marks/abbreviations in the mockup",
       "Navigation bubbles look empty and boring"
     ],
-    "pendingClarification": null,
+    "pendingClarification": {
+      "question": "For compact bet/history labels such as “DEN −3.5,” should I show a small circled team logo beside “−3.5,” and use full team names in longer explanations?",
+      "status": "Awaiting owner answer; visual A/B comparison supplied.",
+      "recommended": "A"
+    },
     "contentRevision": {
       "authorization": "Sean confirmed useful miniature content previews",
       "state": "Reopened Home/Play/Bets current whole-view flags closed at 6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd; remaining areas retain scoped reviews.",
@@ -5862,44 +5866,26 @@
   "currentVisualPassReconciliation": {
     "nba": "Parked by owner and excluded from this visual pass; no NBA mockups made.",
     "eplShell": "The eight supplied EPL league/History/Bets/Info captures are approved in both themes at c6fb2b44bacc90fa44ba89e8932da7343e20cf4b.",
-    "remainingVisualReview": "LEAGUE_WORDING_REVIEW.md",
-    "remainingScope": "Review current full-name explanatory wording with approved circular team/league logos. No unanswered league wording or G-circle scope question remains. Production integration/device/source acceptance and deferred work stay separate.",
+    "remainingVisualReview": "TEAM_IDENTITY_CLOSEOUT_REVIEW.md",
+    "remainingScope": "Compact team-reference format choice in History/Bets/shared sheets, followed by targeted rendering. Existing colors, typography, materials, circles, league wording and reviewed screens stay approved.",
     "alreadyApprovedVirtualCaptures": [
       "nfl-actions-virtual-minimum-dark-phone.png",
       "nfl-actions-virtual-minimum-light-phone.png"
     ],
-    "pendingCaptureCount": 20,
+    "pendingCaptureCount": 2,
     "pendingCaptures": [
-      "league-wording-home-dark-phone.png",
-      "league-wording-home-light-phone.png",
-      "league-wording-play-dark-phone.png",
-      "league-wording-play-light-phone.png",
-      "league-wording-bets-dark-phone.png",
-      "league-wording-bets-light-phone.png",
-      "league-wording-research-dark-phone.png",
-      "league-wording-research-light-phone.png",
-      "league-wording-epl-dark-phone.png",
-      "league-wording-epl-light-phone.png",
-      "league-wording-account-dark-phone.png",
-      "league-wording-account-light-phone.png",
-      "league-wording-native-nfl-dark-phone.png",
-      "league-wording-native-nfl-light-phone.png",
-      "league-wording-native-epl-dark-phone.png",
-      "league-wording-native-epl-light-phone.png",
-      "league-wording-history-dark-phone.png",
-      "league-wording-history-light-phone.png",
-      "league-wording-info-dark-phone.png",
-      "league-wording-info-light-phone.png"
+      "team-label-format-dark-phone.png",
+      "team-label-format-light-phone.png"
     ],
     "held": "New avatar/photo choices, new award/celebration exploration and parked Signal assets remain held while the first visual project is unfinished.",
     "production": "No production integration, deployment or whole-project completion is claimed.",
     "nflActions": "All 106 supplied captures approved: remaining 104 at 9c2aa961f14f6a68cc51858e777c4e0796a9b5e5 plus two prior Virtual-minimum captures.",
-    "openRequirementAudit": "All 268 registered mockup routes were swept in both themes at 390px for unexpanded NFL/EPL display text outside documented exclusions and horizontal overflow; no issues. This does not claim replacement of every team-code literal, actual production behavior or whole-project completion.",
+    "openRequirementAudit": "Full 268-route team-image/token inventory found one missing-circle prototype view, now repaired, and remaining compact team-code text. Do not broadly replace ambiguous words such as MIN/NEW/NO or stored/typed values.",
     "approvedNFLActionCaptureCount": 106,
     "overviewCloseout": "All fourteen supplied captures approved at 6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd.",
     "leagueLogoSelection": "02 Glass circles selected at a234f2f4bcddd8ec46218169f0110ff7dc395c0a; sixteen current placement captures supplied.",
     "teamLeagueCircles": "All twenty supplied circle captures approved at d109e5386b49093f66b173492261bbb5e126739a (“Good.. continue”); G excluded.",
-    "nextAfterCopyReview": "Finish remaining team-identity abbreviation inventory, then consolidate the selected design handoff. Preserve explicit prior approvals; do not reopen them without an identified issue. Production integration and deferred feature work remain separate."
+    "nextAfterCopyReview": "Apply the owner-chosen compact team identity format in context, retain explicit prior approvals, then finalize the consolidated design handoff. Production integration and deferred feature work remain separate."
   },
   "overviewCloseoutReview": {
     "status": "Approved: fourteen supplied overview/ticket/entry captures in both themes",
@@ -6526,7 +6512,7 @@
     "priorProseQuestion": "Resolved by the explicit full-names-in-explanations/logos-in-navigation answer recorded in leagueWordingSelection."
   },
   "leagueWordingSelection": {
-    "status": "Selected wording applied across the paired mockup viewer; twenty updated captures supplied for visual review.",
+    "status": "Approved for the twenty supplied full-name wording captures in both themes; production acceptance remains separate.",
     "question": "For explanatory text such as “View NFL history,” should the league reference use a logo or the full name? I recommend full names in explanations and logos in navigation.",
     "answer": "Full names in explanations; logos in navigation (recommended)",
     "recipe": "National Football League and Premier League in explanations, captions and accessible descriptive labels; existing selected circular league logos in navigation.",
@@ -6682,8 +6668,119 @@
       "allRouteScope": "Switched every registered screen/layer through the review controls in both themes; no unexpanded NFL/EPL text outside documented exclusions, horizontal phone overflow or state-selection errors observed. This is automated readback, not owner acceptance of every state."
     },
     "approval": {
-      "status": "Wording rule explicitly selected; updated capture placement review pending",
-      "scope": "Full league names in explanations and logos in navigation. Existing team/league circles and G exclusion remain approved."
+      "status": "approved",
+      "userStatement": "Good",
+      "question": "Do these wording updates look good in both themes?",
+      "reviewedCommit": "5fe706bc7f1ecea2d51ab2b5f40d486f7d050718",
+      "reviewedCaptures": [
+        "previews/league-wording-home-dark-phone.png",
+        "previews/league-wording-home-light-phone.png",
+        "previews/league-wording-play-dark-phone.png",
+        "previews/league-wording-play-light-phone.png",
+        "previews/league-wording-bets-dark-phone.png",
+        "previews/league-wording-bets-light-phone.png",
+        "previews/league-wording-research-dark-phone.png",
+        "previews/league-wording-research-light-phone.png",
+        "previews/league-wording-epl-dark-phone.png",
+        "previews/league-wording-epl-light-phone.png",
+        "previews/league-wording-account-dark-phone.png",
+        "previews/league-wording-account-light-phone.png",
+        "previews/league-wording-native-nfl-dark-phone.png",
+        "previews/league-wording-native-nfl-light-phone.png",
+        "previews/league-wording-native-epl-dark-phone.png",
+        "previews/league-wording-native-epl-light-phone.png",
+        "previews/league-wording-history-dark-phone.png",
+        "previews/league-wording-history-light-phone.png",
+        "previews/league-wording-info-dark-phone.png",
+        "previews/league-wording-info-light-phone.png"
+      ],
+      "scope": "Twenty supplied wording placements, with full league names in explanations and circular logos in navigation. Previous circle/G exclusions and scoped state approvals retained."
     }
+  },
+  "finalTeamIdentityAudit": {
+    "status": "Completed readback inventory; Home/game missing circles repaired. Compact team-reference format choice pending.",
+    "index": "TEAM_IDENTITY_CLOSEOUT_REVIEW.md",
+    "handoff": "SELECTED_DESIGN_HANDOFF.md",
+    "registeredViews": 268,
+    "themeChecks": 536,
+    "decodedTeamImages": 1492,
+    "unwrappedTeamImagesAfterRepair": 0,
+    "initialGap": "Home/game had two bare .team-mark images outside recognized tiles in both themes. The existing circle adapter now wraps only such unwrapped prototype matchup marks, using separate 64px circles. Native React TeamMark nodes are untouched.",
+    "repairChecks": {
+      "responsiveLayouts": 8,
+      "widths": [
+        320,
+        390,
+        768,
+        1440
+      ],
+      "backReopenFlows": 2,
+      "circleSize": 64,
+      "separateBackgrounds": true,
+      "noDuplicateWrappers": true,
+      "noHorizontalOverflow": true,
+      "pageErrors": 0,
+      "nonGETRequests": 0,
+      "providerAuthReads": 0
+    },
+    "remainingIdentityText": {
+      "teamCodes": [
+        "BAL",
+        "CLE",
+        "DEN",
+        "HOU",
+        "JAX",
+        "MIN",
+        "NYG",
+        "PHI",
+        "SEA"
+      ],
+      "distinctTextVariants": 33,
+      "textStyleGroups": 45,
+      "repeatedOccurrences": 454,
+      "meaning": "Repeated fictional History/Bets/shared-sheet labels, not that many distinct design gaps. Examples include DEN −3.5, Example comparison DEN −4 and SEA @ DEN.",
+      "nonIdentityCollisions": "MIN in the Premier League timer means minutes; NEW in the app-invite proposal label is an adjective; NO in fixture notices means no reads/saves. These are not team references."
+    },
+    "comparison": {
+      "status": "Awaiting owner answer; neither option applied to existing History/Bets/sheet text.",
+      "question": "For compact bet/history labels such as “DEN −3.5,” should I show a small circled team logo beside “−3.5,” and use full team names in longer explanations?",
+      "A": "Circled logo beside compact number; full team names in explanations (recommended).",
+      "B": "Full team names beside compact number and in explanations.",
+      "responsiveLayouts": 8,
+      "captureCount": 2,
+      "fixtureMeaning": "Existing fictional History rule-math input values −3.5 and −4; not bookmaker quotes, live references or actual saved records."
+    },
+    "captures": [
+      {
+        "file": "previews/final-home-game-circles-dark-phone.png",
+        "view": "Home game-detail circle repair",
+        "theme": "dark",
+        "sha256": "199494e068010e2f6af8aa3f0167755a034df01942bb97e77aa582d06d1e3d8f"
+      },
+      {
+        "file": "previews/final-home-game-circles-light-phone.png",
+        "view": "Home game-detail circle repair",
+        "theme": "light",
+        "sha256": "998a4576e8521950b46b3886bde2cbd48a73873478a2e8872851f1a9fb0b116f"
+      },
+      {
+        "file": "previews/team-label-format-dark-phone.png",
+        "view": "Compact label format comparison",
+        "theme": "dark",
+        "sha256": "037dac4a90f3c0343c0250abf08e7e8e042ef8f2951bd5abbad9b8b1a6ad6dac"
+      },
+      {
+        "file": "previews/team-label-format-light-phone.png",
+        "view": "Compact label format comparison",
+        "theme": "light",
+        "sha256": "5c8b1fb1e886d0cda62a49f2da74c37bc5a421a349a7b41a80d1584d150b2b05"
+      }
+    ],
+    "inspectedCaptures": 4,
+    "pageErrors": 0,
+    "nonGETRequests": 0,
+    "providerAuthReads": 0,
+    "resourceFailures": 0,
+    "OSDialogs": 0
   }
 }

@@ -1,5 +1,37 @@
 # Native screen coverage review — November 6, 2026
 
+## Wording approved; final identity inventory and handoff prepared — November 6, 2026
+
+Sean answered “Good” to the twenty full-name wording captures in both themes
+at `5fe706bc7f1ecea2d51ab2b5f40d486f7d050718`. This closes that copy/layout
+review; previous circle, G-exclusion and native-state approvals remain scoped
+and closed. No palette/material/type choice is reopened.
+
+The final 268-route, 536-theme readback decoded 1,492 team images. It found
+one legacy Home/game view with two bare marks; the existing circle adapter now
+wraps only such unwrapped prototype matchup images, with separate 64px glass
+circles. Native React marks and the G are untouched. The repair passed eight
+layouts and two Back/reopen flows; the repeated all-route inventory has zero
+unwrapped matching team images, page errors, provider/auth reads, non-GET
+requests, resource failures or OS dialogs.
+
+Remaining team codes occur in compact History/Bets/shared-sheet labels:
+33 distinct text variants, 45 text/style combinations and nine codes repeated
+across states/themes, rather than hundreds of separate gaps. [Two visual
+format options and the Home repair](TEAM_IDENTITY_CLOSEOUT_REVIEW.md) are supplied in both themes. A is
+recommended: circled logo beside a compact number, full names in explanations.
+B uses full names in both. Neither is applied to existing record labels while
+the owner question is pending. MIN timer text, NEW proposal labels and NO
+notices are unrelated and preserved. Comparison passed eight layouts; all four
+captures inspected.
+
+The consolidated [selected-design handoff](SELECTED_DESIGN_HANDOFF.md) records approved recipes,
+that single format question and the actual production gap. This is review
+work only; no native production/bundle entry, data/scoring/provider, merge,
+deploy or migration change. NBA and new avatar/photo/award work remain held;
+parked Signal files remain untouched/unpublished. No first-project completion
+claim while compact identity formatting is unresolved.
+
 ## Circle set approved; full league names applied — November 6, 2026
 
 Sean's “Good.. continue” approves the twenty team/league circle captures at
