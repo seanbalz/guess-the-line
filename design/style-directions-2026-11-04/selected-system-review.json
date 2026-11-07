@@ -416,6 +416,111 @@
         "actions": [
           "detail:draft"
         ]
+      },
+      {
+        "id": "epl-moneyline-entry",
+        "name": "Moneyline - Sample entry",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-moneyline-saved-draft",
+        "name": "Moneyline - Saved draft example",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-moneyline-results",
+        "name": "Moneyline - Rule-math/pending/unscored",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-moneyline-closed",
+        "name": "Moneyline - Closed unsaved draft",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-moneyline-uncertain",
+        "name": "Moneyline - Unconfirmed save",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-moneyline-stale",
+        "name": "Moneyline - Saved data stale",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-moneyline-busy",
+        "name": "Moneyline - Checking example",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-moneyline-read-only",
+        "name": "Moneyline - Read-only",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-moneyline-unavailable",
+        "name": "Moneyline - Prices unverified",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-moneyline-loading",
+        "name": "Moneyline - Loading",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-moneyline-failed",
+        "name": "Moneyline - Read failed",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-moneyline-leaderboard",
+        "name": "Moneyline - Rule-math leaderboard",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-moneyline-leaderboard-empty",
+        "name": "Moneyline - Empty leaderboard",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-moneyline-leaderboard-loading",
+        "name": "Moneyline - Leaderboard loading",
+        "actions": [
+          "detail:draft"
+        ]
+      },
+      {
+        "id": "epl-moneyline-leaderboard-failed",
+        "name": "Moneyline - Leaderboard read failed",
+        "actions": [
+          "detail:draft"
+        ]
       }
     ],
     "Account": [
@@ -1123,7 +1228,7 @@
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "EPL/epl-home-turn",
+    "next": "EPL/epl-moneyline-entry",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -3696,7 +3801,7 @@
     "acceptanceScope": "Supplied nine-state visual direction in both themes only. Real claims, identity/grants, first-claim concurrency, session watching, saved readbacks/device behavior and whole-app completion remain separate."
   },
   "eplHomeRecoveryPreview": {
-    "status": "Prepared for visual approval in both themes",
+    "status": "Approved in both themes",
     "prepared": "2026-11-06",
     "views": [
       "turn",
@@ -3780,6 +3885,133 @@
     "delivery": "28 inspected phone captures: 13 screen states in both themes plus source Info in both themes. Every supplied full screen/source dialog fits extended height. 320/390/768/1440 layouts, 44px buttons, last-content/footer reachability, selected logo/active tab, native modal Escape/focus and long content checked separately. A default browser popup style and narrow long-word overflow were found, fixed locally and rechecked in 16 modal layouts.",
     "isolation": "No API/auth/provider/source/permission read, progress/draft refresh, saved readback, claim, pick/queue write, polling, persistent storage, automatic countdown/completion or message. Actual EPL Home/PickATeam/useEplDraft/Home progress hook/API imports excluded from build inputs.",
     "production": "Review assets/evidence only. Native controllers, server turn/refusal behavior, real clocks/schedules, identity/grants, accounts/picks/draft order, moneyline data/quotes, production tokens, collectors, migrations and frozen v62 unchanged. No merge/deploy.",
-    "next": "Dedicated EPL moneyline entry/reveal/leaderboard mockups, then FEPL Fantasy and remaining native coverage reconciliation. Whole-app completion is not established. New avatar/photos and awards stay held."
+    "next": "Dedicated EPL moneyline entry/reveal/leaderboard mockups, then FEPL Fantasy and remaining native coverage reconciliation. Whole-app completion is not established. New avatar/photos and awards stay held.",
+    "accepted": "2026-11-06",
+    "confirmation": "Looks good in both themes. Continue with the EPL moneyline and leaderboard mockups.",
+    "reviewedCommit": "d2ead64e55adb3d8c3b1ee7d55505236f995bc90",
+    "reviewedCaptures": [
+      "epl-home-turn-dark-phone.png",
+      "epl-home-turn-light-phone.png",
+      "epl-home-picked-dark-phone.png",
+      "epl-home-picked-light-phone.png",
+      "epl-home-unlinked-dark-phone.png",
+      "epl-home-unlinked-light-phone.png",
+      "epl-home-all-in-dark-phone.png",
+      "epl-home-all-in-light-phone.png",
+      "epl-home-locked-dark-phone.png",
+      "epl-home-locked-light-phone.png",
+      "epl-home-progress-failed-dark-phone.png",
+      "epl-home-progress-failed-light-phone.png",
+      "epl-home-loading-dark-phone.png",
+      "epl-home-loading-light-phone.png",
+      "epl-home-failed-dark-phone.png",
+      "epl-home-failed-light-phone.png",
+      "epl-home-forbidden-dark-phone.png",
+      "epl-home-forbidden-light-phone.png",
+      "epl-home-off-dark-phone.png",
+      "epl-home-off-light-phone.png",
+      "epl-home-no-week-dark-phone.png",
+      "epl-home-no-week-light-phone.png",
+      "epl-home-stale-dark-phone.png",
+      "epl-home-stale-light-phone.png",
+      "epl-home-review-dark-phone.png",
+      "epl-home-review-light-phone.png",
+      "epl-home-review-source-dark-phone.png",
+      "epl-home-review-source-light-phone.png"
+    ],
+    "acceptanceScope": "Supplied 13-state Home/recovery and table-source popup direction in both themes only. Real clocks/permissions/turn acceptance, source completeness/provenance, recovery/readbacks, device behavior and whole-app completion remain separate."
+  },
+  "eplMoneylinePreview": {
+    "status": "Prepared for visual approval in both themes",
+    "prepared": "2026-11-06",
+    "views": [
+      "entry",
+      "saved-draft",
+      "results",
+      "closed",
+      "uncertain",
+      "stale",
+      "busy",
+      "read-only",
+      "unavailable",
+      "loading",
+      "failed",
+      "leaderboard",
+      "leaderboard-empty",
+      "leaderboard-loading",
+      "leaderboard-failed"
+    ],
+    "nativePreservation": "Five isolated native presentation components: GuessList, GuessCard, PriceStepper, DistanceLine and GuessLeaderboard, verified against source with explicit adaptations. Native parsePrice/priceText/stepPrice/isClosed/ownGuess/visibleGuesses/validGuessPrice and pure distance/leaderboard helpers remain unchanged. Native draft/lock/reveal/pending/unscored/tie rules retained.",
+    "adaptations": "Button haptics off; illustrative matchup caption instead of displaying test kickoff; full club names/registered crests in separate glass tiles; long-price font adjustment; memory-only leaderboard/back navigation retains local drafts rather than prompting discard; example owner styling hook; mathematical-reference label/aria/provenance copy replaces real-price/source/time assertions only for exampleMath scored comparison. Native non-math pending/unscored copy remains.",
+    "fixtures": "All fixtures, eligibility dates, sample guesses, manager names, state replies and standings are synthetic. Internal fixed year-2000 clock orders/closes examples, never a displayed actual kickoff. Entry fixtures contain no opponent rows. Results contain fictional locked opponent examples only; no real private/revealed/unrevealed data or actual references are supplied.",
+    "math": "Existing test arithmetic −120 vs +120 gives 40 points off; the preview labels this Example reference and no bookmaker quote/observation time. All referenceObservedAt/referenceSource fields remain null. Schematic comparison line retained with explicit distance. Six leaderboard rows are calculated from synthetic distances by native leaderboard: averages 0,10,15,15,25,null; 15/3 matches sorts before 15/2; all-unscored row has no average/rank/meter. Not player performance or sportsbook evidence.",
+    "behavior": "Native five-point stepping across ±100, integer validation, storage-safe bounds, separate draft/final lock, closed unsaved draft retention, read-only/unavailable permitted history, paused stale/uncertain editing and fixed busy labels/guards retained. Edits update component memory only. Lock/save/refresh/week/retry produce no-action notices and never unlock/reveal/fabricate readback. Leaderboard/back retains local drafts.",
+    "verification": {
+      "responsiveLayouts": 120,
+      "moneylineScenarioFlows": 30,
+      "loadedCrestTiles": 92,
+      "nativeInfoFocusThemes": 2,
+      "priorViews": 6,
+      "isolatedNativePresentationBlocks": 5,
+      "fixtureStates": 15,
+      "ruleMathScoredDistance": 40,
+      "ruleMathLeaderboardRows": 6,
+      "tieAndUnrankedCases": true,
+      "missingReferencesNotZero": true,
+      "revealGateCases": 3,
+      "evenStepCases": 3,
+      "storageBound": 2147383847,
+      "noObservedQuotesOrTimes": true,
+      "controllerSourceChecks": 3,
+      "nativeGuessTests": 24,
+      "nativeMoneylineRulesTests": 11,
+      "storageWrites": 0,
+      "bundleIntervals": 0,
+      "nonGETRequests": 0,
+      "providerAuthReads": 0,
+      "browserDialogs": 0,
+      "popups": 0,
+      "pageErrors": 0,
+      "adapterApiStorageTimerAndControllerExclusions": true,
+      "brandQA": true
+    },
+    "captures": [
+      "epl-moneyline-entry-dark-phone.png",
+      "epl-moneyline-entry-light-phone.png",
+      "epl-moneyline-saved-draft-dark-phone.png",
+      "epl-moneyline-saved-draft-light-phone.png",
+      "epl-moneyline-results-dark-phone.png",
+      "epl-moneyline-results-light-phone.png",
+      "epl-moneyline-closed-dark-phone.png",
+      "epl-moneyline-closed-light-phone.png",
+      "epl-moneyline-uncertain-dark-phone.png",
+      "epl-moneyline-uncertain-light-phone.png",
+      "epl-moneyline-stale-dark-phone.png",
+      "epl-moneyline-stale-light-phone.png",
+      "epl-moneyline-busy-dark-phone.png",
+      "epl-moneyline-busy-light-phone.png",
+      "epl-moneyline-read-only-dark-phone.png",
+      "epl-moneyline-read-only-light-phone.png",
+      "epl-moneyline-unavailable-dark-phone.png",
+      "epl-moneyline-unavailable-light-phone.png",
+      "epl-moneyline-loading-dark-phone.png",
+      "epl-moneyline-loading-light-phone.png",
+      "epl-moneyline-failed-dark-phone.png",
+      "epl-moneyline-failed-light-phone.png",
+      "epl-moneyline-leaderboard-dark-phone.png",
+      "epl-moneyline-leaderboard-light-phone.png",
+      "epl-moneyline-leaderboard-empty-dark-phone.png",
+      "epl-moneyline-leaderboard-empty-light-phone.png",
+      "epl-moneyline-leaderboard-loading-dark-phone.png",
+      "epl-moneyline-leaderboard-loading-light-phone.png",
+      "epl-moneyline-leaderboard-failed-dark-phone.png",
+      "epl-moneyline-leaderboard-failed-light-phone.png",
+      "epl-moneyline-results-revealed-dark-phone.png",
+      "epl-moneyline-results-revealed-light-phone.png"
+    ],
+    "delivery": "32 inspected phone captures: 15 screen states in both themes plus expanded revealed-guess example in both themes. Full content fits supplied extended heights; narrow 320/390/768/1440 bounds, 44px controls, footer reachability, field validation/stepping, memory navigation, info scroll/Escape/focus and loaded individual crest backgrounds checked separately.",
+    "isolation": "No API/auth/provider request, polling, persistent storage, clock interval, real fixture/quote/reference observation, actual save/lock/reveal/readback, budget change or message. Original EplGuess/EplGuessLeaderboard controllers and EPL API are excluded; unused createGuessController and guess/read/guess/save execution paths are absent from bundle.",
+    "production": "Review assets/evidence only. Native controllers, identity/grants, real pick deadlines/locks/reveal and saved-reference behavior, accounts/picks/drafts, moneyline quotes/data, production tokens, collectors, budgets, migrations and frozen v62 unchanged. No merge/deploy.",
+    "next": "FEPL Fantasy Matchup/Standings/Rosters/Insights mockups, then remaining native coverage reconciliation. Whole-app completion is not established; new avatar/photos and awards remain held."
   }
 }

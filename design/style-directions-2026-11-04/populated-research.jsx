@@ -16,6 +16,7 @@ import {EplPreview} from './populated-epl.jsx';
 import {GapRecordPreview} from './populated-gap-record.jsx';
 import {BetsChangesPreview} from './populated-bets-changes.jsx';
 import {BetsOverviewPreview} from './populated-bets-overview.jsx';
+import {EplMoneylinePreview} from './populated-epl-moneyline.jsx';
 import {EplHomePreview} from './populated-epl-home.jsx';
 import {EplClaimPreview} from './populated-epl-claim.jsx';
 import {EplCorrectionsPreview} from './populated-epl-corrections.jsx';
@@ -161,3 +162,5 @@ export function mountEplCorrections(element,scenario){const root=createRoot(elem
 export function mountEplClaim(element,data,scenario){const root=createRoot(element);root.render(<EplClaimPreview data={data} scenario={scenario}/>);return root;}
 
 export function mountEplHome(element,data,scenario){const root=createRoot(element);root.render(<EplHomePreview data={data} scenario={scenario}/>);return root;}
+
+export function mountEplMoneyline(element,scenario){const root=createRoot(element);root.render(<EplMoneylinePreview scenario={scenario}/>);return root;}

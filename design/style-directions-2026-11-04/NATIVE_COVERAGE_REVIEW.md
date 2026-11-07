@@ -12,8 +12,8 @@ reports an issue; technical bounds/focus checks continue separately.
 | Order | Native area | Existing review coverage | Remaining work |
 |---|---|---|---|
 | 1 | EPL manager linking (`web/src/next/epl/ClaimCard.jsx`) | Nine-state batch approved in both themes at `0db5eafd47d6e6325c7cd0164ae392b42b78d4e8` | Actual claims/session setting behavior remains separate |
-| 2 | EPL Home and draft recovery (`EplHome.jsx`, `PickATeam.jsx`) | Approved draft/queue/confirmation; new 13-state Home/recovery batch and source Info prepared | Visual approval for supplied Home, independent progress, recovery board/status/action/source presentation; existing pool/queue/confirmation scope stays separate |
-| 3 | EPL moneyline (`epl/guess/EplGuess.jsx`, `GuessCard.jsx`, `EplGuessLeaderboard.jsx`) | No dedicated populated review routes | Entry/lock, permitted reference/reveal and scoring views, leaderboard, unavailable/read-only/recovery states |
+| 2 | EPL Home and draft recovery (`EplHome.jsx`, `PickATeam.jsx`) | Home/recovery/source Info approved in both themes at `d2ead64e55adb3d8c3b1ee7d55505236f995bc90`; earlier draft/queue/confirmation approvals retained | Real data, permission, clock/turn and device behavior remain separate |
+| 3 | EPL moneyline (`epl/guess/EplGuess.jsx`, `GuessCard.jsx`, `EplGuessLeaderboard.jsx`) | New 15-state batch and expanded reveal example prepared in both themes | Visual approval for sample entry, rule-math results/standings and supplied recovery states; no bookmaker quotes or real player records |
 | 4 | FEPL Fantasy (`epl/fantasy/EplFantasy.jsx`) | NFL Research Fantasy was reviewed; it does not cover FEPL | Matchup, Standings, Rosters, Insights and permitted source/read states |
 | 5 | Other existing sport surfaces (`nba/NbaApp.jsx`, `Games.jsx`, `Bets.jsx`, `BetEditor.jsx`) | No NBA preview routes | Verify scope and existing source states, then cover the native views; do not add a new sport or infer deployed availability |
 
@@ -61,6 +61,20 @@ the selected glass treatment; its narrow long-word overflow was corrected and
 16 modal layout/Escape/focus checks passed. Home retains the shared logo and tab
 bar. Independent progress failures leave the draft action available. Refused,
 off and no-week reads drop the board; an ordinary failed refresh retains its
-native stale board and turn eligibility. This is prepared visual evidence,
-not live-source/device acceptance or completion of the entire first project.
-Dedicated EPL moneyline views are next after this batch's approval.
+native stale board and turn eligibility. These supplied visuals were approved
+in both themes at `d2ead64e55adb3d8c3b1ee7d55505236f995bc90`; live-source/device
+acceptance and whole-project completion remain separate. The dedicated
+moneyline batch is now prepared below.
+
+## Current moneyline/leaderboard delivery
+
+Fifteen states plus expanded permitted fictional reveal are supplied in both
+themes (32 phone captures). Sample guesses are editable in memory; no bookmaker
+quotes, source/observation times, real fixture pairings/kickoffs or private rows
+are fabricated. Scored comparison and standings are explicitly pure rule-math
+examples. Native distance/leaderboard and input/visibility helpers are unchanged.
+Five native presentation blocks were compared against their documented preview
+adaptations. The 120 layouts, 30 flows, 92 loaded crest tiles, native 24 view/
+controller tests and eleven pure rules tests passed. This batch is prepared for
+visual approval; real locking/references/privacy/device behavior remains
+separate. FEPL Fantasy's four tabs are next after approval.

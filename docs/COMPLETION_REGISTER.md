@@ -1,5 +1,76 @@
 # Guess The Line — current completion register
 
+## EPL moneyline and leaderboard mockups prepared — November 6, 2026
+
+The selected dark/Porcelain system now covers sample entry, saved-draft example,
+rule-math/pending/unscored results, closed unsaved draft, uncertain save, stale
+read, fixed busy, read-only, unverified prices, loading, failed read, rule-math
+leaderboard and its empty/loading/failed states. Five native presentation blocks
+(GuessList, GuessCard, PriceStepper, DistanceLine, GuessLeaderboard) are isolated
+and compared against source with documented preview adaptations. Native input,
+closure/own/reveal helpers, validGuessPrice, distance and leaderboard are reused.
+
+Adaptations suppress Button haptics, replace visible test kickoff with an
+illustrative caption, use full club names and separate registered crest tiles,
+keep long typed prices readable, retain local drafts across memory navigation
+without discard confirmation, add an example-owner styling hook, and replace
+real-reference provenance assertions only in the mathematical scored example.
+Native pending/unscored copy and reveal guards remain. No native controller,
+API or app source is changed.
+
+Every fixture, eligibility date, sample guess, manager, reply and standing is
+synthetic. The year-2000 test clock is not a real displayed kickoff. Entry has no
+opponent rows; results contain fictional locked opponents only. −120 vs +120
+uses the existing pure helper to produce 40 points off, labelled Example
+reference with no bookmaker quote or observation time. No real line is invented.
+Reference observation/source fields remain null. The schematic comparison line
+retains an explicit distance number. Native leaderboard calculates six synthetic
+rows with averages 0/10/15/15/25/null; the tied 15 over three scored matches sorts
+before 15 over two, and all-unscored has no rank/average/meter. These are rule-math
+examples, not player performance or sportsbook evidence.
+
+Native five-point stepping across even odds, whole-price validation/storage
+bounds, separate drafts/final locks, closed unsaved-draft retention, permitted
+history when prices are unverified, read-only and paused stale/uncertain entry
+are retained. Local edits affect memory only. Lock/save/refresh/week/retry show
+no-action notices, never a saved success, reference read, unlock or reveal.
+Busy stays fixed. Leaderboard/back preserves the local draft. No API/auth/
+provider request, polling, persistent storage, clock interval, actual save/lock/
+readback, budget change or message occurs. The original controllers/EPL API and
+unused guess/read/guess/save execution paths are excluded from the bundle.
+
+Thirty-two phone captures were inspected; visual approval is pending. Checks
+passed: 120 layouts, thirty scenario flows, 92 loaded individual crest tiles,
+five native presentation comparisons with stated adaptations, fifteen fixture
+cases, three visibility-gate cases, three even-step cases, three native
+controller-source checks, exact rule-math scoring/order and missing-reference
+handling, 24 existing native Guess UI/controller tests and eleven pure moneyline
+rules tests. Field validation/storage-bound behavior, paused/busy guards, memory
+navigation, native Info scrolling/Escape/focus, footer reachability and six prior
+mounts passed. No storage writes, bundle intervals, provider/auth reads, non-GET
+requests, popups, browser dialogs or page errors observed. Build, adapter/API/
+storage/timer/controller exclusions, Brand QA, syntax and diff checks passed.
+All content fits extended captures; narrow 320/390/768/1440 bounds and 44px
+controls were checked separately. Expanded revealed example is included in both
+themes; no real private data is exposed.
+
+[NATIVE_COVERAGE_REVIEW.md](../design/style-directions-2026-11-04/NATIVE_COVERAGE_REVIEW.md)
+records FEPL Fantasy's Matchup/Standings/Rosters/Insights next, then remaining
+native reconciliation. Whole-app completion is not established. Native identity/
+grants, real deadlines/locks/reveal/reference behavior, accounts/picks/drafts,
+quotes/data, production tokens, collectors, budgets, migrations and frozen v62
+are unchanged. No merge/deploy. New avatar/photos, awards and parked Signal
+files remain held.
+
+## EPL Home/recovery direction approved — November 6, 2026
+
+Sean replied "Looks good in both themes. Continue with the EPL moneyline and
+leaderboard mockups." to the supplied Home/recovery/source Info batch at reviewed
+commit `d2ead64e55adb3d8c3b1ee7d55505236f995bc90`. That visual direction is
+approved in both themes. Real clocks/permissions/turn acceptance, source
+completeness/provenance, recovery/readbacks, device behavior and whole-app
+completion remain separate. EPL moneyline and leaderboard are authorized next.
+
 ## EPL Home and draft-recovery mockups prepared — November 6, 2026
 
 The selected dark/Porcelain system now covers your turn, picked club, unlinked
