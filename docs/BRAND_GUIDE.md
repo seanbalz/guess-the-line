@@ -1,5 +1,31 @@
 # GUESS THE LINE — BRAND & DESIGN SYSTEM v1.0
 
+## 02 Glass circles selected and applied to mockups — November 6, 2026
+
+Sean selected “02” from the league-logo comparison at
+`a234f2f4bcddd8ec46218169f0110ff7dc395c0a`. The selected sport-switcher treatment
+is now applied throughout the paired viewer, including its isolated native
+NFL/EPL frames. Each original button and action/state remains; official marks
+use separate 52px circular glass tiles with an active lime/deep-green outline.
+Accessible full league names and hidden NBA/current NFL-only options remain.
+
+[Sixteen current placement captures](../design/style-directions-2026-11-04/LEAGUE_CIRCLES_SELECTED_REVIEW.md) show the six overview screens and
+both native sport frames in both themes. The primary gallery is refreshed to
+these current captures; earlier choice boards remain historical evidence.
+80 layouts at four widths, 52 action checks and 152 league-mark decodes passed.
+All sixteen captures inspected; Account's fixture footer is visible in an
+extended-height capture. No observed page errors, provider/auth reads, non-GET
+requests, storage writes or OS dialogs. Standalone adapter only; native
+production sources and bundle inputs are unchanged.
+
+One owner question remains: should explanatory references such as “View NFL
+history” use full league names or logos too? Full names are recommended for
+readability. Existing explanatory wording is unchanged pending the answer;
+the ten-view audit is not a claim that all nested team/chart/source labels are
+converted. Prior approvals remain scoped. NBA is parked; new avatars/photos,
+popup/award exploration and parked Signal files remain held. No merge,
+deployment or migration; the first project is not declared complete.
+
 ## Overview/ticket set approved; league-logo choices prepared — November 6, 2026
 
 Sean answered “Approved continue” to the fourteen current overview/ticket/entry

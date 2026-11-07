@@ -1,6 +1,9 @@
 # League-logo switcher — five visual options
 
-**Choice pending.** Existing Home/Play/Bets and ticket/entry whole-view captures
+**02 Glass circles selected** by Sean (“02”) at
+`a234f2f4bcddd8ec46218169f0110ff7dc395c0a`.
+[Current selected placements](LEAGUE_CIRCLES_SELECTED_REVIEW.md).
+The boards and 01 context examples below remain the earlier comparison evidence. Existing Home/Play/Bets and ticket/entry whole-view captures
 are approved in both themes at `6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd`
 (“Approved continue”). Those approvals remain valid.
 
