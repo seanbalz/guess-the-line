@@ -1,3 +1,4 @@
+import {EplShellPreview} from './populated-epl-shell.jsx';
 import {NflActionsPreview} from './populated-nfl-actions.jsx';
 import {HistoryRecordsPreview} from './populated-history-records.jsx';
 import {AccountHistoryPreview} from './populated-account-history.jsx';
@@ -176,3 +177,5 @@ export function mountAccountHistory(element,scenario){const root=createRoot(elem
 export function mountHistoryRecords(element,scenario){const root=createRoot(element);root.render(<HistoryRecordsPreview scenario={scenario}/>);return root;}
 
 export function mountNflActions(element,scenario){const root=createRoot(element);root.render(<NflActionsPreview theme={element.dataset.theme} scenario={scenario}/>);return root;}
+
+export function mountEplShell(element,scenario){const root=createRoot(element);root.render(<EplShellPreview theme={element.dataset.theme} scenario={scenario}/>);return root;}

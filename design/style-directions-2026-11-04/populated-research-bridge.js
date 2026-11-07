@@ -9,6 +9,10 @@ Promise.all([read('populated-research-data.json'),read('populated-fantasy-data.j
  const title=d.querySelector('.detail-close~.screen-top .page-title');
 
 
+ const eplShellLayer=document.getElementById('review-layer')?.value;
+ if(d.getElementById('screen')?.value==='Account'&&title?.textContent==='Profile & account'&&['epl-shell-leagues','epl-shell-history','epl-shell-bets'].includes(eplShellLayer)){
+  const stack=d.querySelector('.detail-close~.stack');if(!stack)return;const root=d.createElement('div');root.className='populated-research-root gx';root.dataset.theme=frame.dataset.reviewTheme;root.dataset.researchView='epl-shell';stack.replaceChildren(root);d.querySelector('.fixture').textContent='EPL SHELL VISUAL REVIEW · NO ACCOUNT READS OR WRITES';roots.get(frame)?.unmount();roots.set(frame,frame.contentWindow.GTLPopulatedResearch.mountEplShell(root,eplShellLayer.slice(10)));return;
+ }
  const actionLayer=document.getElementById('review-layer')?.value;
  if(d.getElementById('screen')?.value==='Account'&&title?.textContent==='Profile & account'&&actionLayer?.startsWith('action-')){
   const stack=d.querySelector('.detail-close~.stack');if(!stack)return;const root=d.createElement('div');root.className='populated-research-root gx';root.dataset.theme=frame.dataset.reviewTheme;root.dataset.researchView='nfl-actions';stack.replaceChildren(root);d.querySelector('.fixture').textContent='FICTIONAL ACTION EXAMPLES · NO ACCOUNT READS OR WRITES';roots.get(frame)?.unmount();roots.set(frame,frame.contentWindow.GTLPopulatedResearch.mountNflActions(root,actionLayer.slice(7)));return;

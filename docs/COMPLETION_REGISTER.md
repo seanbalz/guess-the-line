@@ -1,5 +1,51 @@
 # Guess The Line — current completion register
 
+## EPL league, History handoff and Bets notices prepared — November 6, 2026
+
+[Phone review: eight captures in both themes](../design/style-directions-2026-11-04/EPL_SHELL_REVIEW.md).
+
+Sean’s “Good continue” records approval of the revised Virtual unit-entry
+placement shown in the preceding final reply, at
+`62a64773b544fbb8ffe679d8f6a8dc1fae552b9f`. The two reviewed Virtual captures
+are named in the selection record. The confirmed unit behavior remains 0.5U
+smallest quick choice, Custom down to 0.01U and 0.1U per +/− tap. This scoped
+approval does not silently accept the entire 106-capture NFL batch or unseen
+tracking placements.
+
+The next three native EPL shell gaps now have selected dark/Porcelain mockups:
+the single selected FEPL league row, History’s existing unavailable notice with
+View NFL history, and Bets’ existing unavailable notice. Exact native copy and
+actions remain. Native EplLeagues/EplHistory/EplBets/EPL_COPY presentation from
+two files is extracted/source-compared after local shell/navigation injection,
+export naming, haptics off and the existing clock/ticket notice glyphs. The
+shared header and four tabs use FEPL with no invented NFL counter badges.
+
+FEPL is a fixed native identity; Alex Lane is fictional. The league sheet’s
+blurred Home underlay is labelled review context, not live Home data. The
+source-defined unavailable states are not failed/empty reads or evidence of
+missing/deleted records. No EPL create/join/invite or wagering form, historical
+record, standings value, quote, feature status or permission is invented. The
+already-reviewed account Menu is referenced, not duplicated; its real shared
+community guard read is excluded. New avatars/photos/awards remain held.
+
+Selected-row/Close/Escape and History Back work locally and return focus.
+View NFL history reports its native #history handoff without changing the URL;
+shared destination controls only show no-read notices. The review reopen button
+is hidden while History is open. No API/auth/provider read, write, URL/device
+storage change, polling or interval controller runs.
+
+48 native tests, 24 responsive checks, six flow checks, two league-sheet
+keyboard/focus checks, eight Info checks and four prior mounts passed. Source,
+controller exclusions, Brand/syntax/diff and capture hash checks passed. Build:
+1813 inputs, 934020-byte JS. No page error, provider/auth read, non-GET request,
+storage write, bundle interval or OS dialog observed. Eight phone captures,
+including source/scope Info, were inspected; owner visual approval is pending.
+
+Only preview assets/evidence change. Production behavior/data, actual guarded
+navigation, device acceptance, retained-route reconciliation and whole-app
+completion remain separate. NBA navigation remains hidden and retained links
+unchanged. Parked Signal files are untouched/unpublished. No merge/deploy/apply.
+
 ## Unit quick choices and Custom clarified — November 6, 2026
 
 Sean confirmed “Yes” to the distinction: **0.5U is the smallest quick-select

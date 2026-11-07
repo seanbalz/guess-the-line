@@ -1936,13 +1936,34 @@
         "actions": [
           "detail:profile"
         ]
+      },
+      {
+        "id": "epl-shell-leagues",
+        "name": "EPL native shell · leagues",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "epl-shell-history",
+        "name": "EPL native shell · history",
+        "actions": [
+          "detail:profile"
+        ]
+      },
+      {
+        "id": "epl-shell-bets",
+        "name": "EPL native shell · bets",
+        "actions": [
+          "detail:profile"
+        ]
       }
     ]
   },
   "scope": "Six existing primary mockup screens and available representative layers. Original fictional fixtures, no new integrations/awards/avatar/team/icon functionality. Notes are local review records, not approval or account sync.",
   "visualReview": {
     "accepted": {},
-    "next": "Account/action-forfeit-ready",
+    "next": "Account/epl-shell-leagues",
     "scope": "Earlier acknowledgments are preserved as history, not current completed screen sign-off. Selected design recipes remain the starting point. Production, whole-project completion and deferred-feature scope unchanged.",
     "acceptanceHistory": {
       "Home/overview": {
@@ -5581,7 +5602,83 @@
       ],
       "buildInputs": 1810,
       "bundleBytes": 927539,
-      "additionalChecks": "Custom 0.25U and +0.1U to 0.35U accepted in both themes. Plus is disabled at 100U; Remove stays available and removes locally, matching the native disabled guard."
+      "additionalChecks": "Custom 0.25U and +0.1U to 0.35U accepted in both themes. Plus is disabled at 100U; Remove stays available and removes locally, matching the native disabled guard.",
+      "visualApproval": {
+        "status": "approved for the shown Virtual unit-entry placement in both themes",
+        "userStatement": "Good continue",
+        "reviewedCommit": "62a64773b544fbb8ffe679d8f6a8dc1fae552b9f",
+        "reviewedCaptures": [
+          "nfl-actions-virtual-minimum-dark-phone.png",
+          "nfl-actions-virtual-minimum-light-phone.png"
+        ],
+        "scope": "The final reply linked these two Virtual screenshots. The 0.5U quick minimum / 0.01U custom floor / 0.1U step behavior is confirmed for both entry previews; this does not approve the entire 106-capture batch or unseen tracking placements."
+      }
+    }
+  },
+  "eplShellPreview": {
+    "status": "prepared for owner review; approval pending",
+    "scenarios": [
+      "leagues",
+      "history",
+      "bets"
+    ],
+    "scope": "Existing FEPL league sheet, EPL History-to-NFL handoff and EPL Bets unavailable state only. No new league creation, EPL history availability, EPL bets, NBA entry or avatar/award feature.",
+    "prepared": "2026-11-06",
+    "reviewIndex": "EPL_SHELL_REVIEW.md",
+    "nativeFiles": [
+      "web/src/next/epl/EplShell.jsx",
+      "web/src/next/epl/EplApp.jsx"
+    ],
+    "nativeSourceSha256": {
+      "web/src/next/epl/EplShell.jsx": "fa5256b17ebfdc2bd5b90c2da63930ca7a084db0782956bd62d105ae3a4c6877",
+      "web/src/next/epl/EplApp.jsx": "66a0801d660872b8815ca80dfd693ffb8e025016f8de9e956f18bd5219af081b"
+    },
+    "preservation": "EplLeagues/EplHistory/EplBets and EPL_COPY are source-compared after shell/navigation injection, export naming, Button haptics off and the existing clock/ticket notice glyphs. Exact native notice/action text and single selected FEPL row remain. TopBar/TabBar reuse the previously reviewed native frame with no invented counters.",
+    "fixtureMeaning": "FEPL is the native fixed league identity; Alex Lane is a fictional account. League-sheet Home underlay is a labelled review-context specimen, not a live dashboard or empty-data result. No actual roster, permissions, picks, records, feature flag, provider or quote is supplied.",
+    "behavior": "The selected FEPL row and Close/Escape close locally and return focus. History Back closes its local page and reveals the review opener; View NFL history shows the exact native #history handoff in a no-read notice without navigating. Shared header/tab/sport/Menu buttons show no-read notices. No EPL create/join/invite or betting action is added. An open History page does not show the review-only reopen button.",
+    "availability": "Native source explicitly says EPL History is unavailable here yet and EPL Bets are unavailable. These are source-defined availability states, not a failed/empty fetch or proof that user records are missing. No data loss or newly shipped feature is asserted.",
+    "exclusions": "No AppData, authenticated EplMenu read, actual EplShell/EplApp controllers/registry, API/auth/provider read, writer, polling, URL/device storage or interval controller. NBA remains hidden; retained links are unchanged. New avatar/photo/award work and parked Signal files remain held.",
+    "verification": {
+      "responsiveLayouts": 24,
+      "nativeFlows": 6,
+      "leagueModalChecks": 2,
+      "infoChecks": 8,
+      "priorMounts": 4,
+      "nativeTests": 48,
+      "sourceComparedFiles": 2,
+      "buildInputs": 1813,
+      "bundleBytes": 934020,
+      "pageErrors": 0,
+      "nonGETRequests": 0,
+      "providerAuthReads": 0,
+      "OSDialogs": 0,
+      "storageWrites": 0,
+      "bundleIntervals": 0,
+      "brandSyntaxDiff": "passed"
+    },
+    "captures": [
+      "epl-shell-bets-dark-phone.png",
+      "epl-shell-bets-light-phone.png",
+      "epl-shell-history-dark-phone.png",
+      "epl-shell-history-light-phone.png",
+      "epl-shell-info-dark-phone.png",
+      "epl-shell-info-light-phone.png",
+      "epl-shell-leagues-dark-phone.png",
+      "epl-shell-leagues-light-phone.png"
+    ],
+    "captureSha256": {
+      "epl-shell-bets-dark-phone.png": "a48a4aa1227a405ce7dee11d82991074d57a2c12caa80e933ecbe7e3beb17c99",
+      "epl-shell-bets-light-phone.png": "4ed3a608e30272fe6f1a312bfe4239837fe0ae22e77a1e9335922c24b7f947be",
+      "epl-shell-history-dark-phone.png": "011171ca27f87c64d9b4561011947f16ea42a781d551fadd44d16dd3a094e585",
+      "epl-shell-history-light-phone.png": "c2ffadded6d5faa8ac2227ecff83d216db4add6fb0402294711bcefed439880e",
+      "epl-shell-info-dark-phone.png": "9558607623136216a7ecc2e8656cfa3c1b7ffafe020fa290fb804aaf9c6da35b",
+      "epl-shell-info-light-phone.png": "09aafa2f5d82e5780cfb0216dda421762ff4b024b40e9bb12545e2b56c22aadf",
+      "epl-shell-leagues-dark-phone.png": "7d3cad04dac3af8a6e805fdfe6132e07bc7a5cf42e40caa77a19f4806103258a",
+      "epl-shell-leagues-light-phone.png": "b2624428db0dce6e191606441e31eb43b20479c00123c3a368c0757407d07329"
+    },
+    "approval": {
+      "status": "pending",
+      "scope": "Only the listed eight EPL league/History/Bets/Info captures, in both themes. No production or whole-project acceptance inferred."
     }
   }
 }
