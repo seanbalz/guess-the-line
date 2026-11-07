@@ -63,3 +63,12 @@ coverage. The moneyline shell test uses the same full National Football League
 button name. Full Vitest passed 85 files / 886 tests; both moneyline shell browser
 flows passed, including dirty-draft guarding and account-remount privacy.
 The separate Research card-radius expectation is tracked with that area port.
+
+The full browser run also found the new G images had been inlined as SVG data
+URLs. Their decorative vector numbers collided with the strict numeric
+hidden-pick/line scan of image attributes. The two imports now request emitted
+media files; the original artwork and hashes are unchanged, and the privacy
+scanner was not relaxed. Both focused delayed-market and saved-pick privacy/
+focus tests pass, as do 20 brand/token/import contracts. The build emits both
+original SVG files. Play's keyboard focus race and Research chart target sizing
+remain tracked separately until their regressions are resolved.
