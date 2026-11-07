@@ -1,5 +1,21 @@
 # Guess The Line — current completion register
 
+## Remaining confirmed Prism visuals — implementation started November 7, 2026
+
+Sean approved the Home spacing mockups and instructed deployment, then asked to
+deploy the remaining confirmed visual updates. The
+[rollout checklist](CONFIRMED_VISUAL_ROLLOUT_2026_11_07.md) records 43 areas and
+268 registered review routes, preserving the held avatar/award/NBA/Signal work.
+Shared theme/material/type/identity source is checked locally at `1e104fdf`:
+32 Node, 58 component, 53 browser and 13 final focused checks passed, with
+typecheck, Brand QA, cloud build and bundle privacy scanning. Independent review
+found no important regressions. Per-area Play/Points/Score and Bets ports are in
+separate owned task checkouts; remaining layouts are not claimed implemented.
+A concrete conflict between approved Home and native-frame navigation layouts
+has one owner question pending; structural changes are held without removing
+existing league switching. Virtual finer-unit entry has a documented API/SQL
+compatibility dependency. **Remaining rollout not merged or deployed.**
+
 ## Selected Prism shared native foundation — November 7, 2026
 
 Locally checked on `codex/confirmed-prism-shared-2026-11-07`, based on fresh main
