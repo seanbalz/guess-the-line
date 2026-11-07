@@ -79,7 +79,7 @@
 .gx .gx-home-activity-row > span:last-child { display: flex; flex-direction: column; min-width: 0; gap: var(--gx-space-1); }
 .gx .gx-home-activity-row > span:last-child > span { color: var(--gx-home-muted); }
 .gx-home-design .gx-home-activity-row .gx-av { border: 1px solid var(--gx-home-edge); background: var(--gx-home-face); box-shadow: var(--gx-home-soft-depth); color: var(--gx-home-ink); }
-.gx-home-design [data-skeleton="landing"] .gx-skel-hero { height: 212px; min-height: 212px; gap: 8px; padding: 18px; border: 1px solid var(--gx-home-edge); border-radius: 28px; background: var(--gx-home-face); box-shadow: var(--gx-home-depth); }
+.gx-home-design [data-skeleton="landing"] .gx-skel-hero { height: 194px; min-height: 194px; gap: 8px; padding: var(--gx-space-4); border: 1px solid var(--gx-home-edge); border-radius: 28px; background: var(--gx-home-face); box-shadow: var(--gx-home-depth); }
 .gx-home-design .gx-h-game .gx-h-game-state--skipped,
 .gx-home-design .gx-h-game .gx-h-game-state--missed { color: var(--gx-home-muted); }
 .gx .gx-home-notice { color: var(--gx-home-muted); font: 500 14px/20px var(--gx-font-home); }
