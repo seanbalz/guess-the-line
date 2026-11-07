@@ -8,19 +8,22 @@ import { pickOrder } from '../shared/epl-draft.mjs';
 const skip = pgliteAvailable ? false : 'Install optional local PGlite; no remote database tests are run.';
 const ORDER = ['865667912365666304','1259267898757611520','719745569895018496','473955676301815808','719658248843632640','1257180071064510465','702644837370929152','1395236217460633600'];
 const RUN = id(600), CLAIM = id(601), NOW = '2026-11-03T20:05:00Z';
+// Reorder RPCs correctly compare with the database clock after taking row locks.
+// Keep this fictional draft open relative to the run, rather than expiring on Nov 7, 2026.
+const NEXT_KICKOFF = new Date(Date.now()+48*3600_000).toISOString();
 async function fixture(t, { baseline = true } = {}) {
   const world = await createCommunityWorld({ migrations: ALL, games: 2, troyBallots: false }); t.after(() => world.db.close());
   const db = world.db;
   const rpc = (name,args) => db.transaction(async tx => { await tx.exec('set local role service_role'); return (await tx.query(`select public.${name}(${args.map((_,i)=>`$${i+1}`).join(',')}) value`,args)).rows[0].value; });
   const payload = (week,changed) => ({ state:{week,season:'2026'}, rosters:ORDER.map((owner,i)=>({owner_id:owner,settings:{fpts:500+(changed?(i===0?100:i===1?0:10):0),fpts_decimal:25,fpts_against:400}})) });
-  await db.query("insert into public.gtl_epl_weeks(season,week,window_start,window_end,first_kickoff,pick_order,status) values(2026,9,'2026-10-30','2026-11-04','2026-10-31T12:30Z',$1,'settled'),(2026,10,'2026-11-04','2026-11-11','2026-11-07T12:30Z',$1,'open')",[ORDER]);
+  await db.query("insert into public.gtl_epl_weeks(season,week,window_start,window_end,first_kickoff,pick_order,status) values(2026,9,'2026-10-30','2026-11-04','2026-10-31T12:30Z',$1,'settled'),(2026,10,'2026-11-04','2026-11-11',$2,$1,'open')",[ORDER,NEXT_KICKOFF]);
   await db.query("update public.gtl_epl_managers set user_id=case when owner_id=$1 then $2::uuid when owner_id=$3 then $4::uuid end where owner_id in ($1,$3)",[ORDER[0],id(1),ORDER[1],id(2)]);
-  await db.exec("insert into public.gtl_epl_fixtures(event_id,season,week,home,away,commence_time) values('next',2026,10,'ARS','LIV','2026-11-07T12:30Z')");
+  await db.query("insert into public.gtl_epl_fixtures(event_id,season,week,home,away,commence_time) values('next',2026,10,'ARS','LIV',$1)",[NEXT_KICKOFF]);
   await db.query("insert into public.gtl_epl_snapshots(label,week,captured_at,payload) values('after-mw9',9,'2026-11-03T02:00Z',$1),('after-mw9-recheck',9,$2,$3)",[payload(10,false),NOW,payload(10,true)]);
   await db.exec("insert into public.gtl_epl_stat_rechecks(season,week,original_snapshot_id,recheck_snapshot_id,checked_at,scores_changed,status) select 2026,9,a.id,b.id,b.captured_at,true,'needs_review' from public.gtl_epl_snapshots a,public.gtl_epl_snapshots b where a.label='after-mw9' and b.label='after-mw9-recheck'");
   const addBaseline = () => db.query("insert into public.gtl_epl_snapshots(label,week,captured_at,payload) values('after-mw08',8,'2026-10-28T02:00Z',$1)",[payload(9,false)]);
   if (baseline) await addBaseline();
-  await db.exec("insert into public.gtl_epl_capture_intervals(season,week,next_week,next_kickoff,verified_at,verified_by,schedule_sha256,reference,coverage_complete) values(2026,9,10,'2026-11-07T12:30Z','2026-10-28T00:00Z','00000000-0000-4000-8000-000000000003',repeat('c',64),'https://example.test/fixture-interval',true)");
+  await db.query("insert into public.gtl_epl_capture_intervals(season,week,next_week,next_kickoff,verified_at,verified_by,schedule_sha256,reference,coverage_complete) values(2026,9,10,$1,'2026-10-28T00:00Z','00000000-0000-4000-8000-000000000003',repeat('c',64),'https://example.test/fixture-interval',true)",[NEXT_KICKOFF]);
   await db.query("insert into public.gtl_epl_job_runs(id,job,slot_start,capability_hash,status,claim_token,claimed_at) values($1,'snapshot',clock_timestamp(),$2,'running',$3,clock_timestamp())",[RUN,'a'.repeat(64),CLAIM]);
   const apply = (now=NOW) => rpc('gtl_epl_apply_recheck_orders',[RUN,CLAIM,now]);
   const order = async () => (await db.query('select pick_order from public.gtl_epl_weeks where week=10')).rows[0].pick_order;
@@ -65,7 +68,7 @@ test('missing baseline/settlement stays retryable; zero picks at deadline never 
   await f.addBaseline(); await f.db.exec("update public.gtl_epl_weeks set status='resolved' where week=9");
   assert.equal((await f.apply()).pending,1);
   await f.rpc('gtl_epl_settle_week',[2026,9,[],null]);
-  assert.equal((await f.apply('2026-11-07T12:30:00Z')).preserved,1);
+  assert.equal((await f.apply(NEXT_KICKOFF)).preserved,1);
   assert.deepEqual(await f.order(),ORDER);
   assert.deepEqual(await f.rpc('gtl_epl_order_correction_state',[2026]),[{week:9,outcome:'preserved_closed'}]);
 });
@@ -80,12 +83,12 @@ test('a later baseline repairs a pending correction without a duplicate outcome 
 
 test('explicit interval evidence requires a commissioner/full coverage and never extends an earlier conservative bound', {skip}, async t => {
   const f=await fixture(t);
-  const args=[2026,9,10,'2026-11-07T12:30Z','2026-10-28T12:00Z','a'.repeat(64),'https://example.test/verified-schedule',true];
+  const args=[2026,9,10,NEXT_KICKOFF,'2026-10-28T12:00Z','a'.repeat(64),'https://example.test/verified-schedule',true];
   await assert.rejects(()=>f.rpc('gtl_epl_attest_capture_interval',[id(1),...args]),/GTL_EPL_FORBIDDEN/);
   await assert.rejects(()=>f.rpc('gtl_epl_attest_capture_interval',[id(3),...args.slice(0,-1),false]),/GTL_EPL_INVALID/);
   assert.equal(await f.rpc('gtl_epl_attest_capture_interval',[id(3),...args]),true);
   assert.equal(await f.rpc('gtl_epl_attest_capture_interval',[id(3),...args]),false);
-  const later=[...args];later[3]='2026-11-08T12:30Z';later[5]='b'.repeat(64);
+  const later=[...args];later[3]=new Date(Date.parse(NEXT_KICKOFF)+24*3600_000).toISOString();later[5]='b'.repeat(64);
   assert.equal(await f.rpc('gtl_epl_attest_capture_interval',[id(3),...later]),true);
   const interval=await f.rpc('gtl_epl_capture_interval',[RUN,CLAIM,2026,9]);
   assert.equal(Date.parse(interval.nextKickoff),Date.parse(args[3]));
