@@ -43,6 +43,31 @@ structural placement remains held for the parent’s pointed owner question.
 Unpublished local handoff only: no PR, merge, deployment or data/API/SQL change.
 Remaining per-screen compositions and real-phone acceptance are separate work.
 
+## Home spacing review — November 7, 2026
+
+Sean requested better format and spacing after the Home release. A
+[Dark/Light mockup review](../design/home-spacing-review-2026-11-07/README.md)
+initially used unchanged main app source with browser-only layout overrides.
+Sean approved the exact review at `5faead67b9a66091c595168d89bfe21556dec01f`,
+saying **“That looks better. Continue to deploy.”** The balanced layout removes
+compounded gaps, aligns progress/stat/shortcut graphics with text and compacts
+matchup rows. At 390px the same
+fictional fixture is 1,279px tall instead of 1,561px (18.1% shorter).
+Thirty layout cases passed across both themes, native/wider fonts and simulated
+phone insets; 24 keyboard-focus observations cleared the bottom bar. Axe found
+zero violations in either theme, with translucent contrast evaluation incomplete;
+the existing token suite passed 15/15. These are local browser checks, not
+physical-phone acceptance. **Approved and implemented locally; release pending.**
+The original Home CSS declarations now carry the approved layout, preserving
+Home tokens/fonts, 80px charts, 15px SVG labels, 44px targets, ring animation and
+safe-area/focus behavior. Source data, controllers, privacy and API/database
+behavior are unchanged. Local token/Home model checks passed 54/54 and seven
+Home component suites passed 53/53. Existing Home and scroll/navigation browser
+specs passed 7/7 without skips after a successful cloud-test build, including
+both-theme narrow-screen layout/axe, no-write/privacy, navigation restoration
+and cross-page scrolling/focus checks. No release or migration was run for this
+spacing update.
+
 ## Approved Prism Glass Home — November 7, 2026
 
 Sean approved the exact Dark/Light Home mockups and instructed “Good deploy.”
