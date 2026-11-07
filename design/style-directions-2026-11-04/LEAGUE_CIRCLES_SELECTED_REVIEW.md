@@ -1,5 +1,8 @@
 # Selected league logos — 02 Glass circles
 
+These league placements were accepted by Sean (“Looks good. All logos should have circles”).
+[Current team-and-league circle extension](TEAM_LEAGUE_CIRCLES_REVIEW.md) preserves that approval and the explicit exclusion of the GTL G.
+
 Sean selected **02** from the five-way comparison in both themes at
 `a234f2f4bcddd8ec46218169f0110ff7dc395c0a`. This applies that selected treatment
 to the existing sport switchers throughout the paired mockup viewer. Earlier

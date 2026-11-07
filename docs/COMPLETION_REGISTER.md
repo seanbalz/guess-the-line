@@ -1,5 +1,32 @@
 # Guess The Line — current completion register
 
+## Individual circles for all team/league mockup marks — November 6, 2026
+
+Sean accepted the sixteen league-circle placements at
+`935f457b9219b51376f3be4405f2109759bdd895` (“Looks good. All logos should have
+circles”), then explicitly chose “Team and league logos only (recommended)”.
+The original GTL G is excluded. Each existing team-logo container now uses a
+circle, retaining separate glass backgrounds, artwork aspect, names and
+actions. Home/compact-list portrait tiles are made square; nested operational
+marks retain one outer background. No artwork asset is changed.
+
+[Twenty updated phone captures](../design/style-directions-2026-11-04/TEAM_LEAGUE_CIRCLES_REVIEW.md) show six overviews plus team list,
+Spread draft, tracked ticket and FEPL Fantasy in both themes. The six-screen
+gallery is refreshed. 200 responsive layouts across 25 representative views,
+1,584 circle measurements and 1,712 image decodes passed shape checks. All
+twenty captures inspected. No G wrapped, unwrapped audited team image,
+horizontal phone overflow, page error, provider/auth read, non-GET request,
+storage write or OS dialog observed. A transient local CSS connection failure
+in the initial rapid audit prompted explicit settled-resource verification
+before publication; final result is retained in selection metadata.
+
+This is a shared mockup adapter, not native production code or a bundle-input
+change. Prior approvals remain scoped, and current whole-view review does not
+automatically cover every nested state. The earlier explanatory-text naming
+question remains unanswered; circle scope does not decide wording. NBA is
+parked; new avatars/photos/awards and parked Signal assets remain held. No
+merge, deploy, migration or whole-project completion claim.
+
 ## 02 Glass circles selected and applied to mockups — November 6, 2026
 
 Sean selected “02” from the league-logo comparison at

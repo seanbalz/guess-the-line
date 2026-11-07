@@ -1,7 +1,7 @@
 {
   "kind": "GTL_SELECTED_SYSTEM_REVIEW",
   "version": 1,
-  "status": "02 Glass circles selected and applied to paired mockup sport controls; sixteen current captures supplied. Explanatory league-reference clarification pending; production remains separate.",
+  "status": "Team and league mockup logos now use individual circles; GTL G explicitly excluded. Updated captures supplied; explanatory wording and production acceptance remain separate.",
   "darkSource": "lime-priority-preview.json",
   "lightSource": "light-mode-options.json",
   "dark": {
@@ -2104,7 +2104,7 @@
     "options": "icon-treatment-options.html",
     "defaultPreview": "03 Glossy glass, selected by Sean accepting the assistant recommendation",
     "assets": "visual-assets/sources.json",
-    "leagueMarks": "02 Glass circles selected and applied to existing paired-viewer sport switchers, including isolated native NFL/EPL frames; explanatory references and remaining identity placement inventory are separate.",
+    "leagueMarks": "Circle league placements approved at 935f457b9219b51376f3be4405f2109759bdd895. New team/league-only circle scope applied; updated team placements supplied. GTL G excluded.",
     "screenAcceptance": "Reopened Home/Play/Bets whole-view flags closed at 6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd; later specialized approvals remain scoped. League logo changes pending."
   },
   "iconSelection": {
@@ -5866,21 +5866,43 @@
   "currentVisualPassReconciliation": {
     "nba": "Parked by owner and excluded from this visual pass; no NBA mockups made.",
     "eplShell": "The eight supplied EPL league/History/Bets/Info captures are approved in both themes at c6fb2b44bacc90fa44ba89e8932da7343e20cf4b.",
-    "remainingVisualReview": "LEAGUE_CIRCLES_SELECTED_REVIEW.md",
-    "remainingScope": "02 selected and applied to existing mockup sport switchers; explanatory league-reference treatment awaits one owner clarification before further replacement. Remaining team/league placements still need inventory; no app-wide completion claim.",
+    "remainingVisualReview": "TEAM_LEAGUE_CIRCLES_REVIEW.md",
+    "remainingScope": "Review current team/league circle placements. Prior full-name-versus-logo explanatory-text clarification remains unanswered; do not infer its answer from circle shape scope.",
     "alreadyApprovedVirtualCaptures": [
       "nfl-actions-virtual-minimum-dark-phone.png",
       "nfl-actions-virtual-minimum-light-phone.png"
     ],
-    "pendingCaptureCount": 0,
-    "pendingCaptures": [],
+    "pendingCaptureCount": 20,
+    "pendingCaptures": [
+      "team-league-circles-home-dark-phone.png",
+      "team-league-circles-home-light-phone.png",
+      "team-league-circles-play-dark-phone.png",
+      "team-league-circles-play-light-phone.png",
+      "team-league-circles-bets-dark-phone.png",
+      "team-league-circles-bets-light-phone.png",
+      "team-league-circles-research-dark-phone.png",
+      "team-league-circles-research-light-phone.png",
+      "team-league-circles-epl-dark-phone.png",
+      "team-league-circles-epl-light-phone.png",
+      "team-league-circles-account-dark-phone.png",
+      "team-league-circles-account-light-phone.png",
+      "team-league-circles-teams-dark-phone.png",
+      "team-league-circles-teams-light-phone.png",
+      "team-league-circles-draft-dark-phone.png",
+      "team-league-circles-draft-light-phone.png",
+      "team-league-circles-ticket-dark-phone.png",
+      "team-league-circles-ticket-light-phone.png",
+      "team-league-circles-fepl-dark-phone.png",
+      "team-league-circles-fepl-light-phone.png"
+    ],
     "held": "New avatar/photo choices, new award/celebration exploration and parked Signal assets remain held while the first visual project is unfinished.",
     "production": "No production integration, deployment or whole-project completion is claimed.",
     "nflActions": "All 106 supplied captures approved: remaining 104 at 9c2aa961f14f6a68cc51858e777c4e0796a9b5e5 plus two prior Virtual-minimum captures.",
-    "openRequirementAudit": "Navigation/control identity marks now use selected circles. Explanatory references such as View NFL history and sample league captions remain unchanged pending the explicit one-question clarification.",
+    "openRequirementAudit": "Circle shape is now consistent across known team/league components. This does not establish all identity abbreviations replaced, every nested state accepted, or production integration.",
     "approvedNFLActionCaptureCount": 106,
     "overviewCloseout": "All fourteen supplied captures approved at 6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd.",
-    "leagueLogoSelection": "02 Glass circles selected at a234f2f4bcddd8ec46218169f0110ff7dc395c0a; sixteen current placement captures supplied."
+    "leagueLogoSelection": "02 Glass circles selected at a234f2f4bcddd8ec46218169f0110ff7dc395c0a; sixteen current placement captures supplied.",
+    "teamLeagueCircles": "Explicit all-team/league circle instruction applied to known paired-viewer logo containers; GTL G excluded by owner."
   },
   "overviewCloseoutReview": {
     "status": "Approved: fourteen supplied overview/ticket/entry captures in both themes",
@@ -6312,6 +6334,174 @@
       "inspectedCaptures": 16,
       "accountCapture": "1100px extended phone height keeps the fixture footer fully visible."
     },
-    "remaining": "Scope clarification for explanatory league references is pending; this header adapter does not claim all app/team abbreviations replaced or production acceptance."
+    "remaining": "Scope clarification for explanatory league references is pending; this header adapter does not claim all app/team abbreviations replaced or production acceptance.",
+    "placementApproval": {
+      "status": "approved for supplied placements",
+      "userStatement": "Looks good. All logos should have circles",
+      "reviewedCommit": "935f457b9219b51376f3be4405f2109759bdd895",
+      "scope": "The sixteen supplied circle-league placements in both themes. New instruction extends the shape to all team/league logos; GTL G excluded by subsequent explicit answer."
+    }
+  },
+  "teamLeagueCircleSelection": {
+    "status": "Applied to known team-logo containers throughout the paired mockup viewer; supplied updated captures for visual review. League placements remain approved.",
+    "userStatement": "Looks good. All logos should have circles",
+    "scopeQuestion": "Should the circular background also apply to the lime G app logo, or only team and league logos?",
+    "scopeAnswer": "Team and league logos only (recommended)",
+    "scope": "Team and league identity backgrounds throughout current paired mockups; original GTL G artwork/placement excluded. Existing team-name text, underlying assets, actions and fixtures retained.",
+    "implementation": "selected-team-circles.js",
+    "priorStyle": "Supersedes the earlier rectangular team tile shape; keeps one separate glass surface per logo.",
+    "index": "TEAM_LEAGUE_CIRCLES_REVIEW.md",
+    "captures": [
+      {
+        "file": "previews/team-league-circles-home-dark-phone.png",
+        "view": "Home",
+        "theme": "dark",
+        "sha256": "241d6cb23f283fa2811df69084171e895dc9be390f0b6b9291026f6afb237715"
+      },
+      {
+        "file": "previews/team-league-circles-home-light-phone.png",
+        "view": "Home",
+        "theme": "light",
+        "sha256": "5400ae9f882ab03db60551fca746dc9d742dee102542bf711c9a27539e5d9d8c"
+      },
+      {
+        "file": "previews/team-league-circles-play-dark-phone.png",
+        "view": "Play",
+        "theme": "dark",
+        "sha256": "d0cddec7e574e45b4636cf9389a1587c1e0f0bf035c4bc37840c374b9f059c7f"
+      },
+      {
+        "file": "previews/team-league-circles-play-light-phone.png",
+        "view": "Play",
+        "theme": "light",
+        "sha256": "11831d4cb0232d0df2f80043731e15bdc701918f1b798f501b4f06b59147964b"
+      },
+      {
+        "file": "previews/team-league-circles-bets-dark-phone.png",
+        "view": "Bets",
+        "theme": "dark",
+        "sha256": "d4465486cb343c8d364848ddfb0c72ddb68ceeac1876997200d3ad2bbe288731"
+      },
+      {
+        "file": "previews/team-league-circles-bets-light-phone.png",
+        "view": "Bets",
+        "theme": "light",
+        "sha256": "400993aa5a30cd45dc216c7af80c6e752fc2700069d09be952bf40a365c476c5"
+      },
+      {
+        "file": "previews/team-league-circles-research-dark-phone.png",
+        "view": "Research",
+        "theme": "dark",
+        "sha256": "8a15c75644c16760f9d31e716f5cfcd9e5c37a90164d470f23d1d0efb516d65d"
+      },
+      {
+        "file": "previews/team-league-circles-research-light-phone.png",
+        "view": "Research",
+        "theme": "light",
+        "sha256": "b9604f283663575c531b34be0102fad8a593fa13d453e1d4dff4e9931e338ca7"
+      },
+      {
+        "file": "previews/team-league-circles-epl-dark-phone.png",
+        "view": "EPL",
+        "theme": "dark",
+        "sha256": "108e0de9337b8ee70e43281a9e5492bbad9e9154e7f2c588b37f435bc7272a79"
+      },
+      {
+        "file": "previews/team-league-circles-epl-light-phone.png",
+        "view": "EPL",
+        "theme": "light",
+        "sha256": "d46623cebd297761c43e6e3b32af76150dbce2d13e37cc279c66045b6d60007c"
+      },
+      {
+        "file": "previews/team-league-circles-account-dark-phone.png",
+        "view": "Account",
+        "theme": "dark",
+        "sha256": "730424cd68d6690c2e1ce6ef3dde04364b95734d467a6198bdce348501dc9621"
+      },
+      {
+        "file": "previews/team-league-circles-account-light-phone.png",
+        "view": "Account",
+        "theme": "light",
+        "sha256": "3cc6ed888ae34edab74576e0c0152d127d03da5fc5fbed2f234243951fffe918"
+      },
+      {
+        "file": "previews/team-league-circles-teams-dark-phone.png",
+        "view": "Research team list",
+        "theme": "dark",
+        "sha256": "ec51fb7d3b350b9809d66292552c68100448a72d47a32306cae494a2e771cd34"
+      },
+      {
+        "file": "previews/team-league-circles-teams-light-phone.png",
+        "view": "Research team list",
+        "theme": "light",
+        "sha256": "e15ee4a5952279224bb1454507a5600463c9ef360a006463ece3bf5707508db9"
+      },
+      {
+        "file": "previews/team-league-circles-draft-dark-phone.png",
+        "view": "Spread draft entry",
+        "theme": "dark",
+        "sha256": "cc52b474f4ce0cb37596730ede8ab13bb5c8fc7eb329672427ac6db1340be5e0"
+      },
+      {
+        "file": "previews/team-league-circles-draft-light-phone.png",
+        "view": "Spread draft entry",
+        "theme": "light",
+        "sha256": "165d8bb228b7701c04233fe22fc4b138baf2823d82e5347c2ac7b93144aeac0e"
+      },
+      {
+        "file": "previews/team-league-circles-ticket-dark-phone.png",
+        "view": "Tracked ticket",
+        "theme": "dark",
+        "sha256": "50e3de187cd2281715ec7591415070bacd2c9e7eda7fa5763618df5a04892030"
+      },
+      {
+        "file": "previews/team-league-circles-ticket-light-phone.png",
+        "view": "Tracked ticket",
+        "theme": "light",
+        "sha256": "127bd42c524032431947453769beac653a9a873f991f5274be68d16a9772516b"
+      },
+      {
+        "file": "previews/team-league-circles-fepl-dark-phone.png",
+        "view": "FEPL Fantasy",
+        "theme": "dark",
+        "sha256": "5bfac91d833df7cb171cabe2ef58f6b85663538f5a165e08f44b07ef4f933ec0"
+      },
+      {
+        "file": "previews/team-league-circles-fepl-light-phone.png",
+        "view": "FEPL Fantasy",
+        "theme": "light",
+        "sha256": "1c5eed9e847ec5a5a9782b004b1410cd7ca310269cc2a1b0734243a8a132fcbb"
+      }
+    ],
+    "recipe": "Circle the existing individual glass tile; preserve its width, asset aspect, foreground dimensions, name and action. Home uses 34x34 instead of 34x38; compact research list uses 32x32 instead of 32x34. Nested operational TeamMark background is transparent, leaving one outer circle per logo.",
+    "verification": {
+      "views": 25,
+      "responsiveLayouts": 200,
+      "widths": [
+        320,
+        390,
+        768,
+        1440
+      ],
+      "circleMeasurements": 1584,
+      "decodedTeamMarks": 1712,
+      "GTLGWrapped": false,
+      "unwrappedTeamImages": 0,
+      "pageErrors": 0,
+      "nonGETRequests": 0,
+      "providerAuthReads": 0,
+      "OSDialogs": 0,
+      "storageWrites": 0,
+      "inspectedCaptures": 20,
+      "settledAssetAudit": "Repeated all 200 layouts after waiting for loaded stylesheets/fonts; zero request failures or console errors. Initial local CSS refusal did not recur; direct stylesheet HEAD returned 200.",
+      "finalResourceFailures": 0,
+      "finalConsoleErrors": 0
+    },
+    "approval": {
+      "status": "Circle rule authorized; updated whole-view captures supplied, no blanket app/production acceptance inferred.",
+      "scope": "Team/league marks only; existing GTL G geometry and presentation explicitly excluded by owner."
+    },
+    "unchanged": "Source artwork, team names, loaded/fallback semantics, G logo, avatar initials, data/scoring, actions and native production sources.",
+    "priorProseQuestion": "The earlier full-name-versus-logo explanatory-text question is not answered by the circle-shape clarification; existing wording remains unchanged."
   }
 }
