@@ -432,10 +432,8 @@ test('the landing skeleton holds the next-move card’s height at 390 px, so the
     await settle(page);
     const cardHeight = await hero(page).evaluate(el => el.getBoundingClientRect().height);
     test.info().annotations.push({ type: 'heights', description: `skeleton ${skeletonHeight}px, card ${cardHeight}px` });
-    // The test world blocks webfonts, so the card is drawn in fallback faces: Windows (Impact for the condensed title)
-    // measured 402 px against the 400 px skeleton, while CI's Linux faces wrap "LOCK IN N GAMES" to two lines and
-    // measured 462 px. The contract is no jump larger than that one title line (64 px), never a skeleton taller than
-    // the card it stands in for.
+    // Approved Home's compact progress card measures 194 px at this width. Keep the existing allowance for fallback
+    // font wrapping (64 px), while the placeholder must never be taller than the card it stands in for.
     expect(Math.abs(cardHeight - skeletonHeight), `skeleton ${skeletonHeight}px vs card ${cardHeight}px`).toBeLessThanOrEqual(64);
     expect(skeletonHeight, 'the skeleton is never taller than the card').toBeLessThanOrEqual(cardHeight + 8);
     expect(world.errors).toEqual([]);
@@ -448,7 +446,7 @@ test('approved Home compact ring and separate season selector fit both themes, w
   await openHome(page);
   await sweepHome(page,'approved Home',async()=>{
    await expect(hero(page).getByRole('heading',{level:2})).toHaveText('Finish your picks');
-   expect(await hero(page).evaluate(el=>getComputedStyle(el).paddingLeft)).toBe('18px');
+   expect(await hero(page).evaluate(el=>getComputedStyle(el).paddingLeft)).toBe('16px');
    await expect(page.getByRole('group',{name:'Season market'})).toBeVisible();
   });
   expect(world.errors).toEqual([]);
