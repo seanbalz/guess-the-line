@@ -3,6 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { createHash } from 'node:crypto';
 import { ALL } from '../migrations.mjs';
 import { layoutProblems } from '../helpers/phone-layout.mjs';
+import { holdAnimationFrames } from '../helpers/animation-frame-gate.mjs';
 import { ACCOUNTS, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 import { FANTASY_REPOSITORY, snapshotFileName, updateFantasyIndex } from '../../shared/fantasy-index.mjs';
 import { CONTEXT_HOUSE, CONTEXT_SNAPSHOT_TIMES, pointsContextSnapshot } from '../fixtures/points-context-snapshot.mjs';
@@ -223,6 +224,34 @@ test('a fixture week: draft, lock in with a confirm, then Everyone and the House
   await layer.getByRole('button', { name: /^Points board, / }).click();
   await expect(page.getByRole('heading', { name: 'Points standings' })).toBeVisible();
   expect(world.errors).toEqual([]);
+});
+
+test('a pending forward-route frame preserves a Points stepper focused after its heading', async ({ page, baseURL }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const world = await communityWorld(page, baseURL, { migrations: ALL });
+  try {
+    await seedWeek(world);
+    await openNewApp(page);
+    await page.getByRole('button', { name: /^Guess the Points, / }).click();
+    const wr = page.locator('[data-slot="WR"]');
+    await wr.focus();
+    // Only now hold frames: initial loading and the week board have completed. Enter mounts the real slot editor,
+    // whose child effect focuses its heading while Shell's forward-route restore is still waiting for its frame.
+    const frames = await holdAnimationFrames(page);
+    await page.keyboard.press('Enter');
+    const sheet = pointsLayer(page);
+    await expect(sheet.getByRole('heading', { name: 'WR · Fixture WR Player', exact: true })).toBeFocused();
+    expect(await frames.pendingCount(), 'the route frame is pending before destination interaction').toBeGreaterThan(0);
+    const spin = sheet.getByRole('spinbutton', { name: 'Your guess' });
+    await spin.focus();
+    await expect(spin).toBeFocused();
+    await frames.flush();
+    await expect(spin, 'the route must not reclaim intentional destination focus').toBeFocused();
+    for (let i = 0; i < 4; i++) await page.keyboard.press('PageUp');
+    await expect(spin).toHaveAttribute('aria-valuenow', '15');
+    expect(await guessRow(world, 'WR'), 'keyboard editing stays an unsaved draft').toBeNull();
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
 });
 
 test('keyboard only, with reduced motion: open a slot, use the stepper, and the week lip returns focus to its tile', async ({ page, baseURL }) => {

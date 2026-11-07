@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { build } from 'vite';
 import react from '@vitejs/plugin-react';
 import { ALL } from '../migrations.mjs';
+import { holdAnimationFrames } from '../helpers/animation-frame-gate.mjs';
 import { SUPABASE, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 
 // Redesign build plan, stage 10: the shell frame, at 390 x 844 (section 4.1).
@@ -484,6 +485,33 @@ const events = page => page.evaluate(() => window.__events.slice());
 
 test.describe('the shell harness', () => {
   test.beforeAll(async () => { test.setTimeout(120000); await harnessBundle(); });
+
+  test('a pending forward frame still focuses the title from a tab, but yields to new destination focus', async ({ page }) => {
+    const { errors } = await harness(page);
+    await tab(page, 'Play').focus();
+    let frames = await holdAnimationFrames(page);
+    await page.keyboard.press('Enter');
+    await expect(title(page, 'Play')).toBeVisible();
+    // The initiating tab is outside main: it must not suppress the normal title handoff.
+    await expect(tab(page, 'Play')).toBeFocused();
+    expect(await frames.flush()).toBeGreaterThan(0);
+    await expect(title(page, 'Play')).toBeFocused();
+
+    await tab(page, 'Home').click();
+    await expect(page.getByRole('heading', { name: 'Shell harness' })).toBeFocused();
+    await tab(page, 'Play').focus();
+    frames = await holdAnimationFrames(page);
+    await page.keyboard.press('Enter');
+    const input = page.getByRole('textbox', { name: 'Unsaved test pick' });
+    await expect(input).toBeVisible();
+    expect(await frames.pendingCount()).toBeGreaterThan(0);
+    await input.focus();
+    await frames.flush();
+    await expect(input).toBeFocused();
+    await page.keyboard.type('21');
+    await expect(input).toHaveValue('21');
+    expect(errors).toEqual([]);
+  });
 
   test('four tab labels stay inside 320px with wider text metrics', async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 700 });

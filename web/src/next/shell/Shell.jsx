@@ -163,6 +163,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
     const main = document.querySelector('main');
     let frame, timeout, sizeObserver, contentObserver, stopped = false, focused = null;
     const cancelEvents = ['pointerdown', 'touchstart', 'wheel', 'keydown'];
+    const forwardEvents = ['focusin', ...cancelEvents];
     const stop = () => {
       stopped = true;
       cancelAnimationFrame(frame);
@@ -170,6 +171,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
       sizeObserver?.disconnect();
       contentObserver?.disconnect();
       for (const name of cancelEvents) window.removeEventListener(name, stop, true);
+      for (const name of forwardEvents) main?.removeEventListener(name, stop, true);
     };
     const restore = () => {
       if (stopped) return;
@@ -197,6 +199,10 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
       if (typeof ResizeObserver === 'function' && main) { sizeObserver = new ResizeObserver(schedule); sizeObserver.observe(main); }
       if (typeof MutationObserver === 'function' && main) { contentObserver = new MutationObserver(schedule); contentObserver.observe(main, { subtree: true, childList: true, characterData: true }); }
       timeout = setTimeout(stop, 3000);
+    } else if (!returning) {
+      // Yield to fresh destination focus/input before the frame runs. Header/tab focus that initiated navigation is
+      // outside main and must still receive the ordinary title handoff. Back keeps its saved-position restoration.
+      for (const name of forwardEvents) main?.addEventListener(name, stop, { capture: true, passive: true });
     }
     schedule();
     return stop;
