@@ -1,5 +1,17 @@
 # Guess The Line — current completion register
 
+## Confirmed Bets landing and saved history — November 7, 2026
+
+The missing approved Bets landing hierarchy is now native on exclusive branch
+`codex/confirmed-prism-bets-landing-2026-11-07`: actual owner-only performance,
+Tickets summary and Recommended cards, retaining detailed analytics and every
+existing ticket/recommendation/Virtual controller. Numbered saved history adds
+the omitted before/after source, note and quote/placement fields. Verification
+and both-theme phone capture hashes are recorded with the
+[approval mapping and explicit remaining composition differences](PRISM_BETS_LANDING_2026_11_07.md).
+This is an unpublished local handoff over the first Bets integration slice;
+no hosted release, whole-view parity or physical-phone acceptance is claimed.
+
 ## Remaining confirmed Prism visuals — implementation started November 7, 2026
 
 Sean approved the Home spacing mockups and instructed deployment, then asked to

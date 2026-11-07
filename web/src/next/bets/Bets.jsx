@@ -11,11 +11,14 @@ import { EveryoneBets } from './EveryoneBets.jsx';
 import { PlaceBets } from './PlaceBets.jsx';
 import { Segmented } from '../ui/Segmented.jsx';
 import { TrackedBetRow } from './TrackedBetRow.jsx';
-import { FocusAction, FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
+import { FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
+import { Card } from '../ui/Card.jsx';
+import { BetsSummary } from './BetsSummary.jsx';
 import { DESTINATION_ICONS as ICON } from '../ui/destinations.js';
 import { useTicketSummary } from './useTicketSummary.js';
 import { draftParts, savedTicketToast } from './recommendationReview.js';
 import { recommendationMarket } from '../../../../shared/recommended-bets.mjs';
+import { forgetSharedReads } from '../../sharedReads.js';
 import './bets.css';
 import '../../liveBets.css';
 import './prism-bets.css';
@@ -42,12 +45,21 @@ function BetsLanding() {
   const count = key => read.loading ? 'Loading your tickets…' : read.error ? 'Unavailable · open to retry' : `${read[key]} ${read[key] === 1 ? 'ticket' : 'tickets'} · all weeks`;
   return <section className="gx-screen gx-bets" data-landing="bets">
     <h1 className="gx-t-title">Bets</h1>
-    <FocusAction title="Your tickets. All together." description="Keep a record of the bets you placed elsewhere." action="Add a bet" onAction={() => open('add')}/>
-    <FocusRows label="Your bets">
-      <FocusRow icon={ICON.overview} title="Overview" sub="Performance, bet types and sportsbooks" onClick={() => open('overview')}/>
+    <BetsSummary read={read}/>
+    <Card as="section" className="gx-bets-landing-tickets" aria-labelledby="gx-tickets-heading">
+      <div className="gx-bets-card-heading"><h2 id="gx-tickets-heading">Tickets</h2><span className="gx-t-meta gx-c-2">{read.model ? `${read.model.entries.length} tracked` : '—'}</span></div>
+      <FocusRows label="Your tickets">
       <FocusRow icon={ICON.activeTickets} title="Active tickets" sub={count('active')} onClick={() => open('active')}/>
       <FocusRow icon={ICON.settledTickets} title="Settled tickets" sub={count('settled')} onClick={() => open('settled')}/>
-      <FocusRow icon={ICON.researchPicks} title="Research recommendations" sub="Independent game and player-prop assessments" onClick={() => open('research')}/>
+      </FocusRows>
+      <div className="gx-bets-landing-actions"><Button variant="secondary" aria-label="Add a bet" onClick={() => open('add')}>Track a bet +</Button><Button variant="ghost" onClick={() => open('overview')}>Overview</Button></div>
+    </Card>
+    <Card as="section" className="gx-bets-landing-recommended" aria-labelledby="gx-recommended-heading">
+      <h2 id="gx-recommended-heading">Recommended</h2>
+      <p className="gx-t-body gx-c-2">Game research and your saved gaps, together.</p>
+      <Button variant="primary" block onClick={() => open('research')}>Explore recommendations ↗</Button>
+    </Card>
+    <FocusRows label="More Bets tools">
       <FocusRow icon={ICON.guessGap} title="Your guess vs. market" sub="Compare your locked guesses with current lines" onClick={() => open('recommended')}/>
       <FocusRow icon={ICON.virtualUnits} title="Virtual Units" sub="Your separate play-money picks" onClick={() => open('virtual')}/>
       <FocusRow icon={ICON.everyone} title="Everyone’s picks" sub="Friends’ Virtual Units picks this week" onClick={() => open('everyone')}/>
@@ -82,7 +94,10 @@ function BetsDetail() {
   const dirty = useCallback(value => drafts.mark('view', value), [drafts]);
   const reviewDirty = useCallback(value => drafts.mark('review', value), [drafts]);
   useEffect(() => clearDirty, [clearDirty]);
-  const saved = () => app.refresh({ only: ['community', 'personal'] });
+  const saved = () => {
+    forgetSharedReads(`${app.accountId}:ticket-summary`);
+    app.refresh({ only: ['community', 'personal'] });
+  };
   function choose(next) {
     if (next === view || !shell.confirmLeave()) return;
     clearDirty();

@@ -1,5 +1,30 @@
 /* Approved Prism receipts, performance and manual-entry controls. These selectors
    stay inside native Bets; the shared tokens own the selected material recipes. */
+.gx .gx-bets[data-landing="bets"] { gap: 18px; }
+.gx .gx-bets[data-landing="bets"] > h1 { margin-bottom: 6px; }
+.gx .gx-bets :is(.gx-bets-summary,.gx-bets-landing-tickets,.gx-bets-landing-recommended) { display: grid; min-width: 0; gap: 16px; padding: 20px; }
+.gx .gx-bets .gx-bets-card-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
+.gx .gx-bets :is(.gx-bets-card-heading,.gx-bets-landing-recommended) > h2 { margin: 0; font: 600 18px/1.5 var(--gx-font-body); letter-spacing: -.4px; }
+.gx .gx-bets .gx-bets-summary .gx-tc-path { stroke: var(--gx-accent-ink); }
+.gx .gx-bets .gx-bets-summary .gx-tc-area { fill: var(--gx-accent-ink); opacity: .08; }
+.gx .gx-bets .gx-bets-summary .gx-tc-glow { opacity: 0; }
+.gx .gx-bets .gx-bets-summary--loss .gx-tc-path { stroke: var(--gx-loss); }
+.gx .gx-bets .gx-bets-summary--loss .gx-tc-area { fill: var(--gx-loss); }
+.gx .gx-bets .gx-bets-summary .gx-tc-tip { position: absolute; top: 24px; z-index: 1; visibility: hidden; }
+.gx .gx-bets .gx-bets-summary .gx-tc-line:is(:hover,:focus-within) .gx-tc-tip { visibility: visible; }
+.gx .gx-bets .gx-bets-summary-net { margin: -4px 0 0; font: 600 48px/1.1 var(--gx-font-num); letter-spacing: -2px; font-variant-numeric: tabular-nums; }
+.gx .gx-bets .gx-bets-summary-counts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 0; }
+.gx .gx-bets .gx-bets-summary-counts dt { color: var(--gx-text-2); font: 500 13px/1.5 var(--gx-font-body); }
+.gx .gx-bets .gx-bets-summary-counts dd { margin: 2px 0 0; font: 600 30px/1.3 var(--gx-font-num); font-variant-numeric: tabular-nums; }
+.gx .gx-bets .gx-bets-landing-tickets { border-color: var(--gx-accent-ink); background-color: var(--gx-accent-tint); }
+.gx .gx-bets :is(.gx-bets-landing-tickets,.gx-bets-landing-recommended) .gx-focus-rows { border: 0; background: none; box-shadow: none; border-radius: 0; }
+.gx .gx-bets .gx-bets-landing-tickets .gx-focus-row { padding-inline: 0; }
+.gx .gx-bets .gx-bets-landing-tickets .gx-row { border: 0; border-bottom: 1px solid var(--gx-border); background: none; box-shadow: none; }
+.gx .gx-bets .gx-bets-landing-tickets .gx-list { background: none; gap: 0; }
+.gx .gx-bets .gx-bets-landing-tickets .gx-focus-icon { color: var(--gx-accent-ink); background: var(--gx-accent-tint); border: 1px solid var(--gx-border); }
+.gx .gx-bets .gx-bets-landing-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; }
+.gx .gx-bets .gx-bets-landing-recommended > p { margin: 0; }
+.gx .gx-bets .gx-bets-landing-recommended .gx-focus-row { padding-inline: 0; }
 .gx .gx-bets .gx-tracked-feed { gap: var(--gx-space-6); }
 .gx .gx-bets .gx-tracked-row { padding: 0; }
 .gx .gx-bets .gx-tracked-expanded { padding: var(--gx-space-5) var(--gx-space-4); }
@@ -33,6 +58,8 @@
   .gx .gx-bets :is(.gx-tracked-expanded,.gx-overview-card) { padding: 18px 12px; }
 }
 @media (forced-colors: active) {
+  .gx .gx-bets .gx-bets-summary .gx-tc-path { stroke: CanvasText; }
+  .gx .gx-bets .gx-bets-summary .gx-tc-area { display: none; }
   .gx .gx-bets :is(.gx-tracked-row,.gx-overview-card,.gx-tracked-legs > li) { border-color: CanvasText; }
   .gx .gx-bets .gx-seg-btn--on { outline: 2px solid Highlight; }
   .gx .gx-bets .gx-overview-bar-track > span { background: CanvasText; }
