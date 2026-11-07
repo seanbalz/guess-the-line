@@ -1,0 +1,544 @@
+{
+  "version": 1,
+  "prepared": "2026-11-06",
+  "kind": "FICTIONAL_LEAGUE_VISUAL_PREVIEW",
+  "notice": "Fictional members, standings, posts, reactions, comments and demo times. Not a live league or account activity.",
+  "name": "Example Community",
+  "viewer": "demo-member-0",
+  "members": [
+    {
+      "id": "demo-member-0",
+      "displayName": "Alex Lane"
+    },
+    {
+      "id": "demo-member-1",
+      "displayName": "Jordan Taylor"
+    },
+    {
+      "id": "demo-member-2",
+      "displayName": "Casey Reed"
+    },
+    {
+      "id": "demo-member-3",
+      "displayName": "Morgan Park"
+    },
+    {
+      "id": "demo-member-4",
+      "displayName": "Riley Stone"
+    },
+    {
+      "id": "demo-member-5",
+      "displayName": "Sam Rivera"
+    },
+    {
+      "id": "demo-member-6",
+      "displayName": "Cameron Wells"
+    },
+    {
+      "id": "demo-member-7",
+      "displayName": "Avery Cole"
+    },
+    {
+      "id": "demo-member-8",
+      "displayName": "Taylor Brooks"
+    }
+  ],
+  "standings": [
+    {
+      "userId": "demo-member-0",
+      "mode": "guess_spread",
+      "seasonPoints": 289,
+      "seasonScored": 42,
+      "weekPoints": 99,
+      "weekScored": 14
+    },
+    {
+      "userId": "demo-member-1",
+      "mode": "guess_spread",
+      "seasonPoints": 381,
+      "seasonScored": 42,
+      "weekPoints": 127,
+      "weekScored": 14
+    },
+    {
+      "userId": "demo-member-2",
+      "mode": "guess_spread",
+      "seasonPoints": 360,
+      "seasonScored": 42,
+      "weekPoints": 120,
+      "weekScored": 14
+    },
+    {
+      "userId": "demo-member-3",
+      "mode": "guess_spread",
+      "seasonPoints": 360,
+      "seasonScored": 42,
+      "weekPoints": 120,
+      "weekScored": 14
+    },
+    {
+      "userId": "demo-member-4",
+      "mode": "guess_spread",
+      "seasonPoints": 333,
+      "seasonScored": 42,
+      "weekPoints": 111,
+      "weekScored": 14
+    },
+    {
+      "userId": "demo-member-5",
+      "mode": "guess_spread",
+      "seasonPoints": 303,
+      "seasonScored": 42,
+      "weekPoints": 101,
+      "weekScored": 14
+    },
+    {
+      "userId": "demo-member-6",
+      "mode": "guess_spread",
+      "seasonPoints": 294,
+      "seasonScored": 42,
+      "weekPoints": 98,
+      "weekScored": 14
+    },
+    {
+      "userId": "demo-member-7",
+      "mode": "guess_spread",
+      "seasonPoints": 0,
+      "seasonScored": 42,
+      "weekPoints": 0,
+      "weekScored": 14
+    },
+    {
+      "userId": "demo-member-0",
+      "mode": "guess_total",
+      "seasonPoints": 283,
+      "seasonScored": 42,
+      "weekPoints": 99,
+      "weekScored": 14
+    },
+    {
+      "userId": "demo-member-1",
+      "mode": "guess_total",
+      "seasonPoints": 372,
+      "seasonScored": 42,
+      "weekPoints": 124,
+      "weekScored": 14
+    },
+    {
+      "userId": "demo-member-2",
+      "mode": "guess_total",
+      "seasonPoints": 351,
+      "seasonScored": 42,
+      "weekPoints": 117,
+      "weekScored": 14
+    },
+    {
+      "userId": "demo-member-3",
+      "mode": "guess_total",
+      "seasonPoints": 351,
+      "seasonScored": 42,
+      "weekPoints": 117,
+      "weekScored": 14
+    },
+    {
+      "userId": "demo-member-4",
+      "mode": "guess_total",
+      "seasonPoints": 324,
+      "seasonScored": 42,
+      "weekPoints": 108,
+      "weekScored": 14
+    },
+    {
+      "userId": "demo-member-5",
+      "mode": "guess_total",
+      "seasonPoints": 294,
+      "seasonScored": 42,
+      "weekPoints": 98,
+      "weekScored": 14
+    },
+    {
+      "userId": "demo-member-6",
+      "mode": "guess_total",
+      "seasonPoints": 285,
+      "seasonScored": 42,
+      "weekPoints": 95,
+      "weekScored": 14
+    },
+    {
+      "userId": "demo-member-7",
+      "mode": "guess_total",
+      "seasonPoints": 0,
+      "seasonScored": 42,
+      "weekPoints": 0,
+      "weekScored": 14
+    }
+  ],
+  "points": {
+    "standings": {
+      "season": [
+        {
+          "id": "demo-member-1",
+          "displayName": "Jordan Taylor",
+          "userId": "demo-member-1",
+          "points": 104,
+          "rank": 1,
+          "tied": false,
+          "weeksPlayed": 3
+        },
+        {
+          "id": "demo-member-2",
+          "displayName": "Casey Reed",
+          "userId": "demo-member-2",
+          "points": 101,
+          "rank": 2,
+          "tied": true,
+          "weeksPlayed": 3
+        },
+        {
+          "id": "demo-member-3",
+          "displayName": "Morgan Park",
+          "userId": "demo-member-3",
+          "points": 101,
+          "rank": 2,
+          "tied": true,
+          "weeksPlayed": 3
+        },
+        {
+          "id": "demo-member-4",
+          "displayName": "Riley Stone",
+          "userId": "demo-member-4",
+          "points": 99,
+          "rank": 4,
+          "tied": false,
+          "weeksPlayed": 3
+        },
+        {
+          "id": "demo-member-5",
+          "displayName": "Sam Rivera",
+          "userId": "demo-member-5",
+          "points": 98.5,
+          "rank": 5,
+          "tied": false,
+          "weeksPlayed": 3
+        },
+        {
+          "id": "demo-member-6",
+          "displayName": "Cameron Wells",
+          "userId": "demo-member-6",
+          "points": 98,
+          "rank": 6,
+          "tied": false,
+          "weeksPlayed": 3
+        },
+        {
+          "id": "demo-member-0",
+          "displayName": "Alex Lane",
+          "userId": "demo-member-0",
+          "points": 97.5,
+          "rank": 7,
+          "tied": false,
+          "weeksPlayed": 3
+        },
+        {
+          "id": "demo-member-7",
+          "displayName": "Avery Cole",
+          "userId": "demo-member-7",
+          "points": 0,
+          "rank": 8,
+          "tied": false,
+          "weeksPlayed": 3
+        },
+        {
+          "id": "demo-member-8",
+          "displayName": "Taylor Brooks",
+          "userId": "demo-member-8",
+          "points": null,
+          "rank": null,
+          "tied": false,
+          "weeksPlayed": 0
+        }
+      ],
+      "week": [
+        {
+          "userId": "demo-member-0",
+          "displayName": "Alex Lane",
+          "points": 32.5
+        },
+        {
+          "userId": "demo-member-1",
+          "displayName": "Jordan Taylor",
+          "points": 36
+        },
+        {
+          "userId": "demo-member-2",
+          "displayName": "Casey Reed",
+          "points": 34
+        },
+        {
+          "userId": "demo-member-3",
+          "displayName": "Morgan Park",
+          "points": 34
+        },
+        {
+          "userId": "demo-member-4",
+          "displayName": "Riley Stone",
+          "points": 33
+        },
+        {
+          "userId": "demo-member-5",
+          "displayName": "Sam Rivera",
+          "points": 31
+        },
+        {
+          "userId": "demo-member-6",
+          "displayName": "Cameron Wells",
+          "points": 32.7
+        },
+        {
+          "userId": "demo-member-7",
+          "displayName": "Avery Cole",
+          "points": 0
+        },
+        {
+          "userId": "demo-member-8",
+          "displayName": "Taylor Brooks",
+          "points": null
+        }
+      ]
+    },
+    "result": {
+      "house": {
+        "complete": true,
+        "points": 29.7
+      }
+    }
+  },
+  "posts": [
+    {
+      "id": "demo-result",
+      "actorId": "demo-member-1",
+      "kind": "result_shared",
+      "season": 2026,
+      "week": 8,
+      "mode": "guess_spread",
+      "createdAt": "2026-11-03T21:45:00Z",
+      "embed": {
+        "visible": true,
+        "gameId": "BAL-BUF",
+        "pick": -2,
+        "points": 8,
+        "reference": -3,
+        "game": {
+          "id": "2026_08_BAL_BUF",
+          "awayCode": "BAL",
+          "homeCode": "BUF",
+          "awayName": "Baltimore Ravens",
+          "homeName": "Buffalo Bills",
+          "kickoff": "2026-11-01T18:00:00.000Z",
+          "recordedFinal": {
+            "away": 10,
+            "home": 36
+          }
+        }
+      },
+      "reactions": {
+        "counts": {
+          "fire": 3,
+          "thumbs_up": 2
+        },
+        "total": 5,
+        "mine": null
+      },
+      "commentCount": 2,
+      "comments": [
+        {
+          "id": "demo-c1",
+          "userId": "demo-member-2",
+          "body": "That was close to the line."
+        },
+        {
+          "id": "demo-c2",
+          "userId": "demo-member-4",
+          "body": "The gap chart makes that easy to read."
+        }
+      ]
+    },
+    {
+      "id": "demo-picks-casey",
+      "actorId": "demo-member-2",
+      "kind": "ballot_submitted",
+      "season": 2026,
+      "week": 9,
+      "mode": "guess_spread",
+      "createdAt": "2026-11-03T21:15:00Z",
+      "embed": {
+        "hiddenGames": [
+          "ARI-SEA",
+          "JAX-BAL"
+        ]
+      },
+      "reactions": {
+        "counts": {},
+        "total": 0,
+        "mine": null
+      },
+      "commentCount": 0,
+      "comments": []
+    },
+    {
+      "id": "demo-picks-morgan",
+      "actorId": "demo-member-3",
+      "kind": "ballot_submitted",
+      "season": 2026,
+      "week": 9,
+      "mode": "guess_total",
+      "createdAt": "2026-11-03T21:05:00Z",
+      "embed": {
+        "hiddenGames": [
+          "ARI-SEA"
+        ]
+      },
+      "reactions": {
+        "counts": {},
+        "total": 0,
+        "mine": null
+      },
+      "commentCount": 0,
+      "comments": []
+    },
+    {
+      "id": "demo-joined",
+      "actorId": "demo-member-8",
+      "kind": "joined",
+      "createdAt": "2026-11-03T20:30:00Z",
+      "reactions": {
+        "counts": {
+          "clap": 2
+        },
+        "total": 2,
+        "mine": null
+      },
+      "commentCount": 1,
+      "comments": [
+        {
+          "id": "demo-c3",
+          "userId": "demo-member-0",
+          "body": "Welcome to the league!"
+        }
+      ]
+    },
+    {
+      "id": "demo-own-result",
+      "actorId": "demo-member-0",
+      "kind": "result_shared",
+      "season": 2026,
+      "week": 8,
+      "mode": "guess_total",
+      "createdAt": "2026-11-02T23:00:00Z",
+      "embed": {
+        "visible": true,
+        "gameId": "BAL-BUF",
+        "pick": 54.5,
+        "points": 10,
+        "reference": 54.5,
+        "game": {
+          "id": "2026_08_BAL_BUF",
+          "awayCode": "BAL",
+          "homeCode": "BUF",
+          "awayName": "Baltimore Ravens",
+          "homeName": "Buffalo Bills",
+          "kickoff": "2026-11-01T18:00:00.000Z",
+          "recordedFinal": {
+            "away": 10,
+            "home": 36
+          }
+        }
+      },
+      "reactions": {
+        "counts": {
+          "thumbs_up": 1
+        },
+        "total": 1,
+        "mine": null
+      },
+      "commentCount": 0,
+      "comments": []
+    },
+    {
+      "id": "demo-week",
+      "actorId": "demo-system",
+      "kind": "week_published",
+      "season": 2026,
+      "week": 9,
+      "createdAt": "2026-11-02T08:00:00Z",
+      "embed": {
+        "games": 15,
+        "deadline": "2026-11-06T01:15:00.000Z"
+      },
+      "reactions": {
+        "counts": {},
+        "total": 0,
+        "mine": null
+      },
+      "commentCount": 0,
+      "comments": []
+    },
+    {
+      "id": "demo-kickoff",
+      "actorId": "demo-system",
+      "kind": "kickoff",
+      "season": 2026,
+      "week": 8,
+      "createdAt": "2026-11-01T18:00:00.000Z",
+      "embed": {
+        "kickoff": "2026-11-01T18:00:00.000Z",
+        "games": [
+          {
+            "gameId": "BAL-BUF",
+            "game": {
+              "id": "2026_08_BAL_BUF",
+              "awayCode": "BAL",
+              "homeCode": "BUF",
+              "awayName": "Baltimore Ravens",
+              "homeName": "Buffalo Bills",
+              "kickoff": "2026-11-01T18:00:00.000Z",
+              "recordedFinal": {
+                "away": 10,
+                "home": 36
+              }
+            },
+            "in": [
+              "demo-member-0",
+              "demo-member-1",
+              "demo-member-2"
+            ],
+            "bets": 0
+          }
+        ]
+      },
+      "reactions": {
+        "counts": {
+          "clap": 1
+        },
+        "total": 1,
+        "mine": null
+      },
+      "commentCount": 0,
+      "comments": []
+    }
+  ],
+  "now": "2026-11-03T22:00:00Z",
+  "week": 8,
+  "season": 2026,
+  "source": {
+    "definition": "https://nflverse.r-universe.dev/nflfastR/nflfastR.pdf#page=27",
+    "release": "https://github.com/seanbalz/guess-the-line/releases/tag/research-data-2026",
+    "schedule": "https://github.com/nflverse/nflverse-data/releases/tag/schedules",
+    "file": "https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv",
+    "publicationGeneratedAt": "2026-11-05T22:43:15.728Z",
+    "completedSha256": "48fbdd6f9f63ffcc0a0322dd7f5b22fa0faa0303874f21200baebff5d30831df",
+    "credit": "nflverse · Lee Sharpe · CC BY 4.0",
+    "referenceMeaning": "Recorded historical closing lines; not verified submission-time references, current quotes or three-book consensus. No observation/save timestamps or sportsbook identities are fabricated."
+  },
+  "sourceMeaning": "Spread/Total examples are calculated from reviewed public Weeks 6–8 closing references and fictional guesses. Points/House totals are fictional demonstration values. Hidden-pick embeds contain no guesses or reference values."
+}

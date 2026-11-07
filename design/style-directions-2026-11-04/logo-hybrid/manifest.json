@@ -1,0 +1,56 @@
+{
+  "status": "Selected by Sean: option 01, current-lime glossy/frosted hybrid; production integration pending",
+  "geometrySource": "design/logo-redraft-2026-10-29/logo-balanced-lime.svg",
+  "material": "Glossy rim around eroded-mask frosted center; clear glossy yard-line strokes",
+  "currentColor": "#B8F34B",
+  "method": "Native SVG with canonical paths; same erosion, lighting, grain seed, viewBox and scene for all colors",
+  "colors": [
+    {
+      "number": 1,
+      "id": "lime",
+      "name": "Current lime",
+      "baseColor": "#B8F34B"
+    },
+    {
+      "number": 2,
+      "id": "evergreen",
+      "name": "Evergreen",
+      "baseColor": "#4CB89A"
+    },
+    {
+      "number": 3,
+      "id": "ice-blue",
+      "name": "Ice blue",
+      "baseColor": "#8BC5FF"
+    },
+    {
+      "number": 4,
+      "id": "amber",
+      "name": "Warm amber",
+      "baseColor": "#E9C080"
+    },
+    {
+      "number": 5,
+      "id": "violet",
+      "name": "Soft violet",
+      "baseColor": "#C7ABFF"
+    },
+    {
+      "number": 6,
+      "id": "rose",
+      "name": "Rose quartz",
+      "baseColor": "#E995AC"
+    }
+  ],
+  "selection": {
+    "number": 1,
+    "id": "lime",
+    "asset": "lime.svg",
+    "baseColor": "#B8F34B",
+    "finish": "Glossy edges, frosted center",
+    "geometry": "Existing Balanced Yardline G unchanged",
+    "confirmed": "2026-11-04",
+    "clarification": "Sean clarified that original means option 01 on the hybrid board, not the flat app logo",
+    "scope": "Selected logo direction; no whole-app palette approval, release or deferred-phase start"
+  }
+}

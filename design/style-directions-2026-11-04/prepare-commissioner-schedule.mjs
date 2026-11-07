@@ -1,0 +1,14 @@
+import fs from 'node:fs';
+import zlib from 'node:zlib';
+import crypto from 'node:crypto';
+import {TEAM_NAMES} from '../../shared/nfl-schedule.mjs';
+import {validateResearchIndex,validatePublicResearchSnapshot} from '../../shared/research-data.mjs';
+const base=process.argv[2]??'.local/data-inventory-20261105',out='design/style-directions-2026-11-04/commissioner-schedule-data.json';
+const index=JSON.parse(fs.readFileSync(base+'/index.json','utf8'));validateResearchIndex(index,2026,Date.now());
+const entry=index.files.find(f=>f.period==='season'),bytes=fs.readFileSync(base+'/'+entry.file);
+if(crypto.createHash('sha256').update(bytes).digest('hex')!==entry.sha256)throw Error('Public snapshot hash mismatch');
+const data=JSON.parse(zlib.gunzipSync(bytes));validatePublicResearchSnapshot(data,{season:2026,period:'season',now:Date.now()});
+const games=data.targets.filter(t=>t.season===2026&&t.week===9&&t.gameType==='REG').map(t=>({id:t.id,awayCode:t.awayApp,homeCode:t.homeApp,away:TEAM_NAMES[t.awayApp],home:TEAM_NAMES[t.homeApp],matchup:`${TEAM_NAMES[t.awayApp]} @ ${TEAM_NAMES[t.homeApp]}`,kickoff:t.scheduledKickoff,neutral:t.fileNeutral===true})).sort((a,b)=>Date.parse(a.kickoff)-Date.parse(b.kickoff)||a.id.localeCompare(b.id));
+if(games.length!==15||games.some(g=>!g.away||!g.home||!Number.isFinite(Date.parse(g.kickoff)))||new Set(games.flatMap(g=>[g.awayCode,g.homeCode])).size!==30)throw Error('Incomplete public schedule');
+const model={version:1,season:2026,week:9,deadline:games[0].kickoff,generatedAt:index.generatedAt,notice:'Archived public schedule · November 5 snapshot · visual example, not a live publication',source:{release:'https://github.com/seanbalz/guess-the-line/releases/tag/research-data-2026',index:'https://github.com/seanbalz/guess-the-line/releases/download/research-data-2026/index.json',asset:entry.file,sha256:entry.sha256,credit:'nflverse · Lee Sharpe · CC BY 4.0'},games};
+fs.writeFileSync(out,JSON.stringify(model,null,2)+'\n');console.log(JSON.stringify({games:games.length,neutralGames:games.filter(g=>g.neutral).length,publicSnapshotHash:entry.sha256,output:out}));
