@@ -15,13 +15,27 @@ approval for deployment; this audit does not claim its implementation or release
   typecheck, Brand QA, build and bundle privacy scan passed. Independent source
   review found no important regressions. Shared source does not close the
   per-area layout checklist or the positional navigation question below.
-- Play/Points/Score and Bets: separate owned implementation branches under
-  native-controller and layout verification; not yet integrated or released.
-- Home spacing: implementation `1da64dd602e1ddb4b27ef205c5a79c721217744a`,
-  [PR #494](https://github.com/seanbalz/guess-the-line/pull/494). Its first full CI
-  run caught an old 212px loading placeholder against the new 194px ready card,
-  plus an obsolete 18px padding assertion. A scoped fix and fresh exact-source
-  checks are required before its authorized deployment.
+- Play/Points/Score: area commit `04190436480143fcc3fd4446297fd39c17f9767e`
+  has local native/controller/capture evidence and awaits parent review and
+  integration. Research and the missing Bets landing are in owned task trees.
+- Bets receipts, terms/results and detailed analytics: reviewed source
+  `25d64f6cfe91e9def639c7ff6fbdd8ca427f7f63`, integrated as `b5e1f269`.
+  Local integration passed all 85 files / 886 Vitest tests and typecheck. The
+  approved Bets landing composition and remaining state/capture gaps stay open;
+  the material/control slice alone does not close that area.
+- Home spacing: [PR #494](https://github.com/seanbalz/guess-the-line/pull/494)
+  merged at `70c2b85ea7466ca308c8e69006b4ec09888267a7` after all PR checks
+  passed. Its first CI caught an old 212px loading placeholder and obsolete 18px
+  padding assertion. Fix `2d96c5d7589df3ccfa7b840c0fae299a5e1de074` retains
+  the approved ready layout, matches the 194px/16px loader and passed 40 Node /
+  17 Home/layers/scrolling browser checks plus independent review. Fresh
+  exact-main production CI is pending; no spacing deployment is yet claimed.
+- Integration checks found stale accessible-name/radius expectations, inline
+  SVG vector numbers colliding with numeric privacy scans, and a possible
+  pending-frame focus handoff race. Names are reconciled; brand SVGs now emit
+  as unchanged cacheable media without relaxing privacy scans. Research owns
+  actual chart target sizing; a deterministic Shell focus regression is being
+  investigated separately before any fix is accepted.
 - Tracked bet stakes support smaller custom values without backend changes.
   Virtual Units still has positive-half-unit enforcement in both API and SQL;
   its approved finer entry requires a separately reviewed compatibility change
