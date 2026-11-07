@@ -18,10 +18,20 @@ test('private intake defaults to validation, logs only a receipt and refuses pub
   assert.equal(receipt.availableSources, 0); assert.match(receipt.inputSha256, /^[a-f0-9]{64}$/);
   for (const secret of ['Synthetic Receiver', '65.5', 'fixture-over', 'sourceUrl']) assert.ok(!result.stdout.includes(secret));
   assert.equal(JSON.parse(await fs.readFile(output, 'utf8')).snapshot.candidates.length, 1);
-  assert.equal((await fs.stat(output)).mode & 0o077, 0);
+  const outputStat = await fs.stat(output);
+  assert.ok(outputStat.isFile());
+  // Windows reports synthesized 0666 bits even for a file created with mode 0600.
+  // POSIX permission bits do not measure NTFS ACLs; retain the strict assertion on POSIX.
+  if (process.platform !== 'win32') assert.equal(outputStat.mode & 0o077, 0);
   assert.equal(cli(['--input', 'package.json']).status, 1);
-  await fs.symlink(path.resolve('package.json'), path.join(dir, 'escape.json'));
-  assert.equal(cli(['--input', path.join(dir, 'escape.json')]).status, 1);
+  if (process.platform === 'win32') {
+    // A directory junction exercises the same realpath escape guard without Developer Mode/admin privileges.
+    await fs.symlink(path.resolve('.'), path.join(dir, 'escape'), 'junction');
+    assert.equal(cli(['--input', path.join(dir, 'escape', 'package.json')]).status, 1);
+  } else {
+    await fs.symlink(path.resolve('package.json'), path.join(dir, 'escape.json'));
+    assert.equal(cli(['--input', path.join(dir, 'escape.json')]).status, 1);
+  }
   const missingId = cli(['--input', input, '--publish']);
   assert.equal(missingId.status, 1); assert.ok(!missingId.stderr.includes('Synthetic Receiver'));
 });
