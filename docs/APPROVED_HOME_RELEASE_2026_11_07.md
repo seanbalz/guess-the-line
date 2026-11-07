@@ -92,7 +92,7 @@ authorized manual release. Avatars/photos/new awards and NBA remain held.
   API, worker, pick data, historical snapshot or provider-budget change is made.
 
 The Supabase app connector returned `UNAUTHORIZED` (reauthentication required).
-No SQL ran. Hosted release checks use the existing protected GitHub workflow;
+No SQL ran through that connector. Hosted release checks use the existing protected GitHub workflow;
 connector access is not inferred from that workflow's credentials.
 
 ## Released
