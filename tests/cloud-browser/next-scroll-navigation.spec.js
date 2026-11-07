@@ -35,8 +35,10 @@ function barProblems() {
   const bar = document.querySelector('.gx-tabbar'), top = document.querySelector('.gx-topbar');
   if (!bar || !top) return ['the tab bar or top bar is missing'];
   const b = bar.getBoundingClientRect(), t = top.getBoundingClientRect();
-  if (Math.abs(b.bottom - height) > 1) out.push(`tab bar bottom at ${Math.round(b.bottom)}, screen bottom ${height}`);
-  if (Math.abs(t.top) > 1) out.push(`top bar top at ${Math.round(t.top)}`);
+  const home = !!document.querySelector('.gx-home-design');
+  if (Math.abs(b.bottom - (height - (home ? 12 : 0))) > 1) out.push(`tab bar bottom at ${Math.round(b.bottom)}, screen bottom ${height}`);
+  // Approved Home's header scrolls with its cards; other pages retain their sticky header.
+  if (!home && Math.abs(t.top) > 1) out.push(`top bar top at ${Math.round(t.top)}`);
   for (const button of bar.querySelectorAll('button')) {
     const r = button.getBoundingClientRect();
     const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
@@ -95,7 +97,7 @@ function focusProblem() {
   if (!el || el === document.body || !el.closest('.gx-main') || el.closest('.gx-layer, dialog')) return null;
   const r = el.getBoundingClientRect();
   if (r.width < 2 || r.height < 2) return null;
-  const above = document.querySelector('.gx-topbar').getBoundingClientRect().bottom;
+  const above = Math.max(0, document.querySelector('.gx-topbar').getBoundingClientRect().bottom);
   const below = Math.min(document.querySelector('.gx-tabbar').getBoundingClientRect().top,
     ...[...document.querySelectorAll('.gx-dock-bar')].filter(d => d !== el && !d.contains(el)).map(d => d.getBoundingClientRect().top));
   // A control taller than the space between the bars cannot show whole; its top must then show.

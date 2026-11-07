@@ -1,5 +1,8 @@
 /* Only the approved NFL Home landing uses this design. All colors/materials are canonical Home tokens. */
 .gx.gx-home-design { background: var(--gx-home-background); color: var(--gx-home-ink); font: 500 16px/24px var(--gx-font-home); }
+/* Home's 72px floating bar sits 12px above the inset; keep another 8px clear for keyboard focus. */
+:root:has(.gx-home-design .gx-app) { scroll-padding-top: 8px; }
+:root:has(.gx-home-design .gx-app):not(:has([class~="save-bar"])) { scroll-padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px)); }
 .gx-home-design .gx-app { padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px)); }
 .gx-home-design .gx-topbar { position: relative; border: 0; background: transparent; padding-top: calc(20px + env(safe-area-inset-top, 0px)); }
 .gx-home-design .gx-topbar-inner { height: 64px; padding-inline: 16px; gap: 12px; }

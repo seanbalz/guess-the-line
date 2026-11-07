@@ -1,5 +1,5 @@
-// D-69 step 2 (spec 6 "Step 2 · Home", 4.2): Home plays only Whole week locked and the Pick streak, in place. Every other
-// result from while you were away shows NEW on its Home tile and plays when that tile's card opens, never on launch. The
+// Approved Home plays Whole week locked in place. Streaks wait for the visible Features card; other results
+// wait for their own destination and never play on launch. The
 // detectors are the real ones; the engine is the real one with a test clock. Fixture accounts only.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -36,13 +36,14 @@ function readAll(engine, { locked = 13, streak = 4, award = false, rank = null }
 }
 const WEEK = 'weekLocked:2026:9:guess_spread', STREAK = 'streak:pick:2026:5:5', AWARD_ID = 'award:community:2026:8:total_winner', RANK = 'rank:community:guess_spread:1';
 
-test('in place: with Home open after the launch, Whole week locked and a longer Pick streak pop on Home; an award and a rank move wait as NEW', () => {
+test('in place: Home pops Whole week locked; streaks, awards and rank moves wait for their visible cards', () => {
   const r = rig();
   readAll(r.engine); // this device's first read of each source seeds it silently
   r.here.settled = true; r.here.navigated = true;
   r.engine.open(SCOPES.home);
   readAll(r.engine, { locked: 14, streak: 5, award: true, rank: 1 });
-  assert.deepEqual(r.small.toSorted(), [STREAK, WEEK].toSorted(), 'two small moments, in place');
+  assert.deepEqual(r.small, [WEEK], 'only the visible lock moment plays in place');
+  assert.deepEqual(r.engine.newMoments(SCOPES.features).filter(m => m.kind === 'streak').map(m => m.id), [STREAK], 'the streak is not silently consumed');
   assert.deepEqual(r.big, [], 'nothing big plays on Home');
   assert.deepEqual(r.engine.newMoments(SCOPES.features).filter(m => m.kind === 'award').map(m => m.id), [AWARD_ID], 'the award waits for the Awards tile');
   assert.equal(r.engine.newCount(scoreScope('guess_spread')), 1, 'the rank move waits for the Spread rank tile');
@@ -57,13 +58,15 @@ test('never on launch: results from while you were away wait as NEW even with Ho
   readAll(r.engine, { locked: 14, streak: 5, award: true, rank: 1 }); // the session's first reads
   r.here.settled = true;
   assert.deepEqual([r.small, r.big], [[], []], 'nothing plays on the launch screen, even after a press');
-  assert.equal(r.engine.newCount(SCOPES.home), 2, 'Whole week locked and the streak wait for Home’s card');
+  assert.equal(r.engine.newCount(SCOPES.home), 1, 'Whole week locked waits for Home’s card');
   r.here.navigated = true;
   const score = r.engine.open(scoreScope('guess_spread')); // the Spread rank tile opens Your score
   assert.deepEqual(r.small, [RANK], 'the rank move plays on Your score, small');
   launch(); const home = r.engine.open(SCOPES.home); // back to Home after a navigation
-  assert.deepEqual(r.small.slice(1).toSorted(), [STREAK, WEEK].toSorted(), 'Home’s own two play when its card opens again');
+  assert.deepEqual(r.small.slice(1), [WEEK], 'the visible lock moment plays when Home opens again');
+  assert.equal(r.engine.newCount(SCOPES.features), 2, 'the award and streak remain pending for their visible card');
   r.engine.open(SCOPES.features); // the Awards tile opens Badges and awards
+  assert.deepEqual(r.small, [RANK, WEEK, STREAK], 'the streak plays on its Features card');
   assert.deepEqual(r.big, [[AWARD_ID]], 'the award plays big there, once');
   score(); home(); r.engine.open(SCOPES.home); r.engine.open(scoreScope('guess_spread'));
   assert.equal(r.small.length, 3, 'nothing replays');

@@ -60,12 +60,12 @@ authorized manual release. Avatars/photos/new awards and NBA remain held.
   the approved composition, separate stats, loading/recovery and streak
   preservation. The count differs from the old layout suite because obsolete
   countdown/six-tile presentation assertions were replaced.
-- Full Node run before the final narrow token import exception: 2933 passed,
-  one failed, zero skipped. That failure was the old-app import guard treating
-  the canonical design JSON as a screen import. The new exception permits only
-  HomeBrand's two named token imports. Its focused rerun and Home/streak/token
-  contracts passed; five model/provenance tests passed. Full exact-source CI
-  remains required before merge/release.
+- Final full Node run on Windows: 2935 of 2936 passed, zero skipped. The one
+  failure was a transient `EPERM` renaming a temporary file in unchanged
+  `tests/store.test.mjs`; all 15 store tests passed immediately in isolation.
+  Home/streak/token/import contracts passed, including five model/provenance
+  tests. The import exception permits only HomeBrand's two named canonical
+  token imports. Full exact-source CI remains required before merge/release.
 - Browser: 62 passed in the broad Home/shared-navigation/League/features/Trends
   run. The one remaining failure asserted the old 16px navigation label floor;
   the approved compact Home labels are 13–14px. After updating that Home-only
@@ -77,6 +77,17 @@ authorized manual release. Avatars/photos/new awards and NBA remain held.
 - The final Home/League run with Home's own font explicitly overridden to the
   wider fallback passed all 21 tests. Six EPL shell/account-isolation checks
   also passed; EPL's layout and permissions remain unchanged.
+- CI follow-up verified all remaining failures against their source: old
+  Home header selectors in league/invite helpers and old streak-on-Home
+  expectations were updated. Local reruns passed: league/account data 10,
+  invitations/creation 8, shared-sport interface 5, pure moment engine 3.
+- The all-page scrolling matrix found focused controls could sit 12px below
+  Home's floating bar. Home now reserves the full 72px bar + 12px offset + 8px
+  air in document scroll padding. Both scrolling/keyboard and injected-fault
+  tests passed across all pages at 390×844 and 320×568 in Dark and Light. Other
+  pages retain their existing scroll rules. This changes focus scrolling only;
+  the approved visual layout and native captures are unchanged. Read-only
+  review found no remaining important defects in the fix or test updates.
 - Read-only source review found no remaining important defects. No schema,
   API, worker, pick data, historical snapshot or provider-budget change is made.
 
