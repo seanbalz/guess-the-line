@@ -139,7 +139,7 @@ async function everyTheme(page, info, name) {
   await page.setViewportSize({ width: 390, height: 844 });
 }
 
-test('Home: one primary card, the week meter, the streak and the Awards tile; Spread points count up from what this device saw', async ({ page, baseURL }, info) => {
+test('Approved Home: separate season stats count honestly; compact action, graphics and all awards remain accessible', async ({ page, baseURL }, info) => {
   const world = await featuresWorld(page, baseURL);
   try {
     const reply = (await world.api('luke', 'community/read', {})).body;
@@ -172,30 +172,18 @@ test('Home: one primary card, the week meter, the streak and the Awards tile; Sp
     expect(rest.t - firstRun.t, 'count-up duration in ms').toBeLessThan(3000);
     expect(await page.evaluate(key => localStorage.getItem(key), countUpKey(LUKE, spreadFigure(LUKE)))).toBe('20');
     // Total: the first sighting on this device shows the number at once, from no made-up start.
-    await expect(page.locator('[data-tile="total"] [data-home="points"]')).toHaveText('16 pts');
+    await page.getByRole('group', { name: 'Season market' }).getByRole('button', { name: 'Total', exact: true }).click();
+    await expect(page.locator('[data-tile="total"] [data-home="points"]')).toHaveText('16');
     expect((await frames(page, 'total')).filter(f => f.state === 'run')).toEqual([]);
 
-    // 3. The one primary card names the action, with the week above it once, the streak and the week meter.
-    await expect(hero.getByRole('heading', { level: 2 })).toHaveText('Lock in 2 games');
-    await expect(hero.locator('[data-home="when"]')).toHaveText(/^before (Sun|Mon|Tue|Wed|Thu|Fri|Sat) \d{1,2}:\d{2} (AM|PM) PT$/);
-    await expect(hero.locator('[data-home="streak"]')).toHaveText('1-week pick streak');
-    await expect(hero.locator('.gx-meter3')).toHaveCount(2);
-    for (const meter of await hero.locator('.gx-meter3').all()) {
-      await expect(meter.locator('.gx-meter3-seg')).toHaveCount(2);
-      await expect(meter.locator('.gx-meter3-seg--on')).toHaveCount(0);
-    }
-    await expect(page.locator('.gx-app .gx-btn--primary')).toHaveCount(1);
-    await expect(page.locator('.gx-app .gx-btn--primary')).toHaveText('Make picks');
-
-    // The Awards tile (H1A): Week 4's seven awards counted, Luke's own named; it opens Play › Badges and awards, where
-    // every award shows (next-features.spec.js reads them there). The first read on this device seeds what Luke has
-    // seen, so nothing waits: "You won", not "New:", and no NEW.
-    const awards = page.locator('[data-tile="awards"]').getByRole('button');
-    await expect(awards).toHaveAccessibleName('Awards, 7 in Week 4, you won Spread winner');
-    await expect(awards.locator('.gx-nest-num')).toHaveText('7');
-    await expect(awards.locator('.gx-tile-sub')).toHaveText('Week 4 · You won Spread winner');
-    await expect(awards.locator('.gx-new')).toHaveCount(0);
-    await awards.click();
+    // The approved compact card replaces the countdown/meters and six shortcuts; no fabricated numbers.
+    await expect(hero.getByRole('heading', { level: 2 })).toHaveText('Finish your picks');
+    await expect(hero.getByRole('img')).toHaveAccessibleName('0 of 2 picks drafted');
+    await expect(hero.getByRole('button', { name: 'Continue picks', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Research. Explore games and trends', exact: true })).toBeVisible();
+    // Awards are still available through their existing Play card.
+    await tab(page, 'Play').click();
+    await page.locator('[data-play-tile="badges"]').getByRole('button').click();
     await expect(page).toHaveURL(/#play\/features/);
     await expect(page.locator('[data-landing="features"]').getByRole('heading', { name: 'Badges and awards', level: 2 })).toBeVisible();
     await tab(page, 'Home').click();

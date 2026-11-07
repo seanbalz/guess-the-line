@@ -223,7 +223,7 @@ test('automatic alias linking survives reload without duplicate audit; Fantasy r
     await page.getByText('Account and appearance', { exact: true }).click();
     await page.getByRole('button', { name: 'Sign out', exact: true }).click();
     await signIn(page, 'troy', { navigate: false });
-    await page.getByRole('button', { name: 'EPL', exact: true }).click();
+    await page.getByRole('button', { name: /^(EPL|Premier League)$/ }).click();
     await page.getByRole('button', { name: 'Research', exact: true }).click();
     await expect(page.getByText('Your projection · Evan', { exact: true })).toBeVisible();
     release();

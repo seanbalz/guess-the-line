@@ -100,6 +100,7 @@ const themeVars = name => Object.fromEntries(Object.entries({ ...tokens.themes[n
 const dark = themeVars('dark'), light = themeVars('light');
 const LIGHT_SELECTORS = [':root[data-theme="light"] .gx:not([data-theme="dark"])', '.gx[data-theme="light"]'];
 const familyName = key => tokens.font[key].split(',')[0].replaceAll('"', '').trim();
+const weightsFor = key => tokens.platformWeights?.[key] ?? tokens.webfonts.weights[familyName(key)];
 
 test('tokens-next.json is complete: both themes define the same tokens, colors are hex and fonts are loaded', () => {
   assert.equal(tokens.name, 'Guess The Line');
@@ -117,12 +118,13 @@ test('tokens-next.json is complete: both themes define the same tokens, colors a
   for (const file of tokens.css.files) assert.ok(files.includes(file), `${file} exists`);
   // Each stack leads with a family the Google Fonts link loads, then system fallbacks.
   for (const key of Object.keys(tokens.font)) {
-    assert.ok(familyName(key) in tokens.webfonts.weights, `${key} leads with a loaded family`);
+    assert.ok(weightsFor(key), `${key} leads with a loaded or native platform family`);
+    if (tokens.platformWeights?.[key]) assert.match(tokens.font[key], /^-apple-system, BlinkMacSystemFont, Inter, "Segoe UI", sans-serif$/);
     assert.match(tokens.font[key], /sans-serif$/, `${key} ends in a generic family`);
   }
   // Big Shoulders Display has no tabular figures: never for numbers.
   for (const [key, style] of Object.entries(tokens.type)) {
-    assert.ok(tokens.webfonts.weights[familyName(style.family)].includes(style.weight), `type ${key}: weight ${style.weight} is loaded`);
+    assert.ok(weightsFor(style.family).includes(style.weight), `type ${key}: weight ${style.weight} is available`);
     assert.ok(Number.parseFloat(style.size) >= 12, `type ${key} is at least 12px`);
     if (style.family === 'num') assert.equal(style.tabular, true, `type ${key} uses tabular figures`);
     if (key.startsWith('n-')) assert.equal(style.family, 'num', `numeral ${key} uses Barlow Condensed`);
@@ -232,7 +234,7 @@ test('D-55 glow card: text, glass, chart line, bars and the break-even tick keep
     ]) { const ratio = contrast(fg, bg); if (ratio < min) failures.push(`${name} ${label}: ${ratio.toFixed(2)}`); }
     assert.deepEqual(failures, []);
     // Lime stays the primary action: as a chart color it is only the last, decorative stop of the glow.
-    assert.ok(!Object.entries(c).some(([key, value]) => value === c.accent && !['accent', 'accent-ink', 'glow-3'].includes(key)), `${name}: lime only as accent, accent-ink or glow-3`);
+    assert.ok(!Object.entries(c).some(([key, value]) => value === c.accent && !['accent', 'accent-ink', 'glow-3', 'home-accent'].includes(key)), `${name}: lime only in semantic accent tokens`);
   }
 });
 
@@ -275,10 +277,10 @@ test('fonts: every weight used is one the Google Fonts link loads, and Big Shoul
     const fontDecl = rule.decls.find(d => d.prop === 'font' && d.value !== 'inherit');
     const familyDecl = [...rule.decls].reverse().find(d => d.prop === 'font' || d.prop === 'font-family');
     const familyKey = familyDecl?.value.match(/var\(--gx-font-(\w+)\)/)?.[1] || 'body';
-    if (familyDecl && familyDecl.value !== 'inherit') assert.match(familyDecl.value, /var\(--gx-font-(display|num|body)\)/, `${rule.file}: ${rule.selector} names a font outside the tokens`);
+    if (familyDecl && familyDecl.value !== 'inherit') assert.match(familyDecl.value, /var\(--gx-font-(display|num|body|home)\)/, `${rule.file}: ${rule.selector} names a font outside the tokens`);
     const weights = rule.decls.filter(d => d.prop === 'font-weight').map(d => Number(d.value));
     if (fontDecl) weights.push(Number(fontDecl.value.split(/\s+/)[0]));
-    for (const weight of weights) assert.ok(tokens.webfonts.weights[familyName(familyKey)].includes(weight), `${rule.file}: ${rule.selector} uses ${familyName(familyKey)} ${weight}, which is not loaded`);
+    for (const weight of weights) assert.ok(weightsFor(familyKey).includes(weight), `${rule.file}: ${rule.selector} uses unavailable weight ${weight}`);
     if (/\.gx-n-|\.gx-rank|\.gx-mkt-(line|price)|\.gx-chip\b|\.gx-counter/.test(rule.selector)) assert.notEqual(familyKey, 'display', `${rule.selector} sets numbers in Big Shoulders`);
   }
   // A rule that sets only a weight takes its family from the class it styles: `.gx-btn--ghost` from `.gx-btn`,
@@ -292,7 +294,7 @@ test('fonts: every weight used is one the Google Fonts link loads, and Big Shoul
       const last = selector.trim().split(/[\s>+~]+/).at(-1);
       const families = (last.match(/\.gx-[\w-]+/g) || []).flatMap(cls => [...new Set([cls, cls.replace(/--[\w-]+$/, '')])].flatMap(familyOf));
       weightOnly += 1;
-      for (const key of families.length ? families : ['body']) assert.ok(tokens.webfonts.weights[familyName(key)].includes(Number(value)), `${rule.file}: ${selector} sets ${familyName(key)} to ${value}, which is not loaded`);
+      for (const key of families.length ? families : ['body']) assert.ok(weightsFor(key).includes(Number(value)), `${rule.file}: ${selector} sets unavailable weight ${value}`);
     }
   }
   assert.ok(weightOnly >= 5, 'the weight-only rules were found');

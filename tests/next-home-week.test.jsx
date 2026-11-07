@@ -54,15 +54,14 @@ describe('This week (H1A)', () => {
     const week = byAttr(html, 'data-home', 'week')[0];
     expect(shown(nodes(week, n => n.tag === 'h2')[0])).toBe('This week');
     expect(shown(week)).toContain('Week 9 · 6 games');
-    expect(nodes(week, n => n.tag === 'button' && n.attrs.id).map(b => b.attrs.id)).toEqual(['BUF-KC', 'LAC-LV', 'NYG-PHI', 'HOU-JAX'].map(id => `gx-h-game-${id}`));
+    expect(nodes(week, n => n.tag === 'button' && n.attrs.id).map(b => b.attrs.id)).toEqual(['BUF-KC', 'LAC-LV'].map(id => `gx-h-game-${id}`));
     const tiles = nodes(week, n => n.tag === 'li' && n.attrs['data-game-tile']);
-    expect(tiles.map(li => li.attrs['data-game-tile'])).toEqual(['BUF-KC', 'LAC-LV', 'NYG-PHI', 'HOU-JAX']);
+    expect(tiles.map(li => li.attrs['data-game-tile'])).toEqual(['BUF-KC', 'LAC-LV']);
     expect(tiles.map(li => nameFrom(nodes(li, n => n.tag === 'button')[0]))).toEqual([
-      'Bills at Chiefs, Sun 10:00 AM PT, Spread draft', 'Chargers at Raiders, Sun 10:00 AM PT, Spread locked in',
-      'Giants at Eagles, Sun 1:05 PM PT, Spread to pick', 'Texans at Jaguars, Sun 5:20 PM PT, Spread to pick']);
-    expect(shown(tiles[1])).toBe('LAC @ LV Sun 10:00 AM PT Locked in');
-    expect(nodes(week, n => n.tag === 'button').map(nameFrom).at(-1)).toBe('All 6 games');
-    expect(nodes(html, n => /\bgx-btn--primary\b/.test(n.attrs.class ?? ''))).toHaveLength(1);
+      'Bills at Chiefs, Sun 10:00 AM PT, Spread draft', 'Chargers at Raiders, Sun 10:00 AM PT, Spread locked in']);
+    expect(shown(tiles[1])).toBe('Chargers @ Raiders Sun 10:00 AM PT Locked in');
+    expect(nodes(week, n => n.tag === 'button').map(nameFrom)[0]).toBe('All 6 games');
+    expect(nodes(html, n => /\bgx-home-primary\b/.test(n.attrs.class ?? ''))).toHaveLength(1);
     expect(longLines(html)).toEqual([]);
   });
 
@@ -100,7 +99,7 @@ describe('This week opens the right places (requirement 4)', () => {
 
   it('the section always names the week of the games shown, even when Community is on another week', () => {
     home({ personal: ready(personal({ week: 10 })) });
-    expect(shown(nodes(byAttr(render(), 'data-home', 'week')[0], n => (n.attrs.class ?? '').includes('gx-t-meta'))[0])).toBe('Week 10 · 6 games');
+    expect(shown(nodes(byAttr(render(), 'data-home', 'week')[0], n => n.attrs['aria-label'] === 'All 6 games')[0])).toBe('Week 10 · 6 games');
   });
 });
 
@@ -138,12 +137,12 @@ describe('This week keeps the server’s clock (carry-over 1)', () => {
     home({ personal: ready(personal()) });
     state.clock = 0;
     const before = render();
-    expect(ids(before)).toEqual(['BUF-KC', 'LAC-LV', 'NYG-PHI', 'HOU-JAX']);
-    expect(wordOf(before, 'NYG-PHI')).toContain('To pick');
+    expect(ids(before)).toEqual(['BUF-KC', 'LAC-LV']);
+    expect(wordOf(before, 'BUF-KC')).toContain('Draft');
     // 4 h 30 min of this device's elapsed time: the 10:00 AM games and the 1:05 PM game are over, the server's clock says so.
     state.clock = 4.5 * 3_600_000;
     const after = render();
-    expect(ids(after)).toEqual(['LAC-LV', 'NYG-PHI', 'HOU-JAX', 'CHI-GB']);
+    expect(ids(after)).toEqual(['LAC-LV', 'NYG-PHI']);
     expect(wordOf(after, 'NYG-PHI')).toContain('Closed at kickoff');
     expect(wordOf(after, 'NYG-PHI')).not.toContain('To pick');
   });
@@ -153,7 +152,7 @@ describe('This week keeps the server’s clock (carry-over 1)', () => {
     // (the device time it landed) ages the server's `now` before the first tick.
     home({ personal: { ...ready(personal()), at: Date.now() - 4.5 * 3_600_000 } });
     const html = render();
-    expect(ids(html)).toEqual(['LAC-LV', 'NYG-PHI', 'HOU-JAX', 'CHI-GB']);
+    expect(ids(html)).toEqual(['LAC-LV', 'NYG-PHI']);
     expect(wordOf(html, 'NYG-PHI')).toContain('Closed at kickoff');
   });
 
@@ -171,7 +170,7 @@ describe('This week keeps the server’s clock (carry-over 1)', () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     try {
       vi.setSystemTime(new Date('2031-01-01T00:00:00Z'));
-      expect(ids(render())).toEqual(['BUF-KC', 'LAC-LV', 'NYG-PHI', 'HOU-JAX']);
+      expect(ids(render())).toEqual(['BUF-KC', 'LAC-LV']);
     } finally { vi.useRealTimers(); }
   });
 

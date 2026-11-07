@@ -1,5 +1,27 @@
 # Guess The Line — current completion register
 
+## Approved Prism Glass Home — November 7, 2026
+
+Sean approved the exact Dark/Light Home mockups and instructed “Good deploy.”
+The implementation is limited to Home, with his separately approved Spread /
+Total selector for season rank and accuracy points. It uses the selected hybrid
+G, floating glass cards, green outlined primary, graphic shortcuts, two game rows,
+individual circular team/league marks and safe generic Community activity.
+Existing picks, locks, reveal/privacy gates and league access remain shared.
+Other pages retain their existing layouts; PR #491 is not part of this release.
+
+Built from fresh main `7604cee25f4182d7c5262217c05f20d84b2994e3` on
+`codex/approved-home-release-2026-11-07`. The [release plan and approval
+record](APPROVED_HOME_RELEASE_2026_11_07.md) names the immutable mockups and hashes.
+Local evidence so far: full Vitest 85 files / 886 tests passed; typecheck passed;
+focused Node contracts passed, including historical-data and image provenance.
+Browser checks cover both themes, 320/390 widths, wider fonts, keyboard focus,
+screen-reader labels, no hidden-pick leaks and restoration of other pages.
+Source review found and fixed Total-market navigation, expired-game counts,
+stale score filters and silently consumed streak moments. Exact-source CI and
+the protected frontend release remain pending; this entry does not claim hosting.
+
+
 ## D-69 design overhaul, step 3: Research — November 4, 2026
 
 Built on `claude/overhaul-step3-research` from the
