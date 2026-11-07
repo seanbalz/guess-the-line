@@ -36,8 +36,8 @@ remain separate from visual acceptance.
 - Shared shell: native Menu, header, sports and four-tab placement plus layer
   failure are supplied below. Existing switcher/invite/general recovery and
   Menu destinations retain scoped approvals. EPL league/History/Bets states are
-  now prepared below (eight captures), pending visual approval. Retained NBA
-  route visuals remain a separate reconciliation item.
+  approved at `c6fb2b44bacc90fa44ba89e8932da7343e20cf4b` (eight captures).
+  Retained NBA-route scope is awaiting the single owner choice below.
 - Review notes and exports remain visual evidence; hosted data, physical-device
   behavior, release gates and production integration require their own evidence.
 
@@ -273,3 +273,19 @@ Only preview assets/evidence change. Production behavior/data, actual guarded
 navigation, device acceptance, retained-route reconciliation and whole-app
 completion remain separate. NBA navigation remains hidden and retained links
 unchanged. Parked Signal files are untouched/unpublished. No merge/deploy/apply.
+
+## EPL shell mockups approved — November 6, 2026
+
+Sean replied “Looks good continue” to the eight EPL league/History/Bets/Info
+mockups in both themes, reviewed at
+`c6fb2b44bacc90fa44ba89e8932da7343e20cf4b`. The exact captures and approval
+scope are recorded in [the selection record](selected-system-review.json) and [phone index](EPL_SHELL_REVIEW.md).
+This accepts the supplied visual direction, not new EPL history/betting
+availability, production/device acceptance or whole-app completion.
+
+The next listed coverage item is the existing NBA Games/private Bets/History
+and editor surfaces retained behind saved routes. NBA remains hidden from the
+NFL/EPL navigation. A single owner scope question is pending before new NBA
+mockups are made: include these existing pages in this visual pass, or leave
+them parked. Existing records/routes, deferred avatar/photo/award work and
+parked Signal files are preserved. No merge, deploy, migration or account read.

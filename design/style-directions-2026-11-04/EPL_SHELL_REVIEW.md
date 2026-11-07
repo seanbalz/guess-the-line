@@ -1,6 +1,6 @@
 # EPL league, History and Bets — phone review
 
-Owner visual approval pending. These carry the selected Prism Glass system into
+Approved by Sean for these eight captures in both themes at `c6fb2b44bacc90fa44ba89e8932da7343e20cf4b` (“Looks good continue”). Production and whole-app acceptance remain separate. These carry the selected Prism Glass system into
 the three remaining native EPL shell states. No account data is read or changed.
 
 | Mockup | Dark | Light |

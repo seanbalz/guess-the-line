@@ -5616,7 +5616,7 @@
     }
   },
   "eplShellPreview": {
-    "status": "prepared for owner review; approval pending",
+    "status": "Approved for the listed eight EPL shell captures in both themes; implementation and whole-app acceptance remain separate.",
     "scenarios": [
       "leagues",
       "history",
@@ -5677,8 +5677,29 @@
       "epl-shell-leagues-light-phone.png": "b2624428db0dce6e191606441e31eb43b20479c00123c3a368c0757407d07329"
     },
     "approval": {
-      "status": "pending",
-      "scope": "Only the listed eight EPL league/History/Bets/Info captures, in both themes. No production or whole-project acceptance inferred."
+      "status": "approved",
+      "userStatement": "Looks good continue",
+      "reviewedCommit": "c6fb2b44bacc90fa44ba89e8932da7343e20cf4b",
+      "reviewedCaptures": [
+        "epl-shell-bets-dark-phone.png",
+        "epl-shell-bets-light-phone.png",
+        "epl-shell-history-dark-phone.png",
+        "epl-shell-history-light-phone.png",
+        "epl-shell-info-dark-phone.png",
+        "epl-shell-info-light-phone.png",
+        "epl-shell-leagues-dark-phone.png",
+        "epl-shell-leagues-light-phone.png"
+      ],
+      "scope": "FEPL league selector, EPL History notice/NFL handoff, EPL Bets unavailable and explanatory Info in both themes. No new feature availability, production release, retained NBA scope or whole-project acceptance inferred."
     }
+  },
+  "retainedNbaScope": {
+    "status": "owner decision requested",
+    "question": "NBA is hidden from navigation, but its existing Games, private Bets, and History pages still open through saved links. Should I include those existing pages in this redesign pass, while keeping NBA hidden?",
+    "options": [
+      "Include the existing NBA pages",
+      "Leave NBA parked for later"
+    ],
+    "constraints": "No new NBA entry point, live provider/account read, actual quote or private record publication. Avatars/photos and new awards remain held."
   }
 }
