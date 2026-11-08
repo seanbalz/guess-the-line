@@ -57,8 +57,16 @@ The remaining areas below distinguish reviewed local implementation from release
   six Bets controller flows, two local social flows and three full-root/Compare/
   draft-guard flows. The broad Node run passed 2,936 of 2,938 before its two
   temporary stylesheet-location findings were repaired; the affected contracts
-  subsequently passed. Broader PR CI remains pending, including Research's
-  updated 28px card assertion; no full-suite or release claim is made here.
+  subsequently passed. Final component validation passed all 901 tests again.
+  The 28px card assertion passed its original disclosure/hidden-content browser
+  case. Further phone checks repaired a real Pick'em inset below 8px and a 24px
+  All ticket views summary; the summary now has a 44px target. The original
+  score-label/padding and full-shell target/axe cases passed, as did badge
+  first-read/moment seeding through the updated score card. The shell's exact
+  read inventory includes the retained-assessment POST, verified read-only in
+  `cloud/lines.mjs` and `cloud/research-assessments.mjs`; unknown mutations remain
+  counted. Broader PR CI and the separately owned Research fixes remain pending;
+  no full-suite or release claim is made here.
 - Research source `f93d7c6560842be78ad0bd9a15d14632bb60fd0f` remains outside
   integration pending three important review fixes: observed Fantasy Players
   browse, full-width Trends card curves/footer, and compact Game overview with

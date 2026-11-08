@@ -84,7 +84,9 @@ function apiCalls(page) {
  */
 const writes = calls => calls.filter(call => !['POST /functions/v1/gtl-api/trends/week', 'GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'POST /functions/v1/gtl-api/me/preferences', 'POST /functions/v1/gtl-api/community/history', 'GET /functions/v1/gtl-api/personal', 'POST /functions/v1/gtl-api/personal/read', 'POST /functions/v1/gtl-api/wind/read', 'POST /functions/v1/gtl-api/social/read', 'POST /functions/v1/gtl-api/fantasy/week', 'POST /functions/v1/gtl-api/lines/read', 'POST /functions/v1/gtl-api/lines/teams', 'POST /functions/v1/gtl-api/points/read', 'POST /functions/v1/gtl-api/league/features',
   // The league feed reader (redesign stage 64): a read; until M-22 is applied it answers 503 and the old feed shows.
-  'POST /functions/v1/gtl-api/league/feed'].includes(call));
+  'POST /functions/v1/gtl-api/league/feed',
+  // Bets' teaser reads retained assessments/quotes; this route never collects or saves.
+  'POST /functions/v1/gtl-api/lines/assessments'].includes(call));
 
 /** Loads the page at `fragment` as a new document (a fragment change alone stays in the page that is open). */
 async function load(page, fragment = '') {

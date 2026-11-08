@@ -71,7 +71,7 @@ test('a closed Source details draws nothing under its row, and it sits in a roun
    // [hidden] used to lose to the body's display: flex, so the closed body drew an empty 20px band.
    expect(await body.evaluate(el => ({ hidden: el.hidden, boxes: el.getClientRects().length, height: el.getBoundingClientRect().height }))).toEqual({ hidden: true, boxes: 0, height: 0 });
    const card = await row.evaluate(el => { const c = el.closest('.gx-card--flush'); return c ? getComputedStyle(c).borderTopLeftRadius : null; });
-   expect(card,'the Expander is wrapped in a flush card with rounded corners').toBe('16px');
+   expect(card,'the Expander uses the selected 28px floating-card corners').toBe('28px');
    await row.click(); await expect(row).toHaveAttribute('aria-expanded','true');
    expect(await body.evaluate(el => el.getBoundingClientRect().height)).toBeGreaterThan(0);
    await row.click(); await expect(row).toHaveAttribute('aria-expanded','false');

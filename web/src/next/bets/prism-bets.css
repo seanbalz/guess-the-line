@@ -23,6 +23,7 @@
 .gx .gx-bets .gx-bets-landing-tickets .gx-list { background: none; gap: 0; }
 .gx .gx-bets .gx-bets-landing-tickets .gx-focus-icon { color: var(--gx-accent-ink); background: var(--gx-accent-tint); border: 1px solid var(--gx-border); }
 .gx .gx-bets .gx-bets-landing-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; }
+.gx .gx-bets .gx-bets-ticket-views > summary { min-height: 44px; padding-block: 10px; cursor: pointer; }
 .gx .gx-bets .gx-bets-landing-recommended > p { margin: 0; }
 .gx .gx-bets .gx-bets-landing-recommended .gx-focus-row { padding-inline: 0; }
 .gx .gx-bets .gx-tracked-feed { gap: var(--gx-space-6); }
