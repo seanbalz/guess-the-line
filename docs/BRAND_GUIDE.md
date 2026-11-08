@@ -15,8 +15,9 @@ Each team and league mark has its own circle with contain-fit artwork and the
 existing decode/error fallback. The selected hybrid G has no circle. Sport control
 accessible names use National Football League and Premier League; the existing
 access, route values, dirty-draft guards and hidden NBA remain. The shared shell
-retains its separate league switcher outside the approved NFL Home/Play/Bets
-overviews and explicit landing-origin selected-ticket receipt openings. Asset provenance
+retains its separate league switcher in native contexts, including the actual NFL
+Research landing and held FEPL Research destination. Confirmed compact contexts
+retain existing league access through Play's League and named access covers. Asset provenance
 is recorded in `web/src/next/ui/brand-assets/sources.json`.
 
 This foundation does not establish completion of the remaining per-screen layouts,
@@ -34,6 +35,22 @@ question. [Scoped authority and local evidence](PRISM_OVERVIEW_FRAME_CLOSEOUT_20
 record the boundaries. League access remains in the Research header and Play's
 League layer. No Menu switcher is added.
 
+## Expanded confirmed context framing — November 7, 2026
+
+The [expanded context record](PRISM_EXPANDED_FRAME_CONTEXTS_2026_11_07.md)
+maps additional supplied whole-screen approvals to their existing production
+router, screen, page and named cover identities. Play's opened editable drafts,
+Points week/draft/profile, Score and League board/feed; named NFL Research
+sections; Bets performance/gap/Virtual; actual NFL History; EPL Home/Play; and
+pending/removed covers share the eagerly loaded compact frame. Home body rules
+remain Home-only. Unshown draft/Points locked, busy, error and pending variants
+retain their existing frame; no unseen receipt approval is inferred.
+
+FEPL Research remains native with its frame choice held because its two approved
+directions overlap on the same actual destination. NFL Research's distinct root,
+EPL Bets and unavailable EPL History retain native navigation. Body-only layers
+inherit their opener. This is a context mapping, not a global frame selection.
+
 ## Approved Home release — November 7, 2026
 
 Sean approved the two `league-wording-home` phone mockups at review commit
@@ -48,10 +65,10 @@ Home uses the selected glossy-edge/frosted-center G (lime in Dark, deep green in
 Light), charcoal gradient / pale green canvas, ivory / dark-green text, floating
 glass cards and transparent primary button with the full green outline. The
 canonical `home-*` colors/effects and native Home font are additive entries in
-`design/tokens-next.json`. The approved NFL Home/Play/Bets overview and selected-receipt frame shares
+`design/tokens-next.json`. The approved compact context frame shares
 these recipes under `.gx-overview-frame`; Home body rules stay under
-`.gx-home-design`. Research, other detail/page views, covers and EPL retain native framing within
-this scoped implementation; their separate approval scopes are not re-adjudicated. Each team
+`.gx-home-design`. The expanded record above names the additional compact contexts
+and exact native/held boundaries; unknown/custom destinations stay native. Each team
 and league mark has its own circle; the G has no circle. The sport switch keeps
 its existing access rules. Browser chrome follows the approved compact frame while it is mounted and
 restores the existing theme when leaving it.
