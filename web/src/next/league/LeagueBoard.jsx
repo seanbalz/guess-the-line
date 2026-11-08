@@ -88,13 +88,14 @@ export function BoardRow({ row, rows, account, figure, sub = '', missing = '—'
 }
 
 /** A board: the first rows (yours in view), "N more on the board", and your rank's moment from `read` when it is `fresh`. */
-export function BoardCard({ app, shell, league, mode, rows, label, features, rowProps, read = null, fresh = false }) {
+export function BoardCard({ app, shell, league, mode, rows, label, features, rowProps, read = null, fresh = false, scope = 'Community', period = 'season', week = null }) {
   const [all, setAll] = useState(false), mine = rows.find(row => row.you) ?? null;
   const moment = useRankMoment({ account: app?.accountId ?? null, league, mode, rank: mine?.rank ?? null, tied: mine?.tied === true, read, fresh, market: MODE[mode] });
   if (!rows.length) return <LeagueEmpty text={BOARD_COPY.noMembers} actionLabel={BOARD_COPY.invite} onAction={() => shell?.openSheet?.('sh.switcher')}/>;
   const { shown, more } = boardSlice(rows, all), badgeWeek = features?.badgeWeek ?? null;
   return <>
-    <LeagueStanding row={mine} mode={mode}/>
+    <LeagueStanding row={mine} rows={rows} mode={mode} scope={scope} period={period} week={week}/>
+    <div className="gx-league-section-title"><h2 className="gx-t-section">{period === 'week' ? `Week ${week ?? '—'} standings` : 'Season standings'}</h2><p className="gx-t-meta gx-c-2">{period === 'week' ? 'This group’s weekly points' : week ? `Week ${week} beneath each name` : 'Weekly points beneath each name'}</p></div>
     <Card variant="flush" className="gx-l-board" data-board={mode}>
       <List label={label}>
         {shown.map(row => <BoardRow key={row.id} row={row} rows={rows} account={app?.accountId ?? null} badgeWeek={badgeWeek}
@@ -117,7 +118,7 @@ export function communityRows(feed, mode) {
 export function CommunityBoard({ feed, mode, features = null, app, shell, fresh = false }) {
   const standings = feed.standings || [];
   return <section className="gx-vstack gx-gap-12" aria-label={`${MODE[mode]} leaderboard`}>
-    <BoardCard app={app} shell={shell} league="community" mode={mode} rows={communityRows(feed, mode)} label={`${MODE[mode]} season standings`} features={features} read={feed} fresh={fresh}
+    <BoardCard app={app} shell={shell} league="community" mode={mode} rows={communityRows(feed, mode)} label={`${MODE[mode]} season standings`} features={features} read={feed} fresh={fresh} scope="Community" period="season" week={feed.week?.week}
       rowProps={row => {
         const standing = standings.find(item => item.userId === row.id && item.mode === mode);
         const removed = feed.members?.find(member => member.id === row.id)?.removed, fact = boardFact(features, row.id, mode);

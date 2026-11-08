@@ -11,6 +11,7 @@
 .gx .gx-league-standing > div + div { border-left: 1px solid var(--gx-border); padding-left: 22px; }
 .gx .gx-league-standing strong { font: 600 42px/1.1 var(--gx-font-num); font-variant-numeric: tabular-nums; letter-spacing: -1px; color: var(--gx-accent-ink); overflow-wrap: anywhere; }
 .gx .gx-league-standing > p { grid-column: 1 / -1; }
+.gx .gx-league-section-title { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px; }
 .gx .gx-league .gx-l-board { padding: 8px 10px; }
 .gx .gx-league .gx-l-row { padding: 14px 0; min-height: 76px; gap: 9px; }
 .gx .gx-league .gx-l-row--lead:not(.gx-row--you) { background: transparent; box-shadow: none; }

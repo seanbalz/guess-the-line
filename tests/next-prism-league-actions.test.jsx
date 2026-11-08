@@ -16,6 +16,17 @@ describe('approved League compositions use only permitted figures', () => {
     expect(zero).toContain('>0<');
     expect(zero).not.toContain('Total points');
   });
+  it('labels private weekly figures using only that group’s rows and week', () => {
+    const rows = [{ id: 'a', rank: 1, points: 12, name: 'Group leader' }, { id: 'b', rank: 2, points: 0, name: 'You' }];
+    const html = renderToStaticMarkup(<LeagueStanding mode="guess_spread" row={rows[1]} rows={rows} scope="Private fixture" period="week" week={6}/>);
+    expect(html).toContain('Your weekly standing');
+    expect(html).toContain('Private fixture · Week 6');
+    expect(html).toContain('12 points behind Group leader');
+    expect(html).not.toMatch(/season|Community|Shared/);
+    const tied = renderToStaticMarkup(<LeagueStanding mode="guess_total" row={{ rank: 1, tied: true, points: 0 }} scope="Community" period="season"/>);
+    expect(tied).toContain('Tied for the lead.');
+    expect(tied).toContain('Community · Season standing');
+  });
   it('charts only a revealed result, including a scored zero; hidden records have no score graphic', () => {
     const post = { id: 'post', actorId: 'friend', kind: 'result_shared', season: 2026, week: 8, mode: 'guess_spread', createdAt: '2026-10-26T18:00:00Z', reactions: { counts: {}, total: 0 }, comments: [], commentCount: 0 };
     const render = embed => renderToStaticMarkup(<ShellContext.Provider value={{ openSheet() {}, toast() {} }}><PostCard post={{ ...post, embed }} names={new Map()} viewer="you" now="2026-10-26T20:00:00Z"/></ShellContext.Provider>);

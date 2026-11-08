@@ -1,5 +1,14 @@
 # League and National Football League action layouts — November 7, 2026
 
+Current review corrections and expanded exact-state coverage are recorded in
+[the fidelity fix record](PRISM_LEAGUE_ACTIONS_FIDELITY_FIXES_2026_11_07.md).
+That record supersedes the initial port's season-label claim for private
+Spread/Total boards and its inherited CI-failure note below. Private figures
+are weekly, with the group's own reader metadata; Community figures remain
+seasonal. Areas 07/18 still have the explicitly listed coverage/held gaps.
+
+The original port evidence below is retained for provenance.
+
 Status: local native implementation and verification; independent review and
 integration pending. No push, PR, merge, migration, hosted release or physical
 phone acceptance is established here. This is the owned area 07/18 slice over

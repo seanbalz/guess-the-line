@@ -1,4 +1,4 @@
-import { nativeActionCaptures } from '../helpers/native-action-captures.mjs';
+import { nativeActionCaptures, nativeActionPairs } from '../helpers/native-action-captures.mjs';
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { ALL } from '../migrations.mjs';
@@ -243,6 +243,7 @@ async function noLeak(page, world, where) {
 }
 
 test.beforeEach(() => { test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.'); });
+test.setTimeout(180_000); // Paired native visual checks include long/scrolled and forced-color states.
 
 test('season records stay readable on narrow phones and every column is reachable without changing the chart', async ({ page, baseURL }, info) => {
   test.setTimeout(120000);
@@ -1890,6 +1891,7 @@ test('your pick sheet separates draft and locked references and returns focus to
     await expect(spread).toContainText('Draft SEA −4'); await expect(spread).toContainText('No locked-in scoring line');
     await expect(spread.getByRole('list', { name: 'Community Spread guesses' })).toBeVisible();
     await noLeak(page, world, 'draft pick sheet');
+    await nativeActionCaptures(page, 'nfl-saved-draft', async () => { await phoneChecks(page); expect(await axe(page)).toEqual([]); });
     await page.keyboard.press('Escape'); await expect(spreadRow).toBeFocused();
     await gameLayer(page, 'Seahawks @ Broncos').getByRole('button', { name: /^Open your Total pick\./ }).click();
     const total = sheet(page, 'Your Total pick');
@@ -1899,6 +1901,7 @@ test('your pick sheet separates draft and locked references and returns focus to
     await nativeActionCaptures(page, 'nfl-your-pick', async () => { await phoneChecks(page); expect(await axe(page)).toEqual([]); });
     await total.getByRole('button', { name: 'About your saved pick' }).click();
     await expect(sheet(page, 'About your saved pick')).toContainText('Later market movement never replaces a saved reference');
+    await nativeActionCaptures(page, 'nfl-info-saved-rules', async () => { await phoneChecks(page); expect(await axe(page)).toEqual([]); });
     await page.keyboard.press('Escape'); await expect(total).toBeVisible();
     // Hold navigation's animation frames until the destination has focused itself.
     // This reproduces the race where the shell's later frame replaces game focus with the title.
@@ -1940,6 +1943,7 @@ test('your saved pick keeps pending and first-after labels and survives independ
     await gameLayer(page, 'Seahawks @ Broncos').getByRole('button', { name: /^Open your Total pick\./ }).click();
     const pick = sheet(page, 'Your Total pick');
     await expect(pick).toContainText('Line pending'); await expect(pick).not.toContainText('99.5'); await expect(pick).toContainText('Late · 12');
+    await nativeActionCaptures(page, 'nfl-saved-pending', async () => { await phoneChecks(page); expect(await axe(page)).toEqual([]); });
     ballot.scoringReferences['SEA-DEN'] = { status: 'available', basis: 'first_line_after_submission', value: 44.5, source: 'Saved first-after fixture', observedAt: saved.now };
     await pick.getByRole('button', { name: 'Refresh saved pick' }).click();
     await expect(pick).toContainText('First line after submission'); await expect(pick).toContainText('Saved first-after fixture');
@@ -1948,6 +1952,7 @@ test('your saved pick keeps pending and first-after labels and survives independ
     await expect(pick).toContainText('Community guesses are unavailable'); await expect(pick).toContainText('Saved first-after fixture');
     fail = true; await pick.getByRole('button', { name: 'Refresh saved pick' }).click();
     await expect(pick).toContainText('Showing the last loaded saved record'); await expect(pick).toContainText('Saved first-after fixture');
+    await nativeActionCaptures(page, 'nfl-saved-stale', async () => { await phoneChecks(page); expect(await axe(page)).toEqual([]); });
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
@@ -1972,6 +1977,37 @@ async function openGameBets(page, game = 'SEA-DEN') {
   return sheet(page, 'League bets');
 }
 
+test('long native game bets scroll to every row with market and units aligned opposite selections', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL, { forge: false, optionalRpc: true });
+  try {
+    await seedGameBets(world);
+    await page.route(betsRoute, async route => {
+      const request = route.request();
+      const response = await world.handler(new Request(request.url(), { method: request.method(), headers: request.headers(), body: request.postData() }));
+      const data = await response.json(), sample = data.bets.find(bet => bet.userId === ACCOUNTS.troy.id && bet.gameId === 'SEA-DEN');
+      for (let i = 0; i < 12; i++) {
+        const userId = `00000000-0000-4000-8002-${String(i).padStart(12, '0')}`;
+        data.roster.push({ userId, displayName: `Long Game Bets Fixture ${i + 1}` });
+        data.bets.push({ ...sample, userId });
+      }
+      await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), json: data });
+    });
+    await openLines(page); const bets = await openGameBets(page);
+    await expect(bets.locator('[data-pick]')).toHaveCount(14);
+    await expect(bets).not.toContainText('13.5'); // copied friends stay behind the native reveal projection
+    await nativeActionCaptures(page, 'nfl-game-bets-long', async () => {
+      await phoneChecks(page); expect(await axe(page)).toEqual([]);
+      expect(await bets.locator('.gx-ev-pick-head').first().evaluate(el => getComputedStyle(el).justifyContent)).toBe('space-between');
+      expect(await bets.locator('.gx-ev-pick-value').first().evaluate(el => getComputedStyle(el).justifyContent)).toBe('space-between');
+    });
+    await bets.getByRole('button', { name: 'Refresh league bets' }).focus();
+    expect(await bets.locator('.gx-sheet-body').evaluate(el => el.scrollTop)).toBeGreaterThan(0);
+    await page.keyboard.press('Tab'); await page.keyboard.press('Escape');
+    await expect(gameLayer(page, 'Seahawks @ Broncos').getByRole('button', { name: /^Open League bets/ })).toBeFocused();
+    expect(world.errors).toEqual([]);
+  } finally { await page.unrouteAll({ behavior: 'wait' }); await page.close(); await world.db.close(); }
+});
+
 test('League bets loads one game on demand with protected terms, phone layout and no writes', async ({ page, baseURL }, testInfo) => {
   const { world } = await lukesWeek(page, baseURL, { forge: false, optionalRpc: true });
   const calls = apiCalls(page);
@@ -1992,6 +2028,9 @@ test('League bets loads one game on demand with protected terms, phone layout an
     await expect(bets).toContainText('DraftKings'); await expect(bets.locator('.gx-ev-game')).toHaveCount(1);
     await expect(bets.locator('[data-game="HOU-JAX"]')).toHaveCount(0);
     await nativeActionCaptures(page, 'nfl-game-bets', async () => { await phoneChecks(page); expect(await axe(page)).toEqual([]); });
+    await bets.getByRole('button', { name: 'About league bets for this game' }).click();
+    await nativeActionPairs(page, 'nfl-info-bets-rules', async () => { await phoneChecks(page); expect(await axe(page)).toEqual([]); });
+    await page.keyboard.press('Escape');
     await page.keyboard.press('Escape');
     const action = gameLayer(page, 'Seahawks @ Broncos').getByRole('button', { name: /^Open League bets for / });
     await expect(action).toBeFocused(); await phoneChecks(page); expect(await axe(page)).toEqual([]);
@@ -2022,13 +2061,17 @@ test('League bets clears failures and wrong-week replies, recovers and ignores a
     mode = 'wrong'; await bets.getByRole('button', { name: 'Refresh league bets' }).click();
     await expect(bets).toContainText('League bets are unavailable'); await expect(bets).not.toContainText('DraftKings');
     mode = 'fail'; await bets.getByRole('button', { name: 'Retry league bets' }).click(); await expect(bets).toContainText('League bets are unavailable');
+    await nativeActionCaptures(page, 'nfl-game-bets-failed', async () => { await phoneChecks(page); expect(await axe(page)).toEqual([]); });
     mode = 'ok'; await bets.getByRole('button', { name: 'Retry league bets' }).click(); await expect(bets).toContainText('DraftKings');
     mode = 'hold'; await bets.getByRole('button', { name: 'Refresh league bets' }).click(); await waiting;
-    await expect(bets).not.toContainText('DraftKings'); await page.keyboard.press('Escape'); await page.goBack();
+    await expect(bets).not.toContainText('DraftKings');
+    await nativeActionCaptures(page, 'nfl-game-bets-loading', async () => { await phoneChecks(page); expect(await axe(page)).toEqual([]); });
+    await page.keyboard.press('Escape'); await page.goBack();
     mode = 'ok'; await openGameBets(page, 'HOU-JAX'); await expect(bets).toContainText('FanDuel');
     release(); await expect(bets).not.toContainText('DraftKings');
     await page.keyboard.press('Escape'); await page.goBack();
     await openGameBets(page, 'NO-NYG'); await expect(bets).toContainText('No Virtual Units picks for this game in Community yet.');
+    await nativeActionCaptures(page, 'nfl-game-bets-empty', async () => { await phoneChecks(page); expect(await axe(page)).toEqual([]); });
     expect(world.errors).toEqual([]);
   } finally { release?.(); await world.db.close(); }
 });
@@ -2086,6 +2129,50 @@ test('League bets discards another account’s delayed own-pick terms', async ({
 const revealDialog = page => page.getByRole('alertdialog', { name: 'See picks now for Week 6?', exact: true });
 const forfeitRoute = url => url.origin === SUPABASE && url.pathname.endsWith('/community/forfeit');
 
+test('native reveal loading and busy states guard every dismissal without repeating a write', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL, { forge: false, optionalRpc: true });
+  let releaseRead, releaseWrite, writes = 0;
+  try {
+    await openLines(page);
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/community/read'), async route => {
+      await new Promise(resolve => { releaseRead = resolve; }); await route.fallback();
+    }, { times: 1 });
+    await page.getByRole('button', { name: 'See picks now', exact: true }).click();
+    const dialog = revealDialog(page);
+    await expect(dialog).toContainText('Checking this week’s status');
+    await nativeActionPairs(page, 'nfl-forfeit-loading', async () => { await phoneChecks(page); expect(await axe(page)).toEqual([]); });
+    releaseRead();
+    await expect(dialog.getByRole('button', { name: 'Confirm sit-out and reveal', exact: true })).toBeVisible();
+    await page.route(forfeitRoute, async route => { writes++; await new Promise(resolve => { releaseWrite = resolve; }); await route.fallback(); });
+    await dialog.getByRole('button', { name: 'Confirm sit-out and reveal', exact: true }).click();
+    await expect(dialog).toContainText('Confirming saved sit-out');
+    await page.keyboard.press('Escape'); await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole('button', { name: 'Keep playing' })).toBeDisabled();
+    await nativeActionPairs(page, 'nfl-forfeit-busy', async () => { await phoneChecks(page); expect(await axe(page)).toEqual([]); });
+    expect(writes).toBe(1); releaseWrite();
+    await expect(page.getByRole('alertdialog', { name: 'Week 6 reveal confirmed' })).toBeVisible();
+    expect(writes).toBe(1); expect(world.errors).toEqual([]);
+  } finally { releaseRead?.(); releaseWrite?.(); await page.unrouteAll({ behavior: 'wait' }); await page.close(); await world.db.close(); }
+});
+
+test('native saved Spread shows its locked reference and scoped community rules', async ({ page, baseURL }) => {
+  const { world } = await lukesWeek(page, baseURL, { forge: false, optionalRpc: true });
+  try {
+    const initial = (await world.api('luke', 'personal')).body;
+    expect((await world.api('luke', 'personal/ballot', { season: 2026, week: 6, mode: 'guess_spread', picks: LUKE_SPREAD_DRAFT, lockIn: ['SEA-DEN'], submit: false,
+      revision: initial.revision, weeklyRevision: initial.weeklyRevision, requestId: randomUUID() })).status).toBe(200);
+    await openLines(page); await card(page, 'SEA-DEN').click();
+    await gameLayer(page, 'Seahawks @ Broncos').getByRole('button', { name: /^Open your Spread pick\./ }).click();
+    const pick = sheet(page, 'Your Spread pick');
+    await expect(pick).toContainText('Line at your guess');
+    await nativeActionPairs(page, 'nfl-saved-pick', async () => { await phoneChecks(page); expect(await axe(page)).toEqual([]); });
+    const info = pick.getByRole('button', { name: /About.*guesses/ });
+    await info.click();
+    await nativeActionPairs(page, 'nfl-info-community-rules', async () => { await phoneChecks(page); expect(await axe(page)).toEqual([]); });
+    expect(world.errors).toEqual([]);
+  } finally { await page.unrouteAll({ behavior: 'wait' }); await page.close(); await world.db.close(); }
+});
+
 test('Research reveal warns before writing, keeps locked scores and drafts, then opens remaining guesses', async ({ page, baseURL }, testInfo) => {
   const { world } = await lukesWeek(page, baseURL, { forge: false, optionalRpc: true });
   const calls = apiCalls(page);
@@ -2110,6 +2197,7 @@ test('Research reveal warns before writing, keeps locked scores and drafts, then
     await nativeActionCaptures(page, 'nfl-reveal', async () => { await phoneChecks(page); expect(await axe(page)).toEqual([]); });
     await dialog.getByRole('button', { name: 'Confirm sit-out and reveal', exact: true }).click();
     const done = page.getByRole('alertdialog', { name: 'Week 6 reveal confirmed', exact: true }); await expect(done).toBeVisible();
+    await nativeActionCaptures(page, 'nfl-forfeit-done', async () => { await phoneChecks(page); expect(await axe(page)).toEqual([]); });
     await done.getByRole('button', { name: 'Back to Research', exact: true }).click();
     await expect(game.getByRole('button', { name: 'See picks now', exact: true })).toHaveCount(0);
     await expect(note).toHaveValue('Private unsaved fixture note');
@@ -2136,6 +2224,7 @@ test('Research reveal checks a lost write reply without automatically repeating 
     await openLines(page); await page.getByRole('button', { name: 'See picks now', exact: true }).click();
     const dialog = revealDialog(page); await dialog.getByRole('button', { name: 'Confirm sit-out and reveal', exact: true }).click();
     await expect(dialog).toContainText('Your sit-out is unconfirmed'); expect(writes).toBe(1);
+    await nativeActionCaptures(page, 'nfl-forfeit-unconfirmed', async () => { await phoneChecks(page); expect(await axe(page)).toEqual([]); });
     await expect(dialog.getByRole('button', { name: 'Confirm sit-out and reveal', exact: true })).toHaveCount(0);
     await dialog.getByRole('button', { name: 'Check sit-out status', exact: true }).click();
     await expect(page.getByRole('alertdialog', { name: 'Week 6 reveal confirmed', exact: true })).toBeVisible(); expect(writes).toBe(1);
@@ -2159,6 +2248,7 @@ test('Research reveal refuses mismatched fresh status and allows an explicit ret
     });
     wrong = true; await page.getByRole('button', { name: 'See picks now', exact: true }).click();
     const dialog = revealDialog(page); await expect(dialog).toContainText('reveal status is unavailable');
+    await nativeActionCaptures(page, 'nfl-forfeit-scope', async () => { await phoneChecks(page); expect(await axe(page)).toEqual([]); });
     await expect(dialog.getByRole('button', { name: 'Confirm sit-out and reveal', exact: true })).toHaveCount(0); expect(writes).toBe(0);
     wrong = false; await dialog.getByRole('button', { name: 'Check sit-out status', exact: true }).click();
     await dialog.getByRole('button', { name: 'Confirm sit-out and reveal', exact: true }).click();
@@ -2185,6 +2275,7 @@ test('Research reveal removes confirmation at the server deadline and stops read
     const calls = apiCalls(page); await page.getByRole('button', { name: 'See picks now', exact: true }).click();
     const dialog = revealDialog(page); await expect(dialog.getByRole('button', { name: 'Confirm sit-out and reveal', exact: true })).toBeVisible();
     await page.clock.runFor(6000); await expect(dialog).toContainText('The last kickoff passed');
+    await nativeActionCaptures(page, 'nfl-forfeit-expired', async () => { await phoneChecks(page); expect(await axe(page)).toEqual([]); });
     await expect(dialog.getByRole('button', { name: 'Confirm sit-out and reveal', exact: true })).toHaveCount(0);
     expect(calls.filter(call => call === 'POST /community/forfeit')).toEqual([]);
     await dialog.getByRole('button', { name: 'Keep playing', exact: true }).click();
@@ -2204,8 +2295,17 @@ test('Research reveal restores an uncertain attempt on reopen and checks before 
     await openLines(page); await page.getByRole('button', { name: 'See picks now', exact: true }).click();
     const dialog = revealDialog(page); await dialog.getByRole('button', { name: 'Confirm sit-out and reveal', exact: true }).click();
     await expect(dialog).toContainText('Your sit-out is unconfirmed');
-    page.once('dialog', prompt => prompt.accept()); await dialog.getByRole('button', { name: 'Keep playing', exact: true }).click();
+    await dialog.getByRole('button', { name: 'Keep playing', exact: true }).click();
+    const warning = page.getByRole('alertdialog', { name: 'Close unconfirmed sit-out?', exact: true });
+    await expect(warning.getByRole('button', { name: 'Keep checking', exact: true })).toBeFocused();
+    await nativeActionCaptures(page, 'nfl-forfeit-close-warning', async () => { await phoneChecks(page); expect(await axe(page)).toEqual([]); });
+    await page.keyboard.press('Escape');
+    await expect(dialog.getByRole('button', { name: 'Keep playing', exact: true })).toBeFocused();
+    expect(writes).toBe(1);
+    await dialog.getByRole('button', { name: 'Keep playing', exact: true }).click();
+    await warning.getByRole('button', { name: 'Close', exact: true }).click();
     await expect(dialog).not.toBeVisible();
+    expect(await page.evaluate(() => Object.keys(sessionStorage).filter(key => key.startsWith('gtl.next.forfeit.')))).toHaveLength(1);
     await page.getByRole('button', { name: 'See picks now', exact: true }).click();
     await expect(dialog).toContainText('No saved forfeit was found in the latest check'); expect(writes).toBe(1);
     expect((await world.db.query('select count(*)::int n from public.gtl_week_forfeits where user_id=$1', [ACCOUNTS.luke.id])).rows[0].n).toBe(0);

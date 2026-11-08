@@ -5,7 +5,7 @@
 // shown when League opened; a post a refresh brings rises in; once ready, the newest post counts as seen (useFeedSeen).
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useShell } from '../shell/context.js';
-import { Button, Card, LinkRow, Skeleton } from '../ui/index.js';
+import { Button, Card, Skeleton } from '../ui/index.js';
 import { plural } from '../format.js';
 import { LeagueFailure } from '../league/useLeagueRead.jsx';
 import { PREVIEW_POSTS, arrivalsAt, postArrivals } from '../league/leagueModel.js';
@@ -75,9 +75,9 @@ export function FeedView({ feed, app, leagueId = null, leagueName = 'Community',
 export function FeedPreview({ feed, app, leagueId = null, fresh = NONE, arrived = NONE, onOpen }) {
   const names = useNames(feed), items = feed.status === 'ready' ? foldPosts(feed.posts, app.accountId).slice(0, PREVIEW_POSTS) : [];
   return <section className="gx-vstack gx-gap-12 gx-feed" aria-label="Newest posts" data-league="preview">
-    <div className="gx-hstack gx-between gx-wrap gx-gap-8"><h3 className="gx-t-strong">Feed</h3>{fresh.size ? <span className="gx-t-meta gx-c-2">{plural(fresh.size, 'new post')}</span> : null}</div>
+    <div className="gx-hstack gx-between gx-wrap gx-gap-8"><h3 className="gx-t-section">Newest posts</h3>{fresh.size ? <span className="gx-t-meta gx-c-2">{plural(fresh.size, 'new post')}</span> : null}</div>
     {feed.status === 'loading' ? <Skeleton label="Loading the feed…" shape="rows" count={2}/> : null}
     <FeedItems items={items} names={names} viewer={app.accountId} now={feed.page?.now ?? null} leagueId={leagueId} fresh={fresh} arrived={arrived}/>
-    <LinkRow icon="message" onClick={onOpen}>Open the feed</LinkRow>
+    <Button variant="primary" block iconEnd="chevronRight" onClick={onOpen}>Open the feed</Button>
   </section>;
 }

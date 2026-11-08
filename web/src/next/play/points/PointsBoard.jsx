@@ -24,7 +24,7 @@ export function PointsBoardView({ app, read, initialBeat = false }) {
   const status = data.result?.status, mine = members.find(row => row.you);
   const { shown, more } = boardSlice(members, all);
   return <section className="gx-vstack gx-gap-12" aria-label="Points leaderboard">
-    <LeagueStanding mode="guess_points" row={mine ? { ...mine, points: mine.season } : null}/>
+    <LeagueStanding mode="guess_points" row={mine ? { ...mine, points: mine.season } : null} scope={app.league?.name || 'Community'} period="season" detail={`Week ${data.week} · ${pts(mine?.week)} points`}/>
     <h2 className="gx-t-section">Points standings</h2>
     <p className="gx-t-meta gx-c-2">Season ranking · Week {data.week}{status ? ` ${status}` : ''}. Points scores separately from Spread and Total.</p>
     <Card variant="flush" className="gx-l-board"><List label="Points season standings">

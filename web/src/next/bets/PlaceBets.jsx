@@ -74,7 +74,7 @@ export function PlaceBets({ onDirty }) {
       <span className="gx-grow gx-vstack"><span className="gx-t-strong">Slip · {entries.length} {entries.length === 1 ? 'bet' : 'bets'}</span><span className="gx-t-meta gx-c-2">{fmtU(units)} risked</span></span>
       <Button variant="primary" onClick={() => setReview(true)}>Review slip</Button>
     </div></Dock> : null}
-    {review && entries.length ? <Sheet className="gx-nfl-action" title="Your slip" onClose={() => { if (!busy) setReview(false); }} tall
+    {review && entries.length ? <Sheet className="gx-nfl-action" bodyTabIndex={0} title="Your slip" onClose={() => { if (!busy) setReview(false); }} tall
       footer={<div className="gx-vstack gx-gap-8">
         {failure ? <p className="gx-t-body gx-c-loss" role="alert">{failure}</p> : null}
         <Button variant="primary" block onClick={place} disabled={busy}>{busy ? 'Saving…' : uncertain ? 'Retry the same save' : `Place ${entries.length} ${entries.length === 1 ? 'bet' : 'bets'} · ${fmtU(units)}`}</Button>

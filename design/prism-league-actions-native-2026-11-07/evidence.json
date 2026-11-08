@@ -1,12 +1,46 @@
 {
-  "kind": "native-league-and-nfl-action-composition-evidence",
-  "capturedAt": "2026-11-08T00:36:30.163617+00:00",
-  "implementationBase": "35ae5fc6c7dfa9d87ff22a3797b11c369a409590",
-  "branch": "codex/prism-league-actions-20261107",
+  "kind": "native-league-action-review-fix-evidence",
+  "capturedAt": "2026-11-08T01:07:28.945Z",
+  "branch": "codex/league-action-fidelity-fixes-2026-11-07",
+  "implementationBase": "be6bc29e3978917be78e409896ca4f5ea5a3b531",
+  "dependency": "4983138495f3d62268f3f1cfa39b21b477981297",
+  "originalDependency": "194ba410db4847594324243141fd1b6b09c10f3b",
   "authorityCommit": "3ac2eb50513ba73447ef890e4a47863cde7bdd76",
-  "dataBoundary": "Fictional local PGlite fixtures and real native handlers only. No hosted account or production data.",
-  "comparison": "Reference hierarchy/material comparison using different fixture records and native viewport dimensions; no pixel-equality or blanket106-state acceptance claim.",
+  "dataBoundary": "Fictional local PGlite records and explicit test-only authenticated response intercepts. Actual native controllers/handlers; no hosted accounts or production fixtures.",
+  "comparison": "Source hierarchy reconciliation and scoped native capture review. Different fictional data, native minimum readable text/44px targets and current app routes. No pixel-equivalence or all-106 acceptance claim.",
   "sourceHashes": [
+    {
+      "file": "design/tokens-next.json",
+      "sha256": "bae7ded575184f8e1a95cb4f37123b23327461348c4140727ff43015ddce7577"
+    },
+    {
+      "file": "tests/cloud-browser/next-lines.spec.js",
+      "sha256": "caf63f8b24e7b1e539009ffc2ad851fde61f4a3a5a48846f84bb22306361fbef"
+    },
+    {
+      "file": "tests/cloud-browser/next-prism-action-states.spec.js",
+      "sha256": "895eeb3d0e3107e75129bc891b5a978195a546acf5309302fcb935b943358b24"
+    },
+    {
+      "file": "tests/cloud-browser/next-prism-league-actions.spec.js",
+      "sha256": "2fa0e6250d2c314075a619b646e418327ae6cc83a7d399e61ce8d7147fc5ab9d"
+    },
+    {
+      "file": "tests/helpers/native-action-captures.mjs",
+      "sha256": "9907851da3c4f0e877f07b0741cbd423613b48400488e621cf554fa444429de9"
+    },
+    {
+      "file": "tests/helpers/native-action-theme.mjs",
+      "sha256": "aed4cc693435060cad450f6a1e316ad79d9dc08b7ca9bf23335e24aaa37803f2"
+    },
+    {
+      "file": "tests/next-prism-league-actions.test.jsx",
+      "sha256": "cac63f36132d9458f673269522f325164dfc1380daae5ee7b40991ab2e1aa80e"
+    },
+    {
+      "file": "web/src/Theme.jsx",
+      "sha256": "1159e29802bb52ae43e8e4a9aa9a8274019ed92f09c6bc7280a7425d15354edb"
+    },
     {
       "file": "web/src/next/bets/EveryoneBets.jsx",
       "sha256": "2e87a9ff1a5871f283a8e191ade1d4d1ccd4fd8b0592021ff778d0df9113474e"
@@ -17,7 +51,11 @@
     },
     {
       "file": "web/src/next/bets/PlaceBets.jsx",
-      "sha256": "34211a81dc8db5ba064d92c3650ccf8efa77dae6456da4cf4d3c838b9e12c82c"
+      "sha256": "c48695233455f739362374348c4f80a49d84e7707b50a0039878bbaa4ea3bb7c"
+    },
+    {
+      "file": "web/src/next/bets/everyone.css",
+      "sha256": "69b96565bba9ba239d73d37fa7430098f0116e7650305c04853268fe06b852f1"
     },
     {
       "file": "web/src/next/feed/CommentsSheet.jsx",
@@ -26,6 +64,10 @@
     {
       "file": "web/src/next/feed/DigestCard.jsx",
       "sha256": "25cc243ceba2700c6f3baf04536580139e5359c02b016a6f642b660cb2da1e46"
+    },
+    {
+      "file": "web/src/next/feed/Feed.jsx",
+      "sha256": "5ecce0c7dd8e7e92fd1d59c8f368a501946daa4df65d89757674e9d07346e58b"
     },
     {
       "file": "web/src/next/feed/PicksSheet.jsx",
@@ -45,15 +87,19 @@
     },
     {
       "file": "web/src/next/league/LeagueBoard.jsx",
-      "sha256": "d8a91409e07e970ccabce76adbafcc284ab29c27323f05d4c85871a5c4b9617b"
+      "sha256": "fb2a9d5f400245ee98fad22a42c247600691aca9e9def0a0a51c81ce0302e904"
+    },
+    {
+      "file": "web/src/next/league/LeagueScreen.jsx",
+      "sha256": "e7f67d61d1cca9916cff612ea89caad646c6529738a1a297d6bb0cced7d4805c"
     },
     {
       "file": "web/src/next/league/LeagueStanding.jsx",
-      "sha256": "3eb28b8351256d93cd3a0fa5f9f25c7e4865812710681c0581b6d6c536c7c1e2"
+      "sha256": "68911c1c115d28e19e69dd83789b36a0de2bf203e0e866f37d094de7337725c7"
     },
     {
       "file": "web/src/next/league/league.css",
-      "sha256": "7eccd39fd3003a1b793e6481bdafca3b73a12e90742571001b6ccbaa1f3ac8e8"
+      "sha256": "146e5966c554d317a1e11ac4b2bfa350751509df569987ca5da0076fc65364d7"
     },
     {
       "file": "web/src/next/lines/YourPickSheet.jsx",
@@ -61,15 +107,19 @@
     },
     {
       "file": "web/src/next/nfl-actions.css",
-      "sha256": "0b8bbc01163562fae531c58a577807960e59e086285873597349c522314273cb"
+      "sha256": "ecce67bc588c7312d17ce84bbe32536d7d874c7b32af96f6fb2d9c222db683b3"
     },
     {
       "file": "web/src/next/play/ForfeitDialog.jsx",
-      "sha256": "5a0741d3c71df1cbcace2d2118d5a9f0e33535f9c530d6717d173d912353ee42"
+      "sha256": "111989ab314fb246dcc79d8ed8b96c4db3059ef5a694861337c9295559c79eca"
     },
     {
       "file": "web/src/next/play/points/PointsBoard.jsx",
-      "sha256": "34f4a190a1dd542402250c38cbfb72fdd04388e01ac4095fc556f0f9d917f043"
+      "sha256": "135a56655370e1ec9a53961dc4bea40dcaf0f7b10bca9e9551edd46a8e0764ff"
+    },
+    {
+      "file": "web/src/next/styles/tokens.css",
+      "sha256": "ce7f9bee525d1893382bdb5c43f4210e66203d9a5340cf2206af67fd281cc978"
     },
     {
       "file": "web/src/next/ui/Sheet.jsx",
@@ -77,10 +127,6 @@
     }
   ],
   "referenceHashes": [
-    {
-      "file": "selected-system-review.json",
-      "sha256": "cb235f3e396944f083c9cea87cc60c9d67bafac390b317ccd63e6665537dd236"
-    },
     {
       "file": "populated-league.jsx",
       "sha256": "7782efb82be4393607b79c99f479d1c267ead46d43095bb416c4e914843d7c9f"
@@ -90,446 +136,2916 @@
       "sha256": "bf313b763c1cc48f74f9894bc3f8db3a49e49b2172aee9dec420865093cf8860"
     },
     {
+      "file": "populated-nfl-actions.jsx",
+      "sha256": "6eb38392f0d2d2929e92f8a36a79c1c96a477cc15587f5523aa99e2a6f680b10"
+    },
+    {
       "file": "populated-nfl-actions.css",
       "sha256": "0f4d7d155860d80e6437684814f0e519b9b09fa564e04d6fdcaefd76ae5aaa6d"
+    },
+    {
+      "file": "isolated-nfl-actions.jsx",
+      "sha256": "6cd7dfd84e8148446d594b47955b215d17faa793dfe7d7e2153ee21e88617555"
     },
     {
       "file": "NFL_ACTIONS_NAVIGATION_REVIEW.md",
       "sha256": "9fb9610f7e7f618b5816d9c3caea9de56bab04cf343d715d4161e501a8c5eadd"
     },
     {
-      "file": "previews/league-spread-board-dark-phone.png",
-      "sha256": "5ab2e62bfc208be6f7f369c03d5abde74c39d8932390da99ee26e56d9b756a54"
-    },
-    {
-      "file": "previews/league-spread-board-light-phone.png",
-      "sha256": "39f9c6c462289f78996aabc2a9f284c1eca2724d0eb7967be0dc6f39a5bcb3fb"
-    },
-    {
-      "file": "previews/league-total-board-dark-phone.png",
-      "sha256": "9fbd40cb015a97a92a1ac68f98b6f22330c4749975772bc8e77913fe73c80a73"
-    },
-    {
-      "file": "previews/league-total-board-light-phone.png",
-      "sha256": "4057544ed3022a9c14099b23df5f0bc7eaabb6464c02d741799f5ffa411fba50"
-    },
-    {
-      "file": "previews/league-points-board-dark-phone.png",
-      "sha256": "501c7708ae592c4f06a9b22cfca4f0e9f656fea26c4434c1df9c9070736e5b57"
-    },
-    {
-      "file": "previews/league-points-board-light-phone.png",
-      "sha256": "61ab6cb9415e5ec05472bfdf7ec0a398496031f7ccc1781eacf574156e5f05f5"
-    },
-    {
-      "file": "previews/league-feed-dark-phone.png",
-      "sha256": "b3f326dcc2100ceb69c74438cdae4c5cba5ff6047ca09572fb1256b1cb39011d"
-    },
-    {
-      "file": "previews/league-feed-light-phone.png",
-      "sha256": "f407bdcd5f29cc6f310c8c19862ef1fa257e36d49c8099f64e486d817afec2ce"
-    },
-    {
-      "file": "previews/league-comments-dark-phone.png",
-      "sha256": "0c4b4723240c4333b3d17971fc379f378b48474c1dd0afb86f1afd85e298c48c"
-    },
-    {
-      "file": "previews/league-comments-light-phone.png",
-      "sha256": "ff89e9487df0745af501c9796277ea4fa8a6766e252f1af6f1fd21e55f0fa4bb"
-    },
-    {
-      "file": "previews/nfl-actions-saved-total-dark-phone.png",
-      "sha256": "26b951ceb986c0e0421d29831f3aa45e78562c8ff46e5541c17b3c663de3502a"
-    },
-    {
-      "file": "previews/nfl-actions-saved-total-light-phone.png",
-      "sha256": "6d1a97c41a25d5d81026d9b8e4c1bdd4848060a3a5d6a8f1073a751678a3da06"
-    },
-    {
-      "file": "previews/nfl-actions-game-bets-dark-phone.png",
-      "sha256": "52e5cd7c8862c7a4343f3e41bae6070617eeb7ac0a460ac438fa450f6129c476"
-    },
-    {
-      "file": "previews/nfl-actions-game-bets-light-phone.png",
-      "sha256": "5cfeaeb28a2f4790fd2b4b135739ef8564f3232e7b583bc6419149d9a9848e16"
-    },
-    {
-      "file": "previews/nfl-actions-forfeit-ready-dark-phone.png",
-      "sha256": "dcfd5ec91642bec7d3b484151127e268f482911471b5baa0b3e26370d7edc92b"
-    },
-    {
-      "file": "previews/nfl-actions-forfeit-ready-light-phone.png",
-      "sha256": "cc8aac2938975787f57b435af215d3c028ee6258940aafc2b19cf65def54751d"
-    },
-    {
-      "file": "previews/nfl-actions-reactors-dark-phone.png",
-      "sha256": "2a92d273fbf20bb643789c3302aa43e61756bb800c3cd39956edb0bd961ba104"
-    },
-    {
-      "file": "previews/nfl-actions-reactors-light-phone.png",
-      "sha256": "3da2a0185838b5f093fe5b0914939fda964eeb1ddc4d0888a8fed3ae44c80921"
+      "file": "selected-system-review.json",
+      "sha256": "cb235f3e396944f083c9cea87cc60c9d67bafac390b317ccd63e6665537dd236"
     }
   ],
-  "nativeCaptures": [
+  "captures": [
     {
-      "file": "league-board-dark-320.png",
+      "file": "design/prism-league-actions-native-2026-11-07/league-board-dark-320.png",
+      "sha256": "cfdefc72371d04f4c72cf6b328cf535dfa39a55c28ea9ab0fb6c19df0181c6e1",
+      "bytes": 370459,
+      "origin": "Regenerated on review-fix source",
       "width": 320,
-      "height": 2989,
-      "sha256": "45534f8f9f33087ed8226f271dbba6a61937c1db29d034994dc93d7da57bdc0a"
+      "height": 3047,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "league-board-dark-390.png",
+      "file": "design/prism-league-actions-native-2026-11-07/league-board-dark-390.png",
+      "sha256": "4221a1ce69e493ca5df0a203a464901ac3fb6101e06c82923b1d0983e6e2d20b",
+      "bytes": 375824,
+      "origin": "Regenerated on review-fix source",
       "width": 390,
-      "height": 2664,
-      "sha256": "00262364feeba3b634f581987ad033a6b248e742be06ce4f9435bf6cbceb8b94"
+      "height": 2678,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "league-board-forced-320.png",
+      "file": "design/prism-league-actions-native-2026-11-07/league-board-forced-320.png",
+      "sha256": "4f57330ae7968c5127ffe8a4536cb341549f6990736ee75e08ee53afbb6dd5ac",
+      "bytes": 154920,
+      "origin": "Regenerated on review-fix source",
       "width": 320,
-      "height": 2991,
-      "sha256": "6f4b484e234de0bdbfda6e469e1b2262aec49d9caa19966be50088f7996611ab"
+      "height": 3049,
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "league-board-light-320.png",
+      "file": "design/prism-league-actions-native-2026-11-07/league-board-light-320.png",
+      "sha256": "5ffc0bf27e2e0f4f583f8e0b524064f9b52a82dcc4f07c356c6fd60dea3565e9",
+      "bytes": 398460,
+      "origin": "Regenerated on review-fix source",
       "width": 320,
-      "height": 2989,
-      "sha256": "7b2bc16d5eb9a5c9e830b74b634efecba8b0515650b262bf67876e7afd13714b"
+      "height": 3047,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "league-board-light-390.png",
+      "file": "design/prism-league-actions-native-2026-11-07/league-board-light-390.png",
+      "sha256": "28b696329e6967ebe4bb9123e06e4716e807777b582c7bfc011c829c1d3ab869",
+      "bytes": 408314,
+      "origin": "Regenerated on review-fix source",
       "width": 390,
-      "height": 2664,
-      "sha256": "5923cdc946925454d70c406f8f67722e6db5cf8f1e9a2e630b016a1a8a7638bc"
+      "height": 2678,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "league-comments-dark-320-scrolled.png",
+      "file": "design/prism-league-actions-native-2026-11-07/league-comments-dark-320-scrolled.png",
+      "sha256": "cce97f478fd69fb63cd7611323e97333e9585aa1095c7ac92d6d06531afc3da5",
+      "bytes": 101079,
+      "origin": "Regenerated on review-fix source",
       "width": 320,
       "height": 844,
-      "sha256": "3db52de02809cc506047ba194a97c66a6bbe3b939ca87a396faee80365e7f937"
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "league-comments-dark-320.png",
+      "file": "design/prism-league-actions-native-2026-11-07/league-comments-dark-320.png",
+      "sha256": "60721fedd6aac189d5111790e1d7340d82f45f6cbf383be4f3b8a5d4a43b7c8f",
+      "bytes": 417565,
+      "origin": "Regenerated on review-fix source",
       "width": 320,
       "height": 3283,
-      "sha256": "7b848d28bbddcd827ce8d06729506534f85b1ecc62f76b2aede534daf53664ea"
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "league-comments-dark-390-scrolled.png",
+      "file": "design/prism-league-actions-native-2026-11-07/league-comments-dark-390-scrolled.png",
+      "sha256": "a83d13ed97da8fb20787d31a647cd0217a329f438ecd46f4f6a6b77a6e4c1ae4",
+      "bytes": 116575,
+      "origin": "Regenerated on review-fix source",
       "width": 390,
       "height": 844,
-      "sha256": "ce0f37fb2afd52a861061212f1924a8933d60c8dd3f6a678134ae081df1ec3ea"
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "league-comments-dark-390.png",
+      "file": "design/prism-league-actions-native-2026-11-07/league-comments-dark-390.png",
+      "sha256": "519e371ece7a1b305b7aa125a64399d2d130766398a6ae291f75aecaae85d4b1",
+      "bytes": 422397,
+      "origin": "Regenerated on review-fix source",
       "width": 390,
       "height": 2959,
-      "sha256": "7d7da8024bba7c5fb45f2f6a82dcfec8c53c4137f83fe169375f8a07b011a18c"
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "league-comments-forced-320-scrolled.png",
+      "file": "design/prism-league-actions-native-2026-11-07/league-comments-forced-320-scrolled.png",
+      "sha256": "5b42df028e254ed155b6adc15264e0813afbdb74b6b4f52eb1541c07f4aa7d92",
+      "bytes": 50823,
+      "origin": "Regenerated on review-fix source",
       "width": 320,
       "height": 844,
-      "sha256": "938627848c989b7e47ae7c414673b3d61460ceea29c0727d1c7336b8383a804b"
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "league-comments-forced-320.png",
+      "file": "design/prism-league-actions-native-2026-11-07/league-comments-forced-320.png",
+      "sha256": "bdbed2167c3d00967f28643ba44a1a896f1f8615d80fe59577352d6ab344b16b",
+      "bytes": 172199,
+      "origin": "Regenerated on review-fix source",
       "width": 320,
       "height": 3283,
-      "sha256": "98dabbbe0dc38cb27995523374d97b58ca490eef09cad6d795b605ca2109d4a0"
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "league-comments-light-320-scrolled.png",
+      "file": "design/prism-league-actions-native-2026-11-07/league-comments-light-320-scrolled.png",
+      "sha256": "8bf8433a695f8ddd5392e6ef00190e0558d4eb6f6d5e8db6cc790ca8a55e9427",
+      "bytes": 104538,
+      "origin": "Regenerated on review-fix source",
       "width": 320,
       "height": 844,
-      "sha256": "6b2fe4a9bc89995f9999799a041f49076c6a58eb81716981b957feca8ddf641d"
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "league-comments-light-320.png",
+      "file": "design/prism-league-actions-native-2026-11-07/league-comments-light-320.png",
+      "sha256": "3731dc590cada1b96b643f14a5f236e24bfa763d62b2f606acbaf10b83a72cfb",
+      "bytes": 452973,
+      "origin": "Regenerated on review-fix source",
       "width": 320,
       "height": 3283,
-      "sha256": "f7c66dd13988bafa35bb3e64d6838d76f1092ccab68fcdc816275364b939ddae"
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "league-comments-light-390-scrolled.png",
+      "file": "design/prism-league-actions-native-2026-11-07/league-comments-light-390-scrolled.png",
+      "sha256": "3b4c4e130db10d81b78e120af0c8357be5d88118ae6fe955dcfb3932186471f9",
+      "bytes": 121907,
+      "origin": "Regenerated on review-fix source",
       "width": 390,
       "height": 844,
-      "sha256": "8d652247ef2cd0fe3a8c61a7a688462d3213c646c7567c6e46fbc2f9b678bae1"
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "league-comments-light-390.png",
+      "file": "design/prism-league-actions-native-2026-11-07/league-comments-light-390.png",
+      "sha256": "ce33a08332d0dfd6995c6bbd8c7e562d80c153eb42acfb7d02e753cdee3cff8e",
+      "bytes": 461453,
+      "origin": "Regenerated on review-fix source",
       "width": 390,
       "height": 2959,
-      "sha256": "0ce3b17b50d59e70a0269f2ef7f8c22c8883178612e048707d27b74779128cef"
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "league-feed-dark-320.png",
+      "file": "design/prism-league-actions-native-2026-11-07/league-feed-dark-320.png",
+      "sha256": "f6e46a9648a46917852950f4044f860f8caaebcc595b4b0b07411f0fbeb72d25",
+      "bytes": 401202,
+      "origin": "Regenerated on review-fix source",
       "width": 320,
       "height": 3283,
-      "sha256": "a44636c89b0bdfb94592f2bc2ac172cf86b7a788b9b1bc6079bd3db667e3af20"
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "league-feed-dark-390.png",
+      "file": "design/prism-league-actions-native-2026-11-07/league-feed-dark-390.png",
+      "sha256": "922110759e4c55757aa3c52209ec5af9f60b8b8ff4c36c25ec0480544315dad9",
+      "bytes": 406592,
+      "origin": "Regenerated on review-fix source",
       "width": 390,
       "height": 2959,
-      "sha256": "2de289496984dd699d18a7fdd415c0679d60b83b2b00285e5d15340ded71665d"
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "league-feed-forced-320.png",
+      "file": "design/prism-league-actions-native-2026-11-07/league-feed-forced-320.png",
+      "sha256": "6e8189f65228fe442ac32e741d6ace4b93532514c711cfd0a0c534d3321afb75",
+      "bytes": 158764,
+      "origin": "Regenerated on review-fix source",
       "width": 320,
       "height": 3283,
-      "sha256": "88ebb80c64a6008b51c15e824be0215219a4f2e0d650fbdc41e533e80f026311"
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "league-feed-light-320.png",
+      "file": "design/prism-league-actions-native-2026-11-07/league-feed-light-320.png",
+      "sha256": "a75d947bc74f489065ac9ea9f41589f565a0ee4f99610952b5f1586f98e4cfc0",
+      "bytes": 438819,
+      "origin": "Regenerated on review-fix source",
       "width": 320,
       "height": 3283,
-      "sha256": "63e12381456c54ad3e64f0362bdb2cebf43edfd3cb41fb23f1d37aad6a3088cc"
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "league-feed-light-390.png",
+      "file": "design/prism-league-actions-native-2026-11-07/league-feed-light-390.png",
+      "sha256": "3ffb89ade6de2e5bd271a0599be8d505d004fa0b5e25da639ed3f12051204a58",
+      "bytes": 445067,
+      "origin": "Regenerated on review-fix source",
       "width": 390,
       "height": 2959,
-      "sha256": "7bdf0e28dc23fce1310a1affaf427e6439b59a12791e37f422c98b664f2f1a41"
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "league-points-dark-320.png",
+      "file": "design/prism-league-actions-native-2026-11-07/league-folded-digest-dark-320.png",
+      "sha256": "0541e6620570dd75d50efa087d70ecab38a37cd808f6161a784d29b3c4542317",
+      "bytes": 172773,
+      "origin": "New review-fix image",
       "width": 320,
-      "height": 3121,
-      "sha256": "03eb7e0e3616e05339ba5a4e9461905326242ff6f2e6a83d26c96dc6ed3bccee"
+      "height": 1304,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "league-points-dark-390.png",
-      "width": 390,
-      "height": 2773,
-      "sha256": "59757eda591bd69f9f5cfead3ba2a7f4d07704b04ba78416269ed5e9909b9605"
-    },
-    {
-      "file": "league-points-light-320.png",
+      "file": "design/prism-league-actions-native-2026-11-07/league-folded-digest-light-320.png",
+      "sha256": "5b2bb0d54fa511e45688c75ae28d8eecc4d0cd30d9ef1091fa3d7a9207c59a83",
+      "bytes": 181389,
+      "origin": "New review-fix image",
       "width": 320,
-      "height": 3121,
-      "sha256": "a12f53277651a8d8e5c1c5fa47ce100328e45eb24b864db3f3903977521ded33"
+      "height": 1304,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "league-points-light-390.png",
-      "width": 390,
-      "height": 2773,
-      "sha256": "f9ae2e5f8671a916a26abfdb6414ab64fbd1e5616019a0c3291427104ad5f2d2"
-    },
-    {
-      "file": "league-total-dark-320.png",
+      "file": "design/prism-league-actions-native-2026-11-07/league-hidden-posts-dark-320.png",
+      "sha256": "01f8a2efa15ae84709620ff446096864e3ba6cc931deb46f9cee9aa4a2b3a6c8",
+      "bytes": 244978,
+      "origin": "New review-fix image",
       "width": 320,
-      "height": 2957,
-      "sha256": "b811260c6721a36e6a5cc324b888ec419c0bd244935f5b5b8eeaf284104fae1e"
+      "height": 2028,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "league-total-dark-390.png",
-      "width": 390,
-      "height": 2632,
-      "sha256": "de01a4023036e0a136d13cda4200f40975d207b0b5347f3c2d92693d4f29e3d3"
-    },
-    {
-      "file": "league-total-light-320.png",
+      "file": "design/prism-league-actions-native-2026-11-07/league-hidden-posts-light-320.png",
+      "sha256": "7ae7386f374a7fac878b5636ec64d5d1f5cde45e032537664b5a81baf8e99600",
+      "bytes": 259072,
+      "origin": "New review-fix image",
       "width": 320,
-      "height": 2957,
-      "sha256": "e1169ed72188f60fe6bb263643635409795856d3f7990bec38a0c5838920d780"
+      "height": 2028,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "league-total-light-390.png",
+      "file": "design/prism-league-actions-native-2026-11-07/league-large-board-dark-320.png",
+      "sha256": "e52ff18cecd9cd5d1386c5e5292e8254934870d259710d6f12104f85a91b1ce6",
+      "bytes": 260553,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 2080,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/league-large-board-dark-390.png",
+      "sha256": "e1f7bd280326ab1a4b965abb635473d9d6a59fa5da148d518bea08b60790432e",
+      "bytes": 278212,
+      "origin": "New review-fix image",
       "width": 390,
-      "height": 2632,
-      "sha256": "2ddbffd0b7976cfabc1bde7860525ba429abbbc11b64288c24a2605e0b580c63"
+      "height": 1989,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "nfl-game-bets-dark-320.png",
+      "file": "design/prism-league-actions-native-2026-11-07/league-large-board-light-320.png",
+      "sha256": "439aaf4936cbf3c7888baa0a26312b2733e492bac3efeac7fafa3675da360016",
+      "bytes": 280888,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 2080,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/league-large-board-light-390.png",
+      "sha256": "bb1eee29428a9a499a548d6cba5b65aabc30794d4d013325cd057e870d7d1c76",
+      "bytes": 306521,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 1989,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/league-large-expanded-dark-320.png",
+      "sha256": "55f149207cf1e64527b594606b1db9af6eac614aff608255aa9d7c2f5ef241fd",
+      "bytes": 273105,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 2226,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/league-large-expanded-light-320.png",
+      "sha256": "2c21280795da9b74a7aec8cf63c4447ab7c4596a7ecd1e2138ef45bcd344e57e",
+      "bytes": 293335,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 2226,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/league-points-dark-320.png",
+      "sha256": "a1d27aca0a6da4dfa903c9210729819ddf7c7dcb308f70cead9a669395f2f378",
+      "bytes": 399370,
+      "origin": "Regenerated on review-fix source",
+      "width": 320,
+      "height": 3117,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/league-points-dark-390.png",
+      "sha256": "6002998dae911ef4aa2dd4bc589d5794f0bc8e488c3391e5188a6fd96070fd3c",
+      "bytes": 405985,
+      "origin": "Regenerated on review-fix source",
+      "width": 390,
+      "height": 2769,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/league-points-light-320.png",
+      "sha256": "d260dbbfa07fce2f99f85a7ae53e3edb5d708e5884909a57aeeaa7325a0ed2d3",
+      "bytes": 428646,
+      "origin": "Regenerated on review-fix source",
+      "width": 320,
+      "height": 3117,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/league-points-light-390.png",
+      "sha256": "f102fd5afb8e82540d9d342e127e445b3e3c30dd326b7317b79aa3474bdfa05c",
+      "bytes": 439022,
+      "origin": "Regenerated on review-fix source",
+      "width": 390,
+      "height": 2769,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/league-private-week-dark-320.png",
+      "sha256": "51cab30ee195719fec8430c2eb5f46e74d7ef2eab00b4b032a0122522c73d4a7",
+      "bytes": 223675,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 1745,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/league-private-week-dark-390.png",
+      "sha256": "1635ac5a32811c21b156db1cabf77cff9b0f21e000cc78cddcdf47280a0c0836",
+      "bytes": 241184,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 1653,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/league-private-week-light-320.png",
+      "sha256": "765eee8a76af43de22f478935d3b95d7c8e1224458dd794f5f3a645436719ec5",
+      "bytes": 234547,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 1745,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/league-private-week-light-390.png",
+      "sha256": "62aff104b2b2bedeb20d0245c2251f8705e817041df2c12eac2ffccf81313b81",
+      "bytes": 255313,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 1653,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/league-total-dark-320.png",
+      "sha256": "1ff1c399ee0a29a8e5fb36119fa67997453e552ca8dec6b0591f6343c57bdfca",
+      "bytes": 363387,
+      "origin": "Regenerated on review-fix source",
+      "width": 320,
+      "height": 2997,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/league-total-dark-390.png",
+      "sha256": "874b765f29d17e3b593004e78f419650d4cc391512891cce41bb7bd303163784",
+      "bytes": 373466,
+      "origin": "Regenerated on review-fix source",
+      "width": 390,
+      "height": 2646,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/league-total-light-320.png",
+      "sha256": "74e18426976bd469534fb6517d54f404511196959532a639ea926fd98de13053",
+      "bytes": 390059,
+      "origin": "Regenerated on review-fix source",
+      "width": 320,
+      "height": 2997,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/league-total-light-390.png",
+      "sha256": "cb83d894cc04c86ba159ecfb0398dc18c7374618259e5a33ed530a8b2327fdb7",
+      "bytes": 404191,
+      "origin": "Regenerated on review-fix source",
+      "width": 390,
+      "height": 2646,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-feed-hidden-dark-390.png",
+      "sha256": "27fc62f056df3a2fc14eae7d20ae9524f096a948af3ef8b22010d9cf52e3d7e7",
+      "bytes": 87807,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-feed-hidden-light-390.png",
+      "sha256": "54fe3509d393ca4ea4b38e5ef7a3ea4c4841def449c87ab36e4f13ed9d71b0f1",
+      "bytes": 84556,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-feed-picks-dark-390.png",
+      "sha256": "232e7634e59e90c3ba9f05c6247fdc0672ed40fe3eab0471c54d7948a2e25690",
+      "bytes": 81680,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-feed-picks-empty-dark-390.png",
+      "sha256": "e9c3e06c33662e0d8453d336a198eed356ae2d1176f0c716296f976af842379d",
+      "bytes": 65560,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-feed-picks-empty-light-390.png",
+      "sha256": "979fe5bc466b41a6eed5ab799bdd23d0563c1dce7ee173eed1d3132064d6bcb2",
+      "bytes": 78253,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-feed-picks-failed-dark-390.png",
+      "sha256": "6b4cfa2e6e2963e630042254544086bf4917fb28924a3837de6507b53fc82b3a",
+      "bytes": 66400,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-feed-picks-failed-light-390.png",
+      "sha256": "b612e5029f1391bfb92f5e55962c796f5091bceff06a055e842d00f18d3314b2",
+      "bytes": 79718,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-feed-picks-light-390.png",
+      "sha256": "af72fee42d8056074e8167091e3e7e85905986d270cc1ddfdc73d2bd62cce576",
+      "bytes": 79544,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-feed-picks-loading-dark-390.png",
+      "sha256": "994211dda5b75fcd7b890418e85a3351ba27f12dc5ca20260dbb2bbb053193db",
+      "bytes": 57933,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-feed-picks-loading-light-390.png",
+      "sha256": "76af88ccbd8f25c156e9575d610f8261be2e40746950a6aeebb6eb973b3b103b",
+      "bytes": 65291,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-feed-share-uncertain-dark-390.png",
+      "sha256": "6919da390b49bae1b0bc2f619e07533207359719ba87d51e9b9084e31386afd4",
+      "bytes": 88816,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-feed-share-uncertain-light-390.png",
+      "sha256": "6cacfd87f835a41390fcbe9dc5d1ac63487f6e811abd54a70d363378891b5034",
+      "bytes": 83446,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-busy-dark-390.png",
+      "sha256": "4016f3d5780f0074ad81320b1ed8c44c439cadaea3ea3f49362cda12f689f7f7",
+      "bytes": 75760,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-busy-light-390.png",
+      "sha256": "173d91740d19a17d0b97284e71460687010266672309c299dacf4be22001f191",
+      "bytes": 92862,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-close-warning-dark-320.png",
+      "sha256": "d9bf5733d0d46dfbebef983278ce6205c1398f3ea49a3448813cba06092abb06",
+      "bytes": 64832,
+      "origin": "New review-fix image",
       "width": 320,
       "height": 844,
-      "sha256": "0f9085abab049e2f617cc77be478f2355da07a75314dfab252244096d29f6923"
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "nfl-game-bets-dark-390.png",
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-close-warning-dark-390.png",
+      "sha256": "9f3b948d7cc6fc8dce7f51acf3b9f6cd096426ddb316ae50043562c42c09e3d6",
+      "bytes": 71209,
+      "origin": "New review-fix image",
       "width": 390,
       "height": 844,
-      "sha256": "ee68698f4f6bacba9bb278d6da4c2c59d5e5e70f9c84546a2fc15346d7afe19b"
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "nfl-game-bets-forced-320.png",
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-close-warning-forced-320.png",
+      "sha256": "4eddfafc4b3a90528abb53eea23443f25f61bf05ba70d32b49a34a1b05a3bdc3",
+      "bytes": 43344,
+      "origin": "New review-fix image",
       "width": 320,
       "height": 844,
-      "sha256": "2ca9411f16a8d74c250353ea04aa3b126afa2e37e45d8466457cb23772a31592"
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "nfl-game-bets-light-320.png",
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-close-warning-light-320.png",
+      "sha256": "20f0c26e1024a44be19b7b1089bf517a603663f6d34bf6539d60c6177edf8071",
+      "bytes": 80095,
+      "origin": "New review-fix image",
       "width": 320,
       "height": 844,
-      "sha256": "c4f9b93bcff8cfa9acce3f7790801e24412953ae0b293d7aadc82cd07a100408"
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "nfl-game-bets-light-390.png",
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-close-warning-light-390.png",
+      "sha256": "d7abe699600ce69a61f6dc3fe90dce87daeca983397a900abf57bc3eb24d7742",
+      "bytes": 90431,
+      "origin": "New review-fix image",
       "width": 390,
       "height": 844,
-      "sha256": "1da4d24e37f1f24d64d5588ca031869c8086ecb149c9931fb93a99df3bb694d1"
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "nfl-reactions-picker-dark-390.png",
-      "width": 390,
-      "height": 844,
-      "sha256": "037ac119fc8884d0237f59178ec0990fdde026177aeb4a9fe6c3e94788a15f80"
-    },
-    {
-      "file": "nfl-reactions-picker-light-390.png",
-      "width": 390,
-      "height": 844,
-      "sha256": "515840fe8d895fdb28eadb7c26bd5e071a4f242ea15b426c0504e14e3496e66e"
-    },
-    {
-      "file": "nfl-reactors-dark-390.png",
-      "width": 390,
-      "height": 844,
-      "sha256": "4692f6a1c254eec24d0f547db8563b41eaa25692baa14c2c52f8a341ffbf0498"
-    },
-    {
-      "file": "nfl-reactors-light-390.png",
-      "width": 390,
-      "height": 844,
-      "sha256": "cdcaff92e92a6a52dbf3ddb0c8060a0054c80749ee26c713cec1e81401ad5511"
-    },
-    {
-      "file": "nfl-reveal-dark-320.png",
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-done-dark-320.png",
+      "sha256": "bc5cfaafb2bbdbee99a10be5d506b27d37c463c252ce2f73039a51728e73210a",
+      "bytes": 65555,
+      "origin": "New review-fix image",
       "width": 320,
       "height": 844,
-      "sha256": "f9de687e60e4fc4598aeafe98af58751971b754462091655610d621849c04a5a"
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "nfl-reveal-dark-390.png",
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-done-dark-390.png",
+      "sha256": "b2748c865d76911ebff48cd4de4ad24ec1464c3d7589fb7cdb94cc82d85c7580",
+      "bytes": 73940,
+      "origin": "New review-fix image",
       "width": 390,
       "height": 844,
-      "sha256": "15354ba9baa592b7a3d01430fef32fd77320c5d5c31367c53dd5d3dc4b0dd42d"
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "nfl-reveal-forced-320.png",
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-done-forced-320.png",
+      "sha256": "b43887f4710937143d7fc62655c6f2ab054e90445f06cf5c92e3057e30dbd1f4",
+      "bytes": 44743,
+      "origin": "New review-fix image",
       "width": 320,
       "height": 844,
-      "sha256": "91f2b6451a094d7c50a510faba61eb7c61d2905e9002b690dadd01e604daccf0"
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "nfl-reveal-light-320.png",
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-done-light-320.png",
+      "sha256": "30e8ae410693b4304c0e0f8a77dd7b23c748b0b9d585025e8640d21a128aef6c",
+      "bytes": 79580,
+      "origin": "New review-fix image",
       "width": 320,
       "height": 844,
-      "sha256": "5b4537dd6dd5c11b828163071b776240a596a5be4000d93eab5fbd800eab950f"
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "nfl-reveal-light-390.png",
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-done-light-390.png",
+      "sha256": "2548101068bf67e1c3debf745151d2c9b2727c36e62c26831082dae231838c70",
+      "bytes": 87268,
+      "origin": "New review-fix image",
       "width": 390,
       "height": 844,
-      "sha256": "fcc5ceb88961a6df15db5ca67bc114a8f29d298840746f0877a307e3a16596e8"
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "nfl-your-pick-dark-320-scrolled.png",
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-expired-dark-320.png",
+      "sha256": "9e5019934c93e4065f44149cd670e5989b9d88529939b0fa6f84082670b38b25",
+      "bytes": 77588,
+      "origin": "New review-fix image",
       "width": 320,
       "height": 844,
-      "sha256": "9a7dab97bfbe5352009a7c6f5a3f0e010f93bea17ac129e56b10838307009ee2"
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "nfl-your-pick-dark-320.png",
-      "width": 320,
-      "height": 844,
-      "sha256": "7075e4aa76a99510b6a7c7879e44902ff603e964cccb0ad266ce1da0d72303ee"
-    },
-    {
-      "file": "nfl-your-pick-dark-390-scrolled.png",
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-expired-dark-390.png",
+      "sha256": "aa3febc33dd2d24380262f9b16f81c8e82e1b2306d78681c1a9f1aed46c91eed",
+      "bytes": 82018,
+      "origin": "New review-fix image",
       "width": 390,
       "height": 844,
-      "sha256": "0aac1f52e15748388322bfab6c8d0cac26aa3c3e5e6bf38486e09cfed0a56aaf"
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "nfl-your-pick-dark-390.png",
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-expired-forced-320.png",
+      "sha256": "8bf42f44548441a98fec81e36497c904a64ee4b8236473a1d23a0e39b714a8d0",
+      "bytes": 47380,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-expired-light-320.png",
+      "sha256": "cfe8722d8acce0a3342985a98e49d65daed7ba009f7d3c9e5bf90c7955118522",
+      "bytes": 87727,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-expired-light-390.png",
+      "sha256": "c6d45c9340553c8abdb8a0f416b5ec2365795ddc61e79c16aa95e584f62b7348",
+      "bytes": 98626,
+      "origin": "New review-fix image",
       "width": 390,
       "height": 844,
-      "sha256": "9e00b23e0875aeb3722a292ed49ac5d15fab9e2da7d39ba7f9563798c92cc8be"
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "nfl-your-pick-forced-320-scrolled.png",
-      "width": 320,
-      "height": 844,
-      "sha256": "97672473480284a1e7eb84315e0eb847f8ab6c5b9140e09a7cff03e2bf693775"
-    },
-    {
-      "file": "nfl-your-pick-forced-320.png",
-      "width": 320,
-      "height": 844,
-      "sha256": "9e4fd7830cf03bec10ed990b62e4bf3e27b186690dbec22ffa2ad9d4de462e3b"
-    },
-    {
-      "file": "nfl-your-pick-light-320-scrolled.png",
-      "width": 320,
-      "height": 844,
-      "sha256": "3179e817c892800ad7dcd93d55cc48577386ed26d21edb73d6a9348fee229d11"
-    },
-    {
-      "file": "nfl-your-pick-light-320.png",
-      "width": 320,
-      "height": 844,
-      "sha256": "aab46a78294aef34d149ba2c137603712005ca0edc241fc1156607cf9d1a7442"
-    },
-    {
-      "file": "nfl-your-pick-light-390-scrolled.png",
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-loading-dark-390.png",
+      "sha256": "ebce15fbe55b9ac5b8b2f6b517818a3f9d3fe3f409c09def7d20219bb2d77adb",
+      "bytes": 79712,
+      "origin": "New review-fix image",
       "width": 390,
       "height": 844,
-      "sha256": "0959effc34db6a47d3fd940745d820ff3f881a05393d0f2233449171061d6cc4"
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "nfl-your-pick-light-390.png",
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-loading-light-390.png",
+      "sha256": "4bc4d99285f4fa496c7f7714044b4681e94904fcbde4d223ea1fa1c08ed9cfcb",
+      "bytes": 96683,
+      "origin": "New review-fix image",
       "width": 390,
       "height": 844,
-      "sha256": "ccbd9bc6a21669cad9c8fc4be0b1ed2b00dfb08f4ad09596dc8be742f98d120e"
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-scope-dark-320.png",
+      "sha256": "90a9c39a17c2c8bcf80a581418e27a0d5bca24cf02ce8ccfe8fcd037d6edb546",
+      "bytes": 79324,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-scope-dark-390.png",
+      "sha256": "8dac22b71f8647cbe8047fe960150cb9d1c84e285e56cdab5921266ea08c83fb",
+      "bytes": 83457,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-scope-forced-320.png",
+      "sha256": "a73fc4b43e7f3faf9e42ff3330773b76b09c4124f00a5483a9b04b2744750c7a",
+      "bytes": 47184,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-scope-light-320.png",
+      "sha256": "86fbb3d2278f19a82ab20df8e0ecd398fb420117f8785011602fe17e8353a0df",
+      "bytes": 90714,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-scope-light-390.png",
+      "sha256": "9e70e1d3a8e99a4d9f4307dc36505d5b60ac9c8eef0230372ac1821c7be07b12",
+      "bytes": 100023,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-unconfirmed-dark-320.png",
+      "sha256": "8d61ee71e49cee15036c623b83e113a8f8ce0cce698b9a0d1356a6aa2948fb6c",
+      "bytes": 78652,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-unconfirmed-dark-390.png",
+      "sha256": "78aff064f2070d11f65cb3b10870f6210781f27993f00675d85182679ba7fd04",
+      "bytes": 82645,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-unconfirmed-forced-320.png",
+      "sha256": "ca4942b70c6b6c585839906dfe19a3bc9db2c3507c341812bb3645d1d0ecbef1",
+      "bytes": 47789,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-unconfirmed-light-320.png",
+      "sha256": "5ab677f0058b5459b13f1e0a3ae63f6d244770e74248130244889045458d934a",
+      "bytes": 88767,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-forfeit-unconfirmed-light-390.png",
+      "sha256": "99d334d7244a6b0e1a6f790a3b63aeb0c8d8d047d599d3a39b24947f5313ea8f",
+      "bytes": 99765,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-dark-320.png",
+      "sha256": "bcd50eba0ea01147149ab6f80aa33b6a6dc9dd71f14e89a1da2941c15cd1c246",
+      "bytes": 88008,
+      "origin": "Regenerated on review-fix source",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-dark-390.png",
+      "sha256": "52b06c752090287bc945a34e16b883f6a82ded25e7d9a5150be39c1971bde73a",
+      "bytes": 94046,
+      "origin": "Regenerated on review-fix source",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-empty-dark-320.png",
+      "sha256": "26015f3f271b73c46c69cff27631842a7e8b019146caab066701978ade5919b9",
+      "bytes": 60258,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-empty-dark-390.png",
+      "sha256": "47786ea2bae0c31e28167f1d632ba3243f3fcb51f5b83136f7e9d0a67f261442",
+      "bytes": 63769,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-empty-forced-320.png",
+      "sha256": "c55f47d6ae2caf7e517bd1531d5ae4f404000a0916b3afaa67be18468d3242d6",
+      "bytes": 19712,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-empty-light-320.png",
+      "sha256": "2f0e588080cb53263fee1f36ea0bef5d4b2344143b652dfdd3be646ab9506fba",
+      "bytes": 56408,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-empty-light-390.png",
+      "sha256": "e99e33f069aee1499ae2fa212df054fb6e22ecd8d34fdd0dad697d875f1aa64f",
+      "bytes": 64360,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-failed-dark-320.png",
+      "sha256": "cb5fcc90febc8b120fbfbd6a00417d12f770990685456509902c5f462cf3443c",
+      "bytes": 59423,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-failed-dark-390.png",
+      "sha256": "89e4934ecbc71e16a0b9de3250d72483c17d5acbb2361c79788e28de7551cb47",
+      "bytes": 62994,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-failed-forced-320.png",
+      "sha256": "5a859e206aecc002a6df88658b54213d5ea6b262ed9335a546c7217f87671cee",
+      "bytes": 19462,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-failed-light-320.png",
+      "sha256": "79af445dfaf4c13b369fad26ac8601a39f5f42b074c60cd4ea33b1c703ae685f",
+      "bytes": 57112,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-failed-light-390.png",
+      "sha256": "15bc921acb4ca19e9ec685bf7480fe0ed13020550f6c152ad9d6aad1cdabc4ac",
+      "bytes": 64999,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-forced-320.png",
+      "sha256": "08dcc5fb7c00ace098d05aa0b5758e244104425793b32bebf7e80e46a198da9c",
+      "bytes": 32329,
+      "origin": "Regenerated on review-fix source",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-light-320.png",
+      "sha256": "e9f4304cefb5fc3005390707778011f412bea0c14762df97cb36422fd8189b9e",
+      "bytes": 78865,
+      "origin": "Regenerated on review-fix source",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-light-390.png",
+      "sha256": "c1d895eaa91239b76e971367614fc455f8ce9002b74fd14dd8ceb07851f73aee",
+      "bytes": 87017,
+      "origin": "Regenerated on review-fix source",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-loading-dark-320.png",
+      "sha256": "73e3a5652b0fdcb23a97e5bbb3ca7c1b9068deb5c0a3e1f81f5227c099d36a17",
+      "bytes": 49261,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-loading-dark-390.png",
+      "sha256": "005b89a1fc5589fc4cbf460222ad0b49f636956f411660e65b75aea42de308d5",
+      "bytes": 52463,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-loading-forced-320.png",
+      "sha256": "2f6ed55d193c1b254dd9a1b29349a761e01482a4ac298231d9655ef199b4f67b",
+      "bytes": 18115,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-loading-light-320.png",
+      "sha256": "00b11c5e9decdeb7541ee7bff694e4decbe6c745fcc458114c28f279d48a8459",
+      "bytes": 48149,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-loading-light-390.png",
+      "sha256": "718eac47fe1b44cf7795364422fbd21ae4567e1d106537e7d41963de41b5e7a9",
+      "bytes": 54819,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-long-dark-320-scrolled.png",
+      "sha256": "ad06c0d30d89a433749a5d0fff7005c971c765a4113da079f62499f3548b9c8c",
+      "bytes": 93646,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-long-dark-320.png",
+      "sha256": "175d0226a10d0b94e6539f9d50bcf37a6b3b3faa34b3abdd14963253e8030c4e",
+      "bytes": 93991,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-long-dark-390-scrolled.png",
+      "sha256": "21b46a4c0a5fef4c3f21779d5a93737800a2911cc1a66b5a476a8f7fe8761b3d",
+      "bytes": 114443,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-long-dark-390.png",
+      "sha256": "f87fbfe6ddae8759c8b5896c18e76720b6d33af94d53e7587e692630a9198864",
+      "bytes": 112196,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-long-forced-320-scrolled.png",
+      "sha256": "64004264bc568aab16f1a1b996635c0f16a7ffa6dc4a8c0ea52780cae89057f3",
+      "bytes": 39128,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-long-forced-320.png",
+      "sha256": "0095ecb92c506ae653c216c6edcfbf8bd2728db13b6a3dfc6a840ee0c9c002d6",
+      "bytes": 41516,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-long-light-320-scrolled.png",
+      "sha256": "e980d713a80d69517aa36f1ff152429ea4eb24f7af835a2b3ea65a8475ee80eb",
+      "bytes": 92042,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-long-light-320.png",
+      "sha256": "47261c255c0ecb42b3b2eaa5d919af3e34669cec8c1bc2d7de4b74fe5f4d3b9f",
+      "bytes": 95447,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-long-light-390-scrolled.png",
+      "sha256": "ba3ca9d9bcd712ae1bef2b798a38cf8f4ace8caa3a9d8a3a95caf5accbd01cd1",
+      "bytes": 115966,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-game-bets-long-light-390.png",
+      "sha256": "90d26a2b1a3747c6d6b45407cbf824fde013222d54f8049177e1899938b423f9",
+      "bytes": 115212,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-info-bets-rules-dark-390.png",
+      "sha256": "c69ca3cfdb216a4fcd0788b0df3ac196dae9a5060cf5b85d1eefb432fb438d1a",
+      "bytes": 107399,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-info-bets-rules-light-390.png",
+      "sha256": "473ce08fca0423ff6c6a169b22774ab89e1926cfaadf85905ad97329d3ce4fad",
+      "bytes": 110426,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-info-community-rules-dark-390-scrolled.png",
+      "sha256": "f3847d6d7bfc06e11b527093131414028417d0ee1dda110f9b1632e0c5e62acd",
+      "bytes": 108953,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-info-community-rules-dark-390.png",
+      "sha256": "be498122cae5626dd973720a16e48109be8082820046ff58972bc4fbe3570f9a",
+      "bytes": 112495,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-info-community-rules-light-390-scrolled.png",
+      "sha256": "38522077d5e9f74458caa125222e89b452457d721220120ad266e31a90530738",
+      "bytes": 107178,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-info-community-rules-light-390.png",
+      "sha256": "abbb89fbd8dd63ad497567398d84d3bc362e9809f40476f7debcc4c1edf64665",
+      "bytes": 110592,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-info-saved-rules-dark-320-scrolled.png",
+      "sha256": "a8e6eb0fd984efbdde2abcdcba43dc7ca143c2d72b032f6ab19c8e9625f6b5f7",
+      "bytes": 101676,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-info-saved-rules-dark-320.png",
+      "sha256": "592e758c964d12d9b9c87f6dde22971c5ae2600fb8540b6d18c87ca9b3b0788e",
+      "bytes": 98776,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-info-saved-rules-dark-390-scrolled.png",
+      "sha256": "9073eb84bf5759e27c78478d4068ed0ed55d1d66ae8aab10a6c3f074c09ada9b",
+      "bytes": 109932,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-info-saved-rules-dark-390.png",
+      "sha256": "61b58bbe730c843a994846fdbc43d86920fc4abec3d2b719e27c9d287d464ce8",
+      "bytes": 113271,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-info-saved-rules-forced-320-scrolled.png",
+      "sha256": "9353d779f10f3615e010ee6ba4663c38b695dbe33a0ff4a171312136360ac9f6",
+      "bytes": 39729,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-info-saved-rules-forced-320.png",
+      "sha256": "c70f89f8afccb35bb49d487f44168b94d7cb856d0cfbbc6e19aa4b48d3a547cc",
+      "bytes": 37848,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-info-saved-rules-light-320-scrolled.png",
+      "sha256": "b1f27f18135f68281525ac0a0e53b897b77c1ea039d1c5c73d452f714bb1b7cd",
+      "bytes": 99310,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-info-saved-rules-light-320.png",
+      "sha256": "1926d7a1473bf749217c2179b207bf795cb5aa0eebe802f04b163fd4684f9f2b",
+      "bytes": 96440,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-info-saved-rules-light-390-scrolled.png",
+      "sha256": "c12ba32658eafa98e62560f458c33c2ebb5c0ddd0614a4ad234ef37fa727ec71",
+      "bytes": 107719,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-info-saved-rules-light-390.png",
+      "sha256": "c52a2d642878282fdbc800dedbec33649fba1d24734d0bc9ffda35ad175ac152",
+      "bytes": 110862,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-reactions-picker-dark-390.png",
+      "sha256": "037ac119fc8884d0237f59178ec0990fdde026177aeb4a9fe6c3e94788a15f80",
+      "bytes": 142170,
+      "origin": "Retained dependency image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Inherited image; not regenerated"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-reactions-picker-light-390.png",
+      "sha256": "515840fe8d895fdb28eadb7c26bd5e071a4f242ea15b426c0504e14e3496e66e",
+      "bytes": 141636,
+      "origin": "Retained dependency image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Inherited image; not regenerated"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-reactors-dark-390.png",
+      "sha256": "e6f17a75574602cbfe86bc599ba004326a50f4947487372f2629d4ea0a5f06f6",
+      "bytes": 66522,
+      "origin": "Regenerated on review-fix source",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-reactors-empty-dark-390.png",
+      "sha256": "947e7a5b7ae60ea4d7754b626661dd9d48461e29d47f84cd5e3c2bbf52546e37",
+      "bytes": 59390,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-reactors-empty-light-390.png",
+      "sha256": "5826d1a63cb7bc9d3757ce75483bb3ec54dc733c2b71978bd4bbb8595aec781b",
+      "bytes": 71590,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-reactors-failed-dark-390.png",
+      "sha256": "d04647c92fe4504d4611d0db05567bb8a2717d7d84a6da7c7aa160d7034cee55",
+      "bytes": 60422,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-reactors-failed-light-390.png",
+      "sha256": "d63655147b7d402392ad960fa4e97ac62c070fe5b4cc5e5719ba6456e8b8dfab",
+      "bytes": 72513,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-reactors-light-390.png",
+      "sha256": "ecb744b23dda4b237ecb0506fef4270ae86496b3a63458ae04e8f0fc09f6f13b",
+      "bytes": 72905,
+      "origin": "Regenerated on review-fix source",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-reactors-loading-dark-390.png",
+      "sha256": "ed7ed6dbffa674e66e6a60ff3888152ed8681db5c1ab2c0af0951f2a57484953",
+      "bytes": 48276,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-reactors-loading-light-390.png",
+      "sha256": "c4b4af610cd796c4c16126c2bfea2d4e4a1e898892d0dc468704db61722e7a80",
+      "bytes": 55686,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-reveal-dark-320.png",
+      "sha256": "f9de687e60e4fc4598aeafe98af58751971b754462091655610d621849c04a5a",
+      "bytes": 81259,
+      "origin": "Regenerated final capture; byte-identical to dependency",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-reveal-dark-390.png",
+      "sha256": "7f18bacb909501151dfb8a586ad19ed725abae8c65bd4cfa654f5f3d61fadc2b",
+      "bytes": 84460,
+      "origin": "Regenerated on review-fix source",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-reveal-forced-320.png",
+      "sha256": "91f2b6451a094d7c50a510faba61eb7c61d2905e9002b690dadd01e604daccf0",
+      "bytes": 45552,
+      "origin": "Regenerated final capture; byte-identical to dependency",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-reveal-light-320.png",
+      "sha256": "5b4537dd6dd5c11b828163071b776240a596a5be4000d93eab5fbd800eab950f",
+      "bytes": 89989,
+      "origin": "Regenerated final capture; byte-identical to dependency",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-reveal-light-390.png",
+      "sha256": "796ff6177be9f20f5bb7fc9474ff8e7b1fd4850bb47dd115882d6d1e3b16ede5",
+      "bytes": 96723,
+      "origin": "Regenerated on review-fix source",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-draft-dark-320-scrolled.png",
+      "sha256": "bf11d99ca2688d6164be6c75f8cb5d7ed63412b05383cb9fcfad842590e2f593",
+      "bytes": 73144,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-draft-dark-320.png",
+      "sha256": "d8fa0309b8423b6099023b2c5e70b4abd0eaee7bf3f4555c4723c4707741de80",
+      "bytes": 95945,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-draft-dark-390-scrolled.png",
+      "sha256": "474b0c422639fb9d6159d838e81f22cd384f527041c1daa37cb7127a07db9019",
+      "bytes": 80447,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-draft-dark-390.png",
+      "sha256": "756a807860ee467404fa6e431190464ade4d7ba902123b4e5b6222faf5c18511",
+      "bytes": 105115,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-draft-forced-320-scrolled.png",
+      "sha256": "b30c8cb97c211a53ef0b3ce3b7d77500f936cc7ebe188542aeee1a404a83f9e4",
+      "bytes": 32297,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-draft-forced-320.png",
+      "sha256": "61b40ea1201742ee78a335d2747d28d5d43a5ae74642cb7208fc42fd691f7676",
+      "bytes": 36674,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-draft-light-320-scrolled.png",
+      "sha256": "76e2a3a62b739c289d00502d3e492923d0fd412bd1cecaf5b7731f67e35d044a",
+      "bytes": 64023,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-draft-light-320.png",
+      "sha256": "88643c6b96ce75e05ffd8fde6a1d5ceef05d2e191017820e54da0eb0841502d1",
+      "bytes": 85219,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-draft-light-390-scrolled.png",
+      "sha256": "38f462421586493f17f5ecca9baef24844d666ef2bc219a355261a0916cb9624",
+      "bytes": 71927,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-draft-light-390.png",
+      "sha256": "2a83e6a86c159108f52649853439547f7466010ae0649fad2b26142925eeff8b",
+      "bytes": 93348,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-pending-dark-320-scrolled.png",
+      "sha256": "25c425a6062b29dfb41487d3886bb66f5eef5d547e8cc20bdf6986f11f1a9d46",
+      "bytes": 69626,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-pending-dark-320.png",
+      "sha256": "96ceeef635af007f5f614fef9bc92d6798c027772c97a5a59196a82ae08a5e72",
+      "bytes": 90313,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-pending-dark-390-scrolled.png",
+      "sha256": "00aeb675e59caaefda974ab035a3754181dd2c61d458db30ca6129f5202a0ce3",
+      "bytes": 73040,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-pending-dark-390.png",
+      "sha256": "762c8eced50c79568805dd4a4246961cea6a25383a878011a4b040e46c42ca5b",
+      "bytes": 96329,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-pending-forced-320-scrolled.png",
+      "sha256": "39a55e6dc556fab748af2b7e69b2c7c217b0050fefeaf81f3611114140c09681",
+      "bytes": 30839,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-pending-forced-320.png",
+      "sha256": "1256bd9653bcbad43e952c6442acce91beec09dbc82bf841ad2df3227d320861",
+      "bytes": 33638,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-pending-light-320-scrolled.png",
+      "sha256": "b6150d048207ced6e8b6a2c6e640db26ae6de8795c72581b22ca490c9e3484dc",
+      "bytes": 63014,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-pending-light-320.png",
+      "sha256": "980619c53d701f25a0f50aadcf32ca181b8ac8705af7cf27be332bb150b28b65",
+      "bytes": 77893,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-pending-light-390-scrolled.png",
+      "sha256": "c09f52767e3697cbd3135c77cfeba3980e9c8d769d2ce292f89dd9a5e858da83",
+      "bytes": 68069,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-pending-light-390.png",
+      "sha256": "d66358d6f3ed8f0a32fbc0305d9bd7b4f680b84a9723966dd44ba6c2a52d0266",
+      "bytes": 85682,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-pick-dark-390-scrolled.png",
+      "sha256": "16cc2e3a54ce164edf96a5f6a8575d030dc442bd886380b97a72930a978a2aec",
+      "bytes": 74296,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-pick-dark-390.png",
+      "sha256": "d7f27149397686fd2b75cf4007b19fa44948b0d7010b7555f0fc2bf5b6080376",
+      "bytes": 104199,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-pick-light-390-scrolled.png",
+      "sha256": "244afe4d556b1084613fa630a7218cf36b101122f55a0f9418ac63f88e4ec33a",
+      "bytes": 69339,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-pick-light-390.png",
+      "sha256": "e26ce313a5416fcb7b1b6ca071917cb1178e695a8dba263b256576e1bd657aa0",
+      "bytes": 94189,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-stale-dark-320-scrolled.png",
+      "sha256": "d9749a387c0e70cf9d9f009587a8b31e472dbd455d798169b0136f725cd0d782",
+      "bytes": 92249,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-stale-dark-320.png",
+      "sha256": "429ccccadb14cb1e89c265e42152f0f9d05b72e1b99213ab6bc9a61e7cd0156a",
+      "bytes": 91615,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-stale-dark-390-scrolled.png",
+      "sha256": "b2e31b1c1bb9eb3a9af9f0c4367186bc3e33188031307f3eb5cd4cfe431b3881",
+      "bytes": 99284,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-stale-dark-390.png",
+      "sha256": "a853cb599c73f9e264ce2d4818ec1066b62a9d13e43619f7a6cb4d1716988606",
+      "bytes": 101456,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-stale-forced-320-scrolled.png",
+      "sha256": "dc110700116e04f948274685147f74aa507c82f5378cca2de0bea14dde870d5d",
+      "bytes": 36149,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-stale-forced-320.png",
+      "sha256": "5020f4a358dad45f5d905ff6d8816d469d37214140542a5f6512de183d155317",
+      "bytes": 35474,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-stale-light-320-scrolled.png",
+      "sha256": "a652f1fb986abc0ad5a8bd3230884cbf13952bef9373b959ba5dbbccbeb975e5",
+      "bytes": 83573,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-stale-light-320.png",
+      "sha256": "df97eecb3c35a3452ceb3e4248198e5bf15a0c1d56c9577f507810d04904af0e",
+      "bytes": 82645,
+      "origin": "New review-fix image",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-stale-light-390-scrolled.png",
+      "sha256": "21ac7fc387ec0bff8f72d3717cd7844d8da074e3471790d79c1a300fe061ae85",
+      "bytes": 92001,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-saved-stale-light-390.png",
+      "sha256": "8da95b00aaf97996c08d1cbad1440022a09f8d684c8aeb3349baeff59d4bb204",
+      "bytes": 91923,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-virtual-busy-dark-390-scrolled.png",
+      "sha256": "07cd7593632b972317d6ec206b271d05fa273b73d33751784fad049eebad4c0d",
+      "bytes": 134529,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-virtual-busy-dark-390.png",
+      "sha256": "3f1967c5639193d50a9dcead6c760aca4c5dfd0bdbb17ffc335c979e16689c07",
+      "bytes": 128239,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-virtual-busy-light-390-scrolled.png",
+      "sha256": "c79af29b2b6a73faf61cfcfef4de6db3909f0e068e174b7f99308579d1845e6a",
+      "bytes": 115997,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-virtual-busy-light-390.png",
+      "sha256": "88235ac1a36e8a9ad6c4e4d873aaadc001795f57c031e11a66b25c63823157e3",
+      "bytes": 112862,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-virtual-dark-390.png",
+      "sha256": "7196e4d6f0cf093d95a775b308f8369589e28a59ca3057d02ef63f6b4b14857f",
+      "bytes": 241177,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 1709,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-virtual-light-390.png",
+      "sha256": "200fcf8582425fabda021448ef447fe7807e7b14b29eca58150c9619c6edd49e",
+      "bytes": 253706,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 1709,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-virtual-locked-dark-390.png",
+      "sha256": "c01680f9a26d5449710c9513d7734141a561b1dac3be8b43790496936b4deb83",
+      "bytes": 230171,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 1609,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-virtual-locked-light-390.png",
+      "sha256": "0ab9850c36e44a1afee42750aaa9adb5322f980a334f98b1e085c766d0cca0eb",
+      "bytes": 247600,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 1609,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-virtual-no-offer-dark-390.png",
+      "sha256": "48eadc3e9f050075c1b912814d94f83811081b5570eb6763103b7f4b34bae320",
+      "bytes": 241106,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 1701,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-virtual-no-offer-light-390.png",
+      "sha256": "9dc6b6e08de57e3c30b4bf5a8d6910d316cd5701a01c072886196620b7ab7865",
+      "bytes": 255594,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 1701,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-virtual-slip-dark-390-scrolled.png",
+      "sha256": "6f9f2bd8742804bbe8949460ec489f9e5c50b9a96cfa8a53fe9308331854b225",
+      "bytes": 137905,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-virtual-slip-dark-390.png",
+      "sha256": "88ac141c2c39e1b05e611f330cd0d93eb76050c3903d2f4b6db45faeae4deab7",
+      "bytes": 131118,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-virtual-slip-light-390-scrolled.png",
+      "sha256": "124068f904c6a254c2571d6665bd39b4fd6dcfad2de49d700711338a82da5c99",
+      "bytes": 118455,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-virtual-slip-light-390.png",
+      "sha256": "1693b458479c8aaec8047dbe06ab15181fff928817c5870775b1f0326fce3b17",
+      "bytes": 115301,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-virtual-uncertain-dark-390-scrolled.png",
+      "sha256": "1f39033d40b8103d579ae8ccfef32870babb1dafe65d27aed3adb63c6a39f459",
+      "bytes": 129253,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-virtual-uncertain-dark-390.png",
+      "sha256": "9106cd6bf285c0ac0be6d4090195143ea1c72ff97a358901ae29e68380c825a3",
+      "bytes": 128559,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-virtual-uncertain-light-390-scrolled.png",
+      "sha256": "30c37a8a8b06a7b93e90b8403df486763541b8603e37081a8453ff513c3387ae",
+      "bytes": 110547,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-virtual-uncertain-light-390.png",
+      "sha256": "c92f1a89d26af7b4fdf842d35b9e360431e73f72869096959671815de131213d",
+      "bytes": 113652,
+      "origin": "New review-fix image",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-your-pick-dark-320-scrolled.png",
+      "sha256": "9a7dab97bfbe5352009a7c6f5a3f0e010f93bea17ac129e56b10838307009ee2",
+      "bytes": 69867,
+      "origin": "Regenerated final capture; byte-identical to dependency",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-your-pick-dark-320.png",
+      "sha256": "219e533c8f33e83062ff08af1edf08f1fd84559d53a1954f4f5c1a72ea6b70b4",
+      "bytes": 96871,
+      "origin": "Regenerated on review-fix source",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-your-pick-dark-390-scrolled.png",
+      "sha256": "0aac1f52e15748388322bfab6c8d0cac26aa3c3e5e6bf38486e09cfed0a56aaf",
+      "bytes": 73293,
+      "origin": "Regenerated final capture; byte-identical to dependency",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-your-pick-dark-390.png",
+      "sha256": "f6f83b2019497981c039c5fdeeaadd8182c026616f2f50117e8ff338640db220",
+      "bytes": 102588,
+      "origin": "Regenerated on review-fix source",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-your-pick-forced-320-scrolled.png",
+      "sha256": "97672473480284a1e7eb84315e0eb847f8ab6c5b9140e09a7cff03e2bf693775",
+      "bytes": 31285,
+      "origin": "Regenerated final capture; byte-identical to dependency",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-your-pick-forced-320.png",
+      "sha256": "06bef2aa0b59e503fda662b1026ce5780071942b310003bad96c3525cb29e2d9",
+      "bytes": 37404,
+      "origin": "Regenerated on review-fix source",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-your-pick-light-320-scrolled.png",
+      "sha256": "3179e817c892800ad7dcd93d55cc48577386ed26d21edb73d6a9348fee229d11",
+      "bytes": 63370,
+      "origin": "Regenerated final capture; byte-identical to dependency",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-your-pick-light-320.png",
+      "sha256": "f62d8b3b5832b535c3e8236f039f7fbfaf30c81fb3ea20453935192f2be4be70",
+      "bytes": 85828,
+      "origin": "Regenerated on review-fix source",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-your-pick-light-390-scrolled.png",
+      "sha256": "0959effc34db6a47d3fd940745d820ff3f881a05393d0f2233449171061d6cc4",
+      "bytes": 68377,
+      "origin": "Regenerated final capture; byte-identical to dependency",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-your-pick-light-390.png",
+      "sha256": "f44770957d50772c5d5dedad21c7c1230864d62fd1a99040937f0b559b6c3d42",
+      "bytes": 92537,
+      "origin": "Regenerated on review-fix source",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     }
   ],
-  "checks": [
+  "scenarios": [
     {
-      "command": "node node_modules/vitest/vitest.mjs run --maxWorkers=2",
-      "result": "88 files / 904 tests passed; default 15s test timeout retained."
+      "scenario": "forfeit-ready",
+      "approvedSource": "populated-nfl-actions.jsx -> IsolatedForfeit or close-warning Dialog",
+      "nativeComponent": "play/ForfeitDialog.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-reveal-dark-390.png",
+        "nfl-reveal-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-forfeit-ready-dark-phone.png",
+        "previews/nfl-actions-forfeit-ready-light-phone.png"
+      ]
     },
     {
-      "command": "npm run typecheck",
-      "result": "passed"
+      "scenario": "forfeit-close-warning",
+      "approvedSource": "populated-nfl-actions.jsx -> IsolatedForfeit or close-warning Dialog",
+      "nativeComponent": "play/ForfeitDialog.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-forfeit-close-warning-dark-390.png",
+        "nfl-forfeit-close-warning-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-forfeit-close-warning-dark-phone.png",
+        "previews/nfl-actions-forfeit-close-warning-light-phone.png"
+      ]
     },
     {
-      "command": "node --test tests/next-forfeit.test.mjs tests/next-your-pick.test.mjs tests/next-game-bets.test.mjs tests/next-league-model.test.mjs tests/next-league-history.test.mjs tests/brand-mark.test.mjs tests/next-tokens.test.mjs",
-      "result": "48 passed"
+      "scenario": "forfeit-loading",
+      "approvedSource": "populated-nfl-actions.jsx -> IsolatedForfeit or close-warning Dialog",
+      "nativeComponent": "play/ForfeitDialog.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-forfeit-loading-dark-390.png",
+        "nfl-forfeit-loading-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-forfeit-loading-dark-phone.png",
+        "previews/nfl-actions-forfeit-loading-light-phone.png"
+      ]
     },
     {
-      "command": "Local Playwright cloud-test config, exclusive port5230; targeted next-design-home-league,next-feed,next-reactions,next-lines,next-prism-league-actions",
-      "result": "23 passed, including real read/write, private scopes, delayed account replies, reveal deadline, uncertain recovery, drafts, reactions and focus."
+      "scenario": "forfeit-unconfirmed",
+      "approvedSource": "populated-nfl-actions.jsx -> IsolatedForfeit or close-warning Dialog",
+      "nativeComponent": "play/ForfeitDialog.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-forfeit-unconfirmed-dark-390.png",
+        "nfl-forfeit-unconfirmed-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-forfeit-unconfirmed-dark-phone.png",
+        "previews/nfl-actions-forfeit-unconfirmed-light-phone.png"
+      ]
     },
     {
-      "command": "next-points fixture-week draft/lock/Everyone/House browser plus updated three-market long-content capture",
-      "result": "2 passed"
+      "scenario": "forfeit-busy",
+      "approvedSource": "populated-nfl-actions.jsx -> IsolatedForfeit or close-warning Dialog",
+      "nativeComponent": "play/ForfeitDialog.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-forfeit-busy-dark-390.png",
+        "nfl-forfeit-busy-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-forfeit-busy-dark-phone.png",
+        "previews/nfl-actions-forfeit-busy-light-phone.png"
+      ]
     },
     {
-      "command": "Final exact-CSS native capture plus Virtual placement recovery browser set",
-      "result": "6 passed on exact final source;320/390 both themes/forcedcolors, full pages, long names/comments, keyboard scroll, lower sheet bodies,44px and axe; Virtual lost-reply duplicate/edit/conflict guards preserved."
+      "scenario": "forfeit-expired",
+      "approvedSource": "populated-nfl-actions.jsx -> IsolatedForfeit or close-warning Dialog",
+      "nativeComponent": "play/ForfeitDialog.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-forfeit-expired-dark-390.png",
+        "nfl-forfeit-expired-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-forfeit-expired-dark-phone.png",
+        "previews/nfl-actions-forfeit-expired-light-phone.png"
+      ]
     },
     {
-      "command": "python -X utf8 scripts/check-brand-docs.py",
-      "result": "passed"
+      "scenario": "forfeit-done",
+      "approvedSource": "populated-nfl-actions.jsx -> IsolatedForfeit or close-warning Dialog",
+      "nativeComponent": "play/ForfeitDialog.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-forfeit-done-dark-390.png",
+        "nfl-forfeit-done-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-forfeit-done-dark-phone.png",
+        "previews/nfl-actions-forfeit-done-light-phone.png"
+      ]
     },
     {
-      "command": "npm run build:cloud",
-      "result": "passed; existing chunk-size warning"
+      "scenario": "forfeit-scope",
+      "approvedSource": "populated-nfl-actions.jsx -> IsolatedForfeit or close-warning Dialog",
+      "nativeComponent": "play/ForfeitDialog.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-forfeit-scope-dark-390.png",
+        "nfl-forfeit-scope-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-forfeit-scope-dark-phone.png",
+        "previews/nfl-actions-forfeit-scope-light-phone.png"
+      ],
+      "note": "Wrong-week reader fixture fails closed; distinct account-changed dialog branch has not been captured."
     },
     {
-      "command": "node scripts/check-cloud-boundary.mjs --bundle-only",
-      "result": "passed; hosted probe not run; no .env.cloud in owned tree"
+      "scenario": "saved-pick",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "lines/YourPickSheet.jsx + lines/EveryoneGuesses.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-saved-pick-dark-390.png",
+        "nfl-saved-pick-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-saved-pick-dark-phone.png",
+        "previews/nfl-actions-saved-pick-light-phone.png"
+      ]
     },
     {
-      "command": "node --test tests/next-app-view.test.mjs tests/next-loading.test.mjs",
-      "result": "9 passed / 2 inherited failures in base Bets rootCSS import and Bets landing bare Loading status; parent integration owns fixes."
+      "scenario": "saved-total",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "lines/YourPickSheet.jsx + lines/EveryoneGuesses.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-your-pick-dark-390.png",
+        "nfl-your-pick-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-saved-total-dark-phone.png",
+        "previews/nfl-actions-saved-total-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "saved-draft",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "lines/YourPickSheet.jsx + lines/EveryoneGuesses.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-saved-draft-dark-390.png",
+        "nfl-saved-draft-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-saved-draft-dark-phone.png",
+        "previews/nfl-actions-saved-draft-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "saved-pending",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "lines/YourPickSheet.jsx + lines/EveryoneGuesses.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-saved-pending-dark-390.png",
+        "nfl-saved-pending-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-saved-pending-dark-phone.png",
+        "previews/nfl-actions-saved-pending-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "saved-stale",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "lines/YourPickSheet.jsx + lines/EveryoneGuesses.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-saved-stale-dark-390.png",
+        "nfl-saved-stale-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-saved-stale-dark-phone.png",
+        "previews/nfl-actions-saved-stale-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "saved-scope",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "lines/YourPickSheet.jsx + lines/EveryoneGuesses.jsx",
+      "status": "UNVERIFIED: no paired native capture",
+      "captures": [],
+      "reference": [
+        "previews/nfl-actions-saved-scope-dark-phone.png",
+        "previews/nfl-actions-saved-scope-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "game-bets",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "bets/GameBetsSheet.jsx + bets/EveryoneBets.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-game-bets-dark-390.png",
+        "nfl-game-bets-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-game-bets-dark-phone.png",
+        "previews/nfl-actions-game-bets-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "game-bets-loading",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "bets/GameBetsSheet.jsx + bets/EveryoneBets.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-game-bets-loading-dark-390.png",
+        "nfl-game-bets-loading-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-game-bets-loading-dark-phone.png",
+        "previews/nfl-actions-game-bets-loading-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "game-bets-failed",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "bets/GameBetsSheet.jsx + bets/EveryoneBets.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-game-bets-failed-dark-390.png",
+        "nfl-game-bets-failed-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-game-bets-failed-dark-phone.png",
+        "previews/nfl-actions-game-bets-failed-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "game-bets-empty",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "bets/GameBetsSheet.jsx + bets/EveryoneBets.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-game-bets-empty-dark-390.png",
+        "nfl-game-bets-empty-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-game-bets-empty-dark-phone.png",
+        "previews/nfl-actions-game-bets-empty-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "feed-picks",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "feed/PicksSheet.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-feed-picks-dark-390.png",
+        "nfl-feed-picks-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-feed-picks-dark-phone.png",
+        "previews/nfl-actions-feed-picks-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "feed-hidden",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "feed/PicksSheet.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-feed-hidden-dark-390.png",
+        "nfl-feed-hidden-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-feed-hidden-dark-phone.png",
+        "previews/nfl-actions-feed-hidden-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "feed-picks-loading",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "feed/PicksSheet.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-feed-picks-loading-dark-390.png",
+        "nfl-feed-picks-loading-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-feed-picks-loading-dark-phone.png",
+        "previews/nfl-actions-feed-picks-loading-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "feed-picks-failed",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "feed/PicksSheet.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-feed-picks-failed-dark-390.png",
+        "nfl-feed-picks-failed-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-feed-picks-failed-dark-phone.png",
+        "previews/nfl-actions-feed-picks-failed-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "feed-picks-empty",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "feed/PicksSheet.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-feed-picks-empty-dark-390.png",
+        "nfl-feed-picks-empty-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-feed-picks-empty-dark-phone.png",
+        "previews/nfl-actions-feed-picks-empty-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "feed-share-uncertain",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "feed/PicksSheet.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-feed-share-uncertain-dark-390.png",
+        "nfl-feed-share-uncertain-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-feed-share-uncertain-dark-phone.png",
+        "previews/nfl-actions-feed-share-uncertain-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "reactors",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "feed/ReactorsSheet.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-reactors-dark-390.png",
+        "nfl-reactors-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-reactors-dark-phone.png",
+        "previews/nfl-actions-reactors-light-phone.png"
+      ],
+      "note": "Populated and read-state pairs freshly captured with native preference/color assertions."
+    },
+    {
+      "scenario": "reactors-loading",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "feed/ReactorsSheet.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-reactors-loading-dark-390.png",
+        "nfl-reactors-loading-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-reactors-loading-dark-phone.png",
+        "previews/nfl-actions-reactors-loading-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "reactors-failed",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "feed/ReactorsSheet.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-reactors-failed-dark-390.png",
+        "nfl-reactors-failed-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-reactors-failed-dark-phone.png",
+        "previews/nfl-actions-reactors-failed-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "reactors-empty",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "feed/ReactorsSheet.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-reactors-empty-dark-390.png",
+        "nfl-reactors-empty-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-reactors-empty-dark-phone.png",
+        "previews/nfl-actions-reactors-empty-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "virtual",
+      "approvedSource": "populated-nfl-actions.jsx -> native PlaceGame/SlipRow",
+      "nativeComponent": "bets/PlaceBets.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-virtual-dark-390.png",
+        "nfl-virtual-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-virtual-dark-phone.png",
+        "previews/nfl-actions-virtual-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "virtual-minimum",
+      "approvedSource": "populated-nfl-actions.jsx -> native PlaceGame/SlipRow",
+      "nativeComponent": "bets/PlaceBets.jsx",
+      "status": "HELD: API/SQL half-unit compatibility",
+      "captures": [],
+      "reference": [
+        "previews/nfl-actions-virtual-minimum-dark-phone.png",
+        "previews/nfl-actions-virtual-minimum-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "virtual-slip",
+      "approvedSource": "populated-nfl-actions.jsx -> native PlaceGame/SlipRow",
+      "nativeComponent": "bets/PlaceBets.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-virtual-slip-dark-390.png",
+        "nfl-virtual-slip-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-virtual-slip-dark-phone.png",
+        "previews/nfl-actions-virtual-slip-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "virtual-locked",
+      "approvedSource": "populated-nfl-actions.jsx -> native PlaceGame/SlipRow",
+      "nativeComponent": "bets/PlaceBets.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-virtual-locked-dark-390.png",
+        "nfl-virtual-locked-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-virtual-locked-dark-phone.png",
+        "previews/nfl-actions-virtual-locked-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "virtual-no-offer",
+      "approvedSource": "populated-nfl-actions.jsx -> native PlaceGame/SlipRow",
+      "nativeComponent": "bets/PlaceBets.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-virtual-no-offer-dark-390.png",
+        "nfl-virtual-no-offer-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-virtual-no-offer-dark-phone.png",
+        "previews/nfl-actions-virtual-no-offer-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "virtual-busy",
+      "approvedSource": "populated-nfl-actions.jsx -> native PlaceGame/SlipRow",
+      "nativeComponent": "bets/PlaceBets.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-virtual-busy-dark-390.png",
+        "nfl-virtual-busy-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-virtual-busy-dark-phone.png",
+        "previews/nfl-actions-virtual-busy-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "virtual-uncertain",
+      "approvedSource": "populated-nfl-actions.jsx -> native PlaceGame/SlipRow",
+      "nativeComponent": "bets/PlaceBets.jsx",
+      "status": "PAIRED NATIVE CAPTURES",
+      "captures": [
+        "nfl-virtual-uncertain-dark-390.png",
+        "nfl-virtual-uncertain-light-390.png"
+      ],
+      "reference": [
+        "previews/nfl-actions-virtual-uncertain-dark-phone.png",
+        "previews/nfl-actions-virtual-uncertain-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "menu",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "me/MenuSheet.jsx",
+      "status": "UNVERIFIED: no paired native capture",
+      "captures": [],
+      "reference": [
+        "previews/nfl-actions-menu-dark-phone.png",
+        "previews/nfl-actions-menu-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "menu-admin",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "me/MenuSheet.jsx",
+      "status": "UNVERIFIED: no paired native capture",
+      "captures": [],
+      "reference": [
+        "previews/nfl-actions-menu-admin-dark-phone.png",
+        "previews/nfl-actions-menu-admin-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "menu-no-reminders",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "me/MenuSheet.jsx",
+      "status": "UNVERIFIED: no paired native capture",
+      "captures": [],
+      "reference": [
+        "previews/nfl-actions-menu-no-reminders-dark-phone.png",
+        "previews/nfl-actions-menu-no-reminders-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "menu-busy",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "me/MenuSheet.jsx",
+      "status": "UNVERIFIED: no paired native capture",
+      "captures": [],
+      "reference": [
+        "previews/nfl-actions-menu-busy-dark-phone.png",
+        "previews/nfl-actions-menu-busy-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "navigation-nfl",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "shell/Frame.jsx + shell/Shell.jsx",
+      "status": "HELD: owner frame-placement question",
+      "captures": [],
+      "reference": [
+        "previews/nfl-actions-navigation-nfl-dark-phone.png",
+        "previews/nfl-actions-navigation-nfl-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "navigation-epl",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "shell/Frame.jsx + shell/Shell.jsx",
+      "status": "HELD: owner frame-placement question",
+      "captures": [],
+      "reference": [
+        "previews/nfl-actions-navigation-epl-dark-phone.png",
+        "previews/nfl-actions-navigation-epl-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "navigation-nfl-only",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "shell/Frame.jsx + shell/Shell.jsx",
+      "status": "HELD: owner frame-placement question",
+      "captures": [],
+      "reference": [
+        "previews/nfl-actions-navigation-nfl-only-dark-phone.png",
+        "previews/nfl-actions-navigation-nfl-only-light-phone.png"
+      ]
+    },
+    {
+      "scenario": "navigation-layer-failed",
+      "approvedSource": "populated-nfl-actions.jsx -> isolated-nfl-actions.jsx",
+      "nativeComponent": "shell/Frame.jsx + shell/Shell.jsx",
+      "status": "HELD: owner frame-placement question",
+      "captures": [],
+      "reference": [
+        "previews/nfl-actions-navigation-layer-failed-dark-phone.png",
+        "previews/nfl-actions-navigation-layer-failed-light-phone.png"
+      ]
     }
   ],
   "remaining": [
-    "All106 supplied action captures have not each been recreated and compared.",
-    "Exact shared header/sports-row/dock position is pending owner clarification; structure untouched.",
-    "Finer VirtualUnits Custom/0.1U support requires SQL/API compatibility and explicit migration apply authority; functioning half-unit controls retained.",
-    "Physical-device/account/hosted acceptance, independent review, integration, push/PR/merge/deploy are not established."
+    "saved-scope has controller projection/unit coverage but no native account/week-change pair.",
+    "Four Menu variants have no new paired native captures.",
+    "Four shared-navigation variants remain held pending the separate owner frame-layout decision.",
+    "Virtual minimum/0.1U taps remain held for API/SQL compatibility; native slip uses supported half-unit amounts.",
+    "The mockup illustrative-example Info is preview-only; do not add a production disclaimer about fictional data. Saved-pick, community and League-bets rules Info have native pairs.",
+    "Manual tracked minimum belongs to the separate Bets area and is not verified by this slice.",
+    "No 106/106, production/physical-phone acceptance, push, PR, merge or deployment claim."
+  ],
+  "themeVerification": {
+    "helper": "tests/helpers/native-action-theme.mjs",
+    "method": "Real gtl.theme storage-sync event and both HTML attributes; computed native canvas/text token assertions and normal-mode text paint before every regenerated capture.",
+    "normalDarkLightDuplicatePairs": []
+  },
+  "checks": [
+    {
+      "command": "npm run typecheck",
+      "result": "Passed on final product source"
+    },
+    {
+      "command": "npm exec vitest run -- --reporter=dot",
+      "result": "905 passed across 88 files; unrelated BiasChart key warnings retained"
+    },
+    {
+      "command": "node --test tests/next-forfeit.test.mjs tests/next-your-pick.test.mjs tests/next-game-bets.test.mjs tests/next-game-actions.test.mjs tests/next-league-model.test.mjs tests/next-league-history.test.mjs tests/brand-mark.test.mjs tests/next-tokens.test.mjs tests/next-app-view.test.mjs tests/next-loading.test.mjs",
+      "result": "61 passed; no failures/skips"
+    },
+    {
+      "command": "Local cloud-test Playwright, exclusive port 5238; final theme-asserting native capture selection across next-lines, next-prism-action-states and next-prism-league-actions",
+      "result": "17 passed in 3.7 minutes; actual native controllers, local PGlite and test-only read-state intercepts"
+    },
+    {
+      "command": "python -X utf8 scripts/check-brand-docs.py",
+      "result": "Passed"
+    },
+    {
+      "command": "npm run build:cloud",
+      "result": "Passed; existing chunk-size warning"
+    },
+    {
+      "command": "node scripts/check-cloud-boundary.mjs --bundle-only",
+      "result": "Passed; no hosted probe or actual-account/physical-phone acceptance"
+    },
+    {
+      "command": "Final populated-reactor regeneration with native theme, color, target and accessibility assertions",
+      "result": "1 passed in 13.4 seconds, including fresh populated pair after loading/error/empty"
+    }
   ]
 }

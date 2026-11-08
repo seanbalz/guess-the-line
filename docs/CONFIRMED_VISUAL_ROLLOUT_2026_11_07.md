@@ -252,7 +252,7 @@ reference math/data only and must not enter the production bundle.
 
 ### 07. League boards, feed and comments
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [ ] Port and verify this area. Status: **LOCALLY IMPLEMENTED / INDEPENDENT REVIEW PENDING / NOT DEPLOYED**. Five reviewed findings and expanded native state coverage are in [the fidelity fix record](PRISM_LEAGUE_ACTIONS_FIDELITY_FIXES_2026_11_07.md); all held/unverified states remain explicit.
 - Reference: `populated-league; leaguePreview`.
 - Native targets: `league/LeagueScreen.jsx, LeagueBoard.jsx; feed/Feed.jsx, DigestCard.jsx, PostCard.jsx, CommentsSheet.jsx and reactions`.
 - Required presentation and behavior: Spread/Total/Points boards, ties/unranked/House, more rows, folded posts, hidden picks/results, six reactions and comment drafts/length/focus return. Use native persistence/privacy gates.
@@ -329,7 +329,7 @@ reference math/data only and must not enter the production bundle.
 
 ### 18. NFL action layers
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [ ] Port and verify this area. Status: **LOCALLY IMPLEMENTED / COVERAGE GAPS / NOT DEPLOYED**. [The 43-state fidelity ledger](PRISM_LEAGUE_ACTIONS_FIDELITY_FIXES_2026_11_07.md) maps each exact native composition and distinguishes paired captures, unverified states and held API/SQL/shared-frame work. No 106/106 acceptance claim.
 - Reference: `NFL_ACTIONS_NAVIGATION_REVIEW.md; populated-nfl-actions; isolated-nfl-actions.jsx; nflActionsNavigationPreview`.
 - Native targets: `play/ForfeitDialog.jsx; lines/YourPickSheet.jsx, EveryoneGuesses.jsx; bets/GameBetsSheet.jsx, EveryoneBets.jsx, PlaceBets.jsx; feed/PicksSheet.jsx, ReactorsSheet.jsx`.
 - Required presentation and behavior: All 106 approved captures: reveal/forfeit, saved drafts/pending/stale/scope, game/everyone bets and read states, feed hidden/picks/share uncertain, reactors/read states, Virtual entry/slip/locked/no-offer/busy/uncertain, source/rules Info and scrolled forms. Exact scenarios below.

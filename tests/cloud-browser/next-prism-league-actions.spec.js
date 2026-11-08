@@ -6,7 +6,8 @@ import { randomUUID } from 'node:crypto';
 import { ALL } from '../migrations.mjs';
 import { seedFinishedWeek } from '../helpers/features-week.mjs';
 import { layoutProblems } from '../helpers/phone-layout.mjs';
-import { ACCOUNTS, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
+import { assertNativeActionTheme, setNativeActionTheme } from '../helpers/native-action-theme.mjs';
+import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 
 // Real native readers/writers and local SQL, with fictional fixture records only.
 test.use({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
@@ -27,6 +28,7 @@ async function pointsWeek(world) {
 }
 
 async function inspect(page, name, { capture = true } = {}) {
+  await assertNativeActionTheme(page, name.includes('-dark-') ? 'dark' : 'light');
   await page.evaluate(() => window.scrollTo(0, 0));
   expect(await page.evaluate(layoutProblems), `${name} full page`).toEqual([]);
   const audit = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
@@ -78,7 +80,7 @@ test('approved League cards and long comment thread fit full pages, scroll bodie
     await signIn(page, 'luke', { navigate: false });
     await expect(page.locator('.gx-league-standing')).toBeVisible();
     for (const theme of ['dark', 'light']) for (const width of [390, 320]) {
-      await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
+      await setNativeActionTheme(page, theme);
       await page.setViewportSize({ width, height: 844 });
       await inspect(page, `league-board-${theme}-${width}`);
       const markets = page.getByRole('group', { name: 'Standings market' });
@@ -109,6 +111,53 @@ test('approved League cards and long comment thread fit full pages, scroll bodie
     await inspect(page, 'league-feed-forced-320');
     await page.locator(`[data-post="${postId}"]`).getByRole('button', { name: '8 comments. Open comments' }).click();
     await inspect(page, 'league-comments-forced-320');
+    expect(world.errors).toEqual([]);
+  } finally { await page.unrouteAll({ behavior: 'wait' }); await page.close(); await world.db.close(); }
+});
+
+test('large native roster retains the first six plus viewer and private standings keep their own week', async ({ page, baseURL }) => {
+  const world = await communityWorld(page, baseURL, { migrations: ALL, optionalRpc: true, groupScreens: true });
+  try {
+    // Test-only authenticated reader fixture: nine fictional members, with Luke
+    // ranked below the first six. Private /state is left on its real local handler.
+    await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/community/read'), async route => {
+      const request = route.request();
+      const response = await world.handler(new Request(request.url(), { method: request.method(), headers: request.headers(), body: request.postData() }));
+      const data = await response.json();
+      const others = Array.from({ length: 8 }, (_, i) => ({ id: `00000000-0000-4000-8001-${String(i).padStart(12, '0')}`, displayName: `Roster Fixture ${i + 1}` }));
+      data.members = [...others, { id: ACCOUNTS.luke.id, displayName: ACCOUNTS.luke.name }];
+      data.standings = data.members.flatMap((member, i) => ['guess_spread', 'guess_total'].map(mode => ({ userId: member.id, mode, seasonPoints: 80 - i * 10, seasonScored: 1, weekPoints: i === 8 ? 0 : 10, weekScored: 1 })));
+      await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), json: data });
+    });
+    const troy = (await world.db.query("select season,week,created_at from public.gtl_feed_posts where kind='ballot_submitted' limit 1")).rows[0];
+    await world.db.query("insert into public.gtl_feed_posts(actor_id,kind,season,week,mode,dedupe_key,created_at) values($1,'ballot_submitted',$2,$3,'guess_total','fixture:sean-large',$4)", [ACCOUNTS.sean.id, troy.season, troy.week, troy.created_at]);
+    await page.addInitScript(() => localStorage.setItem('gtl.app', 'next'));
+    await page.goto('/#play/league?view=board'); await signIn(page, 'luke', { navigate: false });
+    await expect(page.locator('[data-board-row]')).toHaveCount(7);
+    await expect(page.locator(`[data-board-row="${ACCOUNTS.luke.id}"]`)).toBeVisible();
+    await expect(page.locator('.gx-league-standing')).toContainText('80 points behind Roster Fixture 1');
+    await expect(page.getByRole('button', { name: 'Open the feed' })).toHaveClass(/gx-btn--primary/);
+    for (const theme of ['dark', 'light']) for (const width of [390, 320]) {
+      await setNativeActionTheme(page, theme); await page.setViewportSize({ width, height: 844 });
+      await inspect(page, `league-large-board-${theme}-${width}`);
+    }
+    await page.getByRole('button', { name: '2 more on the board' }).click(); await expect(page.locator('[data-board-row]')).toHaveCount(9);
+    for (const theme of ['dark', 'light']) { await setNativeActionTheme(page, theme); await inspect(page, `league-large-expanded-${theme}-320`); }
+    await page.getByRole('button', { name: 'Open the feed' }).click();
+    await expect(page.locator('.gx-feed-digest')).toContainText('2 players locked in picks');
+    for (const theme of ['dark', 'light']) { await setNativeActionTheme(page, theme); await inspect(page, `league-folded-digest-${theme}-320`); }
+    await page.locator('.gx-feed-digest').getByRole('button', { name: 'Show each post (3)' }).click();
+    await expect(page.locator('.gx-feed-post[data-kind="ballot_submitted"]')).toHaveCount(3);
+    await expect(page.locator('[data-locked="true"]')).toHaveCount(2); // Sean's fixture post has no saved ballot.
+    for (const theme of ['dark', 'light']) { await setNativeActionTheme(page, theme); await inspect(page, `league-hidden-posts-${theme}-320`); }
+    await page.evaluate(id => localStorage.setItem(`gtl.next.league.v1.${encodeURIComponent(id)}`, JSON.stringify({ id: 'sean-troy-luke', name: 'Triple Threat' })), ACCOUNTS.luke.id);
+    await page.goto('/#play/league?view=board'); await page.reload();
+    await expect(page.getByRole('list', { name: 'Private group members' })).toBeVisible();
+    await expect(page.locator('.gx-league-standing')).toHaveAttribute('aria-label', 'Your weekly standing');
+    await expect(page.locator('.gx-league-standing')).toContainText(`Week ${world.state.league.week}`);
+    await expect(page.locator('.gx-league-standing')).not.toContainText('Community');
+    await expect(page.locator('.gx-league-standing')).not.toContainText('Season');
+    for (const theme of ['dark', 'light']) for (const width of [390, 320]) { await setNativeActionTheme(page, theme); await page.setViewportSize({ width, height: 844 }); await inspect(page, `league-private-week-${theme}-${width}`); }
     expect(world.errors).toEqual([]);
   } finally { await page.unrouteAll({ behavior: 'wait' }); await page.close(); await world.db.close(); }
 });

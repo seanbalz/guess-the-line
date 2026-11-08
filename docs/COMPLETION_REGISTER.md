@@ -39,6 +39,18 @@ record the exact approval sources and local browser captures. Canonical candidat
 By-season and non-shortlist curves remain backend dependencies; shared frame
 placement remains the parent's owner question. This is local review work, not
 whole-area approval, hosted acceptance, publication or deployment.
+## League/action independent-review fixes — November 7, 2026
+
+Exclusive unpublished branch `codex/league-action-fidelity-fixes-2026-11-07`
+corrects private weekly-versus-season labels, the in-app uncertain sit-out close
+warning, comments canvas rows, contextual League/feed hierarchy and game-bet
+row alignment. Expanded actual-controller capture coverage also exposed and
+fixed keyboard access to the busy Virtual slip's scroll body using its existing
+optional Sheet property. Native source/reference hashes and the full 43-state
+mapping are in [the fidelity fix record](PRISM_LEAGUE_ACTIONS_FIDELITY_FIXES_2026_11_07.md).
+Saved-scope/Menu pairs, the distinct forfeit account-change branch, held shared
+frame placement and finer Virtual stake compatibility remain explicit gaps.
+No push, PR, merge, migration, hosted release or physical-phone acceptance.
 
 ## Reviewed Play/Points/Score visual closeout — November 7, 2026
 

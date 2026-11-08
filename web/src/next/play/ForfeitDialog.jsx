@@ -19,6 +19,13 @@ export function ForfeitDialog({ args, open }) {
   const [state, setState] = useState({ status: 'loading' });
   const [busy, setBusy] = useState(false), [uncertain, setUncertain] = useState(() => remembered(key));
   const [storageError, setStorageError] = useState(false);
+  const [closeWarning, setCloseWarning] = useState(false), warningAction = useRef(null), keepPlaying = useRef(null);
+  const warningWasOpen = useRef(false);
+  useEffect(() => {
+    if (closeWarning) warningAction.current?.focus();
+    else if (warningWasOpen.current) keepPlaying.current?.focus();
+    warningWasOpen.current = closeWarning;
+  }, [closeWarning]);
   const appRef = useRef(app); appRef.current = app;
   const active = () => alive.current && current.current === context;
   function remember(value) {
@@ -80,14 +87,20 @@ export function ForfeitDialog({ args, open }) {
   const close = () => {
     if (running.current) return;
     // Closing this dialog keeps the underlying game and its unsaved note mounted.
-    if (uncertain && !window.confirm('Close while your sit-out is unconfirmed? It may have saved. Reopen See picks now to check before trying again.')) return;
+    if (uncertain) { setCloseWarning(true); return; }
     shell.closeDialog();
   };
   const done = Boolean(view?.stored);
+  if (closeWarning) return <Dialog className="gx-nfl-action" open={open} title="Close unconfirmed sit-out?"
+    text="Close while your sit-out is unconfirmed? It may have saved. Reopen See picks now to check before trying again."
+    onClose={() => setCloseWarning(false)}>
+    <Button ref={warningAction} onClick={() => setCloseWarning(false)}>Keep checking</Button>
+    <Button onClick={() => { if (!running.current) shell.closeDialog(); }}>Close</Button>
+  </Dialog>;
   return <Dialog className="gx-nfl-action" open={open} title={done ? `Week ${args.week} reveal confirmed` : `See picks now for Week ${args.week}?`}
     text={done ? 'Your locked guesses keep counting. Remaining guesses in the recorded markets are sat out; your drafts are kept.'
       : `This is final for Week ${args.week} · ${args.season}. It sits out every remaining unlocked guess in the markets listed below, not just this game. Locked guesses keep their points and drafts stay saved. You cannot lock more guesses in those markets this week. Sitting out breaks your Pick streak.`} onClose={close}>
-    <Button disabled={busy} onClick={close}>{done ? 'Back to Research' : 'Keep playing'}</Button>
+    <Button ref={keepPlaying} disabled={busy} onClick={close}>{done ? 'Back to Research' : 'Keep playing'}</Button>
     {!valid ? <p className="gx-t-body" role="alert">The account or week changed. Close this dialog and reopen it from the current week.</p>
       : busy ? <p className="gx-t-body" role="status">Confirming saved sit-out…</p>
         : state.status === 'loading' ? <p className="gx-t-body" role="status">Checking this week’s status…</p>
