@@ -1,0 +1,847 @@
+{
+  "status": "deployed-and-verified",
+  "source": "a17f2082e5e07e95179726ac948c44c55a506d1f",
+  "sourcePr": 502,
+  "reviewedHead": "d7d84eb2c32482d78715293872bc6625dde60946",
+  "reviewedAndMergedTree": "47f352ad7376a8de7597f42debc5d2567688bf69",
+  "reviews": {
+    "navigationTask": "C0/I0/M1",
+    "guidanceTask": "C0/I0/M1",
+    "ciScrollTask": "C0/I0/M1",
+    "wholeBranchAndDelta": "C0/I0/M1",
+    "minorScope": "Inherited fixture/build/color warning noise; no blocking finding."
+  },
+  "initialFailedPrCi": {
+    "observedAt": "2026-11-08T18:05:57.959Z",
+    "runs": [
+      {
+        "runId": 42506200462,
+        "workflow": "Tests",
+        "event": "pull_request",
+        "headSha": "9dd862efc2e546449ba22f096eedce490a40bf07",
+        "conclusion": "success",
+        "url": "https://github.com/seanbalz/guess-the-line/actions/runs/42506200462",
+        "jobs": [
+          {
+            "name": "Windows portability",
+            "conclusion": "success"
+          },
+          {
+            "name": "Test shard (2/3)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Test shard (3/3)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Test shard (1/3)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Typecheck and test",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "runId": 42506200445,
+        "workflow": "Dashboard checks",
+        "event": "pull_request",
+        "headSha": "9dd862efc2e546449ba22f096eedce490a40bf07",
+        "conclusion": "failure",
+        "url": "https://github.com/seanbalz/guess-the-line/actions/runs/42506200445",
+        "jobs": [
+          {
+            "name": "dashboard",
+            "conclusion": "success"
+          },
+          {
+            "name": "Cloud browser suite (2/4)",
+            "conclusion": "failure"
+          },
+          {
+            "name": "Cloud browser suite (4/4)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Cloud browser suite (1/4)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Cloud browser suite (3/4)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Persona suite",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "runId": 42506200457,
+        "workflow": "Brand QA",
+        "event": "pull_request",
+        "headSha": "9dd862efc2e546449ba22f096eedce490a40bf07",
+        "conclusion": "success",
+        "url": "https://github.com/seanbalz/guess-the-line/actions/runs/42506200457",
+        "jobs": [
+          {
+            "name": "Brand QA",
+            "conclusion": "success"
+          }
+        ]
+      }
+    ]
+  },
+  "correctedPrCi": {
+    "observedAt": "2026-11-08T18:45:48.774Z",
+    "runs": [
+      {
+        "runId": 42509696891,
+        "workflow": "Tests",
+        "event": "pull_request",
+        "headSha": "d7d84eb2c32482d78715293872bc6625dde60946",
+        "conclusion": "success",
+        "url": "https://github.com/seanbalz/guess-the-line/actions/runs/42509696891",
+        "jobs": [
+          {
+            "name": "Windows portability",
+            "conclusion": "success"
+          },
+          {
+            "name": "Test shard (1/3)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Test shard (2/3)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Test shard (3/3)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Typecheck and test",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "runId": 42509696922,
+        "workflow": "Dashboard checks",
+        "event": "pull_request",
+        "headSha": "d7d84eb2c32482d78715293872bc6625dde60946",
+        "conclusion": "success",
+        "url": "https://github.com/seanbalz/guess-the-line/actions/runs/42509696922",
+        "jobs": [
+          {
+            "name": "dashboard",
+            "conclusion": "success"
+          },
+          {
+            "name": "Cloud browser suite (4/4)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Cloud browser suite (1/4)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Persona suite",
+            "conclusion": "success"
+          },
+          {
+            "name": "Cloud browser suite (2/4)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Cloud browser suite (3/4)",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "runId": 42509696916,
+        "workflow": "Brand QA",
+        "event": "pull_request",
+        "headSha": "d7d84eb2c32482d78715293872bc6625dde60946",
+        "conclusion": "success",
+        "url": "https://github.com/seanbalz/guess-the-line/actions/runs/42509696916",
+        "jobs": [
+          {
+            "name": "Brand QA",
+            "conclusion": "success"
+          }
+        ]
+      }
+    ]
+  },
+  "mainCi": {
+    "observedAt": "2026-11-08T19:10:02.729Z",
+    "runs": [
+      {
+        "runId": 42511613375,
+        "workflow": "Tests",
+        "event": "push",
+        "headSha": "a17f2082e5e07e95179726ac948c44c55a506d1f",
+        "conclusion": "success",
+        "url": "https://github.com/seanbalz/guess-the-line/actions/runs/42511613375",
+        "jobs": [
+          {
+            "name": "Test shard (2/3)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Test shard (3/3)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Test shard (1/3)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Windows portability",
+            "conclusion": "success"
+          },
+          {
+            "name": "Typecheck and test",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "runId": 42511613226,
+        "workflow": "Dashboard checks",
+        "event": "push",
+        "headSha": "a17f2082e5e07e95179726ac948c44c55a506d1f",
+        "conclusion": "success",
+        "url": "https://github.com/seanbalz/guess-the-line/actions/runs/42511613226",
+        "jobs": [
+          {
+            "name": "dashboard",
+            "conclusion": "success"
+          },
+          {
+            "name": "Cloud browser suite (4/4)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Persona suite",
+            "conclusion": "success"
+          },
+          {
+            "name": "Cloud browser suite (1/4)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Cloud browser suite (3/4)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Cloud browser suite (2/4)",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "runId": 42511613279,
+        "workflow": "Brand QA",
+        "event": "push",
+        "headSha": "a17f2082e5e07e95179726ac948c44c55a506d1f",
+        "conclusion": "success",
+        "url": "https://github.com/seanbalz/guess-the-line/actions/runs/42511613279",
+        "jobs": [
+          {
+            "name": "Brand QA",
+            "conclusion": "success"
+          }
+        ]
+      }
+    ]
+  },
+  "sourceCheckRun": 42513653064,
+  "readinessRun": 42513782665,
+  "deployRun": 42514212232,
+  "approvals": [
+    {
+      "runId": 42513782665,
+      "history": [
+        {
+          "state": "approved",
+          "actor": "seanbalz",
+          "actorId": 178950349,
+          "comment": "Authorized read-only readiness for approved UI/scroll correction, frontend only, exact source a17f2082e5e07e95179726ac948c44c55a506d1f. All12 exact-main CI checks passed. No SQL, worker or API deployment.",
+          "environments": [
+            {
+              "id": 24408079411,
+              "name": "production"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runId": 42514212232,
+      "history": [
+        {
+          "state": "approved",
+          "actor": "seanbalz",
+          "actorId": 178950349,
+          "comment": "Authorized frontend-only deployment of approved UI/scroll fixes at exact source a17f2082e5e07e95179726ac948c44c55a506d1f. All12 main checks and readiness42513782665 passed; reviewed76-migration digestd40fdad9eb144738cdbd032e3c95ba433b4cb1606f3de3ab8079f0df1b8108f1. Compatibility/rollback reviewed. No API, worker or SQL/M41 deployment.",
+          "environments": [
+            {
+              "id": 24408079411,
+              "name": "production"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "readiness": {
+    "source": "a17f2082e5e07e95179726ac948c44c55a506d1f",
+    "target": "frontend",
+    "deployed": false,
+    "observedAt": "2026-11-08T19:14:00.929Z",
+    "migrationHistorySha256": "d40fdad9eb144738cdbd032e3c95ba433b4cb1606f3de3ab8079f0df1b8108f1",
+    "migrationCount": 76,
+    "pendingRepoMigrations": [
+      20261029151727,
+      20261029161613,
+      20261029162144
+    ],
+    "schedule": {
+      "checkedAt": "2026-11-08T19:14:00.929Z",
+      "timeRestrictions": false,
+      "publishedWeek": {
+        "season": 2026,
+        "week": 9
+      },
+      "games": 29
+    },
+    "functions": [
+      {
+        "slug": "gtl-api",
+        "version": 52,
+        "status": "ACTIVE",
+        "verify_jwt": true,
+        "bundleSha256": "76893d3a32c000669a0f11601a1454616630e6ff7ca2e55742221f63f3565ce1"
+      },
+      {
+        "slug": "gtl-epl-jobs",
+        "version": 3,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "e1e90385539ff785d7882a9eb65e838048fb36dd54d5386aae807345100d5135"
+      },
+      {
+        "slug": "gtl-fantasy-ingest",
+        "version": 1,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "326f6c5b1e6138703577c2c67c285ab91252779d37909ab6bd0cca4c6848c923"
+      },
+      {
+        "slug": "gtl-league-features",
+        "version": 1,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "9ddad5ceccdf03a2710f13f9889160f2a08c2da4a3097f74f6dfeb3626c98836"
+      },
+      {
+        "slug": "gtl-odds-refresh",
+        "version": 8,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "65d23faf48eab2130b1ac252e9d7471334d535404c9b364c3502ce4f8b140c4e"
+      },
+      {
+        "slug": "gtl-ops-alerts",
+        "version": 1,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "b78376f31aafb7630e6e10c80223aed53d3e1fd2ec9a0f1c70f8dcd10e901e53"
+      },
+      {
+        "slug": "gtl-points-jobs",
+        "version": 2,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "7c90c8587a1932de14710c33fcc65c965332647f23be11839003046a1c3868fb"
+      },
+      {
+        "slug": "gtl-push-reminders",
+        "version": 6,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "460389e9ea2cadbf963f6b4f85519073f410aa298b0bd9428353d16b47fb952b"
+      },
+      {
+        "slug": "gtl-results-refresh",
+        "version": 4,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "346ec8a8323529373df4ee086b2ed74ad28efe5f4101cc6c3b95110701f7a786"
+      },
+      {
+        "slug": "gtl-week-open",
+        "version": 5,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "bcf6044516ff009400b85fcb15e8fe9537318502991cd6a1977b8cc016b6a438"
+      }
+    ],
+    "previousPages": {
+      "id": "b3bd6187-adbf-4097-98e2-28417cac7d09",
+      "source": "1c5a9da0deb479c15abf390a905acd47084cb338"
+    },
+    "boundary": {
+      "checked": 457,
+      "denied": 438,
+      "awaiting": [
+        {
+          "name": "anonymous epl_order_corrections table",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous epl_result_reads table",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous epl_capture_intervals table",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous epl_stat_rechecks table",
+          "until": "20261029151727 (M-33 stat recheck apply / compatible API deploy)"
+        },
+        {
+          "name": "anonymous epl_standings table",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous epl_standings_usage table",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_reserve_result_read RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_apply_recheck_orders RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_order_correction_state RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_capture_interval RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_attest_capture_interval RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_recheck_due_at RPC",
+          "until": "20261029151727 (M-33 stat recheck apply / compatible API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_recheck_state RPC",
+          "until": "20261029151727 (M-33 stat recheck apply / compatible API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_record_recheck RPC",
+          "until": "20261029151727 (M-33 stat recheck apply / compatible API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_standings_valid RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_standings_state RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_save_standings RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_resolve_with_standings RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_standings_provenance RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        }
+      ]
+    }
+  },
+  "beforeDeploy": {
+    "source": "a17f2082e5e07e95179726ac948c44c55a506d1f",
+    "target": "frontend",
+    "deployed": false,
+    "observedAt": "2026-11-08T19:19:40.408Z",
+    "migrationHistorySha256": "d40fdad9eb144738cdbd032e3c95ba433b4cb1606f3de3ab8079f0df1b8108f1",
+    "migrationCount": 76,
+    "pendingRepoMigrations": [
+      20261029151727,
+      20261029161613,
+      20261029162144
+    ],
+    "schedule": {
+      "checkedAt": "2026-11-08T19:19:40.408Z",
+      "timeRestrictions": false,
+      "publishedWeek": {
+        "season": 2026,
+        "week": 9
+      },
+      "games": 29
+    },
+    "functions": [
+      {
+        "slug": "gtl-api",
+        "version": 52,
+        "status": "ACTIVE",
+        "verify_jwt": true,
+        "bundleSha256": "76893d3a32c000669a0f11601a1454616630e6ff7ca2e55742221f63f3565ce1"
+      },
+      {
+        "slug": "gtl-epl-jobs",
+        "version": 3,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "e1e90385539ff785d7882a9eb65e838048fb36dd54d5386aae807345100d5135"
+      },
+      {
+        "slug": "gtl-fantasy-ingest",
+        "version": 1,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "326f6c5b1e6138703577c2c67c285ab91252779d37909ab6bd0cca4c6848c923"
+      },
+      {
+        "slug": "gtl-league-features",
+        "version": 1,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "9ddad5ceccdf03a2710f13f9889160f2a08c2da4a3097f74f6dfeb3626c98836"
+      },
+      {
+        "slug": "gtl-odds-refresh",
+        "version": 8,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "65d23faf48eab2130b1ac252e9d7471334d535404c9b364c3502ce4f8b140c4e"
+      },
+      {
+        "slug": "gtl-ops-alerts",
+        "version": 1,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "b78376f31aafb7630e6e10c80223aed53d3e1fd2ec9a0f1c70f8dcd10e901e53"
+      },
+      {
+        "slug": "gtl-points-jobs",
+        "version": 2,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "7c90c8587a1932de14710c33fcc65c965332647f23be11839003046a1c3868fb"
+      },
+      {
+        "slug": "gtl-push-reminders",
+        "version": 6,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "460389e9ea2cadbf963f6b4f85519073f410aa298b0bd9428353d16b47fb952b"
+      },
+      {
+        "slug": "gtl-results-refresh",
+        "version": 4,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "346ec8a8323529373df4ee086b2ed74ad28efe5f4101cc6c3b95110701f7a786"
+      },
+      {
+        "slug": "gtl-week-open",
+        "version": 5,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "bcf6044516ff009400b85fcb15e8fe9537318502991cd6a1977b8cc016b6a438"
+      }
+    ],
+    "previousPages": {
+      "id": "b3bd6187-adbf-4097-98e2-28417cac7d09",
+      "source": "1c5a9da0deb479c15abf390a905acd47084cb338"
+    },
+    "boundary": {
+      "checked": 457,
+      "denied": 438,
+      "awaiting": [
+        {
+          "name": "anonymous epl_order_corrections table",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous epl_result_reads table",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous epl_capture_intervals table",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous epl_stat_rechecks table",
+          "until": "20261029151727 (M-33 stat recheck apply / compatible API deploy)"
+        },
+        {
+          "name": "anonymous epl_standings table",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous epl_standings_usage table",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_reserve_result_read RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_apply_recheck_orders RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_order_correction_state RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_capture_interval RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_attest_capture_interval RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_recheck_due_at RPC",
+          "until": "20261029151727 (M-33 stat recheck apply / compatible API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_recheck_state RPC",
+          "until": "20261029151727 (M-33 stat recheck apply / compatible API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_record_recheck RPC",
+          "until": "20261029151727 (M-33 stat recheck apply / compatible API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_standings_valid RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_standings_state RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_save_standings RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_resolve_with_standings RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_standings_provenance RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        }
+      ]
+    }
+  },
+  "verified": {
+    "requestedSource": "a17f2082e5e07e95179726ac948c44c55a506d1f",
+    "target": "frontend",
+    "checkedAt": "2026-11-08T19:21:34.665Z",
+    "api": {
+      "slug": "gtl-api",
+      "version": 52,
+      "status": "ACTIVE",
+      "verify_jwt": true,
+      "bundleSha256": "76893d3a32c000669a0f11601a1454616630e6ff7ca2e55742221f63f3565ce1"
+    },
+    "pages": {
+      "id": "968d3b5d-a115-42ea-8293-ce405ef42f91",
+      "url": "https://968d3b5d.guess-the-line.pages.dev",
+      "productionUrl": "https://guess-the-line.pages.dev",
+      "deploymentUrlAccess": "protected",
+      "checkedUrls": [
+        "https://guess-the-line.pages.dev"
+      ],
+      "checkedAssetsPerUrl": 132,
+      "frontendSha256": "1300acebf6f0e9d5310512244410e43c2c3fc5229bce122417be7003061cc5cd"
+    },
+    "boundary": {
+      "checked": 457,
+      "denied": 438,
+      "awaiting": [
+        {
+          "name": "anonymous epl_order_corrections table",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous epl_result_reads table",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous epl_capture_intervals table",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous epl_stat_rechecks table",
+          "until": "20261029151727 (M-33 stat recheck apply / compatible API deploy)"
+        },
+        {
+          "name": "anonymous epl_standings table",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous epl_standings_usage table",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_reserve_result_read RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_apply_recheck_orders RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_order_correction_state RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_capture_interval RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_attest_capture_interval RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_recheck_due_at RPC",
+          "until": "20261029151727 (M-33 stat recheck apply / compatible API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_recheck_state RPC",
+          "until": "20261029151727 (M-33 stat recheck apply / compatible API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_record_recheck RPC",
+          "until": "20261029151727 (M-33 stat recheck apply / compatible API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_standings_valid RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_standings_state RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_save_standings RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_resolve_with_standings RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_standings_provenance RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        }
+      ]
+    },
+    "apiDeploymentMetadataVerified": true,
+    "apiSourceVerified": false,
+    "apiBundleMatchesCheckout": "not-independently-verified",
+    "apiSourceLimitation": "The deploy command uses the clean requested checkout. The remote bundle digest is recorded, but remote API bytes have not been independently matched to that checkout. API source acceptance remains a manual release-record gate.",
+    "migrationHistorySha256": "d40fdad9eb144738cdbd032e3c95ba433b4cb1606f3de3ab8079f0df1b8108f1",
+    "pendingRepoMigrations": [
+      20261029151727,
+      20261029161613,
+      20261029162144
+    ],
+    "limitation": "Signed-out boundaries and deployment metadata/assets only; real-phone and signed-in acceptance remain separate. No migrations applied."
+  },
+  "manifest": {
+    "gitHead": "a17f2082e5e07e95179726ac948c44c55a506d1f",
+    "dirtyWorkingTree": false,
+    "sourceSha256": "768bc4fb3174dde8e85c8a7fec346d3940fe17660ff4df51a80a876a53294a74",
+    "frontendSha256": "1300acebf6f0e9d5310512244410e43c2c3fc5229bce122417be7003061cc5cd",
+    "artifactCount": 133
+  },
+  "sourcePreservation": {
+    "observedAt": "2026-11-08T18:48:36.896173+00:00",
+    "source": "a17f2082e5e07e95179726ac948c44c55a506d1f",
+    "tree": "47f352ad7376a8de7597f42debc5d2567688bf69",
+    "baseline": "1c5a9da0deb479c15abf390a905acd47084cb338",
+    "week5SourceSha256": "a4ee8f13c4b58777767dbd94a022dbc0a721ff6ece90522e4ddf4e25d2d9f1dd",
+    "preservedSourceDirectories": {
+      "data": {
+        "baselineGitTree": "0e9cb2cbd3520ac0e272d91b82cfe0c7eab07d91",
+        "releaseGitTree": "0e9cb2cbd3520ac0e272d91b82cfe0c7eab07d91",
+        "equal": true
+      },
+      "cloud": {
+        "baselineGitTree": "ebf87d194f6c94c47cdf281bfbf567b34f1011ec",
+        "releaseGitTree": "ebf87d194f6c94c47cdf281bfbf567b34f1011ec",
+        "equal": true
+      },
+      "server": {
+        "baselineGitTree": "6168afb2f2f89a572e4782095355bcf2b578896f",
+        "releaseGitTree": "6168afb2f2f89a572e4782095355bcf2b578896f",
+        "equal": true
+      },
+      "shared": {
+        "baselineGitTree": "27e24f112b5f167c8b8f815548453f57e1e63058",
+        "releaseGitTree": "27e24f112b5f167c8b8f815548453f57e1e63058",
+        "equal": true
+      },
+      "supabase": {
+        "baselineGitTree": "d54f6158da208bd2a34404ed41786c7eda4e80d2",
+        "releaseGitTree": "d54f6158da208bd2a34404ed41786c7eda4e80d2",
+        "equal": true
+      }
+    },
+    "limits": [
+      "Tracked source preservation only; no hosted private row hashes obtained.",
+      "No database write or migration is part of the frontend release."
+    ]
+  },
+  "localEvidenceStages": {
+    "baseline": "0c83bb4b3c55409b234c5587a735a096d100a866",
+    "firstCandidate": "9dd862efc2e546449ba22f096eedce490a40bf07",
+    "candidateInputsMatched": 645,
+    "chromiumLayoutCases": 136,
+    "chromiumVisibleImagePositions": 96,
+    "webkitLayoutCases": 30,
+    "webkitVisibleImagePositions": 90,
+    "webkitGuidanceCases": 8,
+    "scrollDelta": "219e546699368925a913b08e6cf34745349d2fd2",
+    "scrollDeltaBrowserCases": 48,
+    "sourceDifferenceAfterFirstCandidate": [
+      "web/src/next/ui/Nest.jsx"
+    ],
+    "scope": "Earlier layout captures remain tied to 9dd; fresh navigation coverage and exact-source CI cover the Nest correction."
+  },
+  "limitations": [
+    "No new physical iPhone keyboard, toolbar, safe-area or touch acceptance.",
+    "No new signed-in production UI or hosted private-row hash verification.",
+    "Local HOSTED/ALL schemas and synthetic payloads prove UI behavior, not hosted capability or live-provider accuracy.",
+    "Immutable Pages URL is Access-protected; production asset comparison used the public production URL.",
+    "Remote API bytes were not independently matched; API52 metadata was preserved and no API deployment occurred.",
+    "Source-file preservation does not establish hosted row preservation or private-board synchronization."
+  ]
+}

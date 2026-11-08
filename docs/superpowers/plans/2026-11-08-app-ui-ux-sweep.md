@@ -33,14 +33,22 @@
 
 ## Task 3: Verify, review and release
 
-- [ ] Repeat failed cases and representative whole-app matrix on candidate; exercise actual scroll/Back/modal/dock/keyboard paths, both themes and fallback fonts. Run relevant existing browser/component/Node/token/type/Brand/build/privacy checks without default skips.
-- [ ] Perform task and whole-branch review with exact source/capture evidence; preserve frozen hashes and record residual device/access limits.
-- [ ] Update current completion record, commit reviewed named files, push/open PR and sync:check. After exact CI/merge use existing protected release gates for the authorized frontend corrections, preserving API/database state.
-- [ ] Verify production bytes/metadata and publish actual release evidence; report source/branch/full commit/PR/verification/unpublished work. No blanket claim of every physical-device state.
+- [x] Repeat failed cases and representative whole-app matrix on candidate; exercise actual scroll/Back/modal/dock/keyboard paths, both themes and fallback fonts. Run relevant existing browser/component/Node/token/type/Brand/build/privacy checks without default skips.
+- [x] Perform task and whole-branch review with exact source/capture evidence; preserve frozen hashes and record residual device/access limits.
+- [x] Update current completion record, commit reviewed named files, push/open PR and sync:check. After exact CI/merge use existing protected release gates for the authorized frontend corrections, preserving API/database state.
+- [x] Verify production bytes/metadata and publish actual release evidence; report source/branch/full commit/PR/verification/unpublished work. No blanket claim of every physical-device state.
 
 ## CI followup — Nest layer entry
 
 - [x] Reproduce initial PR502 browser-shard failure and distinguish actual entry-scroll defect from resize/paint occlusion; preserve original failed evidence.
 - [x] Reset changed Nest layers to their top before existing heading focus, keeping Shell/manual-history Back ownership, headers, bodies and scanner assertions intact.
 - [x] Verify RED0/45 to GREEN, exact settled browser Back scroll/focus, and48 covering browser cases plus component/token/type/Brand checks.
-- [ ] Review the two-file delta, update the audit evidence and run fresh exact-head CI before normal merge/release.
+- [x] Review the two-file delta, update the audit evidence and run fresh exact-head CI before normal merge/release.
+
+Release closeout: PR #502 merged as a17f2082e5e07e95179726ac948c44c55a506d1f;
+all twelve corrected PR and twelve exact-main checks passed. Source check
+42513653064, readiness 42513782665 and frontend deployment 42514212232 passed.
+Verified at 2026-11-08T19:21:34.665Z: Pages 968d3b5d, 132 production assets,
+API v52 and 76-migration digest unchanged. [Release evidence](../../RELEASE_2026_11_08_UI_UX_SWEEP.md)
+and its structured receipt retain scope. Publication is documentation only;
+physical-device/private-row acceptance is not inferred.
