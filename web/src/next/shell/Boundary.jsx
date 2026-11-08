@@ -2,6 +2,7 @@
 // it draws takes only itself down. A tab or page shows a card with "Try again" and "Reload the app" (the old
 // app is gone, so nothing ever mounts it); a layer closes and says so in a toast (LayerHosts.jsx). The outer
 // boundary in main.jsx stays the last resort.
+import '../me/accountPrism.css';
 import { Component, useId } from 'react';
 import { Button, Icon } from '../ui/index.js';
 import { APP_RELOAD_COPY } from '../../appView.js';
@@ -27,7 +28,7 @@ export function FailCard({ title, onRetry, onReload }) {
   const id = useId();
   return (
     <div className="gx-screen">
-      <section className="gx-fail" role="alert" aria-labelledby={id}>
+      <section className="gx-fail gx-continuity-fail" role="alert" aria-labelledby={id}>
         <Icon icon="alert" size={20} className="gx-c-loss"/>
         <h1 className="gx-t-section" id={id}>{title}</h1>
         <p className="gx-t-body gx-c-2">{SHELL_COPY.failHelp}</p>

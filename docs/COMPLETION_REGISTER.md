@@ -1728,3 +1728,29 @@ Sheet-body tab stop fixes keyboard access exposed by the long-thread check.
 The complete 106-action visual matrix, finer Virtual Units compatibility, shared
 header/dock decision, independent review, integration and hosted/phone acceptance
 remain separate work; this entry does not close them or claim deployment.
+## Native Account, access and recovery Prism port — November 7, 2026
+
+Areas 19–28 are implemented locally on the exclusive unpublished branch
+`codex/prism-account-recovery-20261107`, based on integration
+`35ae5fc6c7dfa9d87ff22a3797b11c369a409590` after a fresh `origin/main` fetch.
+The [area record](PRISM_ACCOUNT_NATIVE_2026_11_07.md) maps the approved selected
+review at `3ac2eb50513ba73447ef890e4a47863cde7bdd76` to native cards, graphics,
+forms, sheets and controllers. [Evidence](../design/prism-account-native-2026-11-07/evidence.json)
+contains 190 native capture hashes for 38 states and exact approval-reference
+hashes. Local verification passed 903 Vitest tests, 63 Node/PGlite contracts,
+the strict auth visual-bridge contract, 8 new native browser matrices, 23
+existing controller/provider browser checks and 11 targeted recovery/access/
+keyboard/continuity checks; typecheck, Brand QA, cloud build and bundle-only
+privacy scan passed. The separately known baseline Bets boundary/loading failures
+remain assigned to the integration owner; this entry does not claim full CI.
+
+Actual Profile/settings/version checks, device reminder permission/subscription,
+owner-only export, provider/recovery/name handling, and private league create/
+join/invite/access/retention gates remain operational. The selected generic
+public app invitation now uses explicit native sharing/copy and manual fallback
+without account, recipient or league payload fields. The auth entry imports only
+the three documented selected visual assets/styles; the boundary remains strict
+for all other imports. Shared header/dock structure is held, Community/FEPL access
+remains, and History/scorecard, new avatars/awards, NBA/Signal, API/SQL/provider and
+hosted data are outside this work. No push, PR, merge, migration, deployment or
+physical-phone acceptance is claimed; the task worktree is preserved for review.

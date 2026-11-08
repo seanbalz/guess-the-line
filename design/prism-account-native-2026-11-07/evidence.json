@@ -1,0 +1,2940 @@
+{
+  "date": "2026-11-07",
+  "capturedAt": "2026-11-08T00:54:56.490Z",
+  "status": "Local native source/capture verification; unpublished, not merged or deployed",
+  "branch": "codex/prism-account-recovery-20261107",
+  "integrationBase": "35ae5fc6c7dfa9d87ff22a3797b11c369a409590",
+  "authorityCommit": "3ac2eb50513ba73447ef890e4a47863cde7bdd76",
+  "scope": "Confirmed rollout areas19–28 only",
+  "checks": {
+    "vitest": {
+      "files": 88,
+      "tests": 903,
+      "failed": 0
+    },
+    "nodeContracts": {
+      "tests": 63,
+      "failed": 0
+    },
+    "authBridgeContract": {
+      "tests": 1,
+      "failed": 0
+    },
+    "originalBrowserControllersAndProviders": {
+      "tests": 23,
+      "failed": 0
+    },
+    "additionalNativeRecoveryAccessAppearanceChecks": {
+      "tests": 11,
+      "failed": 0
+    },
+    "newAreaBrowserMatrices": {
+      "tests": 8,
+      "failed": 0
+    },
+    "typecheck": "passed",
+    "brandQA": "passed",
+    "cloudBuild": "passed; existing chunk-size advisory",
+    "cloudBundlePrivacy": "passed --bundle-only; no live probe",
+    "browserPort": 5232,
+    "widths": [
+      320,
+      390
+    ],
+    "height": 844,
+    "themes": [
+      "dark",
+      "light"
+    ],
+    "forcedColors": true,
+    "scrollPositions": [
+      "start",
+      "middle",
+      "end"
+    ],
+    "minTargetPixels": 44,
+    "guidance": {
+      "topics": 19,
+      "paragraphs": 70,
+      "originalSourceLinks": 13
+    }
+  },
+  "knownBaselineChecks": "next-app-view separation contract and next-loading contract hit existing Bets imports/bare-loading cases at integration base; parent owns fixes. New exact auth visual bridge passes independently.",
+  "limitations": [
+    "No hosted/deployment/physical-phone acceptance",
+    "OS share sheet and fake browser push-device edge are local test doubles; real native controllers and push SQL are exercised",
+    "Existing browser-owned dirty-reload confirmation is preserved; no new dialog inferred from the storyboard",
+    "Existing intentional league-title ellipsis is separately checked for actual clipping and viewport bounds",
+    "Shared frame/header/sports-row/dock position remains held; no Community/FEPL access moved",
+    "Appearance miniature is a decorative material sample without fictional account progress"
+  ],
+  "references": [
+    {
+      "key": "accountProfileRemindersPreview",
+      "reviewedCommit": "bd5637779686b624f7c2384e20fe329aafa11f20",
+      "accepted": "2026-11-06",
+      "acceptanceScope": "Supplied Profile and Reminders direction in both themes, with linked Off/blocked/install examples; unseen recovery/unsupported/unconfigured states, live saves, real permissions, push delivery and whole-app completion are not separately accepted.",
+      "captures": [
+        {
+          "file": "previews/account-profile-check-dark-phone.png",
+          "sha256": "de68cc14a03a38fe48cbcee231ee26609d2c9f9e8f66cdb9112691e29e85ead6",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/account-profile-check-light-phone.png",
+          "sha256": "d95e12c168602583bb99309c47b53dcddc7fa867f6d1fa4093319d3b2f75078c",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/account-profile-conflict-dark-phone.png",
+          "sha256": "13d249011c344b9b23cc905be41eb46ad1b53fb1c4f06d8dfdb5dfd0f45898a2",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/account-profile-conflict-light-phone.png",
+          "sha256": "a3ceb720d788e1381e36a75ae7449e4b16ad2aade9813766ecdef0bc21f6acac",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/account-profile-dark-phone.png",
+          "sha256": "92bfd9ba94bda5c1b25b7842cd7fd6524d6c1611d8c012a72a32743b3dc9773c",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/account-profile-draft-dark-phone.png",
+          "sha256": "e77a2b421e020fe236db00e305f12b7dc3dbc13e944a950c916b9456720ca94b",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/account-profile-draft-light-phone.png",
+          "sha256": "c834acf319f447a25247aace7a26c97549e6cd168a1cb03ceb96a8b8a1211dfc",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/account-profile-light-phone.png",
+          "sha256": "780b53891532d55354cb57fb60ab95a302bae9430066ab4219fbccb79054a423",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/account-reminders-blocked-dark-phone.png",
+          "sha256": "8f03f73609b0757b2b6110b708d4a04dfa8a186c9ace872126c5a4976810b3e0",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/account-reminders-blocked-light-phone.png",
+          "sha256": "3a5ad98638cccb3684325dce97070f85c9af8bee8d545b1e370b3be8dda42898",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/account-reminders-install-dark-phone.png",
+          "sha256": "98e058060ed5db189c681b63654ae6c82cbe6d28080b189d359e96389a6bc638",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/account-reminders-install-light-phone.png",
+          "sha256": "4b97e6df3daa7ff8a06c60cd49818f852a04f852976440fa92eb309a37625703",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/account-reminders-off-dark-phone.png",
+          "sha256": "b2ee38616a29118ee85dfe8273f980c0bf16addea013513b90509dc7c8add995",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/account-reminders-off-light-phone.png",
+          "sha256": "e5fc0881bf125031f7de1854e12a298c3789955e4fea760eb99ab411e5e37fbf",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/account-reminders-on-dark-phone.png",
+          "sha256": "efdffc7943da7aef09b578b3c9e454f6feb4974e56fc84a25ac43f2dd8835d97",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/account-reminders-on-light-phone.png",
+          "sha256": "b0a7f6493413283a3eaefa36464716f04d2db58b70772d108abfc7a03a121ad8",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/account-reminders-unavailable-dark-phone.png",
+          "sha256": "d5e70e30f511291b0519d2eb924e08645135ec234d4bc457b0c69f5702cfbd4c",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/account-reminders-unavailable-light-phone.png",
+          "sha256": "774638f89e14617586de8500c7b07ceb1a4e285ede3c4d585d4cb01493797921",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/account-reminders-unsupported-dark-phone.png",
+          "sha256": "de1b7634a5eab45f533ac951b93bff85f75341ff12fe691c1cb31a0448765111",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/account-reminders-unsupported-light-phone.png",
+          "sha256": "86d0b72b8527b891aa922f13ee9e1216b292004e99891a8c75ec22e1d3cc7a3c",
+          "explicitlyReviewed": false
+        }
+      ]
+    },
+    {
+      "key": "accountToolsPreview",
+      "reviewedCommit": "51709782dad3ba7250b474b797a60284ae829bbf",
+      "accepted": "2026-11-06",
+      "acceptanceScope": "Supplied Settings and Guidance direction in both themes and linked source/unavailable/conflict examples; not live saves, provider availability, rule/content changes, physical-device acceptance or whole-app completion.",
+      "captures": [
+        {
+          "file": "previews/account-tools-guidance-research-dark-phone.png",
+          "sha256": "5292a0834344a6ca6fdba685171bfff711730794ed4a8a7859e8f34bb34aa1af",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/account-tools-guidance-research-light-phone.png",
+          "sha256": "82d1c3a9de7abd96fedf75c82e7d122a6d037e8fa1676583b561014caba73ca6",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/account-tools-guidance-sources-dark-phone.png",
+          "sha256": "2fa9434d91863bc36b41b137c22498f5a605aa301e83efcabfb804569e9122c2",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/account-tools-guidance-sources-light-phone.png",
+          "sha256": "200dd28d97d53ccd5ad4ae38fcbae6b69dd96b0a2e89d1a9492a5dfc560c95c8",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/account-tools-guidance-topics-dark-phone.png",
+          "sha256": "4ef88a70eea3784d26c984a24152ae84860356fb87686941b1544c76f85e4e1e",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/account-tools-guidance-topics-light-phone.png",
+          "sha256": "348ddc1d08b06d7f768d57e055518e445eb0b5a4413970ba84409f6f1421637e",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/account-tools-settings-conflict-dark-phone.png",
+          "sha256": "ea2a824e4a37c6a30ddaaae3d8c8001496c0bb3cc35fb6b85906fc88097e6bc5",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/account-tools-settings-conflict-light-phone.png",
+          "sha256": "19f29bc623236761f4c1e16a59d602d989ce2619c4077b561732f683e4ac873c",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/account-tools-settings-dark-phone.png",
+          "sha256": "a416f3520864aa65e367395370b8ddb6ed45959fa2b20e27c0ada6cebf023fb5",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/account-tools-settings-draft-dark-phone.png",
+          "sha256": "a51cab074e44474d592e0acb953820ba6b03d504329931b4a88b283c3152f726",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/account-tools-settings-draft-light-phone.png",
+          "sha256": "14e99297a624d150e5213b33fd6e9f7a2c8cd405799263d0c81c14bd33496a2a",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/account-tools-settings-light-phone.png",
+          "sha256": "0f8c82cf114fa37161bf46c1ba02ccc1d089e772551b7e22084fb5625a797b76",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/account-tools-settings-unavailable-dark-phone.png",
+          "sha256": "84d54da6fac989a5e05eccb44ad494183d7768e678ec474819b7dfc6f530f2be",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/account-tools-settings-unavailable-light-phone.png",
+          "sha256": "dad5d36b3ea079557b9df34ed75341aa80af88f12da95fe939c7e0b0519d67ed",
+          "explicitlyReviewed": false
+        }
+      ]
+    },
+    {
+      "key": "appInvitePreview",
+      "reviewedCommit": "80cd719da27b7da5a768c96f4013cc8f0591cd71",
+      "accepted": "2026-11-06",
+      "acceptanceScope": "Supplied invite card, Account entry and linked fallback direction in both themes, plus public shareable-link product choice. Unseen device-sharing illustration, native API integration, actual delivery, physical-device acceptance and whole-app completion remain separate.",
+      "captures": [
+        {
+          "file": "previews/app-invite-account-entry-dark-phone.png",
+          "sha256": "9c1b7a5b675a7fbcc06200d53d5ef0cac289ab758b9f0e1fcc2f06468bc1e617",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/app-invite-account-entry-light-phone.png",
+          "sha256": "36568943e2f84c2525290d016d93adb49c659ca50a51e3edf8a5b266bd7a3eb8",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/app-invite-invite-dark-phone.png",
+          "sha256": "8c2e58056a883e4a810887b394d15a61ae2d2015bf0fa9add3ef70698839fc7a",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/app-invite-invite-light-phone.png",
+          "sha256": "0e901050446c4326237293d68e2c0b79766e934c7888925934d8c6beef424f1c",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/app-invite-link-fallback-dark-phone.png",
+          "sha256": "beb71ae4810082f6cfb4e77382e7748f0f5871723afa70fbca0beda4264a3b17",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/app-invite-link-fallback-light-phone.png",
+          "sha256": "b121e016409eaf284735b8e94d59672d6e5774998713eca4fc2bb37e3467500f",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/app-invite-share-dark-phone.png",
+          "sha256": "a827280818c6ee381895888364c3ec764208727da3895a6ef33c23dcea7d10ba",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/app-invite-share-light-phone.png",
+          "sha256": "3e319fdb84ea4863ae769bd64474fa9f06f912ea09909c9831280879c1c7af51",
+          "explicitlyReviewed": false
+        }
+      ]
+    },
+    {
+      "key": "accessPreview",
+      "reviewedCommit": "f3479d4afa7aabc3d234ccf3c76c431d1da9c05d",
+      "accepted": "2026-11-06",
+      "acceptanceScope": "Supplied sign-in, account creation, email-confirmation and first-name visual direction in both themes. Actual authentication/email/profile saves, provider configuration, unseen errors, physical-device acceptance and whole-app completion remain separate.",
+      "captures": [
+        {
+          "file": "previews/access-confirmation-dark-phone.png",
+          "sha256": "71f1ee4390669f273450cba9c2dd186af6af84e1c5b31a7648c50506b098edc6",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/access-confirmation-light-phone.png",
+          "sha256": "f9351b9245e0dfe16111fedf538cc303b9326a0beb083e2612e1f9e7d012441b",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/access-create-account-dark-phone.png",
+          "sha256": "6628155800760a28d88a3aaab82da041eca9cf2db88c426bf37d6d4b73c05756",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/access-create-account-light-phone.png",
+          "sha256": "a9027b74575ee32f5c7109924a3d941e58c74b8d424a97b2b24e018097dde9e2",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/access-name-dark-phone.png",
+          "sha256": "1fb8b94a90b09d309caf42ec3760e26faeb6e215733dc2bb0ccf547091b091eb",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/access-name-light-phone.png",
+          "sha256": "e7427d5ff80207ead38bfa45bcb86680c819e0ca706e030297615855a1745a1a",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/access-sign-in-dark-phone.png",
+          "sha256": "4a2acff471bdef0b7d74e06e4c09cbd32f835807d17b2cafc931b5b3e04a02be",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/access-sign-in-light-phone.png",
+          "sha256": "fcb9727d20789c087551619be84eb4337bed7a13cbd2ea354dff30204c75d4f9",
+          "explicitlyReviewed": true
+        }
+      ]
+    },
+    {
+      "key": "accessRecoveryPreview",
+      "reviewedCommit": "75764996412d6ba78982513def909fc9f5f51d84",
+      "accepted": "2026-11-06",
+      "acceptanceScope": "Supplied Forgot password, reset notice/form/mismatch, unavailable sign-in and loading visual direction in both themes. Unseen sign-in recovery-entry update, actual reset/email/auth behavior, persistence, physical-device acceptance and whole-app completion remain separate.",
+      "captures": [
+        {
+          "file": "previews/recovery-forgot-dark-phone.png",
+          "sha256": "5aaee3d6bde2d3f175c10872ab879674ee723502692ce613516333a870a147e7",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/recovery-forgot-light-phone.png",
+          "sha256": "02816ea0b0f01d4672dc901ab84ca2796adf5e8e235b5abe212ee6f0aa026d57",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/recovery-loading-dark-phone.png",
+          "sha256": "f85793d306015257b8ba3e4bc2ca6d4847c4218ce5ce48f5325002fa60a35e93",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/recovery-loading-light-phone.png",
+          "sha256": "40f711594cdb399ab930fe92f4c87ecd39d06f0db9ac28480f341734736e33f2",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/recovery-mismatch-dark-phone.png",
+          "sha256": "8a7536187cfa080a3a19acf1f67731e0585154a7d266aa1895fe2cc4a0c6fc03",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/recovery-mismatch-light-phone.png",
+          "sha256": "1f6a3d06c07b44df3989614aa5b414b4127b61020146a3bc50807f9f1a958928",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/recovery-new-password-dark-phone.png",
+          "sha256": "e67f9ed33ddd6391b52cf608728f303679596ff3a853cf68cd6558aaec6838f1",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/recovery-new-password-light-phone.png",
+          "sha256": "459f06f70597bec8ef168359eb1a47896fad12cb3c23abf35548b26556630b1a",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/recovery-reset-notice-dark-phone.png",
+          "sha256": "2e305f99be3f4742d2ce523d619745c92b7a2532079c1e952d0bf3f57043caaf",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/recovery-reset-notice-light-phone.png",
+          "sha256": "31ac7ad65f6c32b1aedef843d607cf30d2268525e9a85a3153a9b3aa0518c4ee",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/recovery-sign-in-entry-dark-phone.png",
+          "sha256": "dae1855384745383f455d1265831dd200c4939160329e8b8aa0b2dad8e8eb084",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/recovery-sign-in-entry-light-phone.png",
+          "sha256": "66045ddfd50e73b09bef5e2257b13823baf827a9e4863b027c73a60ce3103147",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/recovery-unavailable-dark-phone.png",
+          "sha256": "e89221b1297bd561a916d29ef3b83793cdfe9cf80936bce91d136069fe8e3f00",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/recovery-unavailable-light-phone.png",
+          "sha256": "6814abaf9cf024ed9941102f6cb7261a967bc6befabeb8f50083a1f443c35e0d",
+          "explicitlyReviewed": true
+        }
+      ]
+    },
+    {
+      "key": "sessionRecoveryPreview",
+      "reviewedCommit": "9d5d0ad85dcf779802cbf0ae6777691b5758ae19",
+      "accepted": "2026-11-06",
+      "acceptanceScope": "Supplied session-expiry and retained first-name recovery direction in both themes. Real reauthentication/provider return, persistence, save/readback, invitation access, physical-device acceptance and whole-app completion remain separate.",
+      "captures": [
+        {
+          "file": "previews/session-recovery-signin-dark-phone.png",
+          "sha256": "237fbdbe0e2b4220865ab065e554e2fc70b961363dcf99620d4877fdc0d0593d",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/session-recovery-signin-light-phone.png",
+          "sha256": "e44ebc766de95cbd04588a2dd62b03eac76cd8caddab3bc587a98cf33a10c740",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/session-recovery-failed-dark-phone.png",
+          "sha256": "6ae5462b0a360d72547c4853deba3ec83c8f7a0ec87958f51a46f29953e3397d",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/session-recovery-failed-light-phone.png",
+          "sha256": "c6e642f5ab7f9d7fabce0cd09467498c068d7491be74e85603bcc2397bf51f05",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/session-recovery-google-dark-phone.png",
+          "sha256": "8b94abd9de16eed482dbd48e59cc6f2cc9d34c97a27b3f8746711816029efb3e",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/session-recovery-google-light-phone.png",
+          "sha256": "64cdf8ac4175dd9f98d6bbd16112426c1e89244a679619685a342a0998a92bd8",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/session-recovery-name-uncertain-dark-phone.png",
+          "sha256": "5b1bf507f11e458151dbc9c22b32caf614c08397446e7c53d3965e133912c6cb",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/session-recovery-name-uncertain-light-phone.png",
+          "sha256": "632e522f5c99772227634ed127da417e63dcf04995aaf71412ce02b00fe5ecec",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/session-recovery-name-offline-dark-phone.png",
+          "sha256": "db60e46d60539950900c77f5c1e44a3e8d23027afc50000917b53912b70a34a4",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/session-recovery-name-offline-light-phone.png",
+          "sha256": "c7ae3486c53a593cadd9a003dbf321a221992206cfef3eb91d7b2776fd9ee391",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/session-recovery-name-signin-dark-phone.png",
+          "sha256": "0f014212afb5a6be5c02ea2904ed9368d76fa8be0c1c157aae7b8d46b9a794f1",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/session-recovery-name-signin-light-phone.png",
+          "sha256": "879a1a7d0a979732f888b6326a95d0fa7cc2734718266794fcafe17001ea2443",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/session-recovery-name-invited-dark-phone.png",
+          "sha256": "03e8c642b970a731645c9cf63376062a5c0519826154c58b611dc26d1ef292dc",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/session-recovery-name-invited-light-phone.png",
+          "sha256": "d7d5719f3cb01d7d09410f88b7a53fed000b6f1bbe8dd1ab9b95b4b3be43cc04",
+          "explicitlyReviewed": true
+        }
+      ]
+    },
+    {
+      "key": "appearancePreview",
+      "reviewedCommit": "9ac86fc282cfd55c6121b2a4141e44406f76b229",
+      "accepted": "2026-11-06",
+      "acceptanceScope": "Supplied Appearance, System, explicit/device-reduced motion and unavailable-storage direction in both themes. Actual persistence, OS/browser behavior, animation, physical-device acceptance and whole-app completion remain separate.",
+      "captures": [
+        {
+          "file": "previews/appearance-device-reduced-dark-phone.png",
+          "sha256": "ed249c6d36fe153e806c0f57b5a77af9d57eddf6592cb6c59cb47565d28b3090",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/appearance-device-reduced-light-phone.png",
+          "sha256": "e816d7b94fde3df1e50deed2400e77f2d6c96064450be0c853ad33ebd5aaa5c2",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/appearance-reduced-dark-phone.png",
+          "sha256": "92f0e24dd62f66e1331cf80fbb22cb94094d5ddee219c4e6fb7bd20f45aabbed",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/appearance-reduced-light-phone.png",
+          "sha256": "8a867ffe3a471a8dfd01ed1af2b8d1e39720e941ab2c071ee37a1a021a5ad236",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/appearance-storage-unavailable-dark-phone.png",
+          "sha256": "2881cc2a2f23cdd30639e527241dff0e43bed88a0d5b80cbcccce21e53f2e225",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/appearance-storage-unavailable-light-phone.png",
+          "sha256": "10c263b6b6e47940ff01f72116c1309ba4b43a0399bf7805c33317a482701402",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/appearance-system-dark-phone.png",
+          "sha256": "afcb37bb312f11715f8ef42f9b8fbd0746108863c94aaf54c53498f00254d217",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/appearance-system-light-phone.png",
+          "sha256": "ecac430245c4fe270c4072030035bde93ca3d26c242582f17094247ff31df513",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/appearance-theme-dark-phone.png",
+          "sha256": "7757d6588f081f03123caf3dcbc1095b3c3b6dfe4748d6c09caf3901fa33f3d4",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/appearance-theme-light-phone.png",
+          "sha256": "122da664e70954c05c1919ff34e9c89110921d7f6d38ca9259f68a5d7aaa6242",
+          "explicitlyReviewed": true
+        }
+      ]
+    },
+    {
+      "key": "exportPreview",
+      "reviewedCommit": "34d2902a1bb886c40a014710a8a0b62eba60835e",
+      "accepted": "2026-11-06",
+      "acceptanceScope": "Supplied export overview, preparing, completion example and failed/unavailable direction in both themes. Actual export bytes, account isolation, full database runtime tests, hosted availability, physical-device file handling and whole-app completion remain separate.",
+      "captures": [
+        {
+          "file": "previews/export-completion-dark-phone.png",
+          "sha256": "3fd37f8bcb838df9cfe30781d4080d46d5ac21cedd620224d2bf9f8dfc52a96b",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/export-completion-light-phone.png",
+          "sha256": "ba9af312fe32d272fc4ee20d9790be7b6bc8a7b856fab32c45e022b50387da05",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/export-failed-dark-phone.png",
+          "sha256": "fb44718753dde0b1cd192c2dbe9ed5d1052c05c6c4c9293af39a49c44b2cf3f8",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/export-failed-light-phone.png",
+          "sha256": "15c51f56b6e3facbe3898d31b9a5a53e7166e4535b77d1f624900d0278bf5427",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/export-overview-dark-phone.png",
+          "sha256": "5075ef6095351d51df471b4cb293c3d4c999a749cbfe45a023bd2b904343dfa4",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/export-overview-light-phone.png",
+          "sha256": "8c60a277104ef8bf3127bb56905a1c960b3a391402672d05fdf0030c5997f38e",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/export-preparing-dark-phone.png",
+          "sha256": "4278ff216dbeb8413b20a256affea572a87238526571fd545e3cdcf685386bd5",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/export-preparing-light-phone.png",
+          "sha256": "cad23b078df735b89a64672f5b321d6eb6bf2e6a9ea170e645acfd6a71a1dec4",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/export-unavailable-dark-phone.png",
+          "sha256": "603f5ced01ef95544e22b0787fcfc0405ef2fbb9f2f0d55403b77580523e0ff3",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/export-unavailable-light-phone.png",
+          "sha256": "52a6ae287578311ce88d1fc08bebc4efe59f45af5813b6fe1aa4e30f21f3b07d",
+          "explicitlyReviewed": true
+        }
+      ]
+    },
+    {
+      "key": "continuityPreview",
+      "reviewedCommit": "6e634d1fd8e1452585a5b5536855a5c337aff655",
+      "accepted": "2026-11-06",
+      "acceptanceScope": "Supplied offline, startup, account/tab/page failure and reload-warning storyboard direction in both themes. Actual connection/data preservation/reload behavior, permissions, physical-device acceptance and whole-app completion remain separate.",
+      "captures": [
+        {
+          "file": "previews/continuity-account-failed-dark-phone.png",
+          "sha256": "3e03b9f05678b39c2d2f6f49e479d8ae2cac07d500c47135081d582ab6edbe70",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/continuity-account-failed-light-phone.png",
+          "sha256": "0259369c2baba2deb7401c5f0244392982b3c1f21117c92b11e71a4ec9ef0035",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/continuity-offline-dark-phone.png",
+          "sha256": "efaf79f1d8feb415e97bfb6f9777a1712732b3747ff7c6b974ca569121e560ed",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/continuity-offline-light-phone.png",
+          "sha256": "df5b6d41cd504b355555ff9cc894ef9b8578727d3c599645a1efa260608f1c37",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/continuity-page-failed-dark-phone.png",
+          "sha256": "3ccc63c9ccc2cd1d0715e3ea53ed11058de607f730f83796e923577bd659fe4e",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/continuity-page-failed-light-phone.png",
+          "sha256": "bb2b0dd862c01406df32844dc26e9c386a71cf49051cdf2cea407f02816ab2cd",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/continuity-reload-warning-dark-phone.png",
+          "sha256": "1e4d84d5e032bf46e85a4026387ec469a7428f2a6a532f73884237f17ffc0261",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/continuity-reload-warning-light-phone.png",
+          "sha256": "37d22a6e9bf0129f673f6d41b107f3bca5eb7913489dd5dc583c06539eba72b6",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/continuity-startup-dark-phone.png",
+          "sha256": "16986f2e7d42cfc9722d10e87285757732078dcc2fa430af58224b6d3e96d3bb",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/continuity-startup-light-phone.png",
+          "sha256": "75960a4839bc7478d1fbdd1ca913e726f8e51c1a3b75bea0e51130ea8e60d771",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/continuity-tab-failed-dark-phone.png",
+          "sha256": "f0223c83a18b0f91e8f2e61e1fa5fe4a8db4cf9e00146c132f0999ab776baf70",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/continuity-tab-failed-light-phone.png",
+          "sha256": "68a1db511edb4b5abee5355459211dfdf38eb97d9bbc3d428cd6f224f1c1e7be",
+          "explicitlyReviewed": true
+        }
+      ]
+    },
+    {
+      "key": "leagueSetupPreview",
+      "reviewedCommit": "5b917a92f2dcad726ab152aaa4350364f666d713",
+      "accepted": "2026-11-06",
+      "acceptanceScope": "Supplied league switcher, invitation entry/status direction and linked creation mockups in both themes only. Unseen link-ready, scrolled/revoked and pending-check states, actual creation/join/invitations, physical-device acceptance and whole-app completion remain separate.",
+      "captures": [
+        {
+          "file": "previews/league-setup-create-dark-phone.png",
+          "sha256": "4156f47e4e46e87d4085ef8b08ab06aee8c9c3947c8bcff1d3b06a67a64d5634",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/league-setup-create-light-phone.png",
+          "sha256": "30600d7cc30a62c3f6d8588cf0300147c08ae7e2d04c9d0827630cefa1ea730a",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/league-setup-invite-dark-phone.png",
+          "sha256": "175868d4c1a0a33df4c122b511cbc7c10cc6e5cb3f0421e3e9c23ee1bd843792",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/league-setup-invite-light-phone.png",
+          "sha256": "9ae4597132d4207267e45f0c76d10f0f885536e6330148c124388493d4d5c4e4",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/league-setup-join-check-dark-phone.png",
+          "sha256": "6987990d2e28b879470ab9a40cb16b29ac50a2d8b10ffac1ddad9fd4778d2fb3",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/league-setup-join-check-light-phone.png",
+          "sha256": "aa727b06d5065176ee71a394e7f5cd78f13a3e35cf83ccbd5e3d721cb9c90ebd",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/league-setup-link-ready-dark-phone.png",
+          "sha256": "893dc3a146af49e0065770cef9b21531505bfb932cb9a78779e8f3573b13e06f",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/league-setup-link-ready-light-phone.png",
+          "sha256": "ca33211e18f7066b4d590258b60422065addb641938e13fe12e0b5c577b4e656",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/league-setup-statuses-dark-phone.png",
+          "sha256": "026c8897aaf085e49a702be89f2fbe5babdefb6adf5fe2b4164fc8d4ca0b8bc9",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/league-setup-statuses-light-phone.png",
+          "sha256": "e3faae2bac7ba6f26befd0ae4420e200fe281f20a2feb17912cc9577c6a8afc1",
+          "explicitlyReviewed": false
+        },
+        {
+          "file": "previews/league-setup-switcher-dark-phone.png",
+          "sha256": "fdd21098be393ddddd3f8aec6fc4c20edbc1882d39c408b1502b8fc5487bb436",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/league-setup-switcher-light-phone.png",
+          "sha256": "b735c1cccd3f2aef3bf18fe13b5188ee4def03034f8838de9e31ffc1924b0fc6",
+          "explicitlyReviewed": true
+        }
+      ]
+    },
+    {
+      "key": "leagueAccessPreview",
+      "reviewedCommit": "5609f305f905b6949a337508a30be55a5ce7ebc7",
+      "accepted": "2026-11-06",
+      "acceptanceScope": "Supplied private access pending, Community removed with/without groups and saved-link/joining/uncertain visual direction in both themes. Actual access rules, token behavior, joining, retention/persistence, physical-device acceptance and whole-app completion remain separate.",
+      "captures": [
+        {
+          "file": "previews/league-access-pending-dark-phone.png",
+          "sha256": "cbfd6dc94dc090a2dd5546342d9f5d5c54b852dfb3b33960dc8fe0808f95d6ff",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/league-access-pending-light-phone.png",
+          "sha256": "27ef1b61f235c0a6e022f5204d7e6db1bd17d518fbb31d1db266e83e5521d40f",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/league-access-removed-dark-phone.png",
+          "sha256": "b18a041a288bd19a33761b0ab87c9db4daf0af83db70ce7186544cd46af7aeb3",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/league-access-removed-light-phone.png",
+          "sha256": "2bb74e6ab8d51ce3d35b053523ab7f31921b041d59feee43d242e6f756e4bc47",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/league-access-removed-no-groups-dark-phone.png",
+          "sha256": "42bcf1a21cc7bb96aea695e2351d76d01f7d89c3db1d9308a2740c32af430ff5",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/league-access-removed-no-groups-light-phone.png",
+          "sha256": "af3e4d262896526759297df53a6bd77ed8721e0171ff444d88c93ec69402bc0e",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/league-access-saved-joining-dark-phone.png",
+          "sha256": "7ce5bbf8bfaab8563ced7f927104574eba29bd48ceb2b0aeec8d74090f6649bf",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/league-access-saved-joining-light-phone.png",
+          "sha256": "bce2109ad80fd4796aed5022744e5aa30fd2157238a5637d73a28ed5f2b4855a",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/league-access-saved-link-dark-phone.png",
+          "sha256": "b11ee08e62eab75a8abff93c6834e9253b912db47260caaf1fcc135ed09bd6a0",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/league-access-saved-link-light-phone.png",
+          "sha256": "afdb66d024c91df20b64822149c11db6b7748851d57ad7c337e017bc269baae0",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/league-access-saved-uncertain-dark-phone.png",
+          "sha256": "097fa1d7d4f35352f79053266e003c396063f5dc0a57b3c2ed6d7a2eb8295d0b",
+          "explicitlyReviewed": true
+        },
+        {
+          "file": "previews/league-access-saved-uncertain-light-phone.png",
+          "sha256": "03c68afb11cab5334a31cf5af9d8d63ac48ee40d6599610be00040236b5f06bb",
+          "explicitlyReviewed": true
+        }
+      ]
+    }
+  ],
+  "nativeCaptureCount": 190,
+  "nativeStateCount": 38,
+  "nativeCaptures": [
+    {
+      "file": "access-confirmation-dark-320-bottom.png",
+      "state": "access-confirmation",
+      "sha256": "eb89aa8add0127fe883735e683996915e2c59bf4f3730ade25595684072b19f7",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessPreview"
+      ]
+    },
+    {
+      "file": "access-confirmation-dark-390-full.png",
+      "state": "access-confirmation",
+      "sha256": "d32abf2f8fca41daee80acb9166cb2df9d2532f214ae0f95ab248a421e420e48",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accessPreview"
+      ]
+    },
+    {
+      "file": "access-confirmation-forced-320.png",
+      "state": "access-confirmation",
+      "sha256": "a151146a40ee2ffc3cf6fdec5a04d1aeb107e46f7f28bdbb7b3e818f116347ac",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "accessPreview"
+      ]
+    },
+    {
+      "file": "access-confirmation-light-320-bottom.png",
+      "state": "access-confirmation",
+      "sha256": "3de9e742c3270b4e1cc7c04b437fc83b40c7006fc949d66aee34f4cace85c3fd",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessPreview"
+      ]
+    },
+    {
+      "file": "access-confirmation-light-390-full.png",
+      "state": "access-confirmation",
+      "sha256": "bd47398a0fae0696ad45b75ee16bdfae173be5bc1e3e97ada140a1dd84ec1279",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accessPreview"
+      ]
+    },
+    {
+      "file": "access-create-dark-320-bottom.png",
+      "state": "access-create",
+      "sha256": "05728aada797177df6d550fef698f2791a53337dbd129204661591bac516b16d",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessPreview"
+      ]
+    },
+    {
+      "file": "access-create-dark-390-full.png",
+      "state": "access-create",
+      "sha256": "fce9b413ab5a65bf3b8a2b405e23fd6c9039780bcee462ed3a1968680d50ce2e",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accessPreview"
+      ]
+    },
+    {
+      "file": "access-create-forced-320.png",
+      "state": "access-create",
+      "sha256": "56e771498c4d3adc27ae9da9e64271266a99f9746cb787f1332208f9b7c54326",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "accessPreview"
+      ]
+    },
+    {
+      "file": "access-create-light-320-bottom.png",
+      "state": "access-create",
+      "sha256": "2d0656ad4c8070432bad2fbfad3a772fac2dcc7f0f1ce3d35a857efec71e6321",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessPreview"
+      ]
+    },
+    {
+      "file": "access-create-light-390-full.png",
+      "state": "access-create",
+      "sha256": "7bb426e6a40347785cb59328b3ef48a6787513feac287c8ee9aafc6a52f06312",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accessPreview"
+      ]
+    },
+    {
+      "file": "access-forgot-dark-320-bottom.png",
+      "state": "access-forgot",
+      "sha256": "d27d2dfaf7dabec45f871a2868d14468f76ba79679824212dce083549e3548d8",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessRecoveryPreview"
+      ]
+    },
+    {
+      "file": "access-forgot-dark-390-full.png",
+      "state": "access-forgot",
+      "sha256": "3bdcb85c43705242f14d0204d970f3ef1d0dc81f8e13dd173d3d465a2889b60e",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accessRecoveryPreview"
+      ]
+    },
+    {
+      "file": "access-forgot-forced-320.png",
+      "state": "access-forgot",
+      "sha256": "92787ddd9c4d0cde1dab9f833cd91e1ef3b3b718d1251bea359ab206b59d62b7",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "accessRecoveryPreview"
+      ]
+    },
+    {
+      "file": "access-forgot-light-320-bottom.png",
+      "state": "access-forgot",
+      "sha256": "9376af7988b0a347b11bf10fd0fa8d5699fc05e1c6e5350ff57f21b409e06ea4",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessRecoveryPreview"
+      ]
+    },
+    {
+      "file": "access-forgot-light-390-full.png",
+      "state": "access-forgot",
+      "sha256": "513fe735789e259c439c0c1199afdea2b1dd3ef9b88ea104a41bf3c3d26903d0",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accessRecoveryPreview"
+      ]
+    },
+    {
+      "file": "access-reset-dark-320-bottom.png",
+      "state": "access-reset",
+      "sha256": "57c368bc3b90ca27d59d365cfd4bf26484d10f9d04c989e6e740fab79cbbbdb4",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessRecoveryPreview"
+      ]
+    },
+    {
+      "file": "access-reset-dark-390-full.png",
+      "state": "access-reset",
+      "sha256": "d406053441fa8ad9a9de3446bfbb185b5637f09635ba9b00e0cd1d4241a1dd49",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accessRecoveryPreview"
+      ]
+    },
+    {
+      "file": "access-reset-forced-320.png",
+      "state": "access-reset",
+      "sha256": "54b7a6db72c5eb0e8304124592bcfd1f630f613d22928b05e8da7743c67ba3a5",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "accessRecoveryPreview"
+      ]
+    },
+    {
+      "file": "access-reset-light-320-bottom.png",
+      "state": "access-reset",
+      "sha256": "e8e8116487f62f490e515539315c2c4785ccc4896a45702ee43b6054c75cd66d",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessRecoveryPreview"
+      ]
+    },
+    {
+      "file": "access-reset-light-390-full.png",
+      "state": "access-reset",
+      "sha256": "f35d3d3f9d22e4822beb8350c95ff8d2a75f77caa117c224402374d06174c1c2",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accessRecoveryPreview"
+      ]
+    },
+    {
+      "file": "access-reset-mismatch-dark-320-bottom.png",
+      "state": "access-reset-mismatch",
+      "sha256": "053a983d58099597654981ac64256e046cec1929ccaf52fab51c659d0a330062",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessRecoveryPreview"
+      ]
+    },
+    {
+      "file": "access-reset-mismatch-dark-390-full.png",
+      "state": "access-reset-mismatch",
+      "sha256": "9a25405be38ec5102f8eecafd7bbdc82662c982f84ef6cf07f7ef7634b36b00a",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accessRecoveryPreview"
+      ]
+    },
+    {
+      "file": "access-reset-mismatch-forced-320.png",
+      "state": "access-reset-mismatch",
+      "sha256": "d40ce851b8e362d5da8f472e2c7c5bbacad7b53607fb2f739fc26599864734ce",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "accessRecoveryPreview"
+      ]
+    },
+    {
+      "file": "access-reset-mismatch-light-320-bottom.png",
+      "state": "access-reset-mismatch",
+      "sha256": "c9e242e2eeae6fbd790b6014e8a5ebc80995f0cb8aa13e53f91fea5e59298f31",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessRecoveryPreview"
+      ]
+    },
+    {
+      "file": "access-reset-mismatch-light-390-full.png",
+      "state": "access-reset-mismatch",
+      "sha256": "2cbeac072978b21cc2169803378c449387bdc952341d59dacc5b15b0ec3939b9",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accessRecoveryPreview"
+      ]
+    },
+    {
+      "file": "access-reset-requested-dark-320-bottom.png",
+      "state": "access-reset-requested",
+      "sha256": "4f135bec5fe3791036ef575f38fac4b7d51f4a0a7173e5554ead637d6d08837e",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessRecoveryPreview"
+      ]
+    },
+    {
+      "file": "access-reset-requested-dark-390-full.png",
+      "state": "access-reset-requested",
+      "sha256": "409bbe5aee5a642166c21d239c602d1712d6c2522c039cb62371530b0c88306d",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accessRecoveryPreview"
+      ]
+    },
+    {
+      "file": "access-reset-requested-forced-320.png",
+      "state": "access-reset-requested",
+      "sha256": "f11fb814ca79336235eadbb884151d0fdbc34143b5f887807f5d221e651995f8",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "accessRecoveryPreview"
+      ]
+    },
+    {
+      "file": "access-reset-requested-light-320-bottom.png",
+      "state": "access-reset-requested",
+      "sha256": "3c110e828ac3396f9e15d95b349e7e8e4169bb16f1cc2813340dfea7572bacf3",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessRecoveryPreview"
+      ]
+    },
+    {
+      "file": "access-reset-requested-light-390-full.png",
+      "state": "access-reset-requested",
+      "sha256": "0c3763cd9d4c4fbd8e156e395ed3ae238d1b04bcdbcd73028409d13cf568370e",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accessRecoveryPreview"
+      ]
+    },
+    {
+      "file": "access-sign-in-dark-320-bottom.png",
+      "state": "access-sign-in",
+      "sha256": "ef54fb77bec2d60f1dcddece60a10c004588c433e997bb9a47c8c9222acc5de6",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessPreview"
+      ]
+    },
+    {
+      "file": "access-sign-in-dark-390-full.png",
+      "state": "access-sign-in",
+      "sha256": "b8b47aca69b880697fe96dc374629b6c77589f8d20befe65a36a2d2c54c2efb9",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accessPreview"
+      ]
+    },
+    {
+      "file": "access-sign-in-forced-320.png",
+      "state": "access-sign-in",
+      "sha256": "b883dd0d57bd2a53472317744d52bd048acbb288a9967e5fcc4e40c0fd33833a",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "accessPreview"
+      ]
+    },
+    {
+      "file": "access-sign-in-light-320-bottom.png",
+      "state": "access-sign-in",
+      "sha256": "8b107dd9cc7377673a243a21976524efeb22c239391ed1ecf810cfbb0de82c9c",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessPreview"
+      ]
+    },
+    {
+      "file": "access-sign-in-light-390-full.png",
+      "state": "access-sign-in",
+      "sha256": "443f5950d62861a5d3cf940681dac42c287a3cfa183effc16f41a316fb0a233a",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accessPreview"
+      ]
+    },
+    {
+      "file": "account-dark-320-bottom.png",
+      "state": "account",
+      "sha256": "0add30f571cb67408b0039c96f878d9905f9a20f2f6f64f81254e34d148acb5f",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview",
+        "appInvitePreview"
+      ]
+    },
+    {
+      "file": "account-dark-390-full.png",
+      "state": "account",
+      "sha256": "7d8041a6e73999c31bf782942d259146ad7bed22dea800efb6d8964bdebac3e7",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview",
+        "appInvitePreview"
+      ]
+    },
+    {
+      "file": "account-failed-dark-320-bottom.png",
+      "state": "account-failed",
+      "sha256": "21029f0b21e42e64f02c6f7571eee8f858bab9bd67d5c911dab6373bd687c09e",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "continuityPreview"
+      ]
+    },
+    {
+      "file": "account-failed-dark-390-full.png",
+      "state": "account-failed",
+      "sha256": "925850db8161d44d8ce722df744d826795fde81d663a27d262b712515305ac7a",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "continuityPreview"
+      ]
+    },
+    {
+      "file": "account-failed-forced-320.png",
+      "state": "account-failed",
+      "sha256": "39970941a1ff32f80702a1d942714c937ed48239351b3ef8445e91be3e698b21",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "continuityPreview"
+      ]
+    },
+    {
+      "file": "account-failed-light-320-bottom.png",
+      "state": "account-failed",
+      "sha256": "780dd8bd0f7029a08489a3ecc882458980fe2791a550a7fedc0f8165d4017bcc",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "continuityPreview"
+      ]
+    },
+    {
+      "file": "account-failed-light-390-full.png",
+      "state": "account-failed",
+      "sha256": "2aad945e7c8d1ce83f579ff690e6d9849cbf32218f4f8d08cb97fd9cb7e06d51",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "continuityPreview"
+      ]
+    },
+    {
+      "file": "account-forced-320.png",
+      "state": "account",
+      "sha256": "2269138966b5d74b779a2b907d5b019b16675dc79e8fbe8eea0b8856f138ba66",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview",
+        "appInvitePreview"
+      ]
+    },
+    {
+      "file": "account-light-320-bottom.png",
+      "state": "account",
+      "sha256": "edcfe36ffbed8f16d5942d1e8fef059196f373dee28f8faf2aad8f408b6888fd",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview",
+        "appInvitePreview"
+      ]
+    },
+    {
+      "file": "account-light-390-full.png",
+      "state": "account",
+      "sha256": "c34881145a0f484ff0ebd3fab6164d60b1d50959c60ae14feeea6f7d2651d98c",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview",
+        "appInvitePreview"
+      ]
+    },
+    {
+      "file": "app-invite-dark-320-bottom.png",
+      "state": "app-invite",
+      "sha256": "c329727e8d536c61edaa1996004112a524c4818582a29b81af88256b31c9cda5",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "appInvitePreview"
+      ]
+    },
+    {
+      "file": "app-invite-dark-390-full.png",
+      "state": "app-invite",
+      "sha256": "f9e80b08cc356ecb2d42add2af9e0a95f2d2a718ede4f45a7ad87b0845adf71e",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "appInvitePreview"
+      ]
+    },
+    {
+      "file": "app-invite-fallback-dark-320-bottom.png",
+      "state": "app-invite-fallback",
+      "sha256": "a44d093db05c23591fe528ae40d9d2bfff8a78137e522ffd71935cfc04b9f268",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "appInvitePreview"
+      ]
+    },
+    {
+      "file": "app-invite-fallback-dark-390-full.png",
+      "state": "app-invite-fallback",
+      "sha256": "314a598fe1a13b3d9457afcb8cdecc9eec2e8b883adb7db1cb5a1ddcb93193c1",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "appInvitePreview"
+      ]
+    },
+    {
+      "file": "app-invite-fallback-forced-320.png",
+      "state": "app-invite-fallback",
+      "sha256": "15120058b45722958dba52c2e5bb3887530861a89fd3e2b9fae83a9bdd367fa9",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "appInvitePreview"
+      ]
+    },
+    {
+      "file": "app-invite-fallback-light-320-bottom.png",
+      "state": "app-invite-fallback",
+      "sha256": "a756765e2bca498a24d5650cf043cf47f5852fd1ef6b1dc56d9177df8c24e47d",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "appInvitePreview"
+      ]
+    },
+    {
+      "file": "app-invite-fallback-light-390-full.png",
+      "state": "app-invite-fallback",
+      "sha256": "5569e661551e965de4d6df5856c070c637214ccf7d4302568a1d7c60e92407ee",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "appInvitePreview"
+      ]
+    },
+    {
+      "file": "app-invite-forced-320.png",
+      "state": "app-invite",
+      "sha256": "15120058b45722958dba52c2e5bb3887530861a89fd3e2b9fae83a9bdd367fa9",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "appInvitePreview"
+      ]
+    },
+    {
+      "file": "app-invite-light-320-bottom.png",
+      "state": "app-invite",
+      "sha256": "f66924740f63441af8e74b82602f8c074fba85c8ad652712b4824f33d4f3bcaf",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "appInvitePreview"
+      ]
+    },
+    {
+      "file": "app-invite-light-390-full.png",
+      "state": "app-invite",
+      "sha256": "65ea8e0ece848a24b53013a63cd30222e7e56018522fa59a68e76fe7bd33e052",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "appInvitePreview"
+      ]
+    },
+    {
+      "file": "appearance-dark-320-bottom.png",
+      "state": "appearance",
+      "sha256": "09bf9c532253c38c85adb86b51dad6c0b4932cdbce3461804ab92b864f640161",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "appearancePreview"
+      ]
+    },
+    {
+      "file": "appearance-dark-390-full.png",
+      "state": "appearance",
+      "sha256": "0ec268838ef417e493e4b7a48b146276461643cc62156b0a1502e41416ff3fe1",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "appearancePreview"
+      ]
+    },
+    {
+      "file": "appearance-forced-320.png",
+      "state": "appearance",
+      "sha256": "dd48731a7ff91abec2c228a3ee8b915235307c181f86b81aa7d1e4648560578d",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "appearancePreview"
+      ]
+    },
+    {
+      "file": "appearance-light-320-bottom.png",
+      "state": "appearance",
+      "sha256": "9a14e97c98928050c1faf2f475a6880fac8bed89d6927a5ce1dbb23fc85a946f",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "appearancePreview"
+      ]
+    },
+    {
+      "file": "appearance-light-390-full.png",
+      "state": "appearance",
+      "sha256": "19db190cd73ba60b1f166da7e1cc7d20c199e80c6e137d9819116ad07e8a678f",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "appearancePreview"
+      ]
+    },
+    {
+      "file": "appearance-system-reduced-dark-320-bottom.png",
+      "state": "appearance-system-reduced",
+      "sha256": "24138dfea53c48e06eeb149c7a5798c025689706474a01aec2abbdb955e53742",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "appearancePreview"
+      ]
+    },
+    {
+      "file": "appearance-system-reduced-dark-390-full.png",
+      "state": "appearance-system-reduced",
+      "sha256": "8eb0380e835523f8db30b9b0d2204a000a3ee6fcc13bfbd7cbf2e50ff89e3213",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "appearancePreview"
+      ]
+    },
+    {
+      "file": "appearance-system-reduced-forced-320.png",
+      "state": "appearance-system-reduced",
+      "sha256": "c9d1fdbad37459165c5c0b68d5bf92e87e0bb252e16f1ab6005cabe96e6e6d60",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "appearancePreview"
+      ]
+    },
+    {
+      "file": "appearance-system-reduced-light-320-bottom.png",
+      "state": "appearance-system-reduced",
+      "sha256": "e39bf67f199372d192ac29aace2ed6693b747f5af5c0e54bc624a475629a5931",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "appearancePreview"
+      ]
+    },
+    {
+      "file": "appearance-system-reduced-light-390-full.png",
+      "state": "appearance-system-reduced",
+      "sha256": "b8ec96e2abb9b69c56f51592a0de0e6a8c2c71543b8de4fe510f53a605f74ebb",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "appearancePreview"
+      ]
+    },
+    {
+      "file": "export-completion-dark-320-bottom.png",
+      "state": "export-completion",
+      "sha256": "7de84b325e95471fa045b16b8849b69b8aa269939542aa3d4556625a12030cfb",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "exportPreview"
+      ]
+    },
+    {
+      "file": "export-completion-dark-390-full.png",
+      "state": "export-completion",
+      "sha256": "d4d14a6afea8ff2e59a60ae3362124dd5696be1c4ab090a2b9ff12dafc6d9ed5",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "exportPreview"
+      ]
+    },
+    {
+      "file": "export-completion-forced-320.png",
+      "state": "export-completion",
+      "sha256": "a0a04517781a3e96bea381dc341db418260a85397db6c3ff3616d425cc8d9f63",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "exportPreview"
+      ]
+    },
+    {
+      "file": "export-completion-light-320-bottom.png",
+      "state": "export-completion",
+      "sha256": "64e090f4cafff40a0d16df9525e32f0d6e04c2587ce6d16eab343fb979bb0f9e",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "exportPreview"
+      ]
+    },
+    {
+      "file": "export-completion-light-390-full.png",
+      "state": "export-completion",
+      "sha256": "c513ad04cea3d8ba7b3480c096121d27cd7884d5b64b565387ed4f2c47ee1fa2",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "exportPreview"
+      ]
+    },
+    {
+      "file": "export-dark-320-bottom.png",
+      "state": "export",
+      "sha256": "259e8d1fa443918ad95f06d23fff20fd34da06946ed2a15a29169e0e663c7949",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "exportPreview"
+      ]
+    },
+    {
+      "file": "export-dark-390-full.png",
+      "state": "export",
+      "sha256": "3eef6617df66cb04ad351cdab5a391374edbd9b2c8ef96ff3affaf6566ea9707",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "exportPreview"
+      ]
+    },
+    {
+      "file": "export-forced-320.png",
+      "state": "export",
+      "sha256": "a0a04517781a3e96bea381dc341db418260a85397db6c3ff3616d425cc8d9f63",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "exportPreview"
+      ]
+    },
+    {
+      "file": "export-light-320-bottom.png",
+      "state": "export",
+      "sha256": "4c7268a0c6d8308f80cc1b93ef120941d49e92883de34325150c328f3cbead55",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "exportPreview"
+      ]
+    },
+    {
+      "file": "export-light-390-full.png",
+      "state": "export",
+      "sha256": "dcc3689b723d8e7c5b8b08f5dd0edb017a58cff9d7ae1024ecbb7fe7c5e33b48",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "exportPreview"
+      ]
+    },
+    {
+      "file": "export-preparing-dark-320-bottom.png",
+      "state": "export-preparing",
+      "sha256": "8d28dade1f07114b705c36b52918bc70f367dd5dd9aa32de0f13451e0dd31d83",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "exportPreview"
+      ]
+    },
+    {
+      "file": "export-preparing-dark-390-full.png",
+      "state": "export-preparing",
+      "sha256": "df37fbb314ce76f56a903202963950bb27130fb553acca966c2201840f0ebafd",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "exportPreview"
+      ]
+    },
+    {
+      "file": "export-preparing-forced-320.png",
+      "state": "export-preparing",
+      "sha256": "a0a04517781a3e96bea381dc341db418260a85397db6c3ff3616d425cc8d9f63",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "exportPreview"
+      ]
+    },
+    {
+      "file": "export-preparing-light-320-bottom.png",
+      "state": "export-preparing",
+      "sha256": "b1613a7530b16b5ced70a71b801622e22364cd0212a5757968704833b74abba5",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "exportPreview"
+      ]
+    },
+    {
+      "file": "export-preparing-light-390-full.png",
+      "state": "export-preparing",
+      "sha256": "092a6f27b272c63ab403b33858b1006e291065ac6261484648f858da8efb1161",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "exportPreview"
+      ]
+    },
+    {
+      "file": "export-unavailable-dark-320-bottom.png",
+      "state": "export-unavailable",
+      "sha256": "b66d93ad284cd088103da0617097fbbcb7767346de0d1072842a8ce2e86df8c2",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "exportPreview"
+      ]
+    },
+    {
+      "file": "export-unavailable-dark-390-full.png",
+      "state": "export-unavailable",
+      "sha256": "a2157a07f6a27929621f241d6f19a3f1a2d2fda67ed276aa659270822b2158d3",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "exportPreview"
+      ]
+    },
+    {
+      "file": "export-unavailable-forced-320.png",
+      "state": "export-unavailable",
+      "sha256": "a0a04517781a3e96bea381dc341db418260a85397db6c3ff3616d425cc8d9f63",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "exportPreview"
+      ]
+    },
+    {
+      "file": "export-unavailable-light-320-bottom.png",
+      "state": "export-unavailable",
+      "sha256": "f11b3ce0f1a7a46d25dd2cd4f0fb8090daf5d1b13e328c3242622bcc463f19dc",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "exportPreview"
+      ]
+    },
+    {
+      "file": "export-unavailable-light-390-full.png",
+      "state": "export-unavailable",
+      "sha256": "49ef935d0502c5fe4663103daa09e369aa6aee3c5c6b65a5c4ccb0aaa8bc9aac",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "exportPreview"
+      ]
+    },
+    {
+      "file": "guidance-dark-320-bottom.png",
+      "state": "guidance",
+      "sha256": "37b8f9a2eebdbfca9e770cdbefa7638b571d21cfe2f014d4122b616024c7ac82",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ]
+    },
+    {
+      "file": "guidance-dark-390-full.png",
+      "state": "guidance",
+      "sha256": "74d59eea60091b705f931bf57957fb121e7161c476c87b905d89db5169561fec",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ]
+    },
+    {
+      "file": "guidance-expanded-dark-320-bottom.png",
+      "state": "guidance-expanded",
+      "sha256": "c8777524267cb3045cebd0a994fc4117f889b997ad6928eb94382266c98b4fc1",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ]
+    },
+    {
+      "file": "guidance-expanded-dark-390-full.png",
+      "state": "guidance-expanded",
+      "sha256": "6a7fa6d1dfa8f7a3859c83d810f3f2427fab841c10fc52d30822032642069aa3",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ]
+    },
+    {
+      "file": "guidance-expanded-forced-320.png",
+      "state": "guidance-expanded",
+      "sha256": "e15c4604ae82d54f04d80aa077b28c5d9919c602b23cc90eefa91e8ee6271e4c",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ]
+    },
+    {
+      "file": "guidance-expanded-light-320-bottom.png",
+      "state": "guidance-expanded",
+      "sha256": "faa69431b19696481bbbaa8d2ca09053d4192292d7aca4c47a5ee1548dedc94c",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ]
+    },
+    {
+      "file": "guidance-expanded-light-390-full.png",
+      "state": "guidance-expanded",
+      "sha256": "bbc49e2b38e2512a4e0a1b0400c0edc312e9ad4213e6c6d0ccb3e619c0fa8c5a",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ]
+    },
+    {
+      "file": "guidance-forced-320.png",
+      "state": "guidance",
+      "sha256": "d030114c880aff24c73b0678e5fb24ad78a31d4e11dc06c9db8302ddc30d6ee6",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ]
+    },
+    {
+      "file": "guidance-light-320-bottom.png",
+      "state": "guidance",
+      "sha256": "70410bf0f7078f9b8d17c3c224a7a08e0173ae339541e1fa51a2b73a2eb85fc3",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ]
+    },
+    {
+      "file": "guidance-light-390-full.png",
+      "state": "guidance",
+      "sha256": "beef4975a54cff8a374ec5446f11427acb942a9201dba9edb3ea9d9fa56d8592",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ]
+    },
+    {
+      "file": "league-access-pending-dark-320-bottom.png",
+      "state": "league-access-pending",
+      "sha256": "7a554ad9372e30fe28f79d79b32682baff3114a4b5d2f78dbc5b5ea430813070",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "leagueAccessPreview"
+      ]
+    },
+    {
+      "file": "league-access-pending-dark-390-full.png",
+      "state": "league-access-pending",
+      "sha256": "80aa006476a22ec01c5bd10cc937231294a3e9b3b36db1c622f1d0c984bdd1c8",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "leagueAccessPreview"
+      ]
+    },
+    {
+      "file": "league-access-pending-forced-320.png",
+      "state": "league-access-pending",
+      "sha256": "635c09cc116e5ef10f57d0147afffeb847ab406b79b79205b9695a6092e17586",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "leagueAccessPreview"
+      ]
+    },
+    {
+      "file": "league-access-pending-light-320-bottom.png",
+      "state": "league-access-pending",
+      "sha256": "e7704c104baf5d934a806573ba156c855ae3ac577fbfe5cf4f0ac060cc8d4424",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "leagueAccessPreview"
+      ]
+    },
+    {
+      "file": "league-access-pending-light-390-full.png",
+      "state": "league-access-pending",
+      "sha256": "7ff349eec0b7d9af22d15f3a708968dc2a3c8be4825e0342d385d23500a8dc23",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "leagueAccessPreview"
+      ]
+    },
+    {
+      "file": "league-access-removed-dark-320-bottom.png",
+      "state": "league-access-removed",
+      "sha256": "2bfe750724ddb6cc0dd0e58cf21f5346ad746c4d46fb79f0448815d9a6b47b69",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "leagueAccessPreview"
+      ]
+    },
+    {
+      "file": "league-access-removed-dark-390-full.png",
+      "state": "league-access-removed",
+      "sha256": "db920544f508cfa9b6fa8ec3567896207c56e072bb99ad81ff8e8e62e1f21dca",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "leagueAccessPreview"
+      ]
+    },
+    {
+      "file": "league-access-removed-forced-320.png",
+      "state": "league-access-removed",
+      "sha256": "ef33330bcf64cc39587806ec00db723b490d8fd65e16f6f08014efd6d333f2fe",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "leagueAccessPreview"
+      ]
+    },
+    {
+      "file": "league-access-removed-light-320-bottom.png",
+      "state": "league-access-removed",
+      "sha256": "204dc5a8d7e018519e1406d95c93fd02b7f3ef9fc26a66119e17082f3ddfe4c5",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "leagueAccessPreview"
+      ]
+    },
+    {
+      "file": "league-access-removed-light-390-full.png",
+      "state": "league-access-removed",
+      "sha256": "0849f98a8b88ffede8c9064553429011cc810da892e05c6efa7b9bf2a579e1ed",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "leagueAccessPreview"
+      ]
+    },
+    {
+      "file": "league-create-dark-320-bottom.png",
+      "state": "league-create",
+      "sha256": "92c49676718c9b900bb72097256d589e474c787560919eab21dffd92d22b5dc3",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ]
+    },
+    {
+      "file": "league-create-dark-390-full.png",
+      "state": "league-create",
+      "sha256": "d2319f896c5869b9eb811cb3d772c442399e95f61a9c22f4218a788d068455aa",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ]
+    },
+    {
+      "file": "league-create-forced-320.png",
+      "state": "league-create",
+      "sha256": "8aacd3febf2adf14706e9c09dce0d640adb749071c53d4d61d6427b827abc132",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ]
+    },
+    {
+      "file": "league-create-light-320-bottom.png",
+      "state": "league-create",
+      "sha256": "4c5393e6b90cac21c0268d19e10853c79291413435412f14c01c3253f1c22649",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ]
+    },
+    {
+      "file": "league-create-light-390-full.png",
+      "state": "league-create",
+      "sha256": "1ea5ad78faad4cce50180625ac15bec50b0d75e67d6c3f73880aeb30c9ccf3b5",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ]
+    },
+    {
+      "file": "league-invite-dark-320-bottom.png",
+      "state": "league-invite",
+      "sha256": "45a6dbe767201432ac84c86ca132a3b34442e6c7ee0dffc0280cd02b4626a37f",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ]
+    },
+    {
+      "file": "league-invite-dark-390-full.png",
+      "state": "league-invite",
+      "sha256": "652608d3cdbbd3b917df809cd94f7c7a9d89dee09b5e126021f8e310e759e268",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ]
+    },
+    {
+      "file": "league-invite-forced-320.png",
+      "state": "league-invite",
+      "sha256": "0b56ed92e116c01d35668b611293734399135b9ecd7747c2ce7ae77e74507835",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ]
+    },
+    {
+      "file": "league-invite-light-320-bottom.png",
+      "state": "league-invite",
+      "sha256": "8d496e560da0815d18d745975b257ccffcc1792015b99f01bd7610b47e6da8ea",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ]
+    },
+    {
+      "file": "league-invite-light-390-full.png",
+      "state": "league-invite",
+      "sha256": "c8bf2ea4b9e40b7351ced52d052a8dc7f444b159f1e062e922c5e588cd1e2803",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ]
+    },
+    {
+      "file": "league-switcher-dark-320-bottom.png",
+      "state": "league-switcher",
+      "sha256": "937fa7917bc0181469aecabd40f1f027f9bca4178c71afeccbf974dbe7ec0c66",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ]
+    },
+    {
+      "file": "league-switcher-dark-390-full.png",
+      "state": "league-switcher",
+      "sha256": "2dd1e69116585178a7bf6d3019e2bc4400ecda33bc4d4d5ed625532c0be89ece",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ]
+    },
+    {
+      "file": "league-switcher-forced-320.png",
+      "state": "league-switcher",
+      "sha256": "94d99768dbcaeab19b4873aca4bdc5967ffb0885382a259eb12496628faf9f84",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ]
+    },
+    {
+      "file": "league-switcher-light-320-bottom.png",
+      "state": "league-switcher",
+      "sha256": "705b65bc327e076c262e39577414854663ec2a9c42df8feabe9dee3c48e3bd8f",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ]
+    },
+    {
+      "file": "league-switcher-light-390-full.png",
+      "state": "league-switcher",
+      "sha256": "a156a57a99578f718c5bdfe240be383e1c7427d99a4f39ccbd966ae66715806b",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ]
+    },
+    {
+      "file": "name-step-dark-320-bottom.png",
+      "state": "name-step",
+      "sha256": "57591c345a48c1f14aba1138e904bf1904d378b27f0fbf38f289649735ccfb2a",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessPreview",
+        "sessionRecoveryPreview"
+      ]
+    },
+    {
+      "file": "name-step-dark-390-full.png",
+      "state": "name-step",
+      "sha256": "c8705f0f29835a9e7e47a356e730b9c91460518f91d494d478065045b0b40729",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accessPreview",
+        "sessionRecoveryPreview"
+      ]
+    },
+    {
+      "file": "name-step-forced-320.png",
+      "state": "name-step",
+      "sha256": "6de9777b714e000348f781606774ac3df3b6baec01f2384139a005a3672461e1",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "accessPreview",
+        "sessionRecoveryPreview"
+      ]
+    },
+    {
+      "file": "name-step-light-320-bottom.png",
+      "state": "name-step",
+      "sha256": "682876d15f8751df4efb3bbf42b70a633e8410e01f13575daad87fd72ce8cd04",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessPreview",
+        "sessionRecoveryPreview"
+      ]
+    },
+    {
+      "file": "name-step-light-390-full.png",
+      "state": "name-step",
+      "sha256": "accbb4e3361d619f1a6e4e346e9a3995d81f0bd5bd135db11ebc326ebd82d8cd",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accessPreview",
+        "sessionRecoveryPreview"
+      ]
+    },
+    {
+      "file": "name-uncertain-dark-320-bottom.png",
+      "state": "name-uncertain",
+      "sha256": "26cd2e8fc6355a38f0495f60b00d1ed520c4eb30eb666a81284be7edfc3364bf",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessPreview",
+        "sessionRecoveryPreview"
+      ]
+    },
+    {
+      "file": "name-uncertain-dark-390-full.png",
+      "state": "name-uncertain",
+      "sha256": "82b4ef41baa8a633815b94d966ef934e24d9aa8fe29f5ba6a2fa1dd08b97d03a",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accessPreview",
+        "sessionRecoveryPreview"
+      ]
+    },
+    {
+      "file": "name-uncertain-forced-320.png",
+      "state": "name-uncertain",
+      "sha256": "bc97faa7475281c5254774ab50b434b89a723f2d90a94f54ea1a5ffd430769bd",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "accessPreview",
+        "sessionRecoveryPreview"
+      ]
+    },
+    {
+      "file": "name-uncertain-light-320-bottom.png",
+      "state": "name-uncertain",
+      "sha256": "24448ad3f0ab66e9204d0268aed53477fd3dea49493d805395c698a96c0297be",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessPreview",
+        "sessionRecoveryPreview"
+      ]
+    },
+    {
+      "file": "name-uncertain-light-390-full.png",
+      "state": "name-uncertain",
+      "sha256": "25ff8c0ffce8b2022a34703faa3d133598f25979f08d604b085218ff019fbb8f",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accessPreview",
+        "sessionRecoveryPreview"
+      ]
+    },
+    {
+      "file": "offline-content-dark-320-bottom.png",
+      "state": "offline-content",
+      "sha256": "a0795ac7d0a8b7f433a05af8ad71a97c1b629c3445fd0d152b36bb8ae35f8e65",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "continuityPreview"
+      ]
+    },
+    {
+      "file": "offline-content-dark-390-full.png",
+      "state": "offline-content",
+      "sha256": "32fdceb31820d7f8710aca3f43dd5a3227b3b8382103db3aa6a6a99a7309cc90",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "continuityPreview"
+      ]
+    },
+    {
+      "file": "offline-content-forced-320.png",
+      "state": "offline-content",
+      "sha256": "9d9a5171f9afc2c577fdde8194bcc996bb52f518658ce677dbb6d9a9315bac9a",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "continuityPreview"
+      ]
+    },
+    {
+      "file": "offline-content-light-320-bottom.png",
+      "state": "offline-content",
+      "sha256": "a566e4974c969eade0d5352247e5d9ce9dcf44b3a31353d8007792dc531fb3e9",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "continuityPreview"
+      ]
+    },
+    {
+      "file": "offline-content-light-390-full.png",
+      "state": "offline-content",
+      "sha256": "198a2be3f6877c820ff34c05e29a0dca8171567755ca9efecf71afa407c7cb39",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "continuityPreview"
+      ]
+    },
+    {
+      "file": "profile-conflict-dark-320-bottom.png",
+      "state": "profile-conflict",
+      "sha256": "e518a04f649f077e40d52fce49c5dbeb04f6d75ea6c9e4ad0ac5d0cb59d9372f",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "profile-conflict-dark-390-full.png",
+      "state": "profile-conflict",
+      "sha256": "efce1c910f2bdfd29bba714d58e27d1f13e961058c9de64e915e26114ea45d0d",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "profile-conflict-forced-320.png",
+      "state": "profile-conflict",
+      "sha256": "0b09938c5ccbac15f0a0c21b1471837be40d94172d4ce982dd56ae410a878447",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "profile-conflict-light-320-bottom.png",
+      "state": "profile-conflict",
+      "sha256": "39e69a15601006db90a57e3b814f5a735e01ff4877deed9ad209b1945089b0a9",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "profile-conflict-light-390-full.png",
+      "state": "profile-conflict",
+      "sha256": "e629a56992b4f79c5563df900c3db4f6595cee1dc95846af3fb774582d2d949c",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "profile-draft-dark-320-bottom.png",
+      "state": "profile-draft",
+      "sha256": "72fa909a1672670dc5586515c99303c2b1f8098a3ded220c5a912d034d764499",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "profile-draft-dark-390-full.png",
+      "state": "profile-draft",
+      "sha256": "e253bbbc2cd1273dcf8f387e9e90538f82cf1696d393beed00dced504b7cede2",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "profile-draft-forced-320.png",
+      "state": "profile-draft",
+      "sha256": "6590785854970f217f37abf602db5223473e916e8b360a5b8319994539e15816",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "profile-draft-light-320-bottom.png",
+      "state": "profile-draft",
+      "sha256": "f10d6cdd779d842c7656bf5504114645c5673310cce769ecb3d7f03528547f0f",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "profile-draft-light-390-full.png",
+      "state": "profile-draft",
+      "sha256": "14b474645f26d395bfe466ecc65ce2e82b6834e379ab25a59b501ae699aa371c",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "profile-pending-dark-320-bottom.png",
+      "state": "profile-pending",
+      "sha256": "f3980fbb3aa085c23455d35e13e88d8c4a79524c497e2aca3a5001e83411ec50",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "profile-pending-dark-390-full.png",
+      "state": "profile-pending",
+      "sha256": "1a920731fe2ea552013970c6c0a613358441ead1a74ac707c385cff682b5ebb1",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "profile-pending-forced-320.png",
+      "state": "profile-pending",
+      "sha256": "706ed57b0ef8bfdd9e7cf2b3dafd5a4a5b3b5b86cf72fc060e716aae4d4ce839",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "profile-pending-light-320-bottom.png",
+      "state": "profile-pending",
+      "sha256": "b21a4f52bafa58e66becba03459424ebdb96015207622b0eb5e97588b46636fb",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "profile-pending-light-390-full.png",
+      "state": "profile-pending",
+      "sha256": "6f3bbb05efcf74b32f2a7984daab5bfa5b24c22d3bc321d99fa9999b1bde72f2",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "reminders-blocked-dark-320-bottom.png",
+      "state": "reminders-blocked",
+      "sha256": "3b71eb82184190d56d61d38ec3a8b87318d85fc3d67b359a3cb9032eb3f99faf",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "reminders-blocked-dark-390-full.png",
+      "state": "reminders-blocked",
+      "sha256": "b0a49f97f18305d9501029849e5a248a25b48f58e03e08847ac79a7826a2a5b5",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "reminders-blocked-forced-320.png",
+      "state": "reminders-blocked",
+      "sha256": "f8a286bcb5111c76f2a5f7fc3ca9c8e734cdf7059e1bdc8bdac47b678f545f31",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "reminders-blocked-light-320-bottom.png",
+      "state": "reminders-blocked",
+      "sha256": "15b7f547a8855f55ed4c2b35a8623b559d2e5769a8dd2540170b200315e5f213",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "reminders-blocked-light-390-full.png",
+      "state": "reminders-blocked",
+      "sha256": "c13ee5362bc46e6b8b450373ace2132e46e108a69ce2f3485ae9a8f92c7d061d",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "reminders-off-dark-320-bottom.png",
+      "state": "reminders-off",
+      "sha256": "bf5d926ecc361f80992ad9aab642ff94fb5b3b99b1fcd911c3286cb3402d4e14",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "reminders-off-dark-390-full.png",
+      "state": "reminders-off",
+      "sha256": "01eae017d58854385f2adc60dec8eeb86d74b61e522240c11a0ceae5176f1e26",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "reminders-off-forced-320.png",
+      "state": "reminders-off",
+      "sha256": "e1f3a43d3dac5a350476bf70cb344930e6954cd78b4601a079041a0134a6e73b",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "reminders-off-light-320-bottom.png",
+      "state": "reminders-off",
+      "sha256": "fa2605747d18e8a85819429960baec96648033e328d027c811b791d66c931800",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "reminders-off-light-390-full.png",
+      "state": "reminders-off",
+      "sha256": "1ca39b57503c12ca8624470ab6437cad4129dffd367d770cf887c68c1ecaac17",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "reminders-on-dark-320-bottom.png",
+      "state": "reminders-on",
+      "sha256": "f31dfdf46b765697193da7e068967c4aad96006672fa53b1fec5877bc9038ec3",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "reminders-on-dark-390-full.png",
+      "state": "reminders-on",
+      "sha256": "36b3022c40dbe64a23f1a67f32ad56729b3ee5718af26bd07aa262eda9554bf5",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "reminders-on-forced-320.png",
+      "state": "reminders-on",
+      "sha256": "88aa142df04ff5278faa952910e7cf4dc3a90204d3a239766639858411ed82d3",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "reminders-on-light-320-bottom.png",
+      "state": "reminders-on",
+      "sha256": "93a7f8f057b581f84137218d7eac8950fffb19bceaf75a23ae9c70c826a3f7f4",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "reminders-on-light-390-full.png",
+      "state": "reminders-on",
+      "sha256": "d07492e545f91281bb6e7aea70302c76cdde690190f283f97f6d5aef6ea31b23",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ]
+    },
+    {
+      "file": "session-expired-dark-320-bottom.png",
+      "state": "session-expired",
+      "sha256": "84db6b4103f3f032f81306a8fd0c29781e522bb02dd502646910187f92a39bef",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "sessionRecoveryPreview"
+      ]
+    },
+    {
+      "file": "session-expired-dark-390-full.png",
+      "state": "session-expired",
+      "sha256": "2c67b7f6c9cab434bac2f76cd717fbae5d98170c5b6c870251e599b24068f8fe",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "sessionRecoveryPreview"
+      ]
+    },
+    {
+      "file": "session-expired-forced-320.png",
+      "state": "session-expired",
+      "sha256": "eb8417e74fddfb6c90372106b9f60bee2852297ad0c164fde863e23a44e2ce96",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "sessionRecoveryPreview"
+      ]
+    },
+    {
+      "file": "session-expired-light-320-bottom.png",
+      "state": "session-expired",
+      "sha256": "c8f250ee3c50f62d9b40d075354a3f0c003d642d79012a5844e4e8b74de3b16a",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "sessionRecoveryPreview"
+      ]
+    },
+    {
+      "file": "session-expired-light-390-full.png",
+      "state": "session-expired",
+      "sha256": "86e50cb8ac94dab086d4f4c432038957b9b8adac671a1c3043968ca9e140c75c",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "sessionRecoveryPreview"
+      ]
+    },
+    {
+      "file": "settings-conflict-dark-320-bottom.png",
+      "state": "settings-conflict",
+      "sha256": "98717099604b9a24b7f2247ead8a4d364a3215425fbf5bc580ff538cb01eef2e",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ]
+    },
+    {
+      "file": "settings-conflict-dark-390-full.png",
+      "state": "settings-conflict",
+      "sha256": "f752046191b45e7c0586724c4a2735787524806f36d2b228467bd7d0e28284e3",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ]
+    },
+    {
+      "file": "settings-conflict-forced-320.png",
+      "state": "settings-conflict",
+      "sha256": "28c056e69b730664efbd0a3777310ad2dbdc73656a67ebbf23598e8fca12e7e7",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ]
+    },
+    {
+      "file": "settings-conflict-light-320-bottom.png",
+      "state": "settings-conflict",
+      "sha256": "727f6c0b91a1f530fa94de66eb13b092e5c388c3b1d75b2c672c69b033f1de0f",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ]
+    },
+    {
+      "file": "settings-conflict-light-390-full.png",
+      "state": "settings-conflict",
+      "sha256": "d1d497ad2fc9da39a42fa3da1b63b880dcd51acb4aa61cbb4373f5b1d68b14ee",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ]
+    },
+    {
+      "file": "settings-dark-320-bottom.png",
+      "state": "settings",
+      "sha256": "c3107d07a8b77f371a142eb59c411c812e9a50e528c73ef6ae953f190bc513b4",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ]
+    },
+    {
+      "file": "settings-dark-390-full.png",
+      "state": "settings",
+      "sha256": "888ae69e6d9ac05dd5236abf1f4437805ad143ef31deae97b35e06b5d2646554",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ]
+    },
+    {
+      "file": "settings-forced-320.png",
+      "state": "settings",
+      "sha256": "aee1d8d3e94f5b9dc1c05023bd1117b707ab3755d5acf1f4b78458bc324a707b",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ]
+    },
+    {
+      "file": "settings-light-320-bottom.png",
+      "state": "settings",
+      "sha256": "b9f107609a6216f7565baba1ba8e1e1f3c5b0c5f3d83f3f381930e86b86988fd",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ]
+    },
+    {
+      "file": "settings-light-390-full.png",
+      "state": "settings",
+      "sha256": "b4d0e490eec59473a207b99ef9c11ef3822c9c30cd42ffc8c000869988fc3645",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ]
+    },
+    {
+      "file": "settings-retained-unavailable-dark-320-bottom.png",
+      "state": "settings-retained-unavailable",
+      "sha256": "bb65e1c2eba09196074cdf65335f66c6970d7dd9d0a9e42de2cd64a8b29b0eae",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ]
+    },
+    {
+      "file": "settings-retained-unavailable-dark-390-full.png",
+      "state": "settings-retained-unavailable",
+      "sha256": "583f41313eae3d635cf1d4bc73d7c4371dd2e6629046ea025a70e5f17044b9ee",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ]
+    },
+    {
+      "file": "settings-retained-unavailable-forced-320.png",
+      "state": "settings-retained-unavailable",
+      "sha256": "28c056e69b730664efbd0a3777310ad2dbdc73656a67ebbf23598e8fca12e7e7",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ]
+    },
+    {
+      "file": "settings-retained-unavailable-light-320-bottom.png",
+      "state": "settings-retained-unavailable",
+      "sha256": "1e7abdbaefc7f9cb59bfd4d2ac5b2c9ecfe49796c401e3f7bee4901a999c5622",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ]
+    },
+    {
+      "file": "settings-retained-unavailable-light-390-full.png",
+      "state": "settings-retained-unavailable",
+      "sha256": "d07e59344d3fcf8ac16911f11c314331cf67d13c6d16e3e3e6bddf529088f5b1",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ]
+    },
+    {
+      "file": "startup-dark-320-bottom.png",
+      "state": "startup",
+      "sha256": "16394748b731a0b3e929d19763acabaad68e99ac74c78e9fc94bb3e1c2048aa0",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "continuityPreview"
+      ]
+    },
+    {
+      "file": "startup-dark-390-full.png",
+      "state": "startup",
+      "sha256": "81635014716850784086c3480f2105b8bfa840864c668f256d234ce7e731699a",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "continuityPreview"
+      ]
+    },
+    {
+      "file": "startup-forced-320.png",
+      "state": "startup",
+      "sha256": "da2763640e91fdec141b4a8a389c7550476aa021ef45d6909d456cac7008175a",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 forced-colors",
+      "approvedLedgerKeys": [
+        "continuityPreview"
+      ]
+    },
+    {
+      "file": "startup-light-320-bottom.png",
+      "state": "startup",
+      "sha256": "367033d2b312c5dc5ba87cc6b3abce1bc0834011ca20bfe3d8a8de23ca277573",
+      "width": 320,
+      "height": 844,
+      "view": "320x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "continuityPreview"
+      ]
+    },
+    {
+      "file": "startup-light-390-full.png",
+      "state": "startup",
+      "sha256": "8d195e3ee708165de070f74293d58d5230431160b80378cabb835f628f0524bf",
+      "width": 390,
+      "height": 1800,
+      "view": "extended native browser viewport, full composition",
+      "approvedLedgerKeys": [
+        "continuityPreview"
+      ]
+    }
+  ]
+}

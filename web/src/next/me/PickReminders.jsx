@@ -1,10 +1,12 @@
+import { BellOff, BellRing, LockKeyhole, Monitor } from 'lucide-react';
 // Pick reminders (Board i39): Menu › Pick reminders, the device's switch, and the one-time prompt under Play's Points
 // card. Both draw the same store (reminders.js), so a tap in either updates the other. Shown only while the server can
 // send pushes (`/community/read` pushConfigured, the stage 2 push guard), as the old app did.
 import { useId } from 'react';
 import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
-import { Button, Card, Switch } from '../ui/index.js';
+import { Button, Card, Icon, Switch } from '../ui/index.js';
+import './accountPrism.css';
 import { REMINDER_COPY, reminderSwitch, showPrompt, useReminders } from './reminders.js';
 
 /** Whether the server holds a valid VAPID key; anything but a true answer hides the reminder controls. */
@@ -22,16 +24,19 @@ function Answer({ state }) {
 export function PickReminderSettings() {
   const app = useAppData();
   const reminders = useReminders(app.accountId);
-  if (!remindersConfigured(app)) return <p className="gx-t-body">Pick reminders are not available yet.</p>;
+  const configured = remindersConfigured(app);
   const view = reminderSwitch(reminders);
-  return <>
-    <Card variant="flush">
+  const HeroIcon = view.checked ? BellRing : view.status === 'blocked' ? LockKeyhole : view.status === 'unsupported' ? Monitor : BellOff;
+  return <div className="gx-reminders-prism">
+    <section className="gx-reminder-hero"><span className="gx-account-icon"><Icon icon={HeroIcon} size={32}/></span><div><strong>2h</strong><p>before picks are due</p></div><div className="gx-reminder-modes"><span>Spread</span><span>Total</span><span>Points</span></div></section>
+    <Card className="gx-reminder-switch">{configured ? <>
       <Switch label={REMINDER_COPY.title} sub={view.sub} checked={view.checked} disabled={view.disabled} data-reminders={view.status}
         onChange={on => { if (on) reminders.turnOn(); else reminders.turnOff(); }}/>
-    </Card>
-    <p className="gx-t-meta">{REMINDER_COPY.device}</p>
+    </> : <><strong>Reminders unavailable</strong><p>Pick reminders are not available yet.</p></>}</Card>
+    <dl className="gx-reminder-facts"><div><dt>Notification permission</dt><dd>{!globalThis.Notification ? 'Unavailable' : globalThis.Notification.permission === 'granted' ? 'Allowed' : globalThis.Notification?.permission === 'denied' ? 'Blocked' : 'Not requested'}</dd></div><div><dt>Reminder delivery</dt><dd>{!configured ? 'Service unavailable' : view.checked ? 'On for this device' : view.status === 'install' ? 'Home Screen app needed' : view.status === 'unsupported' ? 'Unsupported browser' : 'Off'}</dd></div></dl>
+    <p className="gx-account-footer">{REMINDER_COPY.device}</p>
     <Answer state={reminders}/>
-  </>;
+  </div>;
 }
 
 /**

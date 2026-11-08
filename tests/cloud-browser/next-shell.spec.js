@@ -308,7 +308,7 @@ test.describe('the real app', () => {
       await expect(avatar).toBeFocused();
       await expect(title(page, 'Home')).toBeVisible();
 
-      // Keyboard: the menu wraps in both directions, then Profile, History (stage 73), Export my data (stage 75), Settings and Guidance precede Appearance.
+      // Keyboard: the menu wraps in both directions, then Invite friends, Profile, History (stage 73), Export my data (stage 75), Settings and Guidance precede Appearance.
       // Appearance changes the view in place and focus stays in the sheet.
       await avatar.focus();
       await page.keyboard.press('Enter');
@@ -319,6 +319,8 @@ test.describe('the real app', () => {
       await expect(menu.getByRole('button', { name: 'Sign out', exact: true })).toBeFocused();
       await page.keyboard.press('Tab');
       await expect(menu.getByRole('button', { name: 'Close' })).toBeFocused();
+      await page.keyboard.press('Tab');
+      await expect(menu.getByRole('button', { name: 'Invite friends', exact: true })).toBeFocused();
       await page.keyboard.press('Tab');
       await expect(menu.getByRole('button', { name: 'Profile', exact: true })).toBeFocused();
       await page.keyboard.press('Tab');

@@ -4,8 +4,9 @@
 // page and comes back (typed text kept as a draft in this tab comes back with the same account; nextDrafts.js). It
 // never signs out: that would clear the drafts (AuthGate). "Not now" closes it; the next 401 asks again.
 import { useId, useState } from 'react';
+import './accessPrism.css';
 import { useAppData } from '../data/AppData.jsx';
-import { Button, Dialog } from '../ui/index.js';
+import { Button, Dialog, Icon } from '../ui/index.js';
 
 export const SIGN_IN_AGAIN_COPY = Object.freeze({
   title: 'Sign in again',
@@ -56,7 +57,8 @@ export function SignInAgain() {
 
   return (
     <Dialog open={needed} title={SIGN_IN_AGAIN_COPY.title} text={SIGN_IN_AGAIN_COPY.text} onClose={close} className="gx-reauth">
-      {email ? <p className="gx-t-meta gx-truncate">{SIGN_IN_AGAIN_COPY.account(email)}</p> : null}
+      <span className="gx-account-icon"><Icon icon="lock"/></span>
+      {email ? <p className="gx-t-meta gx-session-account">{SIGN_IN_AGAIN_COPY.account(email)}</p> : null}
       {methods.password ? (
         <form className="gx-vstack gx-gap-8" onSubmit={withPassword}>
           <label className="gx-field" htmlFor={passwordId}>

@@ -113,9 +113,9 @@ describe('Menu and Commissioner tools rows (quick wins A9, A23)', () => {
     shellState.pushConfigured = true;
     const rows = glyphs(render(<MenuSheet args={{}}/>, true));
     delete shellState.pushConfigured;
-    expect(rows.map(([words]) => words)).toEqual(['Community members', 'Commissioner tools', 'Profile', 'History', 'Export my data', 'Settings · sportsbooks and guidance', 'Pick reminders', 'Guidance and sources', 'Appearance']);
+    expect(rows.map(([words]) => words)).toEqual(['Community members', 'Commissioner tools', 'Invite friends', 'Profile', 'History', 'Export my data', 'Settings · sportsbooks and guidance', 'Pick reminders', 'Guidance and sources', 'Appearance']);
     expect(repeated(rows)).toEqual([]);
-    expect(rows.map(([, glyph]) => glyph)).toEqual(['members', 'commissioner', 'profile', 'history', 'export', 'settings', 'reminders', 'guidance', 'appearance'].map(kebab));
+    expect(rows.map(([, glyph]) => glyph)).toEqual(['members', 'commissioner', 'appInvite', 'profile', 'history', 'export', 'settings', 'reminders', 'guidance', 'appearance'].map(kebab));
   });
 
   it('the tools hub uses each glyph once and opens on its rows', () => {
