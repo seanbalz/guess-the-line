@@ -37,3 +37,10 @@
 - [ ] Perform task and whole-branch review with exact source/capture evidence; preserve frozen hashes and record residual device/access limits.
 - [ ] Update current completion record, commit reviewed named files, push/open PR and sync:check. After exact CI/merge use existing protected release gates for the authorized frontend corrections, preserving API/database state.
 - [ ] Verify production bytes/metadata and publish actual release evidence; report source/branch/full commit/PR/verification/unpublished work. No blanket claim of every physical-device state.
+
+## CI followup — Nest layer entry
+
+- [x] Reproduce initial PR502 browser-shard failure and distinguish actual entry-scroll defect from resize/paint occlusion; preserve original failed evidence.
+- [x] Reset changed Nest layers to their top before existing heading focus, keeping Shell/manual-history Back ownership, headers, bodies and scanner assertions intact.
+- [x] Verify RED0/45 to GREEN, exact settled browser Back scroll/focus, and48 covering browser cases plus component/token/type/Brand checks.
+- [ ] Review the two-file delta, update the audit evidence and run fresh exact-head CI before normal merge/release.

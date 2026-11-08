@@ -10,8 +10,11 @@ short/landscape viewports, plus Chromium and mobile WebKit emulation.
 
 Local corrections share the bottom recipe/actual-height clearance, restore the
 Guidance sheet’s intrinsically sized topic rows, and fix singular tracked-ticket
-copy. Task reviews approve both source changes with no Critical/Important
-findings; inherited validation warnings remain recorded. Source commits are
+copy. Task reviews approve both initial source changes with no Critical/Important
+findings; inherited validation warnings remain recorded. Initial PR CI exposed a
+fourth issue: a short detail retained opener scroll. Nest’s entry reset is checked
+locally at `219e546699368925a913b08e6cf34745349d2fd2`, preserving exact Back position
+and focus; renewed delta review and CI are required. Source commits are
 `4ce541942c12751862672d8cb89209d819fd452e` and
 `3175462f6839e01fece3d4d43c8171b07983ff1e`. Final branch review, exact CI, publication,
 merge and protected frontend release remain pending; this is not a deployment

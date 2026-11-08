@@ -1,6 +1,6 @@
 # App UX, formatting and scrolling sweep — November 8, 2026
 
-Status: corrections implemented and task-reviewed locally; publication and release pending.
+Status: initial corrections task-reviewed; CI scroll followup checked locally; renewed review, CI and release pending.
 Production remains at the separately recorded ROI release until the protected
 frontend release succeeds. This record must be updated with actual source and
 release receipts before claiming deployment.
@@ -20,6 +20,7 @@ covers the audit, corrections, regression review and protected release.
 | Mixed bottom navigation | At 390×844, Home is 358×72 at x16 with 12px bottom gap; native Research/FEPL/Bets can be 390×64 edge-to-edge | Apply Home’s shared recipe and align dock, toast, focus and content clearance |
 | Hidden Guidance labels | Account → Guidance and sources: 19 closed details collapse to 2px while summaries remain 78px | Preserve each full summary and expandable content in the scrolling sheet |
 | Singular ticket count | One active tracked ticket shows “1 bets” in its compact header | Use singular “1 bet” and plural counts consistently |
+| Fresh detail retains opener scroll | A scrolled Features shelf opens short badge details at 45px, partly behind the native header | Start a changed Nest layer at the top; retain exact Back scroll/focus restoration |
 
 The baseline is freshly fetched main `0c83bb4b3c55409b234c5587a735a096d100a866`.
 Fresh isolated browser sessions used an immutable local cloud-test build. No
@@ -77,6 +78,30 @@ viewport. Historical Research comes from the committed nflverse subset through
 the real provider. Team-game and prop-assessment payloads reuse existing explicitly
 fictional fixtures; no live-data accuracy is asserted.
 
+## CI followup: fresh layer entry and Back restoration
+
+The initial PR run at `9dd862efc2e546449ba22f096eedce490a40bf07` passed eleven
+checks and failed Cloud browser shard 2 in the existing Features badge case. The
+failure was investigated rather than relabelled as an obsolete assertion or
+rerun without a change. It reproduced before viewport resizing: shelf scroll 283
+became 45 on the short detail page, with the sport control partly behind the
+native header. The old 64px-bar baseline made that page 844px high/non-scrollable;
+the new approved clearance made it 889px high and exposed the missing entry reset.
+
+Nest already owned heading focus on a layer change and Shell respected that
+explicit handoff. Commit `219e546699368925a913b08e6cf34745349d2fd2` adds the top reset
+before the same heading focus. Initial mount and same-layer refresh are retained;
+Shell and native-history restoration ownership are unchanged. Headers, page
+compositions, layout scanner and existing assertions remain.
+
+The new regression first failed expected 0/actual 45, then passed. It opens from a
+shelf scrolled more than 100px, checks the fresh detail at 0 with its sport control
+fully below the header, and verifies actual browser Back restores exact saved
+scroll and opener focus after settled frames. Reopening starts at 0. All 48 covering
+Features/Shell/scroll/expanded-frame/Play-Nest browser cases, 33 component checks
+and 20 brand/token checks pass, plus typecheck, Brand QA and whitespace. Original
+CI remains recorded as failed; the new source requires delta review and fresh CI.
+
 ## Verification and release boundary
 
 The shared-navigation implementation `4ce541942c12751862672d8cb89209d819fd452e`
@@ -91,8 +116,9 @@ validation-noise finding. Its two regressions first failed for the actual defect
 then passed; all 19 existing Account/Bets browser cases, 15 token contracts and 7
 component cases pass with no skips, plus typecheck, Brand QA, build and whitespace.
 The final whole-branch review, exact CI, merge and protected frontend evidence
-remain pending. The combined candidate’s 645 tracked frontend/build inputs match the committed
-source. Across 136 fresh Chromium route/theme/viewport combinations (17 routes ×
+remain pending. The first combined candidate’s 645 tracked frontend/build inputs
+matched `9dd862efc2e546449ba22f096eedce490a40bf07` before the CI followup described
+above. Across 136 fresh Chromium route/theme/viewport combinations (17 routes ×
 both themes × four sizes), layout, global width, final content and shared floating
 geometry pass. The initial image probe counted offscreen lazy images; a focused
 96-position top/middle/end check of actually visible images passes after loading.
