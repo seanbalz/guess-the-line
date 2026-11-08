@@ -93,10 +93,11 @@ The remaining areas below distinguish reviewed local implementation from release
   standings/feed hierarchy, game-bet alignment and transparent comments/Picks/
   Reactors surfaces are corrected. The final review checked all 213 capture and
   29 source hashes. [Scenario coverage](PRISM_LEAGUE_ACTIONS_FIDELITY_FIXES_2026_11_07.md)
-  remains 33 paired, five unverified and five held core scenarios; saved-scope,
-  four Menu variants and the distinct forfeit account-change branch still need
-  coverage. Shared frame and finer Virtual Units compatibility remain held.
-  This closes the reviewed defects, not all 106 references or hosted acceptance.
+  initially recorded 33 paired, five unverified and five held core scenarios.
+  The independently reviewed identity/Menu/scope closeout below raises this to
+  38 paired, zero unverified and five held. Shared frame and finer Virtual Units
+  compatibility remain held. This closes scoped evidence gaps, not all 106
+  references or hosted acceptance.
 - Latest integrated validation through `893ee2ba`: all 89 files / 911 Vitest
   tests, typecheck, 51 focused data/token Node checks, Brand QA, cloud build and
   bundle privacy passed. Four integration browser checks passed: actual public
@@ -170,6 +171,20 @@ The remaining areas below distinguish reviewed local implementation from release
   component tests, typecheck and 27 strict contracts. Two integrated real-handler
   browser cases passed final correction/review/adoption and odds count-only/
   busy/rate-limit guards. Whole-branch review, exact-source CI and release remain.
+- Identity, real Menu and saved-scope closeout is integrated from independently
+  reviewed `baabf776`, `049875b5` and `7bc2e626` as `9f1be898`, `aee1f3ab`
+  and `966f8db3`. Both wording findings were closed on re-review: registered
+  composite trend IDs match only authored titles, and computed condition captions
+  share the source-reported exemption. Raw IDs, selection and provider/custom
+  literal text are preserved. [Native coverage](PRISM_IDENTITY_SCOPE_NATIVE_2026_11_07.md)
+  and [boundary evidence](PRISM_IDENTITY_WORDING_BOUNDARIES_2026_11_07.md) retain
+  114 prior captures plus four new computed-Research captures. The cumulative
+  action reconciliation is 38 paired, zero unverified and five held; four global
+  navigation positions and Virtual minimum are held. The distinct defensive
+  account-change dialog remains component proof, separately from real native
+  account-transition purge evidence. Combined integration passes all 92 files /
+  923 component tests, typecheck and 27 strict import/token/loading contracts.
+  Whole-branch review, exact-source CI and release remain required.
 - Custom Virtual Units source is separately published in draft
   [PR #497](https://github.com/seanbalz/guess-the-line/pull/497), branch
   `codex/m41-retry-precision-20261107`, at

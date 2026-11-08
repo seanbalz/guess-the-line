@@ -1,5 +1,18 @@
 # Guess The Line — current completion register
 
+## Reviewed identity integration — November 7, 2026
+
+The final identity/Menu/scope source and wording boundary repairs are integrated
+through `966f8db3`; independent re-review closed both Important findings. The
+[rollout ledger](CONFIRMED_VISUAL_ROLLOUT_2026_11_07.md) records the 38 paired,
+zero unverified and five held core action scenarios, with exact evidence limits.
+Fresh combined validation passed 92 files / 923 component tests, typecheck and
+27 strict import/token/loading contracts. The global header/dock question is
+still unanswered. Custom Virtual Units remains separate draft PR #497 and is
+not integrated or enabled. Whole-branch review, exact-source CI and protected
+release remain open. Only the previously recorded Home spacing release is live.
+Frozen v62 tracker remains unchanged.
+
 ## Reviewed Commissioner integration and separate M-41 preparation — November 7, 2026
 
 All six Commissioner source/evidence commits are integrated through `c8893d13`.
