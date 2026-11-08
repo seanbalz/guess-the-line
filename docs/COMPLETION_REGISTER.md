@@ -112,7 +112,13 @@ Thirty layout cases passed across both themes, native/wider fonts and simulated
 phone insets; 24 keyboard-focus observations cleared the bottom bar. Axe found
 zero violations in either theme, with translucent contrast evaluation incomplete;
 the existing token suite passed 15/15. These are local browser checks, not
-physical-phone acceptance. **Approved and implemented locally; release pending.**
+physical-phone acceptance. **Released** from `70c2b85ea7466ca308c8e69006b4ec09888267a7`
+as Pages `6a847959` through protected frontend run
+[42426632652](https://github.com/seanbalz/guess-the-line/actions/runs/42426632652),
+with all 127 production assets verified at 23:47:36 UTC. All 12 exact-main jobs
+passed; the API, workers and migration history stayed unchanged. The first CI's
+loading-height issue was repaired and all 17 Home/layers/scrolling cases passed.
+See the [release record](RELEASE_2026_11_07_HOME_SPACING.md) for hashes and limits.
 The original Home CSS declarations now carry the approved layout, preserving
 Home tokens/fonts, 80px charts, 15px SVG labels, 44px targets, ring animation and
 safe-area/focus behavior. Source data, controllers, privacy and API/database
@@ -120,8 +126,7 @@ behavior are unchanged. Local token/Home model checks passed 54/54 and seven
 Home component suites passed 53/53. Existing Home and scroll/navigation browser
 specs passed 7/7 without skips after a successful cloud-test build, including
 both-theme narrow-screen layout/axe, no-write/privacy, navigation restoration
-and cross-page scrolling/focus checks. No release or migration was run for this
-spacing update.
+and cross-page scrolling/focus checks. No migration was applied for this update.
 
 ## Approved Prism Glass Home — November 7, 2026
 
