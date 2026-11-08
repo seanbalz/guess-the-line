@@ -18,7 +18,8 @@ test('referee hosted clearing, extra options, busy and partial saves keep unsave
   const world = await communityWorld(page, baseURL, { groupScreens: true });
   let release; const held = new Promise(resolve => { release = resolve; });
   try {
-    const { season, week } = world.state.league, games = world.state.games;
+    const { season, week } = world.state.league;
+    const games = Array.from({ length: 5 }, (_, index) => ({ ...world.state.games[index % world.state.games.length], id: `fixture-referee-${index}`, away: `Fixture away ${index + 1}`, home: `Fixture home ${index + 1}` }));
     await page.route(endpoint('trends/week'), route => reply(route, { season, week, games, refereeOptions: ['Fixture official A','Fixture official B'], assignedReferees: { [games[0].id]: 'Static fixture official' } }));
     await page.route(endpoint('officials/read'), route => reply(route, { season, week, assignments: { [games[0].id]: { referee: null }, [games[1].id]: { referee: 'Unlisted fixture official' } } }));
     const writes = [];
@@ -32,16 +33,25 @@ test('referee hosted clearing, extra options, busy and partial saves keep unsave
     await expect(fields.nth(0)).toHaveValue('');
     await expect(fields.nth(1)).toHaveValue('Unlisted fixture official');
     await captureCommissioner(page, info, 'referees-current');
-    await fields.nth(0).selectOption('Fixture official A'); await fields.nth(1).selectOption('Fixture official B');
+    await expect(fields).toHaveCount(3);
+    await sheet(page).getByRole('button', { name: 'Show all 5 games', exact: true }).click();
+    await expect(fields).toHaveCount(5);
+    await fields.nth(0).selectOption('Fixture official A'); await fields.nth(4).selectOption('Fixture official B');
+    await captureCommissioner(page, info, 'referees-expanded', { compact: true });
+    await sheet(page).getByRole('button', { name: 'Show first 3 games', exact: true }).click();
+    await expect(fields).toHaveCount(3);
     await expect(sheet(page).getByRole('button', { name: 'Save 2 referees', exact: true })).toBeVisible();
     await captureCommissioner(page, info, 'referees-drafts', { compact: true });
     await sheet(page).getByRole('button', { name: 'Save 2 referees', exact: true }).click();
     await expect(sheet(page).getByRole('button', { name: 'Saving…', exact: true })).toHaveAttribute('aria-disabled', 'true');
     await captureCommissioner(page, info, 'referees-busy', { compact: true }); release();
     await expect(sheet(page).getByRole('alert')).toContainText('Unsaved choices stay selected.');
-    await expect(fields.nth(1)).toHaveValue('Fixture official B');
+    await sheet(page).getByRole('button', { name: 'Show all 5 games', exact: true }).click();
+    await expect(fields.nth(4)).toHaveValue('Fixture official B');
+    await expect(fields.nth(0)).toHaveValue('Fixture official A');
+    await sheet(page).getByRole('button', { name: 'Show first 3 games', exact: true }).click();
     await expect(sheet(page).getByRole('button', { name: 'Save 1 referee', exact: true })).toBeVisible();
-    expect(writes).toHaveLength(2);
+    expect(writes.map(body => body.gameId)).toEqual([games[0].id, games[4].id]);
     await captureCommissioner(page, info, 'referees-partial', { compact: true });
   } finally { release(); await world.db.close(); }
 });
@@ -86,7 +96,7 @@ test('final correction keeps explicit assertion, busy review and refresh-adopt c
   const world = await communityWorld(page, baseURL, { groupScreens: true });
   let release; const hold = new Promise(resolve => { release = resolve; });
   try {
-    let version = 1, available = true, writes = 0;
+    let version = 1, available = true, writes = 0; const requestIds = [];
     await page.route(endpoint('state'), async route => {
       const req = route.request(), response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers() }));
       const body = await response.json(), game = body.games[0];
@@ -94,7 +104,7 @@ test('final correction keeps explicit assertion, busy review and refresh-adopt c
       body.resultReview = { available, games: { [game.id]: { version, away: 24, home: 17, source: 'Prior fixture source', sourceURL: 'https://example.test/prior', observedAt: new Date(Date.now() - 3600000).toISOString(), reviewedAt: new Date().toISOString() } } };
       await reply(route, body);
     });
-    await page.route(endpoint('results/review'), async route => { writes++; await hold; await reply(route, { error: 'Fixture version conflict' }, 409); });
+    await page.route(endpoint('results/review'), async route => { writes++; requestIds.push(route.request().postDataJSON().requestId); await hold; await reply(route, { error: writes === 1 ? 'Fixture save failure' : 'Fixture version conflict' }, writes === 1 ? 503 : 409); });
     await open(page, 'Final scores');
     await sheet(page).getByLabel('Final-score source name', { exact: true }).fill('Corrected fixture source');
     await sheet(page).getByLabel('Final-score source URL · HTTPS', { exact: true }).fill('https://example.test/correction');
@@ -103,12 +113,20 @@ test('final correction keeps explicit assertion, busy review and refresh-adopt c
     await sheet(page).getByLabel('Review or correction reason', { exact: true }).fill('Corrected fixture source metadata.');
     const review = sheet(page).getByRole('button', { name: 'Review corrected final result', exact: true });
     await expect(review).toBeDisabled(); await sheet(page).getByRole('checkbox').check();
-    await review.click();
-    await expect(page.getByRole('heading', { name: 'Confirm corrected final result', exact: true })).toBeVisible();
+    await sheet(page).getByLabel(/^Final observed · /).fill('2020-01-01T00:00');
+    await sheet(page).getByRole('checkbox').check(); await review.click();
+    await expect(sheet(page).getByRole('alert')).toContainText('observation must be after');
+    await captureCommissioner(page, info, 'final-validation-error');
+    await sheet(page).getByLabel(/^Final observed · /).fill(observed);
+    await sheet(page).getByRole('checkbox').check(); await review.click();
+    await expect(page.getByRole('heading' , { name: 'Confirm corrected final result', exact: true })).toBeVisible();
     await captureCommissioner(page, info, 'final-correction', { compact: true });
     await page.getByRole('button', { name: 'Confirm commissioner-reported final', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Recording final…', exact: true })).toBeDisabled();
     await captureCommissioner(page, info, 'final-busy', { compact: true }); release();
+    await expect(page.locator('dialog[open]').getByRole('alert')).toContainText('Fixture save failure');
+    await captureCommissioner(page, info, 'final-save-error');
+    await page.getByRole('button', { name: 'Confirm commissioner-reported final', exact: true }).click();
     await expect(sheet(page).getByRole('alert')).toContainText('Fixture version conflict');
     await expect(sheet(page).getByLabel('Final-score source name', { exact: true })).toHaveValue('Corrected fixture source');
     version = 2; await sheet(page).getByRole('button', { name: 'Refresh results', exact: true }).click();
@@ -117,11 +135,11 @@ test('final correction keeps explicit assertion, busy review and refresh-adopt c
     await captureCommissioner(page, info, 'final-conflict', { compact: true });
     await sheet(page).getByRole('button', { name: 'Use version 2 for a new review', exact: true }).click();
     await expect(sheet(page).getByRole('checkbox')).not.toBeChecked(); await expect(review).toBeDisabled();
-    expect(writes).toBe(1);
+    expect(writes).toBe(2); expect(requestIds[1]).toBe(requestIds[0]);
     available = false; await sheet(page).getByRole('button', { name: 'Refresh results', exact: true }).click();
     await expect(sheet(page).getByText(/reviewed-results service is unavailable/)).toBeVisible();
     await expect(sheet(page).getByRole('spinbutton')).toHaveCount(0);
-    await captureCommissioner(page, info, 'final-unavailable', { compact: true });
+    await captureCommissioner(page, info, 'final-unavailable');
   } finally { release(); await world.db.close(); }
 });
 
@@ -138,7 +156,8 @@ test('correction first load, failed read, missing totals and refreshing retain r
       calls.push(route.request().method()); await hold;
       await reply(route, state === 'failed' ? { error: 'Fixture corrections unavailable' } : { available: true, reviews: [row] }, state === 'failed' ? 503 : 200);
     });
-    await open(page, 'EPL stat corrections');
+    await open(page, 'Premier League stat corrections');
+    await expect(sheet(page).getByRole('button', { name: 'Refresh reviews', exact: true })).toBeDisabled(); // Controller data-read state, after the lazy download.
     await expect(sheet(page).locator('[data-skeleton="panels"]')).toBeVisible();
     await expect(sheet(page).getByText('500.25')).toHaveCount(0);
     await captureCommissioner(page, info, 'corrections-loading', { compact: true }); release();

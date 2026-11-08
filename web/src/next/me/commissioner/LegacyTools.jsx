@@ -8,8 +8,9 @@ import ResultReviewControls from '../../../ResultReviewControls.jsx';
 import { refreshLabel, scheduleDetails } from '../../../marketStatus.js';
 
 /** `data` is the sean-troy-luke `/state` read; `resultReview` is present only for its original commissioner. */
-export function FinalScoresEditor({ data, onReviewed }) {
-  return <div className="gx-live-workflow gx-cm-legacy"><ResultReviewControls data={data} onReviewed={onReviewed} renderTeamMark={(game, side) => game ? <TeamMark code={game[`${side}Code`]} name={game[side]} size={48} decorative/> : null}/></div>;
+export function FinalScoresEditor({ data, onReviewed, renderTool }) {
+  const wrap = content => <div className="gx-live-workflow gx-cm-legacy">{content}</div>;
+  return <ResultReviewControls renderLayout={(body, footer) => renderTool ? renderTool(wrap(body), wrap(footer)) : wrap(<>{body}{footer}</>)} data={data} onReviewed={onReviewed} renderTeamMark={(game, side) => game ? <TeamMark code={game[`${side}Code`]} name={game[side]} size={48} decorative/> : null}/>;
 }
 
 /** The odds refresh schedule's label and details, or the formatter's own "unavailable" words when the read has none. */

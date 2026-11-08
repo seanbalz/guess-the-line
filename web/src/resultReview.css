@@ -37,3 +37,20 @@
 .gx .gx-cm-legacy .result-final-dialog .icon-button { flex: none; min-width: 44px; min-height: 44px; }
 .gx .gx-cm-legacy button { white-space: normal; }
 @media(forced-colors:active) { .gx .gx-cm-legacy :is(.panel-heading,.result-score-fields > label,.result-final-dialog,.result-final-dialog .callout,.result-score-preview > div,.result-final-assertion) { border-color: CanvasText; box-shadow: none; } }
+
+/* Match the approved primary recipe inside this retained controller only. The
+   extra adapter scope outranks liveWorkflows, including its disabled recipe. */
+.gx .gx-live-workflow.gx-cm-legacy button.primary:not([class*="gx-"]) {
+  min-height: var(--gx-size-primary); border: 3px solid var(--gx-accent-ink);
+  border-radius: 20px; background: transparent; color: var(--gx-primary-ink);
+  box-shadow: var(--gx-primary-shadow); opacity: 1;
+}
+.gx .gx-live-workflow.gx-cm-legacy button.primary:disabled:not([class*="gx-"]) {
+  background: transparent; color: var(--gx-text-2); box-shadow: none;
+}
+.gx .gx-cm-legacy .result-tool-actions { display: grid; gap: 13px; }
+.gx .gx-cm-legacy :is(.callout, .callout p, .form-error) { font: 400 16px/1.7 var(--gx-font-body); }
+@media(forced-colors:active) {
+  .gx .gx-live-workflow.gx-cm-legacy button.primary:not([class*="gx-"]) { border-color: ButtonText; color: ButtonText; box-shadow: none; }
+  .gx .gx-live-workflow.gx-cm-legacy button.primary:disabled:not([class*="gx-"]) { border-color: GrayText; color: GrayText; }
+}

@@ -7,10 +7,10 @@ import { useRef, useState } from 'react';
 import { cloudApi } from '../../../api.js';
 import { ODDS_FAILED, ODDS_FAILURES, ODDS_LOW_QUOTA, ODDS_PENDING, oddsCount, oddsFetchAllowed, oddsSummary } from '../../../oddsConnection.js';
 import { Button, Card, Pill } from '../../ui/index.js';
-import { ToolHeading } from './ToolPresentation.jsx';
+import { inlineTool, ToolHeading } from './ToolPresentation.jsx';
 import { oddsScheduleText } from './LegacyTools.jsx';
 
-export function OddsConnection({ data, onCollected }) {
+export function OddsConnection({ data, onCollected, renderTool = inlineTool }) {
   const [busy, setBusy] = useState(''), [ready, setReady] = useState(false), [result, setResult] = useState(null), [problem, setProblem] = useState('');
   const requests = useRef({});
   async function run(operation) {
@@ -45,7 +45,7 @@ export function OddsConnection({ data, onCollected }) {
         <div><dt className="gx-t-meta gx-c-2">Provider credits remaining</dt><dd className="gx-t-strong gx-n-s">{oddsCount(result.quota?.remaining)}</dd></div>
         <div><dt className="gx-t-meta gx-c-2">Credits used in this request</dt><dd className="gx-t-strong gx-n-s">{oddsCount(result.quota?.last)}</dd></div>
       </dl>;
-  return <div className="gx-cm-odds gx-cm-stack">
+  return renderTool(<div className="gx-cm-odds gx-cm-stack">
     <div className="gx-cm-intro"><ToolHeading icon="plug">Triple Threat</ToolHeading><p className="gx-t-body gx-c-2"> Check the saved server connection before fetching current lines. This screen never asks for the provider key or shows market values.</p></div>
     <Card className="gx-cm-stack" data-odds="limits">
       <ToolHeading icon="shieldCheck">Free quota only</ToolHeading>
@@ -53,14 +53,13 @@ export function OddsConnection({ data, onCollected }) {
       <details className="gx-cm-details"><summary>Free quota rules</summary><p className="gx-t-body">Checking uses no credits; each fetch can use up to 2. The server allows 6 fetches per UTC day, at least 5 minutes apart, and keeps a 50-credit reserve. Manual fetches do not change the schedule.</p></details>
       <p className="gx-t-meta gx-c-2">{schedule.label}</p>
     </Card>
-    <div className="gx-cm-actions"><Button disabled={!!busy} onClick={() => run('preflight')}>{busy === 'preflight' ? 'Checking…' : 'Check connection (zero-credit)'}</Button>
-    <Button variant="primary" disabled={!!busy || !ready} onClick={() => run('collect')}>{busy === 'collect' ? 'Fetching…' : 'Fetch current lines'}</Button>
-    {!ready && <p className="gx-t-meta gx-c-2">A successful connection check is required before fetching.</p>}</div>
     <div role="alert">{problem && <p className="gx-t-body gx-cm-problem">{problem}</p>}</div>
     <div role="status">{result && <Card className="gx-cm-stack" data-odds="result">
       <h3 className="gx-t-strong"><Pill tone={succeeded ? 'win' : 'pending'}>{heading}</Pill></h3>
       {succeeded ? counts : <details className="gx-cm-details"><summary>Request counts</summary>{counts}</details>}
-      <p className="gx-t-meta gx-c-2">Provider quotes are not an official verified benchmark. Pick reveal rules still apply.</p>
+      <p className="gx-t-body gx-c-2">Provider quotes are not an official verified benchmark. Pick reveal rules still apply.</p>
     </Card>}</div>
-  </div>;
+  </div>, <div className="gx-cm-actions"><Button disabled={!!busy} onClick={() => run('preflight')}>{busy === 'preflight' ? 'Checking…' : 'Check connection (zero-credit)'}</Button>
+    <Button variant="primary" disabled={!!busy || !ready} onClick={() => run('collect')}>{busy === 'collect' ? 'Fetching…' : 'Fetch current lines'}</Button>
+    {!ready && <p className="gx-t-body gx-c-2">A successful connection check is required before fetching.</p>}</div>);
 }

@@ -26,7 +26,7 @@ describe('read-only EPL correction reviews', () => {
     expect(render({ failed: true })).toContain('could not load');
     expect(render({ denied: true })).toContain('Only the Community commissioner can view these corrections');
     expect(render({ data: { available: true, reviews: [review] }, failed: true })).toContain('Showing the last loaded reviews');
-    expect(render({ data: { available: true, reviews: [] } })).toContain('No EPL stat corrections are awaiting review');
+    expect(render({ data: { available: true, reviews: [] } })).toContain('No Premier League stat corrections are awaiting review');
     expect(render({ data: { available: true, reviews: [{ ...review, nextPickCount: 0 }] } })).toContain('Review its order against the corrected totals before drafting');
   });
 });

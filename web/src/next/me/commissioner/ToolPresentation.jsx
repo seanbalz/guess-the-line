@@ -8,3 +8,7 @@ export function ToolHeading({ icon: Icon, children, detail }) {
 export function ToolMatchup({ game }) {
   return <div className="gx-cm-matchup" aria-hidden="true"><TeamMark code={game.awayCode ?? game.away} size={48} decorative/><span>at</span><TeamMark code={game.homeCode ?? game.home} size={48} decorative/></div>;
 }
+
+// Render composition keeps each tool's actions beside its controller state.
+// Standalone views retain an inline fallback; the production host supplies Sheet.footer.
+export const inlineTool = (body, footer) => <>{body}{footer}</>;

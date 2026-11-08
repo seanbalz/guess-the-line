@@ -1,10 +1,10 @@
-// Loaded only from Menu > Commissioner tools > EPL stat corrections. Read-only; the server checks admin access again.
+// Loaded only from Menu > Commissioner tools > Premier League stat corrections. Read-only; the server checks admin access again.
 import { ArrowRight, ClipboardCheck, ShieldCheck } from 'lucide-react';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { eplApi } from '../../epl/api.js';
 import { fmtFull, fmtNum, fmtSigned } from '../../format.js';
 import { Button, Card, Skeleton } from '../../ui/index.js';
-import { ToolHeading } from './ToolPresentation.jsx';
+import { inlineTool, ToolHeading } from './ToolPresentation.jsx';
 
 function Comparison({ label, before, after, change }) {
   return <div className="gx-cm-comparison"><div className="gx-cm-comparison-title"><h4 className="gx-t-strong">{label}</h4><span className="gx-cm-delta" aria-label={`${label} change ${fmtSigned(change)}`}>{fmtSigned(change)}</span></div>
@@ -13,15 +13,15 @@ function Comparison({ label, before, after, change }) {
   </div>;
 }
 
-export function EplCorrectionReviewsView({ data, loading = false, failed = false, denied = false, onRefresh }) {
+export function EplCorrectionReviewsView({ data, loading = false, failed = false, denied = false, onRefresh, renderTool = inlineTool }) {
   const id = useId();
-  return <div className="gx-cm-stack gx-cm-corrections">
+  return renderTool(<div className="gx-cm-stack gx-cm-corrections">
     <div className="gx-cm-intro"><ToolHeading icon={ShieldCheck}>Read-only review</ToolHeading><p className="gx-t-body gx-c-2">Sleeper stat corrections are shown beside their original captures. Existing picks and draft order are preserved.</p></div>
     {loading && !data ? <Skeleton label="Loading Premier League correction reviews…" shape="panels" count={2}/> : loading ? <p role="status" className="gx-t-body gx-cm-message">Refreshing Premier League correction reviews…</p> : null}
     {failed ? <p role="alert" className="gx-t-body gx-cm-message gx-cm-problem">{data ? 'Could not refresh. Showing the last loaded reviews.' : 'Premier League correction reviews could not load.'}</p> : null}
     {denied ? <p role="alert" className="gx-t-body gx-cm-message">Only the Community commissioner can view these corrections.</p> : null}
     {data?.available === false ? <p role="status" className="gx-t-body gx-cm-message">Premier League correction checks are not available yet.</p> : null}
-    {data?.available && !data.reviews?.length ? <p role="status" className="gx-t-body gx-cm-message">No EPL stat corrections are awaiting review.</p> : null}
+    {data?.available && !data.reviews?.length ? <p role="status" className="gx-t-body gx-cm-message">No Premier League stat corrections are awaiting review.</p> : null}
     {(!denied && data?.available ? data.reviews ?? [] : []).map(review => <Card as="section" className="gx-cm-stack gx-cm-correction" key={review.week} aria-labelledby={`${id}-mw${review.week}`}>
       <div className="gx-cm-heading"><span className="gx-cm-icon"><ClipboardCheck size={24} aria-hidden="true"/></span><h2 className="gx-t-strong" id={`${id}-mw${review.week}`}>MW{review.week} stat correction needs review</h2></div>
       <p className="gx-t-body gx-cm-preserved">{review.nextPickCount > 0
@@ -35,11 +35,10 @@ export function EplCorrectionReviewsView({ data, loading = false, failed = false
       </section>)}
       <details className="gx-cm-details"><summary>Source captures</summary><p className="gx-t-meta gx-c-2">Sleeper · original capture {fmtFull(review.original?.capturedAt)} · recheck {fmtFull(review.corrected?.capturedAt)}</p></details>
     </Card>)}
-    <Button variant="secondary" onClick={onRefresh} disabled={loading}>Refresh reviews</Button>
-  </div>;
+  </div>, <Button variant="secondary" onClick={onRefresh} disabled={loading}>Refresh reviews</Button>);
 }
 
-export default function EplCorrectionReviews({ api = eplApi }) {
+export default function EplCorrectionReviews({ api = eplApi, renderTool }) {
   const [read, setRead] = useState({ data: null, loading: true, failed: false, denied: false });
   const live = useRef(null);
   const load = useCallback(async () => {
@@ -55,5 +54,5 @@ export default function EplCorrectionReviews({ api = eplApi }) {
     }
   }, [api]);
   useEffect(() => { void load(); return () => { live.current?.abort(); }; }, [load]);
-  return <EplCorrectionReviewsView {...read} onRefresh={load}/>;
+  return <EplCorrectionReviewsView {...read} onRefresh={load} renderTool={renderTool}/>;
 }

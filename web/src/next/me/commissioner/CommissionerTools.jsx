@@ -8,7 +8,7 @@
 // - Final scores: the old editor through the documented adapter (LegacyTools.jsx); Odds connection: native
 //   (OddsConnection.jsx, stage 78). Both are shown only to the original Triple Threat commissioner, as before
 //   (`/results/review`, `/odds/preflight`, `/odds/collect`).
-// - EPL stat corrections: read-only original/corrected totals and preserved draft context; loaded only when opened.
+// - Premier League stat corrections: read-only original/corrected totals and preserved draft context; loaded only when opened.
 // The code loads only when the commissioner opens the tools.
 import { CalendarDays, ClipboardList, Coins, Plug, ShieldCheck } from 'lucide-react';
 import { lazy, Suspense, useCallback, useEffect, useId, useRef, useState } from 'react';
@@ -36,7 +36,7 @@ export const COMMISSIONER_COPY = Object.freeze({
     { id: 'referees', icon: ICON.referees, label: 'Game referees' },
     { id: 'results', icon: ICON.finalScores, label: 'Final scores' },
     { id: 'odds', icon: ICON.odds, label: 'Odds connection' },
-    { id: 'epl-corrections', icon: ICON.eplCorrections, label: 'EPL stat corrections' },
+    { id: 'epl-corrections', icon: ICON.eplCorrections, label: 'Premier League stat corrections' },
   ]),
   originalOnly: 'Only the original Triple Threat commissioner can use this tool.',
 });
@@ -191,14 +191,14 @@ function WeekOpening({ app, week, notice: carried = '', onNotice }) {
       <ul className="gx-cm-games" aria-label={`Week ${preview.week} schedule`}>
         {preview.games.slice(0, allGames ? undefined : 3).map(game => <li key={game.id}><ToolMatchup game={game}/><span className="gx-t-strong">{game.matchup}{game.neutral ? ' (neutral)' : ''}</span><span className="gx-t-meta gx-c-2">{fmtFull(game.kickoff)}</span></li>)}
       </ul>
-      {preview.games.length > 3 && <><p className="gx-t-meta gx-c-2">Showing {allGames ? preview.games.length : 3} of {preview.games.length} games</p><Button aria-expanded={allGames} onClick={() => setAllGames(!allGames)}>{allGames ? 'Show first 3 games' : `Show all ${preview.games.length} games`}</Button></>}
+      {preview.games.length > 3 && <><p className="gx-t-body gx-c-2">Showing {allGames ? preview.games.length : 3} of {preview.games.length} games</p><Button aria-expanded={allGames} onClick={() => setAllGames(!allGames)}>{allGames ? 'Show first 3 games' : `Show all ${preview.games.length} games`}</Button></>}
       <p className="gx-t-body gx-c-2">Picks lock {fmtFull(preview.deadline)}</p>
       <Button variant="primary" block disabled={busy} onClick={() => run('publish')}>{busy ? 'Publishing…' : `Publish Week ${preview.week}`}</Button>
     </Card>}
   </>;
 }
 
-function Referees({ app, week }) {
+function Referees({ app, week, renderTool }) {
   const id = useId();
   const season = week?.season, number = week?.week;
   const trends = useTrendWeek(season, number, Boolean(week), app.accountId);
@@ -213,7 +213,7 @@ function Referees({ app, week }) {
       .catch(error => { if (live) { setState(error?.status === 404 ? 'not_deployed' : 'error'); setProblem(error?.status === 404 ? '' : plain(error)); } });
     return () => { live = false; };
   }, [week, season, number]);
-  if (!week) return <p className="gx-t-body">No week is published yet, so there are no games to assign.</p>;
+  if (!week) return renderTool(<p className="gx-t-body">No week is published yet, so there are no games to assign.</p>);
   const games = trends.week?.games || [], options = trends.week?.refereeOptions || [];
   const current = gameId => refereeFor(trends.week, gameId, hosted).name || '';
   const changed = games.filter(game => Object.hasOwn(drafts, game.id) && drafts[game.id] !== current(game.id));
@@ -235,7 +235,7 @@ function Referees({ app, week }) {
       setProblem(`${plain(failure)}${saved.length ? ` Saved before the error: ${saved.join('; ')}.` : ''} Unsaved choices stay selected.`);
     } finally { setBusy(false); }
   }
-  return <>
+  return renderTool(<>
     <p className="gx-t-body gx-c-2">Week {number}. Pick each game’s referee once the National Football League announces crews. Every member’s trends then show that referee’s records. Changes are kept with their history, never deleted.</p>
     {trends.status === 'loading' && <Skeleton label={`Loading Week ${number} games…`} shape="panels" count={2}/>}
     {trends.status === 'missing' && <p className="gx-t-body" role="status">The Week {number} trends file is not published yet, so there is no game or referee list to choose from.</p>}
@@ -243,7 +243,7 @@ function Referees({ app, week }) {
     {state === 'not_deployed' && <p className="gx-t-body" role="status">Saving referees needs the next gtl-api deploy and the game officials migration.</p>}
     <Problem>{problem}</Problem>
     {trends.status === 'ready' && <div className="gx-cm-ref-summary"><ToolHeading icon={ClipboardList} detail={`${season} · Week ${number}`}>{games.length} games</ToolHeading><span className="gx-cm-draft-count"><strong>{changed.length}</strong><span>draft{changed.length === 1 ? '' : 's'}</span></span></div>}
-    {trends.status === 'ready' && <form className="gx-cm-stack" aria-label="Game referees" onSubmit={event => { event.preventDefault(); void save(); }}>
+    {trends.status === 'ready' && <form id={`${id}-referees`} className="gx-cm-stack" aria-label="Game referees" onSubmit={event => { event.preventDefault(); void save(); }}>
       {games.slice(0, allGames ? undefined : 3).map(game => {
         const value = Object.hasOwn(drafts, game.id) ? drafts[game.id] : current(game.id), selectId = `${id}-${game.id}`;
         const extra = value && !options.includes(value) ? [value] : [];
@@ -252,22 +252,21 @@ function Referees({ app, week }) {
             <option value="">Not assigned yet</option>
             {[...extra, ...options].map(name => <option key={name} value={name}>{name}</option>)}
           </select>
-        </label><p className="gx-t-meta gx-c-2">Current: {current(game.id) || 'Not assigned yet'}</p></article>;
+        </label><p className="gx-t-body gx-c-2">Current: {current(game.id) || 'Not assigned yet'}</p></article>;
       })}
-      {games.length > 3 && <><p className="gx-t-meta gx-c-2">Showing {allGames ? games.length : 3} of {games.length} games · drafts count the full list</p><Button aria-expanded={allGames} onClick={() => setAllGames(!allGames)}>{allGames ? 'Show first 3 games' : `Show all ${games.length} games`}</Button></>}
+      {games.length > 3 && <><p className="gx-t-body gx-c-2">Showing {allGames ? games.length : 3} of {games.length} games · drafts count the full list</p><Button aria-expanded={allGames} onClick={() => setAllGames(!allGames)}>{allGames ? 'Show first 3 games' : `Show all ${games.length} games`}</Button></>}
       <p className="gx-t-body" role="status">{notice}</p>
-      <Button type="submit" variant="primary" block aria-disabled={busy || !changed.length || state !== 'ready' || undefined}>{busy ? 'Saving…' : changed.length ? `Save ${changed.length} ${changed.length === 1 ? 'referee' : 'referees'}` : 'Save referees'}</Button>
     </form>}
-  </>;
+  </>, trends.status === 'ready' ? <Button type="submit" form={`${id}-referees`} variant="primary" block aria-disabled={busy || !changed.length || state !== 'ready' || undefined}>{busy ? 'Saving…' : changed.length ? `Save ${changed.length} ${changed.length === 1 ? 'referee' : 'referees'}` : 'Save referees'}</Button> : null);
 }
 
 /** Final scores and Odds connection: the original Triple Threat commissioner only, as in the old Settings page. */
-function TripleThreatTool({ app, tool }) {
+function TripleThreatTool({ app, tool, renderTool }) {
   const triple = useTripleThreat(app.requestSignIn);
-  if (triple.loading) return <Skeleton label="Loading the Triple Threat week…" shape="panels" count={2}/>;
-  if (!triple.data) return <div className="gx-cm-stack"><Problem>{plain(triple.error)}</Problem><Button onClick={triple.reload}>Try again</Button></div>;
-  if (tool === 'results') return triple.data.resultReview ? <FinalScoresEditor data={triple.data} onReviewed={triple.reload}/> : <p className="gx-t-body">{COMMISSIONER_COPY.originalOnly}</p>;
-  return triple.commissioner ? <OddsConnection data={triple.data} onCollected={triple.reload}/> : <p className="gx-t-body">{COMMISSIONER_COPY.originalOnly}</p>;
+  if (triple.loading) return renderTool(<Skeleton label="Loading the Triple Threat week…" shape="panels" count={2}/>);
+  if (!triple.data) return renderTool(<div className="gx-cm-stack"><Problem>{plain(triple.error)}</Problem><Button onClick={triple.reload}>Try again</Button></div>);
+  if (tool === 'results') return triple.data.resultReview ? <FinalScoresEditor data={triple.data} onReviewed={triple.reload} renderTool={renderTool}/> : renderTool(<p className="gx-t-body">{COMMISSIONER_COPY.originalOnly}</p>);
+  return triple.commissioner ? <OddsConnection data={triple.data} onCollected={triple.reload} renderTool={renderTool}/> : renderTool(<p className="gx-t-body">{COMMISSIONER_COPY.originalOnly}</p>);
 }
 
 export function CommissionerTools({ tool = null }) {
@@ -277,15 +276,14 @@ export function CommissionerTools({ tool = null }) {
   const open = next => { setWeekNotice(''); shell.setSheetArgs({ sub: 'commissioner', tool: next }); };
   const shown = shell.communityAdmin && COMMISSIONER_COPY.tools.some(item => item.id === tool) ? tool : null;
   const back = shown ? { label: COMMISSIONER_COPY.title, onBack: () => open(null) } : { label: 'Menu', onBack: () => shell.setSheetArgs({ sub: null, tool: null }) };
-  let body;
-  if (!shell.communityAdmin) body = <p className="gx-t-body">{COMMISSIONER_COPY.only}</p>;
-  else if (!shown) body = <Hub open={open}/>;
-  else if (shown === 'status') body = <Status app={app} week={week}/>;
-  else if (shown === 'weeks') body = <WeekOpening key={week ? `${week.season}:${week.week}` : 'none'} app={app} week={week} notice={weekNotice} onNotice={setWeekNotice}/>;
-  else if (shown === 'referees') body = <Referees key={week ? `${week.season}:${week.week}` : 'none'} app={app} week={week}/>;
-  else if (shown === 'epl-corrections') body = <Suspense fallback={<Skeleton label="Loading EPL correction reviews…" shape="panels" count={2}/>}><EplCorrectionReviews/></Suspense>;
-  else body = <TripleThreatTool key={shown} app={app} tool={shown}/>;
-  return <Sheet title={shown ? label(shown) : COMMISSIONER_COPY.title} back={back} onClose={shell.closeSheet} tall className="gx-cm">
+  const renderTool = (body, footer) => <Sheet title={shown ? label(shown) : COMMISSIONER_COPY.title} back={back} onClose={shell.closeSheet} tall className="gx-cm" bodyTabIndex={0} footer={footer}>
     <div className="gx-cm-stack" data-commissioner-tool={shown ?? 'hub'}>{body}</div>
   </Sheet>;
+  if (!shell.communityAdmin) return renderTool(<p className="gx-t-body">{COMMISSIONER_COPY.only}</p>);
+  if (!shown) return renderTool(<Hub open={open}/>);
+  if (shown === 'status') return renderTool(<Status app={app} week={week}/>);
+  if (shown === 'weeks') return renderTool(<WeekOpening key={week ? `${week.season}:${week.week}` : 'none'} app={app} week={week} notice={weekNotice} onNotice={setWeekNotice}/>);
+  if (shown === 'referees') return <Referees key={week ? `${week.season}:${week.week}` : 'none'} app={app} week={week} renderTool={renderTool}/>;
+  if (shown === 'epl-corrections') return <Suspense fallback={renderTool(<Skeleton label="Loading Premier League correction reviews…" shape="panels" count={2}/>)}><EplCorrectionReviews renderTool={renderTool}/></Suspense>;
+  return <TripleThreatTool key={shown} app={app} tool={shown} renderTool={renderTool}/>;
 }

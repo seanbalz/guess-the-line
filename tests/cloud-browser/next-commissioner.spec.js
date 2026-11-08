@@ -34,7 +34,10 @@ function scheduleFor(season, week) {
   const pad = String(week).padStart(2, '0');
   return 'game_id,season,game_type,week,gameday,weekday,gametime,away_team,away_score,home_team,home_score,location\n'
     + `${season}_${pad}_SEA_DEN,${season},REG,${week},${day(3)},Thursday,20:15,SEA,,DEN,,Home\n`
-    + `${season}_${pad}_HOU_JAX,${season},REG,${week},${day(6)},Sunday,13:00,HOU,,JAX,,Home`;
+    + `${season}_${pad}_HOU_JAX,${season},REG,${week},${day(6)},Sunday,13:00,HOU,,JAX,,Home\n`
+    + `${season}_${pad}_BUF_MIA,${season},REG,${week},${day(6)},Sunday,13:00,BUF,,MIA,,Home\n`
+    + `${season}_${pad}_GB_CHI,${season},REG,${week},${day(6)},Sunday,13:00,GB,,CHI,,Home\n`
+    + `${season}_${pad}_SF_LA,${season},REG,${week},${day(6)},Sunday,16:00,SF,,LA,,Home`;
 }
 
 test('the commissioner reaches every tool; status, week opening and referees use the real routes', async ({ page, baseURL }, testInfo) => {
@@ -79,7 +82,13 @@ test('the commissioner reaches every tool; status, week opening and referees use
     await sheet(page).getByRole('button', { name: 'Review schedule', exact: true }).click();
     await expect(sheet(page).getByRole('list', { name: `Week ${open.week + 1} schedule` })).toContainText('Seattle Seahawks @ Denver Broncos');
     expect(await slates()).toEqual(before);
+    await expect(sheet(page).locator('.gx-cm-games li')).toHaveCount(3);
     await checkLayout(page, testInfo, 'weeks');
+    await sheet(page).getByRole('button', { name: 'Show all 5 games', exact: true }).click();
+    await expect(sheet(page).locator('.gx-cm-games li')).toHaveCount(5);
+    await captureCommissioner(page, testInfo, 'weeks-expanded', { compact: true });
+    await sheet(page).getByRole('button', { name: 'Show first 3 games', exact: true }).click();
+    await expect(sheet(page).locator('.gx-cm-games li')).toHaveCount(3);
     // Publishing refreshes the Community week; the notice must survive that refresh, not only the moment before it.
     const refreshed = page.waitForResponse(response => endpoint('community/read')(new URL(response.url())) && response.request().method() === 'POST');
     await sheet(page).getByRole('button', { name: `Publish Week ${open.week + 1}`, exact: true }).click();

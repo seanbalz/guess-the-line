@@ -37,11 +37,11 @@ function FinalReview({ game, review, currentVersion, busy, error, onBack, onConf
     <div className="review-actions"><button type="button" className="secondary" disabled={busy} onClick={onBack}>Keep editing</button><button type="button" className="primary" disabled={busy || changed} onClick={onConfirm}>{busy ? 'Recording final…' : 'Confirm commissioner-reported final'}<Check size={17}/></button></div>
   </dialog>;
 }
-export default function ResultReviewControls({ data, onReviewed, renderTeamMark }) {
+export default function ResultReviewControls({ data, onReviewed, renderTeamMark, renderLayout }) {
   if (!data?.resultReview) return null;
-  return <ResultForm key={`${data.league.season}/${data.league.week}`} data={data} onReviewed={onReviewed} renderTeamMark={renderTeamMark}/>;
+  return <ResultForm key={`${data.league.season}/${data.league.week}`} data={data} onReviewed={onReviewed} renderTeamMark={renderTeamMark} renderLayout={renderLayout}/>;
 }
-function ResultForm({ data, onReviewed, renderTeamMark }) {
+function ResultForm({ data, onReviewed, renderTeamMark, renderLayout }) {
   const first = data.games[0]?.id || '', [gameId, setGameId] = useState(first);
   const game = data.games.find(item => item.id === gameId), existing = data.resultReview.games?.[gameId], version = existing?.version || 0;
   const [fields, setFields] = useState(() => emptyFields(data.resultReview.games?.[first])), [confirmed, setConfirmed] = useState(false), [review, setReview] = useState(null);
@@ -85,7 +85,9 @@ function ResultForm({ data, onReviewed, renderTeamMark }) {
       if(failure.status===409){setConflict({expectedVersion:review.body.expectedVersion});setReview(null);}
     } finally {inFlight.current=false;setBusy(false);}
   }
-  return <section className="panel result-review-controls" aria-labelledby={`${id}-title`}><div className="panel-heading"><div><h2 id={`${id}-title`}>Commissioner final-result review</h2><p>Week {data.league.week} · Canonical slate · Ordinary final scores only</p></div><ShieldCheck size={20}/></div><div className="result-review-body">
+  const reviewAction = <button type="submit" form={`${id}-result`} className="primary" disabled={busy || !afterKickoff || !confirmed || !!conflict}>Review {currentVersion ? 'corrected ' : ''}final result</button>;
+  const refreshAction = <div className="result-refresh"><button type="button" className="secondary" disabled={busy||refreshing} onClick={refresh}><RefreshCw size={16}/>{refreshing?'Refreshing…':'Refresh results'}</button></div>;
+  const body = <section className="panel result-review-controls" aria-labelledby={`${id}-title`}><div className="panel-heading"><div><h2 id={`${id}-title`}>Commissioner final-result review</h2><p>Week {data.league.week} · Canonical slate · Ordinary final scores only</p></div><ShieldCheck size={20}/></div><div className="result-review-body">
     <p>Record a sourced final score or correct an earlier version. This is commissioner-reported evidence, not independently verified results. Earlier versions and selections remain in the audit.</p>
     {success && <div className="result-save-success" role="status"><strong>Final result saved · Version {success.version}</strong><p>{success.gameId} · {date(success.reviewedAt)} PT · Commissioner-reported, not independently verified.</p></div>}
     {!available ? <div className="callout" role="status"><TriangleAlert size={18}/><p>The reviewed-results service is unavailable. Result entry is disabled until a current read succeeds.</p></div> : <>
@@ -93,12 +95,14 @@ function ResultForm({ data, onReviewed, renderTeamMark }) {
       {existing && <div className="current-reviewed-result"><h3>Currently recorded · Version {version}</h3><p>{game?.away} {existing.away} · {game?.home} {existing.home}</p><p>{existing.source} · Observed {date(existing.observedAt)} PT · Reviewed {date(existing.reviewedAt)} PT</p>{sourceURL(existing.sourceURL)&&<a href={existing.sourceURL} target="_blank" rel="noreferrer">Open recorded final-score source</a>}</div>}
       {!afterKickoff && <p className="result-review-warning">Review opens after scheduled kickoff: {date(game?.kickoff)} PT. You must separately confirm the game finished.</p>}
       {conflict && <div className="result-review-conflict" role="alert"><p>{error || 'This result changed. Refresh the current version before correcting it.'}</p>{conflictResolved ? <button className="secondary" onClick={()=>{setConflict(null);setError('');setConfirmed(false);request.current=null;}}>Use version {version} for a new review</button> : <p>Refresh results to load the changed version. Your proposed scores remain in the form.</p>}</div>}
-      <form className="result-review-form" onSubmit={prepare}><fieldset disabled={busy || !afterKickoff}><legend>Proposed final score</legend><div className="result-score-fields"><label htmlFor={`${id}-away`}>{renderTeamMark?.(game, 'away')}<span>Away · {game?.away}</span><input id={`${id}-away`} aria-label={`Away · ${game?.away}`} type="number" inputMode="numeric" min="0" max="200" step="1" required value={fields.away} onChange={event=>change('away',event.target.value)}/></label><label htmlFor={`${id}-home`}>{renderTeamMark?.(game, 'home')}<span>Home · {game?.home}</span><input id={`${id}-home`} aria-label={`Home · ${game?.home}`} type="number" inputMode="numeric" min="0" max="200" step="1" required value={fields.home} onChange={event=>change('home',event.target.value)}/></label></div>
+      <form id={`${id}-result`} className="result-review-form" onSubmit={prepare}><fieldset disabled={busy || !afterKickoff}><legend>Proposed final score</legend><div className="result-score-fields"><label htmlFor={`${id}-away`}>{renderTeamMark?.(game, 'away')}<span>Away · {game?.away}</span><input id={`${id}-away`} aria-label={`Away · ${game?.away}`} type="number" inputMode="numeric" min="0" max="200" step="1" required value={fields.away} onChange={event=>change('away',event.target.value)}/></label><label htmlFor={`${id}-home`}>{renderTeamMark?.(game, 'home')}<span>Home · {game?.home}</span><input id={`${id}-home`} aria-label={`Home · ${game?.home}`} type="number" inputMode="numeric" min="0" max="200" step="1" required value={fields.home} onChange={event=>change('home',event.target.value)}/></label></div>
       <label htmlFor={`${id}-source`}>Final-score source name<input id={`${id}-source`} required minLength="2" maxLength="120" value={fields.source} onChange={event=>change('source',event.target.value)} placeholder="Source you checked"/></label><label htmlFor={`${id}-url`}>Final-score source URL · HTTPS<input id={`${id}-url`} type="url" required maxLength="2048" value={fields.sourceURL} onChange={event=>change('sourceURL',event.target.value)} placeholder="https://…"/></label><label htmlFor={`${id}-observed`}>Final observed · {Intl.DateTimeFormat().resolvedOptions().timeZone}<input id={`${id}-observed`} type="datetime-local" required step="1" value={fields.observedAt} onChange={event=>change('observedAt',event.target.value)}/></label><label htmlFor={`${id}-reason`}>Review or correction reason<textarea id={`${id}-reason`} required minLength="5" maxLength="500" rows="3" value={fields.reason} onChange={event=>change('reason',event.target.value)} placeholder="Describe the final-score evidence or correction"/></label>
       <label className="result-final-assertion"><input type="checkbox" checked={confirmed} onChange={event=>setConfirmed(event.target.checked)}/><span>I checked the named source and confirm this is the completed game’s ordinary final score, not a live, cancelled, postponed or unresolved result.</span></label>
-      </fieldset>{error&&!conflict&&!review&&<p className="form-error" role="alert">{error}</p>}<button type="submit" className="primary" disabled={busy || !afterKickoff || !confirmed || !!conflict}>Review {currentVersion ? 'corrected ' : ''}final result</button></form>
+      </fieldset>{error&&!conflict&&!review&&<p className="form-error" role="alert">{error}</p>}{!renderLayout && reviewAction}</form>
     </>}
-    <div className="result-refresh"><button type="button" className="secondary" disabled={busy||refreshing} onClick={refresh}><RefreshCw size={16}/>{refreshing?'Refreshing…':'Refresh results'}</button>{refreshNote&&<p role="status">{refreshNote}</p>}</div>
+    {!renderLayout && refreshAction}
+    {refreshNote&&<p role="status">{refreshNote}</p>}
     {review&&<FinalReview renderTeamMark={renderTeamMark} game={game} review={review} currentVersion={currentVersion} busy={busy} error={error} onBack={()=>{if(!busy)setReview(null)}} onConfirm={submit}/>}
   </div></section>;
+  return renderLayout ? renderLayout(body, <div className="result-tool-actions">{available && reviewAction}{refreshAction}</div>) : body;
 }

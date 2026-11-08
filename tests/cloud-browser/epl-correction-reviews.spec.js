@@ -27,9 +27,9 @@ test('commissioner loads correction evidence only when opening its tool, with a 
     await page.getByRole('button', { name: 'Your menu', exact: true }).click();
     await page.getByRole('button', { name: 'Commissioner tools', exact: true }).click();
     const sheet = page.getByRole('dialog').last();
-    await expect(sheet.getByRole('button', { name: 'EPL stat corrections', exact: true })).toBeVisible();
+    await expect(sheet.getByRole('button', { name: 'Premier League stat corrections', exact: true })).toBeVisible();
     expect(calls).toBe(0); expect(chunks).toHaveLength(0);
-    await sheet.getByRole('button', { name: 'EPL stat corrections', exact: true }).click();
+    await sheet.getByRole('button', { name: 'Premier League stat corrections', exact: true }).click();
     await expect(sheet.getByRole('heading', { name: 'MW9 stat correction needs review' })).toBeVisible();
     expect(calls).toBe(1); expect(chunks).toHaveLength(1);
     await expect(sheet.getByText('MW10 has 1 recorded pick. Its stored picks and draft order are preserved.')).toBeVisible();
@@ -44,7 +44,7 @@ test('commissioner loads correction evidence only when opening its tool, with a 
     await expect(sheet.getByRole('heading', { name: 'MW9 stat correction needs review' })).toHaveCount(0);
     await captureCommissioner(page, testInfo, 'corrections-unavailable', { compact: true });
     status = 'empty'; await sheet.getByRole('button', { name: 'Refresh reviews', exact: true }).click();
-    await expect(sheet.getByText('No EPL stat corrections are awaiting review.')).toBeVisible();
+    await expect(sheet.getByText('No Premier League stat corrections are awaiting review.')).toBeVisible();
     await captureCommissioner(page, testInfo, 'corrections-empty', { compact: true });
     status = 'ready'; await sheet.getByRole('button', { name: 'Refresh reviews', exact: true }).click();
     await expect(sheet.getByRole('heading', { name: 'MW9 stat correction needs review' })).toBeVisible();
