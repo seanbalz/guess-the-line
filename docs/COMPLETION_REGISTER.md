@@ -36,6 +36,19 @@ behavior checks, and records 18 unique browser passes across focused runs plus
 913 component tests/type/27 strict Node contracts/Brand/build/privacy. Independent review approved parent repair
 `596596f5852d74f703915620584fbd7c4a1fdc2e` without Critical/Important findings.
 Exact-source CI and remaining full-scope ports/release gates remain required. No remaining rollout deployment is claimed.
+## Commissioner capture and busy-action correction — November 7, 2026
+
+Unpublished branch `fix/commissioner-capture-paint-20261107`, implementation
+`1509910334291ab0b096dbe8019fe4314231196d`, refreshes the stale Light referee
+bottom captures and stretches final-dialog busy actions to their approved full
+width. Unchanged-source reproduction and actual pixel inspection found the
+referee cards painted with the final helper; no referee product fix was needed.
+[Evidence and limits](PRISM_COMMISSIONER_CAPTURE_PAINT_FIX_2026_11_07.md) record
+four targeted browser flows, 13 components, 69 Node/PGlite checks, typecheck,
+strict imports/tokens, Brand QA, build/privacy and 232 hashed images (89 refreshed,
+143 retained). Prior footer/form/primary fixes remain. No push, PR, merge,
+deployment or hosted writes; parent review remains pending.
+
 ## Commissioner tool fidelity correction — November 7, 2026
 
 Unpublished branch `codex/commissioner-fidelity-fix`, source
