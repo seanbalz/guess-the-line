@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { ALL } from '../migrations.mjs';
 import { communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
+import { assertCaptureTheme, setCaptureTheme } from './theme-capture.mjs';
 
 test.use({ viewport: { width: 390, height: 844 } });
 test.setTimeout(120000);
@@ -18,13 +19,14 @@ test('four simple roots, detail origins, reload and phone geometry', async ({ pa
     await expect(page.locator('[data-landing="home"]')).toBeVisible();
     await expect(main(page).getByRole('button')).toHaveCount(4);
     for (const theme of ['dark', 'light']) {
-      await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
+      await setCaptureTheme(page, theme);
       for (const width of [390, 320]) {
         await page.setViewportSize({ width, height: 844 });
         for (const name of ['Home', 'Play', 'Bets', 'Research']) {
           await tab(page, name).click();
           const root = page.locator(`[data-landing="${name.toLowerCase()}"]`);
           await expect(root).toBeVisible();
+          await assertCaptureTheme(page, theme);
           if (name === 'Play') {
             // The confirmed overview exposes Spread / Total / Points directly.
             await expect(root.getByRole('group', { name: 'Guess market', exact: true }).getByRole('button')).toHaveCount(3);
@@ -69,10 +71,13 @@ test('four simple roots, detail origins, reload and phone geometry', async ({ pa
     await expect(page.locator('[data-landing="research"]')).toBeVisible();
     await page.getByRole('button', { name: /^Trends/ }).click();
     await expect(page.getByRole('heading', { name: 'Trends', exact: true })).toBeVisible();
-    // D-66: This Week is nesting cards; a game is one layer in. D-69 step 3: its Game details opens Research › Games ›
-    // that game as a layer (no longer a dialog), and the All trends sheet still opens over it.
-    await page.locator('[data-game]').first().click();
-    const details = page.getByRole('button', { name: /^Game details/ }).first();
+    // The confirmed Trends root is the historical row list. Games remains the public
+    // matchup entry; its exact weekly evidence is still reachable through All trends.
+    await expect(page.getByRole('region', { name: 'Historical trends', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await expect(page.locator('[data-landing="research"]')).toBeVisible();
+    await page.getByRole('button', { name: /^Games/ }).click();
+    const details = page.locator('button[data-game]').first();
     await details.click();
     const game = page.locator('[data-research="game"]');
     await expect(game).toBeVisible();
@@ -84,12 +89,10 @@ test('four simple roots, detail origins, reload and phone geometry', async ({ pa
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(game).toBeVisible();
-    // Back closes one layer at a time: the game layer to Trends' game, that game to This week, then the Research landing.
+    // Back closes one layer at a time: the game to its Games list, then Research.
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await expect(game).toHaveCount(0);
     await expect(details).toBeVisible();
-    await page.getByRole('button', { name: 'Back', exact: true }).click();
-    await expect(page.getByRole('heading', { level: 2, name: 'This week', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await expect(page.locator('[data-landing="research"]')).toBeVisible();
     expect(world.errors).toEqual([]);

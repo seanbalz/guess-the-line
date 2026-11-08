@@ -67,13 +67,21 @@ The remaining areas below distinguish reviewed local implementation from release
   `cloud/lines.mjs` and `cloud/research-assessments.mjs`; unknown mutations remain
   counted. Broader PR CI and the separately owned Research fixes remain pending;
   no full-suite or release claim is made here.
-- Research source `f93d7c6560842be78ad0bd9a15d14632bb60fd0f` remains outside
-  integration pending three important review fixes: observed Fantasy Players
-  browse, full-width Trends card curves/footer, and compact Game overview with
-  actions before research tabs. A fresh implementer owns those exact fixes.
-  Canonical candidate season rows and non-shortlist curves need real additional
-  prepared-data projection; weekly season rows already exist. These areas stay
-  unchecked until the actual gaps and source verification are complete.
+- Research source `f93d7c6560842be78ad0bd9a15d14632bb60fd0f` and fidelity fix
+  `2ac6ff1c31d52cba02b8c2f41ab7258035289925` are integrated as `d4d1d694`
+  and `2ef9ca46`. Independent review supports the three implementation fixes:
+  observed Fantasy Players browse and addressable usage, full-width Trends
+  curves/footer, and compact Game overview with actions before Research panels.
+  Two mislabeled 390px Light captures were replaced by `ce524dfc`, integrated
+  as `b5dea82d`; independent re-review closed that evidence finding. The helper
+  now sets the real saved preference and asserts resolved attributes and rendered
+  canvas/ink. The other 28 capture files are unchanged. Combined parent validation
+  passed all 88 files / 906 Vitest tests, typecheck and 26 import/loading/token
+  contracts. [Evidence and exact limits](PRISM_RESEARCH_NATIVE_2026_11_07.md).
+  Canonical candidate season rows and non-shortlist curves still need real
+  prepared-data projection; an owned implementation is active. Weekly season
+  rows remain available. Areas 08/10 stay open for that dependency; no Research
+  release or physical-device acceptance is claimed.
 - Tracked bet stakes support smaller custom values without backend changes.
   Virtual Units still has positive-half-unit enforcement in both API and SQL;
   its approved finer entry requires a separately reviewed compatibility change
@@ -251,42 +259,42 @@ reference math/data only and must not enter the production bundle.
 
 ### 08. Research overview and game
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [ ] Finish this area. Status: **LAYOUT IMPLEMENTED AND REVIEWED / DATA PROJECTION IN PROGRESS / NOT DEPLOYED**. Canonical candidate summary curves/season rows remain open; [native evidence](PRISM_RESEARCH_NATIVE_2026_11_07.md).
 - Reference: `populated-research; game-research-panels.js; populatedGameResearch`.
 - Native targets: `research/ResearchLanding.jsx, ResearchView.jsx, MatchupResearch.jsx, ResearchCards.jsx, ResearchChart.jsx; lines/GameDetails.jsx; charts/`.
 - Required presentation and behavior: Compact header, six evidence periods, chart/table links, season comparisons, team records/PPG/margins/play statistics, original market-history deep link; preserve real source/missing/stale states.
 
 ### 09. Research Games
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Port and verify this area. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. Sources `f93d7c65`, `2ac6ff1c`; [native evidence](PRISM_RESEARCH_NATIVE_2026_11_07.md).
 - Reference: `populated-games; populatedGamesList`.
 - Native targets: `lines/GamesScreen.jsx, LinesBoard.jsx and owning Research Games view`.
 - Required presentation and behavior: Day filters/counts, individual team circles, records/last-five, shared zero-based PPG scale, inline team comparison and keyboard chart selection.
 
 ### 10. Research Trends
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [ ] Finish this area. Status: **LAYOUT IMPLEMENTED AND REVIEWED / DATA PROJECTION IN PROGRESS / NOT DEPLOYED**. Actual canonical By-season rows and all summary curves remain open; [native evidence](PRISM_RESEARCH_NATIVE_2026_11_07.md).
 - Reference: `populated-research; populatedTrendsList`.
 - Native targets: `trends/TrendsScreen.jsx, TrendLayer.jsx; charts/TrendRow.jsx, TrendDetail.jsx; research/ResearchChart.jsx`.
 - Required presentation and behavior: Market filters, six periods, records/sample counts/sparklines, expanded charts/tables/results and keyboard selection; do not fabricate evidence.
 
 ### 11. Research Teams
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Port and verify this area. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. Source `f93d7c65`; [native evidence](PRISM_RESEARCH_NATIVE_2026_11_07.md).
 - Reference: `populated-teams; populatedTeams`.
 - Native targets: `teams/TeamsScreen.jsx, TeamView.jsx, TeamSheet.jsx, TeamMatchup.jsx`.
 - Required presentation and behavior: Search all teams, own/opponent circles, records/last-five, home/road/PPG, margin chart and games, browse/scroll/focus preservation on Back, source Info.
 
 ### 12. NFL Fantasy browse, usage and comparison
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Port and verify this area. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. Sources `f93d7c65`, `2ac6ff1c`, corrected Light evidence `ce524dfc`; [native evidence](PRISM_RESEARCH_NATIVE_2026_11_07.md).
 - Reference: `populated-fantasy; populatedFantasy`.
 - Native targets: `fantasy/FantasyScreen.jsx, FantasyTools.jsx and related native views`.
 - Required presentation and behavior: Search/position/pagination, scoring settings, actual points/usage profiles and missing/bye gaps, two/three-player comparison, native table scrolling and Back/focus retention.
 
 ### 13. NFL Fantasy rankings and accuracy
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Port and verify this area. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. Sources `f93d7c65`, `2ac6ff1c`; [native evidence](PRISM_RESEARCH_NATIVE_2026_11_07.md).
 - Reference: `populated-fantasy-rankings.jsx; populated-fantasy-accuracy.jsx; fantasyRankingsAccuracy`.
 - Native targets: `fantasy/FantasyReport.jsx and owning ranking views/models`.
 - Required presentation and behavior: Weekly/ROS/search/position/team/trend filters, rankings/profile links, report metrics/position rows/biggest misses, source/method/provisional labels and native paired error bars.
