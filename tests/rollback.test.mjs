@@ -24,6 +24,7 @@ const key = fn => `${fn.schema}.${fn.name}`;
 // M-01 introduced the rules RPC. A safe rollback explicitly advertises the restored legacy rules;
 // neither permission errors nor outages may be interpreted as permission to edit final guesses.
 const LEGACY_RULES_BODY = "\n  select jsonb_build_object('sentFinal',false,'lateWindow','deadline','revealAt','deadline')\n";
+const LEGACY_VIRTUAL_UNITS_BODY = "\n  select jsonb_build_object('version',1,'hundredths',false)\n";
 
 /** The repo files a migration REQUIRES (tests/migrations.mjs): unapplied files it must follow, built before it here too. */
 const requiredFiles = name => (REQUIRES[version(name)] ?? []).map(v => ALL.find(file => version(file) === v));
@@ -43,6 +44,8 @@ function review(migrationPath, rollbackSql) {
     const compatibility = name==='20261014223000_gtl_guess_gate_per_game.sql' && key(fn)==='public.gtl_live_rules' && own.has(key(fn));
     if (!prev && compatibility) {
       if (fn.args!=='' || fn.md5!==md5(LEGACY_RULES_BODY)) problems.push(`${name}: the added rules RPC must report exactly the restored legacy rules`);
+    } else if (!prev && name==='20261108022135_gtl_virtual_units_hundredths.sql' && key(fn)==='public.gtl_virtual_unit_rules' && own.has(key(fn))) {
+      if (fn.args!=='' || fn.md5!==md5(LEGACY_VIRTUAL_UNITS_BODY)) problems.push(`${name}: the added unit rules RPC must report exactly the restored half-unit rules`);
     } else if (!prev) problems.push(`${name}: the rollback restores ${key(fn)}, which the migration does not replace`);
     else if (prev && prev.md5 !== fn.md5) problems.push(`${name}: the rollback body of ${key(fn)} has md5 ${fn.md5}; the body the migration replaces (${prev.file}) has md5 ${prev.md5}`);
   }
@@ -142,6 +145,9 @@ test('the rollback convention: each file names a migration, restores exactly the
   const legacy=fs.readFileSync(path.join(ROLLBACK_DIR,path.basename(m01)),'utf8');
   assert.match(review(m01,legacy.replace(LEGACY_RULES_BODY,LEGACY_RULES_BODY.replace("'sentFinal',false","'sentFinal',true"))).problems.join('\n'), /must report exactly the restored legacy rules/);
   assert.match(review(m01,`${legacy}\ncreate or replace function public.unapproved_rollback_helper() returns boolean language sql as $$ select true $$;`).problems.join('\n'), /which the migration does not replace/);
+  const m41=path.join(MIGRATIONS_DIR,'20261108022135_gtl_virtual_units_hundredths.sql');
+  const legacyUnits=fs.readFileSync(path.join(ROLLBACK_DIR,path.basename(m41)),'utf8');
+  assert.match(review(m41,legacyUnits.replace(LEGACY_VIRTUAL_UNITS_BODY,LEGACY_VIRTUAL_UNITS_BODY.replace("'hundredths',false","'hundredths',true"))).problems.join('\n'), /must report exactly the restored half-unit rules/);
 });
 
 test('REQUIRES names repo migrations that are not hosted yet and sort before the migration that needs them', () => {

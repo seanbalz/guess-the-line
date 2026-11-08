@@ -1,0 +1,304 @@
+# Virtual Units Custom entry — M-41 preparation, November 7, 2026
+
+**Prepared and published in PR #497; not applied, merged to main or deployed.
+D-78 answers ROI policy; enablement remains held for Gate M and Sean's separate
+named migration approval.** This document
+does not authorize an apply, provider collection or schedule change.
+
+## Scope and authority
+
+The task worktree starts at freshly fetched `origin/main` `7aa93a6f`, then
+fast-forwards to the coordinating reviewed branch's
+`3a9a9cff2c9ff044faad180c0933226e29665de3`. The selected visual authority is the
+read-only owner acceptance checkout at
+`3ac2eb50513ba73447ef890e4a47863cde7bdd76`:
+
+- `design/style-directions-2026-11-04/NATIVE_COVERAGE_REVIEW.md`, lines 382–391:
+  Virtual Custom accepts hundredths from **0.01U through 100U**; manual tracking
+  retains its own precision and 10000U screen maximum.
+- `preview-unit-amounts.mjs`, `isolated-nfl-actions.jsx` and
+  `populated-nfl-actions.jsx`: the Custom numeric field sits in the existing
+  slip stepper, with invalid text blocking placement and busy/uncertain fields
+  disabled. No new layout or control is inferred.
+- Sean's subsequent quick-entry amendment keeps **0.5U as the quick/ordinary
+  stepper minimum**. Ordinary taps change by 0.1U; only an explicitly edited
+  Custom field can use the 0.01U floor. Selecting a quick chip returns to the
+  ordinary floor. An existing saved stake below 0.5U initializes Custom mode.
+
+The initial task inference that Virtual should inherit Tracked's four-decimal
+input precision was corrected from this explicit selected-reference evidence.
+That correction is an interpretation of the existing approval, not a new user
+policy decision. Tracked behavior is unchanged.
+
+## Compatibility implementation
+
+`20261108022135_gtl_virtual_units_hundredths.sql` was created with the installed
+Supabase CLI's `migration new`, after checking its help. M-41 was unused in the
+fresh ledger. The timestamp is **provisional until Gate M merge**: restamp both
+SQL files and references if necessary so this file follows the newest main
+migration. Merge only when this work is next in the apply queue.
+
+Only the amount predicate changes in these existing bodies:
+
+| Entry | API | Database writer | Preserved checks |
+|---|---|---|---|
+| Account slip | `cloud/bets.mjs` `/bets/place` | `gtl_place_bets` | Membership, slate, per-game market gate, kickoff, saved quote, exact expected terms, atomic slip, request receipt/replay |
+| Recommended Virtual | `cloud/bets.mjs` `/bets/recommendations/place` | `gtl_save_recommended_virtual_pick` | Account week, market gate, revision, kickoff, exact offered quote, add-only behavior |
+| Existing group Virtual | `cloud/virtual-units.mjs` `/virtual-pick` | `gtl_save_virtual_units_pick` | Existing context/revision, kickoff, terms, audits, existing trigger enforcement and API quote/gate checks |
+
+No RPC argument list or overload changes. Function header MD5s name the exact
+previous bodies. No table, selection, result, audit, receipt, score or timestamp
+is rewritten on apply. Existing positive half-unit stakes remain valid,
+including values above 100U: the old server had no maximum, even though the
+placing screen already capped entry at 100U. Newly supported non-half amounts
+are limited to hundredths in 0.01–100U. No existing server maximum is widened.
+
+The new service-only, invoker `gtl_virtual_unit_rules()` reports
+`{version:1,hundredths:true}`. `gtl_virtual_units_supported(numeric)` centralizes
+the new amount predicate for the three writers. Browser roles cannot execute
+either function. Both have inert boundary probes and `awaitingDeploy` entries;
+the migration remains in `NOT_HOSTED`.
+
+The compatible API adds `unitRules` to `/bets/read`, `/virtual-units`, and
+Recommended's `virtual` object. Missing capability RPC, rollback, malformed
+data, unknown version and transient failure all expose `hundredths:false`.
+Group and Recommended write routes recheck capability for non-half stakes.
+Account slip placement always reaches the existing authenticated SQL writer,
+which resolves an exact, account-scoped committed receipt before checking its
+amount predicate for new writes. Capability loss cannot veto a committed replay.
+An old-schema amount refusal still maps to the Custom-unavailable response.
+Existing half-unit requests work without the new RPC. Saved cent terms remain
+readable; exact expected terms are accepted for CAS even when rolling back to
+a half-unit *replacement* stake.
+
+Native `PlaceBets` shows the selected Custom field only with positive capability.
+Without it, the old half-unit stepper remains. Blank, invalid or unsupported
+draft text is kept in the slip and blocks placement; it is never silently rounded
+or dropped. Saved terms and explicit edits retain the existing quote/CAS path.
+Busy and uncertain states freeze the field and controls; retries preserve the
+same request id and payload. Custom styles map the selected preview aliases to
+native GTL tokens. Legacy group/Recommended controls remain their existing
+half-unit controls; no unreviewed control layout was added there.
+
+## Review corrections — November 7, 2026
+
+Owner: Sean Balsiger · Version 2 · Prepared locally, enablement still held.
+
+Correction branch `codex/m41-retry-precision-20261107` was created from freshly
+fetched `origin/main` `7aa93a6ffe79eafb58bd6c7d12ec230b6d77b0e9`, then
+fast-forwarded to prepared source `46fe11f996ee228c49c0b008d5cba885e329e216`.
+The three existing writer bodies, migration and rollback files are unchanged
+from that source. No function overload, permission, collector, accounting,
+ranking or settlement policy changes are included.
+
+- **Committed retry:** reproduced API 409 after committing a cent request then
+  losing capability; direct restored SQL could already return its receipt.
+  The API now lets that existing guarded SQL path resolve the request. New
+  unsupported writes still fail the restored half-unit predicate. Auth,
+  feature switches, membership, account/week/body scope, quote, kickoff and CAS
+  checks remain. A capability-read outage is not a write kill switch: with
+  M-41 still installed SQL can accept a valid new cent write; the client still
+  displays fallback controls until a successful capability read.
+- **Browser request preservation:** a committed response can be lost, then a
+  refresh can expose fallback capability and new saved terms. The slip now
+  retains the originally reviewed entries and complete request body while the
+  save is pending or uncertain. A retry sends identical serialized JSON,
+  including request ID and original `expected`, and resolves one receipt/audit.
+  The frozen Custom control remains disabled during that uncertainty; after
+  success, refreshed fallback controls govern new drafts.
+- **Exact cents:** JavaScript compares the input number with its canonical cent
+  representation, without an epsilon allowance or replacing the user's value.
+  `0.010000000001` and `0.999999999999` now fail API and typed validation, matching
+  SQL. `0.29`, all 10,000 cent values from 0.01 through 100, and legacy half-unit
+  values above 100 remain valid. Extra-precision, nonfinite and extreme values
+  have explicit JS/SQL checks.
+- **Inherited typography gate:** the prepared Custom label was 10px, failing
+  the unchanged native token test. It now uses the 16px primary label floor.
+  The input declaration stays 17px; computed native styling is 16px with a
+  123 × 50px input. Dark 320px, Light 390px and forced-color 390px checks enforce
+  label/input floors and 44px targets. No test allowlist was added.
+
+The new tests failed before implementation: three M-41 Node/SQL tests, one
+component test, and the committed-response-loss browser's disabled retry.
+After correction, 76 unique focused Node/SQL/import/token/parser tests,
+19 component tests and four browser scenarios passed, with no skips. The
+initial combined run passed 64 of 65 tests; its sole inherited font-floor
+failure was corrected, and the 15 unchanged token tests then passed. The full
+five-test rollback suite passed; SQL and rollback were not subsequently edited.
+
+Commands and scope:
+
+```text
+node --test tests/virtual-units-hundredths.test.mjs tests/bets-place-sql.test.mjs tests/bets-cloud.test.mjs tests/virtual-units.test.mjs tests/virtual-units-save-sql.test.mjs tests/virtual-units-line-lock.test.mjs tests/next-tokens.test.mjs tests/rollback.test.mjs
+node --test tests/next-tokens.test.mjs tests/next-parse.test.mjs
+node --test tests/next-app-view.test.mjs
+npx vitest run tests/next-bets-place.test.jsx
+npx playwright test --config .local/virtual-custom-playwright.config.mjs tests/cloud-browser/virtual-units-hundredths.spec.js
+npm run typecheck
+python -X utf8 scripts/check-brand-docs.py
+npm run build:cloud
+node scripts/check-cloud-boundary.mjs --bundle-only --strict
+```
+
+The isolated Playwright config changes only the standard server port to 5284
+and its owned output directory. After the label change, the Custom scenario
+was rerun to refresh its layout/Axe checks, computed typography and captures;
+the retry implementation was unchanged. [Scoped evidence and capture hashes](../design/virtual-units-m41-review-2026-11-07/evidence.json)
+record the fixture-only visual checks. Typecheck, Brand QA, cloud build and
+strict bundle privacy checks passed; the existing large-chunk warning remains.
+No hosted write, apply, push, PR, merge, deployment, real-phone acceptance or
+new ROI approval occurred. Required hosted boundary probes remain awaitingDeploy.
+
+| Deployment combination | Behavior |
+|---|---|
+| New Pages, old API | No `unitRules`: half-unit controls only |
+| New API, old SQL | Missing capability: reads work, half stakes save, custom writes refuse |
+| New API/Pages, M-41 | Custom cents available on the native slip; all three server writers support cents |
+| SQL rolled back, compatible API/Pages | Explicit false capability; saved cents still readable, new custom writes refuse |
+| API rolled back after cents exist | Older readers keep saved terms; old validators can refuse edits to cent rows. Prefer rolling back SQL with the compatible API retained; never rewrite saved rows to fit an old client |
+
+## Historical arithmetic inventory — superseded by D-78
+
+The entry extension **does not change any accounting formula or historical
+rank**. This November 7 inventory records the former shared-model discrepancy.
+It is historical evidence, not the current formula or an unanswered policy
+blocker. Sean approved uniform saved-four-place ROI on November 8 (D-78),
+implemented separately in PR #500 and merged at
+`1c5a9da0deb479c15abf390a905acd47084cb338`. The separate
+[ROI implementation record](VIRTUAL_ROI_SAVED_PRECISION_2026_11_08.md) describes
+the correction and synthetic historical tie impact; its API/frontend release
+is pending at reconciliation dispatch. M-41 retains that corrected model.
+
+| Path | Existing arithmetic / precision | M-41 action |
+|---|---|---|
+| Storage | JSONB numeric units; no column scale restriction | Preserve |
+| D-26 settlement | Win = stake × unrounded American multiplier, rounded once to 4 places; loss = negative exact stake; push/void = zero net and stake returned | Preserve function byte for byte |
+| Group Virtual SQL reader | Exact numeric totals; ROI rounded to 2 percentage places at the end | Preserve |
+| Recommended summary | Raw saved stake/net sums; ROI rounded to 2 percentage places | Preserve |
+| M-10 read | Saved terms and numeric qualification totals | Preserve |
+| M-12 SQL board readers | Numeric sums; API ranks them | Preserve |
+| `shared/bets-qual.mjs` / native week and boards | Formerly `normalizeWeek` rounded units, risk and net to 2 places **before** ROI/ranking; season processing normalized weekly sums | Superseded separately by D-78; M-41 preserves current main's four-place model |
+| Awards `shared/game-features/awards.mjs` | Uses saved win net, four-place net totals and unrounded risk before ROI; separate comparison path | Preserve; no award policy changes |
+| Native amount formatting | Stake/general format normalizes to cents; result amounts show cents | Preserve; cents entry fits |
+| Legacy Virtual formatting | Result net displayed to cents; saved stake retained | Preserve |
+| Social tracker | Tracked stake supports 4 places; social model's `origin:virtual` requires halves, but live `/social/create` rejects that origin without a verified receipt | Preserve; this is not a second Virtual entry path |
+
+Authoritative rules: `docs/RULES.md` “Virtual units game” requires at least
+three placed picks **or at least 3U**; it defines ROI as settled net divided by
+settled risk. Its “Virtual units settlement” row and `docs/DECISIONS.md` D-26
+explicitly round win profit once to four places. D-18 and redesign stage 42
+specify ROI, then net units, then wins with shared ties. No explicit decision
+was found authorizing cent-rounding of intermediate net/risk before ROI.
+Existing tests do require ROI presentation to two places. Implementation
+behavior is not evidence that a different accounting policy was approved.
+
+Reproduced in local PGlite and the then-current November 7 model:
+
+| Example | Saved D-26 result | Former native board | D-78 saved-net ROI |
+|---|---:|---:|---:|
+| 0.5U win at −110 | +0.4545U | +0.45U, 90% | 90.9% |
+| 0.5U win at −111 | +0.4505U | +0.45U, 90% | 90.1% |
+| 0.01U win at −110 | +0.0091U, 0.0191U returned | +0.01U, 100% | 91% |
+
+Two otherwise qualified players with the first two half-unit results formerly
+tied. D-78 separates that **existing** tie, even without any custom stakes.
+That correction was separately approved/reviewed in PR #500, outside M-41.
+Four-decimal input would add separate failures: 2.9999U over two picks rounds
+to 3U and wrongly qualifies; a 0.0001U loss normalizes to zero risk and null ROI.
+These cases are outside the approved hundredths entry domain and are retained
+as local diagnostic evidence, not failing/default tests or product contracts.
+
+The original explicit choice is answered: Sean authorized the separately
+reviewed uniform accounting correction, including its historical tie impact.
+Saved D-26 results remain intact. This approval is not `apply M-41`; Gate M,
+queue order, fresh hosted checks and named approval remain required. FEPL is
+a separate unanswered frame choice. The Supabase connector requires
+reauthentication; no fresh hosted M-41 precheck or private-row preservation
+hashes have been obtained.
+
+## Release card — held
+
+- **Merge:** only when next in Gate M queue, after review and exact-source CI.
+  Depends on already hosted M-11 and existing Virtual/Recommended writers;
+  independent of pending M-33/M-34/M-35. Do not reapply any prior migration.
+- **Before apply:** D-78 has answered the accounting choice; verify its compatible
+  release and deploy the M-41 compatible readers,
+  validation/error mapping and gated native control. Verify old-schema fallback.
+- **Approval:** Sean must explicitly authorize `apply M-41`. No such approval is
+  claimed. No calendar window is required; other Gate M checks remain mandatory.
+- **Fresh precheck:** compare hosted `prosrc` MD5 with all three header hashes,
+  verify no partial apply or overload, collect current source/CI/compatibility
+  evidence, hash finished `gtl_ballot_pick_scores(...)` function output and
+  settled Virtual results, plus saved selections/audits/receipts. The historical
+  scoring object is a function, not a table. Keep private rows out of public logs.
+- **Apply/verify:** one reviewed migration only, no `db push`; confirm new function
+  bodies, service-only grants, unchanged RPC argument lists, and preservation
+  hashes. Verify half and cent boundary probes, gates/CAS/replay, and required
+  next collector evidence. Then update the hosted ledger and remove only M-41's
+  `awaitingDeploy` entries after permission checks pass. Hosted strict checks
+  and real-phone acceptance have not been performed here.
+- **Rollback:** the matching `supabase/rollback/20261108022135_...sql` restores
+  the three previous writer bodies byte for byte. Additive helpers remain;
+  the readable service-only capability explicitly returns
+  `{version:1,hundredths:false}`. This narrowly tested compatibility exception
+  follows M-01's readable rollback-rules pattern. No row is dropped or rewritten.
+  The existing `bets-place`/`bets` switches remain available; they do not imply
+  that legacy group or Recommended routes are disabled.
+
+## Local verification
+
+Final focused checks: **178 Node/SQL assertions**, **28 component tests**,
+**2 browser scenarios**, and the **2 targeted final rollback checks** passed,
+with no skips. Typecheck, Brand QA (`python -X utf8` on Windows), production
+cloud build and `check-cloud-boundary --bundle-only --strict` passed. The full
+five-test rollback suite had also passed before the final explicit-false
+capability adjustment; the two affected checks were rerun afterward.
+The build reports the existing large-chunk warning. Bundle-only checks do not
+establish hosted permissions or migration deployment.
+
+The focused Node/SQL suites exercise three writers, old-schema fallback,
+malformed/missing capability, invalid cents, exact revision/CAS, duplicate
+requests, line gates, quote matching, kickoff, service-only grants, apply
+idempotence, MD5 restoration and SHA-256 preservation of fixture rows/derived
+scores. A separate cent settlement probe runs the real D-26 function: win
+0.0091U/return 0.0191U, loss −0.01U, push/void return 0.01U, unchanged selections,
+replayed finals and rollback preservation of nonempty settled results.
+
+`virtual-units-hundredths.spec.js` passed against an isolated browser server on
+5272 using local fixture accounts only: legacy controls; custom 0.01U;
+ordinary 0.5U floor; 0.1U custom steps; invalid draft retention; busy/uncertain
+freeze; identical retry with one stored audit. Layout/Axe checks passed at
+320px Dark and 390px Light; forced-color capture was inspected. Captures remain
+in ignored `.local/virtual-custom-captures`. These are browser fixtures, not
+actual-phone or production acceptance. No credentials or live provider reads
+were needed.
+
+## Fresh-main reconciliation — November 8, 2026
+
+Base `1c5a9da0deb479c15abf390a905acd47084cb338` includes merged ROI PR #500.
+The reviewed M-41 head `a3bd900b7b65f7469a5d9400815e44be9fbb7580` was merged
+as a source dependency, preserving ancestry for PR #497. The sole conflict
+was additive completion-register entries; both current main and M-41 records
+were retained. Source merged without behavior edits. Current layouts,
+controllers and D-78 accounting are preserved, as are the migration/rollback
+and four original M-41 visual artifacts byte for byte.
+
+The provisional `20261108022135` identity is unique and follows main's newest
+`20261103212932` file. Recheck order at Gate M; this does not authorize queue
+advancement. Named apply, exact-source CI, fresh hosted writer MD5/grants,
+private-row preservation hashes, collector verification and phone acceptance
+remain held. No hosted access, migration apply, release or deployment is
+claimed by this reconciliation.
+
+Fresh reconciliation checks passed 92 Node/SQL tests (including the full
+five-test rollback suite, saved-precision SQL/API parity, strict native imports,
+parser and all 15 token contracts), 36 native component tests and all four
+isolated browser scenarios with no skips. Typecheck, Brand/D-18 QA, production
+cloud build and strict bundle privacy check passed. Browser coverage includes
+old-schema fallback, Custom precision/floors, invalid draft retention, busy and
+uncertain field freezing, identical committed retry after capability loss and
+after SQL rollback, layout/Axe checks and computed typography in both themes.
+The existing large-chunk and Playwright environment-color warnings remain.
+Fixtures and ignored captures establish local browser behavior only. Fresh
+commands/logs and preservation manifest are retained in the ignored task report;
+the four published review artifacts retain their original bytes/provenance.

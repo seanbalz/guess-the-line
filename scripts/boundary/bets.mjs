@@ -7,6 +7,8 @@ export const tables = Object.freeze([
 ]);
 
 export const rpcChecks = Object.freeze([
+  ['gtl_virtual_unit_rules', {}],
+  ['gtl_virtual_units_supported', { p_units: 0.01 }],
   // Private NBA account capabilities, independent of NFL membership.
   ['gtl_nba_claim_games', { p_date: '2026-10-21', p_refresh: false }],
   ['gtl_nba_finish_games', { p_date: '2026-10-21', p_token: missingId, p_games: null }],
@@ -65,4 +67,6 @@ export const workerChecks = Object.freeze([
 // M-11 (stage 41) is hosted as 20261029041843 since October 29, 2026, after /bets/place shipped in the 1998e4c gtl-api
 // release (RELEASE_2026_10_29_M11.md).
 export const awaitingDeploy = Object.freeze({
+  'rpc/gtl_virtual_unit_rules': '20261108022135 gtl_virtual_units_hundredths (M-41, prepared only)',
+  'rpc/gtl_virtual_units_supported': '20261108022135 gtl_virtual_units_hundredths (M-41, prepared only)',
 });

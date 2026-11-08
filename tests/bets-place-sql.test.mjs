@@ -85,14 +85,14 @@ test('two bets place at once, an edit keeps the audit, and a replay writes nothi
   assert.equal((await f.rows('luke'))[0].selection.units, 3, 'a refused request writes nothing');
 });
 
-test('one refused bet refuses the whole slip: line lock, half units, a stale quote and kickoff', { skip }, async t => {
+test('one refused bet refuses the whole slip: line lock, malformed units, a stale quote and kickoff', { skip }, async t => {
   const f = await placeWorld(t);
   await sendBallot(f.world, 'luke', 'guess_spread', { [f.g0]: -7, [f.g1]: 3 });
   const locked = await f.place('luke', [f.bet(f.g0, 'spread'), f.bet(f.g0, 'total')]);
   assert.equal(locked.status, 409, 'Total is not locked in yet');
   assert.match(locked.body.error, /lock in/i);
   assert.deepEqual(await f.rows('luke'), [], 'the valid Spread bet in the same slip was not written');
-  const quarter = await f.place('luke', [f.bet(f.g0, 'spread', { units: 0.25 })]);
+  const quarter = await f.place('luke', [f.bet(f.g0, 'spread', { units: 0.001 })]);
   assert.equal(quarter.status, 400);
   const moved = await f.place('luke', [f.bet(f.g0, 'spread', { line: -4 })]);
   assert.equal(moved.status, 409, 'a line that is not the book’s newest quote');
