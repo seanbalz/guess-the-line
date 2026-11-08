@@ -24,6 +24,20 @@ This foundation does not establish completion of the remaining per-screen layout
 actual-phone acceptance, merge or deployment. Home files and additive `home-*`
 tokens remain separately scoped as described below.
 
+## Shared Home bottom navigation — November 8, 2026
+
+The authenticated app now shares Home's selected floating bottom navigation in
+all contexts, including native headers, custom screens and access covers. It uses
+the same 72px minimum height, 16px side insets, 12px bottom gap above the safe area,
+glass material, icons, typography and selected treatment. Tab labels retain Home's
+14px size (13px below 359px). Enlarged labels may wrap
+and grow the bar; measured clearance keeps docks, toasts and keyboard focus above
+it. Active tabs and genuine badges/availability still reflect the destination.
+The compact/native context map below continues to govern top headers and bodies;
+it no longer selects a different bottom bar. Standalone authentication and
+fullscreen layers retain their existing semantics. This is local implementation
+evidence only, not real-phone acceptance, merge or deployment.
+
 ## Confirmed overview framing closeout — November 7, 2026
 
 The separately approved whole-view Play/Bets overview captures at `6bfcfdbe`
@@ -260,7 +274,7 @@ Every number style sets `font-variant-numeric: tabular-nums` after its font, bec
 
 ### Spacing, radii, layers
 - Spacing on a 4px base: 4, 8, 12, 16, 20, 24, 32, 40, 48, 64. Page gutter 16; card padding 16 (Home hero 20); 24 between sections; touch targets at least 44, primary buttons 52 tall.
-- One column at 390; at most 520 wide, centered, on larger screens. No horizontal page scroll; chip rails scroll inside their own track. Top bar 56, tab bar 64, dock bar 56, plus safe-area insets.
+- One column at 390; at most 520 wide, centered, on larger screens. No horizontal page scroll; chip rails scroll inside their own track. Top headers retain the context mapping above. The shared floating tab bar is at least 72px tall with a 12px bottom gap; dock bar 56, plus safe-area insets.
 - Radii: `xs` 6 (pills, tags), `sm` 10 (buttons, chips, odds buttons, inputs), `md` 16 (cards, toasts), `lg` 24 (sheets, dialogs, Home hero, celebrations), `pill` (avatars, segmented controls). The badge keeps its own 14 (the Pylon shape).
 - Elevation: cards `e1`, floating bars, toasts and menus `e2`, sheets `e3` with a scrim. Glows mark state, not height (selection, live, a settled win).
 - Layer order: content 1, top bar 20, tab bar 30, dock 35, sheet 40, dialog 45, popover 48, toast 50, celebration overlay 60.

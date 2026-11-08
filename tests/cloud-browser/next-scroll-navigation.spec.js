@@ -3,7 +3,7 @@
 // screen" while scrolling Bets → Recommended (October 15). On local PGlite fixtures only (no hosted data), at 390 x 844
 // and 320 x 568, in Dark and Light, on every tab root and the long Bets and Play pages:
 // - at the top, middle and end of the page, and after the window gets shorter and taller again (a phone's toolbar
-//   showing and hiding), the tab bar keeps its exact frame offset (compact 12px, native 0), its tabs are what a tap
+//   showing and hiding), the tab bar keeps its shared 12px bottom offset, its tabs are what a tap
 //   there reaches, and the native top bar stays pinned while the compact header scrolls from document y=0;
 // - no ancestor of the tab bar, the dock or the top bar gives it a containing block (a transform, filter,
 //   backdrop-filter, perspective, contain or will-change on an ancestor makes a fixed bar scroll away with the page);
@@ -36,7 +36,7 @@ function barProblems() {
   if (!bar || !top) return ['the tab bar or top bar is missing'];
   const b = bar.getBoundingClientRect(), t = top.getBoundingClientRect();
   const compact = !!bar.closest('.gx-overview-frame');
-  if (Math.abs(b.bottom - (height - (compact ? 12 : 0))) > 1) out.push(`tab bar bottom at ${Math.round(b.bottom)}, screen bottom ${height}`);
+  if (Math.abs(b.bottom - (height - 12)) > 1) out.push(`tab bar bottom at ${Math.round(b.bottom)}, screen bottom ${height}`);
   if (compact) {
     // Every approved compact context uses the same relative header, not a sticky header exempted from checking.
     if (getComputedStyle(top).position !== 'relative') out.push('compact top bar is not relative');

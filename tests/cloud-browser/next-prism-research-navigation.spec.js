@@ -75,15 +75,16 @@ async function frameProof(page, { access, epl, failed }) {
   });
   expect(proof.overflow).toBe(false);
   expect(proof.sports.y).toBeGreaterThanOrEqual(proof.header.bottom);
-  expect(proof.tabs.x).toBe(0); expect(proof.tabs.width).toBe(page.viewportSize().width);
-  expect(proof.tabs.bottom).toBe(page.viewportSize().height);
+  const barWidth=Math.min(page.viewportSize().width-32,488);
+  expect(proof.tabs.x).toBe((page.viewportSize().width-barWidth)/2); expect(proof.tabs.width).toBe(barWidth);
+  expect(proof.tabs.height).toBe(72);expect(proof.tabs.bottom).toBe(page.viewportSize().height-12);
   expect(proof.targets.filter(t=>t.width<43.9||t.height<43.9)).toEqual([]);
   for (const circle of proof.circles) {
     expect(circle.width).toBe(52); expect(circle.height).toBe(52);
     expect(circle.radius === '50%' || parseFloat(circle.radius) >= circle.width / 2).toBe(true);
     expect(circle.images).toEqual([{contain:'contain',decoded:true}]);
   }
-  for (const label of await nav(page).locator('.gx-tab-label').all()) await expect(label).toHaveCSS('font-size', '16px');
+  for (const label of await nav(page).locator('.gx-tab-label').all()) await expect(label).toHaveCSS('font-size', page.viewportSize().width<359?'13px':'14px');
   if (failed) {
     await expect(page.locator('.gx-toast')).toContainText('That couldn’t open.');
     await expect(page.locator('.gx-toast').getByRole('button', { name:'Reload the app',exact:true })).toBeVisible();

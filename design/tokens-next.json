@@ -82,7 +82,8 @@
     "touch": "44px",
     "primary": "52px",
     "topbar": "56px",
-    "tabbar": "64px",
+    "tabbar": "72px",
+    "tabbar-gap": "12px",
     "dock": "56px",
     "gutter": "16px",
     "content": "520px"

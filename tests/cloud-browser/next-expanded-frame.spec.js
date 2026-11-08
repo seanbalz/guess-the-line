@@ -26,7 +26,9 @@ async function close(page,world) { await page.unrouteAll({behavior:'wait'});awai
 async function native(page) {
   await expect(root(page)).not.toHaveClass(/gx-overview-frame|gx-home-design/);
   await expect(page.locator('.gx-league-btn')).toBeVisible();
-  await expect(nav(page)).toHaveCSS('left','0px');
+  await expect(nav(page)).toHaveCSS('left','16px');
+  await expect(nav(page)).toHaveCSS('min-height','72px');
+  await expect(nav(page)).toHaveCSS('border-radius','28px');
 }
 async function compact(page,context,theme,width) {
   await expect(root(page)).toHaveAttribute('data-frame-context',context);

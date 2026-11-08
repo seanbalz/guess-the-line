@@ -65,7 +65,7 @@ export function memberOf(session) {
   return { id: user.id ?? email, email, name };
 }
 
-/** Reads the dock's height, so toasts sit 8 above a dock bar when one shows. */
+/** Measure fixed bars so docks, toasts and document focus clearance follow their rendered size. */
 function useHeight(element) {
   const [height, setHeight] = useState(0);
   useEffect(() => {
@@ -99,6 +99,8 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
   const reduceMotion = preferences.motion === 'reduced';
   const [dockHost, setDockHost] = useState(null);
   const dockHeight = useHeight(dockHost);
+  const [tabHost, setTabHost] = useState(null);
+  const tabHeight = useHeight(tabHost);
   const [framePresentation, setFramePresentation] = useState(null);
   // The address and Back follow the state (router.js).
   const stateRef = useRef(state);
@@ -334,16 +336,22 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
   }) : !cover ? frameContext?.({ state, Screen, router }) : null;
   const overviewFrame = Boolean(context);
   const homeDesign = context === 'home';
-  // The scrolling document is outside .gx, so publish only its measured dock
-  // clearance there. PlaceBets' real portal dock has no legacy save-bar class.
+  // The scrolling document is outside .gx. Publish measured bar/dock clearance in every context;
+  // PlaceBets' real portal dock has no legacy save-bar class. Restore root styles on unmount.
   useLayoutEffect(() => {
-    if (!overviewFrame) return undefined;
     const root = document.documentElement;
     const previous = root.style.getPropertyValue('--gx-frame-dock-space');
+    const previousTab = root.style.getPropertyValue('--gx-frame-tabbar-height');
+    if (tabHeight > 0) root.style.setProperty('--gx-frame-tabbar-height', `${tabHeight}px`);
     root.style.setProperty('--gx-frame-dock-space', `${dockHeight > 0 ? dockHeight + 8 : 0}px`);
-    return () => previous ? root.style.setProperty('--gx-frame-dock-space', previous) : root.style.removeProperty('--gx-frame-dock-space');
-  }, [overviewFrame, dockHeight]);
-  const style = { '--gx-dock-space': `${dockHeight > 0 ? dockHeight + 8 : 0}px` };
+    return () => {
+      if (previous) root.style.setProperty('--gx-frame-dock-space', previous);
+      else root.style.removeProperty('--gx-frame-dock-space');
+      if (previousTab) root.style.setProperty('--gx-frame-tabbar-height', previousTab);
+      else root.style.removeProperty('--gx-frame-tabbar-height');
+    };
+  }, [tabHeight, dockHeight]);
+  const style = { '--gx-dock-space': `${dockHeight > 0 ? dockHeight + 8 : 0}px`, ...(tabHeight > 0 ? { '--gx-tabbar-height': `${tabHeight}px` } : {}) };
   return (
     <ShellContext.Provider value={value}>
       <MomentsProvider key={member?.id ?? 'signed-out'} account={member?.id} showOverlay={actions.showOverlay}>
@@ -364,7 +372,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
             )}
           </main>
           <div className="gx-dock" ref={setDockHost}></div>
-          <TabBar current={state.tab} data={data} onTab={onTab}/>
+          <TabBar barRef={setTabHost} current={state.tab} data={data} onTab={onTab}/>
         </div>
         <SheetHost state={state} layers={layers} inert={!!visibleOverlay(state)}/>
         <PopoverHost state={state} layers={layers}/>
