@@ -17,14 +17,14 @@
 .gx .gx-account-panel { min-width: 0; padding: 18px 14px; border: 1px solid var(--gx-border); border-radius: 24px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); }
 .gx .gx-account-hero { display: grid; justify-items: center; gap: 14px; min-width: 0; padding: 24px 17px; border: 1px solid var(--gx-border); border-radius: 28px; background: linear-gradient(135deg,color-mix(in srgb,var(--gx-accent-ink) 7%,transparent),transparent),var(--gx-card-face); box-shadow: var(--gx-glass-shadow); text-align: center; }
 .gx .gx-account-hero h3 { font-size: 23px; line-height: 1.4; font-weight: 600; }
-.gx .gx-account-hero p { font-size: 13px; line-height: 1.85; color: var(--gx-text-2); }
+.gx .gx-account-hero p { font-size: 16px; line-height: 1.85; color: var(--gx-text-2); }
 .gx .gx-account-eyebrow { font-size: 13px; letter-spacing: .09em; font-weight: 600; color: var(--gx-text-2); }
-.gx .gx-account-note { display: flex; align-items: flex-start; gap: 12px; font-size: 13px; line-height: 1.85; color: var(--gx-text-2); }
+.gx .gx-account-note { display: flex; align-items: flex-start; gap: 12px; font-size: 16px; line-height: 1.85; color: var(--gx-text-2); }
 .gx .gx-account-note > .gx-ic { flex: none; color: var(--gx-accent-ink); margin-top: 2px; }
 .gx .gx-account-note > div { display: grid; gap: 8px; min-width: 0; }
-.gx .gx-account-note strong { color: var(--gx-text-1); font-size: 13px; }
+.gx .gx-account-note strong { color: var(--gx-text-1); font-size: 16px; }
 .gx .gx-account-footer { text-align: center; font-size: 13px; line-height: 1.8; color: var(--gx-text-2); }
-.gx .gx-account-notice:not(:empty),.gx .gx-account-prism :is(.gx-profile-problem,.gx-invite-problem,[role=alert] > p) { padding: 14px 12px; border: 1px solid var(--gx-accent-ink); border-radius: 18px; background: var(--gx-card-face); color: var(--gx-text-1); font-size: 13px; line-height: 1.85; overflow-wrap: anywhere; }
+.gx .gx-account-notice:not(:empty),.gx .gx-account-prism :is(.gx-profile-problem,.gx-invite-problem,[role=alert] > p) { padding: 14px 12px; border: 1px solid var(--gx-accent-ink); border-radius: 18px; background: var(--gx-card-face); color: var(--gx-text-1); font-size: 16px; line-height: 1.85; overflow-wrap: anywhere; }
 .gx .gx-account-prism :is(.gx-profile-problem,.gx-invite-problem,[role=alert] > p),.gx .gx-account-notice[data-phase=failed],.gx .gx-account-notice[data-phase=unavailable] { border-color: var(--gx-loss); }
 .gx .gx-account-prism [role=status]:empty,.gx .gx-account-prism [role=alert]:empty { position: absolute; width: 1px; height: 1px; padding: 0; border: 0; margin: 0; overflow: hidden; clip-path: inset(50%); }
 /* Overview rows are individual floating cards, as in the approved Account entry. */
@@ -105,7 +105,7 @@
 .gx .gx-invite-connection i { flex: 1; height: 1px; background: var(--gx-border); }
 .gx .gx-app-invite-payload { display: grid; gap: 12px; }
 .gx .gx-app-invite-payload strong { font-size: 16px; }
-.gx .gx-app-invite-payload > p:not(.gx-account-eyebrow) { font-size: 13px; line-height: 1.9; }
+.gx .gx-app-invite-payload > p:not(.gx-account-eyebrow) { font-size: 16px; line-height: 1.9; }
 .gx .gx-app-invite-payload a { display: flex; align-items: center; gap: 8px; min-height: 44px; color: var(--gx-accent-ink); overflow-wrap: anywhere; font-size: 16px; }
 /* Continuity and access cards change only their own content. Navigation stays native. */
 .gx .gx-continuity-fail { display: grid; gap: 22px; min-width: 0; padding: 24px 17px; border: 1px solid var(--gx-border); border-radius: 28px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); }
@@ -119,7 +119,6 @@
 @media(max-width:359px) {
   .gx .gx-account-prism .gx-sheet-body { padding-inline: 14px; }
   .gx .gx-account-heading h3 { font-size: 15px; }
-  .gx .gx-account-menu .gx-link-row { font-size: 13px; }
   .gx .gx-account-menu .gx-link-row > .gx-ic:first-child { padding: 10px; }
   .gx .gx-settings-books > label { padding: 12px 8px; gap: 7px; font-size: 16px; }
   .gx .gx-guidance-topic > summary { gap: 9px; padding: 14px 10px; font-size: 16px; }
@@ -151,7 +150,7 @@
 .gx-layer--sheet:has(> .gx-account-prism) > .gx-scrim { backdrop-filter: blur(5px); }
 .gx .gx-account-prism .gx-sheet-head .gx-icon-btn { border: 1px solid var(--gx-border); border-radius: 15px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); }
 .gx .gx-account-prism .gx-switch-row { padding: 0; gap: 14px; background: transparent; min-height: 56px; }
-.gx .gx-account-prism .gx-switch-row .gx-row-title { font-size: 13px; line-height: 1.6; }
+.gx .gx-account-prism .gx-switch-row .gx-row-title { font-size: 16px; line-height: 1.6; }
 .gx .gx-account-prism .gx-switch-row .gx-row-sub { font-size: 13px; line-height: 1.8; margin-top: 8px; }
 .gx .gx-account-prism .gx-switch { border: 1px solid var(--gx-border); background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); }
 .gx .gx-account-prism .gx-switch-input:checked + .gx-switch { border: 2px solid var(--gx-accent-ink); background: var(--gx-accent-tint); }
@@ -159,6 +158,14 @@
 .gx .gx-account-draft-note { display: flex; align-items: start; gap: 7px; padding: 13px; border: 1px solid var(--gx-border); border-radius: 15px; background: var(--gx-card-face); font-size: 13px; line-height: 1.8; color: var(--gx-text-2); }
 .gx .gx-account-draft-note::before { content: ''; width: 5px; height: 5px; margin-top: 7px; border-radius: 50%; flex: none; background: var(--gx-accent-ink); }
 .gx .gx-switcher-prism .gx-t-meta { font-size: 13px; }
-@media(forced-colors:active) { .gx .gx-account-prism .gx-switch-input:checked + .gx-switch { outline: 2px solid Highlight; } }
-.gx .gx-account-prism p[role=alert]:not(:empty) { padding: 14px 12px; border: 1px solid var(--gx-loss); border-radius: 18px; background: var(--gx-card-face); color: var(--gx-text-1); font-size: 13px; line-height: 1.85; overflow-wrap: anywhere; }
-.gx .gx-account-prism p[role=status]:not(.gx-t-meta):not(:empty) { padding: 14px 12px; border: 1px solid var(--gx-accent-ink); border-radius: 18px; background: var(--gx-card-face); color: var(--gx-text-1); font-size: 13px; line-height: 1.85; overflow-wrap: anywhere; }
+/* Keep these after the native material overrides: system contrast colors must
+   win at the same scoped specificity, including the otherwise empty off thumb. */
+@media(forced-colors:active) {
+  .gx .gx-account-prism .gx-switch { forced-color-adjust: none; border-color: CanvasText; background: Canvas; box-shadow: none; }
+  .gx .gx-account-prism .gx-switch::before { background: CanvasText; }
+  .gx .gx-account-prism .gx-switch-input:checked + .gx-switch { border-color: CanvasText; background: Highlight; outline: 2px solid Highlight; }
+  .gx .gx-account-prism .gx-switch-input:checked + .gx-switch::before { background: HighlightText; }
+  .gx .gx-account-prism .gx-seg-btn--on { forced-color-adjust: none; border-color: CanvasText; background: Highlight; color: HighlightText; box-shadow: none; }
+}
+.gx .gx-account-prism p[role=alert]:not(:empty) { padding: 14px 12px; border: 1px solid var(--gx-loss); border-radius: 18px; background: var(--gx-card-face); color: var(--gx-text-1); font-size: 16px; line-height: 1.85; overflow-wrap: anywhere; }
+.gx .gx-account-prism p[role=status]:not(.gx-t-meta):not(:empty) { padding: 14px 12px; border: 1px solid var(--gx-accent-ink); border-radius: 18px; background: var(--gx-card-face); color: var(--gx-text-1); font-size: 16px; line-height: 1.85; overflow-wrap: anywhere; }

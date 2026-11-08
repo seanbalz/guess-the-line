@@ -228,3 +228,47 @@ No font-floor, prefix, token or import allowlist is added. All 15 unchanged
 `next-tokens.test.mjs` checks pass, including native CSS prefix, minimum size,
 font weights, contrast and token usage; the strict three-import auth bridge also
 passes. Normal input/font shorthands now explicitly specify weight 400.
+
+## Final review correction: primary type and forced colors — November 7, 2026
+
+Exclusive unpublished branch `codex/account-type-switch-floors` starts from
+freshly fetched `origin/main` at `7aa93a6ffe79eafb58bd6c7d12ec230b6d77b0e9`,
+then fast-forwards to the read-only reviewed Account source
+`952ad5fca663d8413df05383cebb3f3d55f9ee9c`. This correction preserves the actual
+stored-theme capture helper, scoped auth cascade, floating lists, Guidance
+mapping and 768px/1440px evidence from that source.
+
+Primary Account menu actions, switch labels and league titles now retain 16px
+at 320px and 390px. Export lead/privacy text, the generic app invitation and
+device-storage prose use the same reading floor. Computed assertions also found
+primary profile-conflict, reminder and recovery messages whose `gx-t-body`
+class lost to a later 13px notice rule; those primary alerts/status paragraphs
+now retain 16px. Genuine metadata remains 13px. The approved preview wrapper
+dimensions create no native type exception. Inputs remain 16px, targets retain
+44px, and the unchanged token/prefix/font/import contracts have no new allowlist.
+
+The shared forced-color styles were being overridden by later, more specific
+Account material selectors. Scoped rules now keep off switches in
+Canvas/CanvasText, on switches in Highlight/HighlightText, and selected theme
+segments in Highlight/HighlightText with a real CanvasText border. Both switch
+thumbs remain visible. Ordinary theme tokens and all controllers are unchanged.
+
+The fresh full run on exclusive port **5256** passed **11 browser cases, zero
+skipped**: nine retained native matrices plus two focused regressions. The new
+regressions first failed on the reviewed source for 13px menu labels and the
+forced-color thumb/selection palette. The final run checks computed primary
+type at narrow and representative wide widths, real Appearance off/on/off and
+Dark/Light/System changes, every native state in both stored themes, the retained
+opposite-OS/reload theme regression, start/middle/end layouts, 44px targets and
+both-theme Axe checks. All **254 captures across 38 states** were regenerated,
+including the 64 wide captures; the manifest updates every capture and source
+hash. All 134 approval-reference capture hashes still match the exact review
+checkout `3ac2eb50513ba73447ef890e4a47863cde7bdd76`.
+
+Final-source checks also passed typecheck, all 15 unchanged next-token tests,
+the unchanged strict three-import auth bridge, Brand QA, cloud build and the
+bundle-only privacy scan. The existing chunk-size advisory remains. These fresh
+checks supersede the earlier correction's test counts for this branch; prior
+results remain separately recorded in the manifest. Parent independent review,
+CI, release and physical-phone acceptance remain separate. No push, PR, merge,
+deployment, API/SQL change or held visual work is included.

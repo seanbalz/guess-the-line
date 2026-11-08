@@ -25,6 +25,31 @@ async function checkedLayout(page) {
   }).map(el=>`span "${el.textContent.trim().replace(/\s+/g,' ').slice(0,50)}"`));
   return problems.filter(message=>!intentional.some(name=>[`${name}: text leaves its box`,`${name}: text leaves the screen`,`${name}: text clipped`].includes(message)));
 }
+async function primaryType(page) {
+  const primary = page.locator('.gx-account-menu .gx-link-row:visible,.gx-switcher-prism .gx-row-title:visible,.gx-account-prism .gx-switch-row .gx-row-title:visible,.gx-account-hero p:visible,.gx-account-note:visible,.gx-account-note strong:visible,.gx-app-invite-payload > p:not(.gx-account-eyebrow):visible,.gx-guidance-body p:visible,.gx-guidance-body a:visible,.gx-account-prism .gx-t-body:visible');
+  for (const text of await primary.all()) await expect(text).toHaveCSS('font-size','16px');
+}
+async function forcedControls(page) {
+  const problems = await page.locator('.gx-account-prism .gx-switch:visible,.gx-account-prism .gx-seg-btn--on:visible').evaluateAll(nodes => {
+    const probe = document.createElement('span'); probe.style.forcedColorAdjust = 'none'; document.body.append(probe);
+    const system = name => { probe.style.color = name; return getComputedStyle(probe).color; };
+    const canvas = system('Canvas'), ink = system('CanvasText'), highlight = system('Highlight'), selectedInk = system('HighlightText');
+    const failures = nodes.flatMap(el => {
+      const style = getComputedStyle(el), segment = el.classList.contains('gx-seg-btn--on'), checked = segment || el.previousElementSibling.checked;
+      const errors = [];
+      if (style.backgroundColor !== (checked ? highlight : canvas)) errors.push('track/selection background');
+      if (style.borderColor !== ink) errors.push('visible system border');
+      if (segment && style.color !== selectedInk) errors.push('selected text');
+      if (!segment) {
+        const thumb = getComputedStyle(el,'::before');
+        if (thumb.backgroundColor !== (checked ? selectedInk : ink)) errors.push('visible system thumb');
+      }
+      return errors.map(error => `${el.className}: ${error}`);
+    });
+    probe.remove(); return failures;
+  });
+  expect(problems).toEqual([]);
+}
 async function inspect(page, name, testInfo) {
   const layer = await page.locator('dialog[open]').count() ? page.locator('dialog[open]').last() : page.locator('.gx-sheet:visible').last();
   const scope = await layer.count() ? layer : page.locator('main').last();
@@ -59,6 +84,7 @@ async function inspect(page, name, testInfo) {
     for (const brand of await page.locator('.gx-access-brand:visible').all()) expect(await brand.locator('img:visible').count(),`${name} ${theme} shows exactly one G`).toBe(1);
     for (const width of [390,320,...(['account','profile-draft','settings','guidance','appearance','export','league-switcher','league-create','league-invite','app-invite','access-sign-in','access-reset','name-step','session-expired','startup','league-access-pending'].includes(name)?[768,1440]:[])]) {
       await page.setViewportSize({width,height:844});
+      await primaryType(page);
       for (const position of ['start','middle','end']) {
         await scope.evaluate((el,position) => { const scroller = el.querySelector('.gx-sheet-body') || (el.matches('dialog') ? el : document.scrollingElement); scroller.scrollTop = position === 'start' ? 0 : position === 'middle' ? scroller.scrollHeight / 2 : scroller.scrollHeight; },position);
         expect(await checkedLayout(page),`${name} ${theme} ${width} ${position}`).toEqual([]);
@@ -77,11 +103,44 @@ async function inspect(page, name, testInfo) {
   }
   await page.setViewportSize({width:320,height:844});
   await page.emulateMedia({forcedColors:'active'});
+  await assertCaptureTheme(page,'light',{preference:name==='appearance-system-reduced'?'system':'light'});
+  await forcedControls(page);
   expect(await checkedLayout(page),`${name} forced colors`).toEqual([]);
   await page.screenshot({path:testInfo.outputPath(`${name}-forced-320.png`)});
   await page.emulateMedia({forcedColors:'none'});
   await page.setViewportSize({width:390,height:844});
 }
+
+test('Account native primary labels and prose keep 16px on narrow phones',async ({page,baseURL})=>{
+  const world=await communityWorld(page,baseURL,{migrations:HOSTED});
+  try {
+    await signIn(page,'luke');await menu(page);
+    for(const width of [320,390]) {
+      await page.setViewportSize({width,height:844});await primaryType(page);
+      for(const name of ['Appearance','Export my data','Invite friends','Settings · sportsbooks and guidance']) {
+        await sheet(page,'Menu').getByRole('button',{name,exact:true}).click();await primaryType(page);
+        await page.getByRole('button',{name:'Menu',exact:true}).click();
+      }
+    }
+    expect(world.errors).toEqual([]);
+  } finally {await world.db.close();}
+});
+
+test('Account forced colors keep off/on thumbs and selected themes in the system palette',async ({page,baseURL})=>{
+  const world=await communityWorld(page,baseURL,{migrations:HOSTED});
+  try {
+    await signIn(page,'luke');await menu(page);await sheet(page,'Menu').getByRole('button',{name:'Appearance',exact:true}).click();
+    await page.setViewportSize({width:320,height:844});await page.emulateMedia({forcedColors:'active'});
+    const appearance=sheet(page,'Appearance'),motion=appearance.getByRole('switch',{name:'Reduce motion',exact:true});
+    await expect(motion).not.toBeChecked();await forcedControls(page);
+    await motion.check();await expect(motion).toBeChecked();await forcedControls(page);
+    await motion.uncheck();await expect(motion).not.toBeChecked();await forcedControls(page);
+    for(const name of ['Light','Dark','System']) {
+      await appearance.getByRole('group',{name:'Theme',exact:true}).getByRole('button',{name,exact:true}).click();await forcedControls(page);
+    }
+    expect(world.errors).toEqual([]);
+  } finally {await world.db.close();}
+});
 
 test('native Account cards, guidance, preferences, theme, export and public sharing retain their real destinations',async ({page,baseURL},testInfo)=>{
   const world=await communityWorld(page,baseURL,{migrations:HOSTED});

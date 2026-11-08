@@ -31,6 +31,17 @@ visual review and exact checks](../design/prism-league-actions-native-2026-11-07
 preserve the 200 unaffected pre-existing images, update the six affected 390px
 images and add six 320px counterparts plus one forced-colors image. No push, PR,
 merge, deployment or hosted acceptance.
+## Account native type and forced colors correction — November 7, 2026
+
+Exclusive unpublished branch `codex/account-type-switch-floors`, based on
+reviewed source `952ad5fca663d8413df05383cebb3f3d55f9ee9c`, fixes the remaining
+primary Account action/reading-size overrides and scoped forced-color
+switch/selected-theme cascade. **11 local browser cases passed, zero skipped**,
+with 254 regenerated native captures across 38 states, including all wide
+representatives. [Exact scope, checks and evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md#final-review-correction-primary-type-and-forced-colors--november-7-2026)
+retain the prior reviewed fixes and metadata floors. Typecheck, unchanged token
+and auth-bridge contracts, Brand QA, cloud build and bundle privacy pass. Parent
+independent review, CI and release gates remain open; no push, PR or deployment.
 
 ## Research Light capture evidence correction — November 7, 2026
 
