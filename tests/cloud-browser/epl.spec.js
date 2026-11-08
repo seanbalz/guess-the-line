@@ -280,7 +280,14 @@ test('Prism native EPL claim, Home, draft, queue and existing shell states', asy
   await page.getByRole('navigation',{name:'Main',exact:true}).getByRole('button',{name:'Home',exact:true}).click();
   await expect(page.locator('.gx-epl-tile-club')).toContainText('Arsenal');
   await captureEpl(page,'home-picked','epl-home-picked');
+  // EPL Home is compact; the actual FEPL Research destination retains league access.
+  await page.getByRole('navigation',{name:'Main',exact:true}).getByRole('button',{name:'Research',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'FEPL Fantasy',exact:true})).toBeVisible();
+  await expect(page.getByRole('navigation',{name:'Main',exact:true}).getByRole('button',{name:'Research',exact:true})).toHaveAttribute('aria-current','page');
+  await expect(page.getByRole('button',{name:'Premier League',exact:true})).toHaveAttribute('aria-pressed','true');
+  await expect(page.locator('.gx-league-btn')).toContainText('FEPL');
   await page.locator('.gx-league-btn').click();
+  await expect(page.getByRole('dialog',{name:'Your leagues',exact:true}).getByRole('button',{name:/FEPL/})).toHaveAttribute('aria-current','true');
   await captureEpl(page,'shell-leagues','epl-shell-leagues',{forced:true});
   await page.keyboard.press('Escape');
   await expect(page.locator('.gx-league-btn')).toBeFocused();

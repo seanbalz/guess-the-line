@@ -6,6 +6,23 @@ test.use({ viewport: { width: 390, height: 844 } });
 test.beforeEach(() => test.skip(!pgliteAvailable, 'Local PGlite required; no hosted requests.'));
 const nav = page => page.getByRole('navigation',{ name: 'Main' });
 const group = (page,name) => page.getByRole('group',{ name, exact: true });
+async function choosePlayerScopeViaResearch(page,name) {
+ // Compact Trends retains league access through the native Research root. Browser Back must restore
+ // the exact player/team layer, so the selected scope's pending/error read still masks its contents.
+ const address=page.url();
+ await nav(page).getByRole('button',{name:'Research',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Research',level:1,exact:true})).toBeVisible();
+ await page.locator('.gx-league-btn').click();
+ const leagues=page.getByRole('dialog',{name:'Your leagues',exact:true});
+ await leagues.locator('button').filter({hasText:name}).first().click();
+ await expect(leagues).toHaveCount(0);
+ await expect(page.locator('.gx-league-btn')).toContainText(name);
+ await page.goBack();
+ await expect(page).toHaveURL(address);
+ await expect(page.getByRole('heading',{name:'Trends',level:1,exact:true})).toBeVisible();
+ await expect(nav(page).getByRole('button',{name:'Research',exact:true})).toHaveAttribute('aria-current','page');
+ await expect(group(page,'Trends section').getByRole('button',{name:'Players',exact:true})).toHaveAttribute('aria-pressed','true');
+}
 const prepare = state => {
  state.league.season = 2026; state.league.week = 6;
  state.games = ['SEA-DEN','CAR-PHI','NO-NYG','WAS-SF'].map((id,i) => { const [awayCode,homeCode] = id.split('-'); return { ...state.games[i], id, away: awayCode, home: homeCode, awayCode, homeCode, matchup: awayCode+' @ '+homeCode }; });
@@ -462,9 +479,9 @@ test('history error/retry, vanished data and private comparison unavailable fail
   await page.getByRole('button',{name:'Refresh player history',exact:true}).click();
   await expect(page.getByText(/No eligible locked guesses/)).toBeVisible();await expect(page.locator('[data-measure]')).toHaveCount(0);
   await page.route('**/functions/v1/gtl-api/league/comparison',route=>route.fulfill({status:503,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify({error:'Private comparison unavailable'})}));
-  await page.getByRole('button',{name:/^League: Community/}).click();
-  await page.getByRole('dialog',{name:'Your leagues',exact:true}).locator('button').filter({hasText:world.state.league.name}).first().click();
-  const prior=calls.length;await expect(page.getByRole('alert').filter({hasText:'Private comparison unavailable'})).toBeVisible();
+  const prior=calls.length;
+  await choosePlayerScopeViaResearch(page,world.state.league.name);
+  await expect(page.getByRole('alert').filter({hasText:'Private comparison unavailable'})).toBeVisible();
   await expect(page.getByText(/No eligible locked guesses/)).toHaveCount(0);await expect(page.locator('[data-measure],[data-player]')).toHaveCount(0);expect(calls.length).toBe(prior);
   expect(world.errors).toEqual([]);
  }finally{await world.db.close();}
@@ -478,15 +495,13 @@ test('populated scopes mask synchronously while private read waits; next account
   await page.locator('[data-measure=teams]').click(); await page.locator('[data-team=CAR]').click();
   await expect(page.getByRole('heading',{level:2,name:'Carolina Panthers',exact:true})).toBeVisible();
   await page.route('**/functions/v1/gtl-api/league/comparison',async route=>{privateStarted=true;await waiting;await route.fulfill({status:503,headers:{'access-control-allow-origin':'*'},contentType:'application/json',body:JSON.stringify({error:'Private scope unavailable'})});});
-  await page.getByRole('button',{name:/^League: Community/}).click();
-  await page.getByRole('dialog',{name:'Your leagues',exact:true}).locator('button').filter({hasText:world.state.league.name}).first().click();
+  await choosePlayerScopeViaResearch(page,world.state.league.name);
   await expect.poll(()=>privateStarted).toBe(true);
   await expect(page.getByText('Loading scoped player history…')).toBeVisible();
   await expect(page.getByRole('region',{name:'Player trends',exact:true})).toHaveCount(0);
   await expect(page.locator('[data-player],[data-measure],[data-direction]')).toHaveCount(0);
   release(); await expect(page.getByRole('alert').filter({hasText:'Private scope unavailable'})).toBeVisible();
-  await page.getByRole('button',{name:/^League:/}).click();
-  await page.getByRole('dialog',{name:'Your leagues',exact:true}).getByRole('button',{name:/Community/}).first().click();
+  await choosePlayerScopeViaResearch(page,'Community');
   await expect(page.getByRole('heading',{level:2,name:'Carolina Panthers',exact:true})).toBeVisible();
   await page.getByRole('button',{name:'Your menu',exact:true}).click(); await page.getByRole('button',{name:'Sign out',exact:true}).click();
   await signIn(page,'sean',{navigate:false});await expect(page.getByRole('heading',{name:'Trends',level:1})).toBeVisible();
