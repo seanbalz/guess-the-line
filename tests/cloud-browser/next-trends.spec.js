@@ -487,7 +487,7 @@ test('history error/retry, vanished data and private comparison unavailable fail
  }finally{await world.db.close();}
 });
 
-test('populated scopes mask synchronously while private read waits; next account resets player filters',async({page,baseURL})=>{
+test('restored populated scopes stay masked while private read waits; next account resets player filters',async({page,baseURL})=>{
  const world=await ready(page,baseURL); let release; const waiting=new Promise(resolve=>{release=resolve;}); let privateStarted=false;
  try{
   await group(page,'Trends section').getByRole('button',{name:'Players',exact:true}).click();
