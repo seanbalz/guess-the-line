@@ -1,8 +1,8 @@
-/* Approved NFL Home/Play/Bets overview frame. Loaded with Shell, independently of lazy body modules. */
+/* Confirmed context frame. Loaded with Shell, independently of lazy body modules. Home bodies stay Home-only. */
 .gx.gx-overview-frame { background: var(--gx-home-background); color: var(--gx-home-ink); font: 500 16px/24px var(--gx-font-home); }
 /* The 72px floating bar sits 12px above the inset; keep another 8px clear for keyboard focus. */
-:root:has(.gx-overview-frame .gx-app) { scroll-padding-top: 8px; }
-:root:has(.gx-overview-frame .gx-app):not(:has([class~="save-bar"])) { scroll-padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px)); }
+:root:has(.gx-overview-frame .gx-app) { --gx-frame-dock-space: 0px; scroll-padding-top: 8px; }
+:root:has(.gx-overview-frame .gx-app) { scroll-padding-bottom: calc(92px + var(--gx-frame-dock-space, 0px) + env(safe-area-inset-bottom, 0px) + var(--gx-viewport-gap, 0px)); }
 .gx-overview-frame .gx-app { padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px)); }
 .gx-overview-frame .gx-topbar { position: relative; border: 0; background: transparent; padding-top: calc(var(--gx-space-3) + env(safe-area-inset-top, 0px)); }
 .gx-overview-frame .gx-topbar-inner { height: 64px; padding-inline: 16px; gap: 12px; }

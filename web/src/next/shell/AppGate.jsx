@@ -9,26 +9,11 @@ import { useAppData } from '../data/AppData.jsx';
 import { COMMUNITY } from '../data/league.js';
 import { NameStep } from '../me/NameStep.jsx';
 import { SignInAgain } from '../me/SignInAgain.jsx';
-import { AccessPending, FrameRoot, LoadFailed, RemovedScreen, StartScreen } from './AppScreens.jsx';
-import { useShell } from './context.js';
+import { FrameRoot, LoadFailed, StartScreen } from './AppScreens.jsx';
+import { LeagueCover } from './LeagueCover.jsx';
 import { Shell } from './Shell.jsx';
 
 const reload = () => reloadApp();
-
-/** The cover for the league showing, drawn inside the frame (it uses the frame's switcher and toasts). */
-function LeagueCover({ app }) {
-  const shell = useShell();
-  if (app.league.pending) {
-    return (
-      <AccessPending
-        name={app.league.name}
-        onCommunity={() => { app.chooseLeague(COMMUNITY); shell.toast(`Showing ${COMMUNITY.name}`); }}
-        onLeagues={() => shell.openSheet('sh.switcher')}
-      />
-    );
-  }
-  return <RemovedScreen hasGroups={app.leagues.length > 1} onLeagues={() => shell.openSheet('sh.switcher')} onReload={shell.reload}/>;
-}
 
 /**
  * True when the Community refuses this account: its read answered 403 (the commissioner removed it, D-23 keeps its

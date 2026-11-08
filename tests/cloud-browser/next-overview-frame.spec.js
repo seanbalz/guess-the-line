@@ -101,10 +101,10 @@ test('overview boundaries, Back, Research league access and Play League access',
   try {
     await page.goto('/#play');await signIn(page,'luke',{navigate:false});
     await expect(page.locator('[data-play-tile=league] button')).toBeVisible();
-    await page.locator('[data-play-tile=league] button').click();await native(page);
+    await page.locator('[data-play-tile=league] button').click();await compact(page,'play','dark',390);
     await page.getByRole('button',{name:'Your leagues',exact:true}).click();await expect(page.getByRole('dialog',{name:'Your leagues',exact:true})).toBeVisible();
     await page.keyboard.press('Escape');await page.locator('.gx-detail-nav').getByRole('button',{name:'Back',exact:true}).click();await expect(root(page)).toHaveClass(/gx-overview-frame/);
-    await tab(page,'Bets').click();await page.getByRole('button',{name:'Overview',exact:true}).click();await native(page);
+    await tab(page,'Bets').click();await page.getByRole('button',{name:'Overview',exact:true}).click();await compact(page,'bets','dark',390);
     await page.locator('.gx-detail-nav').getByRole('button',{name:'Back',exact:true}).click();await expect(root(page)).toHaveClass(/gx-overview-frame/);
     await tab(page,'Research').click();await native(page);
     await page.getByRole('button',{name:'League: Community. Switch league',exact:true}).click();await expect(page.getByRole('dialog',{name:'Your leagues',exact:true})).toBeVisible();
@@ -112,7 +112,7 @@ test('overview boundaries, Back, Research league access and Play League access',
     expect(world.errors).toEqual([]);
   } finally {await page.unrouteAll({behavior:'wait'});await page.close();await world.db.close();}
 });
-test('EPL stays native and a pending NFL guess still guards the header sport switch',async({page,baseURL})=>{
+test('EPL approved Play frame and a pending NFL guess still guard the header sport switch',async({page,baseURL})=>{
   const world=await communityWorld(page,baseURL,{migrations:ALL,optionalRpc:true});
   try {
     await enableEpl(page,world);
@@ -120,7 +120,7 @@ test('EPL stays native and a pending NFL guess still guards the header sport swi
     await page.goto('/#play');await signIn(page,'luke',{navigate:false});
     await expect(page.locator('.gx-topbar .gx-home-sport')).toHaveCount(2);
     await page.getByRole('group',{name:'Guess market',exact:true}).getByRole('button',{name:'Spread',exact:true}).click();
-    await page.locator('.gx-per-game [data-tile]').first().click();await native(page);
+    await page.locator('.gx-per-game [data-tile]').first().click();await compact(page,'play','dark',390);
     await page.getByRole('button',{name:/Pick'em/i}).first().click();
     const before=page.url();let asks=0;
     page.once('dialog',dialog=>{asks++;return dialog.dismiss();});
@@ -129,7 +129,7 @@ test('EPL stays native and a pending NFL guess still guards the header sport swi
     page.once('dialog',dialog=>{asks++;return dialog.accept();});
     await page.getByRole('button',{name:'Premier League',exact:true}).click();
     await expect(page.getByRole('button',{name:'Premier League',exact:true})).toHaveAttribute('aria-pressed','true');expect(asks).toBe(2);
-    await native(page);await tab(page,'Bets').click();await native(page);await expect(page.getByText("Bets aren't available for the Premier League.",{exact:true})).toBeVisible();
+    await compact(page,'play','dark',390);await tab(page,'Bets').click();await native(page);await expect(page.getByText("Bets aren't available for the Premier League.",{exact:true})).toBeVisible();
     await page.getByRole('button',{name:'National Football League',exact:true}).click();
     await expect(root(page)).toHaveClass(/gx-overview-frame/);
     expect(world.errors).toEqual([]);

@@ -10,6 +10,7 @@ import { Button, Card, Dialog, Icon, InfoButton, Matchup, Nest, Pill, Segmented,
 import { lightHaptic } from '../ui/haptics.js';
 import { motionReduced } from '../ui/motion.js';
 import { ShellContext } from '../shell/context.js';
+import { useFramePresentation } from '../shell/useFramePresentation.js';
 import { TeamMatchup } from '../teams/TeamMatchup.jsx';
 import { fmtFull } from '../format.js';
 import { GuessPicker, GUESS_HELP } from './GuessPicker.jsx';
@@ -203,6 +204,10 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', f
   const kicked = data.games.filter(game => !(now < Date.parse(game.kickoff))).length;
   const mayOpen = progress.locked > 0 || kicked > 0 || satOut;
   const picksRead = useWeekPicks({ enabled: Boolean(reveal) && active && mayOpen, accountId, season: data.season, week: data.week, mode, version: `${progress.locked}:${kicked}:${satOut}`, onSignIn: onSignInAgain });
+  const frameGame = nest?.game ? data.games.find(game => game.id === nest.game) : null;
+  useFramePresentation('play-draft', Boolean(frameGame && active && !satOut && !busy && !uncertain && !error && !storageFailed
+    && picksRead.status !== 'error' && !lockedAt(ballot, frameGame.id)
+    && now >= openAt && now < Date.parse(data.deadline) && now < Date.parse(frameGame.kickoff)));
   function goTo(gameId) {
     const card = [...(section.current?.querySelectorAll('[data-game]') ?? [])].find(node => node.dataset.game === gameId);
     card?.focus({ preventScroll: true });

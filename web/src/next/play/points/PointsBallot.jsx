@@ -17,6 +17,7 @@ import { pointsApi } from '../../../api.js';
 import { fantasyWeekKey, useFantasySnapshot } from '../../../fantasyData.js';
 import { useAppData } from '../../data/AppData.jsx';
 import { useShell } from '../../shell/context.js';
+import { useFramePresentation } from '../../shell/useFramePresentation.js';
 import { useMomentScope, useMoments } from '../../moments/MomentsProvider.jsx';
 import { SCOPES } from '../../moments/catalog.js';
 import { PlayEmpty, PlayFailure, PlayLoading } from '../PlayStates.jsx';
@@ -97,6 +98,7 @@ export function PointsBallotView({ app, shell, read }) {
   const open = !read.loading && !read.error && data?.status === 'open';
   const selected = open ? data.slots.find(slot => slot.slot === place.item) ?? null : null;
   const profile = Boolean(selected) && place.layer === 'profile';
+  useFramePresentation('play-points', open && !selected);
   const week = open ? `Week ${data.week} Points` : 'Guess the Points';
   const toWeek = { key: 'points', label: week, open: () => shell.setView('play', { item: undefined, layer: undefined }) };
   const named = selected ? `${selected.slot} · ${selected.name}` : null;
@@ -251,6 +253,7 @@ export function SlotLayer({ data, slot, viewer, profile = false, setDirty, onPro
   const [pending, setPending] = useState(null);
   const alive = useRef(true), running = useRef(false), wasProfile = useRef(profile);
   const can = editable(data, slot);
+  useFramePresentation('play-points', !profile && can && !busy && !pending && !error);
   const dirty = can && value !== null && value !== slot.own?.guess;
   const dirtyKey = `points.${data.season}.${data.week}.${slot.slot}`;
   const code = slot.slot;

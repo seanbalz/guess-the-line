@@ -13,7 +13,11 @@ import { communityWorld, pgliteAvailable, signIn, SUPABASE } from './community-w
 test.use({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
 test.setTimeout(180000);
 test.beforeEach(() => test.skip(!pgliteAvailable, 'Disposable local PGlite required.'));
-const output = path.resolve('design/prism-research-navigation-native-2026-11-07');
+// The earlier sixteen #research/games captures are frozen historical source1ba
+// evidence. The expanded authority maps that named section compact; these native
+// counterchecks now exercise the actual distinct ResearchLanding. Never relabel
+// or overwrite the old pictures as this newer source.
+const output = path.resolve('design/prism-research-root-navigation-native-2026-11-07');
 const capturing = process.env.GTL_NAVIGATION_CAPTURE === '1';
 const nav = page => page.getByRole('navigation', { name: 'Main', exact: true });
 const sport = (page, name) => page.getByRole('navigation', { name: 'Sports', exact: true }).getByRole('button', { name, exact: true });
@@ -102,10 +106,10 @@ for (const scenario of [
   const world = await fixture(page,baseURL,scenario.access);
   const captures = [], blocked = [];
   try {
-    await page.goto(`/${scenario.epl ? '#epl/research' : '#research/games'}`);
+    await page.goto(`/${scenario.epl ? '#epl/research' : '#research'}`);
     await signIn(page,'luke',{navigate:false});
     if(scenario.epl) await expect(page.getByRole('heading',{name:'FEPL Fantasy',exact:true})).toBeVisible();
-    else await expect(page.locator('.gx-game-card').first()).toBeVisible();
+    else await expect(page.locator('[data-landing=research]')).toBeVisible();
     if(scenario.failed) {
       await page.route(/\/ExportSheet-[^/]+\.js$/, async route=>{blocked.push(new URL(route.request().url()).pathname);await route.abort('failed');});
       await page.getByRole('button',{name:'Your menu',exact:true}).click();
@@ -127,7 +131,7 @@ for (const scenario of [
     if(scenario.failed) {
       const navigation=page.waitForNavigation();
       await page.locator('.gx-toast').getByRole('button',{name:'Reload the app',exact:true}).click();await navigation;
-      await expect(page.locator('.gx-game-card').first()).toBeVisible();await expect(page.locator('.gx-toast')).toHaveCount(0);
+      await expect(page.locator('[data-landing=research]')).toBeVisible();await expect(page.locator('.gx-toast')).toHaveCount(0);
       await expect(nav(page).locator('[data-tab="research"]')).toHaveAttribute('aria-current','page');
       expect(world.errors.filter(error=>!/Failed to fetch dynamically imported module/.test(error))).toEqual([]);
     } else {
@@ -136,9 +140,18 @@ for (const scenario of [
       if(scenario.access) {
         await sport(page,scenario.epl?'National Football League':'Premier League').click();
         await expect(nav(page).locator('[data-tab="research"]')).toHaveAttribute('aria-current','page');
+        if(scenario.epl) {
+          // The existing cross-sport adapter preserves Fantasy, a positively
+          // approved compact NFL section. Its real root still opens the league.
+          await expect(page).toHaveURL(/#research\/fantasy$/);
+          await expect(page.locator('.gx')).toHaveAttribute('data-frame-context','research-fantasy');
+          await expect(sport(page,'National Football League')).toHaveAttribute('aria-pressed','true');
+          await nav(page).getByRole('button',{name:'Research',exact:true}).click();
+          await expect(page.locator('[data-landing=research]')).toBeVisible();
+        }
         await expect(page.locator('.gx-league-btn')).toHaveAccessibleName(`League: ${scenario.epl?'Community':'FEPL'}. Switch league`);
       } else {
-        await page.goto('/#epl/research');await expect(page.locator('.gx-game-card').first()).toBeVisible();
+        await page.goto('/#epl/research');await expect(page.locator('[data-landing=research]')).toBeVisible();
         await expect(page.locator('.gx-epl')).toHaveCount(0);await expect(sport(page,'Premier League')).toHaveCount(0);
       }
       expect(world.errors).toEqual([]);

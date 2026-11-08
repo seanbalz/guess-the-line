@@ -29,6 +29,8 @@ import { canGoBack, hasLayers, initialState, isDetail, layer, layerKind, modalOp
 import { SHELL_COPY } from './tabs.js';
 import { useFixedBarsPinned } from './viewportPin.js';
 import { useTabFade } from './tabFade.js';
+import { LeagueCover } from './LeagueCover.jsx';
+import { nflFrameContext } from './confirmedFrame.js';
 import './shell.css';
 import './overviewFrame.css';
 
@@ -84,7 +86,7 @@ const prefersReducedMotion = () => typeof window.matchMedia === 'function' && wi
 const navigated = () => { if (isSettled()) markNavigated(); };
 const NAVIGATING_KINDS = new Set(['sheet', 'page', 'dialog']);
 
-export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, leagueName = SHELL_COPY.defaultLeague, league: shown, you, data = null, cover = null, initialLayer = null, notice = null, router = NFL_ROUTER, className = '', children }) {
+export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, leagueName = SHELL_COPY.defaultLeague, league: shown, you, data = null, cover = null, initialLayer = null, notice = null, router = NFL_ROUTER, frameContext = null, className = '', children }) {
   const [state, dispatch] = useReducer(reduce, null, () => {
     const start = initialState(startPlace(window, router));
     return initialLayer && layerKind(initialLayer) && !hasLayers(start) ? reduce(start, { type: 'open', layer: layer(initialLayer) }) : start;
@@ -97,6 +99,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
   const reduceMotion = preferences.motion === 'reduced';
   const [dockHost, setDockHost] = useState(null);
   const dockHeight = useHeight(dockHost);
+  const [framePresentation, setFramePresentation] = useState(null);
   // The address and Back follow the state (router.js).
   const stateRef = useRef(state);
   stateRef.current = state;
@@ -301,7 +304,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
   const communityAdmin = data?.community?.admin === true;
   // The Community read's push guard (stage 2): the Menu offers Pick reminders only while the server can send pushes.
   const pushConfigured = data?.community?.pushConfigured === true;
-  const value = useMemo(() => ({ ...actions, communityAdmin, pushConfigured, canGoBack: canGoBack(state), state, dockHost, you: member, league, offline: !online }),
+  const value = useMemo(() => ({ ...actions, setFramePresentation, communityAdmin, pushConfigured, canGoBack: canGoBack(state), state, dockHost, you: member, league, offline: !online }),
     [actions, state, dockHost, member, league, online, communityAdmin, pushConfigured]);
 
   // A notice from outside the frame (the name just saved), once per key.
@@ -319,19 +322,32 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
 
   const tabFade = useTabFade(state.tab, state.nav);
   const Screen = screens[state.tab] ?? (state.tab === 'research' ? screens[state.views.research.section === 'fantasy' ? 'fantasy' : 'lines'] : null);
-  // Whole-view approval covers these actual NFL overviews and receipt-opening routes.
-  // selectedTicket is the existing opening intent from BetsLanding, not live row expansion state.
-  // Registry identity, pages and covers keep their native controls; other details stay native.
-  const receiptFrame = state.tab === 'bets' && ['active', 'settled'].includes(state.views.bets.view)
-    && typeof state.views.bets.selectedTicket === 'string' && state.views.bets.selectedTicket.length > 0;
-  const overviewFrame = ['home', 'play', 'bets'].includes(state.tab) && Screen === SCREENS[state.tab]
-    && router === NFL_ROUTER && !cover && !state.page && (!isDetail(state) || receiptFrame);
-  const homeDesign = overviewFrame && state.tab === 'home';
+  // Exact router/registry/page/cover identity precedes the scoped route policy.
+  // Sheets/dialogs inherit their opener. Errors never choose a different frame.
+  const presentation = framePresentation?.view === state.views[state.tab] && framePresentation.account === member.id ? framePresentation.kind : null;
+  const context = router === NFL_ROUTER ? nflFrameContext(state, {
+    screen: Screen === SCREENS[state.tab],
+    history: layers['page.history'] === LAYERS['page.history'],
+    cover: cover?.type === LeagueCover,
+    unknownCover: Boolean(cover) && cover.type !== LeagueCover,
+    draft: presentation === 'play-draft', points: presentation === 'play-points',
+  }) : !cover ? frameContext?.({ state, Screen, router }) : null;
+  const overviewFrame = Boolean(context);
+  const homeDesign = context === 'home';
+  // The scrolling document is outside .gx, so publish only its measured dock
+  // clearance there. PlaceBets' real portal dock has no legacy save-bar class.
+  useLayoutEffect(() => {
+    if (!overviewFrame) return undefined;
+    const root = document.documentElement;
+    const previous = root.style.getPropertyValue('--gx-frame-dock-space');
+    root.style.setProperty('--gx-frame-dock-space', `${dockHeight > 0 ? dockHeight + 8 : 0}px`);
+    return () => previous ? root.style.setProperty('--gx-frame-dock-space', previous) : root.style.removeProperty('--gx-frame-dock-space');
+  }, [overviewFrame, dockHeight]);
   const style = { '--gx-dock-space': `${dockHeight > 0 ? dockHeight + 8 : 0}px` };
   return (
     <ShellContext.Provider value={value}>
       <MomentsProvider key={member?.id ?? 'signed-out'} account={member?.id} showOverlay={actions.showOverlay}>
-      <div className={`gx ${overviewFrame?'gx-overview-frame ':''}${homeDesign?'gx-home-design ':''}${className}`.trim()} data-motion={reduceMotion ? 'reduce' : undefined} style={style}>
+      <div className={`gx ${overviewFrame?'gx-overview-frame ':''}${homeDesign?'gx-home-design ':''}${className}`.trim()} data-frame-context={context ?? undefined} data-motion={reduceMotion ? 'reduce' : undefined} style={style}>
         <div className="gx-app" inert={modalOpen(state)}>
           <a className="gx-sr-only gx-skip-link" href="#main" onClick={event => { event.preventDefault(); document.getElementById('main')?.focus(); }}>Skip to main content</a>
           <TopBar leagueName={league.name} you={member} onHome={onHome} onLeague={() => actions.openSheet('sh.switcher')} onMenu={() => actions.openSheet('sh.menu')} compact={overviewFrame}/>

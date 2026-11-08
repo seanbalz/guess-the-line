@@ -7,6 +7,7 @@ import { navigateSport } from '../nba/route.js';
 import { EPL_TABS } from './route.js';
 import { EPL_ROUTER } from './shellRoute.js';
 import { EplScreen } from './EplApp.jsx';
+import { eplFrameContext } from '../shell/confirmedFrame.js';
 
 function EplMenu(props) {
   // Account-wide commissioner access and the push guard (Pick reminders) are checked only when the menu
@@ -36,6 +37,9 @@ function EplHistory() {
 }
 export const EPL_SHELL = Object.freeze({
   router: EPL_ROUTER,
+  // Production identity proof lives with this existing sport registry, keeping
+  // EPL's body modules lazy on first NFL entry. FEPL Research remains held/native.
+  frameContext: ({ state, Screen, router }) => router === EPL_ROUTER && Screen === EplScreen ? eplFrameContext(state) : null,
   className: 'gx-epl',
   league: { id: 'fepl', name: 'FEPL' },
   screens: Object.fromEntries(EPL_TABS.map(tab => [tab, EplScreen])),
