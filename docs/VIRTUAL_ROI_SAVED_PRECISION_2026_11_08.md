@@ -1,10 +1,12 @@
 # Guess The Line — saved-precision Virtual Units ROI
 
-Owner: Sean Balsiger · Version 1 · November 8, 2026
+Owner: Sean Balsiger · Version 2 · November 8, 2026
 
-Status: implemented and checked locally; independent review, exact-source CI
-and compatible API/frontend release remain open. This record contains synthetic
-fixtures only. No production rows or private picks are reproduced.
+Status: deployed and verified from `1c5a9da0deb479c15abf390a905acd47084cb338`
+at 15:47:16 UTC, November 8. [Release evidence](RELEASE_2026_11_08_VIRTUAL_ROI.md)
+records API v52 and Pages `b3bd6187`, all 132 production assets, source/CI and
+verification limits. The implementation evidence below contains synthetic
+fixtures only; no private picks or production rows are reproduced.
 
 ## Authority and scope
 

@@ -1,5 +1,22 @@
 # Guess The Line — current completion register
 
+## Saved-precision Virtual Units ROI deployed — November 8, 2026 UTC
+
+[Release evidence](RELEASE_2026_11_08_VIRTUAL_ROI.md) records exact source
+`1c5a9da0deb479c15abf390a905acd47084cb338`, merged PR #500, all twelve exact-main
+checks and protected deployment 42496125746. API v52 is ACTIVE/JWT-verified and
+Pages `b3bd6187-adbf-4097-98e2-28417cac7d09` passed all 132 production asset
+comparisons at 15:47:16 UTC. Week/season ROI and ranking now retain saved
+four-place amounts under D-78; saved selections/results and settlement are not
+rewritten. Exact ties remain shared; precision can split previously rounded ties.
+
+Fresh history stays at 76 versions with the reviewed digest; pending M-33/M-34/
+M-35 are unchanged. No SQL or worker deployment. Remote API source bytes,
+hosted affected-rank/row-hash counts and new phone acceptance are not claimed.
+Earlier local-only ROI entries below are historical. M-41 remains separate
+unapplied draft PR #497 with its own Gate M checks and named approval; the FEPL
+frame question is open. Parked work and frozen v62 remain unchanged.
+
 ## Saved-precision Virtual Units ROI checked locally — November 8, 2026
 
 Sean approved the recommended saved-four-place accounting correction (D-78).
