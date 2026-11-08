@@ -1,5 +1,20 @@
 # Guess The Line — current completion register
 
+## Final Prism CI read observation correction — November 7, 2026
+
+[Scoped reproduction and verification](PRISM_FINAL_CI_READ_FIX_2026_11_07.md)
+proves that the team opener can paint before the lazy game readers mount,
+causing CI's two-return counter to include an initial read. The browser test now
+observes initial reads explicitly, keeps the <=2 return allowance, checks <=1
+per actual return and zero reads during team loading/recovery/appearance phases,
+and retains all no-write, cached-team, lazy-asset, phone/axe and focus gates.
+The original and permanent delayed-mount regression passed with four nearby
+cases; the final aggregate-accounting refinement passed both changed cases
+again. Product source and all committed captures/manifests are unchanged.
+Independent review, parent integration and fresh exact-source CI remain open;
+no push, PR, deployment, SQL apply or hosted acceptance is claimed. Frozen v62
+tracker unchanged.
+
 ## Whole-branch Prism source review passed — November 7, 2026
 
 [Final review record](PRISM_FINAL_REVIEW_2026_11_07.md): no Critical or Important

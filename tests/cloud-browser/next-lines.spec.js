@@ -599,10 +599,10 @@ test('weekly trends recover inside the game and All trends sheets without changi
   } finally { release(); await world.db.close(); }
 });
 
-test('team details load only on opening; closing, failed download and explicit retry preserve navigation and reads', async ({ page, baseURL }, info) => {
+for (const delayedGameDetails of [false, true]) test(`team details load only on opening; closing, failed download and explicit retry preserve navigation and reads${delayedGameDetails ? '; late initial game-detail mount' : ''}`, async ({ page, baseURL }, info) => {
   test.setTimeout(120000);
   const { world } = await lukesWeek(page, baseURL);
-  let release, mode = 'hold', requests = 0, styleRequests = 0;
+  let release, releaseGame = () => {}, mode = 'hold', requests = 0, styleRequests = 0;
   let waiting = new Promise(resolve => { release = resolve; });
   const themePreference = async theme => {
     await page.evaluate(theme => {
@@ -613,6 +613,10 @@ test('team details load only on opening; closing, failed download and explicit r
     await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
   };
   try {
+    if (delayedGameDetails) {
+      const gameDownload = new Promise(resolve => { releaseGame = resolve; });
+      await page.route('**/assets/GameDetails-*.js', async route => { await gameDownload; await route.continue(); });
+    }
     page.on('request', request => { if (/\/assets\/TeamView-[^/]+\.css$/.test(request.url())) styleRequests += 1; });
     await page.route('**/assets/TeamView-*.js', async route => {
       requests += 1;
@@ -621,22 +625,45 @@ test('team details load only on opening; closing, failed download and explicit r
       return route.continue();
     });
     await openLines(page);
+    const calls = apiCalls(page);
     await card(page, 'SEA-DEN').click();
     const game = gameLayer(page, 'Seahawks @ Broncos');
     const opener = game.getByRole('button', { name: /^Seattle Seahawks, .*Open team$/ });
     await expect(opener).toBeVisible();
     expect(requests).toBe(0);
     expect(styleRequests).toBe(0);
-    const calls = apiCalls(page);
+    if (delayedGameDetails) {
+      await expect(game.getByRole('status')).toHaveText('Loading game details…');
+      expect(calls.filter(call => call === 'POST /lines/game')).toEqual([]);
+      releaseGame();
+    }
+    // The compact overview paints before lazy GameDetails mounts. Observe its initial reads explicitly, then
+    // measure returns separately: opener visibility alone can otherwise charge an initial read to the first Back.
+    const detailReads = ['POST /lines/game', 'POST /lines/research', 'POST /personal/notes'];
+    const returnReads = ['POST /lines/read', ...detailReads];
+    const readsSince = start => Object.fromEntries(detailReads.map(route => [route, calls.slice(start).filter(call => call === route).length]));
+    const oneDetailRead = Object.fromEntries(detailReads.map(route => [route, 1]));
+    const checkReturn = (start, label) => {
+      for (const route of returnReads) expect(calls.slice(start).filter(call => call === route).length, `${label}: ${route} at most once`).toBeLessThanOrEqual(1);
+    };
+    await expect(game.getByRole('heading', { name: 'You on this game', exact: true })).toBeVisible();
+    await expect.poll(() => readsSince(0), 'one initial read per mounted game detail').toEqual(oneDetailRead);
+    await expect.poll(() => calls.filter(call => call === 'POST /officials/read').length, 'initial referee read starts before team phases').toBe(1);
+    const initialReadCounts = readsSince(0);
+    expect(initialReadCounts, 'exclude only one verified initial request per detail route').toEqual(oneDetailRead);
+    const returnsStart = calls.length;
     await opener.click();
     const team = teamLayer(page, 'Seattle Seahawks');
     await expect(team.getByRole('status')).toHaveText('Loading team record…');
     await expect.poll(() => requests).toBe(1);
     await expect(team.locator('.gx-team-view')).toHaveCount(0);
+    expect(calls.slice(returnsStart), 'opening held team reads nothing').toEqual([]);
     // Back closes the team layer to the game it opened from, with focus on the team's button.
     await page.goBack();
     await expect(game).toBeVisible();
     await expect(opener).toBeFocused();
+    await expect.poll(() => readsSince(returnsStart), 'one read per route on the first Back').toEqual(oneDetailRead);
+    const firstReturnEnd = calls.length;
     // A rejected download after closing cannot reopen the abandoned layer.
     const failed = page.waitForEvent('requestfailed', request => /\/assets\/TeamView-[^/]+\.js$/.test(request.url()));
     mode = 'fail'; release(); await failed;
@@ -664,10 +691,16 @@ test('team details load only on opening; closing, failed download and explicit r
     await expect(team.locator('.gx-team-view')).toBeVisible();
     await expect(team.getByRole('group', { name: 'Team details' })).toBeFocused();
     const loadedRequests = requests;
+    expect(calls.slice(firstReturnEnd), 'team failure, retry and appearance checks read nothing').toEqual([]);
+    checkReturn(returnsStart, 'first Back');
     await page.goBack();
     await expect(opener).toBeFocused();
+    await expect.poll(() => readsSince(firstReturnEnd), 'one read per route on the second Back').toEqual(oneDetailRead);
+    const secondReturnEnd = calls.length;
     await opener.click();
     await expect(team.locator('.gx-team-view')).toBeVisible();
+    expect(calls.slice(secondReturnEnd), 'reopening loaded team reads nothing').toEqual([]);
+    checkReturn(firstReturnEnd, 'second Back');
     expect(requests).toBe(loadedRequests);
     // D-69 step 3: the team styles ship with Research's Teams screen, so the view has no stylesheet of its own to request.
     expect(styleRequests).toBe(0);
@@ -677,11 +710,12 @@ test('team details load only on opening; closing, failed download and explicit r
     expect(calls.filter(call => !READS.includes(call)), 'no writes').toEqual([]);
     expect(calls.filter(call => call === 'POST /lines/teams'), 'the team reads nothing of its own').toEqual([]);
     const returns = 2;
-    for (const route of ['POST /lines/read', 'POST /lines/game', 'POST /lines/research', 'POST /personal/notes']) {
-      expect(calls.filter(call => call === route).length, `${route}: at most once per return to the game`).toBeLessThanOrEqual(returns);
+    for (const route of returnReads) {
+      const returnedReads = calls.filter(call => call === route).length - (initialReadCounts[route] ?? 0);
+      expect(returnedReads, `${route}: at most once per return to the game`).toBeLessThanOrEqual(returns);
     }
     expect(world.errors).toEqual([]);
-  } finally { release(); await world.db.close(); }
+  } finally { releaseGame(); release(); await world.db.close(); }
 });
 
 // The contract was "the team view never shows unstyled": a failed lazy stylesheet kept it behind a retry. D-69 step 3 ships
