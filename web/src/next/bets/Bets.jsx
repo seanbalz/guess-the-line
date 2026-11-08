@@ -46,7 +46,7 @@ export function Bets() {
 
 function BetsLanding() {
   const app = useAppData(), shell = useShell(), read = useTicketSummary(app);
-  const open = view => shell.go('bets', { view:view==='overview'?'tracked':view, trackedPane:view==='overview'?'overview':'tickets', season: null, week: null, period: view==='overview'?'all':null, matchup: null, assessment: null });
+  const open = view => shell.go('bets', { view:view==='overview'?'tracked':view, trackedPane:view==='overview'?'overview':'tickets', selectedTicket: null, season: null, week: null, period: view==='overview'?'all':null, matchup: null, assessment: null });
   const openTicket = entry => shell.go('bets', { view: entry.outcome === 'pending' ? 'active' : 'settled', trackedPane: 'tickets', period: 'all', season: null, week: null, selectedTicket: entry.id, trackers: {} });
   return <section className="gx-screen gx-bets" data-landing="bets">
     <h1 className="gx-t-title">Bets</h1>

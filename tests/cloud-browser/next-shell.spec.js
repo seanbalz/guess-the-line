@@ -386,22 +386,22 @@ test.describe('the real app', () => {
         await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
         // D-44: the top bar's logo is the G alone in the theme's accent-ink, with no tile, edge or shadow behind it or
         // on its svg.
-        for (const part of ['.gx-prism-brand', '.gx-prism-brand img:visible']) {
+        for (const part of ['.gx-home-brand', '.gx-home-brand img:visible']) {
           const mark = page.locator(`.gx-topbar ${part}`);
           await expect(mark).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
           await expect(mark).toHaveCSS('background-image', 'none');
           await expect(mark).toHaveCSS('box-shadow', 'none');
         }
-        await expect(page.locator('.gx-prism-brand img:visible')).toHaveJSProperty('complete', true);
-        expect(await page.locator('.gx-prism-brand img:visible').evaluate(img => img.naturalWidth)).toBeGreaterThan(0);
+        await expect(page.locator('.gx-home-brand img:visible')).toHaveJSProperty('complete', true);
+        expect(await page.locator('.gx-home-brand img:visible').evaluate(img => img.naturalWidth)).toBeGreaterThan(0);
         const sports = page.getByRole('navigation', { name: 'Sports' });
         await expect(sports.getByRole('button', { name: 'National Football League', exact: true })).toHaveAttribute('aria-pressed', 'true');
         await expect(sports.getByRole('button', { name: 'NBA', exact: true })).toHaveCount(0);
-        const circle = await sports.locator('.gx-sport-mark').first().evaluate(el => {
+        const circle = await sports.locator('.gx-home-sport').first().evaluate(el => {
           const box = el.getBoundingClientRect(), image = el.querySelector('img');
           return { width: box.width, height: box.height, radius: getComputedStyle(el).borderRadius, fit: getComputedStyle(image).objectFit, loaded: image.complete && image.naturalWidth > 0 };
         });
-        expect(circle).toEqual({ width: 52, height: 52, radius: '999px', fit: 'contain', loaded: true });
+        expect(circle).toEqual({ width: 52, height: 52, radius: '50%', fit: 'contain', loaded: true });
         for (const width of [390, 320]) {
           await page.setViewportSize({ width, height: 844 });
           await phoneChecks(page);
@@ -418,11 +418,13 @@ test.describe('the real app', () => {
           found[`appearance ${theme} ${width}`] = await axe(page);
           if (width === 390) await page.screenshot({ path: testInfo.outputPath(`next-shell-appearance-390-${theme}.png`) });
           await page.keyboard.press('Escape');
+          await tab(page, 'Research').click();
           await page.getByRole('button', { name: 'League: Community. Switch league' }).click();
           await expect(sheet(page, 'Your leagues')).toBeVisible();
           found[`switcher ${theme} ${width}`] = await axe(page);
           if (width === 390) await page.screenshot({ path: testInfo.outputPath(`next-shell-switcher-390-${theme}.png`) });
           await page.keyboard.press('Escape');
+          await tab(page, 'Play').click();
         }
         await page.setViewportSize({ width: 390, height: 844 });
       }
@@ -489,6 +491,30 @@ const events = page => page.evaluate(() => window.__events.slice());
 
 test.describe('the shell harness', () => {
   test.beforeAll(async () => { test.setTimeout(120000); await harnessBundle(); });
+
+  test('access covers retain native controls with the actual overview registry', async ({ page }) => {
+    const { errors } = await harness(page, '?actual-cover#play');
+    for (const name of ['Play', 'Bets', 'Home']) {
+      await tab(page, name).click();
+      await expect(page.getByRole('heading', {name:'Access pending fixture'})).toBeVisible();
+      await expect(page.locator('.gx')).not.toHaveClass(/gx-overview-frame|gx-home-design/);
+      await expect(page.locator('.gx-sport-controls')).toBeVisible();
+      await expect(page.locator('.gx-league-btn')).toBeVisible();
+    }
+    expect(errors).toEqual([]);
+  });
+
+  test('custom screen registries retain native framing on every tab', async ({ page }) => {
+    const { errors } = await harness(page);
+    for (const name of ['Home', 'Play', 'Bets', 'Research']) {
+      await tab(page, name).click();
+      await expect(page.locator('.gx')).not.toHaveClass(/gx-overview-frame|gx-home-design/);
+      await expect(page.locator('.gx-sport-controls')).toBeVisible();
+      await expect(page.locator('.gx-league-btn')).toBeVisible();
+      await expect(tabBar(page)).toHaveCSS('left', '0px');
+    }
+    expect(errors).toEqual([]);
+  });
 
   test('a pending forward frame still focuses the title from a tab, but yields to new destination focus', async ({ page }) => {
     const { errors } = await harness(page);

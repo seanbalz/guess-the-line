@@ -20,14 +20,14 @@ import homePremierLight from '../ui/brand-assets/premier-league-purple.svg';
 const TAB_ICONS = { home: 'house', play: 'target', bets: 'ticket', research: 'chart' };
 
 /** Top bar (spec 1.3): the Field monogram (to Home), the league pill (the switcher) and your avatar (the menu). */
-export function TopBar({ leagueName, you, onHome, onLeague, onMenu, homeDesign = false }) {
+export function TopBar({ leagueName, you, onHome, onLeague, onMenu, compact = false }) {
   return (
     <header className="gx-topbar">
       <div className="gx-topbar-inner">
         <button type="button" className="gx-top-btn" aria-label={SHELL_COPY.home} onClick={onHome}>
-          {homeDesign?<HomeBrand/>:<PrismBrand/>}
+          {compact?<HomeBrand/>:<PrismBrand/>}
         </button>
-        {homeDesign?<SportControls marks/>:<button type="button" className="gx-league-btn" aria-label={leagueLabel(leagueName)} onClick={onLeague}>
+        {compact?<SportControls marks/>:<button type="button" className="gx-league-btn" aria-label={leagueLabel(leagueName)} onClick={onLeague}>
           <span className="gx-league-pill">
             <span className="gx-league-name gx-truncate">{leagueName}</span>
             <Icon icon="chevronDown" size={16}/>

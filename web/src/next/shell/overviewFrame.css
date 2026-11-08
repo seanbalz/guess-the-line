@@ -1,0 +1,49 @@
+/* Approved NFL Home/Play/Bets overview frame. Loaded with Shell, independently of lazy body modules. */
+.gx.gx-overview-frame { background: var(--gx-home-background); color: var(--gx-home-ink); font: 500 16px/24px var(--gx-font-home); }
+/* The 72px floating bar sits 12px above the inset; keep another 8px clear for keyboard focus. */
+:root:has(.gx-overview-frame .gx-app) { scroll-padding-top: 8px; }
+:root:has(.gx-overview-frame .gx-app):not(:has([class~="save-bar"])) { scroll-padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px)); }
+.gx-overview-frame .gx-app { padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px)); }
+.gx-overview-frame .gx-topbar { position: relative; border: 0; background: transparent; padding-top: calc(var(--gx-space-3) + env(safe-area-inset-top, 0px)); }
+.gx-overview-frame .gx-topbar-inner { height: 64px; padding-inline: 16px; gap: 12px; }
+.gx-overview-frame .gx-top-btn { color: var(--gx-home-ink); }
+.gx-overview-frame .gx-top-btn .gx-av { background: var(--gx-home-face); color: var(--gx-home-ink); border: 1px solid var(--gx-home-edge); box-shadow: var(--gx-home-soft-depth); }
+.gx-overview-frame .gx-top-btn:has(.gx-home-brand) { width: 64px; height: 54px; flex: none; }
+.gx-overview-frame .gx-home-brand { display: grid; place-items: center; width: 64px; height: 54px; }
+.gx-overview-frame .gx-home-brand img { width: 64px; height: 54px; max-width: none; grid-area: 1 / 1; }
+.gx-overview-frame .gx-home-brand-light { visibility: hidden; }
+:root[data-theme="light"] .gx-overview-frame .gx-home-brand-dark { visibility: hidden; }
+:root[data-theme="light"] .gx-overview-frame .gx-home-brand-light { visibility: visible; }
+.gx-overview-frame .gx-home-sports { display: flex; align-items: center; gap: 8px; padding: 4px; }
+.gx-overview-frame .gx-home-sport { display: grid; place-items: center; width: 52px; height: 52px; border: 1px solid var(--gx-home-edge); border-radius: 50%; background: var(--gx-home-face); box-shadow: var(--gx-home-depth); }
+.gx-overview-frame .gx-home-sport[aria-pressed="true"] { border: 2px solid var(--gx-home-accent); box-shadow: inset 0 1px 0 var(--gx-home-gloss), 0 0 0 3px var(--gx-home-tint), var(--gx-home-depth); }
+.gx-overview-frame .gx-home-sport img { width: 30px; height: 32px; object-fit: contain; grid-area: 1 / 1; }
+.gx-overview-frame .gx-home-pl-light { visibility: hidden; }
+:root[data-theme="light"] .gx-overview-frame .gx-home-pl-dark { visibility: hidden; }
+:root[data-theme="light"] .gx-overview-frame .gx-home-pl-light { visibility: visible; }
+.gx-overview-frame .gx-tabbar { left: 16px; right: 16px; bottom: calc(12px + env(safe-area-inset-bottom,0px) + var(--gx-viewport-gap,0px)); height: 72px; max-width: calc(var(--gx-size-content) - 32px); margin-inline: auto; padding: 4px; border: 1px solid var(--gx-home-edge); border-radius: 28px; background: var(--gx-home-face); box-shadow: var(--gx-home-depth); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
+.gx-overview-frame .gx-tabbar-inner { height: 100%; grid-template-columns: repeat(4,minmax(0,1fr)); }
+.gx-overview-frame .gx-tab { height: 62px; min-width: 0; gap: 2px; color: var(--gx-home-muted); border-radius: 22px; }
+.gx-overview-frame .gx-tab-label { color: var(--gx-home-muted); font: 600 14px/18px var(--gx-font-home); }
+.gx-overview-frame .gx-tab .gx-ic { color: var(--gx-home-muted); }
+.gx-overview-frame .gx-tab-icon { display: grid; place-items: center; width: 32px; height: 32px; border: 1px solid var(--gx-home-edge); border-radius: 11px; background: var(--gx-home-face); box-shadow: var(--gx-home-soft-depth); }
+.gx-overview-frame .gx-tab--on { background: var(--gx-home-tint); }
+.gx-overview-frame .gx-tab--on .gx-tab-label,
+.gx-overview-frame .gx-tab--on .gx-ic { color: var(--gx-home-accent); }
+.gx-overview-frame .gx-tab--on::before { display: none; }
+.gx-overview-frame .gx-counter { background: var(--gx-home-solid); color: var(--gx-home-accent); }
+.gx-overview-frame :focus-visible { outline-color: var(--gx-home-accent); }
+@media(max-width:359px) {
+ .gx-overview-frame .gx-tab-label { font-size: 13px; }
+}
+@media(prefers-reduced-transparency:reduce) {
+ .gx-overview-frame .gx-tabbar { background: var(--gx-home-solid); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+@media(forced-colors:active) {
+ .gx-overview-frame .gx-home-sport,
+ .gx-overview-frame .gx-tabbar { border: 1px solid CanvasText; }
+ .gx-overview-frame .gx-tab--on { border: 2px solid Highlight; }
+}
+/* Keep portal dock/toast clearance aligned with the 72px bar plus its 12px bottom offset. */
+.gx-overview-frame .gx-dock { bottom: calc(92px + env(safe-area-inset-bottom,0px) + var(--gx-viewport-gap,0px)); }
+.gx-overview-frame .gx-toast { bottom: calc(92px + env(safe-area-inset-bottom,0px) + var(--gx-dock-space) + var(--gx-viewport-gap,0px)); }

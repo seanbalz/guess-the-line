@@ -3,7 +3,7 @@ import { homeThemeColor, themeColor } from '../../../../design/tokens-next.json'
 import dark from './assets/lime.svg';
 import light from './assets/light-deep-green.svg';
 
-/** Scoped browser chrome follows Home while mounted and restores the existing page theme on exit. */
+/** Scoped browser chrome follows the approved overview frame while mounted and restores the existing page theme on exit. */
 export function HomeBrand() {
   useLayoutEffect(()=>{
     const apply=colors=>{const theme=document.documentElement.dataset.theme==='light'?'light':'dark';for(const meta of document.querySelectorAll('meta[name="theme-color"]'))meta.setAttribute('content',colors[theme]);};

@@ -30,6 +30,7 @@ import { SHELL_COPY } from './tabs.js';
 import { useFixedBarsPinned } from './viewportPin.js';
 import { useTabFade } from './tabFade.js';
 import './shell.css';
+import './overviewFrame.css';
 
 const browserOnline = () => typeof navigator === 'undefined' || navigator.onLine !== false;
 
@@ -318,17 +319,23 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
 
   const tabFade = useTabFade(state.tab, state.nav);
   const Screen = screens[state.tab] ?? (state.tab === 'research' ? screens[state.views.research.section === 'fantasy' ? 'fantasy' : 'lines'] : null);
-  // Only the actual NFL Home landing is approved for this release. Other tabs, EPL and test harnesses retain their frame.
-  const homeDesign = Screen === SCREENS.home && router === NFL_ROUTER && !cover && !state.page && state.tab === 'home' && !isDetail(state);
+  // Whole-view approval covers these actual NFL overviews and receipt-opening routes.
+  // selectedTicket is the existing opening intent from BetsLanding, not live row expansion state.
+  // Registry identity, pages and covers keep their native controls; other details stay native.
+  const receiptFrame = state.tab === 'bets' && ['active', 'settled'].includes(state.views.bets.view)
+    && typeof state.views.bets.selectedTicket === 'string' && state.views.bets.selectedTicket.length > 0;
+  const overviewFrame = ['home', 'play', 'bets'].includes(state.tab) && Screen === SCREENS[state.tab]
+    && router === NFL_ROUTER && !cover && !state.page && (!isDetail(state) || receiptFrame);
+  const homeDesign = overviewFrame && state.tab === 'home';
   const style = { '--gx-dock-space': `${dockHeight > 0 ? dockHeight + 8 : 0}px` };
   return (
     <ShellContext.Provider value={value}>
       <MomentsProvider key={member?.id ?? 'signed-out'} account={member?.id} showOverlay={actions.showOverlay}>
-      <div className={`gx ${homeDesign?'gx-home-design ':''}${className}`.trim()} data-motion={reduceMotion ? 'reduce' : undefined} style={style}>
+      <div className={`gx ${overviewFrame?'gx-overview-frame ':''}${homeDesign?'gx-home-design ':''}${className}`.trim()} data-motion={reduceMotion ? 'reduce' : undefined} style={style}>
         <div className="gx-app" inert={modalOpen(state)}>
           <a className="gx-sr-only gx-skip-link" href="#main" onClick={event => { event.preventDefault(); document.getElementById('main')?.focus(); }}>Skip to main content</a>
-          <TopBar leagueName={league.name} you={member} onHome={onHome} onLeague={() => actions.openSheet('sh.switcher')} onMenu={() => actions.openSheet('sh.menu')} homeDesign={homeDesign}/>
-          {!homeDesign?<SportControls/>:null}
+          <TopBar leagueName={league.name} you={member} onHome={onHome} onLeague={() => actions.openSheet('sh.switcher')} onMenu={() => actions.openSheet('sh.menu')} compact={overviewFrame}/>
+          {!overviewFrame?<SportControls/>:null}
           <main className="gx-main" id="main" tabIndex={-1} data-tab-enter={tabFade ? 'fade' : undefined}>
             <OfflineBanner offline={!online} onRetry={onRetry}/>
             {!cover && !state.page && (state.trail.length > 0 || isDetail(state)) ? <DetailBack onBack={actions.back}/> : null}
