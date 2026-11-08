@@ -8,6 +8,29 @@ then cherry-picks dependency `194ba410db4847594324243141fd1b6b09c10f3b` as
 `4983138495f3d62268f3f1cfa39b21b477981297`. No push, PR, merge, deploy or
 migration is part of this handoff.
 
+## Final Picks / Reactors list-surface correction — November 7, 2026
+
+The final focused review left two visual issues: the Picks and Reactors rows
+showed the global List backplate, and Reactors' last-row separator selector did
+not reach through the List's `li` wrapper. The scoped `.gx-nfl-action` rules now
+make those existing lists transparent with zero gap; `ReactorsSheet` supplies
+the class and the final separator targets its real last list item. The parent
+flush glass card stays visible under the rows. No List default, controller, API,
+SQL, privacy/reveal or unit gate changed.
+
+The existing native browser fixtures now assert transparent computed list
+backgrounds, zero row gap, a 1px first-row separator and no final separator with
+two real local reactions. Hidden opponent picks retain their redaction. The two
+focused browser cases passed with no skips at 320/390 in actual native Dark and
+Light preferences; 44px targets, axe, keyboard, overflow, and a focused forced
+colors separator check also passed. Reinspected captures against exact review
+authority `3ac2eb50513ba73447ef890e4a47863cde7bdd76` retain the selected card face
+and row hierarchy. The evidence manifest preserves all 200 unaffected images
+from the 206-image prior set, refreshes the six affected 390px images and adds
+their six 320px counterparts plus one forced-colors check. These
+local results do not establish approval, deployment, hosted acceptance or full
+106-state completion.
+
 The exact approved reference checkout remains at
 `3ac2eb50513ba73447ef890e4a47863cde7bdd76`. Its populated League, populated
 NFL actions, isolated native presentation and selected-system review files were

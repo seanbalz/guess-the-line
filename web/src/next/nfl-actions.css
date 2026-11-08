@@ -26,7 +26,9 @@
 .gx .gx-nfl-action .gx-feed-pick { padding: 18px 14px; border-bottom: 1px solid var(--gx-border); }
 .gx .gx-nfl-action .gx-feed-pick:last-child { border-bottom: 0; }
 .gx .gx-nfl-action .gx-feed-reactor { padding: 18px 14px; border-bottom: 1px solid var(--gx-border); }
-.gx .gx-nfl-action .gx-feed-reactor:last-child { border-bottom: 0; }
+.gx .gx-nfl-action .gx-feed-reactors > li:last-child > .gx-feed-reactor { border-bottom: 0; }
+.gx .gx-nfl-action .gx-feed-picks > .gx-list,
+.gx .gx-nfl-action .gx-feed-reactors { background: transparent; gap: 0; }
 .gx .gx-nfl-action .gx-feed-emoji--big { font-size: 27px; }
 .gx :is(.gx-nfl-action, .gx-nfl-action-content) .gx-ev-picks { display: grid; gap: 18px; }
 .gx :is(.gx-nfl-action, .gx-nfl-action-content) .gx-ev-pick { align-items: flex-start; gap: 10px; }

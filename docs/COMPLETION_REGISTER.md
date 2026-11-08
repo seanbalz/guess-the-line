@@ -1,5 +1,20 @@
 # Guess The Line — current completion register
 
+## League/action list-surface correction — November 7, 2026
+
+Exclusive unpublished branch `codex/fix-reactor-list-surfaces-2026-11-07` applies
+the final focused feed-list review: Picks and Reactors inherit no list backplate
+or extra row gap, and the Reactors separator ends at the actual last list item.
+The selected parent glass card remains visible behind its rows. Existing global
+List defaults, handlers, privacy/reveal rules and storage are unchanged. The
+native browser checks pass at 320/390 in Dark/Light, including hidden-pick
+redaction, two populated reactor rows, separator widths, 44px controls, keyboard,
+overflow, axe and a focused forced-colors separator check. [Capture/source hashes,
+visual review and exact checks](../design/prism-league-actions-native-2026-11-07/evidence.json)
+preserve the 200 unaffected pre-existing images, update the six affected 390px
+images and add six 320px counterparts plus one forced-colors image. No push, PR,
+merge, deployment or hosted acceptance.
+
 ## Research Light capture evidence correction — November 7, 2026
 
 Exclusive unpublished branch `fix/research-light-evidence-20261107` fixes the

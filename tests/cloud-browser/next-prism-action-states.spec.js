@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 import fs from 'node:fs';
 import path from 'node:path';
 import { ALL } from '../migrations.mjs';
-import { nativeActionPairs } from '../helpers/native-action-captures.mjs';
+import { nativeActionCaptures, nativeActionPairs } from '../helpers/native-action-captures.mjs';
 import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, signIn, sendBallot as sendCommunityBallot, storeBookLines } from './community-world.mjs';
 import { sendBallot, storeLines } from '../helpers/guess-week.mjs';
 import { layoutProblems } from '../helpers/phone-layout.mjs';
@@ -24,6 +24,21 @@ const checks = page => async () => {
   const audit = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
   expect(audit.violations.map(v => v.id)).toEqual([]);
 };
+async function expectFlatActionList(list) {
+  await expect(list).toBeVisible();
+  const style = await list.evaluate(el => {
+    const css = getComputedStyle(el);
+    return { background: css.backgroundColor, rowGap: css.rowGap };
+  });
+  expect(style.background).toMatch(/^rgba\(\d+, \d+, \d+, 0\)$/);
+  expect(style.rowGap).toBe('0px');
+}
+async function captureActionState(page, name, inspect) {
+  await nativeActionCaptures(page, name, async () => {
+    await checks(page)();
+    await inspect();
+  }, { widths: [320, 390], forced: false });
+}
 async function open(page) {
   await page.addInitScript(() => localStorage.setItem('gtl.app', 'next'));
   await page.goto('/#play/league?view=feed');
@@ -105,7 +120,7 @@ test('feed picks retain hidden values and show separate loading failed empty and
     await troy.getByRole('button', { name: /Troy Fixture’s .* picks/ }).click();
     const sheet = page.getByRole('dialog', { name: /Troy Fixture’s .* picks/ });
     await expect(sheet).toContainText('Hidden until you lock in');
-    await nativeActionPairs(page, 'nfl-feed-hidden', checks(page));
+    await captureActionState(page, 'nfl-feed-hidden', () => expectFlatActionList(sheet.locator('.gx-feed-picks > .gx-list')));
     await page.keyboard.press('Escape');
     let behavior = 'loading';
     const picksRoute = routeFor('community/picks');
@@ -134,7 +149,7 @@ test('feed picks retain hidden values and show separate loading failed empty and
     await page.locator('.gx-feed-post[data-kind="ballot_submitted"]').filter({ hasText: 'Luke Fixture' }).getByRole('button', { name: 'See your Spread picks' }).click();
     const own = page.getByRole('dialog', { name: 'Your Spread picks' });
     await expect(own).toContainText('10 pts');
-    await nativeActionPairs(page, 'nfl-feed-picks', checks(page));
+    await captureActionState(page, 'nfl-feed-picks', () => expectFlatActionList(own.locator('.gx-feed-picks > .gx-list')));
     let writes = 0;
     await page.route(routeFor('league/share-result'), route => { writes++; return route.fulfill({ status: 503, json: { error: 'Fixture lost reply.' } }); });
     await own.getByRole('button', { name: 'Share your Spread result for TB @ DAL' }).click();
@@ -153,6 +168,7 @@ test('reactors preserve native loading failed and empty read states', async ({ p
     const post = page.locator('.gx-feed-post[data-kind="joined"]').first();
     const postId = await post.getAttribute('data-post');
     expect((await world.api('troy', 'league/react', { postId, reaction: 'fire' })).status).toBe(200);
+    expect((await world.api('sean', 'league/react', { postId, reaction: 'thumbs_up' })).status).toBe(200);
     await page.reload(); await expect(post.getByRole('button', { name: /^Fire/ })).toBeVisible();
     let state = 'loading';
     const reactorsRoute = routeFor('league/reactors');
@@ -174,7 +190,27 @@ test('reactors preserve native loading failed and empty read states', async ({ p
     await post.getByRole('button', { name: 'Add a reaction' }).click();
     await page.getByRole('dialog', { name: 'Choose a reaction' }).getByRole('button', { name: 'See who reacted' }).click();
     await expect(page.getByRole('list', { name: 'Who reacted' })).toContainText('Troy Fixture');
-    await nativeActionPairs(page, 'nfl-reactors', checks(page));
+    const populatedList = page.getByRole('list', { name: 'Who reacted' });
+    const populatedRows = populatedList.locator(':scope > li > .gx-feed-reactor');
+    await expect(populatedRows).toHaveCount(2);
+    const inspectReactors = async () => {
+      await expectFlatActionList(populatedList);
+      await expect(populatedRows.first()).toHaveCSS('border-bottom-width', '1px');
+      await expect(populatedRows.last()).toHaveCSS('border-bottom-width', '0px');
+    };
+    await captureActionState(page, 'nfl-reactors', inspectReactors);
+    await page.setViewportSize({ width: 320, height: 844 });
+    await setNativeActionTheme(page, 'light');
+    await page.emulateMedia({ forcedColors: 'active' });
+    await checks(page)();
+    await assertNativeActionTheme(page, 'light');
+    await inspectReactors();
+    await expect(populatedRows.first()).toHaveCSS('border-bottom-style', 'solid');
+    await expect(populatedRows.first()).toHaveCSS('border-bottom-color', 'rgb(0, 0, 0)');
+    await expect(populatedRows.last()).toHaveCSS('border-bottom-width', '0px');
+    await expect(page.locator('html')).toHaveAttribute('data-theme-preference', 'light');
+    await page.screenshot({ path: path.resolve('design/prism-league-actions-native-2026-11-07/nfl-reactors-forced-320.png') });
+    await page.emulateMedia({ forcedColors: 'none' });
     expect(world.errors).toEqual([]);
   } finally { release?.(); await page.unrouteAll({ behavior: 'wait' }); await page.close(); await world.db.close(); }
 });

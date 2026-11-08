@@ -1,12 +1,12 @@
 {
   "kind": "native-league-action-review-fix-evidence",
-  "capturedAt": "2026-11-08T01:07:28.945Z",
-  "branch": "codex/league-action-fidelity-fixes-2026-11-07",
-  "implementationBase": "be6bc29e3978917be78e409896ca4f5ea5a3b531",
-  "dependency": "4983138495f3d62268f3f1cfa39b21b477981297",
+  "capturedAt": "2026-11-08T01:26:23.119Z",
+  "branch": "codex/fix-reactor-list-surfaces-2026-11-07",
+  "implementationBase": "b5dea82d89029f644f504e436b610b215f7ea939",
+  "dependency": "ac02edb4874c4bcca1119b19cf4be97c98cee1bb",
   "originalDependency": "194ba410db4847594324243141fd1b6b09c10f3b",
   "authorityCommit": "3ac2eb50513ba73447ef890e4a47863cde7bdd76",
-  "dataBoundary": "Fictional local PGlite records and explicit test-only authenticated response intercepts. Actual native controllers/handlers; no hosted accounts or production fixtures.",
+  "dataBoundary": "Fictional local PGlite records with real native controllers and local handlers. Existing Luke/Troy/Sean fixtures only; no hosted accounts or production fixtures.",
   "comparison": "Source hierarchy reconciliation and scoped native capture review. Different fictional data, native minimum readable text/44px targets and current app routes. No pixel-equivalence or all-106 acceptance claim.",
   "sourceHashes": [
     {
@@ -15,11 +15,11 @@
     },
     {
       "file": "tests/cloud-browser/next-lines.spec.js",
-      "sha256": "caf63f8b24e7b1e539009ffc2ad851fde61f4a3a5a48846f84bb22306361fbef"
+      "sha256": "4dbd6e9b3d214867340d20dda8215f5c6ca808f79324d0d1bbc5d10aa631dd82"
     },
     {
       "file": "tests/cloud-browser/next-prism-action-states.spec.js",
-      "sha256": "895eeb3d0e3107e75129bc891b5a978195a546acf5309302fcb935b943358b24"
+      "sha256": "fbd7f20aa674b19f12d476ab2509dbb3ffad9923bb4d9bc3f7392ac1ce6bdcf2"
     },
     {
       "file": "tests/cloud-browser/next-prism-league-actions.spec.js",
@@ -79,7 +79,7 @@
     },
     {
       "file": "web/src/next/feed/ReactorsSheet.jsx",
-      "sha256": "ca1dab35e5d5717b099ad94e4f9c4b01466c08f589ea5c91ee5aac120619df05"
+      "sha256": "73a93d5f93732048d7d10b08ce65625591a4c8d30e85c031e1485634fc51985e"
     },
     {
       "file": "web/src/next/feed/feed.css",
@@ -107,7 +107,7 @@
     },
     {
       "file": "web/src/next/nfl-actions.css",
-      "sha256": "ecce67bc588c7312d17ce84bbe32536d7d874c7b32af96f6fb2d9c222db683b3"
+      "sha256": "eb247ee917ada1f6d5f8524ae1df2d492537352d98d6269b1241fefed2609cb1"
     },
     {
       "file": "web/src/next/play/ForfeitDialog.jsx",
@@ -620,39 +620,6 @@
       "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     },
     {
-      "file": "design/prism-league-actions-native-2026-11-07/nfl-feed-hidden-dark-390.png",
-      "sha256": "27fc62f056df3a2fc14eae7d20ae9524f096a948af3ef8b22010d9cf52e3d7e7",
-      "bytes": 87807,
-      "origin": "New review-fix image",
-      "width": 390,
-      "height": 844,
-      "theme": "dark",
-      "forcedColors": false,
-      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
-    },
-    {
-      "file": "design/prism-league-actions-native-2026-11-07/nfl-feed-hidden-light-390.png",
-      "sha256": "54fe3509d393ca4ea4b38e5ef7a3ea4c4841def449c87ab36e4f13ed9d71b0f1",
-      "bytes": 84556,
-      "origin": "New review-fix image",
-      "width": 390,
-      "height": 844,
-      "theme": "light",
-      "forcedColors": false,
-      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
-    },
-    {
-      "file": "design/prism-league-actions-native-2026-11-07/nfl-feed-picks-dark-390.png",
-      "sha256": "232e7634e59e90c3ba9f05c6247fdc0672ed40fe3eab0471c54d7948a2e25690",
-      "bytes": 81680,
-      "origin": "New review-fix image",
-      "width": 390,
-      "height": 844,
-      "theme": "dark",
-      "forcedColors": false,
-      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
-    },
-    {
       "file": "design/prism-league-actions-native-2026-11-07/nfl-feed-picks-empty-dark-390.png",
       "sha256": "e9c3e06c33662e0d8453d336a198eed356ae2d1176f0c716296f976af842379d",
       "bytes": 65560,
@@ -689,17 +656,6 @@
       "file": "design/prism-league-actions-native-2026-11-07/nfl-feed-picks-failed-light-390.png",
       "sha256": "b612e5029f1391bfb92f5e55962c796f5091bceff06a055e842d00f18d3314b2",
       "bytes": 79718,
-      "origin": "New review-fix image",
-      "width": 390,
-      "height": 844,
-      "theme": "light",
-      "forcedColors": false,
-      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
-    },
-    {
-      "file": "design/prism-league-actions-native-2026-11-07/nfl-feed-picks-light-390.png",
-      "sha256": "af72fee42d8056074e8167091e3e7e85905986d270cc1ddfdc73d2bd62cce576",
-      "bytes": 79544,
       "origin": "New review-fix image",
       "width": 390,
       "height": 844,
@@ -1599,17 +1555,6 @@
       "themeAssertion": "Inherited image; not regenerated"
     },
     {
-      "file": "design/prism-league-actions-native-2026-11-07/nfl-reactors-dark-390.png",
-      "sha256": "e6f17a75574602cbfe86bc599ba004326a50f4947487372f2629d4ea0a5f06f6",
-      "bytes": 66522,
-      "origin": "Regenerated on review-fix source",
-      "width": 390,
-      "height": 844,
-      "theme": "dark",
-      "forcedColors": false,
-      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
-    },
-    {
       "file": "design/prism-league-actions-native-2026-11-07/nfl-reactors-empty-dark-390.png",
       "sha256": "947e7a5b7ae60ea4d7754b626661dd9d48461e29d47f84cd5e3c2bbf52546e37",
       "bytes": 59390,
@@ -1647,17 +1592,6 @@
       "sha256": "d63655147b7d402392ad960fa4e97ac62c070fe5b4cc5e5719ba6456e8b8dfab",
       "bytes": 72513,
       "origin": "New review-fix image",
-      "width": 390,
-      "height": 844,
-      "theme": "light",
-      "forcedColors": false,
-      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
-    },
-    {
-      "file": "design/prism-league-actions-native-2026-11-07/nfl-reactors-light-390.png",
-      "sha256": "ecb744b23dda4b237ecb0506fef4270ae86496b3a63458ae04e8f0fc09f6f13b",
-      "bytes": 72905,
-      "origin": "Regenerated on review-fix source",
       "width": 390,
       "height": 844,
       "theme": "light",
@@ -2422,6 +2356,149 @@
       "theme": "light",
       "forcedColors": false,
       "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-feed-hidden-dark-320.png",
+      "sha256": "9429545994dfc15b2f273dcc5d0eb966758b9f22b554f7ce3f4c0fd34ee8a871",
+      "bytes": 84641,
+      "origin": "Regenerated for final action-list surface review",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-feed-hidden-dark-390.png",
+      "sha256": "25d023a12ece45243a5b084d2ff3c1e8ff053c5fea50ffbfd2bb265417b1cd82",
+      "bytes": 89414,
+      "origin": "Regenerated for final action-list surface review",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-feed-hidden-light-320.png",
+      "sha256": "3d85a79f5dbe660ec824deef71fb8d1f19725ddeca223f9008b64d0fec05a672",
+      "bytes": 87253,
+      "origin": "Regenerated for final action-list surface review",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-feed-hidden-light-390.png",
+      "sha256": "1f33a4ce027b8d8721ff0051e12b2a10a39fc0ea83bc69225aa50dafaeaac108",
+      "bytes": 92680,
+      "origin": "Regenerated for final action-list surface review",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-feed-picks-dark-320.png",
+      "sha256": "2971c37a0bc669c515805e3af53e10d70a2f077d3dbe0eba3cd5abff8349ab29",
+      "bytes": 79687,
+      "origin": "Regenerated for final action-list surface review",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-feed-picks-dark-390.png",
+      "sha256": "e764c0687c2f19a407d7d33752e47e8dbd58acdd58f4b71b34f959f56005b751",
+      "bytes": 83506,
+      "origin": "Regenerated for final action-list surface review",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-feed-picks-light-320.png",
+      "sha256": "82ccc04c63083918953a52ca5f7c9e1ecd095a48780a328223bc49a5b2ca44b6",
+      "bytes": 83364,
+      "origin": "Regenerated for final action-list surface review",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-feed-picks-light-390.png",
+      "sha256": "4de18966cfa77a4bdfc14e40830b0d8b52c2d9071c22e257b3e64396be4bae40",
+      "bytes": 88664,
+      "origin": "Regenerated for final action-list surface review",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-reactors-dark-320.png",
+      "sha256": "947472a2eb8f7bbaf09f8ff10e7ee2827d794794a4e5ee4bdcfb0c0925b6b8a2",
+      "bytes": 64198,
+      "origin": "Regenerated for final action-list surface review",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-reactors-dark-390.png",
+      "sha256": "75fc0881677bae06bae4062d16ca409fe6d996ccb9a872afd66ee4b3cfc8dcc9",
+      "bytes": 69316,
+      "origin": "Regenerated for final action-list surface review",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-reactors-forced-320.png",
+      "sha256": "0b80ea7c2a602fd843f5ce532e01b4c9b6ebdb4a61aaa5c3f05df23f3a55986e",
+      "bytes": 33718,
+      "origin": "Regenerated for final action-list surface review",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": true,
+      "themeAssertion": "Native saved preference, resolved theme and canvas/text tokens asserted; forced-color row contrast verified"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-reactors-light-320.png",
+      "sha256": "54081dabfc2eccc44a8eb9118c47503c75649168522b467bc2e1ceabdb77c926",
+      "bytes": 71459,
+      "origin": "Regenerated for final action-list surface review",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
+    },
+    {
+      "file": "design/prism-league-actions-native-2026-11-07/nfl-reactors-light-390.png",
+      "sha256": "e07d75b96b159eb4ef7a8d64a23c15efe7b32e512f580d847eb6a53f6c7d844a",
+      "bytes": 77846,
+      "origin": "Regenerated for final action-list surface review",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "forcedColors": false,
+      "themeAssertion": "Native saved preference, resolved theme, canvas/text tokens and normal-mode text paint asserted"
     }
   ],
   "scenarios": [
@@ -2681,13 +2758,16 @@
       "nativeComponent": "feed/PicksSheet.jsx",
       "status": "PAIRED NATIVE CAPTURES",
       "captures": [
+        "nfl-feed-picks-dark-320.png",
+        "nfl-feed-picks-light-320.png",
         "nfl-feed-picks-dark-390.png",
         "nfl-feed-picks-light-390.png"
       ],
       "reference": [
         "previews/nfl-actions-feed-picks-dark-phone.png",
         "previews/nfl-actions-feed-picks-light-phone.png"
-      ]
+      ],
+      "note": "Own saved picks and share controls use a transparent list surface with zero gap in both native themes at 320/390."
     },
     {
       "scenario": "feed-hidden",
@@ -2695,13 +2775,16 @@
       "nativeComponent": "feed/PicksSheet.jsx",
       "status": "PAIRED NATIVE CAPTURES",
       "captures": [
+        "nfl-feed-hidden-dark-320.png",
+        "nfl-feed-hidden-light-320.png",
         "nfl-feed-hidden-dark-390.png",
         "nfl-feed-hidden-light-390.png"
       ],
       "reference": [
         "previews/nfl-actions-feed-hidden-dark-phone.png",
         "previews/nfl-actions-feed-hidden-light-phone.png"
-      ]
+      ],
+      "note": "Both unrevealed game rows retain the server-gated hidden-pick message. Transparent list surface and zero gap checked in both native themes at 320/390."
     },
     {
       "scenario": "feed-picks-loading",
@@ -2765,14 +2848,17 @@
       "nativeComponent": "feed/ReactorsSheet.jsx",
       "status": "PAIRED NATIVE CAPTURES",
       "captures": [
+        "nfl-reactors-dark-320.png",
+        "nfl-reactors-light-320.png",
         "nfl-reactors-dark-390.png",
-        "nfl-reactors-light-390.png"
+        "nfl-reactors-light-390.png",
+        "nfl-reactors-forced-320.png"
       ],
       "reference": [
         "previews/nfl-actions-reactors-dark-phone.png",
         "previews/nfl-actions-reactors-light-phone.png"
       ],
-      "note": "Populated and read-state pairs freshly captured with native preference/color assertions."
+      "note": "Two populated native rows; transparent list surface, zero gap and first/last separators checked. Paired Dark/Light at 320/390 with focused Light forced-colors check at 320."
     },
     {
       "scenario": "reactors-loading",
@@ -3016,10 +3102,6 @@
   },
   "checks": [
     {
-      "command": "npm run typecheck",
-      "result": "Passed on final product source"
-    },
-    {
       "command": "npm exec vitest run -- --reporter=dot",
       "result": "905 passed across 88 files; unrelated BiasChart key warnings retained"
     },
@@ -3032,20 +3114,41 @@
       "result": "17 passed in 3.7 minutes; actual native controllers, local PGlite and test-only read-state intercepts"
     },
     {
+      "command": "Final populated-reactor regeneration with native theme, color, target and accessibility assertions",
+      "result": "1 passed in 13.4 seconds, including fresh populated pair after loading/error/empty"
+    },
+    {
+      "command": "npm run test:cloud-browser -- --grep \"feed picks retain hidden|reactors preserve native\" (exclusive port 5246)",
+      "result": "2 passed, 0 skipped. Real local PGlite/native handlers; hidden-pick redaction, axe, 44px targets, overflow, native Dark/Light at 320/390, list alpha/gap, two-row separators and forced-colors separator contrast verified."
+    },
+    {
+      "command": "npm run typecheck",
+      "result": "Passed on final product source."
+    },
+    {
       "command": "python -X utf8 scripts/check-brand-docs.py",
-      "result": "Passed"
+      "result": "Passed on final product and documentation."
+    },
+    {
+      "command": "node --test tests/next-tokens.test.mjs",
+      "result": "15 passed, 0 failed/skipped."
     },
     {
       "command": "npm run build:cloud",
-      "result": "Passed; existing chunk-size warning"
+      "result": "Passed; existing chunk-size warning."
     },
     {
       "command": "node scripts/check-cloud-boundary.mjs --bundle-only",
-      "result": "Passed; no hosted probe or actual-account/physical-phone acceptance"
+      "result": "Passed; no private bundle state detected."
     },
     {
-      "command": "Final populated-reactor regeneration with native theme, color, target and accessibility assertions",
-      "result": "1 passed in 13.4 seconds, including fresh populated pair after loading/error/empty"
+      "command": "Manifest SHA-256 and PNG-dimension validation",
+      "result": "213 captures and 29 source hashes validated; no mismatches."
     }
-  ]
+  ],
+  "additionalDependency": "e1dcb1ff2cafb9faeab85a457f2eee2977e3b45d",
+  "visualReview": {
+    "authorityCommit": "3ac2eb50513ba73447ef890e4a47863cde7bdd76",
+    "result": "Reinspected hidden picks, saved picks and populated reactors against the approved action references. The parent glass card remains visible behind transparent rows; content hierarchy and separators match the selected composition."
+  }
 }

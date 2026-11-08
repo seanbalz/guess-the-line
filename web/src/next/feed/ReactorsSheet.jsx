@@ -23,7 +23,7 @@ export function ReactorsSheet({ args }) {
     {state.loading ? <Skeleton label="Loading reactions…" shape="rows" count={4}/> : null}
     {state.error ? <p className="gx-t-body gx-c-loss" role="alert">{state.error.status ? state.error.message : 'No connection. Reconnect and try again.'}</p> : null}
     {!state.loading && !state.error && !state.reactors.length ? <p className="gx-t-body gx-c-2">No reactions yet.</p> : null}
-    {state.reactors.length ? <Card variant="flush"><List label="Who reacted" data-emoji-ok="true">{state.reactors.map(row => {
+    {state.reactors.length ? <Card variant="flush"><List label="Who reacted" className="gx-feed-reactors" data-emoji-ok="true">{state.reactors.map(row => {
       const name = names.get(row.userId) || 'Former member', reaction = reactionOf(row.reaction);
       return <div key={row.userId} className="gx-feed-reactor">
         <Avatar id={row.userId} name={name} size={36} you={row.userId === app.accountId}/>
