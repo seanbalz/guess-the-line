@@ -481,42 +481,42 @@ reference math/data only and must not enter the production bundle.
 
 ### 29. Commissioner members
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Independent review/integration and hosted acceptance remain separate; **NOT DEPLOYED**.
 - Reference: `populated-commissioner; commissionerMembersPreview`.
 - Native targets: `me/commissioner/CommissionerTools.jsx; me/CommunityMembers.jsx`.
 - Required presentation and behavior: Six native destinations, member list/remove/restore confirmations, self-protection, pending check and admin-required states; actual authorization/concurrency/readback.
 
 ### 30. Commissioner weekly operations
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Independent review/integration and hosted acceptance remain separate; **NOT DEPLOYED**.
 - Reference: `populated-commissioner-status; commissionerOperationsPreview`.
 - Native targets: `Existing status/week-opening/settlement tools and controllers`.
 - Required presentation and behavior: Status, free-quota pause, uncertain settlement/check, week inputs, reviewed schedule and error; preserve schedule review, bounds, freshness and free limits.
 
 ### 31. Referee assignments
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Independent review/integration and hosted acceptance remain separate; **NOT DEPLOYED**.
 - Reference: `populated-referees; refereesPreview`.
 - Native targets: `web/src/RefereeAssignments.jsx`.
 - Required presentation and behavior: Current/draft/busy/partial-save/read-error; retained remaining drafts/extra options/explicit clearing and hosted-over-file precedence.
 
 ### 32. Final-score review
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Independent review/integration and hosted acceptance remain separate; **NOT DEPLOYED**.
 - Reference: `populated-final-review; finalScoresReviewPreview`.
 - Native targets: `Existing commissioner final-score review view/controller`.
 - Required presentation and behavior: Entry/completed assertion/first confirmation/source correction/conflict refresh-adopt-review/unavailable/busy; retain source scope, versions and Challenge grading warning.
 
 ### 33. Odds connection
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Independent review/integration and hosted acceptance remain separate; **NOT DEPLOYED**.
 - Reference: `populated-odds-connection; oddsConnectionPreview`.
 - Native targets: `me/commissioner/OddsConnection.jsx`.
 - Required presentation and behavior: Initial/measured check/fetch count/quota block/pending/rate-limit/busy; preserve measured threshold/reserve, free-only limits and actual request/readback gates.
 
 ### 34. EPL correction review
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Independent review/integration and hosted acceptance remain separate; **NOT DEPLOYED**.
 - Reference: `populated-epl-corrections; eplCorrectionsPreview`.
 - Native targets: `me/commissioner/EplCorrectionReviews.jsx`.
 - Required presentation and behavior: Ready/missing/empty/unavailable/failed/denied/loading/refreshing/stale, source times and signed differences; remains read-only.

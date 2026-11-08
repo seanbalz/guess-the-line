@@ -1880,3 +1880,16 @@ cases (23 unique browser cases overall), followed by successful cloud build
 and bundle-only privacy verification; evidence is in the manifest. No hosted, phone, full-app or release acceptance, push, PR,
 merge or deploy. Shared-frame placement and the held exploration areas remain
 separate. Prior dependency checks above are historical, not rerun totals.
+
+
+## Commissioner native Prism layouts — November 7, 2026
+
+Local branch `codex/prism-commissioner-2026-11-07` ports rollout areas 29–34:
+member access decisions, weekly operations, referee drafts, final-score review,
+count-only odds controls and read-only Premier League correction comparisons.
+[Scope, safeguards, checks and limitations](PRISM_COMMISSIONER_NATIVE_2026_11_07.md)
+link the source/capture hashes and native controller-state evidence. Existing
+authorization, concurrency/readback, free-quota, schedule/source and grading
+gates remain; the busy final dialog also retains keyboard scrolling while its
+actions are disabled. Independent review/integration and physical-phone/hosted
+acceptance remain separate. No push, PR, merge, deployment or migration apply.
