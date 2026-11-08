@@ -152,7 +152,7 @@ test('native Account cards, guidance, preferences, theme, export and public shar
     await inspect(page,'app-invite',testInfo);
     await page.evaluate(()=>{Object.defineProperty(navigator,'share',{configurable:true,value:async payload=>{window.sharedPayload=payload;}});});
     await invite.getByRole('button',{name:'Share app invite',exact:true}).click();
-    expect(await page.evaluate(()=>window.sharedPayload)).toEqual({title:'Guess the Line',text:'Join me on Guess the Line. Guess NFL spreads and totals, explore research, and compete with the Community.',url:'https://guess-the-line.pages.dev/'});
+    expect(await page.evaluate(()=>window.sharedPayload)).toEqual({title:'Guess the Line',text:'Join me on Guess the Line. Guess National Football League spreads and totals, explore research, and compete with the Community.',url:'https://guess-the-line.pages.dev/'});
     await expect(invite.getByRole('status')).toHaveText('Device sharing closed.');
     await page.evaluate(()=>{Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async()=>{throw new Error('blocked');}}});});
     await invite.getByRole('button',{name:'Copy link',exact:true}).click();

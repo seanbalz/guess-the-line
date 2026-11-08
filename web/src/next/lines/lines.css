@@ -81,7 +81,8 @@
 .gx .gx-game-team > strong { overflow-wrap: anywhere; }
 .gx .gx-game-at { position: absolute; left: -20px; top: 18px; color: var(--gx-text-3); }
 .gx .gx-game-scoring { display: grid; gap: 8px; }
-.gx .gx-game-bar { display: grid; grid-template-columns: max-content minmax(0,1fr) max-content; align-items: center; gap: 8px; }
+.gx .gx-game-bar { display: grid; grid-template-columns: 78px minmax(0,1fr) max-content; align-items: center; gap: 8px; }
+.gx .gx-game-bar > span:first-child { overflow-wrap: anywhere; }
 .gx .gx-game-bar > strong { text-align: right; font-variant-numeric: tabular-nums; }
 .gx .gx-game-track { display: block; height: 8px; border-radius: 8px; background: var(--gx-border); overflow: hidden; }
 .gx .gx-game-track > span { display: block; height: 100%; background: var(--gx-accent-ink); border-radius: inherit; }

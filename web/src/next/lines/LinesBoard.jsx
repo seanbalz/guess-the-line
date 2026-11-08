@@ -50,7 +50,7 @@ function GameRow({ card, records, season, scale, lines, onOpen }) {
     {card.final?.score ? <p className="gx-n-m">{card.final.score}</p> : null}
     {card.final ? <p className="gx-t-meta gx-c-2">{card.final.provenance}<br/>{card.final.kickoff}</p> : null}
     <div className="gx-game-scoring"><p className="gx-t-meta gx-c-2">Points scored / game</p>
-      {sides.map(side => <div className="gx-game-bar" key={side.code}><span className="gx-t-meta">{side.code}</span><span className="gx-game-track" aria-hidden="true"><span style={{ width: side.ppg ? `${100 * Number(side.ppg.scored) / scale}%` : '0%' }}/></span><strong className="gx-t-body">{side.ppg?.scored ?? '—'}</strong></div>)}
+      {sides.map(side => <div className="gx-game-bar" key={side.code}><span className="gx-t-meta">{side.name}</span><span className="gx-game-track" aria-hidden="true"><span style={{ width: side.ppg ? `${100 * Number(side.ppg.scored) / scale}%` : '0%' }}/></span><strong className="gx-t-body">{side.ppg?.scored ?? '—'}</strong></div>)}
     </div>
     <div className="gx-game-quote gx-t-meta"><span>Spread</span><RowValue value={row.value}/><span>{row.word}</span></div>
     <div className="gx-game-actions"><Button variant="secondary" aria-expanded={expanded} aria-controls={detailId} onClick={() => setExpanded(value => !value)}>{expanded ? 'Close stats' : 'Compare stats'}<Icon icon={expanded ? 'minus' : 'plus'} size={16}/></Button>

@@ -11,7 +11,7 @@
 .gx .gx-nfl-action .gx-sheet-back { display: inline-flex; align-items: center; gap: 7px; max-width: calc(100% - 55px); min-height: 44px; padding: 10px 12px; border: 1px solid var(--gx-border); border-radius: 16px; background: var(--gx-card-face); box-shadow: var(--gx-secondary-shadow); color: var(--gx-text-1); white-space: normal; }
 .gx .gx-dialog.gx-nfl-action { box-sizing: border-box; width: calc(100% - 28px); max-width: 360px; max-height: calc(100dvh - 40px); padding: 24px 18px; border: 1px solid var(--gx-border); border-radius: 28px; background-color: var(--gx-canvas); }
 .gx .gx-nfl-action .gx-dialog-title { font-size: 23px; line-height: 1.45; letter-spacing: -.5px; }
-.gx .gx-nfl-action .gx-dialog-text { font-size: 13px; line-height: 1.85; }
+.gx .gx-nfl-action .gx-dialog-text { font-size: 16px; line-height: 1.5; }
 .gx .gx-nfl-action .gx-dialog-actions { gap: 16px; }
 .gx .gx-nfl-action .gx-dialog-actions > .gx-btn { width: 100%; }
 .gx :is(.gx-nfl-action, .gx-nfl-action-content) .gx-card:not(.gx-card--flush) { padding: 18px 14px; }

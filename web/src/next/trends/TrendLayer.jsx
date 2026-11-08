@@ -1,3 +1,4 @@
+import { leagueWords } from '../leagueWords.js';
 // D-66 pieces Trends › Teams and Trends › This Week share: a trend's tile, a closed line gate's tile, the opened trend
 // as the innermost card, and the trend's address. D-75: a tile is glass with one number, the win rate, and one meta
 // line; This Week's strongest trend is a hero; the opened trend is one glass chart card, its tier, sentence and
@@ -44,12 +45,12 @@ export function TrendRate({ share, account, figure, className }) {
 export function TrendTile({ card, rules, onOpen, account }) {
   if (card.locked) {
     return <li><div className="gx-nest-tile" data-trend="locked">
-      <span className="gx-nest-tile-top"><span className="gx-nest-tile-label">{card.title}</span><Icon icon="lock" size={16}/></span>
+      <span className="gx-nest-tile-top"><span className="gx-nest-tile-label">{leagueWords(card.title)}</span><Icon icon="lock" size={16}/></span>
       <span className="gx-t-meta">{lockedTrendText(card.gate, rules)}</span>
     </div></li>;
   }
   return <li><button type="button" className="gx-nest-tile gx-nest-tile--glass" data-trend={card.kind} onClick={onOpen}>
-    <span className="gx-nest-tile-label">{card.title}</span>
+    <span className="gx-nest-tile-label">{leagueWords(card.title)}</span>
     <TrendRate className="gx-n-m gx-nest-num" share={card.share} account={account} figure={rateFigure(card.key)}/>
     <span className="gx-t-meta">{gamesText(card)}</span>
   </button></li>;
@@ -60,7 +61,7 @@ export function TrendHero({ card, rules, onOpen, account }) {
   if (card.locked) return <TrendTile card={card} rules={rules} onOpen={onOpen} account={account}/>;
   const spark = card.chart?.spark?.length > 1 ? linePath(card.chart.spark, { width: 120, height: 48, top: 4, bottom: 4 }) : null;
   return <li><button type="button" className="gx-nest-hero" data-trend={card.kind} data-hero="" onClick={onOpen}>
-    <span className="gx-nest-tile-label">{card.title}</span>
+    <span className="gx-nest-tile-label">{leagueWords(card.title)}</span>
     <span className="gx-nest-hero-row">
       <span className="gx-vstack"><TrendRate className="gx-n-l gx-nest-num" share={card.share} account={account} figure={rateFigure(card.key)}/>
         <span className="gx-t-meta">win rate · {gamesText(card)}</span></span>
@@ -109,7 +110,7 @@ function TrendChartCard({ card, account }) {
  */
 export function trendLayer({ label, layer, card, week, view, lips, account }) {
   const info = <InfoButton title="About this trend" body={trendInfoBody(card)} links={INFO.trends.links}/>;
-  return <Nest label={label} layer={layer} title={card.title} info={info} lips={lips}>
+  return <Nest label={label} layer={layer} title={leagueWords(card.title)} info={info} lips={lips}>
     <TrendChartCard card={card} account={account}/>
     <WindowRecords card={card} week={week} summary="Windows and dates"/>
     <GameDetailsButton view={view}/>

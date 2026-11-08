@@ -29,6 +29,19 @@ Earlier CI's two remaining layout defects reproduced locally and both original
 cases now pass after scoped loader-height and saved-pick row-width repairs.
 Their independent review/fresh CI and Commissioner/identity/unit compatibility/
 owner frame decision/release work remain open. No remaining rollout deployment.
+## Shared identity, native Menu and saved-scope evidence — November 7, 2026
+
+[The scoped local record](PRISM_IDENTITY_SCOPE_NATIVE_2026_11_07.md) adds all four
+real Menu variants and saved-scope pairs, raising the 43-state action reconciliation
+to 38 paired, zero unverified and five held. Actual account transitions purge the
+open layers without a sit-out write; separately labeled component proofs cover
+defensive account mismatch. Games labels/action names and league descriptions
+follow approved full names; sit-out operational prose is restored to 16px.
+Native marks/fallbacks, raw IDs, source attribution, controllers and held frame
+positions are preserved. Final local type, 919 component tests, 41 Node contracts,
+Brand/build/privacy and native browser/capture evidence are linked there.
+Independent review/integration remain pending; no push, PR, merge, hosted change,
+migration or deployment is part of this task. Frozen v62 tracker is unchanged.
 
 ## Integrated reviewed History and paper-gap scorecards — November 7, 2026
 

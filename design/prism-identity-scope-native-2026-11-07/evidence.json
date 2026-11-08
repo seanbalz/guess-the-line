@@ -1,0 +1,1272 @@
+{
+  "kind": "native-prism-identity-menu-scope-evidence",
+  "date": "2026-11-07",
+  "status": "local; independent review pending; no deployment",
+  "branch": "codex/prism-shell-identity-20261107",
+  "fetchedOriginMain": "7aa93a6ffe79eafb58bd6c7d12ec230b6d77b0e9",
+  "base": "726e8526a598a0d2110ff56acd272206cac6dd2d",
+  "referenceCommit": "3ac2eb50513ba73447ef890e4a47863cde7bdd76",
+  "references": [
+    {
+      "file": "design/style-directions-2026-11-04/NFL_ACTIONS_NAVIGATION_REVIEW.md",
+      "bytes": 12875,
+      "sha256": "9fb9610f7e7f618b5816d9c3caea9de56bab04cf343d715d4161e501a8c5eadd"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/populated-account-tools.css",
+      "bytes": 5931,
+      "sha256": "478ef799f908c793a4994751baec5515b87211bc12f621d42ae9164a5ac10027"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/populated-account-tools.jsx",
+      "bytes": 7588,
+      "sha256": "c64eaebaa1368aaee9852db272c8623760ce81a5a33d24a1d83d66c161b27a75"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/populated-account.css",
+      "bytes": 8703,
+      "sha256": "b9a5be0cc314cbc5b2231fb781a169a2d2ac27a6b77e3869e729181224e7fd59"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/populated-account.jsx",
+      "bytes": 9056,
+      "sha256": "d8e337d2842df7d5d266ef76825676637d0300c1d4e10fd2aa55dd7406f5e85a"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/populated-games.jsx",
+      "bytes": 4385,
+      "sha256": "91b7bbaaa68289cf8c735ba113916358a029749c895719f9d1c5c5ef41cc8491"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/populated-research.css",
+      "bytes": 14276,
+      "sha256": "42331660d9128eeb1006a795c56d2fd0b9e02081942be362a85aeb5783b29c2a"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/league-wording-account-dark-phone.png",
+      "bytes": 178758,
+      "sha256": "7710484afa76ea737b2ddb2cb15f56d2ed8d2b753e4a493f73bd8e766d916c74"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/league-wording-account-light-phone.png",
+      "bytes": 187135,
+      "sha256": "7e1de91d9575f60310f6476bee01fb6e2597f93d9e345ed1f41a6071020de04a"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/league-wording-bets-dark-phone.png",
+      "bytes": 239794,
+      "sha256": "b78e60cb906887bde69dcc7accd63fac15ecc743f59191599e5b9aa42ac228a9"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/league-wording-bets-light-phone.png",
+      "bytes": 259004,
+      "sha256": "0c286598c16462f5995b77e99fa4382d816f2321dd941cdb1131daed445cd136"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/league-wording-epl-dark-phone.png",
+      "bytes": 221110,
+      "sha256": "522bf4a46b3e1407116c1ed7226af16a00676cd404778738596c801688f2e178"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/league-wording-epl-light-phone.png",
+      "bytes": 239577,
+      "sha256": "6617a66c24db507d949a394ee40ba94df7c89e5026eba9107fb1845455176e6c"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/league-wording-history-dark-phone.png",
+      "bytes": 136308,
+      "sha256": "9b06e6b92528b5d4aa92e4dd41eae0ab6019cbb8b509046dd29282c084e59ae2"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/league-wording-history-light-phone.png",
+      "bytes": 141528,
+      "sha256": "669196896a02c62b5de532f236c3426ec092e52480ce7b607c6f73f29501d0d3"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/league-wording-home-dark-phone.png",
+      "bytes": 283585,
+      "sha256": "53604c72bd7a38025d25a3d471a8c10778abebe46bec5e02062304ebe9070a07"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/league-wording-home-light-phone.png",
+      "bytes": 302539,
+      "sha256": "87b61ca78e6352266ceca8fb1bf8849fb49f38a742c0d6f4493d2f2d511d54a5"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/league-wording-info-dark-phone.png",
+      "bytes": 99939,
+      "sha256": "d77479c30c9f1639b4d21820d2e71e6463fd8c848cb24ff2eb8c4ea310bc8f2a"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/league-wording-info-light-phone.png",
+      "bytes": 99528,
+      "sha256": "e501793e2d4f5a4defef36e5ce33aa88d7066fcdeb633f5c9456c371c65bd629"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/league-wording-native-epl-dark-phone.png",
+      "bytes": 119559,
+      "sha256": "4d1b341d2242d381b27e36a24829b650a6025f26c27daae30fab620830fd1f9d"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/league-wording-native-epl-light-phone.png",
+      "bytes": 126553,
+      "sha256": "70af88a50af43f3fea06daaa786d9cd633b24623806bcceab8528d6fa0c75a88"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/league-wording-native-nfl-dark-phone.png",
+      "bytes": 120082,
+      "sha256": "3fd4582ad8a02007b3a54c0a39db877b015a2103162371a225c6f860c39cab9b"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/league-wording-native-nfl-light-phone.png",
+      "bytes": 127231,
+      "sha256": "a6a2d385673ed9ee8b75a85945acf9b93936bff3810b79326129317333aeeddb"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/league-wording-play-dark-phone.png",
+      "bytes": 275209,
+      "sha256": "77deee501c4c6c4754bb976c65892e7e900b141903090dc209ab3947c9feb416"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/league-wording-play-light-phone.png",
+      "bytes": 294527,
+      "sha256": "724a9dd350528c41f0e403145e7c38e11bb12717d76ab92bbdce0196b23e80d3"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/league-wording-research-dark-phone.png",
+      "bytes": 255650,
+      "sha256": "5a1515e3396ffd9f1bfcadd09c04f68276eba2f599c756b1450e2149446ec38c"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/league-wording-research-light-phone.png",
+      "bytes": 268966,
+      "sha256": "09390300ff698fd67a65cd51034c33a903c478aec18770b47d77fb9357a3efef"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/nfl-actions-forfeit-ready-dark-phone.png",
+      "bytes": 95454,
+      "sha256": "dcfd5ec91642bec7d3b484151127e268f482911471b5baa0b3e26370d7edc92b"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/nfl-actions-forfeit-ready-light-phone.png",
+      "bytes": 95886,
+      "sha256": "cc8aac2938975787f57b435af215d3c028ee6258940aafc2b19cf65def54751d"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/nfl-actions-menu-admin-dark-phone.png",
+      "bytes": 130859,
+      "sha256": "8568b559493ab9d0167db816e507bc02eb736f63b9a8f67af81e14bee18965e6"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/nfl-actions-menu-admin-light-phone.png",
+      "bytes": 150738,
+      "sha256": "6250b0c3bafd3b215e1c9d7991ebe30aa0ed8847ab640ce6360fd37f3997e9be"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/nfl-actions-menu-busy-dark-phone.png",
+      "bytes": 116768,
+      "sha256": "1f8bf0393e6f046419829051c815bdefb78803110ea27af502b07b4a90b39f15"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/nfl-actions-menu-busy-light-phone.png",
+      "bytes": 130459,
+      "sha256": "5bee6990bbd7f66771efca3805c0e1b73645df192189744ae5063365b70765cc"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/nfl-actions-menu-dark-phone.png",
+      "bytes": 116237,
+      "sha256": "6fa6c8f0dbc7a5788e6b60dc35d7e0f19c4d5c1b6c41ebbb418c4059b8f9704d"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/nfl-actions-menu-light-phone.png",
+      "bytes": 129909,
+      "sha256": "095f30c16c8102ff5581ffc45c3210cf859873e9ec47cdc504b6b0a86917d904"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/nfl-actions-menu-no-reminders-dark-phone.png",
+      "bytes": 113774,
+      "sha256": "407e9e0bf5bbdf9a09d6799b50774c28819eed8f675c63e6da6f4986aca3db6b"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/nfl-actions-menu-no-reminders-light-phone.png",
+      "bytes": 130440,
+      "sha256": "ddcff7eae7324344349503442914abc8b44b58af948ed525d65010b4543496ea"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/nfl-actions-saved-scope-dark-phone.png",
+      "bytes": 74188,
+      "sha256": "a27ad8c909dcd042f99facf2eaf174c59bad8fc7116c9b7ca8fca3a43e5aa3a0"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/nfl-actions-saved-scope-light-phone.png",
+      "bytes": 80893,
+      "sha256": "965785496a3f453b0a0f4914bed34d7cc510620e36ed386eac6c6b7292db0fe3"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/research-games-dark-phone.png",
+      "bytes": 251722,
+      "sha256": "95ff6cf29cdaf1e8227407236eb4c13650801e1211839cc3e15f7e46a813993c"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/research-games-expanded-dark-phone.png",
+      "bytes": 289462,
+      "sha256": "1addf421deda850ddef675ea94f76209ee1c0fd08165cba478cde350efbf11b6"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/research-games-expanded-light-phone.png",
+      "bytes": 315495,
+      "sha256": "e4c6f4c23719908eb526043f28e39f19e9a088a6d1a10335218e5b64cfbd14bb"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/previews/research-games-light-phone.png",
+      "bytes": 274279,
+      "sha256": "52a34474072a0fb403b005f2e84f39ad56840c7f017df55ec544cdaf8244cd75"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/selected-league-marks.js",
+      "bytes": 3853,
+      "sha256": "0d7599aa56776f87f7154c280c3b0a51b5d79fe7274ebc53f7c2682c66b0d517"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/selected-league-wording.js",
+      "bytes": 1641,
+      "sha256": "af3c8fb19c7a347a8f45321f310290c300e812aa263b47226f369daf4a073f13"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/selected-system-review.json",
+      "bytes": 333454,
+      "sha256": "cb235f3e396944f083c9cea87cc60c9d67bafac390b317ccd63e6665537dd236"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/selected-team-circles.js",
+      "bytes": 1849,
+      "sha256": "bb388b7ac76b21e4d7b7ef952b8adb0ac98b25816c8f22d6d14987cd92270555"
+    },
+    {
+      "file": "design/style-directions-2026-11-04/SELECTED_DESIGN_HANDOFF.md",
+      "bytes": 7599,
+      "sha256": "e6872b255ad2894e56943dff3ce3d5853431b5b1c1c1f3bd4883ca77a05ef5dd"
+    }
+  ],
+  "sources": [
+    {
+      "file": "design/tokens-next.json",
+      "bytes": 13346,
+      "sha256": "bae7ded575184f8e1a95cb4f37123b23327461348c4140727ff43015ddce7577"
+    },
+    {
+      "file": "docs/COMPLETION_REGISTER.md",
+      "bytes": 146611,
+      "sha256": "530cd34379fc8146c69912f3e1d8e4bd761cdefda3b8cc0ff1b4332e12802bed"
+    },
+    {
+      "file": "docs/CONFIRMED_VISUAL_ROLLOUT_2026_11_07.md",
+      "bytes": 71354,
+      "sha256": "2b6345c931e0e61913f4c353ac1479ebda7379767c5bf2835c0a4c9cb8ce3acf"
+    },
+    {
+      "file": "docs/PRISM_LEAGUE_ACTIONS_FIDELITY_FIXES_2026_11_07.md",
+      "bytes": 11561,
+      "sha256": "642c60871041876bd5844d977e40926f1c8fb203fb613c1eb688212e7c4296ce"
+    },
+    {
+      "file": "playwright.identity-prism.config.js",
+      "bytes": 465,
+      "sha256": "f7e8782d4eca4c5ebcc91d07fe123a7dc04fbd38e1a93efa0a12cda6a2b732c8"
+    },
+    {
+      "file": "tests/cloud-browser/next-lines.spec.js",
+      "bytes": 191006,
+      "sha256": "9fe77ca2605251b196d4a6045e1153f665b46f725933fc18dcc0146b03a07be8"
+    },
+    {
+      "file": "tests/cloud-browser/next-phone-layout.spec.js",
+      "bytes": 22360,
+      "sha256": "5782fa87e46ffd3b835a6801725a12f9d62e8914e685bed41b22fadf846507a9"
+    },
+    {
+      "file": "tests/cloud-browser/next-prism-account.spec.js",
+      "bytes": 38014,
+      "sha256": "4fecf7891263a43287f68c1778d383052e9151ffdd7693b5e252497d0168c14e"
+    },
+    {
+      "file": "tests/cloud-browser/next-prism-identity-scope.spec.js",
+      "bytes": 13372,
+      "sha256": "11f5d8316e4f24929b2deced4039d0c663480f4cbc17e0d18a99f3ef36c06846"
+    },
+    {
+      "file": "tests/helpers/native-action-theme.mjs",
+      "bytes": 1502,
+      "sha256": "aed4cc693435060cad450f6a1e316ad79d9dc08b7ca9bf23335e24aaa37803f2"
+    },
+    {
+      "file": "tests/next-app-invite.test.jsx",
+      "bytes": 1084,
+      "sha256": "55f64ae6e9675cc18362d1143b0a5cfe86e5db53ea1af768b3059bee764dc4c6"
+    },
+    {
+      "file": "tests/next-prism-identity-scope.test.jsx",
+      "bytes": 4119,
+      "sha256": "78fb5d103c7d72607df8d9952f1e77c7b24e1f8b67a2f686b2cab2e3a0f12654"
+    },
+    {
+      "file": "web/public/team-logos/sources.json",
+      "bytes": 46799,
+      "sha256": "6adfe8f21ed4824b30fcf728d2fccbea109b004ab6f0fb933dbf7bd02257770c"
+    },
+    {
+      "file": "web/src/next/charts/TrendDetail.jsx",
+      "bytes": 3970,
+      "sha256": "f1c0ffbea19be769cf12f11e67e5341096cf8f0936f107d3a35633c8b9a62f3b"
+    },
+    {
+      "file": "web/src/next/charts/TrendRow.jsx",
+      "bytes": 1590,
+      "sha256": "792305e77b829020123caa9727089f579c2b335a18c89aa79266fcec7d0b10b9"
+    },
+    {
+      "file": "web/src/next/epl/DraftBoard.jsx",
+      "bytes": 3542,
+      "sha256": "60df0801704404a9bdcbccbe2ab7ca7bdf32b79a30d444f5b886bdafb73995cc"
+    },
+    {
+      "file": "web/src/next/epl/guess/EplGuess.jsx",
+      "bytes": 7817,
+      "sha256": "91d33416a1c6dd97030c9b53c4f2d0a3a7c8176d20e2d52a15b29942a733feb0"
+    },
+    {
+      "file": "web/src/next/epl/prism-epl.css",
+      "bytes": 52609,
+      "sha256": "3f838099938739c4231c25094576f16b1da20e249fa971ed42c2462d2629409d"
+    },
+    {
+      "file": "web/src/next/info.js",
+      "bytes": 15153,
+      "sha256": "d23d0287d8a69f32d6b83271f8c218ab7b5772b02d540e4b659d14035eced16b"
+    },
+    {
+      "file": "web/src/next/leagueWords.js",
+      "bytes": 266,
+      "sha256": "2b9a7061d6d8e37a0ea984f786a9c88356677d4afa7a494a635a5d8b5cb60971"
+    },
+    {
+      "file": "web/src/next/lines/GameActions.jsx",
+      "bytes": 899,
+      "sha256": "a6e3e6a5dc331994bf3f870d8b8c24f291f3522ff6957b780d3934d83cd6948b"
+    },
+    {
+      "file": "web/src/next/lines/LinesBoard.jsx",
+      "bytes": 13415,
+      "sha256": "1d8ebf9112d812dbfef4f0d0e830178cb78f155cd74ac21442b4d4e227d9a00a"
+    },
+    {
+      "file": "web/src/next/lines/YourPickSheet.jsx",
+      "bytes": 3140,
+      "sha256": "ebd28c938ca090753e75fd0ed69ff60d0d08282ffcbba2fab1d3a9f53f6ecd84"
+    },
+    {
+      "file": "web/src/next/lines/lines.css",
+      "bytes": 10625,
+      "sha256": "688c015d082b090b7b0b34e8a805bdaeffe7eb35c8df5e76e0fe646340310bca"
+    },
+    {
+      "file": "web/src/next/lines/parts.jsx",
+      "bytes": 11989,
+      "sha256": "93bb8f86ee3fda45d01d90dd5dcb9a50c01fc15b4a5864ce505104ba934f5df9"
+    },
+    {
+      "file": "web/src/next/me/AccountSheet.jsx",
+      "bytes": 823,
+      "sha256": "450d78d0632484d012ae8b3b841e55d20384958e2d7d0b5a86a67b28ef7ba657"
+    },
+    {
+      "file": "web/src/next/me/MenuSheet.jsx",
+      "bytes": 8291,
+      "sha256": "cd4baba872ac55743c072c1e60b6aee90fd271476821f63d3b0e7a841ab9cab7"
+    },
+    {
+      "file": "web/src/next/me/accountPrism.css",
+      "bytes": 20401,
+      "sha256": "a41102b2ff50ff05f3246a4bc3e9753c7fc4605af17fbd22ed6471d660b950ac"
+    },
+    {
+      "file": "web/src/next/me/appInvite.js",
+      "bytes": 615,
+      "sha256": "91089dabc9a5e5f0ce3ca4ac30c590991ad8b1440ef442249622bacea2e44634"
+    },
+    {
+      "file": "web/src/next/nfl-actions.css",
+      "bytes": 5880,
+      "sha256": "42a5bbc6cc4fb5ae1db20f563bdcfccdbf35aeeccc8962c07441885854f073b0"
+    },
+    {
+      "file": "web/src/next/play/ForfeitDialog.jsx",
+      "bytes": 8026,
+      "sha256": "111989ab314fb246dcc79d8ed8b96c4db3059ef5a694861337c9295559c79eca"
+    },
+    {
+      "file": "web/src/next/research/ResearchCards.jsx",
+      "bytes": 24391,
+      "sha256": "86cf9c822e05884dee983cc5d2971c33e245585f11f82d42e138d8987aed68ca"
+    },
+    {
+      "file": "web/src/next/shell/Frame.jsx",
+      "bytes": 7105,
+      "sha256": "d745af24d3dd1e6bcc69ffd0376a800002b3affbb0332dffb742822d1c951124"
+    },
+    {
+      "file": "web/src/next/shell/Shell.jsx",
+      "bytes": 21110,
+      "sha256": "7bde7f522ae310db7f295f3422e3ec1a84307e1f77e28170d6fae569ec74528a"
+    },
+    {
+      "file": "web/src/next/styles/tokens.css",
+      "bytes": 8544,
+      "sha256": "ce7f9bee525d1893382bdb5c43f4210e66203d9a5340cf2206af67fd281cc978"
+    },
+    {
+      "file": "web/src/next/trends/TrendLayer.jsx",
+      "bytes": 7654,
+      "sha256": "75fd54c11882b6b9fc7fb7d693d20872a76be426e5ca124e51f323137dc5f614"
+    },
+    {
+      "file": "web/src/next/trends/WindowRecords.jsx",
+      "bytes": 2044,
+      "sha256": "7454dbf44ee4f1239321a875ff70808b9619c3d57f708b34dc30438db1a5463b"
+    },
+    {
+      "file": "web/src/next/ui/Matchup.jsx",
+      "bytes": 3643,
+      "sha256": "c411e28d13d7d9fc2418478a5bb87c514449018f4987e6c892d7805091c6901e"
+    },
+    {
+      "file": "web/src/next/ui/PictureRow.jsx",
+      "bytes": 1832,
+      "sha256": "8c0cce06423febb2d837d949dc20b6222a91c5a5eee9812f51f012374bd413bf"
+    },
+    {
+      "file": "web/src/next/ui/PrismBrand.jsx",
+      "bytes": 519,
+      "sha256": "0cd33559eca0d9359b6b86be80d8e754f2e9d73b8ab58de6cd857302748ac01a"
+    },
+    {
+      "file": "web/src/next/ui/TeamMark.jsx",
+      "bytes": 4312,
+      "sha256": "4742b13a22f9a860c27014232295b62d7b1a0801762785d292a813493fad9bf8"
+    },
+    {
+      "file": "web/src/teamLogoRegistry.js",
+      "bytes": 7347,
+      "sha256": "366edf6843530cb2d3c8f9a51a9c6019b9c1e852e57ed9e147ef5c1a1e145be1"
+    },
+    {
+      "file": "docs/PRISM_IDENTITY_SCOPE_NATIVE_2026_11_07.md",
+      "bytes": 7767,
+      "sha256": "2166bc20f1fa3f84579989f6f7510d0850d33a4e215006f0146f42bebdfc2cfd"
+    }
+  ],
+  "identityAssets": [
+    {
+      "file": "web/src/next/ui/brand-assets/light-deep-green.svg",
+      "bytes": 3347,
+      "sha256": "ea8f11978dc2fffc3b51a15a6b631ccdb3e0be52f22be845df9e4dcbb1e74401"
+    },
+    {
+      "file": "web/src/next/ui/brand-assets/lime.svg",
+      "bytes": 3343,
+      "sha256": "9d44fb0d29b21a5fc3fdc0177fb5cf906392e31c5979dbf411d950755f9a6ac8"
+    },
+    {
+      "file": "web/src/next/ui/brand-assets/nfl.png",
+      "bytes": 4566,
+      "sha256": "e0330797bb482b60d5fca4341cdab10f5fdc35680342192a5c8b174202fa4ca9"
+    },
+    {
+      "file": "web/src/next/ui/brand-assets/premier-league-purple.svg",
+      "bytes": 3765,
+      "sha256": "84a1f516cf6862369ee25b2cd61ec0a2226476041f00992281fb5e4b4a1d7aa1"
+    },
+    {
+      "file": "web/src/next/ui/brand-assets/premier-league-white.svg",
+      "bytes": 4561,
+      "sha256": "5157c5f9f6d67bafa213043ec6099efb060a1b5aa03070b3d1ade6135d935e6e"
+    },
+    {
+      "file": "web/src/next/ui/brand-assets/sources.json",
+      "bytes": 2913,
+      "sha256": "844991ccb901d4bdd5d2831018a7e1ec1f825185cb9013acccc855eada8fe652"
+    },
+    {
+      "file": "web/public/team-logos/ari.png",
+      "bytes": 11272,
+      "sha256": "a1fb968d728e369d2382b04d7c9beaf1d42236ace9a85a355b189cf74aef62e8"
+    },
+    {
+      "file": "web/public/team-logos/atl.png",
+      "bytes": 15313,
+      "sha256": "cd09027ae954c5c7918a1521bae1ff3d16b28f34cf124411e9c801bf8adb0701"
+    },
+    {
+      "file": "web/public/team-logos/bal.png",
+      "bytes": 11114,
+      "sha256": "912c6888db0c65269fa9cdc3b9a4a4a8bb94fd2e329a6b67dc8d58672b95ffcb"
+    },
+    {
+      "file": "web/public/team-logos/buf.png",
+      "bytes": 10429,
+      "sha256": "6d6bbc723ec63ba1e23b9175e566a8cdacd5fc350d5c0993a55e5eb08e85c579"
+    },
+    {
+      "file": "web/public/team-logos/car.png",
+      "bytes": 7896,
+      "sha256": "499ef716d5dad0feb974a19885e67ff2fb2cf6cfde72f136a4891e2bfd8328b8"
+    },
+    {
+      "file": "web/public/team-logos/chi.png",
+      "bytes": 21338,
+      "sha256": "577fdb2597970293728cf4b4709d9a1f37b3365a424b64a3cc1213a32cb40b38"
+    },
+    {
+      "file": "web/public/team-logos/cin.png",
+      "bytes": 8089,
+      "sha256": "650e247ffb6d8aed981ddb48fc4912809f461221b42472c9ffe252aa84fd8255"
+    },
+    {
+      "file": "web/public/team-logos/cle.png",
+      "bytes": 15996,
+      "sha256": "1aed3c252f94ea37f06f12da92b72e508d775766c9cecb79a0914a05fb7a8836"
+    },
+    {
+      "file": "web/public/team-logos/dal.png",
+      "bytes": 9300,
+      "sha256": "2cdb5af385ff89bb0649fa88320dd8039d7b539caaaf818ff2ac628d3130bc88"
+    },
+    {
+      "file": "web/public/team-logos/den.png",
+      "bytes": 10188,
+      "sha256": "620056926340391104d4db91c2f62ba773ce7c6ba811f174557b329e306ad0a8"
+    },
+    {
+      "file": "web/public/team-logos/det.png",
+      "bytes": 13010,
+      "sha256": "bc0e8f195ce71af1d5852150bfb82f64e67b0861c587ff1e159f48ed66a9ccd5"
+    },
+    {
+      "file": "web/public/team-logos/gb.png",
+      "bytes": 10962,
+      "sha256": "f106e3cdd9bb2ad36d14e8ab4bdbc82ea4d4ca8bf7736921501b9fcff0fa85f8"
+    },
+    {
+      "file": "web/public/team-logos/hou.png",
+      "bytes": 10250,
+      "sha256": "7d58a568cdbc60a66e3fc2b452ebe0c280b840d67a14f56d020f3493dda8d9a0"
+    },
+    {
+      "file": "web/public/team-logos/ind.png",
+      "bytes": 11348,
+      "sha256": "f891a0843461c7db49c1e9114873d488d9855cda7907bdd84e8b252fffa299f2"
+    },
+    {
+      "file": "web/public/team-logos/jax.png",
+      "bytes": 16557,
+      "sha256": "5b0ec61a57ebb4d8b6e50075ac991ced0785d70fae3abeaeb74fae116d61873e"
+    },
+    {
+      "file": "web/public/team-logos/kc.png",
+      "bytes": 11250,
+      "sha256": "3c24dc52abebe72ff75ebc4ded56a835219b37c1f40ca275d8447019a1ce573f"
+    },
+    {
+      "file": "web/public/team-logos/lac.png",
+      "bytes": 7600,
+      "sha256": "7911b033a82921abfe6f2721b9d87317ae5fdf409f2432a2af128d8dcac89d23"
+    },
+    {
+      "file": "web/public/team-logos/lar.png",
+      "bytes": 7758,
+      "sha256": "88638b4c070871bfed1283175cdb7397586a8d3b93d1e404fa6c953e13d887f6"
+    },
+    {
+      "file": "web/public/team-logos/lv.png",
+      "bytes": 15136,
+      "sha256": "b6b4354f14829c9cb10184d5079d7655b265fd207f193bc63163cc23892ad536"
+    },
+    {
+      "file": "web/public/team-logos/mia.png",
+      "bytes": 13287,
+      "sha256": "946ec6101cb1fe9da99fe1beea5dda28f40e026bcc8cd7cf2fd7e36adf1e0fe1"
+    },
+    {
+      "file": "web/public/team-logos/min.png",
+      "bytes": 16756,
+      "sha256": "b02519e50cb03a87ff17e51f4d7f93cb2ab98e0340374f2fcca6c94287bb3c53"
+    },
+    {
+      "file": "web/public/team-logos/ne.png",
+      "bytes": 7432,
+      "sha256": "e880aec30e9582eb963c35d87b6070a819f1163e15ecb6a2cddc4d359ffd8c45"
+    },
+    {
+      "file": "web/public/team-logos/no.png",
+      "bytes": 12714,
+      "sha256": "d8cb70ad5ca105de779983a8ca9676b4f510f339ae701a754eedf338bd670438"
+    },
+    {
+      "file": "web/public/team-logos/nyg.png",
+      "bytes": 3150,
+      "sha256": "aaec250fbf4c938e9c4df4b1a8b758fc401e7e69b7441d6bc0a973fe3a8e1245"
+    },
+    {
+      "file": "web/public/team-logos/nyj.png",
+      "bytes": 3854,
+      "sha256": "ccf503a38e054fada1795a4858f8fdcad27474b6dce45d91f4ef4df1970ab1e8"
+    },
+    {
+      "file": "web/public/team-logos/phi.png",
+      "bytes": 14302,
+      "sha256": "b8c706cc69999b04675f14cd13a3279fa388b371c0a5d226ff07a4ed00524400"
+    },
+    {
+      "file": "web/public/team-logos/pit.png",
+      "bytes": 15323,
+      "sha256": "af44f1bfc7b3da49a9d61196df6428fa45a180431411aa5381f0e4fc7529ea97"
+    },
+    {
+      "file": "web/public/team-logos/sea.png",
+      "bytes": 7655,
+      "sha256": "390c4c0abe59e2075b8ebc900d50013737c744b1ffe5005740d793221595a1db"
+    },
+    {
+      "file": "web/public/team-logos/sf.png",
+      "bytes": 12620,
+      "sha256": "8ec5d8bb1a09405f1b7a81ff5997b832a5fd1c6f5a06e5d199dc38688b1c3c62"
+    },
+    {
+      "file": "web/public/team-logos/tb.png",
+      "bytes": 17378,
+      "sha256": "c061c1f106347e82d24663b5d97a1ac787a97133692ff788ab988c4f137fd17a"
+    },
+    {
+      "file": "web/public/team-logos/ten.png",
+      "bytes": 15021,
+      "sha256": "4ec8135eba0e61c238da18f2b152be8eaeb94ce55f6ef06315a3983e73fe607a"
+    },
+    {
+      "file": "web/public/team-logos/was.png",
+      "bytes": 7742,
+      "sha256": "b8065fa19b83a58add905ebd204f7abea089421e377a0f360fcbc90d4fe4f78b"
+    }
+  ],
+  "captures": [
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-busy-dark-320-scrolled.png",
+      "bytes": 80417,
+      "sha256": "cacf7df8a2839569dc4cf6391762769cba7283e42249e3dcd2e8063af4dea7bc"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-busy-dark-320.png",
+      "bytes": 80417,
+      "sha256": "cacf7df8a2839569dc4cf6391762769cba7283e42249e3dcd2e8063af4dea7bc"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-busy-dark-390-scrolled.png",
+      "bytes": 88490,
+      "sha256": "e66b5adb526f1039842fd91cb4cf9743ced72cc72cbc280e011fb2247dcab234"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-busy-dark-390.png",
+      "bytes": 88490,
+      "sha256": "e66b5adb526f1039842fd91cb4cf9743ced72cc72cbc280e011fb2247dcab234"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-busy-forced-320-scrolled.png",
+      "bytes": 55771,
+      "sha256": "25cb6b0beef62e4941b54619bd69e07b8b6003e8f7f06e32eb352ed1924ae08a"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-busy-forced-320.png",
+      "bytes": 55771,
+      "sha256": "25cb6b0beef62e4941b54619bd69e07b8b6003e8f7f06e32eb352ed1924ae08a"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-busy-light-320-scrolled.png",
+      "bytes": 93623,
+      "sha256": "5f071b273a25e1a1b2f9aa946c5b434abd8f356996c4a8f3db7b1001fa68994c"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-busy-light-320.png",
+      "bytes": 93623,
+      "sha256": "5f071b273a25e1a1b2f9aa946c5b434abd8f356996c4a8f3db7b1001fa68994c"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-busy-light-390-scrolled.png",
+      "bytes": 105921,
+      "sha256": "baaf77dbad11b298be6acde4b538915920a457f5ffa010c340611584ed9a210e"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-busy-light-390.png",
+      "bytes": 105921,
+      "sha256": "baaf77dbad11b298be6acde4b538915920a457f5ffa010c340611584ed9a210e"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-close-warning-dark-320-scrolled.png",
+      "bytes": 70851,
+      "sha256": "41bb1aec878fdb9f83e6248ba9e2bca6b1edafacca7d75cc37cd40daea2ce228"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-close-warning-dark-320.png",
+      "bytes": 70851,
+      "sha256": "41bb1aec878fdb9f83e6248ba9e2bca6b1edafacca7d75cc37cd40daea2ce228"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-close-warning-dark-390-scrolled.png",
+      "bytes": 76250,
+      "sha256": "e9361890569d702ede762c7f506ca672465de89c3a82599cfc0a9e181af2d2a0"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-close-warning-dark-390.png",
+      "bytes": 76164,
+      "sha256": "7611e4461a45fd0da2053641b04905f2e9b7298e8ebb8615fcf64ccc267b5043"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-close-warning-forced-320-scrolled.png",
+      "bytes": 51431,
+      "sha256": "9c2001bb9b2d1d95bb4c9cd7fe2c1468b12c7380f51e905165fbb80fc67ab50e"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-close-warning-forced-320.png",
+      "bytes": 51431,
+      "sha256": "9c2001bb9b2d1d95bb4c9cd7fe2c1468b12c7380f51e905165fbb80fc67ab50e"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-close-warning-light-320-scrolled.png",
+      "bytes": 85094,
+      "sha256": "6cb719e3bef0c145ec3248d2ee6bd951088a513b80b05093f4ba9c0527dc8159"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-close-warning-light-320.png",
+      "bytes": 85094,
+      "sha256": "6cb719e3bef0c145ec3248d2ee6bd951088a513b80b05093f4ba9c0527dc8159"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-close-warning-light-390-scrolled.png",
+      "bytes": 93641,
+      "sha256": "d8ff5a288b62bd814579c421176b24c21ebf618bdcb1d42f25a222795d09d7d2"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-close-warning-light-390.png",
+      "bytes": 93641,
+      "sha256": "d8ff5a288b62bd814579c421176b24c21ebf618bdcb1d42f25a222795d09d7d2"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-done-dark-320-scrolled.png",
+      "bytes": 73688,
+      "sha256": "25406b80ccf56a5a6f3581d74fae2eff4e657449e65fbd759e8b21d0cdc33d01"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-done-dark-320.png",
+      "bytes": 73688,
+      "sha256": "25406b80ccf56a5a6f3581d74fae2eff4e657449e65fbd759e8b21d0cdc33d01"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-done-dark-390-scrolled.png",
+      "bytes": 78659,
+      "sha256": "0dc47bc8afa0fcc90f4db0a92513a564a52014324eef61cc924582aee03c4c74"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-done-dark-390.png",
+      "bytes": 78659,
+      "sha256": "0dc47bc8afa0fcc90f4db0a92513a564a52014324eef61cc924582aee03c4c74"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-done-forced-320-scrolled.png",
+      "bytes": 49667,
+      "sha256": "e04c940066724635ddcc5d130cc37b9480bb41378350f8ea467a6a57290220cb"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-done-forced-320.png",
+      "bytes": 49667,
+      "sha256": "e04c940066724635ddcc5d130cc37b9480bb41378350f8ea467a6a57290220cb"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-done-light-320-scrolled.png",
+      "bytes": 88813,
+      "sha256": "461e4e219791ba4689dda321e78d7735660cc8b2ff76ae99e756704c228b321d"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-done-light-320.png",
+      "bytes": 88813,
+      "sha256": "461e4e219791ba4689dda321e78d7735660cc8b2ff76ae99e756704c228b321d"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-done-light-390-scrolled.png",
+      "bytes": 93924,
+      "sha256": "e8f7d8ed78f66a1e276d417167be0377d15060192c70fd4b93414bbea3197da4"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-done-light-390.png",
+      "bytes": 93924,
+      "sha256": "e8f7d8ed78f66a1e276d417167be0377d15060192c70fd4b93414bbea3197da4"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-loading-dark-320-scrolled.png",
+      "bytes": 83770,
+      "sha256": "09b9494f5ad42536611f58cc7f557e2b6b8e544dd48c0986d08e102fc89e230e"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-loading-dark-320.png",
+      "bytes": 83770,
+      "sha256": "09b9494f5ad42536611f58cc7f557e2b6b8e544dd48c0986d08e102fc89e230e"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-loading-dark-390-scrolled.png",
+      "bytes": 91987,
+      "sha256": "7f24be1ba16e959d1e7e32d9d4f567557f30d2781b3271f0306c5b72c7d55077"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-loading-dark-390.png",
+      "bytes": 91987,
+      "sha256": "7f24be1ba16e959d1e7e32d9d4f567557f30d2781b3271f0306c5b72c7d55077"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-loading-forced-320-scrolled.png",
+      "bytes": 55817,
+      "sha256": "02fd71c78839ab2cd0ce9d5734a13dcf422dafbb0119d12e5fbf93aaee9e718a"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-loading-forced-320.png",
+      "bytes": 55817,
+      "sha256": "02fd71c78839ab2cd0ce9d5734a13dcf422dafbb0119d12e5fbf93aaee9e718a"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-loading-light-320-scrolled.png",
+      "bytes": 97043,
+      "sha256": "cb1aa7fed8296af7119862de5633ebf3797a437342e83e499cc99f8cb13edb2b"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-loading-light-320.png",
+      "bytes": 97043,
+      "sha256": "cb1aa7fed8296af7119862de5633ebf3797a437342e83e499cc99f8cb13edb2b"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-loading-light-390-scrolled.png",
+      "bytes": 109554,
+      "sha256": "cea81cab446eab518c7fc9d9443fb2a6bd83025e9703af18b1d3c624cb924676"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-loading-light-390.png",
+      "bytes": 109554,
+      "sha256": "cea81cab446eab518c7fc9d9443fb2a6bd83025e9703af18b1d3c624cb924676"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-ready-dark-320-scrolled.png",
+      "bytes": 93067,
+      "sha256": "4a4c4370c4bc037c71700b2fb4c1b58132e83c59cc1ec51b9499b8baf2891a5a"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-ready-dark-320.png",
+      "bytes": 93067,
+      "sha256": "4a4c4370c4bc037c71700b2fb4c1b58132e83c59cc1ec51b9499b8baf2891a5a"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-ready-dark-390-scrolled.png",
+      "bytes": 100721,
+      "sha256": "e1bc26f7b1779f09b6f91ad2bcfd55144e9a8bd0063b662b881a5ada171bc491"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-ready-dark-390.png",
+      "bytes": 100721,
+      "sha256": "e1bc26f7b1779f09b6f91ad2bcfd55144e9a8bd0063b662b881a5ada171bc491"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-ready-forced-320-scrolled.png",
+      "bytes": 59346,
+      "sha256": "4e922c196a1de7b8e3e5c18d7ec09856997594fecbbec41512c49016fd0e0900"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-ready-forced-320.png",
+      "bytes": 59346,
+      "sha256": "4e922c196a1de7b8e3e5c18d7ec09856997594fecbbec41512c49016fd0e0900"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-ready-light-320-scrolled.png",
+      "bytes": 106752,
+      "sha256": "ba09d558088c42c300cf69c7bda9c6660b9b507cde02d3c548ac14173ab0b86a"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-ready-light-320.png",
+      "bytes": 106752,
+      "sha256": "ba09d558088c42c300cf69c7bda9c6660b9b507cde02d3c548ac14173ab0b86a"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-ready-light-390-scrolled.png",
+      "bytes": 115121,
+      "sha256": "d60083eae4b8e5ced1b8de5944ddc377ec9e9f488a7bb2419886d721cd8d604e"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-ready-light-390.png",
+      "bytes": 115121,
+      "sha256": "d60083eae4b8e5ced1b8de5944ddc377ec9e9f488a7bb2419886d721cd8d604e"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-unconfirmed-dark-320-scrolled.png",
+      "bytes": 91653,
+      "sha256": "971ecfa8915225588ff2494c5fe9272ae8443e8daac0283518b9c40fa1a7bbed"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-unconfirmed-dark-320.png",
+      "bytes": 91653,
+      "sha256": "971ecfa8915225588ff2494c5fe9272ae8443e8daac0283518b9c40fa1a7bbed"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-unconfirmed-dark-390-scrolled.png",
+      "bytes": 98379,
+      "sha256": "c5cc7850116d50a68ebb3fbf27e35fc7b4370904f069c8ee7a83dc7724d4d6e5"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-unconfirmed-dark-390.png",
+      "bytes": 97353,
+      "sha256": "b8dffdb44fd0abac7a0b6b33959064354f4e8cd1cea2e2ec6f216cf024365327"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-unconfirmed-forced-320-scrolled.png",
+      "bytes": 59313,
+      "sha256": "dfb3f121dd31af60da4b1c2120a97a42856ca7645b21d3889877dac86b148d5b"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-unconfirmed-forced-320.png",
+      "bytes": 59313,
+      "sha256": "dfb3f121dd31af60da4b1c2120a97a42856ca7645b21d3889877dac86b148d5b"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-unconfirmed-light-320-scrolled.png",
+      "bytes": 105136,
+      "sha256": "eb867097007a65c8d477f58cdeee84d26fa8fa0aaab923a9f7d572c6917aff2e"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-unconfirmed-light-320.png",
+      "bytes": 105136,
+      "sha256": "eb867097007a65c8d477f58cdeee84d26fa8fa0aaab923a9f7d572c6917aff2e"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-unconfirmed-light-390-scrolled.png",
+      "bytes": 113309,
+      "sha256": "dbe9612da9d0eb546f7f3b36cc3cbe4fc6260692ad0633eada549f9ab4ca3a37"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/forfeit-unconfirmed-light-390.png",
+      "bytes": 113309,
+      "sha256": "dbe9612da9d0eb546f7f3b36cc3cbe4fc6260692ad0633eada549f9ab4ca3a37"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/identity-games-dark-320.png",
+      "bytes": 236709,
+      "sha256": "29672bd1f82626197ea619f0421ed2b71596e8887400f3c5ee8efc8128f37b1c"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/identity-games-dark-390.png",
+      "bytes": 252125,
+      "sha256": "a5c4f163406f72a52b29a1e5e397278465f146b25da02415c33331f4507b3740"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/identity-games-light-320.png",
+      "bytes": 251717,
+      "sha256": "ae12428b7a32e2aec74b78fda318a36b94ff1d3601ac36941478515a6abe29b5"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/identity-games-light-390.png",
+      "bytes": 262399,
+      "sha256": "f5e73cd1cac8139e5e927c8b73d0391a1241a88fa49cb05b640167ab07b9533b"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-admin-dark-320-scrolled.png",
+      "bytes": 96080,
+      "sha256": "bf2aa5ba55cdf197eb0c07dd621b6e79c500004634706f858b7f887e176a5f8f"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-admin-dark-320.png",
+      "bytes": 109248,
+      "sha256": "5d889f8f0ccc951c7d29e47a28f8ef9f20f4fcb7c6f803f4afe52df0620ca114"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-admin-dark-390-scrolled.png",
+      "bytes": 103439,
+      "sha256": "807d85477411d77024367042d777f203975945c714154cb74ac7f56290e01048"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-admin-dark-390.png",
+      "bytes": 117678,
+      "sha256": "181ba4b05637c2938491e59db3a8e107a974cb154619d194cb7acb4b5bf959f1"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-admin-forced-320-scrolled.png",
+      "bytes": 44083,
+      "sha256": "b6d2e6c4d0d411ff71ef789c711a72f3a212302b9746451c1d61b8e7ac390811"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-admin-forced-320.png",
+      "bytes": 43667,
+      "sha256": "25ae759d6704308bea122f35a58ae3470cc1b35495d1655d70aefbdb78e63cd8"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-admin-light-320-scrolled.png",
+      "bytes": 87393,
+      "sha256": "bd5a15629ece6073cf94a9c491fb7f11284cd94887ea08278cb4f9190ee5f710"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-admin-light-320.png",
+      "bytes": 96591,
+      "sha256": "4cc28fa878447d175070a6717484aeccdc53c3e8983319f099742ee68e26fd72"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-admin-light-390-scrolled.png",
+      "bytes": 96193,
+      "sha256": "ffea1a747f415bef2a13d8d20f4ff6fe5c729463969366affd3094c92a34901a"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-admin-light-390.png",
+      "bytes": 108455,
+      "sha256": "b71fdce915dec3bb7bbb4e77022129656bcb383d7195018c9c199756537d758a"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-busy-dark-320-scrolled.png",
+      "bytes": 96392,
+      "sha256": "6618e0106c6a387f41951ef1440343c12ec970ff52af709493439a316f3ad144"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-busy-dark-320.png",
+      "bytes": 110680,
+      "sha256": "d46635bba3d3d2bfd481f41589d9ddf95ce2d48b047cab35a63f0994979827da"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-busy-dark-390-scrolled.png",
+      "bytes": 103876,
+      "sha256": "df449136f12598cbae61dde70313c7329a15b741fa81ee2b8a3297794660e147"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-busy-dark-390.png",
+      "bytes": 119897,
+      "sha256": "0988315fd95ec43bc20c1f71cf9daafb98e9b1198f801c2b6c610b8a2b14a121"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-busy-forced-320-scrolled.png",
+      "bytes": 44335,
+      "sha256": "79176c9bfd395c207c6e72460cf2e1a1eb24e687f754cbbedbf85894dd4ac3ed"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-busy-forced-320.png",
+      "bytes": 44094,
+      "sha256": "f3a782e56c00ad0bc57784b61bf533953b14b5fdf955eb30e7f445582dc831de"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-busy-light-320-scrolled.png",
+      "bytes": 87764,
+      "sha256": "8d14f0b9d4e7cb9babd1d039c948d092da2e23ef040f0120dae1f2975fd46ffb"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-busy-light-320.png",
+      "bytes": 98104,
+      "sha256": "1f32cf838976132c2c5e1ba3ddd7bd61b83f5b5d1319d43a3c5576666521b497"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-busy-light-390-scrolled.png",
+      "bytes": 96496,
+      "sha256": "12a7bf6bb084450df8a6a9a212c1510160b295039cdc5ea5974d9cbd930ee3de"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-busy-light-390.png",
+      "bytes": 109166,
+      "sha256": "484c09d21fc37c64da96484554622ee381e01b9518e2bd97abc46ae06aaf301a"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-dark-320-scrolled.png",
+      "bytes": 96041,
+      "sha256": "66379f7bd3e47b023c6d4ad8837fdd0c349e22b1b38e69f6f81b55f71f9d2cf7"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-dark-320.png",
+      "bytes": 110680,
+      "sha256": "d46635bba3d3d2bfd481f41589d9ddf95ce2d48b047cab35a63f0994979827da"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-dark-390-scrolled.png",
+      "bytes": 103401,
+      "sha256": "8ff1c28e9ad1ca67b80c10a54df248f82b1b42a2622170be3eb3316e6296884a"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-dark-390.png",
+      "bytes": 119897,
+      "sha256": "0988315fd95ec43bc20c1f71cf9daafb98e9b1198f801c2b6c610b8a2b14a121"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-forced-320-scrolled.png",
+      "bytes": 44059,
+      "sha256": "9bf486588d6f7d3ab9058a6e974ab6672b3f1d176d75380c88127f69773e44cf"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-forced-320.png",
+      "bytes": 44094,
+      "sha256": "f3a782e56c00ad0bc57784b61bf533953b14b5fdf955eb30e7f445582dc831de"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-light-320-scrolled.png",
+      "bytes": 87351,
+      "sha256": "147454ae13c0fd8eb01c30de7188141ee5d80463095a7d31b9bc7d3ebdc307b0"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-light-320.png",
+      "bytes": 98104,
+      "sha256": "1f32cf838976132c2c5e1ba3ddd7bd61b83f5b5d1319d43a3c5576666521b497"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-light-390-scrolled.png",
+      "bytes": 96099,
+      "sha256": "62a8aeecf632f04b08e4d690c8403c0a61b5e52cf0f488e81cc8a893597e373d"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-light-390.png",
+      "bytes": 109166,
+      "sha256": "484c09d21fc37c64da96484554622ee381e01b9518e2bd97abc46ae06aaf301a"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-no-reminders-dark-320-scrolled.png",
+      "bytes": 99341,
+      "sha256": "422d39df6f0c93bb4097b7f0d04f73d59774cefc1993d0d2396d2efb5914c350"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-no-reminders-dark-320.png",
+      "bytes": 111476,
+      "sha256": "5646733ec9493a60455d13833c6e404cb639c08bb0d4112a746324a3ece8b823"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-no-reminders-dark-390-scrolled.png",
+      "bytes": 107020,
+      "sha256": "c130ac8b7b6c8c190f6e0746b6f63c6eb75fc080e7ce21f9b683000b1ee81a77"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-no-reminders-dark-390.png",
+      "bytes": 120678,
+      "sha256": "178811787312661c84766ed466ca9ddfa45c0e99c2e44a7c1727eaba91871671"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-no-reminders-forced-320-scrolled.png",
+      "bytes": 44172,
+      "sha256": "c85c8e2de316b25089b75b4e5a26ca26a2d166ede841c0e6c65549aa6c80b063"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-no-reminders-forced-320.png",
+      "bytes": 44545,
+      "sha256": "6f437bf8972cd57ee6a3deaaa8f9e060253175cdbf19a251b4a84ac9fa17a40d"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-no-reminders-light-320-scrolled.png",
+      "bytes": 91493,
+      "sha256": "d55fbd7348c0dd5dea3aad60c28e12028ae81ad1fcd578f02e82e7a0eb8fb39d"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-no-reminders-light-320.png",
+      "bytes": 98842,
+      "sha256": "ec7f2544f4560d50f0c22c6589c3269f25945c6dde0b8d57bd22ab80f0948b6c"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-no-reminders-light-390-scrolled.png",
+      "bytes": 100472,
+      "sha256": "64dbeadc9901acaf46059d7309d5836580ced30c147d90f5d9296abb3cd06b50"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/menu-no-reminders-light-390.png",
+      "bytes": 109941,
+      "sha256": "ebdf62997b95a3c40fad88c5b45251999dc8bc50eed7375eb9c3644999973368"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/saved-scope-dark-320-scrolled.png",
+      "bytes": 63457,
+      "sha256": "b165d7e8202a0bb29d428d49e8076b54b20a1641feb491fea254caa5961a0c69"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/saved-scope-dark-320.png",
+      "bytes": 63755,
+      "sha256": "031b6755f29ee51f53b8093c32a364622fcb826d9e303ed037fa8bb1ef0269a0"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/saved-scope-dark-390-scrolled.png",
+      "bytes": 67800,
+      "sha256": "fcd6f7d57bdd96caf6f9b340a189d5e38f1000c8b6cf610b10773ed40347f339"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/saved-scope-dark-390.png",
+      "bytes": 66861,
+      "sha256": "880cffbdff6b3b7e3db9deda06c5154d3df9139f8a13823ffb043a1b6c2f6392"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/saved-scope-forced-320-scrolled.png",
+      "bytes": 42450,
+      "sha256": "cabae5c37813c056439eab6fbed5ab1ab3bc4dc86ccb95c027110aba9e288c99"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/saved-scope-forced-320.png",
+      "bytes": 42450,
+      "sha256": "cabae5c37813c056439eab6fbed5ab1ab3bc4dc86ccb95c027110aba9e288c99"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/saved-scope-light-320-scrolled.png",
+      "bytes": 74567,
+      "sha256": "ba755d850cdfe34021bcaf0f11deacaf771490cdb2a3be9678c2418ddd177d94"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/saved-scope-light-320.png",
+      "bytes": 74142,
+      "sha256": "17f7d4227f89ccf1c1e6e75f46ee58c623b00765d516fdc705571b1fcb354dd6"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/saved-scope-light-390-scrolled.png",
+      "bytes": 79529,
+      "sha256": "03b0b6f777f4fe2c0310abdb96252680352b304c8b0079fbf0cfc24a7445f06f"
+    },
+    {
+      "file": "design/prism-identity-scope-native-2026-11-07/saved-scope-light-390.png",
+      "bytes": 79528,
+      "sha256": "ff282ad028f4a207d42bb35694733cf2598ac15e188a366928ef94ca318e4c58"
+    }
+  ],
+  "captureCount": 114,
+  "distinctDarkLightPairs": 46,
+  "coverage": {
+    "coreScenarios": 43,
+    "pairedNative": 38,
+    "unverified": 0,
+    "held": [
+      "navigation-nfl",
+      "navigation-epl",
+      "navigation-nfl-only",
+      "navigation-layer-failed",
+      "virtual-minimum"
+    ],
+    "newPairs": [
+      "menu",
+      "menu-admin",
+      "menu-no-reminders",
+      "menu-busy",
+      "saved-scope"
+    ],
+    "forfeitAccountMismatch": "actual account transition purges dialog before remount; separate component guard proof only"
+  },
+  "checks": {
+    "typecheck": "passed",
+    "vitest": "91 files / 919 tests passed",
+    "node": "41 passed; no skips",
+    "browser": "15 passed; no skips; 1.7 minutes",
+    "brand": "passed (python -X utf8)",
+    "cloudBuild": "passed; existing chunk warning",
+    "bundlePrivacy": "passed",
+    "hosted": "not run",
+    "finalFollowup": "919 Vitest + type/Brand repeated after raw title-key preservation; two game-label/action browsers passed again; final cloud build/privacy repeated"
+  },
+  "limits": [
+    "Global header/sports-row/dock position remains held",
+    "Commissioner wording is separately owned",
+    "No new avatars/photos, NBA or award exploration",
+    "No source-data, scoring, collection, provider, SQL or API change",
+    "No full 106-reference, real-device or hosted acceptance claim"
+  ]
+}

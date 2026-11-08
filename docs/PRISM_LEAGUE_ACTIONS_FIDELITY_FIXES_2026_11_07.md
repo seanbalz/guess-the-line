@@ -1,5 +1,12 @@
 # League and NFL action review fixes — November 7, 2026
 
+Latest scoped follow-up: [Menu, saved-scope and shared identity evidence](PRISM_IDENTITY_SCOPE_NATIVE_2026_11_07.md)
+now covers the five former unverified core states. Current reconciliation is
+38 native pairs, zero unverified and five held. Actual account transition purges
+the dialog; its defensive account-changed branch has separately labeled
+controlled component proof, not a fabricated native capture. The original
+fidelity-fix record below is preserved as dated evidence.
+
 Status: local fixes and expanded native verification; independent parent review
 and integration remain pending. Exclusive branch
 `codex/league-action-fidelity-fixes-2026-11-07` starts at freshly fetched

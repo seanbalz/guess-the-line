@@ -1826,7 +1826,7 @@ test('game action bar opens the selected matchup and market without writing or d
     // On opening, the game's actions are on screen at 320 px. (Checked once: the axe helper below may shift the page to
     // clear the bars, so later passes scroll to the note and the actions first.)
     await page.setViewportSize({ width: 320, height: 844 });
-    await expect(actions.getByRole('button', { name: 'Open Spread for HOU at JAX' })).toBeInViewport();
+    await expect(actions.getByRole('button', { name: 'Open Spread for Houston Texans at Jacksonville Jaguars' })).toBeInViewport();
     for (const theme of ['dark', 'light']) {
       await setCaptureTheme(page, theme);
       await page.setViewportSize({ width: 320, height: 844 });
@@ -1841,10 +1841,10 @@ test('game action bar opens the selected matchup and market without writing or d
     const note = gameLayer(page, 'Texans @ Jaguars').getByRole('textbox', { name: 'Your note' });
     await note.fill('A private unsaved note');
     page.once('dialog', dialog => dialog.dismiss());
-    await actions.getByRole('button', { name: 'Open Spread for HOU at JAX' }).click();
+    await actions.getByRole('button', { name: 'Open Spread for Houston Texans at Jacksonville Jaguars' }).click();
     await expect(note).toHaveValue('A private unsaved note');
     await note.fill('');
-    await actions.getByRole('button', { name: 'Open Spread for HOU at JAX' }).click();
+    await actions.getByRole('button', { name: 'Open Spread for Houston Texans at Jacksonville Jaguars' }).click();
     // D-70: the game action opens that game's own card in Your guesses, its heading focused; the week is one lip back.
     const spread = page.getByRole('article', { name: 'HOU at JAX Spread', exact: true });
     const heading = page.getByRole('heading', { name: 'HOU @ JAX', exact: true });
@@ -1858,7 +1858,7 @@ test('game action bar opens the selected matchup and market without writing or d
     await expect(page.locator('[data-tile="SEA-DEN"]')).toHaveAttribute('data-state', 'draft');
     await expect(page.locator('[data-tile="HOU-JAX"]')).toHaveAttribute('data-state', 'draft');
     await page.goto('/#research/games'); await card(page, 'HOU-JAX').click();
-    await gameLayer(page, 'Texans @ Jaguars').getByRole('button', { name: 'Open Total for HOU at JAX' }).click();
+    await gameLayer(page, 'Texans @ Jaguars').getByRole('button', { name: 'Open Total for Houston Texans at Jacksonville Jaguars' }).click();
     const total = page.getByRole('article', { name: 'HOU at JAX Total', exact: true });
     await expect(page.getByRole('heading', { name: 'HOU @ JAX', exact: true })).toBeFocused(); await expect(total).toContainText('Locked in');
     await expect(total.getByRole('button', { name: 'Lock in Total', exact: true })).toHaveCount(0);

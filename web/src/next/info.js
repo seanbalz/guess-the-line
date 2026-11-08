@@ -121,7 +121,7 @@ export const INFO = Object.freeze({
   },
   scores: {
     title: 'About your scores',
-    body: ['Points measure how close your guess was to its saved scoring line. NFL results do not change those points.'],
+    body: ['Points measure how close your guess was to its saved scoring line. National Football League results do not change those points.'],
   },
   weather: {
     title: 'About weather',

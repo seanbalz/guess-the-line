@@ -303,12 +303,16 @@ reference math/data only and must not enter the production bundle.
 
 ### 01. Shared system and shell
 
+Local follow-up: [shared identity/Menu/scope evidence](PRISM_IDENTITY_SCOPE_NATIVE_2026_11_07.md) verifies all four real Menu variants, primary sit-out prose and native material/identity regressions. Header/sports-row/dock positions remain held; independent review/integration and deployment remain open.
+
 - [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
 - Reference: `selected-system-review.json; selected-system-review.js; prism-refinement.css; visual-icon-treatments.css; populated-nfl-actions; NFL_ACTIONS_NAVIGATION_REVIEW.md`.
 - Native targets: `styles/tokens.css, base.css, components.css; ui primitives; shell/Frame.jsx and shell.css; me/MenuSheet.jsx`.
 - Required presentation and behavior: Themes/type/material/icons, cards/buttons/inputs/chips/dialogs/sheets/charts; four tabs, access-defined sports, NFL-only, admin/non-admin/reminder-disabled/busy Menu and failed layers. Retain routes, badge semantics and native controllers.
 
 ### 02. Team/league identity and wording
+
+Local follow-up: [source and capture audit](PRISM_IDENTITY_SCOPE_NATIVE_2026_11_07.md) corrects Games bar/action names, league descriptions and app-authored rendered trend titles while preserving source attribution/IDs. Native circle/decode/badge/letter proofs pass. Separate Commissioner wording and independent combined review remain pending; no whole-app completion is inferred.
 
 - [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
 - Reference: `selected-league-marks.js; selected-team-circles.js; selected-league-wording.js; LEAGUE_CIRCLES_SELECTED_REVIEW.md; TEAM_LEAGUE_CIRCLES_REVIEW.md; LEAGUE_WORDING_REVIEW.md`.

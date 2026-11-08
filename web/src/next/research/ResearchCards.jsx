@@ -1,3 +1,4 @@
+import { leagueWords } from '../leagueWords.js';
 import { lazy, Suspense, useId, useRef, useState } from 'react';
 import { Button, Card, InfoButton, Matchup, Skeleton } from '../ui/index.js';
 import { TrendDetail, lineSelectionKey } from '../charts/TrendDetail.jsx';
@@ -88,7 +89,7 @@ function ResearchDetail({ candidateId, request, withChart, selection, preparedCa
       {withChart && line ? <TrendLine id={chartId} values={line.values} tip={line.tip} start={line.start} end={line.end} label={line.label} selectedIndex={localSelection.index} onSelect={localSelection.onSelect}/> : null}
       <HistoricalTable candidate={candidate} selection={linked}/>
       <p className="gx-t-meta">Qualification uses the canonical recent sample, regardless of this display period. {candidate.qualification.label}. {(candidate.qualification.reasons ?? []).map(reason).join(' ')}</p>
-      <p className="gx-t-meta">Conditions: {candidate.conditionDescriptions?.join('; ') || 'See situation title'}. Registered {researchDate(candidate.registeredAt)} · {candidate.sourceState === 'source-reported' ? 'Source-reported · not verified' : 'Computed from permitted NFL history'}.</p>
+      <p className="gx-t-meta">Conditions: {leagueWords(candidate.conditionDescriptions?.join('; ')) || 'See situation title'}. Registered {researchDate(candidate.registeredAt)} · {candidate.sourceState === 'source-reported' ? 'Source-reported · not verified' : 'Computed from permitted National Football League history'}.</p>
       <RecordSummary record={candidate.recent} label="Canonical recent sample"/>
       <RecordSummary record={candidate.seasonRecord} label="Snapshot season"/>
       <RecordSummary record={candidate.historical} label="Available history"/>
@@ -127,10 +128,10 @@ export function researchSeasons(candidate) {
   const r = candidate.record, pct = hitPct(r.wins, r.losses);
   return {
     rows: candidate.perSeason.map(s => ({ season: s.season, w: s.wins, l: s.losses, p: s.pushes, units: s.illustrativeUnits })),
-    caption: `${PERIODS[candidate.period] ?? 'Selected sample'} · NFL seasons · Illustrative units at -110`,
+    caption: `${PERIODS[candidate.period] ?? 'Selected sample'} · National Football League seasons · Illustrative units at -110`,
     headline: { value: `${signed(r.illustrativeUnits)} U`, sub: `${recordText(r.wins, r.losses, r.pushes)} · Illustrative units at -110` },
     tiles: [{ label: 'Win rate', value: pct === null ? '—' : `${pct}%`, meter: pct },
-      { label: 'Games', value: String(r.sample), sub: `${candidate.perSeason.length} NFL seasons` }],
+      { label: 'Games', value: String(r.sample), sub: `${candidate.perSeason.length} National Football League seasons` }],
   };
 }
 const consistencyText = candidate => (candidate.sourceState === 'source-reported' ? 'Source-reported · not verified'

@@ -270,7 +270,7 @@ test('game layer action bar and note buttons keep one-line labels at 320 and 390
       const sheet = page.locator('[data-research="game"]');
       await expect(sheet).toBeVisible();
       const bar = sheet.getByRole('navigation', { name: 'Actions for this game', exact: true });
-      await expect(bar.getByRole('button', { name: 'Open League bets for SEA at DEN', exact: true })).toHaveText('Bets');
+      await expect(bar.getByRole('button', { name: 'Open League bets for Seattle Seahawks at Denver Broncos', exact: true })).toHaveText('Bets');
       const dock = await bar.getByRole('button').evaluateAll(lineCount);
       expect(dock.map(button => button.label), `${width}px: the bar's buttons`).toEqual(['Spread', 'Total', 'Bets']);
       expect(dock.filter(button => button.lines > 1), `${width}px: one-line labels in the action bar`).toEqual([]);
