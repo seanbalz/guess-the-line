@@ -1,5 +1,12 @@
 # Prism commissioner tools — native port, November 7, 2026
 
+The subsequent [fidelity correction record](PRISM_COMMISSIONER_FIDELITY_FIXES_2026_11_07.md)
+supersedes the initial footer placement, retained primary/error styling and
+capture coverage described below. Source
+`055e5840fa133e89b23a5bf2e155ce0da7e5e206` adds pinned tool actions, operational
+reading proof and five-game coverage. The current manifest labels 205 refreshed
+and 22 retained images separately; this remains unpublished local evidence.
+
 This local port covers rollout areas 29–34. The approved reference is the read-only
 owner-acceptance worktree at `3ac2eb50513ba73447ef890e4a47863cde7bdd76`, especially
 the six populated commissioner/status/referees/final-review/odds-connection/EPL
@@ -43,9 +50,9 @@ capture checks assert no layout problems, 44px targets, 16px action labels and n
 axe WCAG A/AA violations. Fixture accounts, supplied response states and local
 PGlite are test evidence, not hosted observations.
 
-Verification passed 17 focused browser tests, then both final-review tests after
+Initial-port verification passed 17 focused browser tests, then both final-review tests after
 the final dialog underlay adjustment; 13 component tests and 69 Node/PGlite checks.
-The manifest records 196 captures, 140 theme/layout checks across 40 named states,
+The initial manifest recorded 196 captures, 140 theme/layout checks across 40 named states,
 78 approved reference-image hashes and 20 native source/test/foundation hashes.
 Representative images were inspected; this is not a claim that every image was
 individually visually reviewed. Verification commands are recorded in the manifest. Required

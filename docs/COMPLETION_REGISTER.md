@@ -36,6 +36,16 @@ behavior checks, and records 18 unique browser passes across focused runs plus
 913 component tests/type/27 strict Node contracts/Brand/build/privacy. Independent review approved parent repair
 `596596f5852d74f703915620584fbd7c4a1fdc2e` without Critical/Important findings.
 Exact-source CI and remaining full-scope ports/release gates remain required. No remaining rollout deployment is claimed.
+## Commissioner tool fidelity correction — November 7, 2026
+
+Unpublished branch `codex/commissioner-fidelity-fix`, source
+`055e5840fa133e89b23a5bf2e155ce0da7e5e206`, pins each tool's footer, corrects retained
+final-review primary and error typography, and adds five-game compact/full draft
+coverage. [Evidence and limits](PRISM_COMMISSIONER_FIDELITY_FIXES_2026_11_07.md)
+record 11 affected browser flows, 13 components, 69 Node/PGlite tests, typecheck,
+Brand QA, final build/privacy and 227 hashed captures (205 refreshed, 22 retained).
+No API/SQL/provider/controller-save rule changed. No push, PR, merge, migration
+apply or deployment; independent review and integration remain pending.
 
 ## Integrated Research data and League/action review closeout — November 7, 2026
 
