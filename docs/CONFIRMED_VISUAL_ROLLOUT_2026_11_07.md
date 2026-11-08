@@ -204,18 +204,43 @@ This approval is source review, not owner acceptance of held layouts or a releas
   and explicit migration-apply authorization. Do not present unsupported values
   as saveable or treat this dependency as an unanswered design choice.
 
-### Navigation discrepancy found during implementation
+### Frame authority reconciliation and remaining work
 
-The approved Home/overview captures use the logo-and-league header and floating
-bottom bar. The separately approved `league-wording-native-nfl-dark-phone.png`
-and `league-wording-native-epl-light-phone.png` instead retain Community/FEPL
-in the header, a separate centered sports row and a full-width bottom bar.
-This is a concrete conflict between approved references, not a reopened palette
-or material decision. One owner question with both existing references asks
-which arrangement should govern the other screens. Structural changes to those
-headers/docks are held pending the reply; native league switching remains
-reachable. The separately approved Home spacing release and independent area
-implementation continue. No new Menu switcher placement is inferred.
+The earlier broad global-header question is not treated as answered. A complete
+reference/source audit now distinguishes actual approved contexts: the authored
+compact frame appears in named landings, drafts, tools, History and EPL content;
+native Research-root/EPL shell specimens have their own explicit scope. The
+[reconciliation record](PRISM_FRAME_AUTHORITY_RECONCILIATION_2026_11_07.md)
+transparently supersedes the earlier blanket hold. A genuine same-route FEPL
+Research overlap remains for one queued owner clarification, after the currently
+pending ROI-policy question. No universal frame or alias/data-state split is inferred.
+
+Reviewed source `ece05980` / `a9dcde45`, integrated `4d0b9c5a` / `250294f1`,
+closes only the three National Football League landings and explicit selected
+receipt frame contexts. The expanded unambiguous context matrix is still being
+implemented. Existing area checkboxes record native body/scoped-review work;
+they do not close these remaining outer-frame obligations. Continuity's actual
+failure-host pairing remains an implementation/evidence obligation, not a new
+error-triggered frame rule. Only the earlier Home spacing release is deployed.
+
+The four exact native Research navigation cases are independently reviewed and
+integrated from `28b071d9` / `0153dc77` as `adf6dfd6` / `db2cd735`. Root verified
+24 product, five test/helper, 18 authority, four scenario and 16 image hashes;
+an unset capture-mode generator refused writes and all 21 evidence files stayed
+byte-identical. The historical source/capture time remains intact. This raises
+the historical component reconciliation to **42 paired, zero unverified, one
+held** (Virtual minimum), without resolving FEPL. Its NFL cases used the Games
+host; final expanded native-root cases must use actual ResearchLanding because
+named Games now has positive compact-frame authority. Fresh root-route capture/
+verification remains open; do not treat the historical count as final acceptance.
+
+Final CI at `1ba23696` passed every job except one proven lazy GameDetails initial-
+read observation race. Independent reviewed correction `61cfa3f9` is integrated
+as `8d2b8112`; both natural and controlled-delayed cases pass in root. Initial
+read and each Back return are now separately constrained, with original no-write/
+no-own-team-read/layout/focus checks retained. Current `250294f1` integration
+passes 923 component tests, 27 strict contracts and typecheck; four integrated
+Play/receipt/read-race browsers pass. Fresh final-source CI remains required.
 
 ## Authority and approval boundaries
 

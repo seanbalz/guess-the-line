@@ -1,5 +1,23 @@
 # Guess The Line — current completion register
 
+## Confirmed frame scope reconciled; expanded implementation active — November 7, 2026
+
+[Authority/context mapping](PRISM_FRAME_AUTHORITY_RECONCILIATION_2026_11_07.md)
+replaces the earlier overbroad global-header hold with actual scoped approvals.
+Reviewed landings/selected-receipt source is integrated through `250294f1`;
+additional confirmed contexts remain in progress. FEPL Research has a genuine
+same-route frame overlap, queued after the one pending Virtual ROI-policy question.
+No unanswered question is inferred as approval. Four exact native Research cases
+are reviewed/integrated (historical42paired component scenarios, zero unverified,
+one held Virtual minimum). Fresh final-source native-root mapping is still open
+as named Games moves to its confirmed compact frame. That also does not resolve
+FEPL's separate content-frame choice.
+The sole final-CI read-count race has a reviewed correction integrated `8d2b8112`;
+root natural/delayed cases pass. Current combined 923 component / 27 strict Node /
+typecheck and four integration browsers pass. Final expanded review/CI and release
+remain open. No remaining rollout deployed; no SQL, M-41 enablement, frozen v62 or
+parked-scope changes.
+
 ## Final Prism CI read observation correction — November 7, 2026
 
 [Scoped reproduction and verification](PRISM_FINAL_CI_READ_FIX_2026_11_07.md)
