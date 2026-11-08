@@ -1,8 +1,8 @@
 # Premier League and FEPL native Prism rollout — November 7, 2026
 
-Status: **implemented and checked locally; unpublished; independent parent review required**. No PR, merge, migration, hosted read or deployment.
+Status: **implemented and checked locally; reading-fidelity fixes ready for independent parent re-review; unpublished**. No PR, merge, migration, hosted read or deployment.
 
-The task branch is `codex/prism-epl-visuals-20261107`, owned worktree
+The original implementation branch is `codex/prism-epl-visuals-20261107`, owned worktree
 `C:/Users/sbals/.codex/worktrees/prism-epl-visuals/betting-repo`.
 It was created from freshly fetched `origin/main`, then fast-forwarded to shared
 Prism baseline `7ce04475aaf5e1b7db80e4224fd4bca0a4c34b10`. The shared/root checkout
@@ -56,13 +56,13 @@ added again. Table-source URLs retain their native allowlist and attribution.
 ## Native evidence and commands
 
 [The complete evidence manifest](../design/prism-epl-native-2026-11-07/evidence.json)
-contains **600 unique captures across 67 native state IDs**, exact approved PNG
+contains **640 unique captures across 70 native state IDs**, exact approved PNG
 counterparts and SHA-256 hashes, native source hashes, theme/viewport/scroll
 metadata and the retained-image flag. Every state has Dark/Light 320px and 390px
 full-page and scrolled captures. Representative Home/Moneyline/Fantasy states
 also have 768px/1440px layouts and selected states have 320px forced-color views.
 
-**56 representative images** are committed in
+**72 representative images** are committed in
 `design/prism-epl-native-2026-11-07/`. The other raw images remain local in this
 owned checkout at `.local/prism-epl-captures/`; their hashes and exact locations
 are recorded, and they can be regenerated. This avoids treating local-only
@@ -76,7 +76,7 @@ selected-control fill/ink against the browser's Highlight/HighlightText colors.
 Keyboard Escape, modal focus return, browser Back/Forward and dirty-draft guards
 are exercised. Existing meaningful Axe checks remain in the real app flows.
 
-Checks performed in this owned worktree:
+Original implementation checks (before the reading-fidelity correction below):
 
 - **91/91** focused Vitest UI/controller checks: `npx vitest run tests/epl-app.test.jsx tests/epl-pick.test.jsx tests/epl-guess.test.jsx tests/epl-home-moneyline.test.jsx tests/epl-fantasy.test.jsx`.
 - **68/68** Node model/brand checks: `node --test tests/next-tokens.test.mjs tests/brand-mark.test.mjs tests/epl-draft.test.mjs tests/epl-moneyline.test.mjs tests/epl-fantasy-view.test.mjs`. This includes all 15 Brand QA checks; no floor/token exemptions were added.
@@ -84,10 +84,10 @@ Checks performed in this owned worktree:
 - `npm run typecheck` passed. Cloud-test builds in the browser runs and `npm run build:cloud` passed. The existing large-chunk advisory remains; no CSS syntax warning remains.
 - `node scripts/check-cloud-boundary.mjs --bundle-only` passed against the final cloud build. This was a bundle privacy check, not a live hosted authorization check.
 
-Browser commands used the task-local `.local/playwright-epl.config.mjs`, which
-mirrors the committed `playwright.epl-prism.config.js`: same cloud-test build,
-auth fixture boundary, one worker and exclusive port **5248**. The committed
-configuration provides this reproducible command:
+Original browser commands used the task-local `.local/playwright-epl.config.mjs`
+with the same cloud-test build, auth fixture boundary, one worker and exclusive
+port **5248**. The current committed `playwright.epl-prism.config.js` uses the
+follow-up owner's port **5268** and provides this reproducible command:
 
 ```powershell
 $env:GTL_EPL_CAPTURE='1'
@@ -118,3 +118,76 @@ observed failing, then passed after the native status rendering was added.
 - No avatar/photo/award exploration, NBA/Signal work, SQL, migration, paid data,
   deployment, PR or push. The parent requested a named local commit for review;
   the repository's default push/PR step is therefore intentionally deferred.
+
+## Reading fidelity review correction — November 7, 2026
+
+The follow-up branch `codex/prism-epl-reading-fix-20261107` owns
+`C:/Users/sbals/.codex/worktrees/prism-epl-reading-fix/betting-repo`. It was
+created from freshly fetched `origin/main` at
+`7aa93a6ffe79eafb58bd6c7d12ec230b6d77b0e9`, then fast-forwarded to the exact
+original EPL commit `4ffd4572aa63448e3352ae71716dd48b037d301d`.
+The original implementation, root and approved reference checkouts stayed read-only.
+
+Review found Moneyline instructions styled as 13px metadata. Lock finality,
+reveal guidance, saved/unsaved draft explanations, reference pending/unscored
+explanations, leaderboard rules and validation help now use native body copy at
+16px. The same audit covers Home progress recovery, Pick a Team action/recovery
+sentences and Fantasy gap, unavailable, weekly-detail and bonus explanations.
+Nested tappable match labels, the FEPL league subtitle and standings controls
+also retain 16px. Genuine kickoff/source timestamps, status records, source
+footers and chart keys retain metadata styling. The helper treats paragraphs as
+reading by default and uses explicit source/time/status metadata classification
+in native markup; a `gx-t-meta` class cannot exempt an explanatory paragraph.
+It also checks labels, inputs, selects and nested control text, plus 44px targets.
+No font-floor, token or prefix exemptions were added.
+
+The expanded Revealed guesses marker contained the actual UTF-8 codepoints
+U+00E2/U+02C6/U+2019. Its CSS now uses the ASCII escape `\2212`.
+Browser assertions verify computed U+2212 in both themes, including forced colors.
+UTF-8 codepoint inspection found no other mojibake candidates in EPL source or
+the EPL browser scripts. Native team/source Unicode remains intact.
+
+The new reading assertions first failed on the original 13px lock/reveal
+instructions. After that fix, the expanded-glyph assertion independently failed
+on the original marker. The broader nested-label audit also exposed the small
+control text before its correction. Final checks in this owned worktree:
+
+- **24/24 browser tests passed, zero skipped**, using the four EPL specs and the
+  owned `playwright.epl-prism.config.js` at exclusive port **5268**. This includes
+  the added invalid-price guidance and independent Home progress failure/unavailable
+  cases, actual handler/PGlite lock/save/reveal flows, all reviewed Fantasy inputs,
+  keyboard/focus, Back/Forward, dirty drafts, permission clearing and Axe checks.
+  A further **1/1** focused expanded-reveal rerun passed after adding explicit
+  open-summary and visible-content assertions, refreshing its normal/forced captures.
+- **91/91** focused UI/controller tests and **68/68** model/Brand tests passed
+  using the commands above. The latter includes all **15** strict token checks.
+- `npm run typecheck`, `npm run build:cloud`,
+  `node scripts/check-cloud-boundary.mjs --bundle-only` and `git diff --check`
+  passed. The existing Vite large-chunk advisory remains.
+
+The first capture run passed 23 browser tests; its new Home recovery test used
+the wrong action name for the fixture's current turn. Both native action labels
+are now covered and the complete 24-test set passed again. This was a test
+locator correction; no production behavior changed.
+
+**410 captures across 44 affected state IDs were regenerated**, including the
+affected 320/390 Dark/Light pairs, their existing wide representatives and forced
+colors. These include three added native states: `moneyline-price-help`,
+`home-moneyline-failed` and `home-moneyline-unavailable`. Expanded reveal also has
+new forced-color captures. **230 unaffected original captures retain their exact
+original hashes and capture dates**; they are marked as preserved evidence in the
+manifest. The regenerated entries include measured reading minima/counts,
+computed expanded content and actual saved/resolved theme/token proof. Full
+computed text records remain local in `.local/prism-epl-captures/captures.jsonl`.
+All **600 original raw PNGs and the original manifest** are additionally archived
+in this owned checkout at `.local/prism-epl-baseline-captures/`. None of these
+local-only archives is claimed to be published or synchronized.
+
+The manifest refreshes **27 current source hashes** and retains **10 exact
+controller/model/source invariant hashes**. `MarginChart.jsx` moves from that
+invariant list to source hashes because its review-body paragraph changes only
+its typography class; the original hash is preserved in baseline provenance.
+Its calculations, and all scoring, draft, source, API, SQL, route and grant logic,
+are unchanged. Shared frame/header/sport-row/dock positions and held avatar,
+NBA and award exploration remain outside this fix. Hosted/physical-phone
+acceptance, independent parent re-review and release gates remain open.

@@ -91,6 +91,23 @@ representatives. [Exact scope, checks and evidence](PRISM_ACCOUNT_NATIVE_2026_11
 retain the prior reviewed fixes and metadata floors. Typecheck, unchanged token
 and auth-bridge contracts, Brand QA, cloud build and bundle privacy pass. Parent
 independent review, CI and release gates remain open; no push, PR or deployment.
+## EPL reading fidelity review fixes — November 7, 2026
+
+Exclusive unpublished branch `codex/prism-epl-reading-fix-20261107` corrects the
+reviewed Moneyline instruction floor and expanded-reveal minus glyph, then audits
+Home/Fantasy and action/recovery prose plus nested tappable labels. Primary
+reading, labels and inputs compute at least 16px; targets retain 44px. Genuine
+source/time/status metadata remains small. **24/24** native browser checks,
+**91/91** focused UI/controller and **68/68** model/Brand checks pass, together
+with typecheck, cloud build, bundle privacy and whitespace checks.
+[Scope, red-to-green proof and limits](PRISM_EPL_NATIVE_2026_11_07.md#reading-fidelity-review-correction--november-7-2026)
+and the [updated manifest](../design/prism-epl-native-2026-11-07/evidence.json)
+record 640 images / 70 states: 410 regenerated affected captures, 230 original
+captures preserved, and all 600 originals additionally archived locally. There
+are 72 versioned representatives. Controllers/scoring/source/privacy and shared
+shell positions are retained. Independent parent re-review is required; no push,
+PR, merge, hosted apply or deployment is claimed.
+
 
 ## Premier League and FEPL native Prism — November 7, 2026
 

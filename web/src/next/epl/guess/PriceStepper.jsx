@@ -12,6 +12,6 @@ export default function PriceStepper({ value, onChange, disabled = false, id }) 
         aria-invalid={!valid} aria-describedby={`${id}-help`} onChange={event => onChange(event.target.value)}/>
       <Button aria-label="Increase price by 5" disabled={disabled || !validGuessPrice(stepPrice(value, 1))} onClick={() => onChange(String(stepPrice(value, 1)))}>+</Button>
     </div>
-    <p className="gx-t-meta" id={`${id}-help`}>{valid ? priceText(parsePrice(value)) : `Enter a whole American price of at least +100 or at most −100, with magnitude no greater than ${MAX_GUESS_PRICE.toLocaleString('en-US')} (storage limit).`}</p>
+    <p className="gx-t-body" id={`${id}-help`}>{valid ? priceText(parsePrice(value)) : `Enter a whole American price of at least +100 or at most −100, with magnitude no greater than ${MAX_GUESS_PRICE.toLocaleString('en-US')} (storage limit).`}</p>
   </div>;
 }

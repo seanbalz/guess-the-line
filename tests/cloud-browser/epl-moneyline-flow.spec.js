@@ -166,6 +166,10 @@ test('moneyline screen steps across even odds and recovers a committed lock with
     await page.getByRole('button', { name: 'Arsenal', exact: true }).click();
     await price.fill('-105');
     await captureEpl(page,'moneyline-entry','epl-moneyline-entry',{representative:true,forced:true});
+    await price.fill('99');
+    await expect(page.getByText(/Enter a whole American price of at least/)).toBeVisible();
+    await captureEpl(page,'moneyline-price-help','epl-moneyline-entry validation guidance',{forced:true});
+    await price.fill('-105');
     await page.getByRole('button', { name: 'Increase price by 5', exact: true }).click();
     await expect(price).toHaveValue('100');
     await page.getByRole('button', { name: 'Increase price by 5', exact: true }).click();
@@ -324,8 +328,31 @@ test('Prism native moneyline results distinguish scored, pending and unscored an
   await expect(page.getByText('Reference pending · first qualifying price before kickoff will count',{exact:true})).toBeVisible();
   await captureEpl(page,'moneyline-results-all-statuses','epl-moneyline-results');
   await page.getByText('Revealed guesses · 1',{exact:true}).click();
+  await expect(page.locator('.gx-epl-guess-card details[open] > summary')).toHaveCount(1);
+  await expect(page.locator('.gx-epl-revealed')).toBeVisible();
   await expect(page.locator('.gx-epl-revealed')).toContainText('Chelsea');
-  await captureEpl(page,'moneyline-results-revealed','epl-moneyline-results-revealed');
+  await captureEpl(page,'moneyline-results-revealed','epl-moneyline-results-revealed',{forced:true});
   expect(world.errors).toEqual([]);
  }finally{await world.db.close();}
+});
+
+test('EPL Home keeps moneyline recovery explanations readable while Pick a Team remains available', async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Disposable PGlite required.'); test.setTimeout(90000);
+  const world = await fixture(page, baseURL);
+  let mode = 'failed';
+  const read = (await world.api('troy', 'guess/read')).body;
+  await page.route('**/functions/v1/gtl-api/epl/guess/read', route => route.fulfill({
+    status: mode === 'failed' ? 503 : 200, contentType: 'application/json',
+    body: JSON.stringify(mode === 'failed' ? { error: 'Synthetic progress failure' } : { ...read, available: false, reason: 'prices_not_verified' }),
+  }));
+  try {
+    await page.goto('/#epl/home'); await signIn(page, 'troy', { navigate: false });
+    await expect(page.getByText('Moneyline progress is unavailable. Pick a Team is still available above.', { exact: true })).toBeVisible();
+    await captureEpl(page, 'home-moneyline-failed', 'epl-home-turn moneyline recovery', { representative: true, forced: true });
+    mode = 'unavailable'; await page.reload();
+    await expect(page.getByText('Moneyline guessing isn’t available this week.', { exact: true })).toBeVisible();
+    await captureEpl(page, 'home-moneyline-unavailable', 'epl-home-turn moneyline unavailable', { forced: true });
+    await expect(page.getByRole('button', { name: /^(Open Pick a Team|Make your pick)$/ })).toBeEnabled();
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
 });

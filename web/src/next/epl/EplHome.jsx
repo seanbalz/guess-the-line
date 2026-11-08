@@ -52,12 +52,12 @@ export function EplHomeView({ model, state, now, onOpenPick, onOpenGuess, moneyl
   return <div className="gx-screen gx-epl-home">
     <h1 className="gx-t-title">{HOME_COPY.title(model.week)}</h1>
     {claim}
-    {state?.stale ? <p className="gx-epl-stale gx-t-meta" role="status">{PICK_COPY.stale}</p> : null}
+    {state?.stale ? <p className="gx-epl-stale gx-t-body" role="status">{PICK_COPY.stale}</p> : null}
     <Card as="section" variant="hero" className="gx-epl-hero" aria-labelledby={heroId}>
-      <p className="gx-t-micro gx-epl-kicker">{HOME_COPY.due}</p>
+      <p data-epl-text="metadata" className="gx-t-micro gx-epl-kicker">{HOME_COPY.due}</p>
       <h2 className="gx-epl-headline" id={heroId}>{headline(model)}</h2>
       <Countdown target={model.deadline} now={now} label={HOME_COPY.countdown} doneLabel={HOME_COPY.done} className="gx-epl-cd"/>
-      {first ? <p className="gx-t-meta gx-epl-hero-meta">{fmtWhen(first.kickoff)} · {clubName(first.away)} @ {clubName(first.home)}</p> : null}
+      {first ? <p data-epl-text="metadata" className="gx-t-meta gx-epl-hero-meta">{fmtWhen(first.kickoff)} · {clubName(first.away)} @ {clubName(first.home)}</p> : null}
       <Button variant={model.onClockMe ? 'primary' : 'secondary'} block onClick={onOpenPick}>{model.onClockMe ? HOME_COPY.pickNow : HOME_COPY.open}</Button>
     </Card>
     {model.review || model.standingsSource ? <Card as="section" className="gx-epl-bonus" aria-label="Draft review and source">

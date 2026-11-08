@@ -52,11 +52,11 @@ function RecentBars({ recent }) {
         <span className="gx-epl-fx-pairs" aria-hidden="true">{bar(r.projected, 'proj')}{bar(r.actual, 'actual')}</span>
       </li>)}
     </ul>
-    <p className="gx-epl-fx-legend">
+    <p data-epl-text="metadata" className="gx-epl-fx-legend">
       <span className="gx-epl-fx-key gx-epl-fx-key--proj">{FANTASY_COPY.projected}</span>
       <span className="gx-epl-fx-key gx-epl-fx-key--actual">{FANTASY_COPY.actual}</span>
     </p>
-    {recent.some(r => !finite(r.projected) || !finite(r.actual)) ? <p className="gx-t-meta gx-c-2">{FANTASY_COPY.gapNote}</p> : null}
+    {recent.some(r => !finite(r.projected) || !finite(r.actual)) ? <p className="gx-t-body gx-c-2">{FANTASY_COPY.gapNote}</p> : null}
   </>;
 }
 
@@ -70,7 +70,7 @@ export function MatchupPanel({ view }) {
       {m.unavailable
         ? <>
           <p className="gx-epl-headline">{FANTASY_COPY.unavailable}</p>
-          <p className="gx-t-meta gx-epl-hero-meta">{FANTASY_COPY.unavailableBody(m.reason)}</p>
+          <p className="gx-t-body gx-epl-hero-meta">{FANTASY_COPY.unavailableBody(m.reason)}</p>
           {m.me ? <div className="gx-epl-fx-vs"><Bubble name={`${FANTASY_COPY.yourProjection} · ${m.me.name}`} value={m.myProj} me/></div> : null}
         </>
         : <>
@@ -86,7 +86,7 @@ export function MatchupPanel({ view }) {
               <InfoButton title={FANTASY_COPY.winInfoTitle} body={FANTASY_COPY.winInfo}/>
             </div>
           </>}
-          {Array.isArray(m.matched) && m.matched.length === 2 ? <p className="gx-t-meta gx-epl-hero-meta">{FANTASY_COPY.basis(m.matched[0], m.matched[1])}</p> : null}
+          {Array.isArray(m.matched) && m.matched.length === 2 ? <p className="gx-t-body gx-epl-hero-meta">{FANTASY_COPY.basis(m.matched[0], m.matched[1])}</p> : null}
         </>}
     </Card>
     {m.starters?.length ? <Card as="section" aria-labelledby={`${base}-starters`}>

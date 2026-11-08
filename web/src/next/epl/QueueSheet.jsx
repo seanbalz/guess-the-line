@@ -39,7 +39,7 @@ export function QueueSheetView({ clubs, queue, onChange, onSave, onClose, busy, 
           <IconButton icon={X} size={20} label={`Remove ${name(code)}`} disabled={busy} onClick={() => onChange(queue.filter(c => c !== code))}/>
         </li>
       ))}
-    </ol> : <p className="gx-t-meta gx-c-2">{QUEUE_COPY.empty}</p>}
+    </ol> : <p className="gx-t-body gx-c-2">{QUEUE_COPY.empty}</p>}
     {rest.length ? <>
       <h3 className="gx-t-label gx-epl-queue-head">{QUEUE_COPY.add}</h3>
       <ul className="gx-epl-queue">

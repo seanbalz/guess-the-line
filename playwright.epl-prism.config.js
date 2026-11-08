@@ -5,10 +5,10 @@ import cloud from './playwright.cloud.config.js';
 export default defineConfig({
   ...cloud,
   outputDir: '.local/epl-browser-results',
-  use: { ...cloud.use, baseURL: 'http://127.0.0.1:5248' },
+  use: { ...cloud.use, baseURL: 'http://127.0.0.1:5268' },
   webServer: {
     ...cloud.webServer,
-    command: cloud.webServer.command.replaceAll('5198', '5248'),
-    url: 'http://127.0.0.1:5248',
+    command: cloud.webServer.command.replaceAll('5198', '5268'),
+    url: 'http://127.0.0.1:5268',
   },
 });

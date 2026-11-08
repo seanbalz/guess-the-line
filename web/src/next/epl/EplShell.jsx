@@ -22,7 +22,7 @@ function EplLeagues() {
       <Row size={64} start={<Avatar id="fepl" name="FEPL" size={40}/>} title="FEPL" sub="Premier League"
         end={<Icon icon="check" size={20} className="gx-c-accent"/>} aria-current="true" onClick={shell.closeSheet}/>
     </List></Card>
-    <p className="gx-t-meta">Pick a Team and Fantasy use FEPL. Your leagues from the National Football League remain available when you switch sports.</p>
+    <p className="gx-t-body">Pick a Team and Fantasy use FEPL. Your leagues from the National Football League remain available when you switch sports.</p>
   </Sheet>;
 }
 function EplHistory() {

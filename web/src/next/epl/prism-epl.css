@@ -691,7 +691,7 @@
   margin-left: auto;
 }
 .gx.gx-epl :is([data-epl-section="guess"], [data-epl-section="leaderboard"]) details[open]>summary:after {
-  content: 'âˆ’';
+  content: '\2212';
 }
 .gx.gx-epl :is([data-epl-section="guess"], [data-epl-section="leaderboard"]) .gx-epl-revealed>li {
   display: grid;
@@ -1805,3 +1805,14 @@
 }
 .gx.gx-epl .gx-epl-home .gx-epl-margin-empty p,
 .gx.gx-epl .gx-epl-stale { font-size: 16px; }
+
+/* Instructions and recovery sentences are body copy, independent of section.
+   Small source/time/status metadata keeps its explicit native classification. */
+.gx.gx-epl .gx-t-body,
+.gx.gx-epl .gx-epl-action .gx-t-body,
+.gx.gx-epl [data-epl-section="fantasy"] .gx-t-body,
+.gx.gx-epl [data-epl-section="fantasy"] .gx-epl-fx-split-body,
+.gx.gx-epl .gx-epl-clock { font-size: 16px; }
+.gx.gx-epl .gx-epl-next-match small,
+.gx.gx-epl .gx-epl-leagues .gx-row-sub,
+.gx.gx-epl [data-epl-section="fantasy"] :is(.gx-epl-fx-rank, .gx-epl-fx-record) { font-size: 16px; }

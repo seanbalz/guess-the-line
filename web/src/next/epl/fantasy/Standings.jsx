@@ -26,11 +26,11 @@ export function StandingsPanel({ view }) {
               <Icon icon="chevronDown" size={16} className="gx-epl-fx-chev"/>
               <span className="gx-tc-bar gx-epl-fx-stand-bar" aria-hidden="true"><span className="gx-tc-bar-fill" style={{ width: `${finite(r.total) ? Math.round((Math.max(0, r.total) / widest) * 100) : 0}%` }}></span></span>
             </summary>
-            <p className="gx-t-meta gx-c-2 gx-epl-fx-split-body">{FANTASY_COPY.split(fmtPts(r.sleeperTotal), fmtPts(r.bonus))}</p>
+            <p className="gx-t-body gx-c-2 gx-epl-fx-split-body">{FANTASY_COPY.split(fmtPts(r.sleeperTotal), fmtPts(r.bonus))}</p>
           </details>
         </li>;
       })}
     </ol>
-    <p className="gx-t-meta gx-c-2">{FANTASY_COPY.standingsNote}</p>
+    <p className="gx-t-body gx-c-2">{FANTASY_COPY.standingsNote}</p>
   </Card>;
 }

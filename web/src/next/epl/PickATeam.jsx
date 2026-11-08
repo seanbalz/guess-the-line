@@ -37,7 +37,7 @@ export function PrimaryAction({ model, selected, busy, onPick }) {
   }
   if (model.onClockMe) return <>
     <Button variant="primary" block disabled aria-describedby="gx-epl-choose">{PICK_COPY.pickAClub}</Button>
-    <p className="gx-t-meta gx-epl-center" id="gx-epl-choose">{PICK_COPY.chooseBelow}</p>
+    <p className="gx-t-body gx-epl-center" id="gx-epl-choose">{PICK_COPY.chooseBelow}</p>
   </>;
   return clock;
 }
@@ -50,20 +50,20 @@ export function PickATeamView({ model, state, selected, busy, notice, onSelect, 
   if (!model) return <div className="gx-epl-pick"><DraftReadState state={state} model={model} onRetry={onRetry}/></div>;
   const heroId = ids.hero ?? 'gx-epl-pick-hero', availId = ids.avail ?? 'gx-epl-pick-avail', bonusId = ids.bonus ?? 'gx-epl-pick-bonus';
   return <div className="gx-epl-pick">
-    {state?.stale ? <p className="gx-t-meta gx-c-2">{PICK_COPY.stale}</p> : null}
+    {state?.stale ? <p className="gx-t-body gx-c-2">{PICK_COPY.stale}</p> : null}
     {claim}
     {model.myClub ? <Card as="section" className="gx-epl-confirm" aria-label={model.backupPick ? PICK_COPY.backupConfirmed : "Your pick"}>
       <Crest code={model.myClub.code} size="lg"/>
       <h2 className="gx-t-section">{model.myClub.name}</h2>
       <p className="gx-t-body">{model.backupPick ? PICK_COPY.backupAssigned(model.backupPick.name) : PICK_COPY.picked(model.myClub.name)}</p>
-      <p className="gx-t-meta">{model.canPick ? "You can change until the next manager picks or the draft closes." : "Your club is final."}</p>
+      <p className="gx-t-body">{model.canPick ? "You can change until the next manager picks or the draft closes." : "Your club is final."}</p>
     </Card> : null}
     <Card as="section" variant="hero" className="gx-epl-hero" aria-labelledby={heroId}>
       <h2 className="gx-t-micro gx-epl-kicker" id={heroId}>{PICK_COPY.draftLabel(model.week)}</h2>
       <DraftBoard model={model}/>
       <div className="gx-epl-action">
         <PrimaryAction model={model} selected={selected} busy={busy} onPick={onPick}/>
-        <p className="gx-t-meta gx-epl-center gx-epl-hero-meta">{deadlineLine(model)}</p>
+        <p data-epl-text="metadata" className="gx-t-meta gx-epl-center gx-epl-hero-meta">{deadlineLine(model)}</p>
         <StandingsSource source={model.standingsSource}/>
       </div>
     </Card>
@@ -71,7 +71,7 @@ export function PickATeamView({ model, state, selected, busy, notice, onSelect, 
     {model.available.length && !model.locked ? <Card as="section" className="gx-epl-pool" aria-labelledby={availId}>
       <h2 className="gx-t-micro gx-c-2" id={availId}>{PICK_COPY.available}</h2>
       <CrestGrid model={model} selected={selected} onSelect={onSelect} busy={busy}/>
-      {model.canPick || model.me === null ? null : <p className="gx-t-meta gx-c-2">{PICK_COPY.notYourTurn}</p>}
+      {model.canPick || model.me === null ? null : <p className="gx-t-body gx-c-2">{PICK_COPY.notYourTurn}</p>}
     </Card> : null}
     {model.queue !== null ? <Button variant="secondary" block disabled={model.locked || busy} onClick={onQueue}>{PICK_COPY.queue}</Button> : null}
     <Card as="section" className="gx-epl-bonus" aria-labelledby={bonusId}>
