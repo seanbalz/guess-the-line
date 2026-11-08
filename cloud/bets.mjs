@@ -12,7 +12,7 @@ import { halfUnits, validVirtualUnits } from '../shared/virtual-unit-amount.mjs'
 import { readVirtualUnitRules } from './virtual-unit-rules.mjs';
 
 export class BetsError extends Error {
-  constructor(status, message) { super(message); this.name = 'BetsError'; this.status = status; }
+  constructor(status, message, code) { super(message); this.name = 'BetsError'; this.status = status; this.code = code; }
 }
 /** Route → allowed methods. Group routes take POST JSON bodies; the handler allows them no query parameters. */
 export const BETS_METHODS = Object.freeze({ '/bets/recommendations': ['POST'], '/bets/recommendations/place': ['POST'], '/bets/read': ['POST'],
@@ -39,7 +39,7 @@ const ERRORS = Object.freeze({
   GTL_BET_CHANGED: [409, 'This bet changed. Review its saved terms before placing it again.'],
   GTL_BETS_REPLAY: [409, 'This request was already used for different bets. Review your slip and place it again.'],
 });
-export const providerBetsError = message => (Object.hasOwn(ERRORS, message) ? new BetsError(...ERRORS[message]) : new Error('Bets are unavailable.'));
+export const providerBetsError = message => (Object.hasOwn(ERRORS, message) ? new BetsError(...ERRORS[message], message) : new Error('Bets are unavailable.'));
 const record = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const finite = value => typeof value === 'number' && Number.isFinite(value);
 const time = value => typeof value === 'string' && Number.isFinite(Date.parse(value)) ? value : null;
@@ -299,9 +299,18 @@ export async function handleBets({ route, body = {}, user, service, clock = Date
   if (route === '/bets/place') {
     const request = validateBetsPlace(body);
     const unitRules = await readVirtualUnitRules(optionalRpc);
-    if (!unitRules.hundredths && request.some(bet => !halfUnits(bet.units))) fail('GTL_VIRTUAL_UNITS_UNAVAILABLE');
-    const placed = await service.rpc('gtl_place_bets', { p_user: user.id, p_season: body.season, p_week: body.week,
-      p_request: body.requestId, p_bets: request });
+    // Capability is a UI hint, not a veto on a committed receipt. Both old and
+    // new SQL authenticate membership and resolve scoped, exact replays before
+    // applying their amount rule to a genuinely new write.
+    let placed;
+    try {
+      placed = await service.rpc('gtl_place_bets', { p_user: user.id, p_season: body.season, p_week: body.week,
+        p_request: body.requestId, p_bets: request });
+    } catch (error) {
+      if (!unitRules.hundredths && request.some(bet => !halfUnits(bet.units)) && error?.code === 'GTL_VIRTUAL_INVALID')
+        fail('GTL_VIRTUAL_UNITS_UNAVAILABLE');
+      throw error;
+    }
     return { placed: placedView(placed), bets: { ...projectBets(await service.rpc('gtl_read_bets', { p_user: user.id, p_season: body.season,
       p_week: body.week, p_league: null, p_now: new Date(clock()).toISOString() }), user.id), unitRules } };
   }

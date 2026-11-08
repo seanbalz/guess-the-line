@@ -61,8 +61,11 @@ the migration remains in `NOT_HOSTED`.
 The compatible API adds `unitRules` to `/bets/read`, `/virtual-units`, and
 Recommended's `virtual` object. Missing capability RPC, rollback, malformed
 data, unknown version and transient failure all expose `hundredths:false`.
-The write routes recheck capability for non-half stakes and refuse unsupported
-requests before saving. SQL rechecks its own amount predicate atomically.
+Group and Recommended write routes recheck capability for non-half stakes.
+Account slip placement always reaches the existing authenticated SQL writer,
+which resolves an exact, account-scoped committed receipt before checking its
+amount predicate for new writes. Capability loss cannot veto a committed replay.
+An old-schema amount refusal still maps to the Custom-unavailable response.
 Existing half-unit requests work without the new RPC. Saved cent terms remain
 readable; exact expected terms are accepted for CAS even when rolling back to
 a half-unit *replacement* stake.
@@ -75,6 +78,75 @@ Busy and uncertain states freeze the field and controls; retries preserve the
 same request id and payload. Custom styles map the selected preview aliases to
 native GTL tokens. Legacy group/Recommended controls remain their existing
 half-unit controls; no unreviewed control layout was added there.
+
+## Review corrections — November 7, 2026
+
+Owner: Sean Balsiger · Version 2 · Prepared locally, enablement still held.
+
+Correction branch `codex/m41-retry-precision-20261107` was created from freshly
+fetched `origin/main` `7aa93a6ffe79eafb58bd6c7d12ec230b6d77b0e9`, then
+fast-forwarded to prepared source `46fe11f996ee228c49c0b008d5cba885e329e216`.
+The three existing writer bodies, migration and rollback files are unchanged
+from that source. No function overload, permission, collector, accounting,
+ranking or settlement policy changes are included.
+
+- **Committed retry:** reproduced API 409 after committing a cent request then
+  losing capability; direct restored SQL could already return its receipt.
+  The API now lets that existing guarded SQL path resolve the request. New
+  unsupported writes still fail the restored half-unit predicate. Auth,
+  feature switches, membership, account/week/body scope, quote, kickoff and CAS
+  checks remain. A capability-read outage is not a write kill switch: with
+  M-41 still installed SQL can accept a valid new cent write; the client still
+  displays fallback controls until a successful capability read.
+- **Browser request preservation:** a committed response can be lost, then a
+  refresh can expose fallback capability and new saved terms. The slip now
+  retains the originally reviewed entries and complete request body while the
+  save is pending or uncertain. A retry sends identical serialized JSON,
+  including request ID and original `expected`, and resolves one receipt/audit.
+  The frozen Custom control remains disabled during that uncertainty; after
+  success, refreshed fallback controls govern new drafts.
+- **Exact cents:** JavaScript compares the input number with its canonical cent
+  representation, without an epsilon allowance or replacing the user's value.
+  `0.010000000001` and `0.999999999999` now fail API and typed validation, matching
+  SQL. `0.29`, all 10,000 cent values from 0.01 through 100, and legacy half-unit
+  values above 100 remain valid. Extra-precision, nonfinite and extreme values
+  have explicit JS/SQL checks.
+- **Inherited typography gate:** the prepared Custom label was 10px, failing
+  the unchanged native token test. It now uses the 16px primary label floor.
+  The input declaration stays 17px; computed native styling is 16px with a
+  123 × 50px input. Dark 320px, Light 390px and forced-color 390px checks enforce
+  label/input floors and 44px targets. No test allowlist was added.
+
+The new tests failed before implementation: three M-41 Node/SQL tests, one
+component test, and the committed-response-loss browser's disabled retry.
+After correction, 76 unique focused Node/SQL/import/token/parser tests,
+19 component tests and four browser scenarios passed, with no skips. The
+initial combined run passed 64 of 65 tests; its sole inherited font-floor
+failure was corrected, and the 15 unchanged token tests then passed. The full
+five-test rollback suite passed; SQL and rollback were not subsequently edited.
+
+Commands and scope:
+
+```text
+node --test tests/virtual-units-hundredths.test.mjs tests/bets-place-sql.test.mjs tests/bets-cloud.test.mjs tests/virtual-units.test.mjs tests/virtual-units-save-sql.test.mjs tests/virtual-units-line-lock.test.mjs tests/next-tokens.test.mjs tests/rollback.test.mjs
+node --test tests/next-tokens.test.mjs tests/next-parse.test.mjs
+node --test tests/next-app-view.test.mjs
+npx vitest run tests/next-bets-place.test.jsx
+npx playwright test --config .local/virtual-custom-playwright.config.mjs tests/cloud-browser/virtual-units-hundredths.spec.js
+npm run typecheck
+python -X utf8 scripts/check-brand-docs.py
+npm run build:cloud
+node scripts/check-cloud-boundary.mjs --bundle-only --strict
+```
+
+The isolated Playwright config changes only the standard server port to 5284
+and its owned output directory. After the label change, the Custom scenario
+was rerun to refresh its layout/Axe checks, computed typography and captures;
+the retry implementation was unchanged. [Scoped evidence and capture hashes](../design/virtual-units-m41-review-2026-11-07/evidence.json)
+record the fixture-only visual checks. Typecheck, Brand QA, cloud build and
+strict bundle privacy checks passed; the existing large-chunk warning remains.
+No hosted write, apply, push, PR, merge, deployment, real-phone acceptance or
+new ROI approval occurred. Required hosted boundary probes remain awaitingDeploy.
 
 | Deployment combination | Behavior |
 |---|---|

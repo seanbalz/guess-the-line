@@ -22,8 +22,9 @@ test('M-41 capabilities fail closed; only the explicit known version enables cus
   assert.deepEqual(await readVirtualUnitRules(async () => { throw Error('offline'); }), { hundredths: false });
   assert.deepEqual(await readVirtualUnitRules(async () => ({ version: 1, hundredths: true })), { hundredths: true });
   for (const value of [0.01, 0.1, 0.29, 0.5, 0.99, 100, 100.5, 1000]) assert.equal(validVirtualUnits(value), true, String(value));
-  for (const value of [null, '0.01', 0, -1, NaN, Infinity, 0.001, 0.019, 100.01]) assert.equal(validVirtualUnits(value), false, String(value));
+  for (const value of [null, '0.01', 0, -1, NaN, Infinity, 0.001, 0.019, 100.01, 0.010000000001, 0.999999999999, 99.999999999999]) assert.equal(validVirtualUnits(value), false, String(value));
   assert.equal(halfUnits(0.01), false);
+  for (let cents = 1; cents <= 10000; cents++) assert.equal(validVirtualUnits(cents / 100), true, `canonical cent ${cents}`);
 });
 
 async function fixture(t) {
@@ -52,10 +53,11 @@ test('M-41 upgrades all three writers, preserves exact history and rollback keep
   const oldBodies = await f.bodies();
   assert.equal((await f.world.api('luke', 'bets/read', {})).body.unitRules.hundredths, false);
   assert.equal((await f.place([f.bet(f.g1, 'spread')])).status, 409, 'new API + old SQL refuses custom without writing');
-  assert.equal((await f.place([f.bet(f.g1, 'total', { units: 0.5 })])).status, 200, 'half stakes still work before apply');
+  assert.equal((await f.place([f.bet(f.g1, 'total', { units: 100.5 })])).status, 200, 'legacy half stakes above the screen maximum still work before apply');
   const before = await f.dataHash();
   await f.db.exec(migration);
   assert.equal(await f.dataHash(), before, 'apply changes no pick, audit, receipt, ballot, score or result');
+  assert.equal((await f.rows()).find(row => row.game_id === f.g1 && row.market === 'total').selection.units, 100.5);
   await f.db.exec(migration);
   assert.equal(await f.dataHash(), before, 'apply is idempotent');
   assert.equal((await f.world.api('luke', 'bets/read', {})).body.unitRules.hundredths, true);
@@ -64,7 +66,8 @@ test('M-41 upgrades all three writers, preserves exact history and rollback keep
       assert.equal((await f.db.query('select has_function_privilege($1,$2,\'EXECUTE\') ok',[role,`public.${signature}`])).rows[0].ok, role === 'service_role');
   }
   assert.deepEqual((await f.db.query('select proname,count(*)::int n,bool_or(prosecdef) definer from pg_proc where proname=any($1) group by proname',[names])).rows.map(row => [row.n,row.definer]), [[1,false],[1,false],[1,false]]);
-  for (const value of ['0.01','0.29','100','100.5','1000','0','-0.01','0.001','100.01','NaN','Infinity','-Infinity'])
+  assert.equal((await f.db.query('select count(*)::int n from generate_series(1,10000) cents where not public.gtl_virtual_units_supported(cents::numeric/100)')).rows[0].n, 0, 'SQL accepts every canonical cent amount');
+  for (const value of ['0.01','0.29','99.99','100','100.5','1000','1e100','0','-0.01','0.001','100.01','0.010000000001','0.999999999999','99.999999999999','5e-324','NaN','Infinity','-Infinity'])
     assert.equal((await f.db.query('select public.gtl_virtual_units_supported($1::numeric) ok',[value])).rows[0].ok, validVirtualUnits(Number(value)), value);
 
   const group = f.bet(f.g0, 'spread', { units: 0.29, source: 'draftkings' }); delete group.expected;
@@ -86,7 +89,7 @@ test('M-41 upgrades all three writers, preserves exact history and rollback keep
   assert.equal((await f.place([edit])).status, 200);
   assert.equal((await f.place([edit])).status, 409, 'cent stake stays in the exact expected-terms CAS');
   const safeHash = await f.dataHash();
-  for (const amount of [0, -1, 0.001, 100.01]) assert.equal((await f.place([f.bet(f.g1,'spread',{units:amount,expected})])).status, 400);
+  for (const amount of [0, -1, 0.001, 100.01, 0.010000000001, 0.999999999999]) assert.equal((await f.place([f.bet(f.g1,'spread',{units:amount,expected})])).status, 400);
   assert.equal(await f.dataHash(), safeHash, 'invalid amounts write nothing');
   await f.db.exec(rollback);
   assert.equal(await f.dataHash(), safeHash, 'rollback preserves all new cent picks and history');
@@ -96,6 +99,35 @@ test('M-41 upgrades all three writers, preserves exact history and rollback keep
   assert.equal((await f.world.api('luke', 'bets/read', {})).body.unitRules.hundredths, false);
   assert.equal((await f.place([f.bet(f.g1,'spread',{units:0.21,expected})])).status, 409);
   assert.equal((await f.rows()).find(row => row.game_id===f.g1 && row.market==='spread').selection.units, 0.11, 'saved custom row remains readable after rollback');
+});
+
+test('committed cent receipts replay through API during capability failure and after SQL rollback', { skip }, async t => {
+  const f = await fixture(t);
+  await f.db.exec(migration);
+  const requestId = randomUUID(), slip = [f.bet(f.g1, 'spread')];
+  // The server commits, but the caller does not receive/use the first response.
+  const committed = await f.place(slip, requestId);
+  assert.equal(committed.status, 200);
+  const savedHash = await f.dataHash();
+  await f.db.exec("create or replace function public.gtl_virtual_unit_rules() returns jsonb language plpgsql security invoker set search_path='' as $$ begin raise exception 'fixture capability outage'; end $$");
+  const unavailable = await f.place(slip, requestId);
+  assert.equal(unavailable.status, 200, JSON.stringify(unavailable.body));
+  assert.equal(unavailable.body.placed.replayed, true);
+  assert.equal(unavailable.body.bets.unitRules.hundredths, false);
+  assert.equal(await f.dataHash(), savedHash);
+  await f.db.exec(rollback);
+  const replay = await f.place(slip, requestId);
+  assert.equal(replay.status, 200, JSON.stringify(replay.body));
+  assert.equal(replay.body.placed.replayed, true);
+  assert.equal(replay.body.bets.unitRules.hundredths, false);
+  assert.equal((await f.place(slip)).status, 409, 'new unsupported write is refused by restored SQL');
+  const changed = await f.place([f.bet(f.g1, 'spread', { units: 0.11 })], requestId);
+  assert.equal(changed.status, 409);
+  assert.match(changed.body.error, /already used/);
+  const foreign = await f.world.api('troy', 'bets/place', { season:f.season, week:f.week, requestId, bets:slip });
+  assert.equal(foreign.status, 409);
+  assert.equal(foreign.body.placed, undefined, 'another account cannot replay the receipt');
+  assert.equal(await f.dataHash(), savedHash, 'replay and refused writes leave all rows and audits unchanged');
 });
 
 test('existing D-26 settlement keeps four-place win profit, exact losses/returns and replay for cent stakes', { skip }, async t => {

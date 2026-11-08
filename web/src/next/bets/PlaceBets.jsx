@@ -23,11 +23,13 @@ export function PlaceBets({ onDirty }) {
   const [slip, setSlip] = useState({}), [review, setReview] = useState(false), [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState(null), [uncertain, setUncertain] = useState(false);
   const request = useRef(null);
-  const entries = board ? slipEntries(board, slip) : [];
+  // Freeze the reviewed terms with the request, including after a board refresh
+  // changes capability, quotes, saved terms, or kickoff visibility.
+  const entries = request.current?.entries ?? (board ? slipEntries(board, slip) : []);
   // A slip, a save in flight or an unconfirmed save keeps the leave guard on.
   useEffect(() => { onDirty?.(entries.length > 0 || busy || uncertain); }, [entries.length, busy, uncertain, onDirty]);
   useEffect(() => () => onDirty?.(false), [onDirty]);
-  // Any change to the slip is a new request; a retry of the same slip after an unconfirmed save reuses its id.
+  // Any change starts a new request; an unconfirmed save retries its exact body.
   const change = next => { if (uncertain) return; request.current = null; setFailure(null); setSlip(next); };
 
   function toggle(game, market, side) {
@@ -42,10 +44,10 @@ export function PlaceBets({ onDirty }) {
 
   async function place() {
     if (busy || !entries.length || entries.some(entry => !entry.validUnits)) return;
-    request.current ??= crypto.randomUUID();
+    request.current ??= { body: placeRequest(board, entries, crypto.randomUUID()), entries, customUnits: board.customUnits };
     setBusy(true); setFailure(null);
     try {
-      const reply = await betsApi('place', placeRequest(board, entries, request.current));
+      const reply = await betsApi('place', request.current.body);
       const count = reply?.placed?.bets?.length ?? entries.length;
       request.current = null; setUncertain(false); setSlip({}); setReview(false);
       shell.toast(`${count} ${count === 1 ? 'bet' : 'bets'} saved`, { tone: 'done' });
@@ -82,7 +84,7 @@ export function PlaceBets({ onDirty }) {
         <Button variant="primary" block onClick={place} disabled={busy || entries.some(entry => !entry.validUnits)}>{busy ? 'Saving…' : uncertain ? 'Retry the same save' : `Place ${entries.length} ${entries.length === 1 ? 'bet' : 'bets'} · ${fmtU(units)}`}</Button>
       </div>}>
       <ul className="gx-place-slip gx-vstack gx-gap-16">
-        {entries.map(entry => <SlipRow key={entry.key} entry={entry} customUnits={board.customUnits} disabled={busy || uncertain} onUnits={(value, customEntry) => setUnits(entry.key, value, customEntry)} onRemove={() => remove(entry.key)}/>)}
+        {entries.map(entry => <SlipRow key={entry.key} entry={entry} customUnits={request.current?.customUnits ?? board.customUnits} disabled={busy || uncertain} onUnits={(value, customEntry) => setUnits(entry.key, value, customEntry)} onRemove={() => remove(entry.key)}/>)}
       </ul>
       <p className="gx-t-meta gx-c-2">Virtual Units are play money. Each bet saves the price shown; if a book’s price changes first, you will be asked to review it.</p>
     </Sheet> : null}

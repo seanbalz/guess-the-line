@@ -13,6 +13,16 @@ M-41 is not applied, merged or deployed. Enablement remains held for the explici
 small-stake ROI choice, exact-source review/CI and Sean's separate `apply M-41`.
 The frozen v62 tracker is unchanged.
 
+The [M-41 review corrections](VIRTUAL_UNITS_HUNDREDTHS_M41.md#review-corrections--november-7-2026)
+resolve committed cent-request replay after capability loss/SQL rollback,
+freeze exact browser retry bodies through a board refresh, reject excess
+numeric precision consistently with SQL, and restore the Custom label's 16px
+native floor. Prepared SQL/rollback and accounting remain unchanged. Local
+verification passed 76 focused Node/SQL/import/token/parser tests, 19 component
+tests and four browser scenarios; scoped captures include computed typography.
+This corrected artifact is unpublished and still held for the stated ROI choice,
+independent review, exact-source CI and named apply approval.
+
 ## Native Account integration and whole-page spacing repair — November 7, 2026
 
 Reviewed Account source and both correction commits are integrated as `f2af6c90`,

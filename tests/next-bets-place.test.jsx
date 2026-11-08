@@ -132,7 +132,7 @@ describe('M-41 hundredths entry is gated by the saved database capability', () =
   });
   it('keeps invalid text without rounding or dropping it; a reviewed cent stake reaches the payload exactly', () => {
     const board = placeBoard({ ...data, unitRules: { hundredths: true } }, LUKE);
-    for (const value of ['', '0', '-1', '0.001', '100.01']) {
+    for (const value of ['', '0', '-1', '0.001', '100.01', '0.010000000001', '0.999999999999', '99.999999999999']) {
       const entries = slipEntries(board, slip(value));
       expect(entries).toHaveLength(1);
       expect(entries[0].unitValue).toBe(value);
