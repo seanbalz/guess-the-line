@@ -24,7 +24,7 @@ settled-ticket and entry selection/terms Dark/Light captures map to this work.
 | `populated-bets-changes.jsx/css` | Existing correction and result dialogs, exact reported full return, reason, revision/audit and inclusion controls retain their controllers and receive the selected form material. |
 
 The approved 24px ticket gap replaces the measured older 32px gap. The native
-controller CSS remains Bets-scoped in `web/src/prismBets.css`; prefixed component
+controller CSS remains Bets-scoped in `web/src/liveBets.css`; prefixed component
 styles stay in `web/src/next/bets/prism-bets.css`. This is CSS over real React
 components, with no preview DOM adapter, fixture payload, iframe or no-op writer
 in the production path. Sources/times stay unknown when not entered. Cash

@@ -183,3 +183,95 @@
   .gx .gx-bets :is(.social-entry-option, .social-entry-adjustment > button):disabled { border-color: GrayText; color: GrayText; }
   .gx .gx-bets :is(.social-entry-option, .social-entry-adjustment > button, .social-matchup-current > button, .social-ticket-details > summary):focus-visible { outline-color: Highlight; }
 }
+
+/* Native Bets controller skin for retained editor classes. No DOM adaptation. */
+.gx .gx-bets.gx-live-workflow .social-filters { border-radius: 20px; background: var(--gx-glass); box-shadow: var(--gx-glass-shadow); }
+.gx .gx-bets.gx-live-workflow .social-filter-body { gap: var(--gx-space-4); }
+.gx .gx-bets.gx-live-workflow .social-audit > div { padding: var(--gx-space-4) 0; }
+.gx .gx-bets.gx-live-workflow .social-audit ol { display: grid; gap: var(--gx-space-5); }
+.gx .gx-bets.gx-live-workflow .social-audit-change { padding: var(--gx-space-3); border: 1px solid var(--gx-border); border-radius: 16px; background: var(--gx-glass); }
+.gx .gx-bets.gx-live-workflow .social-audit-change > div { min-width: 0; overflow-wrap: normal; }
+.gx .gx-bets.gx-live-workflow .social-change-history { padding: 20px 16px; border: 1px solid var(--gx-border); border-radius: var(--gx-radius-md); background-image: var(--gx-card-face); box-shadow: var(--gx-e1); }
+.gx .gx-bets.gx-live-workflow .social-change-history h3 { margin: 0; font: 600 18px/1.5 var(--gx-font-body); }
+.gx .gx-bets.gx-live-workflow .social-change-history ol { list-style: none; padding: 0; margin: 22px 0 0; }
+.gx .gx-bets.gx-live-workflow .social-change-history li { display: grid; grid-template-columns: 28px minmax(0,1fr); gap: 10px; }
+.gx .gx-bets.gx-live-workflow .social-change-step { display: grid; place-items: center; align-self: start; width: 28px; height: 28px; border: 1px solid var(--gx-accent-ink); border-radius: 10px; color: var(--gx-accent-ink); background: var(--gx-accent-tint); font: 600 12px/1.5 var(--gx-font-body); }
+.gx .gx-bets.gx-live-workflow .social-change-history li p { margin: 7px 0 0; }
+.gx .gx-bets.gx-live-workflow .social-change-summary { display: grid; gap: 9px; padding: 14px 10px; border: 1px solid var(--gx-border); border-radius: 16px; background: var(--gx-glass); }
+.gx .gx-bets.gx-live-workflow .social-change-summary > div { display: grid; grid-template-columns: 52px minmax(0,1fr); gap: 9px; }
+.gx .gx-bets.gx-live-workflow .social-change-history :is(dt,dd) { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.gx .gx-bets.gx-live-workflow .social-change-history dd { display: grid; gap: 4px; }
+.gx .gx-bets.gx-live-workflow .social-change-history summary { min-height: 44px; padding: 12px 0; color: var(--gx-accent-ink); }
+.gx .gx-bets.gx-live-workflow .social-alert { border-radius: 16px; padding: 14px; border: 1px solid var(--gx-loss); background: var(--gx-glass); }
+
+/* Keep the real dialog, draft, retry and result controllers mounted. */
+.gx .gx-bets.gx-live-workflow .social-modal { width: 520px; max-width: calc(100% - 24px); max-height: calc(100dvh - 40px); padding: 0; border: 1px solid var(--gx-glass-line); border-radius: var(--gx-radius-md); background: var(--gx-canvas); background-image: var(--gx-card-face); box-shadow: var(--gx-e1); color: var(--gx-text-1); font-family: var(--gx-font-body); overscroll-behavior: contain; }
+.gx .gx-bets.gx-live-workflow .social-modal-head { position: sticky; top: 0; z-index: 2; padding: 18px var(--gx-space-4); background: var(--gx-canvas); border-bottom: 1px solid var(--gx-border); }
+.gx .gx-bets.gx-live-workflow .social-modal-head h2 { text-transform: none; font: 600 21px/1.3 var(--gx-font-body); letter-spacing: -.6px; }
+.gx .gx-bets.gx-live-workflow .social-modal .icon-button { width: 44px; height: 44px; min-width: 44px; border: 1px solid var(--gx-border); border-radius: 14px; background: var(--gx-glass); color: var(--gx-text-1); }
+.gx .gx-bets.gx-live-workflow .social-form { display: grid; gap: 22px; padding: var(--gx-space-5) var(--gx-space-4); }
+.gx .gx-bets.gx-live-workflow .social-form p { color: var(--gx-text-2); line-height: 1.7; }
+.gx .gx-bets.gx-live-workflow .social-audience { border: 1px solid var(--gx-border); border-radius: 16px; padding: 13px; background: var(--gx-accent-tint); }
+.gx .gx-bets.gx-live-workflow .social-leg-editor { display: grid; min-width: 0; gap: var(--gx-space-4); margin: 0; padding: var(--gx-space-4) var(--gx-space-3); border: 1px solid var(--gx-border); border-radius: 22px; background: var(--gx-glass); box-shadow: var(--gx-glass-shadow); }
+.gx .gx-bets.gx-live-workflow .social-leg-editor > legend { padding: 0 6px; color: var(--gx-accent-ink); }
+.gx .gx-bets.gx-live-workflow .social-editor-matchup { display: grid; gap: 18px; min-width: 0; }
+.gx .gx-bets.gx-live-workflow .social-editor-matchup > .gx-mu { justify-self: center; }
+.gx .gx-bets.gx-live-workflow .social-editor-matchup .social-matchup-current { justify-content: center; }
+.gx .gx-bets.gx-live-workflow .social-editor-matchup .social-matchup-current > strong { display: none; }
+.gx .gx-bets.gx-live-workflow .social-entry-field > legend { font: 600 13px/1.6 var(--gx-font-body); color: var(--gx-text-2); }
+.gx .gx-bets.gx-live-workflow .social-entry-options { gap: 7px; }
+.gx .gx-bets.gx-live-workflow .social-entry-option { min-width: 44px; min-height: 44px; padding: 10px 8px; border: 1px solid var(--gx-border); border-radius: 13px; background: var(--gx-glass); box-shadow: var(--gx-glass-shadow); color: var(--gx-text-1); font: 500 13px/1.5 var(--gx-font-body); overflow-wrap: normal; }
+.gx .gx-bets.gx-live-workflow .social-entry-option[aria-pressed="true"] { color: var(--gx-accent-ink); background: var(--gx-accent-tint); border-color: var(--gx-accent-ink); }
+.gx .gx-bets.gx-live-workflow .social-form label { min-width: 0; gap: 8px; color: var(--gx-text-2); }
+.gx .gx-bets.gx-live-workflow :is(.social-form,.social-filters) :is(input:not([type="checkbox"]),select) { box-sizing: border-box; min-width: 0; width: 100%; min-height: 48px; padding: 10px; border: 1px solid var(--gx-border); border-radius: 12px; color: var(--gx-text-1); background: var(--gx-canvas); font: 500 16px/1.5 var(--gx-font-body); }
+.gx .gx-bets.gx-live-workflow .social-ticket-details > summary { min-height: 44px; padding: 12px 0; color: var(--gx-text-1); }
+.gx .gx-bets.gx-live-workflow .social-check { grid-template-columns: 44px minmax(0,1fr); min-height: 44px; align-items: center; }
+.gx .gx-bets.gx-live-workflow .social-check input { width: 24px; height: 24px; justify-self: center; accent-color: var(--gx-accent-ink); }
+.gx .gx-bets.gx-live-workflow .social-form-footer { display: grid; gap: 12px; padding-top: 18px; border-top: 1px solid var(--gx-border); }
+.gx .gx-bets.gx-live-workflow .social-form :is(.primary,.secondary) { min-height: 48px; width: 100%; padding: 12px; border: 1px solid var(--gx-border); border-radius: 20px; background: var(--gx-glass); color: var(--gx-text-1); font: 600 16px/1.5 var(--gx-font-body); box-shadow: var(--gx-glass-shadow); }
+.gx .gx-bets.gx-live-workflow .social-form .primary { min-height: 54px; border: 3px solid var(--gx-accent-ink); background: transparent; }
+.gx .gx-bets.gx-live-workflow .social-ticket-adjustment { display: grid; grid-template-columns: 48px minmax(0,1fr) 48px; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--gx-border); border-radius: 20px; background: var(--gx-glass); box-shadow: var(--gx-glass-shadow); }
+.gx .gx-bets.gx-live-workflow .social-ticket-adjustment > button { display: grid; place-items: center; min-width: 48px; min-height: 48px; padding: 8px; border-color: var(--gx-accent-ink); }
+.gx .gx-bets.gx-live-workflow .social-ticket-adjustment output { text-align: center; color: var(--gx-accent-ink); font: 600 25px/1.4 var(--gx-font-num); font-variant-numeric: tabular-nums; }
+.gx .gx-bets.gx-live-workflow .social-ticket-adjustment[data-unknown="true"] output { font-size: 16px; }
+.gx .gx-bets.gx-live-workflow .social-ticket-step-note { color: var(--gx-text-2); font: 500 13px/1.6 var(--gx-font-body); }
+.gx .gx-bets.gx-live-workflow .social-more-books summary { min-height: 44px; padding: 12px 0; cursor: pointer; }
+.gx .gx-bets.gx-live-workflow .social-more-books > .social-entry-options { max-height: 280px; overflow-y: auto; overscroll-behavior: contain; padding: 4px; }
+.gx .gx-bets.gx-live-workflow .social-more-books > label { margin: 12px 0; }
+.gx .gx-bets.gx-live-workflow :is(button,input,select,summary):focus-visible { outline: 3px solid var(--gx-focus); outline-offset: 3px; }
+.gx .gx-bets.gx-live-workflow .gx-tracked-preview:focus-visible { outline-offset: -4px; }
+@media (max-width: 359px) {
+  .gx .gx-bets.gx-live-workflow .social-form { padding: 18px 12px; }
+  .gx .gx-bets.gx-live-workflow .social-modal-head { padding: 16px 12px; }
+}
+@media (forced-colors: active) {
+  .gx .gx-bets.gx-live-workflow :is(.social-modal,.social-entry-option) { border-color: CanvasText; }
+  .gx .gx-bets.gx-live-workflow .social-entry-option[aria-pressed="true"] { outline: 2px solid Highlight; }
+}
+
+/* Existing workflow defaults target unprefixed buttons; keep the reviewed Bets
+   outline/tint hierarchy explicit at that same native controller boundary. */
+.gx .gx-bets.gx-live-workflow :is(.social-tracker,.social-modal) button:not([class*="gx-"]) { font: 500 13px/1.5 var(--gx-font-body); color: var(--gx-text-1); border: 1px solid var(--gx-border); border-radius: 13px; background: var(--gx-glass); box-shadow: var(--gx-glass-shadow); }
+.gx .gx-bets.gx-live-workflow :is(.social-tracker,.social-modal) button[aria-pressed="true"]:not([class*="gx-"]) { color: var(--gx-accent-ink); border-color: var(--gx-accent-ink); background: var(--gx-accent-tint); }
+.gx .gx-bets.gx-live-workflow :is(.social-tracker,.social-modal) button.primary:not([class*="gx-"]) { min-height: 54px; border: 3px solid var(--gx-accent-ink); border-radius: 20px; background: transparent; font: 600 16px/1.5 var(--gx-font-body); }
+.gx .gx-bets.gx-live-workflow .social-entry-options > .social-entry-option { flex-basis: 80px; min-width: min-content; }
+.gx .gx-bets.gx-live-workflow .social-entry-numbers > .social-entry-options > .social-entry-option { flex-basis: 55px; }
+.gx .gx-bets.gx-live-workflow .social-entry-numbers > .social-entry-options { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); }
+.gx .gx-bets.gx-live-workflow .social-entry-numbers > .social-entry-options > .social-entry-option { min-width: 0; }
+.gx .gx-bets.gx-live-workflow .social-ticket-adjustment > button.social-entry-option { border-color: var(--gx-accent-ink); }
+@media (max-width: 359px) { .gx .gx-bets.gx-live-workflow .social-entry-numbers > .social-entry-options { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+@media (forced-colors: active) {
+  .gx .gx-bets.gx-live-workflow :is(.social-tracker,.social-modal) button:not([class*="gx-"]),
+  .gx .gx-bets.gx-live-workflow :is(.social-tracker,.social-modal) button.primary:not([class*="gx-"]) { border-color: ButtonText; color: ButtonText; background: ButtonFace; box-shadow: none; }
+  .gx .gx-bets.gx-live-workflow :is(.social-tracker,.social-modal) button[aria-pressed="true"]:not([class*="gx-"]) { border-color: Highlight; color: HighlightText; background: Highlight; }
+  .gx .gx-bets.gx-live-workflow :is(.social-tracker,.social-modal) button:disabled:not([class*="gx-"]) { border-color: GrayText; color: GrayText; background: ButtonFace; }
+}
+
+.gx .gx-bets.gx-live-workflow .social-ticket-followup { display: grid; gap: 22px; padding-top: 20px; }
+.gx .gx-bets.gx-live-workflow .social-ticket-followup .social-owner-actions { display: grid; gap: 10px; margin: 0; }
+.gx .gx-bets.gx-live-workflow .social-ticket-followup .social-owner-actions > button { min-height: 48px; }
+.gx .gx-bets.gx-live-workflow .social-entry-options .gx-team { flex-shrink: 0; }
+.gx .gx-bets.gx-live-workflow .social-entry-options:has(> button .gx-team) { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+.gx .gx-bets.gx-live-workflow .social-entry-options > button:has(.gx-team) { min-width: 0; flex-direction: column; justify-content: center; text-align: center; font-size: 16px; gap: 8px; }
+
+.gx .gx-bets.gx-live-workflow .social-change-summary dt { overflow-wrap: normal; }

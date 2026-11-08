@@ -25,7 +25,10 @@ test('four simple roots, detail origins, reload and phone geometry', async ({ pa
           await tab(page, name).click();
           const root = page.locator(`[data-landing="${name.toLowerCase()}"]`);
           await expect(root).toBeVisible();
-          await expect(root.locator(name === 'Home' ? '.gx-home-primary' : '.gx-btn--primary')).toHaveCount(1);
+          if (name === 'Play') {
+            // The confirmed overview exposes Spread / Total / Points directly.
+            await expect(root.getByRole('group', { name: 'Guess market', exact: true }).getByRole('button')).toHaveCount(3);
+          } else await expect(root.locator(name === 'Home' ? '.gx-home-primary' : '.gx-btn--primary')).toHaveCount(1);
           expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
           await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
           const geometry = await main(page).evaluate(el => {

@@ -48,6 +48,24 @@ The remaining areas below distinguish reviewed local implementation from release
   actual chart target sizing. The deterministic Shell focus fix is integrated
   and independently reviewed; it cancels only pending forward restoration after
   the user moves focus or starts input, preserving native Back restoration.
+- Integration CI follow-up: the retained editor receives optional identity view
+  slots from native Bets, and its selected skin is consolidated into the existing
+  `liveBets.css` adapter. Import-boundary and token checks are unchanged. Ticket
+  and recommendation loading use native Skeleton shapes. Browser regressions
+  now take the approved direct-market and score/history comparison paths. Local
+  checks passed: 26 import/loading/token contracts, 25 affected component tests,
+  six Bets controller flows, two local social flows and three full-root/Compare/
+  draft-guard flows. The broad Node run passed 2,936 of 2,938 before its two
+  temporary stylesheet-location findings were repaired; the affected contracts
+  subsequently passed. Broader PR CI remains pending, including Research's
+  updated 28px card assertion; no full-suite or release claim is made here.
+- Research source `f93d7c6560842be78ad0bd9a15d14632bb60fd0f` remains outside
+  integration pending three important review fixes: observed Fantasy Players
+  browse, full-width Trends card curves/footer, and compact Game overview with
+  actions before research tabs. A fresh implementer owns those exact fixes.
+  Canonical candidate season rows and non-shortlist curves need real additional
+  prepared-data projection; weekly season rows already exist. These areas stay
+  unchecked until the actual gaps and source verification are complete.
 - Tracked bet stakes support smaller custom values without backend changes.
   Virtual Units still has positive-half-unit enforcement in both API and SQL;
   its approved finer entry requires a separately reviewed compatibility change
@@ -116,7 +134,8 @@ Visual approval covers supplied presentations and recorded linked examples; it
 is not acceptance of every unseen state, actual saves, hosted sources, privacy,
 permissions or physical-device behavior. The registered route inventory below
 is a reconciliation checklist, not blanket owner acceptance of unseen states.
-No owner design decision remains open for the confirmed scope described here.
+Except for the shared-frame discrepancy above, no owner design decision remains
+open for the confirmed scope described here.
 
 ## Exact selected recipes
 

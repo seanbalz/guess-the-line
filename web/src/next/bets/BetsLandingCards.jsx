@@ -5,12 +5,13 @@ import { Button } from '../ui/Button.jsx';
 import { Card } from '../ui/Card.jsx';
 import { Pill } from '../ui/Pill.jsx';
 import { TeamMark } from '../ui/TeamMark.jsx';
+import { Skeleton } from '../ui/Skeleton.jsx';
 import { teamName } from '../ui/Matchup.jsx';
 import { trackedLeg } from '../../trackedBetTerms.js';
 
 const status = { pending: 'Pending', win: 'Won', loss: 'Lost', push: 'Push', void: 'Void' };
 export function TicketPreviews({ read, onOpen }) {
-  if (read.loading) return <p role="status" className="gx-t-body gx-c-2">Loading your tickets…</p>;
+  if (read.loading) return <Skeleton label="Loading your tickets…" shape="rows" count={2}/>;
   if (read.error) return <div><p role="status" className="gx-t-body">Tickets unavailable.</p><Button variant="secondary" onClick={read.retry}>Retry tickets</Button></div>;
   const entries = read.model?.entries ?? [];
   // Keep the first open and settled ticket available, in the server's retained order.
@@ -42,7 +43,7 @@ export function RecommendationTeaser({ onOpen }) {
   const locked = games.length > 0 && games.every(g => !g.spreadAccessible && !g.totalAccessible);
   return <Card as="section" className="gx-bets-landing-recommended" aria-labelledby="gx-recommended-heading">
     <h2 id="gx-recommended-heading">Recommended</h2>
-    {read.status === 'loading' ? <p className="gx-t-body gx-c-2" role="status">Loading matchup research…</p> : read.status === 'error' ? <div><p className="gx-t-body" role="status">Matchup research is unavailable.</p><Button variant="secondary" onClick={read.reload}>Retry research</Button></div> : assessment ? <>
+    {read.status === 'loading' ? <Skeleton label="Loading matchup research…" shape="rows" count={1}/> : read.status === 'error' ? <div><p className="gx-t-body" role="status">Matchup research is unavailable.</p><Button variant="secondary" onClick={read.reload}>Retry research</Button></div> : assessment ? <>
       <p className="gx-t-body gx-c-2">Matchup research · {assessment.label}</p>
       <div className="gx-bets-research-matchup" aria-label={`${teamName(codes[0])} at ${teamName(codes[1])}`}><span className="gx-bets-research-team"><TeamMark code={codes[0]} size={48} decorative/><strong>{teamName(codes[0])}</strong></span><span className="gx-t-meta gx-c-2">at</span><span className="gx-bets-research-team"><TeamMark code={codes[1]} size={48} decorative/><strong>{teamName(codes[1])}</strong></span></div>
     </> : <p className="gx-t-body gx-c-2" role="status">{locked ? 'Lock in a game’s guess to open its market research.' : games.length && games.every(g => g.closed) ? 'Pregame assessments are closed. Explore recorded game research.' : 'No assessed matchup is available yet.'}</p>}
