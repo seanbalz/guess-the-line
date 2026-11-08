@@ -212,7 +212,8 @@ test('native league switch/create/invite layouts use actual memberships and reta
  const world=await communityWorld(page,baseURL,{migrations:HOSTED});
  try {
   await world.api('sean','leagues',{name:'A long private league name for friends on narrow phones',format:'group',practice:false,requestId:randomUUID()});
-  await signIn(page,'sean');await page.getByRole('navigation',{name:'Main'}).getByRole('button',{name:/^Play(,|$)/}).click();await page.getByRole('button',{name:/^League: .*\. Switch league$/}).click();
+  await signIn(page,'sean');await page.getByRole('navigation',{name:'Main'}).getByRole('button',{name:/^Research(,|$)/}).click();
+  await expect(page.locator('[data-landing="research"]')).toBeVisible();await page.getByRole('button',{name:/^League: .*\. Switch league$/}).click();
   await inspect(page,'league-switcher',testInfo);
   await sheet(page,'Your leagues').getByRole('button',{name:'Create a league',exact:true}).click();
   await sheet(page,'Create a league').getByLabel('League name').fill('Friends on Sunday');await inspect(page,'league-create',testInfo);

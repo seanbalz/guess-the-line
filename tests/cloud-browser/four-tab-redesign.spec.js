@@ -26,6 +26,9 @@ test('four simple roots, detail origins, reload and phone geometry', async ({ pa
           await tab(page, name).click();
           const root = page.locator(`[data-landing="${name.toLowerCase()}"]`);
           await expect(root).toBeVisible();
+          const compact = name !== 'Research'; // Approved Home, Play and Bets roots; Research retains its native frame.
+          if (compact) await expect(page.locator('.gx')).toHaveClass(/\bgx-overview-frame\b/);
+          else await expect(page.locator('.gx')).not.toHaveClass(/\bgx-overview-frame\b/);
           await assertCaptureTheme(page, theme);
           if (name === 'Play') {
             // The confirmed overview exposes Spread / Total / Points directly.
@@ -37,8 +40,8 @@ test('four simple roots, detail origins, reload and phone geometry', async ({ pa
             const rect = el.getBoundingClientRect();
             return { bottom: rect.bottom, viewport: innerHeight, labels: [...el.querySelectorAll('.gx-tab-label')].map(label => parseFloat(getComputedStyle(label).fontSize)) };
           });
-          expect(Math.abs(geometry.bottom - (geometry.viewport - (name === 'Home' ? 12 : 0)))).toBeLessThan(2);
-          expect(geometry.labels.every(size => size >= (name === 'Home' ? 13 : 16))).toBe(true); // Approved compact Home navigation.
+          expect(Math.abs(geometry.bottom - (geometry.viewport - (compact ? 12 : 0)))).toBeLessThan(2);
+          expect(geometry.labels.every(size => size >= (compact ? 13 : 16))).toBe(true); // Compact navigation metadata only.
           // D-69 4.3: a tab screen fades in after the launch; contrast is checked once it has settled.
           await page.evaluate(() => Promise.all(document.getAnimations().filter(a => a.playState === 'running' && Number.isFinite(a.effect?.getComputedTiming().endTime)).map(a => a.finished.catch(() => {}))));
           const result = await new AxeBuilder({ page }).include('.gx').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();

@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 import { layoutProblems } from '../helpers/phone-layout.mjs';
+import { setCaptureTheme } from './theme-capture.mjs';
 
 test.setTimeout(90000);
 test.beforeEach(() => test.skip(!pgliteAvailable, 'Disposable PGlite required.'));
@@ -42,7 +43,7 @@ for (const name of ['NFL', 'EPL']) test(`${name} keyboard skip link reveals a fu
       await page.reload();
       await expect(nav(page)).toBeVisible();
       await expect(sport(page, name)).toHaveAttribute('aria-pressed', 'true');
-      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      await setCaptureTheme(page, theme);
       const address = page.url(), skip = page.getByRole('link', { name: 'Skip to main content', exact: true });
       // Unfocused skip links have a box, but are intentionally clipped. Phone helpers
       // exclude that state only; a focused skip link must meet all ordinary target/layout checks.
@@ -79,7 +80,8 @@ test('NFL and EPL keep the current tab, shared header and account; profile saves
     await page.goto('/#epl/home');
     await signIn(page, 'luke', { navigate: false });
     await expect(page.getByRole('button', { name: 'Your menu', exact: true })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'League: FEPL. Switch league', exact: true })).toBeVisible();
+    await expect(nav(page).getByRole('button', { name: 'Home', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect(sport(page, 'EPL')).toHaveAttribute('aria-pressed', 'true');
     // Home now reads its moneyline progress; unrelated NFL reads and every write still fail this allowlist.
     await expect.poll(() => world.guessReads.length).toBeGreaterThan(0);
     expect(world.calls.filter(path => !['lobby', 'epl/draft/read', 'epl/guess/read'].includes(path))).toEqual([]);
@@ -88,6 +90,11 @@ test('NFL and EPL keep the current tab, shared header and account; profile saves
     for (const tab of ['Research', 'Bets', 'Play', 'Home']) {
       await nav(page).getByRole('button', { name: tab, exact: true }).click();
       await expect(page.locator(`.gx-tab[data-tab="${tab.toLowerCase()}"]`)).toHaveAttribute('aria-current', 'page');
+      if (tab === 'Research') {
+        // FEPL Research is the retained native destination; Home's approved compact header has sport marks.
+        await expect(page.locator('[data-epl-section="fantasy"]')).toBeVisible();
+        await expect(page.getByRole('button', { name: 'League: FEPL. Switch league', exact: true })).toBeVisible();
+      }
       await sport(page, 'NFL').click();
       await expect(sport(page, 'NFL')).toHaveAttribute('aria-pressed', 'true');
       await expect(page.locator(`.gx-tab[data-tab="${tab.toLowerCase()}"]`)).toHaveAttribute('aria-current', 'page');
@@ -117,7 +124,7 @@ test('NFL and EPL keep the current tab, shared header and account; profile saves
     for (const name of ['NFL', 'EPL']) for (const theme of ['dark', 'light']) {
       await sport(page, name).click();
       await expect(page.getByRole('navigation', { name: 'Sports', exact: true })).toBeVisible();
-      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      await setCaptureTheme(page, theme);
       for (const width of [320, 390]) {
         await page.setViewportSize({ width, height: 844 });
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -127,6 +134,9 @@ test('NFL and EPL keep the current tab, shared header and account; profile saves
         await page.screenshot({ path: testInfo.outputPath(`shared-${name.toLowerCase()}-${theme}-${width}.png`) });
       }
     }
+    // Bets stays native in EPL; the final capture loop must leave that actual league-picker opener selected.
+    await expect(page).toHaveURL(/#epl\/bets$/);
+    await expect(nav(page).getByRole('button', { name: 'Bets', exact: true })).toHaveAttribute('aria-current', 'page');
     await page.getByRole('button', { name: 'League: FEPL. Switch league', exact: true }).click();
     await expect(page.getByRole('dialog', { name: 'Your leagues', exact: true })).toContainText('FEPL');
     expect(world.errors).toEqual([]);
@@ -183,12 +193,11 @@ test('EPL Menu offers Pick reminders at 390 px, the same switch as NFL, and asks
     expect((await row.boundingBox()).height).toBeGreaterThanOrEqual(44);
     expect(world.calls.filter(path => path.startsWith('push/')), 'no push route before a tap').toEqual([]);
     for (const theme of ['dark', 'light']) {
-      await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, theme);
+      await setCaptureTheme(page, theme);
       expect(await page.evaluate(layoutProblems), `EPL menu ${theme}`).toEqual([]);
       expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations.map(v => v.id), `EPL menu ${theme}`).toEqual([]);
       await page.screenshot({ path: testInfo.outputPath(`epl-menu-reminders-390-${theme}.png`) });
     }
-    await page.evaluate(() => { delete document.documentElement.dataset.theme; });
     await row.click();
     const sheet = page.getByRole('dialog', { name: 'Pick reminders', exact: true });
     const toggle = sheet.getByRole('switch', { name: 'Pick reminders', exact: true });

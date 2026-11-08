@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { communityWorld, pgliteAvailable, signIn, SUPABASE } from './community-world.mjs';
+import { setCaptureTheme } from './theme-capture.mjs';
 
 test.use({ viewport: { width: 390, height: 844 } });
 test.skip(!pgliteAvailable, 'Install the local PGlite test runtime.');
@@ -10,7 +11,8 @@ async function open(page) {
   await page.evaluate(() => localStorage.setItem('gtl.app', 'next'));
   await page.goto('about:blank'); await page.goto('/');
   await signIn(page, 'luke', { navigate: false });
-  await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: /^Play(,|$)/ }).click();
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: /^Research(,|$)/ }).click();
+  await expect(page.locator('[data-landing="research"]')).toBeVisible();
   await page.getByRole('button', { name: /^League: .*\. Switch league$/ }).click();
   await page.getByRole('button', { name: 'Create a league', exact: true }).click();
   await expect(page.getByLabel('League name', { exact: true })).toBeVisible();
@@ -24,7 +26,7 @@ test('a member creates a private league and reaches invitations without leaving 
     await page.getByLabel('League name', { exact: true }).fill('Weekend League');
     await page.getByRole('button', { name: 'Group', exact: true }).click();
     for (const theme of ['light', 'dark']) {
-      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      await setCaptureTheme(page, theme);
       await page.setViewportSize({ width: 320, height: 740 });
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze()).violations).toEqual([]);
@@ -62,6 +64,7 @@ test('uncertain league creation survives reload and an explicit retry returns th
     await expect(page.getByLabel('League name', { exact: true })).toHaveAttribute('readonly', '');
     page.once('dialog', dialog => dialog.accept());
     await page.reload();
+    await expect(page.locator('[data-landing="research"]')).toBeVisible();
     await page.getByRole('button', { name: /^League: .*\. Switch league$/ }).click();
     await page.getByRole('button', { name: 'Create a league', exact: true }).click();
     await expect(page.getByLabel('League name', { exact: true })).toHaveValue('A private duel');
