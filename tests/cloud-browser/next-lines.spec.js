@@ -1,3 +1,4 @@
+import { nativeActionCaptures } from '../helpers/native-action-captures.mjs';
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { ALL } from '../migrations.mjs';
@@ -1895,11 +1896,7 @@ test('your pick sheet separates draft and locked references and returns focus to
     await expect(total).toContainText('Line at your guess'); await expect(total).toContainText('43.5');
     await expect(total.getByRole('list', { name: 'Community Total guesses' })).toBeVisible();
     await expect(total.getByRole('group', { name: 'Guess market' })).toHaveCount(0);
-    for (const theme of ['dark', 'light']) {
-      await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
-      await page.setViewportSize({ width: 320, height: 844 }); await phoneChecks(page); expect(await axe(page)).toEqual([]);
-      await page.screenshot({ path: testInfo.outputPath(`your-pick-${theme}.png`) });
-    }
+    await nativeActionCaptures(page, 'nfl-your-pick', async () => { await phoneChecks(page); expect(await axe(page)).toEqual([]); });
     await total.getByRole('button', { name: 'About your saved pick' }).click();
     await expect(sheet(page, 'About your saved pick')).toContainText('Later market movement never replaces a saved reference');
     await page.keyboard.press('Escape'); await expect(total).toBeVisible();
@@ -1994,11 +1991,7 @@ test('League bets loads one game on demand with protected terms, phone layout an
     await expect(bets.locator(`[data-pick="${ACCOUNTS.luke.id}:total"]`)).toContainText('Under 51.5');
     await expect(bets).toContainText('DraftKings'); await expect(bets.locator('.gx-ev-game')).toHaveCount(1);
     await expect(bets.locator('[data-game="HOU-JAX"]')).toHaveCount(0);
-    for (const theme of ['dark', 'light']) {
-      await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
-      await page.setViewportSize({ width: 320, height: 844 }); await phoneChecks(page); expect(await axe(page)).toEqual([]);
-      await page.screenshot({ path: testInfo.outputPath(`game-bets-${theme}.png`) });
-    }
+    await nativeActionCaptures(page, 'nfl-game-bets', async () => { await phoneChecks(page); expect(await axe(page)).toEqual([]); });
     await page.keyboard.press('Escape');
     const action = gameLayer(page, 'Seahawks @ Broncos').getByRole('button', { name: /^Open League bets for / });
     await expect(action).toBeFocused(); await phoneChecks(page); expect(await axe(page)).toEqual([]);
@@ -2114,10 +2107,7 @@ test('Research reveal warns before writing, keeps locked scores and drafts, then
     await expect(game.getByRole('button', { name: 'See picks now', exact: true })).toBeFocused();
     await game.getByRole('button', { name: 'See picks now', exact: true }).click();
     await expect(dialog.getByRole('button', { name: 'Confirm sit-out and reveal', exact: true })).toBeVisible();
-    for (const theme of ['dark', 'light']) {
-      await page.evaluate(value => document.documentElement.dataset.theme = value, theme); await page.setViewportSize({ width: 320, height: 844 });
-      await phoneChecks(page); expect(await axe(page)).toEqual([]); await page.screenshot({ path: testInfo.outputPath(`reveal-${theme}.png`) });
-    }
+    await nativeActionCaptures(page, 'nfl-reveal', async () => { await phoneChecks(page); expect(await axe(page)).toEqual([]); });
     await dialog.getByRole('button', { name: 'Confirm sit-out and reveal', exact: true }).click();
     const done = page.getByRole('alertdialog', { name: 'Week 6 reveal confirmed', exact: true }); await expect(done).toBeVisible();
     await done.getByRole('button', { name: 'Back to Research', exact: true }).click();

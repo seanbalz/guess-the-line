@@ -1,4 +1,26 @@
 .gx .gx-league { overflow-wrap: anywhere; }
+/* Approved League content floats on the canvas; native Nest keeps routes,
+   focus and Back actions without adding another frame around every card. */
+.gx .gx-league > .gx-nest { gap: 20px; }
+.gx .gx-league > .gx-nest > .gx-nest-card { margin-inline: 0; padding: 0; border: 0; background: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; gap: 20px; }
+.gx .gx-league > .gx-nest > .gx-nest-card::before { display: none; }
+.gx .gx-league .gx-nest-lips { flex-direction: row; flex-wrap: wrap; gap: 8px; }
+.gx .gx-league .gx-nest-lip { margin-inline: 0; padding: 8px; border: 0; border-radius: 0; background: transparent; color: var(--gx-accent-ink); }
+.gx .gx-league-standing { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; padding: 22px 20px; background: linear-gradient(135deg, var(--gx-accent-tint), var(--gx-glass)); }
+.gx .gx-league-standing > div { display: grid; gap: 8px; min-width: 0; }
+.gx .gx-league-standing > div + div { border-left: 1px solid var(--gx-border); padding-left: 22px; }
+.gx .gx-league-standing strong { font: 600 42px/1.1 var(--gx-font-num); font-variant-numeric: tabular-nums; letter-spacing: -1px; color: var(--gx-accent-ink); overflow-wrap: anywhere; }
+.gx .gx-league-standing > p { grid-column: 1 / -1; }
+.gx .gx-league .gx-l-board { padding: 8px 10px; }
+.gx .gx-league .gx-l-row { padding: 14px 0; min-height: 76px; gap: 9px; }
+.gx .gx-league .gx-l-row--lead:not(.gx-row--you) { background: transparent; box-shadow: none; }
+.gx .gx-league .gx-lg-total { font-size: 19px; letter-spacing: -.6px; }
+.gx .gx-league :is(.gx-row--you, .gx-l-row--lead) .gx-lg-total { color: var(--gx-accent-ink); }
+.gx .gx-league .gx-lg-chip { background: transparent; }
+.gx .gx-league .gx-l-board .gx-list { background: transparent; gap: 0; }
+.gx .gx-league .gx-l-board .gx-list > li + li { border-top: 1px solid var(--gx-border); }
+.gx .gx-league .gx-l-board .gx-l-row { background: transparent; box-shadow: none; }
+.gx .gx-league-house .gx-row { background: transparent; padding: 17px; }
 .gx .gx-league-heading { display: flex; flex-direction: column; gap: var(--gx-space-1); }
 .gx .gx-league-post { gap: var(--gx-space-4); }
 .gx .gx-league-post-head { display: flex; align-items: flex-start; gap: var(--gx-space-3); }

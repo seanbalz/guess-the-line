@@ -125,8 +125,9 @@ describe('post cards draw only what the server let through', () => {
     expect(hidden).not.toMatch(/PTS/);
     const exact = card(post('result_shared', { mode: 'guess_spread', embed: { gameId: 'SEA-DEN', visible: true, pick: -2.5, points: 10 } }));
     expect(exact).toContain('hit a Bullseye');
-    expect(exact).toContain('DEN −2.5 · 10 PTS'); // the stored spread is the home side's: −2.5 is DEN by 2.5
-    expect(said(exact)).toContain('Spread · Seattle Seahawks at Denver Broncos · Exact');
+    expect(exact).toContain('DEN −2.5'); // the stored spread is the home side's: −2.5 is DEN by 2.5
+    expect(said(exact)).toContain('10 / 10');
+    expect(said(exact)).toContain('Spread accuracy points · Exact');
     expect(matchups(exact)).toEqual([SEA_DEN]);
   });
   it('a kickoff post leads with the Guess The Line mark, lists who is in per game and opens the game thread', () => {

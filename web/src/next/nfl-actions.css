@@ -1,0 +1,57 @@
+/* Approved populated-nfl-actions / populated-league compositions, reconciled onto
+   native layers. Controllers, source labels and unavailable states stay native. */
+.gx .gx-sheet.gx-nfl-action { border-radius: 28px 28px 0 0; background-color: var(--gx-canvas); }
+.gx .gx-layer--sheet:has(> .gx-nfl-action) > .gx-scrim { -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px); }
+.gx .gx-dialog.gx-nfl-action::backdrop { -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.gx .gx-nfl-action .gx-icon-btn { border: 1px solid var(--gx-border); border-radius: 14px; background: var(--gx-glass); box-shadow: var(--gx-secondary-shadow); }
+.gx .gx-nfl-action .gx-sheet-head { padding: 9px 16px 16px; gap: 8px; border-bottom: 1px solid var(--gx-border); }
+.gx .gx-nfl-action .gx-sheet-title { font-size: 23px; line-height: 1.5; letter-spacing: -.5px; overflow-wrap: anywhere; }
+.gx .gx-nfl-action .gx-sheet-body { gap: 18px; padding: 18px 16px 30px; }
+.gx .gx-nfl-action .gx-sheet-foot { padding: 18px 16px max(25px, env(safe-area-inset-bottom)); background: var(--gx-canvas); }
+.gx .gx-nfl-action .gx-sheet-back { display: inline-flex; align-items: center; gap: 7px; max-width: calc(100% - 55px); min-height: 44px; padding: 10px 12px; border: 1px solid var(--gx-border); border-radius: 16px; background: var(--gx-card-face); box-shadow: var(--gx-secondary-shadow); color: var(--gx-text-1); white-space: normal; }
+.gx .gx-dialog.gx-nfl-action { box-sizing: border-box; width: calc(100% - 28px); max-width: 360px; max-height: calc(100dvh - 40px); padding: 24px 18px; border: 1px solid var(--gx-border); border-radius: 28px; background-color: var(--gx-canvas); }
+.gx .gx-nfl-action .gx-dialog-title { font-size: 23px; line-height: 1.45; letter-spacing: -.5px; }
+.gx .gx-nfl-action .gx-dialog-text { font-size: 13px; line-height: 1.85; }
+.gx .gx-nfl-action .gx-dialog-actions { gap: 16px; }
+.gx .gx-nfl-action .gx-dialog-actions > .gx-btn { width: 100%; }
+.gx :is(.gx-nfl-action, .gx-nfl-action-content) .gx-card:not(.gx-card--flush) { padding: 18px 14px; }
+.gx :is(.gx-nfl-action, .gx-nfl-action-content) .gx-btn { min-height: 46px; white-space: normal; }
+.gx :is(.gx-nfl-action, .gx-nfl-action-content) .gx-btn--ghost { width: 100%; padding: 12px; border: 1px solid var(--gx-border); border-radius: 20px; background: var(--gx-glass); color: var(--gx-text-1); box-shadow: var(--gx-secondary-shadow); }
+.gx :is(.gx-nfl-action, .gx-nfl-action-content) .gx-chip { border: 1px solid var(--gx-border); border-radius: 18px; background: var(--gx-glass); color: var(--gx-text-1); box-shadow: var(--gx-secondary-shadow); }
+.gx :is(.gx-nfl-action, .gx-nfl-action-content) .gx-chip--on { border: 2px solid var(--gx-accent-ink); background: var(--gx-accent-tint); color: var(--gx-accent-ink); }
+.gx :is(.gx-nfl-action, .gx-nfl-action-content) .gx-n-m { font-size: 27px; line-height: 1.4; color: var(--gx-accent-ink); }
+.gx .gx-nfl-action .gx-l-guess-row { flex-wrap: wrap; padding: 16px 12px; gap: 10px; }
+.gx .gx-nfl-action .gx-l-guess-row .gx-row-main { display: grid; gap: 7px; }
+.gx .gx-nfl-action .gx-l-guess-value { width: auto; }
+.gx .gx-nfl-action .gx-feed-pick { padding: 18px 14px; border-bottom: 1px solid var(--gx-border); }
+.gx .gx-nfl-action .gx-feed-pick:last-child { border-bottom: 0; }
+.gx .gx-nfl-action .gx-feed-reactor { padding: 18px 14px; border-bottom: 1px solid var(--gx-border); }
+.gx .gx-nfl-action .gx-feed-reactor:last-child { border-bottom: 0; }
+.gx .gx-nfl-action .gx-feed-emoji--big { font-size: 27px; }
+.gx :is(.gx-nfl-action, .gx-nfl-action-content) .gx-ev-picks { display: grid; gap: 18px; }
+.gx :is(.gx-nfl-action, .gx-nfl-action-content) .gx-ev-pick { align-items: flex-start; gap: 10px; }
+.gx .gx-nfl-action .gx-ev-pick { padding: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.gx :is(.gx-nfl-action, .gx-nfl-action-content) .gx-place-stats { gap: 10px; }
+.gx :is(.gx-nfl-action, .gx-nfl-action-content) .gx-place-stat { gap: 7px; }
+.gx :is(.gx-nfl-action, .gx-nfl-action-content) .gx-place-stat .gx-n-s { color: var(--gx-accent-ink); }
+.gx :is(.gx-nfl-action, .gx-nfl-action-content) .gx-place-sides { gap: 10px; }
+.gx :is(.gx-nfl-action, .gx-nfl-action-content) .gx-place-sides .gx-chip { min-height: 48px; padding: 12px 9px; border-radius: 18px; }
+.gx .gx-nfl-action .gx-place-slip-row { padding: 16px 12px; border: 1px solid var(--gx-border); border-radius: 23px; background: var(--gx-card-face); box-shadow: var(--gx-secondary-shadow); }
+.gx .gx-feed-thread .gx-sheet-head { padding-inline: 20px; }
+.gx .gx-feed-thread .gx-sheet-body { padding: 0 20px 20px; }
+.gx .gx-feed-thread .gx-sheet-foot { padding-inline: 20px; }
+.gx .gx-feed-thread .gx-feed-comments { display: grid; gap: 20px; }
+.gx .gx-feed-thread .gx-feed-crow { padding: 0; gap: 10px; }
+.gx .gx-feed-thread .gx-feed-crow .gx-t-body { margin-top: 5px; line-height: 1.7; }
+.gx .gx-feed-thread form > .gx-hstack { flex-direction: column; align-items: stretch; }
+.gx .gx-feed-thread .gx-feed-cin { width: 100%; min-height: 72px; max-height: 120px; border-radius: 15px; }
+@media (max-width: 359px) {
+  .gx .gx-nfl-action .gx-sheet-body { padding-inline: 12px; }
+  .gx .gx-nfl-action .gx-feed-pick { padding-inline: 10px; gap: 8px; }
+  .gx .gx-nfl-action .gx-l-guess-row { padding-inline: 9px; }
+  .gx :is(.gx-nfl-action, .gx-nfl-action-content) .gx-place-sides { gap: 7px; }
+  .gx .gx-feed-thread :is(.gx-sheet-head, .gx-sheet-body, .gx-sheet-foot) { padding-inline: 16px; }
+}
+@media (forced-colors: active) {
+  .gx :is(.gx-nfl-action, .gx-nfl-action-content) :is(.gx-card, .gx-sheet-back, .gx-place-slip-row) { border-color: CanvasText; }
+}

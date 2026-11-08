@@ -1,0 +1,535 @@
+{
+  "kind": "native-league-and-nfl-action-composition-evidence",
+  "capturedAt": "2026-11-08T00:36:30.163617+00:00",
+  "implementationBase": "35ae5fc6c7dfa9d87ff22a3797b11c369a409590",
+  "branch": "codex/prism-league-actions-20261107",
+  "authorityCommit": "3ac2eb50513ba73447ef890e4a47863cde7bdd76",
+  "dataBoundary": "Fictional local PGlite fixtures and real native handlers only. No hosted account or production data.",
+  "comparison": "Reference hierarchy/material comparison using different fixture records and native viewport dimensions; no pixel-equality or blanket106-state acceptance claim.",
+  "sourceHashes": [
+    {
+      "file": "web/src/next/bets/EveryoneBets.jsx",
+      "sha256": "2e87a9ff1a5871f283a8e191ade1d4d1ccd4fd8b0592021ff778d0df9113474e"
+    },
+    {
+      "file": "web/src/next/bets/GameBetsSheet.jsx",
+      "sha256": "cae4e41b9622efd79f69cdf3d4d58ae8dcf3092412acb35a766683a5fc616f43"
+    },
+    {
+      "file": "web/src/next/bets/PlaceBets.jsx",
+      "sha256": "34211a81dc8db5ba064d92c3650ccf8efa77dae6456da4cf4d3c838b9e12c82c"
+    },
+    {
+      "file": "web/src/next/feed/CommentsSheet.jsx",
+      "sha256": "024afd2fb3aa4e36cd5158762b190f24c8a54a2272271d0e1cc0a91a2326ede3"
+    },
+    {
+      "file": "web/src/next/feed/DigestCard.jsx",
+      "sha256": "25cc243ceba2700c6f3baf04536580139e5359c02b016a6f642b660cb2da1e46"
+    },
+    {
+      "file": "web/src/next/feed/PicksSheet.jsx",
+      "sha256": "3a1defb640e4e3e54daa5e92f8bfab3b14c9f079bb665f4ad44842c992a461a7"
+    },
+    {
+      "file": "web/src/next/feed/PostCard.jsx",
+      "sha256": "f6532373ac86f9a6f69f81c9286eb13278d6c93a1da227185858b8785c6fda2c"
+    },
+    {
+      "file": "web/src/next/feed/ReactorsSheet.jsx",
+      "sha256": "ca1dab35e5d5717b099ad94e4f9c4b01466c08f589ea5c91ee5aac120619df05"
+    },
+    {
+      "file": "web/src/next/feed/feed.css",
+      "sha256": "3309ab7696d86e561e2fd16840949e68aef07014899eb2895807f3c05977c4bb"
+    },
+    {
+      "file": "web/src/next/league/LeagueBoard.jsx",
+      "sha256": "d8a91409e07e970ccabce76adbafcc284ab29c27323f05d4c85871a5c4b9617b"
+    },
+    {
+      "file": "web/src/next/league/LeagueStanding.jsx",
+      "sha256": "3eb28b8351256d93cd3a0fa5f9f25c7e4865812710681c0581b6d6c536c7c1e2"
+    },
+    {
+      "file": "web/src/next/league/league.css",
+      "sha256": "7eccd39fd3003a1b793e6481bdafca3b73a12e90742571001b6ccbaa1f3ac8e8"
+    },
+    {
+      "file": "web/src/next/lines/YourPickSheet.jsx",
+      "sha256": "ebd28c938ca090753e75fd0ed69ff60d0d08282ffcbba2fab1d3a9f53f6ecd84"
+    },
+    {
+      "file": "web/src/next/nfl-actions.css",
+      "sha256": "0b8bbc01163562fae531c58a577807960e59e086285873597349c522314273cb"
+    },
+    {
+      "file": "web/src/next/play/ForfeitDialog.jsx",
+      "sha256": "5a0741d3c71df1cbcace2d2118d5a9f0e33535f9c530d6717d173d912353ee42"
+    },
+    {
+      "file": "web/src/next/play/points/PointsBoard.jsx",
+      "sha256": "34f4a190a1dd542402250c38cbfb72fdd04388e01ac4095fc556f0f9d917f043"
+    },
+    {
+      "file": "web/src/next/ui/Sheet.jsx",
+      "sha256": "7eb36204f051df2ea326cf94eb011833ae5e456fc9e33c65481cd4ebf07e13b0"
+    }
+  ],
+  "referenceHashes": [
+    {
+      "file": "selected-system-review.json",
+      "sha256": "cb235f3e396944f083c9cea87cc60c9d67bafac390b317ccd63e6665537dd236"
+    },
+    {
+      "file": "populated-league.jsx",
+      "sha256": "7782efb82be4393607b79c99f479d1c267ead46d43095bb416c4e914843d7c9f"
+    },
+    {
+      "file": "populated-league.css",
+      "sha256": "bf313b763c1cc48f74f9894bc3f8db3a49e49b2172aee9dec420865093cf8860"
+    },
+    {
+      "file": "populated-nfl-actions.css",
+      "sha256": "0f4d7d155860d80e6437684814f0e519b9b09fa564e04d6fdcaefd76ae5aaa6d"
+    },
+    {
+      "file": "NFL_ACTIONS_NAVIGATION_REVIEW.md",
+      "sha256": "9fb9610f7e7f618b5816d9c3caea9de56bab04cf343d715d4161e501a8c5eadd"
+    },
+    {
+      "file": "previews/league-spread-board-dark-phone.png",
+      "sha256": "5ab2e62bfc208be6f7f369c03d5abde74c39d8932390da99ee26e56d9b756a54"
+    },
+    {
+      "file": "previews/league-spread-board-light-phone.png",
+      "sha256": "39f9c6c462289f78996aabc2a9f284c1eca2724d0eb7967be0dc6f39a5bcb3fb"
+    },
+    {
+      "file": "previews/league-total-board-dark-phone.png",
+      "sha256": "9fbd40cb015a97a92a1ac68f98b6f22330c4749975772bc8e77913fe73c80a73"
+    },
+    {
+      "file": "previews/league-total-board-light-phone.png",
+      "sha256": "4057544ed3022a9c14099b23df5f0bc7eaabb6464c02d741799f5ffa411fba50"
+    },
+    {
+      "file": "previews/league-points-board-dark-phone.png",
+      "sha256": "501c7708ae592c4f06a9b22cfca4f0e9f656fea26c4434c1df9c9070736e5b57"
+    },
+    {
+      "file": "previews/league-points-board-light-phone.png",
+      "sha256": "61ab6cb9415e5ec05472bfdf7ec0a398496031f7ccc1781eacf574156e5f05f5"
+    },
+    {
+      "file": "previews/league-feed-dark-phone.png",
+      "sha256": "b3f326dcc2100ceb69c74438cdae4c5cba5ff6047ca09572fb1256b1cb39011d"
+    },
+    {
+      "file": "previews/league-feed-light-phone.png",
+      "sha256": "f407bdcd5f29cc6f310c8c19862ef1fa257e36d49c8099f64e486d817afec2ce"
+    },
+    {
+      "file": "previews/league-comments-dark-phone.png",
+      "sha256": "0c4b4723240c4333b3d17971fc379f378b48474c1dd0afb86f1afd85e298c48c"
+    },
+    {
+      "file": "previews/league-comments-light-phone.png",
+      "sha256": "ff89e9487df0745af501c9796277ea4fa8a6766e252f1af6f1fd21e55f0fa4bb"
+    },
+    {
+      "file": "previews/nfl-actions-saved-total-dark-phone.png",
+      "sha256": "26b951ceb986c0e0421d29831f3aa45e78562c8ff46e5541c17b3c663de3502a"
+    },
+    {
+      "file": "previews/nfl-actions-saved-total-light-phone.png",
+      "sha256": "6d1a97c41a25d5d81026d9b8e4c1bdd4848060a3a5d6a8f1073a751678a3da06"
+    },
+    {
+      "file": "previews/nfl-actions-game-bets-dark-phone.png",
+      "sha256": "52e5cd7c8862c7a4343f3e41bae6070617eeb7ac0a460ac438fa450f6129c476"
+    },
+    {
+      "file": "previews/nfl-actions-game-bets-light-phone.png",
+      "sha256": "5cfeaeb28a2f4790fd2b4b135739ef8564f3232e7b583bc6419149d9a9848e16"
+    },
+    {
+      "file": "previews/nfl-actions-forfeit-ready-dark-phone.png",
+      "sha256": "dcfd5ec91642bec7d3b484151127e268f482911471b5baa0b3e26370d7edc92b"
+    },
+    {
+      "file": "previews/nfl-actions-forfeit-ready-light-phone.png",
+      "sha256": "cc8aac2938975787f57b435af215d3c028ee6258940aafc2b19cf65def54751d"
+    },
+    {
+      "file": "previews/nfl-actions-reactors-dark-phone.png",
+      "sha256": "2a92d273fbf20bb643789c3302aa43e61756bb800c3cd39956edb0bd961ba104"
+    },
+    {
+      "file": "previews/nfl-actions-reactors-light-phone.png",
+      "sha256": "3da2a0185838b5f093fe5b0914939fda964eeb1ddc4d0888a8fed3ae44c80921"
+    }
+  ],
+  "nativeCaptures": [
+    {
+      "file": "league-board-dark-320.png",
+      "width": 320,
+      "height": 2989,
+      "sha256": "45534f8f9f33087ed8226f271dbba6a61937c1db29d034994dc93d7da57bdc0a"
+    },
+    {
+      "file": "league-board-dark-390.png",
+      "width": 390,
+      "height": 2664,
+      "sha256": "00262364feeba3b634f581987ad033a6b248e742be06ce4f9435bf6cbceb8b94"
+    },
+    {
+      "file": "league-board-forced-320.png",
+      "width": 320,
+      "height": 2991,
+      "sha256": "6f4b484e234de0bdbfda6e469e1b2262aec49d9caa19966be50088f7996611ab"
+    },
+    {
+      "file": "league-board-light-320.png",
+      "width": 320,
+      "height": 2989,
+      "sha256": "7b2bc16d5eb9a5c9e830b74b634efecba8b0515650b262bf67876e7afd13714b"
+    },
+    {
+      "file": "league-board-light-390.png",
+      "width": 390,
+      "height": 2664,
+      "sha256": "5923cdc946925454d70c406f8f67722e6db5cf8f1e9a2e630b016a1a8a7638bc"
+    },
+    {
+      "file": "league-comments-dark-320-scrolled.png",
+      "width": 320,
+      "height": 844,
+      "sha256": "3db52de02809cc506047ba194a97c66a6bbe3b939ca87a396faee80365e7f937"
+    },
+    {
+      "file": "league-comments-dark-320.png",
+      "width": 320,
+      "height": 3283,
+      "sha256": "7b848d28bbddcd827ce8d06729506534f85b1ecc62f76b2aede534daf53664ea"
+    },
+    {
+      "file": "league-comments-dark-390-scrolled.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "ce0f37fb2afd52a861061212f1924a8933d60c8dd3f6a678134ae081df1ec3ea"
+    },
+    {
+      "file": "league-comments-dark-390.png",
+      "width": 390,
+      "height": 2959,
+      "sha256": "7d7da8024bba7c5fb45f2f6a82dcfec8c53c4137f83fe169375f8a07b011a18c"
+    },
+    {
+      "file": "league-comments-forced-320-scrolled.png",
+      "width": 320,
+      "height": 844,
+      "sha256": "938627848c989b7e47ae7c414673b3d61460ceea29c0727d1c7336b8383a804b"
+    },
+    {
+      "file": "league-comments-forced-320.png",
+      "width": 320,
+      "height": 3283,
+      "sha256": "98dabbbe0dc38cb27995523374d97b58ca490eef09cad6d795b605ca2109d4a0"
+    },
+    {
+      "file": "league-comments-light-320-scrolled.png",
+      "width": 320,
+      "height": 844,
+      "sha256": "6b2fe4a9bc89995f9999799a041f49076c6a58eb81716981b957feca8ddf641d"
+    },
+    {
+      "file": "league-comments-light-320.png",
+      "width": 320,
+      "height": 3283,
+      "sha256": "f7c66dd13988bafa35bb3e64d6838d76f1092ccab68fcdc816275364b939ddae"
+    },
+    {
+      "file": "league-comments-light-390-scrolled.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "8d652247ef2cd0fe3a8c61a7a688462d3213c646c7567c6e46fbc2f9b678bae1"
+    },
+    {
+      "file": "league-comments-light-390.png",
+      "width": 390,
+      "height": 2959,
+      "sha256": "0ce3b17b50d59e70a0269f2ef7f8c22c8883178612e048707d27b74779128cef"
+    },
+    {
+      "file": "league-feed-dark-320.png",
+      "width": 320,
+      "height": 3283,
+      "sha256": "a44636c89b0bdfb94592f2bc2ac172cf86b7a788b9b1bc6079bd3db667e3af20"
+    },
+    {
+      "file": "league-feed-dark-390.png",
+      "width": 390,
+      "height": 2959,
+      "sha256": "2de289496984dd699d18a7fdd415c0679d60b83b2b00285e5d15340ded71665d"
+    },
+    {
+      "file": "league-feed-forced-320.png",
+      "width": 320,
+      "height": 3283,
+      "sha256": "88ebb80c64a6008b51c15e824be0215219a4f2e0d650fbdc41e533e80f026311"
+    },
+    {
+      "file": "league-feed-light-320.png",
+      "width": 320,
+      "height": 3283,
+      "sha256": "63e12381456c54ad3e64f0362bdb2cebf43edfd3cb41fb23f1d37aad6a3088cc"
+    },
+    {
+      "file": "league-feed-light-390.png",
+      "width": 390,
+      "height": 2959,
+      "sha256": "7bdf0e28dc23fce1310a1affaf427e6439b59a12791e37f422c98b664f2f1a41"
+    },
+    {
+      "file": "league-points-dark-320.png",
+      "width": 320,
+      "height": 3121,
+      "sha256": "03eb7e0e3616e05339ba5a4e9461905326242ff6f2e6a83d26c96dc6ed3bccee"
+    },
+    {
+      "file": "league-points-dark-390.png",
+      "width": 390,
+      "height": 2773,
+      "sha256": "59757eda591bd69f9f5cfead3ba2a7f4d07704b04ba78416269ed5e9909b9605"
+    },
+    {
+      "file": "league-points-light-320.png",
+      "width": 320,
+      "height": 3121,
+      "sha256": "a12f53277651a8d8e5c1c5fa47ce100328e45eb24b864db3f3903977521ded33"
+    },
+    {
+      "file": "league-points-light-390.png",
+      "width": 390,
+      "height": 2773,
+      "sha256": "f9ae2e5f8671a916a26abfdb6414ab64fbd1e5616019a0c3291427104ad5f2d2"
+    },
+    {
+      "file": "league-total-dark-320.png",
+      "width": 320,
+      "height": 2957,
+      "sha256": "b811260c6721a36e6a5cc324b888ec419c0bd244935f5b5b8eeaf284104fae1e"
+    },
+    {
+      "file": "league-total-dark-390.png",
+      "width": 390,
+      "height": 2632,
+      "sha256": "de01a4023036e0a136d13cda4200f40975d207b0b5347f3c2d92693d4f29e3d3"
+    },
+    {
+      "file": "league-total-light-320.png",
+      "width": 320,
+      "height": 2957,
+      "sha256": "e1169ed72188f60fe6bb263643635409795856d3f7990bec38a0c5838920d780"
+    },
+    {
+      "file": "league-total-light-390.png",
+      "width": 390,
+      "height": 2632,
+      "sha256": "2ddbffd0b7976cfabc1bde7860525ba429abbbc11b64288c24a2605e0b580c63"
+    },
+    {
+      "file": "nfl-game-bets-dark-320.png",
+      "width": 320,
+      "height": 844,
+      "sha256": "0f9085abab049e2f617cc77be478f2355da07a75314dfab252244096d29f6923"
+    },
+    {
+      "file": "nfl-game-bets-dark-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "ee68698f4f6bacba9bb278d6da4c2c59d5e5e70f9c84546a2fc15346d7afe19b"
+    },
+    {
+      "file": "nfl-game-bets-forced-320.png",
+      "width": 320,
+      "height": 844,
+      "sha256": "2ca9411f16a8d74c250353ea04aa3b126afa2e37e45d8466457cb23772a31592"
+    },
+    {
+      "file": "nfl-game-bets-light-320.png",
+      "width": 320,
+      "height": 844,
+      "sha256": "c4f9b93bcff8cfa9acce3f7790801e24412953ae0b293d7aadc82cd07a100408"
+    },
+    {
+      "file": "nfl-game-bets-light-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "1da4d24e37f1f24d64d5588ca031869c8086ecb149c9931fb93a99df3bb694d1"
+    },
+    {
+      "file": "nfl-reactions-picker-dark-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "037ac119fc8884d0237f59178ec0990fdde026177aeb4a9fe6c3e94788a15f80"
+    },
+    {
+      "file": "nfl-reactions-picker-light-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "515840fe8d895fdb28eadb7c26bd5e071a4f242ea15b426c0504e14e3496e66e"
+    },
+    {
+      "file": "nfl-reactors-dark-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "4692f6a1c254eec24d0f547db8563b41eaa25692baa14c2c52f8a341ffbf0498"
+    },
+    {
+      "file": "nfl-reactors-light-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "cdcaff92e92a6a52dbf3ddb0c8060a0054c80749ee26c713cec1e81401ad5511"
+    },
+    {
+      "file": "nfl-reveal-dark-320.png",
+      "width": 320,
+      "height": 844,
+      "sha256": "f9de687e60e4fc4598aeafe98af58751971b754462091655610d621849c04a5a"
+    },
+    {
+      "file": "nfl-reveal-dark-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "15354ba9baa592b7a3d01430fef32fd77320c5d5c31367c53dd5d3dc4b0dd42d"
+    },
+    {
+      "file": "nfl-reveal-forced-320.png",
+      "width": 320,
+      "height": 844,
+      "sha256": "91f2b6451a094d7c50a510faba61eb7c61d2905e9002b690dadd01e604daccf0"
+    },
+    {
+      "file": "nfl-reveal-light-320.png",
+      "width": 320,
+      "height": 844,
+      "sha256": "5b4537dd6dd5c11b828163071b776240a596a5be4000d93eab5fbd800eab950f"
+    },
+    {
+      "file": "nfl-reveal-light-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "fcc5ceb88961a6df15db5ca67bc114a8f29d298840746f0877a307e3a16596e8"
+    },
+    {
+      "file": "nfl-your-pick-dark-320-scrolled.png",
+      "width": 320,
+      "height": 844,
+      "sha256": "9a7dab97bfbe5352009a7c6f5a3f0e010f93bea17ac129e56b10838307009ee2"
+    },
+    {
+      "file": "nfl-your-pick-dark-320.png",
+      "width": 320,
+      "height": 844,
+      "sha256": "7075e4aa76a99510b6a7c7879e44902ff603e964cccb0ad266ce1da0d72303ee"
+    },
+    {
+      "file": "nfl-your-pick-dark-390-scrolled.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "0aac1f52e15748388322bfab6c8d0cac26aa3c3e5e6bf38486e09cfed0a56aaf"
+    },
+    {
+      "file": "nfl-your-pick-dark-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "9e00b23e0875aeb3722a292ed49ac5d15fab9e2da7d39ba7f9563798c92cc8be"
+    },
+    {
+      "file": "nfl-your-pick-forced-320-scrolled.png",
+      "width": 320,
+      "height": 844,
+      "sha256": "97672473480284a1e7eb84315e0eb847f8ab6c5b9140e09a7cff03e2bf693775"
+    },
+    {
+      "file": "nfl-your-pick-forced-320.png",
+      "width": 320,
+      "height": 844,
+      "sha256": "9e4fd7830cf03bec10ed990b62e4bf3e27b186690dbec22ffa2ad9d4de462e3b"
+    },
+    {
+      "file": "nfl-your-pick-light-320-scrolled.png",
+      "width": 320,
+      "height": 844,
+      "sha256": "3179e817c892800ad7dcd93d55cc48577386ed26d21edb73d6a9348fee229d11"
+    },
+    {
+      "file": "nfl-your-pick-light-320.png",
+      "width": 320,
+      "height": 844,
+      "sha256": "aab46a78294aef34d149ba2c137603712005ca0edc241fc1156607cf9d1a7442"
+    },
+    {
+      "file": "nfl-your-pick-light-390-scrolled.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "0959effc34db6a47d3fd940745d820ff3f881a05393d0f2233449171061d6cc4"
+    },
+    {
+      "file": "nfl-your-pick-light-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "ccbd9bc6a21669cad9c8fc4be0b1ed2b00dfb08f4ad09596dc8be742f98d120e"
+    }
+  ],
+  "checks": [
+    {
+      "command": "node node_modules/vitest/vitest.mjs run --maxWorkers=2",
+      "result": "88 files / 904 tests passed; default 15s test timeout retained."
+    },
+    {
+      "command": "npm run typecheck",
+      "result": "passed"
+    },
+    {
+      "command": "node --test tests/next-forfeit.test.mjs tests/next-your-pick.test.mjs tests/next-game-bets.test.mjs tests/next-league-model.test.mjs tests/next-league-history.test.mjs tests/brand-mark.test.mjs tests/next-tokens.test.mjs",
+      "result": "48 passed"
+    },
+    {
+      "command": "Local Playwright cloud-test config, exclusive port5230; targeted next-design-home-league,next-feed,next-reactions,next-lines,next-prism-league-actions",
+      "result": "23 passed, including real read/write, private scopes, delayed account replies, reveal deadline, uncertain recovery, drafts, reactions and focus."
+    },
+    {
+      "command": "next-points fixture-week draft/lock/Everyone/House browser plus updated three-market long-content capture",
+      "result": "2 passed"
+    },
+    {
+      "command": "Final exact-CSS native capture plus Virtual placement recovery browser set",
+      "result": "6 passed on exact final source;320/390 both themes/forcedcolors, full pages, long names/comments, keyboard scroll, lower sheet bodies,44px and axe; Virtual lost-reply duplicate/edit/conflict guards preserved."
+    },
+    {
+      "command": "python -X utf8 scripts/check-brand-docs.py",
+      "result": "passed"
+    },
+    {
+      "command": "npm run build:cloud",
+      "result": "passed; existing chunk-size warning"
+    },
+    {
+      "command": "node scripts/check-cloud-boundary.mjs --bundle-only",
+      "result": "passed; hosted probe not run; no .env.cloud in owned tree"
+    },
+    {
+      "command": "node --test tests/next-app-view.test.mjs tests/next-loading.test.mjs",
+      "result": "9 passed / 2 inherited failures in base Bets rootCSS import and Bets landing bare Loading status; parent integration owns fixes."
+    }
+  ],
+  "remaining": [
+    "All106 supplied action captures have not each been recreated and compared.",
+    "Exact shared header/sports-row/dock position is pending owner clarification; structure untouched.",
+    "Finer VirtualUnits Custom/0.1U support requires SQL/API compatibility and explicit migration apply authority; functioning half-unit controls retained.",
+    "Physical-device/account/hosted acceptance, independent review, integration, push/PR/merge/deploy are not established."
+  ]
+}

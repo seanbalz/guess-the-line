@@ -1,3 +1,4 @@
+import '../nfl-actions.css';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { cloudApi, communityApi } from '../../api.js';
 import { useAppData, useSharedRead } from '../data/AppData.jsx';
@@ -83,7 +84,7 @@ export function ForfeitDialog({ args, open }) {
     shell.closeDialog();
   };
   const done = Boolean(view?.stored);
-  return <Dialog open={open} title={done ? `Week ${args.week} reveal confirmed` : `See picks now for Week ${args.week}?`}
+  return <Dialog className="gx-nfl-action" open={open} title={done ? `Week ${args.week} reveal confirmed` : `See picks now for Week ${args.week}?`}
     text={done ? 'Your locked guesses keep counting. Remaining guesses in the recorded markets are sat out; your drafts are kept.'
       : `This is final for Week ${args.week} · ${args.season}. It sits out every remaining unlocked guess in the markets listed below, not just this game. Locked guesses keep their points and drafts stay saved. You cannot lock more guesses in those markets this week. Sitting out breaks your Pick streak.`} onClose={close}>
     <Button disabled={busy} onClick={close}>{done ? 'Back to Research' : 'Keep playing'}</Button>

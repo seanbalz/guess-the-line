@@ -1,3 +1,4 @@
+import '../nfl-actions.css';
 import { useAppData, useSharedRead } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
 import { Button, InfoButton, Sheet, Skeleton } from '../ui/index.js';
@@ -10,7 +11,7 @@ export function GameBetsSheet({ args }) {
   const read = useGameBets(app, personal, args);
   const close = () => { if (shell.confirmLeave()) shell.closeSheet(); };
   const scopeName = app.league?.community === false ? app.league.name : 'Community';
-  return <Sheet title="League bets" onClose={close} tall>
+  return <Sheet className="gx-nfl-action" title="League bets" onClose={close} tall>
     <div className="gx-hstack gx-gap-8"><p className="gx-t-meta gx-grow">{scopeName} · Week {args.week} · {args.season} · Virtual Units</p><InfoButton {...INFO.gameBets}/></div>
     {read.status === 'loading' ? <Skeleton label="Loading this game’s league bets…" shape="rows" count={3}/>
       : read.status === 'error' ? <><p className="gx-t-body" role="alert">League bets are unavailable for this game.</p><Button onClick={read.reload}>Retry league bets</Button></>

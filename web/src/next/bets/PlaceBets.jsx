@@ -1,3 +1,4 @@
+import '../nfl-actions.css';
 // Bets › Virtual › Your picks (redesign stages 43 and 44): the account-level placing screen. Sean, October 28, 2026:
 // it replaces the old private-league Your picks for everyone, Community included. It reads POST /bets/read for the
 // published week (the league showing only filters whose faces appear) and places through POST /bets/place (M-11).
@@ -63,7 +64,7 @@ export function PlaceBets({ onDirty }) {
     <p className="gx-t-body" role="status">{PLACE_COPY.unpublished}</p><Button onClick={() => shell.go('play')}>Open Play</Button>
   </div>;
   const units = entries.reduce((sum, entry) => sum + entry.units, 0);
-  return <div className="gx-place gx-vstack gx-gap-16" data-bets="place">
+  return <div className="gx-nfl-action-content gx-place gx-vstack gx-gap-16" data-bets="place">
     <p className="gx-t-meta gx-c-2">Week {board.week} · Virtual Units · {PLACE_COPY.empty}</p>
     <WeekCard week={weekCard(read.data, app.accountId)}/>
     {board.closed ? <GateBanner gate={{ locked: true, sentence: PLACE_COPY.banner, ctaLabel: 'Lock in a guess' }} onCta={() => shell.go('play', { section: 'picks' })}/> : null}
@@ -73,7 +74,7 @@ export function PlaceBets({ onDirty }) {
       <span className="gx-grow gx-vstack"><span className="gx-t-strong">Slip · {entries.length} {entries.length === 1 ? 'bet' : 'bets'}</span><span className="gx-t-meta gx-c-2">{fmtU(units)} risked</span></span>
       <Button variant="primary" onClick={() => setReview(true)}>Review slip</Button>
     </div></Dock> : null}
-    {review && entries.length ? <Sheet title="Your slip" onClose={() => { if (!busy) setReview(false); }} tall
+    {review && entries.length ? <Sheet className="gx-nfl-action" title="Your slip" onClose={() => { if (!busy) setReview(false); }} tall
       footer={<div className="gx-vstack gx-gap-8">
         {failure ? <p className="gx-t-body gx-c-loss" role="alert">{failure}</p> : null}
         <Button variant="primary" block onClick={place} disabled={busy}>{busy ? 'Saving…' : uncertain ? 'Retry the same save' : `Place ${entries.length} ${entries.length === 1 ? 'bet' : 'bets'} · ${fmtU(units)}`}</Button>

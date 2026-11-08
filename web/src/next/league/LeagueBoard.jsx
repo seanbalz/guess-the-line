@@ -17,6 +17,7 @@ import { boardSlice } from './leagueModel.js';
 import { ordinal } from './rankMoment.js';
 import { useRankMoment } from './useRankMoment.js';
 import { LeagueEmpty } from './useLeagueRead.jsx';
+import { LeagueStanding } from './LeagueStanding.jsx';
 
 export const BOARD_COPY = Object.freeze({
   leader: 'Leader',
@@ -93,6 +94,7 @@ export function BoardCard({ app, shell, league, mode, rows, label, features, row
   if (!rows.length) return <LeagueEmpty text={BOARD_COPY.noMembers} actionLabel={BOARD_COPY.invite} onAction={() => shell?.openSheet?.('sh.switcher')}/>;
   const { shown, more } = boardSlice(rows, all), badgeWeek = features?.badgeWeek ?? null;
   return <>
+    <LeagueStanding row={mine} mode={mode}/>
     <Card variant="flush" className="gx-l-board" data-board={mode}>
       <List label={label}>
         {shown.map(row => <BoardRow key={row.id} row={row} rows={rows} account={app?.accountId ?? null} badgeWeek={badgeWeek}

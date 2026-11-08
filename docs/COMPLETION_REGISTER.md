@@ -1670,3 +1670,17 @@ distinguishes the screenshot-observed Fantasy full-width/gutter defect from Tren
 The UI workflow owns [PR #389](https://github.com/seanbalz/guess-the-line/pull/389), whose source has merged;
 Redraft owns its separate frontend release and physical-phone verification. This moneyline batch includes no formatting fix
 and does not close that acceptance. Shared-shell navigation/phone checks also do not close it.
+
+
+## League and National Football League action composition port — November 7, 2026
+
+Owned unpublished branch `codex/prism-league-actions-20261107` ports the selected
+League standing/board/feed/result/comment hierarchy and scoped native action
+spacing, with real readers/writers and privacy/accounting unchanged. The
+[implementation and limits](PRISM_LEAGUE_ACTIONS_NATIVE_2026_11_07.md) link native
+capture hashes, full-page and scrolled-sheet checks, long names, keyboard
+scrolling, both phone widths/themes and forced colors. The optional read-only
+Sheet-body tab stop fixes keyboard access exposed by the long-thread check.
+The complete 106-action visual matrix, finer Virtual Units compatibility, shared
+header/dock decision, independent review, integration and hosted/phone acceptance
+remain separate work; this entry does not close them or claim deployment.
