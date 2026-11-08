@@ -64,7 +64,10 @@ contexts only. Independent task review found no issues. Its 58 native captures,
 22 references and nine source hashes are scoped evidence, not full-frame closure.
 Combined integration passed all 923 component tests, 27 strict contracts and
 typecheck, plus four direct Play/receipt/natural+delayed read-accounting browsers.
-Additional unambiguous rows are assigned separately for implementation/review.
+Additional unambiguous rows are now independently reviewed and integrated
+through `c5d7f10e`; [expanded source/evidence](PRISM_EXPANDED_FRAME_CONTEXTS_2026_11_07.md)
+records the thin actual-rendered presentation signals, lazy EPL identity policy
+and production dock clearance. Final combined verification remains separate.
 No remaining rollout release is established by this record.
 
 Four native Research scenarios separately have 16 reviewed Dark/Light320/390
@@ -75,8 +78,10 @@ not FEPL's conflicting compact-content frame or all 106 reference captures.
 The historical core component pairing is 42 paired, zero unverified, one held
 Virtual-minimum scenario. Its NFL cases used Games as the Research host; the
 expanded policy correctly gives Games its supplied compact frame and uses the
-real Research landing for the native specimens. Fresh final-source root-route
-captures/verification are therefore still required before final reconciliation.
+real Research landing for the native specimens. Fresh root-route captures are supplied by the separate expanded evidence
+manifest; they preserve this earlier set unchanged. Root verified all 128 new
+image hashes/dimensions, fourteen source hashes and eighty historical hashes;
+combined browser replay is underway.
 Retain the separate FEPL and exact continuity-host obligations. Normal replay
 must not overwrite the historical artifacts.
 

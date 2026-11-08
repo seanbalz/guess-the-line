@@ -1,5 +1,33 @@
 # Final confirmed Prism source review — November 7, 2026
 
+## Expanded integration review — November 8, 2026 UTC
+
+A fresh independent whole-branch review covers `7aa93a6f` through integrated
+code/test head `c5d7f10e136e04a176a4cf45b0ce1b2b4b98ab24`, including the
+expanded confirmed-frame mapping and test-contract corrections. **Spec and code
+quality approved; no Critical or Important findings.** Merge remains subject
+to required exact-source CI and terminal combined browser verification.
+
+The review inspected the complete inventory and targeted integration across the
+shared frame/presentation lifecycle, lazy EPL identity, retained controllers,
+Research additive projection, privacy/import boundaries and substantive browser
+contracts. It independently recomputed fourteen source, thirty receipt, 128 fresh
+PNG/dimension and eighty historical hashes, and confirmed the fourteen source
+blobs equal their capture source. Seven fresh representative images were viewed;
+earlier task review supplies the broader representative capture inspection.
+This is representative review, not a line-by-line audit of every artifact or
+hosted/physical-device acceptance.
+
+Two documentation precision findings were corrected during review: locked/error
+Points slots remain distinct from independently approved populated profiles; the
+action checklist now labels its old frame holds historical and preserves the
+separate FEPL overlap. Existing BiasChart fixture-key and build-size warnings
+remain Minor. Final integrated component/type/strict-Node/build/privacy outputs
+pass; combined browser replay and exact-head CI are recorded in the aggregate
+rollout register. The earlier review below retains its original source and totals.
+
+## Earlier body integration review
+
 Independent whole-branch review completed November 8 UTC for base
 `7aa93a6ffe79eafb58bd6c7d12ec230b6d77b0e9` through code head
 `48ad4b4045e1a80ce66917a9e0cf6d6f3e437811`. Verdict: **approved for merge

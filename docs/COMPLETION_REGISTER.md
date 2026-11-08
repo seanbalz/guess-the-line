@@ -1,5 +1,32 @@
 # Guess The Line — current completion register
 
+## Expanded confirmed frames integrated; final combined verification — November 7, 2026
+
+Independently approved expanded source `d3c1b01b` / `9047ba20` / `272e2b05`
+is integrated as `d37de276` / `99a72f7c` / `f5a224c3`. The
+[context record](PRISM_EXPANDED_FRAME_CONTEXTS_2026_11_07.md) closes every
+unambiguous compact-frame row in the authority matrix, including actual editable
+drafts, populated Points profiles, named Research sections, History, Bets tools,
+Premier League Home/Play and named access covers. Actual NFL Research root,
+FEPL Research and explicit EPL Bets/History remain native. FEPL's same-route
+approval overlap remains queued after the pending ROI-policy question.
+
+Fresh root reconciliation verified fourteen source, one ledger, 46 reference,
+thirty receipt, 128 new PNG/dimension and eighty frozen historical hashes.
+The corrected native Research specimens use the actual root; old Games-host
+specimens retain their original provenance. Known continuity failures retain
+their actual host; no global error-frame rule is introduced.
+
+The [reviewed test-only CI corrections](PRISM_FRAME_CI_CONTRACTS_2026_11_07.md)
+are integrated as `c5d7f10e`. They retain geometry, access/privacy, counts, replay,
+focus and real-theme checks while replacing obsolete pinned/flush/root-opener
+assumptions. At product/test head `c5d7f10e`, 923 component tests in 92 files,
+31 strict Node contracts, typecheck, Brand QA and whitespace checks pass.
+Fresh final whole-branch source review approves the integrated changes with
+no Critical or Important findings. Combined browser verification is in progress;
+exact-head CI and release remain open. Only the separate Home spacing release
+is live. No SQL/M-41 apply, ROI decision, frozen v62 or parked-scope change.
+
 ## Confirmed frame scope reconciled; expanded implementation active — November 7, 2026
 
 [Authority/context mapping](PRISM_FRAME_AUTHORITY_RECONCILIATION_2026_11_07.md)

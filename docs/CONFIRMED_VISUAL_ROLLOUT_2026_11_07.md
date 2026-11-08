@@ -8,6 +8,20 @@ The remaining areas below distinguish reviewed local implementation from release
 
 ## Current implementation evidence
 
+Expanded frame source is now integrated through `c5d7f10e`; task reviews approve
+both the context implementation and the seven-file test-only CI corrections.
+[Expanded frame evidence](PRISM_EXPANDED_FRAME_CONTEXTS_2026_11_07.md) covers all
+unambiguous matrix rows; the actual NFL Research root is separately captured
+from its compact named sections. FEPL Research remains native pending its genuine
+same-route clarification. Root recomputed 14 source, one ledger, 46 reference,
+30 receipt, 128 fresh image/dimension and 80 historical hashes, all matching.
+At this integrated code/test source, 923 component / 31 strict Node checks,
+typecheck, Brand QA and whitespace pass. The fresh whole-branch source review approves the integrated changes without
+Critical or Important findings. Combined browser checks remain underway;
+exact-head CI and protected release follow.
+Earlier per-task source and totals below retain their original provenance.
+
+
 Final whole-branch review of `7aa93a6f..48ad4b40` found no Critical or
 Important issues and approved merge subject to exact-source CI. The inspected
 release-order documentation correction follows Gate D: tolerant frontend first,
@@ -217,11 +231,12 @@ pending ROI-policy question. No universal frame or alias/data-state split is inf
 
 Reviewed source `ece05980` / `a9dcde45`, integrated `4d0b9c5a` / `250294f1`,
 closes only the three National Football League landings and explicit selected
-receipt frame contexts. The expanded unambiguous context matrix is still being
-implemented. Existing area checkboxes record native body/scoped-review work;
-they do not close these remaining outer-frame obligations. Continuity's actual
-failure-host pairing remains an implementation/evidence obligation, not a new
-error-triggered frame rule. Only the earlier Home spacing release is deployed.
+receipt frame contexts. The expanded unambiguous context matrix is integrated from reviewed
+`d3c1b01b` / `9047ba20` / `272e2b05` as `d37de276` / `99a72f7c` /
+`f5a224c3`. Existing area checkboxes record native body/scoped-review work;
+the expanded record supplies their additional outer-frame evidence. Actual
+Fantasy lazy failure and HistoryPage failure opened from Research retain their
+known compact hosts; they do not create a global error-triggered frame rule. Only the earlier Home spacing release is deployed.
 
 The four exact native Research navigation cases are independently reviewed and
 integrated from `28b071d9` / `0153dc77` as `adf6dfd6` / `db2cd735`. Root verified
@@ -231,8 +246,9 @@ byte-identical. The historical source/capture time remains intact. This raises
 the historical component reconciliation to **42 paired, zero unverified, one
 held** (Virtual minimum), without resolving FEPL. Its NFL cases used the Games
 host; final expanded native-root cases must use actual ResearchLanding because
-named Games now has positive compact-frame authority. Fresh root-route capture/
-verification remains open; do not treat the historical count as final acceptance.
+named Games now has positive compact-frame authority. Fresh root-route evidence is now supplied separately by the expanded record:
+sixteen new images for the actual NFL root/NFL-only, held FEPL and layer-failure
+cases. The historical count is not all-reference or hosted acceptance.
 
 Final CI at `1ba23696` passed every job except one proven lazy GameDetails initial-
 read observation race. Independent reviewed correction `61cfa3f9` is integrated
@@ -474,7 +490,7 @@ Reviewed and integrated: [source and capture audit](PRISM_IDENTITY_SCOPE_NATIVE_
 
 ### 18. NFL action layers
 
-- [ ] Native action compositions are **LOCALLY IMPLEMENTED AND REVIEWED / HELD DEPENDENCIES / NOT DEPLOYED**. [Initial fidelity ledger](PRISM_LEAGUE_ACTIONS_FIDELITY_FIXES_2026_11_07.md) and [integrated Menu/scope closeout](PRISM_IDENTITY_SCOPE_NATIVE_2026_11_07.md) reconcile 38 paired, zero unverified and five held core scenarios. The four frame positions and separately prepared M-41 Virtual minimum remain held. No 106/106 acceptance claim.
+- [ ] Native action compositions are **LOCALLY IMPLEMENTED AND REVIEWED / HELD DEPENDENCIES / NOT DEPLOYED**. [Initial fidelity ledger](PRISM_LEAGUE_ACTIONS_FIDELITY_FIXES_2026_11_07.md) and [integrated Menu/scope closeout](PRISM_IDENTITY_SCOPE_NATIVE_2026_11_07.md) record the earlier 38 paired, zero unverified and five held core scenarios. The later native-navigation evidence raises historical component pairing to 42 paired, zero unverified and one held Virtual minimum. [Expanded frame reconciliation](PRISM_EXPANDED_FRAME_CONTEXTS_2026_11_07.md) supplies the actual-root evidence and unambiguous context mapping; FEPL's separate same-route frame choice remains held. M-41 is prepared separately and not enabled. No 106/106 acceptance claim.
 - Reference: `NFL_ACTIONS_NAVIGATION_REVIEW.md; populated-nfl-actions; isolated-nfl-actions.jsx; nflActionsNavigationPreview`.
 - Native targets: `play/ForfeitDialog.jsx; lines/YourPickSheet.jsx, EveryoneGuesses.jsx; bets/GameBetsSheet.jsx, EveryoneBets.jsx, PlaceBets.jsx; feed/PicksSheet.jsx, ReactorsSheet.jsx`.
 - Required presentation and behavior: All 106 approved captures: reveal/forfeit, saved drafts/pending/stale/scope, game/everyone bets and read states, feed hidden/picks/share uncertain, reactors/read states, Virtual entry/slip/locked/no-offer/busy/uncertain, source/rules Info and scrolled forms. Exact scenarios below.
