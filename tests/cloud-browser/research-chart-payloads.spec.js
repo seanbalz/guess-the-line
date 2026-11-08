@@ -14,7 +14,7 @@ const hash = text => createHash('sha256').update(text).digest('hex');
 
 // Chart results are unmodified committed public nflverse history, not fabricated
 // research replies. Only the future test slate, accounts and reference are fixtures.
-async function setup(page, baseURL) {
+async function setup(page, baseURL, { rookieOnly = false } = {}) {
   let provider, mode = 'normal';
   const pending = [];
   const calls = [];
@@ -29,10 +29,11 @@ async function setup(page, baseURL) {
   const targets = world.state.games.map(g => {
     const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', weekday: 'long' }).formatToParts(new Date(g.kickoff)).map(p => [p.type, p.value]));
     return row({ season: world.state.league.season, week: world.state.league.week, gameday: `${parts.year}-${parts.month}-${parts.day}`, gametime: `${parts.hour}:${parts.minute}`, weekday: parts.weekday,
-      away_team: g.id.split('-')[0], home_team: g.id.split('-')[1] });
+      away_team: g.id.split('-')[0], home_team: g.id.split('-')[1], ...(rookieOnly ? { home_coach: 'New Fixture Coach', away_coach: 'Other Fixture Coach' } : {}) });
   });
   const csv = T.writeCompactCsv([...history, ...targets]), now = new Date(Date.now() - 1000).toISOString();
-  const snapshot = await createResearchSnapshot({ csv, now, season: world.state.league.season, registry, venues, corrections });
+  const selectedRegistry = rookieOnly ? { ...registry, presets: registry.presets.filter(p => p.id.includes('t_rookie_hc')) } : registry;
+  const snapshot = await createResearchSnapshot({ csv, now, season: world.state.league.season, registry: selectedRegistry, venues, corrections });
   provider = createResearchProvider({ loadSchedule: async () => csv, loadSnapshot: async () => snapshot, venues, corrections });
   const ids = world.state.games.map(g => g.id);
   await storeBookLines(world, { spread: Object.fromEntries(ids.map(id => [id, -3])), total: Object.fromEntries(ids.map(id => [id, 44])) });
@@ -42,9 +43,52 @@ async function setup(page, baseURL) {
   const list = page.getByRole('region', { name: 'Historical trends', exact: true });
   await expect(list.getByRole('combobox', { name: 'Evidence period' })).toBeVisible();
   await list.getByRole('combobox', { name: 'Evidence period' }).selectOption('all');
-  await expect(list.locator('[data-research-card]')).toHaveCount(12);
+  await expect(list.locator('[data-research-card]')).toHaveCount(rookieOnly ? 2 : 12);
   return { world, snapshot, list, calls, source: { publicHistorySha256: hash(historyCsv), controlledCsvSha256: hash(csv), publicRows: history.length, fixtureTargets: targets.length, generatedAt: now }, hold() { mode = 'hold'; }, release() { mode = 'normal'; pending.splice(0).forEach(resolve => resolve()); } };
 }
+
+test('computed rookie-coach captions, expanded titles and Why use full league wording with raw selection retained', async ({ page, baseURL }, info) => {
+  test.setTimeout(120000);
+  const { world, snapshot, list, source } = await setup(page, baseURL, { rookieOnly: true });
+  try {
+    const cards = list.locator('[data-research-card]'), first = cards.first();
+    const id = await first.getAttribute('data-research-card');
+    const candidate = snapshot.candidates.find(c => c.id === id);
+    expect(candidate.sourceState).toBe('computed');
+    expect(candidate.conditions.some(c => c.endsWith(':t_rookie_hc'))).toBe(true);
+    expect(candidate.title).toContain('NFL');
+    const raw = JSON.stringify(candidate);
+    await expect(first.locator('.gx-r-row-context')).toContainText('First-year National Football League head coach');
+    await first.locator('.gx-tc-row').click();
+    await expect(first.locator('[data-trend-detail] h3')).toContainText('National Football League');
+    const slider = first.getByRole('slider');
+    await slider.focus(); await page.keyboard.press('Home');
+    await expect(slider).toHaveValue('0');
+    const output = 'design/prism-identity-wording-boundaries-2026-11-07';
+    await fs.mkdir(output, { recursive: true });
+    for (const name of ['dark', 'light']) {
+      await theme(page, name);
+      await first.scrollIntoViewIfNeeded();
+      await page.screenshot({ path: `${output}/computed-expanded-${name}-390.png`, fullPage: true });
+      await first.getByRole('button', { name: 'About this research', exact: true }).click();
+      const why = page.getByRole('dialog', { name: 'About this research', exact: true });
+      await expect(why).toContainText('Why it applies: First-year National Football League head coach');
+      await expect(why).not.toContainText('First-year NFL head coach');
+      await page.screenshot({ path: `${output}/computed-why-${name}-390.png` });
+      await page.keyboard.press('Escape');
+      await expect(slider).toHaveValue('0');
+    }
+    await first.getByRole('button', { name: 'View evidence', exact: true }).click();
+    const table = first.locator('.gx-r-table');
+    await expect(table.locator('tbody tr')).toHaveCount(candidate.periods.all.series.points.length);
+    await table.getByRole('button').first().click();
+    await expect(slider).toHaveValue('1');
+    await expect(first).toHaveAttribute('data-research-card', id);
+    expect(JSON.stringify(candidate)).toBe(raw);
+    expect(world.errors).toEqual([]);
+    await fs.writeFile(info.outputPath('wording-source-receipt.json'), JSON.stringify({ ...source, id, rawTitle: candidate.title, conditions: candidate.conditions, snapshotSha256: hash(raw), captures: 4, fixtureNote: 'Only registered rookie-coach presets; future coach names and accounts are fictional. Historical rows are committed public history.' }, null, 2));
+  } finally { await world.db.close(); }
+});
 async function theme(page, theme) {
   await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
   await page.evaluate(theme => {

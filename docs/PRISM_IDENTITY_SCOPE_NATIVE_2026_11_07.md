@@ -1,5 +1,10 @@
 # Shared identity, Menu and scope evidence — November 7, 2026
 
+The [scoped wording correction](PRISM_IDENTITY_WORDING_BOUNDARIES_2026_11_07.md)
+fixes the registered composite-ID title boundary and the two computed condition
+display surfaces found in independent review. It preserves all 114 captures and
+adds four separately identified native Research captures; no prior scope is promoted.
+
 Status: locally checked; independent review and integration pending. Branch
 `codex/prism-shell-identity-20261107` was created from freshly fetched
 `origin/main` at `7aa93a6ffe79eafb58bd6c7d12ec230b6d77b0e9`, then fast-forwarded

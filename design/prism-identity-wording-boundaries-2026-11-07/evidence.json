@@ -1,0 +1,216 @@
+{
+  "kind": "native-prism-identity-wording-boundary-correction",
+  "date": "2026-11-07",
+  "status": "Local scoped correction; independent re-review/integration pending; unpublished",
+  "branch": "codex/identity-wording-boundaries-2026-11-07",
+  "fetchedOriginMain": "7aa93a6ffe79eafb58bd6c7d12ec230b6d77b0e9",
+  "base": "049875b5557c6fef887f429d8c5ad26744b4379c",
+  "referenceCommit": "3ac2eb50513ba73447ef890e4a47863cde7bdd76",
+  "preserved": {
+    "manifest": "design/prism-identity-scope-native-2026-11-07/evidence.json",
+    "captures": 114,
+    "references": 48,
+    "identityAssets": 38,
+    "originalSourceEntries": 43,
+    "refreshedSourceEntries": [
+      {
+        "before": {
+          "file": "docs/COMPLETION_REGISTER.md",
+          "bytes": 146611,
+          "sha256": "530cd34379fc8146c69912f3e1d8e4bd761cdefda3b8cc0ff1b4332e12802bed"
+        },
+        "after": {
+          "file": "docs/COMPLETION_REGISTER.md",
+          "bytes": 147379,
+          "sha256": "7ce57ffae07f5301e0bfa467eaa2a13089e10fdad9d92bdb235200ead9d060f4"
+        }
+      },
+      {
+        "before": {
+          "file": "web/src/next/leagueWords.js",
+          "bytes": 475,
+          "sha256": "9e742c4f5b7fbaf612ea5d39aa0972a01695a6ea5d6a7dce63437acaf51b6729"
+        },
+        "after": {
+          "file": "web/src/next/leagueWords.js",
+          "bytes": 1087,
+          "sha256": "89f3049e1e212de8ec1aeb85f919c5356976fc3c97038adae7154b9f35aa464d"
+        }
+      },
+      {
+        "before": {
+          "file": "web/src/next/research/ResearchCards.jsx",
+          "bytes": 24701,
+          "sha256": "00365904c6b5b39ae33ce7e3a1a1b5cc8fa5d08947a9782f189001a35247460e"
+        },
+        "after": {
+          "file": "web/src/next/research/ResearchCards.jsx",
+          "bytes": 24785,
+          "sha256": "a8ec7ac0ae1a8eaa7fc7eba760ac8a715a801c7fdbdf6048148abdeef9af56bd"
+        }
+      },
+      {
+        "before": {
+          "file": "docs/PRISM_IDENTITY_SCOPE_NATIVE_2026_11_07.md",
+          "bytes": 8268,
+          "sha256": "2d7c0869a225ebdcb65fe58224c8091b2b25d48404a157750c68903f976c206d"
+        },
+        "after": {
+          "file": "docs/PRISM_IDENTITY_SCOPE_NATIVE_2026_11_07.md",
+          "bytes": 8596,
+          "sha256": "4870bef3ce7bda085438f6e3a5271d39c090cf565c923225fefb3c839c1f2702"
+        }
+      }
+    ],
+    "unchangedSourceEntries": 39
+  },
+  "coverage": {
+    "paired": 38,
+    "unverified": 0,
+    "held": 5,
+    "change": "unchanged cumulative counts; four new scoped Research captures do not promote held states"
+  },
+  "sources": [
+    {
+      "file": "web/src/next/leagueWords.js",
+      "bytes": 1087,
+      "sha256": "89f3049e1e212de8ec1aeb85f919c5356976fc3c97038adae7154b9f35aa464d"
+    },
+    {
+      "file": "web/src/next/research/ResearchCards.jsx",
+      "bytes": 24785,
+      "sha256": "a8ec7ac0ae1a8eaa7fc7eba760ac8a715a801c7fdbdf6048148abdeef9af56bd"
+    },
+    {
+      "file": "docs/PRISM_IDENTITY_SCOPE_NATIVE_2026_11_07.md",
+      "bytes": 8596,
+      "sha256": "4870bef3ce7bda085438f6e3a5271d39c090cf565c923225fefb3c839c1f2702"
+    },
+    {
+      "file": "docs/COMPLETION_REGISTER.md",
+      "bytes": 147379,
+      "sha256": "7ce57ffae07f5301e0bfa467eaa2a13089e10fdad9d92bdb235200ead9d060f4"
+    },
+    {
+      "file": "tests/next-league-wording-boundaries.test.jsx",
+      "bytes": 4201,
+      "sha256": "f84845a52512d957926e4cead0fb9041aa4be06a8f4049d9185ae4e64d40756b"
+    },
+    {
+      "file": "tests/cloud-browser/research-chart-payloads.spec.js",
+      "bytes": 13621,
+      "sha256": "5bf0b8da2732454faa36214cdf42c21f8604835f216b7677adb3ccb2eb8819e2"
+    },
+    {
+      "file": "playwright.wording-boundaries.config.js",
+      "bytes": 387,
+      "sha256": "0e1a6468549ddbd1c317d91ae820ff48253197cb70ab3bb529052d4f30b41ca0"
+    },
+    {
+      "file": "docs/PRISM_IDENTITY_WORDING_BOUNDARIES_2026_11_07.md",
+      "bytes": 4757,
+      "sha256": "3a7bde5d7448533f4a944769c10f07fb0330bf82a5fb8f774fb51328ffbf352b"
+    },
+    {
+      "file": "shared/trends-registry.json",
+      "bytes": 241002,
+      "sha256": "267b0930294acae47d97da597a01b7dee8436673a8a7b04b3da79837b4403a09"
+    },
+    {
+      "file": "shared/trends.mjs",
+      "bytes": 123018,
+      "sha256": "7c499fcf1b6e1db2fffd61b76a874fa82a332c702eb52bc8ae2da274b78871aa"
+    },
+    {
+      "file": "shared/trends-view.mjs",
+      "bytes": 56879,
+      "sha256": "0d5dade41a0cd3552ead296088b2158cd7651590109c6b10d1a777b3da91d588"
+    },
+    {
+      "file": "cloud/trends-research.mjs",
+      "bytes": 15871,
+      "sha256": "02260a0ceaac4cca038b37e1676e03d5573e0a736ec3b3c04eb2e7010b003f5a"
+    },
+    {
+      "file": "shared/trends/history-1999-2025.csv",
+      "bytes": 1601952,
+      "sha256": "d41ad4312a9c5598628db2308acc04ca8f78d1d74547669cd47e2284fbfe7424"
+    },
+    {
+      "file": "design/prism-identity-wording-boundaries-2026-11-07/source-receipt.json",
+      "bytes": 713,
+      "sha256": "e3e44dd9d721f4f30de540baced29e2038c94a6ef3ee0b9604f5602d10a4fe4e"
+    }
+  ],
+  "captures": [
+    {
+      "file": "design/prism-identity-wording-boundaries-2026-11-07/computed-expanded-dark-390.png",
+      "bytes": 297188,
+      "sha256": "9e995e7d8cfe4f2dac44342d2fbcdf323b5d9edc9ddb043e5154bc7fbb7efe96"
+    },
+    {
+      "file": "design/prism-identity-wording-boundaries-2026-11-07/computed-expanded-light-390.png",
+      "bytes": 314586,
+      "sha256": "a6bff6f34930fbd26750ccb65d75c27ea4aa1cd4a1ac6d6d41f9e4fb7576987b"
+    },
+    {
+      "file": "design/prism-identity-wording-boundaries-2026-11-07/computed-why-dark-390.png",
+      "bytes": 145343,
+      "sha256": "077b2b21f792ae3a32797729385d0907b171d146777d6e48e603d250dade238a"
+    },
+    {
+      "file": "design/prism-identity-wording-boundaries-2026-11-07/computed-why-light-390.png",
+      "bytes": 146278,
+      "sha256": "1facf928f805f974085c08a6b9b111ef1d4365e2899dc03832c39c07223a2eb0"
+    }
+  ],
+  "checks": [
+    {
+      "command": "npx vitest run tests/next-league-wording-boundaries.test.jsx",
+      "result": "Before fix: 3 failures reproduce the composite-ID, bare-atom and computed-condition boundaries. After fix: 3 pass."
+    },
+    {
+      "command": "npx vitest run tests/next-league-wording-boundaries.test.jsx tests/next-prism-identity-scope.test.jsx tests/next-research-ui.test.jsx tests/next-trends-ui.test.jsx tests/next-trends-nest.test.jsx tests/next-app-invite.test.jsx",
+      "result": "6 files, 85 tests passed; existing BiasChart key warnings"
+    },
+    {
+      "command": "node --test tests/next-app-view.test.mjs tests/next-tokens.test.mjs tests/brand-mark.test.mjs tests/team-marks.test.mjs tests/theme-tokens.test.mjs tests/trends-view.test.mjs tests/research-chart-payloads.test.mjs",
+      "result": "67 passed, no skips; strict tokens/import boundaries included"
+    },
+    {
+      "command": "npx playwright test --config playwright.wording-boundaries.config.js --grep 'computed rookie-coach|all public-source row curves|opened non-shortlist detail|native menu|external account'",
+      "result": "7 passed, zero skipped, 1.5 minutes; exclusive port5292; real local PGlite/accounts/controllers/public historical source"
+    },
+    {
+      "command": "npm run typecheck",
+      "result": "passed"
+    },
+    {
+      "command": "python -X utf8 scripts/check-brand-docs.py",
+      "result": "passed"
+    },
+    {
+      "command": "npm run build:cloud",
+      "environment": "VITE_SUPABASE_URL=https://gtl-frontend-check.supabase.co; VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_frontend_test_only; VITE_GTL_OFFER_NEW_APP=1",
+      "result": "passed; existing chunk-size warning"
+    },
+    {
+      "command": "npm run check:cloud -- --bundle-only",
+      "result": "passed; no hosted probes"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    },
+    {
+      "command": "Focused native title search inspection",
+      "result": "No free-text title search on affected TrendList/TrendLayer/WindowRecords/HistoricalTrends/ResearchView/TrendsScreen/TrendBuilder surfaces; structured filters preserved"
+    }
+  ],
+  "limits": [
+    "No full-suite rerun, hosted/physical-phone acceptance, push, PR, merge, apply or deployment.",
+    "Source-reported exemption/custom-title/raw-key proof is explicitly component-level; native captures show actual computed provider output.",
+    "Global frame positions and four navigation positions remain held. Finer Virtual precision retains its existing owner/API-SQL dependency.",
+    "Native expanded screenshots are full-page captures of unchanged frame positioning, not positional acceptance."
+  ]
+}

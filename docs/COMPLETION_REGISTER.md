@@ -29,6 +29,18 @@ Earlier CI's two remaining layout defects reproduced locally and both original
 cases now pass after scoped loader-height and saved-pick row-width repairs.
 Their independent review/fresh CI and Commissioner/identity/unit compatibility/
 owner frame decision/release work remain open. No remaining rollout deployment.
+## Identity wording boundary corrections — November 7, 2026
+
+[The scoped correction record](PRISM_IDENTITY_WORDING_BOUNDARIES_2026_11_07.md)
+fixes two Important display misses: registered composite-ID trend titles and
+computed Research historical/Why condition descriptions. Exact ID/title matching
+and the source-reported exemption preserve custom/source literals and raw chart
+keys. New real-registry/component and native computed Research evidence is
+separate from the unchanged 114 prior captures. The 38 paired / zero unverified /
+five held cumulative state remains. Local checks are recorded in its manifest;
+independent re-review/integration remain pending. No push, PR, merge, API/SQL,
+migration, deployment, hosted acceptance or frozen v62 tracker change.
+
 ## Shared identity, native Menu and saved-scope evidence — November 7, 2026
 
 [The scoped local record](PRISM_IDENTITY_SCOPE_NATIVE_2026_11_07.md) adds all four

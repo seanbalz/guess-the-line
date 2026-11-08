@@ -256,8 +256,8 @@
     },
     {
       "file": "docs/COMPLETION_REGISTER.md",
-      "bytes": 146611,
-      "sha256": "530cd34379fc8146c69912f3e1d8e4bd761cdefda3b8cc0ff1b4332e12802bed"
+      "bytes": 147379,
+      "sha256": "7ce57ffae07f5301e0bfa467eaa2a13089e10fdad9d92bdb235200ead9d060f4"
     },
     {
       "file": "docs/CONFIRMED_VISUAL_ROLLOUT_2026_11_07.md",
@@ -346,8 +346,8 @@
     },
     {
       "file": "web/src/next/leagueWords.js",
-      "bytes": 475,
-      "sha256": "9e742c4f5b7fbaf612ea5d39aa0972a01695a6ea5d6a7dce63437acaf51b6729"
+      "bytes": 1087,
+      "sha256": "89f3049e1e212de8ec1aeb85f919c5356976fc3c97038adae7154b9f35aa464d"
     },
     {
       "file": "web/src/next/lines/GameActions.jsx",
@@ -406,8 +406,8 @@
     },
     {
       "file": "web/src/next/research/ResearchCards.jsx",
-      "bytes": 24701,
-      "sha256": "00365904c6b5b39ae33ce7e3a1a1b5cc8fa5d08947a9782f189001a35247460e"
+      "bytes": 24785,
+      "sha256": "a8ec7ac0ae1a8eaa7fc7eba760ac8a715a801c7fdbdf6048148abdeef9af56bd"
     },
     {
       "file": "web/src/next/shell/Frame.jsx",
@@ -461,8 +461,8 @@
     },
     {
       "file": "docs/PRISM_IDENTITY_SCOPE_NATIVE_2026_11_07.md",
-      "bytes": 8268,
-      "sha256": "2d7c0869a225ebdcb65fe58224c8091b2b25d48404a157750c68903f976c206d"
+      "bytes": 8596,
+      "sha256": "4870bef3ce7bda085438f6e3a5271d39c090cf565c923225fefb3c839c1f2702"
     }
   ],
   "identityAssets": [

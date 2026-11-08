@@ -176,14 +176,16 @@ function ResearchCard({ candidate, gameId, request, open, onToggle, valueMetric,
   const r = candidate.record ?? {}, pct = hitPct(r.wins ?? 0, r.losses ?? 0), line = researchLine(candidate);
   const preview = candidate.rowSeries ? researchLine({ series: candidate.rowSeries }) : line;
   const units = Number.isFinite(r.illustrativeUnits) ? r.illustrativeUnits : line?.values.at(-1);
-  const why = `Why it applies: ${candidate.conditionDescriptions?.join('; ') || readable(candidate.family)}${applications.length ? ` · ${applications.map(a => `${a.gameId.replace('-', ' at ')} (${readable(a.direction)})`).join('; ')}` : ''}.`;
+  const rawConditions = candidate.conditionDescriptions?.join('; ') || readable(candidate.family);
+  const conditions = candidate.sourceState === 'source-reported' ? rawConditions : leagueWords(rawConditions);
+  const why = `Why it applies: ${conditions}${applications.length ? ` · ${applications.map(a => `${a.gameId.replace('-', ' at ')} (${readable(a.direction)})`).join('; ')}` : ''}.`;
   const info = <InfoButton title="About this research" body={[`Consistency: ${consistencyText(candidate)}`, why, ...INFO.research.body]} links={INFO.research.links}/>;
   const record = r.sample ? recordText(r.wins ?? 0, r.losses ?? 0, r.pushes ?? 0) : null;
   return <li className="gx-tc-item gx-r-card" data-research-card={candidate.id}>
     <div className="gx-card gx-tc-rowcard">
       <TrendRow title={candidate.title} displayTitle={candidate.sourceState === 'source-reported' ? candidate.title : leagueWords(candidate.title)} sub={historical ? [candidate.market === 'spread' ? 'ATS' : 'Total', record].filter(Boolean).join(' · ') : [consistencyPill(candidate), record, showSample && Number.isFinite(r.sample) ? `${r.sample.toLocaleString('en-US')} games` : null].filter(Boolean).join(' · ')}
         values={preview?.values} value={valueMetric === 'winRate' ? pct === null ? '—' : `${pct}%` : Number.isFinite(units) ? `${signed(units)} U` : null} open={open} controls={id} onToggle={onToggle}/>
-      {historical ? <div className="gx-r-row-context"><span>{candidate.conditionDescriptions?.join('; ') || readable(candidate.family)}{consistencyPill(candidate) ? ` · ${consistencyPill(candidate)}` : ''}</span><span>{Number.isFinite(r.sample) ? `${r.sample.toLocaleString('en-US')} games` : 'Sample unavailable'}</span></div> : null}
+      {historical ? <div className="gx-r-row-context"><span>{conditions}{consistencyPill(candidate) ? ` · ${consistencyPill(candidate)}` : ''}</span><span>{Number.isFinite(r.sample) ? `${r.sample.toLocaleString('en-US')} games` : 'Sample unavailable'}</span></div> : null}
     </div>
     {open ? <ResearchOpened candidate={candidate} request={request} id={id} headingLevel={headingLevel} info={info} evidence={evidence} setEvidence={setEvidence}/> : null}
   </li>;
