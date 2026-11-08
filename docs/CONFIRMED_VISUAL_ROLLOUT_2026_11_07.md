@@ -78,10 +78,35 @@ The remaining areas below distinguish reviewed local implementation from release
   canvas/ink. The other 28 capture files are unchanged. Combined parent validation
   passed all 88 files / 906 Vitest tests, typecheck and 26 import/loading/token
   contracts. [Evidence and exact limits](PRISM_RESEARCH_NATIVE_2026_11_07.md).
-  Canonical candidate season rows and non-shortlist curves still need real
-  prepared-data projection; an owned implementation is active. Weekly season
-  rows remain available. Areas 08/10 stay open for that dependency; no Research
-  release or physical-device acceptance is claimed.
+  Canonical candidate season rows and bounded non-shortlist curves are now
+  integrated from independently approved `0bec834d` / `a1a2d4cf`, as `d50a657a`
+  / `266c74e6`. Exact selected-record season arrays, lazy full detail and bounded
+  previews preserve existing scope/reveal/source rules. Source verification:
+  39 Node, 46 component and eight native browser checks; six real public-data
+  assets reproduced byte for byte. [Data compatibility and evidence](RESEARCH_CHART_PAYLOADS_2026_11_07.md).
+  The hourly refresh may publish additive fields after main merge, before API;
+  old readers tolerate them. API/frontend deployment and actual data publication
+  remain release work. No Research release or physical-device acceptance is claimed.
+- League and National Football League actions: independently reviewed source
+  `194ba410` / `e1dcb1ff` / `b5fa0244` is integrated as `eacbeb06` / `1ad151f6`
+  / `893ee2ba`. Private weekly labels, native uncertain-close dialog, contextual
+  standings/feed hierarchy, game-bet alignment and transparent comments/Picks/
+  Reactors surfaces are corrected. The final review checked all 213 capture and
+  29 source hashes. [Scenario coverage](PRISM_LEAGUE_ACTIONS_FIDELITY_FIXES_2026_11_07.md)
+  remains 33 paired, five unverified and five held core scenarios; saved-scope,
+  four Menu variants and the distinct forfeit account-change branch still need
+  coverage. Shared frame and finer Virtual Units compatibility remain held.
+  This closes the reviewed defects, not all 106 references or hosted acceptance.
+- Latest integrated validation through `893ee2ba`: all 89 files / 911 Vitest
+  tests, typecheck, 51 focused data/token Node checks, Brand QA, cloud build and
+  bundle privacy passed. Four integration browser checks passed: actual public
+  row previews/seasons/table selection, period/account late-reply isolation,
+  hidden/uncertain Picks and Reactors loading/failure/empty states. Re-execution
+  generated temporary captures; reviewed committed captures and manifest were
+  preserved. PR CI at prior `7ce04475` passed Tests, Brand, dashboard, Persona
+  and browser shards 1/4; shards 2/3 exposed stale pre-port selectors/layout
+  assumptions plus game-note keyboard clearance and a wide-font Games spacing
+  issue. Those findings need repair and fresh exact-source CI before release.
 - Tracked bet stakes support smaller custom values without backend changes.
   Virtual Units still has positive-half-unit enforcement in both API and SQL;
   its approved finer entry requires a separately reviewed compatibility change
@@ -252,14 +277,14 @@ reference math/data only and must not enter the production bundle.
 
 ### 07. League boards, feed and comments
 
-- [ ] Port and verify this area. Status: **LOCALLY IMPLEMENTED / INDEPENDENT REVIEW PENDING / NOT DEPLOYED**. Five reviewed findings and expanded native state coverage are in [the fidelity fix record](PRISM_LEAGUE_ACTIONS_FIDELITY_FIXES_2026_11_07.md); all held/unverified states remain explicit.
+- [ ] Port and verify this area. Status: **LOCALLY IMPLEMENTED / SCOPED REVIEW APPROVED / COVERAGE GAPS / NOT DEPLOYED**. Five reviewed findings and expanded native state coverage are in [the fidelity fix record](PRISM_LEAGUE_ACTIONS_FIDELITY_FIXES_2026_11_07.md); all held/unverified states remain explicit.
 - Reference: `populated-league; leaguePreview`.
 - Native targets: `league/LeagueScreen.jsx, LeagueBoard.jsx; feed/Feed.jsx, DigestCard.jsx, PostCard.jsx, CommentsSheet.jsx and reactions`.
 - Required presentation and behavior: Spread/Total/Points boards, ties/unranked/House, more rows, folded posts, hidden picks/results, six reactions and comment drafts/length/focus return. Use native persistence/privacy gates.
 
 ### 08. Research overview and game
 
-- [ ] Finish this area. Status: **LAYOUT IMPLEMENTED AND REVIEWED / DATA PROJECTION IN PROGRESS / NOT DEPLOYED**. Canonical candidate summary curves/season rows remain open; [native evidence](PRISM_RESEARCH_NATIVE_2026_11_07.md).
+- [x] Local visual/data port and independent review complete. Status: **IMPLEMENTED LOCALLY / NOT DEPLOYED**. [Visual evidence](PRISM_RESEARCH_NATIVE_2026_11_07.md), [canonical data and release dependencies](RESEARCH_CHART_PAYLOADS_2026_11_07.md).
 - Reference: `populated-research; game-research-panels.js; populatedGameResearch`.
 - Native targets: `research/ResearchLanding.jsx, ResearchView.jsx, MatchupResearch.jsx, ResearchCards.jsx, ResearchChart.jsx; lines/GameDetails.jsx; charts/`.
 - Required presentation and behavior: Compact header, six evidence periods, chart/table links, season comparisons, team records/PPG/margins/play statistics, original market-history deep link; preserve real source/missing/stale states.
@@ -273,7 +298,7 @@ reference math/data only and must not enter the production bundle.
 
 ### 10. Research Trends
 
-- [ ] Finish this area. Status: **LAYOUT IMPLEMENTED AND REVIEWED / DATA PROJECTION IN PROGRESS / NOT DEPLOYED**. Actual canonical By-season rows and all summary curves remain open; [native evidence](PRISM_RESEARCH_NATIVE_2026_11_07.md).
+- [x] Local visual/data port and independent review complete. Status: **IMPLEMENTED LOCALLY / NOT DEPLOYED**. [Visual evidence](PRISM_RESEARCH_NATIVE_2026_11_07.md), [canonical data and release dependencies](RESEARCH_CHART_PAYLOADS_2026_11_07.md).
 - Reference: `populated-research; populatedTrendsList`.
 - Native targets: `trends/TrendsScreen.jsx, TrendLayer.jsx; charts/TrendRow.jsx, TrendDetail.jsx; research/ResearchChart.jsx`.
 - Required presentation and behavior: Market filters, six periods, records/sample counts/sparklines, expanded charts/tables/results and keyboard selection; do not fabricate evidence.

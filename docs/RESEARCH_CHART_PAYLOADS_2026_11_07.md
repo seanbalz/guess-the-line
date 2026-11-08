@@ -109,7 +109,12 @@ records/matched IDs.
 ## Compatibility and remaining release work
 
 Recommended target order: **compatible API, frontend, then the existing hourly
-public research refresh from merged source**. No SQL, migration, new odds
+public research refresh from merged source**. This order is preferred, not
+enforced: the hourly workflow checks out `main` and may publish the new additive
+asset fields immediately after merge, before the API deployment. The old reader
+tolerates those optional fields. Record the actual refresh/API/frontend source
+and compatibility in the release evidence rather than assuming this order.
+No SQL, migration, new odds
 collection, paid source, provider-budget or scheduled-job change is required.
 
 The added fields are optional. Old readers ignore new asset/API fields.

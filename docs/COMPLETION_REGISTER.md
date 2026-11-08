@@ -1,5 +1,22 @@
 # Guess The Line — current completion register
 
+## Integrated Research data and League/action review closeout — November 7, 2026
+
+Branch `codex/confirmed-prism-shared-2026-11-07`, draft [PR #495](https://github.com/seanbalz/guess-the-line/pull/495),
+now integrates independently reviewed canonical Research chart data and League/
+National Football League action fixes. Source and scenario limits are recorded in
+[the rollout ledger](CONFIRMED_VISUAL_ROLLOUT_2026_11_07.md). Research API changes
+are additive; the hourly workflow can publish new fields after merge before API
+release and old readers tolerate them. No SQL/migration or provider change.
+League actions retain 33 paired, five unverified and five held core scenarios;
+the distinct forfeit account-change branch also lacks its own capture. These
+local integrations do not establish whole-app coverage, merge, hosted API/data
+publication or deployment. Account, EPL, History and Commissioner work continues. Integrated validation
+passed 911 component tests, typecheck, 51 focused data/token Node checks, four
+controller browsers, Brand QA, cloud build and bundle privacy. Earlier PR CI
+found remaining stale-path/keyboard-clearance/wide-font issues; repair and fresh
+exact-source checks remain required before release.
+
 ## League/action list-surface correction — November 7, 2026
 
 Exclusive unpublished branch `codex/fix-reactor-list-surfaces-2026-11-07` applies
