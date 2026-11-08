@@ -98,7 +98,7 @@
   "sourceHashes": [
     {
       "path": "playwright.prism-history.config.js",
-      "sha256": "044846e88231c65dd151b0c7993b0c83ec19cde802c6bfe22d85461777f40963"
+      "sha256": "2fb35e4536e62ae450930cac727486f8a97ad7b7d831b8837e52b093d4ffb287"
     },
     {
       "path": "tests/cloud-browser/next-history-older.spec.js",
@@ -118,11 +118,11 @@
     },
     {
       "path": "tests/cloud-browser/next-prism-history.spec.js",
-      "sha256": "7ced019e958f004456cf0c299d4c1aa1386510b5b881487ceec08bfb2e5fa6dd"
+      "sha256": "8dbbf42ad7c6d469420955aa4f93e6c775e27eb338c035eefeb0367ac5bd5a47"
     },
     {
       "path": "tests/cloud-browser/recommended-bets.spec.js",
-      "sha256": "fa5c71415873fa65252d412c0e4ec29d379e9563de3d597062eff8e104b6f8c0"
+      "sha256": "44e7f7d734bafbf3fc7588a80299d00c64d9c56bb24148d647120d1a799a8635"
     },
     {
       "path": "tests/next-gap-record-view.test.mjs",
@@ -138,7 +138,7 @@
     },
     {
       "path": "web/src/next/bets/gapRecord.css",
-      "sha256": "e4a391c3554961b42b1c16dc0c5ce511e4b215df8989c6979d8cc2c98d2e027b"
+      "sha256": "0fbf178e0262c6041d0f1932fe89994ef088d2ab563228c9cc897d48a41df4ad"
     },
     {
       "path": "web/src/next/bets/GapRecord.jsx",
@@ -150,7 +150,7 @@
     },
     {
       "path": "web/src/next/me/history.css",
-      "sha256": "d5714c9ad9291c9ec72c9a0f74259b10d76842734384b5c802cdc7839062167c"
+      "sha256": "6195379c5a352e7985ff0e0b0b1d9635a9fe895c80d05895617a7a5ec3f78750"
     },
     {
       "path": "web/src/next/me/historyFormat.js",
@@ -241,63 +241,63 @@
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/gap-record-dark-1440.png",
-      "sha256": "df5bfc53f01eb3f9654147a313f95de15b302bc3fda8c567a8e5a2284624d657",
+      "sha256": "14eec5a932adec0ba5b0634e52256f3c81e0003c2bd86c615fe5141d8dbaa135",
       "width": 488,
       "height": 3092,
       "theme": "dark"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/gap-record-dark-320.png",
-      "sha256": "4ee371936878ec003381a23a3ec3c0985c2768402c2c96a7cb01449e1d3efe1b",
+      "sha256": "97b58f2adc117054ad97e74e0f2925acbc0c73fd152812f94aecefae4b61b083",
       "width": 288,
       "height": 4222,
       "theme": "dark"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/gap-record-dark-390.png",
-      "sha256": "110dc02f685f7fd1dd9f0a85fdf6c2f408a645d470b6a97e18b8285836c3726f",
+      "sha256": "aeb5ab809b3d36edce484d1fe59b63e3c383b5ce1f6c2a93d0245dfe949b9b35",
       "width": 358,
       "height": 3462,
       "theme": "dark"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/gap-record-dark-768.png",
-      "sha256": "5c649849ead84c7950e3a25d6fbc0067587faa95f463c8878779bf68e1e13d03",
+      "sha256": "6d9e19dcb55710f6d953fa8c12de57d35863808c4f9ca12decb002bc8d15a98a",
       "width": 488,
       "height": 3092,
       "theme": "dark"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/gap-record-forced-320.png",
-      "sha256": "04b0ab6c109a50ffd58d0dfda3df78c198d290de516ee4ef582f8ced2b5138f3",
+      "sha256": "bd7d6636c08e0ceb3c8a3644fabb90ccee3c7d7ef8794fc3d3ef3990351d32b3",
       "width": 288,
       "height": 4772,
       "theme": "forced-colors"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/gap-record-light-1440.png",
-      "sha256": "c49e0c4ccbe0349145c443883c60e4e9be87f0b63621d0485eaac536b40774f0",
+      "sha256": "3a9f1d474ef5a5f625a86eb86126600fc83e0aa43ff71067512c0b94b485057b",
       "width": 488,
       "height": 3092,
       "theme": "light"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/gap-record-light-320.png",
-      "sha256": "008a43f459e3061a6b417a050e3b9cb338021af541b6805159b3fb41bdbb5e42",
+      "sha256": "ca83284c0b30771d9296577332bb12029707058815c3ee873d8b7c3fbf38cb1e",
       "width": 288,
       "height": 4222,
       "theme": "light"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/gap-record-light-390.png",
-      "sha256": "4f18d3c896d30161fd96228b665114fa918db67466bc8e442ccea794a8f861b1",
+      "sha256": "2a5b3dccb63b0945610071538082d9e1fc6e56a4f134ee59c2f1bc9d6a33a273",
       "width": 358,
       "height": 3462,
       "theme": "light"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/gap-record-light-768.png",
-      "sha256": "7a3228a2008d588b3ce67f835fa41dcc7e1b09ab7c61c5b474f0f60a142c89b0",
+      "sha256": "7c724cd13de77670338d7f13475079b374bf809dcf937ccbfdee060245eff6e4",
       "width": 488,
       "height": 3092,
       "theme": "light"
@@ -339,7 +339,7 @@
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/guess-scorecard-light-1440.png",
-      "sha256": "4afdf04e5b5b9ad69a8bfb71cc7e7bdcaac4ea2fd3c484308be7f6156dbacd5f",
+      "sha256": "7f57d15508ee0a9e38a700c3b1bb1eebe5c73ecf0850510a6ee3697ee0f13703",
       "width": 1440,
       "height": 2093,
       "theme": "light"
@@ -437,140 +437,140 @@
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/history-journal-dark-1440.png",
-      "sha256": "0cb671bf03259009f5542b9ac257f37890a9e94747e06705c833f72a70a1a446",
+      "sha256": "917a82ab09d33886495d1eee43595e3e340c4133a4d8c1e7fe465f59305d02b9",
       "width": 1440,
       "height": 1247,
       "theme": "dark"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/history-journal-dark-320.png",
-      "sha256": "c1e9793f5bca4afcbd7c783fbc1f1447f5ed93f43b25637e2a6ca2e476d6c053",
+      "sha256": "09a3233616dc48ba4f9e6f8f919bb29f10e26242ba3d6ea99a6ed115adbc3aae",
       "width": 320,
       "height": 1415,
       "theme": "dark"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/history-journal-dark-390.png",
-      "sha256": "34519737da27b01c0af60bcc82e7931949c090cdc3db5ed9e5b61c81d6ce266b",
+      "sha256": "778e404a30a1c33baccdee742bd3baedf66ebea0d92e099be4671d6271e4f032",
       "width": 390,
       "height": 1279,
       "theme": "dark"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/history-journal-dark-768.png",
-      "sha256": "6bb198dc49466c7084c335a5a01b87a61daff1149b14a88581fad84759af17e0",
+      "sha256": "9c27cac67ae95a82a37214210cc9e8f37f66ac4bfcc2d3e91801233e1ceb4ca8",
       "width": 768,
       "height": 1247,
       "theme": "dark"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/history-journal-forced-320.png",
-      "sha256": "4c322ed1667fdab2c345d8f40a1214256cd975770985a352b92ef52d85edc9d7",
+      "sha256": "0a719bf7a131465d0c7c57c4080067519c695a707d965885eac95c07c1e2e2af",
       "width": 320,
       "height": 1415,
       "theme": "forced-colors"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/history-journal-light-1440.png",
-      "sha256": "fbb9d8f9ee78b46c0d004cd572d6ba62af3cd715c1f851b4ff2ba543f52d82e7",
+      "sha256": "9e3f393bacc55f3f37d4cd481cf422a1f27a40f550e160b1aeb9407f0f21de4d",
       "width": 1440,
       "height": 1247,
       "theme": "light"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/history-journal-light-320.png",
-      "sha256": "827c58495cac2b7e1048b824f661d14caa569baf7ee263af0e4741bc19cb2103",
+      "sha256": "f275f09a05f06e9831a48ba32da92340a7a6fabe3ec17a19f0d63303fe2494b1",
       "width": 320,
       "height": 1415,
       "theme": "light"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/history-journal-light-390.png",
-      "sha256": "bcc82c2e26e81d2aa6adfffcf698605383b59cb77970b2cdbf52eb5a2f6375c1",
+      "sha256": "1680accd8cdb7f659b649e40eacadf588758ae51b1b3b70161d9aa77d8ead9e4",
       "width": 390,
       "height": 1279,
       "theme": "light"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/history-journal-light-768.png",
-      "sha256": "a6d6dafc2573ccdcd17911d1d947eb2694d321a3b7b01fc0a4c508bc174df7d0",
+      "sha256": "05094f9b07f953e2aec183b0c813300c8bd7e8fb6478a41ef1747066066e749c",
       "width": 768,
       "height": 1247,
       "theme": "light"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/history-older-dark-1440.png",
-      "sha256": "5ef62d5b5e59e0b3fc292359baf086dd86094377c4693e060b5f52e54e0be168",
+      "sha256": "a532ef9920d269b9a91a2603cd082935bf4953ad606206991c300ea2791915f5",
       "width": 1440,
-      "height": 1063,
+      "height": 1070,
       "theme": "dark"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/history-older-dark-320.png",
-      "sha256": "940f5adb3bad7d38d1fb10f6b7a4ef74874b24a7a3a145274f66adb9d52997d6",
+      "sha256": "953846d2679a897f97300fcde5bded93ef70a3aa47bf6fa7e9c9f17ab30e1c46",
       "width": 320,
-      "height": 1081,
+      "height": 1087,
       "theme": "dark"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/history-older-dark-390.png",
-      "sha256": "334b91f775ddc850933fd2b192a330e25a3cab7b53c248ca233d5204e0efad7e",
+      "sha256": "b6a47ad261ba2d7b15fe6bb735b4ddd58e4ed7d59c34978d6d98cc495579de6f",
       "width": 390,
-      "height": 1063,
+      "height": 1070,
       "theme": "dark"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/history-older-dark-768.png",
-      "sha256": "3f0defb05f6ad63ccdad73a0e63177b52530f6f4af564b165891b383ece0cefb",
+      "sha256": "dd4964fe6dee63637bcb7d14914e2fe07a1ff68b2b972dfc2534ababf17cdeb8",
       "width": 768,
-      "height": 1063,
+      "height": 1070,
       "theme": "dark"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/history-older-forced-320.png",
-      "sha256": "bde8514f0a19c9ef1b8ec2f1ddaa2dcdbb6c7321a8218e1c4912d6c5286a6710",
+      "sha256": "1b83a01985e18e78c64cb23c2b91cfcf5cc701818864e25a57c460ae6c94715e",
       "width": 320,
-      "height": 1081,
+      "height": 1087,
       "theme": "forced-colors"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/history-older-light-1440.png",
-      "sha256": "083fb033bf961fe95ed55668759157ae9b817be461e92765232b7d31a1be902f",
+      "sha256": "fa75201a0cdc67478cad638ce575cb045ffbee51e54f07db708a3d61d0da0c65",
       "width": 1440,
-      "height": 1063,
+      "height": 1070,
       "theme": "light"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/history-older-light-320.png",
-      "sha256": "4916209f90100401b17c0d87d2316dfa33e231925e9818f0b731ef9527b3bcea",
+      "sha256": "2bfd137a9ccdfeaa47ca7bc8bc7fc094c3ab55f250dfe56105c06ea672af1421",
       "width": 320,
-      "height": 1081,
+      "height": 1087,
       "theme": "light"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/history-older-light-390.png",
-      "sha256": "22c710c315d3555def745035b4114e53ad38dd7fb4d0e07ee3c337674ae3b410",
+      "sha256": "c25981d6a186ef1422e6ed4327301e8ef870a04ded7a3916a67029fa1a88428b",
       "width": 390,
-      "height": 1063,
+      "height": 1070,
       "theme": "light"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/history-older-light-768.png",
-      "sha256": "1b9c26812889c42a1770bc973abce52817e8695c36caad02e3384c5edc6df8ac",
+      "sha256": "a0515559ed8782a6931cc3b1ec24211584bea0401de6f92785e7033273a68fd8",
       "width": 768,
-      "height": 1063,
+      "height": 1070,
       "theme": "light"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/history-records-off-dark-320.png",
-      "sha256": "20694436befc755c80f30aabc5f32a5ec36d192571f49a7549531f2f69b77bc5",
+      "sha256": "baf52176d79832904c021c7e367e9b5695ada7dd16df1ae0b61be15e72a82bff",
       "width": 320,
       "height": 900,
       "theme": "dark"
     },
     {
       "path": "design/prism-history-scorecard-native-2026-11-07/history-records-off-light-320.png",
-      "sha256": "e1a156a82ff67b664bda229b95b7ee585a8f87e8e0f4784b88c4fdd23f4131e0",
+      "sha256": "4603a3f79f8e1904690baa6b7c9d86d7722299a6d79c45d7050c947b6d281639",
       "width": 320,
       "height": 900,
       "theme": "light"
@@ -631,5 +631,37 @@
       "height": 569,
       "theme": "light"
     }
-  ]
+  ],
+  "visualFidelityFix": {
+    "branch": "codex/history-visual-fidelity-fix",
+    "base": "7426e7054186893983e4c15dc8fcf1cb322fee1f",
+    "freshOriginMain": "7aa93a6ffe79eafb58bd6c7d12ec230b6d77b0e9",
+    "status": "local fixes verified; independent parent re-review pending",
+    "browserCommand": "npx playwright test --config playwright.prism-history.config.js tests/cloud-browser/next-prism-history.spec.js tests/cloud-browser/recommended-bets.spec.js --grep 'Prism History|D-77' --output .local/prism-history-verified",
+    "browserResult": "3 passed, zero failed/skipped; 64 captures regenerated with stored ThemeProvider helper",
+    "computedChecks": [
+      "Win accent ink and loss ink/borders override base button style; W/L letters retained",
+      "Neutral P uses a temporary native-button DOM style probe only; never changes record data or paper grading",
+      "Win/loss/push selected 3px outline, 2px offset and >=44px targets at 320/390/768/1440 in Dark and Light",
+      "Forced outcome controls use Canvas/CanvasText and selected Highlight",
+      "Older leading SVG has 21px content, 10px padding (8px below 359), 1px glass-line, 15px radius, native glass face/shadow and accent ink",
+      "Older trailing 20px chevrons retain muted ink, no border/padding; SVG style probes preserve Chromium forced-color behavior",
+      "Older forced leading tile uses Canvas/CanvasText with real border and no shadow"
+    ],
+    "otherChecks": [
+      "15 next-tokens Node checks passed",
+      "npm run typecheck passed",
+      "python -X utf8 scripts/check-brand-docs.py passed",
+      "npm run build:cloud passed (existing chunk warning)",
+      "node scripts/check-cloud-boundary.mjs --bundle-only passed",
+      "git diff --check passed"
+    ],
+    "capturesRegenerated": 64,
+    "captureHashesChanged": 30,
+    "limits": [
+      "Local Chromium fictional accounts/PGlite; no physical phone or hosted checks",
+      "No push, PR, merge, deployment, migration or production data change",
+      "No controller/reader/scoring/paper-math/visibility or saved-reference change"
+    ]
+  }
 }

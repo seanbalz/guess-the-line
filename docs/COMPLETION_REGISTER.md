@@ -43,6 +43,17 @@ Typecheck, Brand QA, cloud build and bundle privacy passed. Independent parent
 review, held shell placement, actual-account/phone/hosted and release gates
 remain open. No push, PR, merge, deployment or migration apply.
 
+Independent review visual fixes are on isolated unpublished branch
+`codex/history-visual-fidelity-fix`, based on `7426e705`. Gap W/L buttons now retain
+semantic ink/borders over the neutral base rule; Older leading icons restore the
+approved glass tile while chevrons stay muted. Three scoped browser checks and
+15 token checks pass, with computed Dark/Light 320/390/768/1440 and forced-color
+coverage. All 64 captures and 21 source hashes were refreshed (30 PNG hashes
+changed); the nine reference hashes remain. Typecheck, Brand QA, cloud build,
+bundle privacy and whitespace checks pass. The linked scope record details the
+neutral-P style probe and limits. Parent re-review and the existing release gates
+remain open; no push, PR, merge, deployment or migration apply.
+
 ## League/action list-surface correction — November 7, 2026
 
 Exclusive unpublished branch `codex/fix-reactor-list-surfaces-2026-11-07` applies

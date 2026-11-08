@@ -67,3 +67,8 @@
 .gx .gx-history .gx-seg-btn--on { border-color:var(--gx-accent-ink); color:var(--gx-accent-ink); background:var(--gx-card-face); }
 .gx .gx-history .gx-history-bets-end>.gx-t-meta { font-size:16px; line-height:24px; }
 .gx .gx-history .gx-back-btn { font-size:16px; line-height:24px; min-height:44px; }
+
+/* Older destination tiles: only the leading glyph receives the selected glass recipe. */
+.gx .gx-history .gx-link-row>.gx-ic:first-child { flex:none; box-sizing:content-box; width:21px; height:21px; padding:10px; border:1px solid var(--gx-glass-line); border-radius:15px; background:var(--gx-card-face); box-shadow:var(--gx-glass-shadow); color:var(--gx-accent-ink); }
+@media(max-width:359px) { .gx .gx-history .gx-link-row>.gx-ic:first-child { padding:8px; } }
+@media(forced-colors:active) { .gx .gx-history .gx-link-row>.gx-ic:first-child { color:CanvasText; background:Canvas; border-color:CanvasText; box-shadow:none; } }

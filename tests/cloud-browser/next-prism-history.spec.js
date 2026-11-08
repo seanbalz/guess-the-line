@@ -19,6 +19,7 @@ async function capture(page, info, label, themes = ['dark', 'light']) {
         const r = el.getBoundingClientRect(), font = parseFloat(getComputedStyle(el).fontSize);
         return r.height < 43.5 || r.width < 43.5 || font < 16 ? [`${el.tagName}: ${r.width}x${r.height}, ${font}px`] : [];
       })), `${label} native controls ${theme} ${width}`).toEqual([]);
+      if (label === 'history-older') await assertOlderIcons(page, width);
       await themedScreenshot(page, info, `${label}-${theme}-${width}.png`, theme, { fullPage: true });
       if (label === 'guess-scorecard') {
         const card = page.locator('[data-pick-scorecard]').first();
@@ -32,8 +33,25 @@ async function capture(page, info, label, themes = ['dark', 'light']) {
   await page.setViewportSize({ width: 320, height: 900 });
   await setCaptureTheme(page, 'dark', { forcedColors: 'active' });
   expect(await page.evaluate(layoutProblems)).toEqual([]);
+  if (label === 'history-older') await assertOlderIcons(page, 320, true);
   await themedScreenshot(page, info, `${label}-forced-320.png`, 'dark', { fullPage: true });
   await page.emulateMedia({ forcedColors: 'none' });
+}
+
+async function assertOlderIcons(page, width, forced = false) {
+  const icons = await page.locator('.gx-history .gx-link-row').evaluateAll((rows, { width, forced }) => rows.map(row => {
+    const leading = row.querySelector(':scope > .gx-ic:first-child'), trailing = row.querySelector(':scope > .gx-ic:last-child');
+    const a = getComputedStyle(leading), z = getComputedStyle(trailing);
+    const probe = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    probe.style.cssText = `color:${forced ? 'CanvasText' : 'var(--gx-accent-ink)'};background:${forced ? 'Canvas' : 'var(--gx-card-face)'};border:1px solid ${forced ? 'CanvasText' : 'var(--gx-glass-line)'};box-shadow:${forced ? 'none' : 'var(--gx-glass-shadow)'}`;
+    row.insertBefore(probe, trailing); const expected = getComputedStyle(probe);
+    const result = { size: [a.width, a.height], padding: a.padding, radius: a.borderRadius, box: a.boxSizing, border: [a.borderWidth, a.borderStyle], color: a.color === expected.color, borderColor: a.borderColor === expected.borderColor, background: a.background === expected.background, shadow: a.boxShadow === expected.boxShadow, trailingSize: [z.width, z.height], trailingPadding: z.padding, trailingBorder: z.borderWidth };
+    probe.style.color = 'var(--gx-text-3)';
+    result.trailingMuted = z.color === getComputedStyle(probe).color;
+    probe.remove(); return result;
+  }), { width, forced });
+  expect(icons.length).toBeGreaterThan(0);
+  for (const icon of icons) expect(icon).toEqual({ size: ['21px', '21px'], padding: width < 359 ? '8px' : '10px', radius: '15px', box: 'content-box', border: ['1px', 'solid'], color: true, borderColor: true, background: true, shadow: true, trailingSize: ['20px', '20px'], trailingPadding: '0px', trailingBorder: '0px', trailingMuted: true });
 }
 
 test('Prism History native scorecard: saved values, authoritative zero, pending, drafts, hidden, ineligible and Total', async ({ page, baseURL }, info) => {

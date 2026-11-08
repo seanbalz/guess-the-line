@@ -716,6 +716,27 @@ test('the chosen market stays while tracking a bet and returning to Recommended 
   } finally { await world.db.close(); }
 });
 
+// Computed CSS regression probe on native outcome buttons. The extra P clone checks
+// the neutral presentation only; it never enters the paper-record data or grading.
+async function assertGapOutcomeStyles(dots, forced = false) {
+  const styles = await dots.evaluateAll((buttons, forced) => {
+    const source = buttons[0], push = source.cloneNode(true);
+    push.dataset.outcome = 'push'; push.textContent = 'P'; source.parentElement.append(push);
+    try {
+      return [...buttons, push].map(button => {
+        const pressed = button.getAttribute('aria-pressed'); button.setAttribute('aria-pressed', 'true');
+        const css = getComputedStyle(button), r = button.getBoundingClientRect();
+        const token = button.dataset.outcome === 'win' ? '--gx-accent-ink' : button.dataset.outcome === 'loss' ? '--gx-loss' : '--gx-text-1';
+        const probe = document.createElement('span'); probe.style.cssText = `color:${forced ? 'CanvasText' : `var(${token})`};border:1px solid ${forced ? 'CanvasText' : button.dataset.outcome === 'push' ? 'var(--gx-border)' : `var(${token})`};outline:3px solid ${forced ? 'Highlight' : 'var(--gx-accent-ink)'};background:${forced ? 'Canvas' : 'var(--gx-card-face)'}`; button.append(probe);
+        const expected = getComputedStyle(probe);
+        const result = { outcome: button.dataset.outcome, letter: button.firstChild.textContent.trim(), color: css.color === expected.color, border: css.borderColor === expected.borderColor, background: css.background === expected.background, selected: css.outlineColor === expected.outlineColor && css.outlineWidth === '3px' && css.outlineStyle === 'solid' && css.outlineOffset === '2px', target: r.width >= 44 && r.height >= 44 };
+        probe.remove(); if (pressed === null) button.removeAttribute('aria-pressed'); else button.setAttribute('aria-pressed', pressed); return result;
+      });
+    } finally { push.remove(); }
+  }, forced);
+  for (const style of styles) expect(style).toEqual({ outcome: style.outcome, letter: { win: 'W', loss: 'L', push: 'P' }[style.outcome], color: true, border: true, background: true, selected: true, target: true });
+}
+
 // D-77 (Sean, November 3, 2026: "Your gaps' paper record"). The fixture's guesses (spread -10, -7, -5, -3; total 55, 49, 43,
 // 44.5) against closing lines of -3.5 and 44.5, with finals 27-20, 20-24, 17-13 and 21-21: spreads W L W W, totals W L W and
 // one even guess. 5 of 7 decided gaps is 71.4%; 5 x 10/11 - 2 = +2.55U; the 10%+ gaps are 4-2.
@@ -771,6 +792,7 @@ test('D-77: your gaps vs. closing lines grade finished games on the side your gu
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${theme} ${width}px fits`).toBe(true);
         const scan = await new AxeBuilder({ page }).include('.gx-bets').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
         expect(scan.violations.map(issue => ({ id: issue.id, targets: issue.nodes.map(node => node.target) }))).toEqual([]);
+        await assertGapOutcomeStyles(dots);
         await card.locator('.gx-gap-hero').scrollIntoViewIfNeeded();
         await card.screenshot({ path: testInfo.outputPath(`gap-record-${theme}-${width}.png`) });
       }
@@ -799,6 +821,7 @@ test('D-77: your gaps vs. closing lines grade finished games on the side your gu
     }
     await page.setViewportSize({ width: 320, height: 844 });
     await setCaptureTheme(page, 'dark', { forcedColors: 'active' });
+    await assertGapOutcomeStyles(dots, true);
     await card.screenshot({ path: testInfo.outputPath('gap-record-forced-320.png') });
     await page.emulateMedia({ forcedColors: 'none' });
     expect(calls.filter(call => call.path === 'lines/read')).toHaveLength(readCount);

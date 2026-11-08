@@ -77,3 +77,39 @@ owned checkout has no `.env.cloud`; the built frontend privacy scan passed.
 No push, PR, merge, deployment or migration apply was performed. Held avatars,
 NBA, awards, providers, credentials, historical files and the frozen tracker
 remain outside this work.
+
+## Independent review visual corrections — November 7, 2026
+
+The isolated `codex/history-visual-fidelity-fix` branch starts at freshly fetched
+`origin/main` (`7aa93a6ffe79eafb58bd6c7d12ec230b6d77b0e9`) and fast-forwards to
+`7426e7054186893983e4c15dc8fcf1cb322fee1f`. It addresses the independent review's
+two visual findings. Outcome-specific native gap-button selectors now override
+the neutral button rule: Win uses accent ink and Loss uses loss ink for letters
+and borders. Push retains neutral ink. Selected outlines and letter labels stay;
+forced colors use Canvas/CanvasText and Highlight selection.
+
+Older destination rows restore the approved leading-icon recipe: 21px content,
+10px padding (8px below 359px), a 1px glass border, 15px corners, native glass
+face/shadow and accent ink. The last chevron retains its existing muted styling.
+Forced colors give the leading tile a system canvas and real border, without a
+shadow. No controller, API, SQL, reader, scoring, paper grading, authoritative
+points, reveal boundary, saved reference, header or dock code changed.
+
+The pre-fix browser run reproduced both findings. The final command was
+`npx playwright test --config playwright.prism-history.config.js tests/cloud-browser/next-prism-history.spec.js tests/cloud-browser/recommended-bets.spec.js --grep 'Prism History|D-77' --output .local/prism-history-verified`:
+**3 passed, no failures or skips**. It checks computed W/L colors and borders,
+selected 3px outlines with 2px offsets, letters and 44px targets in Dark/Light at
+320/390/768/1440, plus Canvas/Highlight in forced colors. A temporary native-button
+P clone checks neutral presentation only; it never enters record data or grading.
+Older checks cover the full leading-icon recipe, untouched chevrons, responsive
+layout and forced colors. SVG probes match Chromium's `preserve-parent-color`
+behavior. Captures use the existing saved ThemeProvider preference helper.
+
+All **64 captures were regenerated**; 30 PNG hashes changed. The manifest refreshes
+all 21 source hashes and retains the nine reference hashes. Dark 390px Older and
+Light 320px gap-record captures were visually inspected. The 15 token checks,
+typecheck, Brand QA, cloud build, bundle-only privacy scan and whitespace check
+passed. The existing build chunk warning remains. These are local Chromium and
+fictional-account/PGlite checks; physical phones, hosted access, release acceptance
+and independent parent re-review remain separate. No push, PR, merge, deployment
+or migration apply occurred.

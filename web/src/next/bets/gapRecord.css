@@ -24,8 +24,8 @@
 .gx .gx-gap-pair strong { font-size:16px; line-height:24px; overflow-wrap:anywhere; }
 .gx .gx-gap-pair>div+div strong { color:var(--gx-accent-ink); }
 .gx .gx-gap-outcome { color:var(--gx-text-2); border:1px solid currentColor; border-radius:var(--gx-radius-xs); padding:4px 8px; font-size:13px; line-height:20px; }
-.gx .gx-gap-record [data-outcome=loss] { color:var(--gx-loss); border-color:var(--gx-loss); }
-.gx .gx-gap-record [data-outcome=win] { color:var(--gx-accent-ink); border-color:var(--gx-accent-ink); }
+.gx .gx-gap-record [data-outcome=loss],.gx .gx-bets .gx-gap-record .gx-gap-blocks button[data-outcome=loss] { color:var(--gx-loss); border-color:var(--gx-loss); }
+.gx .gx-gap-record [data-outcome=win],.gx .gx-bets .gx-gap-record .gx-gap-blocks button[data-outcome=win] { color:var(--gx-accent-ink); border-color:var(--gx-accent-ink); }
 .gx .gx-gap-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--gx-space-2); }
 .gx .gx-bets .gx-gap-record .gx-gap-actions button { white-space:normal; font:600 16px/24px var(--gx-font-body); min-height:44px; display:flex; align-items:center; justify-content:center; gap:4px; padding:8px; }
 .gx .gx-gap-row[data-current=true] { border-color:var(--gx-accent-ink); }
@@ -46,3 +46,5 @@
 .gx .gx-gap-record .gx-between { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:var(--gx-space-2); }
 .gx .gx-gap-record :is(.gx-seg-btn,.gx-btn) { font-size:16px; line-height:24px; }
 .gx .gx-gap-record :is(.gx-tc-pill,.gx-tc-badge,.gx-tc-tile-label,.gx-tc-tile-sub) { font-size:13px; line-height:20px; }
+
+@media(forced-colors:active) { .gx .gx-bets .gx-gap-record .gx-gap-blocks button[data-outcome] { color:CanvasText; border-color:CanvasText; background:Canvas; } .gx .gx-bets .gx-gap-record .gx-gap-blocks button[aria-pressed=true] { outline-color:Highlight; } }
