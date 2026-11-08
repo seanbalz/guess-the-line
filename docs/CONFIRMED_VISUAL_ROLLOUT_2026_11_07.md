@@ -1,12 +1,18 @@
 # Confirmed Prism Glass visual rollout — November 7, 2026
 
-Status: **implementation in progress; remaining rollout NOT DEPLOYED**.
+Status: **confirmed area ports reviewed; held dependencies remain; remaining rollout NOT DEPLOYED**.
 This is the approved-scope implementation and verification checklist, not a
 release record. Existing Home-only production release remains separate. The
 latest approved Home spacing is implemented and deployed from `70c2b85ea7466ca308c8e69006b4ec09888267a7`.
 The remaining areas below distinguish reviewed local implementation from release.
 
 ## Current implementation evidence
+
+Final whole-branch review of `7aa93a6f..48ad4b40` found no Critical or
+Important issues and approved merge subject to exact-source CI. The inspected
+release-order documentation correction follows Gate D: tolerant frontend first,
+then API in a second protected run. [Review and release boundaries](PRISM_FINAL_REVIEW_2026_11_07.md).
+This approval is source review, not owner acceptance of held layouts or a release.
 
 - Shared materials/type/identity: local commit
   `1e104fdf1266660a84c98971ddae91d9c153be68`,
@@ -308,9 +314,9 @@ an asserted license/affiliation.
 
 ## Per-area implementation checklist
 
-All unchecked entries below are **NOT IMPLEMENTED / NOT DEPLOYED as a complete
-approved visual port by this audit**. Existing functional code or a shared token
-change does not close an entry. Each entry requires native-source reconciliation,
+Unchecked area entries retain the specific incomplete boundary stated in their
+status; all remaining rollout entries are not deployed. Existing functional code
+or a shared token change alone does not close an entry. Each entry requires native-source reconciliation,
 actual data/controllers, both-theme capture comparison and appropriate checks.
 Native paths below are under `web/src/next/` unless otherwise stated. Artifact
 stems mean the matching `.jsx` / `.css` plus ledger entry; fixture modules are
@@ -318,18 +324,18 @@ reference math/data only and must not enter the production bundle.
 
 ### 01. Shared system and shell
 
-Local follow-up: [shared identity/Menu/scope evidence](PRISM_IDENTITY_SCOPE_NATIVE_2026_11_07.md) verifies all four real Menu variants, primary sit-out prose and native material/identity regressions. Header/sports-row/dock positions remain held; independent review/integration and deployment remain open.
+Reviewed and integrated: [shared identity/Menu/scope evidence](PRISM_IDENTITY_SCOPE_NATIVE_2026_11_07.md) verifies all four real Menu variants, primary sit-out prose and native material/identity regressions. Header/sports-row/dock positions remain held. Whole-branch source review passed; exact-source CI and deployment remain.
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [ ] Native materials, identity, Menu and scope are **LOCALLY IMPLEMENTED AND REVIEWED**; global frame positions remain **HELD / NOT DEPLOYED**.
 - Reference: `selected-system-review.json; selected-system-review.js; prism-refinement.css; visual-icon-treatments.css; populated-nfl-actions; NFL_ACTIONS_NAVIGATION_REVIEW.md`.
 - Native targets: `styles/tokens.css, base.css, components.css; ui primitives; shell/Frame.jsx and shell.css; me/MenuSheet.jsx`.
 - Required presentation and behavior: Themes/type/material/icons, cards/buttons/inputs/chips/dialogs/sheets/charts; four tabs, access-defined sports, NFL-only, admin/non-admin/reminder-disabled/busy Menu and failed layers. Retain routes, badge semantics and native controllers.
 
 ### 02. Team/league identity and wording
 
-Local follow-up: [source and capture audit](PRISM_IDENTITY_SCOPE_NATIVE_2026_11_07.md) corrects Games bar/action names, league descriptions and app-authored rendered trend titles while preserving source attribution/IDs. Native circle/decode/badge/letter proofs pass. Separate Commissioner wording and independent combined review remain pending; no whole-app completion is inferred.
+Reviewed and integrated: [source and capture audit](PRISM_IDENTITY_SCOPE_NATIVE_2026_11_07.md) and [wording boundary correction](PRISM_IDENTITY_WORDING_BOUNDARIES_2026_11_07.md) correct Games bar/action names, league descriptions and authored trend titles while preserving source attribution/IDs. Native circle/decode/badge/letter proofs pass. Commissioner wording and independent combined source review are complete; exact-source CI and release remain.
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Native identity/wording port and independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**.
 - Reference: `selected-league-marks.js; selected-team-circles.js; selected-league-wording.js; LEAGUE_CIRCLES_SELECTED_REVIEW.md; TEAM_LEAGUE_CIRCLES_REVIEW.md; LEAGUE_WORDING_REVIEW.md`.
 - Native targets: `ui/TeamMark.jsx, Matchup.jsx, PictureRow.jsx; shared sport controls and per-context wrappers`.
 - Required presentation and behavior: Separate glass circles, context sizing, full explanatory names, accessible labels and image fallback. G excluded; preserve FEPL and actual code/route/option values.
@@ -443,7 +449,7 @@ Local follow-up: [source and capture audit](PRISM_IDENTITY_SCOPE_NATIVE_2026_11_
 
 ### 18. NFL action layers
 
-- [ ] Port and verify this area. Status: **LOCALLY IMPLEMENTED / COVERAGE GAPS / NOT DEPLOYED**. [The 43-state fidelity ledger](PRISM_LEAGUE_ACTIONS_FIDELITY_FIXES_2026_11_07.md) maps each exact native composition and distinguishes paired captures, unverified states and held API/SQL/shared-frame work. No 106/106 acceptance claim.
+- [ ] Native action compositions are **LOCALLY IMPLEMENTED AND REVIEWED / HELD DEPENDENCIES / NOT DEPLOYED**. [Initial fidelity ledger](PRISM_LEAGUE_ACTIONS_FIDELITY_FIXES_2026_11_07.md) and [integrated Menu/scope closeout](PRISM_IDENTITY_SCOPE_NATIVE_2026_11_07.md) reconcile 38 paired, zero unverified and five held core scenarios. The four frame positions and separately prepared M-41 Virtual minimum remain held. No 106/106 acceptance claim.
 - Reference: `NFL_ACTIONS_NAVIGATION_REVIEW.md; populated-nfl-actions; isolated-nfl-actions.jsx; nflActionsNavigationPreview`.
 - Native targets: `play/ForfeitDialog.jsx; lines/YourPickSheet.jsx, EveryoneGuesses.jsx; bets/GameBetsSheet.jsx, EveryoneBets.jsx, PlaceBets.jsx; feed/PicksSheet.jsx, ReactorsSheet.jsx`.
 - Required presentation and behavior: All 106 approved captures: reveal/forfeit, saved drafts/pending/stale/scope, game/everyone bets and read states, feed hidden/picks/share uncertain, reactors/read states, Virtual entry/slip/locked/no-offer/busy/uncertain, source/rules Info and scrolled forms. Exact scenarios below.

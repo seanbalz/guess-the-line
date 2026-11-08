@@ -1,5 +1,15 @@
 # Guess The Line — current completion register
 
+## Whole-branch Prism source review passed — November 7, 2026
+
+[Final review record](PRISM_FINAL_REVIEW_2026_11_07.md): no Critical or Important
+findings for `7aa93a6f..48ad4b40`; reviewed documentation now follows frontend
+then API release order. Final local 923 component / 27 strict Node / five native
+browser checks, typecheck, Brand/build/privacy pass. Existing test-key/build-size
+advisories remain disclosed. Exact-source CI and protected release remain open;
+source review does not resolve the held frame positions or separate M-41 work.
+Only the earlier Home release is live. The frozen v62 tracker is unchanged.
+
 ## Reviewed identity integration — November 7, 2026
 
 The final identity/Menu/scope source and wording boundary repairs are integrated

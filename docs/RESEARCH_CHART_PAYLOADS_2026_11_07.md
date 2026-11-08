@@ -108,12 +108,14 @@ records/matched IDs.
 
 ## Compatibility and remaining release work
 
-Recommended target order: **compatible API, frontend, then the existing hourly
-public research refresh from merged source**. This order is preferred, not
-enforced: the hourly workflow checks out `main` and may publish the new additive
-asset fields immediately after merge, before the API deployment. The old reader
-tolerates those optional fields. Record the actual refresh/API/frontend source
-and compatibility in the release evidence rather than assuming this order.
+Release target order under Gate D §4.3: **tolerant frontend first, then the
+compatible API in a second protected run**. No SQL follows this change. The
+existing hourly public research refresh is independent: it checks out `main`
+and may publish the new additive asset fields immediately after merge, before
+either app deployment. The old reader tolerates those optional fields. Record
+the actual refresh/frontend/API source and compatibility in the release evidence
+rather than assuming the refresh waits. This supersedes the task's earlier
+API-first recommendation; compatibility alone does not waive Gate D order.
 No SQL, migration, new odds
 collection, paid source, provider-budget or scheduled-job change is required.
 
