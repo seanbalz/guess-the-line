@@ -78,6 +78,18 @@ export async function captureCommissioner(page, info, name, { compact = false } 
     }
     expect(metrics.filter(m => m.width < 43.9 || m.height < 43.9), `${name} touch targets`).toEqual([]);
     expect(metrics.filter(m => m.font < 16), `${name} native action labels`).toEqual([]);
+    const dialogActions = await page.locator('dialog[open] .review-actions').evaluateAll(groups => groups.flatMap(group => {
+      const box = group.getBoundingClientRect();
+      return [...group.querySelectorAll('button')].map(button => {
+        const rect = button.getBoundingClientRect();
+        return { name: button.textContent.trim(), disabled: button.disabled, groupWidth: box.width,
+          width: rect.width, leftOffset: rect.left - box.left, rightOffset: box.right - rect.right };
+      });
+    }));
+    for (const action of dialogActions) {
+      expect(Math.abs(action.width - action.groupWidth), `${name} full-width dialog action: ${action.name}`).toBeLessThan(1);
+      expect(Math.abs(action.leftOffset) + Math.abs(action.rightOffset), `${name} aligned dialog action`).toBeLessThan(1);
+    }
     expect((await new AxeBuilder({ page }).withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze()).violations, `${name} accessibility`).toEqual([]);
     const file = `${name}-${forcedColors === 'active' ? 'forced' : theme}-${width}`;
     const body = page.locator('.gx-sheet-body').last();
@@ -99,7 +111,7 @@ export async function captureCommissioner(page, info, name, { compact = false } 
       await page.screenshot({ path: info.outputPath(`${file}-bottom.png`) });
       await scrollTo(false);
     }
-    fs.writeFileSync(info.outputPath(`${file}.json`), JSON.stringify({ name, theme, width, forcedColors, preference: theme, computedThemeVerified: true, metrics, reading, primary, pinned, layoutProblems: [], axeViolations: [] }, null, 2));
+    fs.writeFileSync(info.outputPath(`${file}.json`), JSON.stringify({ name, theme, width, forcedColors, preference: theme, computedThemeVerified: true, metrics, reading, primary, pinned, dialogActions, layoutProblems: [], axeViolations: [] }, null, 2));
   }
   await page.setViewportSize({ width: 390, height: 844 });
   await setCaptureTheme(page, 'dark', { forcedColors: 'none' });

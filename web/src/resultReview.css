@@ -33,7 +33,8 @@
 .gx .gx-cm-legacy .result-score-preview strong { font: 600 39px/1.2 var(--gx-font-num); font-variant-numeric: tabular-nums; color: var(--gx-accent-ink); }
 .gx .gx-cm-legacy .result-review-details > div { grid-template-columns: 1fr; gap: 7px; padding-bottom: 16px; border-bottom: 1px solid var(--gx-border); }
 .gx .gx-cm-legacy .result-review-details dt { font: 500 13px/1.8 var(--gx-font-body); }
-.gx .gx-cm-legacy .result-final-dialog .review-actions { display: grid; gap: 19px; }
+.gx .gx-cm-legacy .result-final-dialog .review-actions { display: grid; grid-template-columns: minmax(0,1fr); justify-content: stretch; gap: 19px; }
+.gx .gx-cm-legacy .result-final-dialog .review-actions button { width: 100%; min-width: 0; }
 .gx .gx-cm-legacy .result-final-dialog .icon-button { flex: none; min-width: 44px; min-height: 44px; }
 .gx .gx-cm-legacy button { white-space: normal; }
 @media(forced-colors:active) { .gx .gx-cm-legacy :is(.panel-heading,.result-score-fields > label,.result-final-dialog,.result-final-dialog .callout,.result-score-preview > div,.result-final-assertion) { border-color: CanvasText; box-shadow: none; } }

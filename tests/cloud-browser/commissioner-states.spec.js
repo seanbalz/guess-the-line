@@ -123,7 +123,7 @@ test('final correction keeps explicit assertion, busy review and refresh-adopt c
     await captureCommissioner(page, info, 'final-correction', { compact: true });
     await page.getByRole('button', { name: 'Confirm commissioner-reported final', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Recording final…', exact: true })).toBeDisabled();
-    await captureCommissioner(page, info, 'final-busy', { compact: true }); release();
+    await captureCommissioner(page, info, 'final-busy'); release();
     await expect(page.locator('dialog[open]').getByRole('alert')).toContainText('Fixture save failure');
     await captureCommissioner(page, info, 'final-save-error');
     await page.getByRole('button', { name: 'Confirm commissioner-reported final', exact: true }).click();
