@@ -3,8 +3,8 @@
 Status: **implementation in progress; remaining rollout NOT DEPLOYED**.
 This is the approved-scope implementation and verification checklist, not a
 release record. Existing Home-only production release remains separate. The
-latest Home spacing at `5faead67b9a66091c595168d89bfe21556dec01f` has owner
-approval for deployment; this audit does not claim its implementation or release.
+latest approved Home spacing is implemented and deployed from `70c2b85ea7466ca308c8e69006b4ec09888267a7`.
+The remaining areas below distinguish reviewed local implementation from release.
 
 ## Current implementation evidence
 
@@ -15,27 +15,39 @@ approval for deployment; this audit does not claim its implementation or release
   typecheck, Brand QA, build and bundle privacy scan passed. Independent source
   review found no important regressions. Shared source does not close the
   per-area layout checklist or the positional navigation question below.
-- Play/Points/Score: area commit `04190436480143fcc3fd4446297fd39c17f9767e`
-  has local native/controller/capture evidence and awaits parent review and
-  integration. Research and the missing Bets landing are in owned task trees.
+- Play/Points/Score: initial area source `04190436480143fcc3fd4446297fd39c17f9767e`
+  and closeout `4193f638c7769300deccb45f454ab3de2f69f921` are integrated.
+  Independent source/capture review approved the profile, controls, score
+  metadata/chart order and opponent-strip closeout. Thirty-two hashed captures
+  record the native result. See [area evidence](PRISM_PLAY_SCORE_NATIVE_2026_11_07.md).
 - Bets receipts, terms/results and detailed analytics: reviewed source
   `25d64f6cfe91e9def639c7ff6fbdd8ca427f7f63`, integrated as `b5e1f269`.
   Local integration passed all 85 files / 886 Vitest tests and typecheck. The
-  approved Bets landing composition and remaining state/capture gaps stay open;
-  the material/control slice alone does not close that area.
+  approved Bets landing and four remaining compositions are now integrated from
+  `a8797ae0d41087882c5ea7fbc04d9e324a4a266d` and
+  `b86ea0ba14a78822eb5370a142ff07d0c3f37a0f`. Independent review
+  approved actual owner ticket previews, permitted retained-assessment teaser,
+  full-name entry choices and receipt/actions/history ordering. See
+  [closeout evidence](PRISM_BETS_CLOSEOUT_2026_11_07.md).
+  Final combined parent validation passed 87 files / 901 Vitest tests,
+  typecheck, Brand QA and whitespace checks. No remaining rollout is deployed.
 - Home spacing: [PR #494](https://github.com/seanbalz/guess-the-line/pull/494)
   merged at `70c2b85ea7466ca308c8e69006b4ec09888267a7` after all PR checks
   passed. Its first CI caught an old 212px loading placeholder and obsolete 18px
   padding assertion. Fix `2d96c5d7589df3ccfa7b840c0fae299a5e1de074` retains
   the approved ready layout, matches the 194px/16px loader and passed 40 Node /
   17 Home/layers/scrolling browser checks plus independent review. Fresh
-  exact-main production CI is pending; no spacing deployment is yet claimed.
+  exact-main production CI passed all 12 jobs. Protected frontend deploy
+  [42426632652](https://github.com/seanbalz/guess-the-line/actions/runs/42426632652)
+  released Pages `6a847959-7b70-4c21-bcb3-fc2af1403621`; all 127 production
+  assets matched at 23:47:36 UTC. API/workers/history remain unchanged.
 - Integration checks found stale accessible-name/radius expectations, inline
   SVG vector numbers colliding with numeric privacy scans, and a possible
   pending-frame focus handoff race. Names are reconciled; brand SVGs now emit
   as unchanged cacheable media without relaxing privacy scans. Research owns
-  actual chart target sizing; a deterministic Shell focus regression is being
-  investigated separately before any fix is accepted.
+  actual chart target sizing. The deterministic Shell focus fix is integrated
+  and independently reviewed; it cancels only pending forward restoration after
+  the user moves focus or starts input, preserving native Back restoration.
 - Tracked bet stakes support smaller custom values without backend changes.
   Virtual Units still has positive-half-unit enforcement in both API and SQL;
   its approved finer entry requires a separately reviewed compatibility change
@@ -175,28 +187,30 @@ reference math/data only and must not enter the production bundle.
 
 ### 03. Home latest spacing
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Port and verify this area. Status: **IMPLEMENTED AND DEPLOYED** from
+  `70c2b85ea7466ca308c8e69006b4ec09888267a7`, Pages `6a847959`, verified
+  frontend run `42426632652`. [Durable release evidence](https://github.com/seanbalz/guess-the-line/pull/496).
 - Reference: `Approved home-spacing artifacts at 5faead67b9a66091c595168d89bfe21556dec01f; overview-closeout-home captures; home-compact-selected.js`.
-- Native targets: `home/Home.jsx, HomeSummaries.jsx, HomeGuide.jsx, ResearchPreview.jsx, home.css`.
-- Required presentation and behavior: Home-only release is existing separate evidence. Apply latest spacing exactly; compact Finish your picks action has 60px ring and 18px padding. Retain real market-specific figures and live reads.
+- Native targets: `home/Home.jsx, ApprovedHome.jsx, HomeBrand.jsx, approvedHome.css`.
+- Required presentation and behavior: Latest approved spacing has a 60px ring and 16px card padding (supersedes the earlier 18px reference). Real market-specific figures, live reads, 80px charts, targets, safe areas and privacy rules are retained. Loading placeholder matches the 194px ready card.
 
 ### 04. Play overview, Spread and Total
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Port and verify this area. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. Source `4193f638`, integrated `be5986ba`; [evidence](PRISM_PLAY_SCORE_NATIVE_2026_11_07.md).
 - Reference: `overview-closeout-play captures; populated-play; playDraftLockIn`.
 - Native targets: `play/Play.jsx, PerGamePlay.jsx, GuessPicker.jsx and dialogs/cards`.
 - Required presentation and behavior: Draft, confirmation, locked-in, separate markets and overview. Preserve per-game locks/drafts, configured deadlines and reveal/controller behavior.
 
 ### 05. Guess the Points
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Port and verify this area. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. Source `4193f638`, integrated `be5986ba`; [evidence](PRISM_PLAY_SCORE_NATIVE_2026_11_07.md).
 - Reference: `populated-points; points-preview-stepper.jsx; pointsDraftPreview`.
 - Native targets: `play/points/PointsBallot.jsx, PointsProfile.jsx, PointsBoard.jsx, SlotContext.jsx`.
 - Required presentation and behavior: Week overview, player draft, confirmation, usage profile and confirmed card; whole-point bounds/taps/hold behavior and retained independent drafts.
 
 ### 06. Scores and history
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Port and verify this area. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. Source `4193f638`, integrated `be5986ba`; [evidence](PRISM_PLAY_SCORE_NATIVE_2026_11_07.md).
 - Reference: `populated-score; score-preview-number-line.jsx; scoreHistoryPreview`.
 - Native targets: `play/WeeklyScore.jsx, ScoreComparison.jsx, score tiles and history layers`.
 - Required presentation and behavior: Separate Spread/Total summaries, team AND matchup filters/subtotals, six/show-all game list, history scale, signed game axis, source Info; actual outcome stays separate from guess scoring.
@@ -252,21 +266,21 @@ reference math/data only and must not enter the production bundle.
 
 ### 14. Bets overview, receipts and entry
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Port and verify this area. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. Source `b86ea0ba`, integrated `35ae5fc6`; [evidence](PRISM_BETS_CLOSEOUT_2026_11_07.md). Virtual Units finer precision remains a separate API/SQL dependency.
 - Reference: `overview-closeout-bets/open-ticket/settled-ticket/entry captures; populated-bets; isolated-bet-editor.jsx; bets-number-choices.jsx; bets-book-choices.jsx`.
 - Native targets: `bets/Bets.jsx, TrackedBetRow.jsx and actual tracked editor/controller; web/src/trackedBetTerms.js`.
 - Required presentation and behavior: Open/settled receipts, single/parlay selection and terms, incomplete-leg guards, units/cash conversion, manual source catalog; unknown odds/return/source/time stays unknown.
 
 ### 15. Bets performance
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Port and verify this area. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Initial evidence](PRISM_BETS_NATIVE_2026_11_07.md) and [closeout](PRISM_BETS_CLOSEOUT_2026_11_07.md).
 - Reference: `populated-bets-overview; betsOverviewPreview`.
 - Native targets: `bets/TrackedOverview.jsx, NetUnits.jsx and charts/filters`.
 - Required presentation and behavior: Net chart/keyboard-pointer selection, record/open counts/risk/ROI, breakdowns/matching tickets, result/type/source/date filters/reset, optional cash, zero-filter and unknown-price states.
 
 ### 16. Bets results and corrections
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Port and verify this area. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Initial evidence](PRISM_BETS_NATIVE_2026_11_07.md) and [closeout](PRISM_BETS_CLOSEOUT_2026_11_07.md).
 - Reference: `populated-bets-changes; isolated-result-editor.jsx; betsChangesPreview`.
 - Native targets: `Actual result/correction editors and tracked receipts/history`.
 - Required presentation and behavior: Player-reported result/full return/source, validation/pending restoration, open-ticket corrections/reason, protected settled terms, retained versions and expandable before/after history.
