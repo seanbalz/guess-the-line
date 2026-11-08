@@ -1,5 +1,26 @@
 # Decision log
 
+## D-79 — Home’s floating bottom navigation across the app (November 8, 2026)
+
+Sean requested a comprehensive UX, formatting and scrolling sweep and matching
+menu bars on every tab. Asked whether that meant the bottom Home / Play / Bets /
+Research navigation or both it and the top header, he chose **“Bottom navigation
+only (Recommended)”** with Home’s approved floating glass bar as the reference.
+
+Use the same bottom bar geometry, material, icons, typography and selected state
+across existing authenticated National Football League and Premier League tabs,
+including previously native Research, FEPL, Bets and account/history contexts.
+Keep actual active tabs, counters, access rules and fullscreen-layer behavior.
+Context-specific top headers and existing approved body layouts remain. This
+supersedes earlier per-context bottom-bar exceptions; it does not choose the held
+FEPL top-header layout or authorize a new page composition.
+
+Maintain reachable end content, focus, action docks and toasts as the viewport,
+safe area or text size changes. Correct confirmed clipping, overlap and wording
+within the approved design. The [sweep record](UI_UX_SWEEP_2026_11_08.md) separates
+local browser evidence from deployment and physical-phone acceptance. M-41,
+backend/data changes and parked feature work remain outside this correction.
+
 ## D-78 — Virtual Units ROI uses saved four-place results (November 8, 2026)
 
 Sean confirmed **“Move forward with rec”** after reviewing the discrepancy
