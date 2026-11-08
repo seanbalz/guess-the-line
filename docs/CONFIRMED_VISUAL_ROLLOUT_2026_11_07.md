@@ -1,10 +1,19 @@
 # Confirmed Prism Glass visual rollout — November 7, 2026
 
-Status: **confirmed area ports reviewed; held dependencies remain; remaining rollout NOT DEPLOYED**.
-This is the approved-scope implementation and verification checklist, not a
-release record. Existing Home-only production release remains separate. The
-latest approved Home spacing is implemented and deployed from `70c2b85ea7466ca308c8e69006b4ec09888267a7`.
-The remaining areas below distinguish reviewed local implementation from release.
+Status: **confirmed unambiguous ports DEPLOYED AND VERIFIED; FEPL frame and M-41 dependencies remain held**.
+This checklist tracks approved scope and its evidence. The
+[November 8 UTC release](RELEASE_2026_11_08_PRISM_ROLLOUT.md) deployed source
+`e3f078b9e831dda46412487251b191ebdd5637c4` as Pages `31417a19` and API v51,
+frontend first, after all exact-main CI passed. All 132 production frontend
+assets match. Public Research assets were separately published and verified.
+The earlier Home-only release remains historical evidence and rollback source.
+
+This release supersedes earlier “not deployed” statements for the shipped
+unambiguous source. Per-area notes and captures retain their original source,
+verification and acceptance limits; the checklist does not claim every one of
+106 action references was newly paired or physically tested. FEPL's conflicting
+frame choice and separately gated Virtual Units precision remain held. No SQL,
+worker, new-avatar/award or parked-scope deployment is included.
 
 ## Current implementation evidence
 
@@ -13,10 +22,9 @@ older check totals below for product/test source `04daf0b6`. All 22 previous CI
 failures have reviewed corrections. The later Back-scroll race has independent
 local regression closure. Fresh root checks pass 923 component tests, 89 Node
 contracts and 11 browser flows, plus typecheck, Brand QA, build, privacy and
-whitespace. All 1,759 design-file hashes match. Final source review, exact-source
-CI and protected frontend-then-API release remain open. The FEPL frame choice and
-M-41/ROI boundaries stay held. Only Home is live; local checks do not establish
-deployment or physical-phone acceptance.
+whitespace. All 1,759 design-file hashes match. Final source review, exact-source CI and the protected frontend-then-API release
+are complete as recorded above. The FEPL frame choice and M-41/ROI boundaries
+stay held. Deployment verification does not establish physical-phone acceptance.
 
 Expanded frame source is now integrated through `c5d7f10e`; task reviews approve
 both the context implementation and the seven-file test-only CI corrections.
@@ -27,8 +35,8 @@ same-route clarification. Root recomputed 14 source, one ledger, 46 reference,
 30 receipt, 128 fresh image/dimension and 80 historical hashes, all matching.
 At this integrated code/test source, 923 component / 31 strict Node checks,
 typecheck, Brand QA and whitespace pass. The fresh whole-branch source review approves the integrated changes without
-Critical or Important findings. Combined browser checks remain underway;
-exact-head CI and protected release follow.
+Critical or Important findings. Combined browser checks, exact-main CI and protected release subsequently passed;
+see the November 8 release record above.
 Earlier per-task source and totals below retain their original provenance.
 
 
@@ -365,8 +373,9 @@ an asserted license/affiliation.
 
 ## Per-area implementation checklist
 
-Unchecked area entries retain the specific incomplete boundary stated in their
-status; all remaining rollout entries are not deployed. Existing functional code
+Unchecked area entries retain the specific incomplete coverage or decision
+boundary stated in their status. Scoped source deployment is recorded above;
+a deployed port does not establish every remaining scenario or owner acceptance. Existing functional code
 or a shared token change alone does not close an entry. Each entry requires native-source reconciliation,
 actual data/controllers, both-theme capture comparison and appropriate checks.
 Native paths below are under `web/src/next/` unless otherwise stated. Artifact
@@ -375,18 +384,18 @@ reference math/data only and must not enter the production bundle.
 
 ### 01. Shared system and shell
 
-Reviewed and integrated: [shared identity/Menu/scope evidence](PRISM_IDENTITY_SCOPE_NATIVE_2026_11_07.md) verifies all four real Menu variants, primary sit-out prose and native material/identity regressions. Header/sports-row/dock positions remain held. Whole-branch source review passed; exact-source CI and deployment remain.
+Reviewed and integrated: [shared identity/Menu/scope evidence](PRISM_IDENTITY_SCOPE_NATIVE_2026_11_07.md) verifies all four real Menu variants, primary sit-out prose and native material/identity regressions. The later expanded context reconciliation resolves unambiguous header/sports-row/dock positions; FEPL remains held. Whole-branch source review, exact-main CI and deployment passed.
 
-- [ ] Native materials, identity, Menu and scope are **LOCALLY IMPLEMENTED AND REVIEWED**; global frame positions remain **HELD / NOT DEPLOYED**.
+- [ ] Native materials, identity, Menu and scope are **REVIEWED AND DEPLOYED**; FEPL frame choice and scenario coverage limits remain explicit.
 - Reference: `selected-system-review.json; selected-system-review.js; prism-refinement.css; visual-icon-treatments.css; populated-nfl-actions; NFL_ACTIONS_NAVIGATION_REVIEW.md`.
 - Native targets: `styles/tokens.css, base.css, components.css; ui primitives; shell/Frame.jsx and shell.css; me/MenuSheet.jsx`.
 - Required presentation and behavior: Themes/type/material/icons, cards/buttons/inputs/chips/dialogs/sheets/charts; four tabs, access-defined sports, NFL-only, admin/non-admin/reminder-disabled/busy Menu and failed layers. Retain routes, badge semantics and native controllers.
 
 ### 02. Team/league identity and wording
 
-Reviewed and integrated: [source and capture audit](PRISM_IDENTITY_SCOPE_NATIVE_2026_11_07.md) and [wording boundary correction](PRISM_IDENTITY_WORDING_BOUNDARIES_2026_11_07.md) correct Games bar/action names, league descriptions and authored trend titles while preserving source attribution/IDs. Native circle/decode/badge/letter proofs pass. Commissioner wording and independent combined source review are complete; exact-source CI and release remain.
+Reviewed and integrated: [source and capture audit](PRISM_IDENTITY_SCOPE_NATIVE_2026_11_07.md) and [wording boundary correction](PRISM_IDENTITY_WORDING_BOUNDARIES_2026_11_07.md) correct Games bar/action names, league descriptions and authored trend titles while preserving source attribution/IDs. Native circle/decode/badge/letter proofs pass. Commissioner wording, independent combined source review, exact-main CI and scoped release are complete.
 
-- [x] Native identity/wording port and independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**.
+- [x] Native identity/wording port and independent review complete. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**.
 - Reference: `selected-league-marks.js; selected-team-circles.js; selected-league-wording.js; LEAGUE_CIRCLES_SELECTED_REVIEW.md; TEAM_LEAGUE_CIRCLES_REVIEW.md; LEAGUE_WORDING_REVIEW.md`.
 - Native targets: `ui/TeamMark.jsx, Matchup.jsx, PictureRow.jsx; shared sport controls and per-context wrappers`.
 - Required presentation and behavior: Separate glass circles, context sizing, full explanatory names, accessible labels and image fallback. G excluded; preserve FEPL and actual code/route/option values.
@@ -402,280 +411,280 @@ Reviewed and integrated: [source and capture audit](PRISM_IDENTITY_SCOPE_NATIVE_
 
 ### 04. Play overview, Spread and Total
 
-- [x] Port and verify this area. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. Source `4193f638`, integrated `be5986ba`; [evidence](PRISM_PLAY_SCORE_NATIVE_2026_11_07.md).
+- [x] Port and verify this area. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. Source `4193f638`, integrated `be5986ba`; [evidence](PRISM_PLAY_SCORE_NATIVE_2026_11_07.md).
 - Reference: `overview-closeout-play captures; populated-play; playDraftLockIn`.
 - Native targets: `play/Play.jsx, PerGamePlay.jsx, GuessPicker.jsx and dialogs/cards`.
 - Required presentation and behavior: Draft, confirmation, locked-in, separate markets and overview. Preserve per-game locks/drafts, configured deadlines and reveal/controller behavior.
 
 ### 05. Guess the Points
 
-- [x] Port and verify this area. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. Source `4193f638`, integrated `be5986ba`; [evidence](PRISM_PLAY_SCORE_NATIVE_2026_11_07.md).
+- [x] Port and verify this area. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. Source `4193f638`, integrated `be5986ba`; [evidence](PRISM_PLAY_SCORE_NATIVE_2026_11_07.md).
 - Reference: `populated-points; points-preview-stepper.jsx; pointsDraftPreview`.
 - Native targets: `play/points/PointsBallot.jsx, PointsProfile.jsx, PointsBoard.jsx, SlotContext.jsx`.
 - Required presentation and behavior: Week overview, player draft, confirmation, usage profile and confirmed card; whole-point bounds/taps/hold behavior and retained independent drafts.
 
 ### 06. Scores and history
 
-- [x] Port and verify this area. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. Source `4193f638`, integrated `be5986ba`; [evidence](PRISM_PLAY_SCORE_NATIVE_2026_11_07.md).
+- [x] Port and verify this area. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. Source `4193f638`, integrated `be5986ba`; [evidence](PRISM_PLAY_SCORE_NATIVE_2026_11_07.md).
 - Reference: `populated-score; score-preview-number-line.jsx; scoreHistoryPreview`.
 - Native targets: `play/WeeklyScore.jsx, ScoreComparison.jsx, score tiles and history layers`.
 - Required presentation and behavior: Separate Spread/Total summaries, team AND matchup filters/subtotals, six/show-all game list, history scale, signed game axis, source Info; actual outcome stays separate from guess scoring.
 
 ### 07. League boards, feed and comments
 
-- [ ] Port and verify this area. Status: **LOCALLY IMPLEMENTED / SCOPED REVIEW APPROVED / COVERAGE GAPS / NOT DEPLOYED**. Five reviewed findings and expanded native state coverage are in [the fidelity fix record](PRISM_LEAGUE_ACTIONS_FIDELITY_FIXES_2026_11_07.md); all held/unverified states remain explicit.
+- [ ] Port and verify this area. Status: **SCOPED PORT REVIEWED AND DEPLOYED / COVERAGE GAPS REMAIN**. Five reviewed findings and expanded native state coverage are in [the fidelity fix record](PRISM_LEAGUE_ACTIONS_FIDELITY_FIXES_2026_11_07.md); all held/unverified states remain explicit.
 - Reference: `populated-league; leaguePreview`.
 - Native targets: `league/LeagueScreen.jsx, LeagueBoard.jsx; feed/Feed.jsx, DigestCard.jsx, PostCard.jsx, CommentsSheet.jsx and reactions`.
 - Required presentation and behavior: Spread/Total/Points boards, ties/unranked/House, more rows, folded posts, hidden picks/results, six reactions and comment drafts/length/focus return. Use native persistence/privacy gates.
 
 ### 08. Research overview and game
 
-- [x] Local visual/data port and independent review complete. Status: **IMPLEMENTED LOCALLY / NOT DEPLOYED**. [Visual evidence](PRISM_RESEARCH_NATIVE_2026_11_07.md), [canonical data and release dependencies](RESEARCH_CHART_PAYLOADS_2026_11_07.md).
+- [x] Local visual/data port and independent review complete. Status: **SCOPED PORT REVIEWED AND DEPLOYED at `e3f078b9`**. [Visual evidence](PRISM_RESEARCH_NATIVE_2026_11_07.md), [canonical data and release dependencies](RESEARCH_CHART_PAYLOADS_2026_11_07.md).
 - Reference: `populated-research; game-research-panels.js; populatedGameResearch`.
 - Native targets: `research/ResearchLanding.jsx, ResearchView.jsx, MatchupResearch.jsx, ResearchCards.jsx, ResearchChart.jsx; lines/GameDetails.jsx; charts/`.
 - Required presentation and behavior: Compact header, six evidence periods, chart/table links, season comparisons, team records/PPG/margins/play statistics, original market-history deep link; preserve real source/missing/stale states.
 
 ### 09. Research Games
 
-- [x] Port and verify this area. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. Sources `f93d7c65`, `2ac6ff1c`; [native evidence](PRISM_RESEARCH_NATIVE_2026_11_07.md).
+- [x] Port and verify this area. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. Sources `f93d7c65`, `2ac6ff1c`; [native evidence](PRISM_RESEARCH_NATIVE_2026_11_07.md).
 - Reference: `populated-games; populatedGamesList`.
 - Native targets: `lines/GamesScreen.jsx, LinesBoard.jsx and owning Research Games view`.
 - Required presentation and behavior: Day filters/counts, individual team circles, records/last-five, shared zero-based PPG scale, inline team comparison and keyboard chart selection.
 
 ### 10. Research Trends
 
-- [x] Local visual/data port and independent review complete. Status: **IMPLEMENTED LOCALLY / NOT DEPLOYED**. [Visual evidence](PRISM_RESEARCH_NATIVE_2026_11_07.md), [canonical data and release dependencies](RESEARCH_CHART_PAYLOADS_2026_11_07.md).
+- [x] Local visual/data port and independent review complete. Status: **SCOPED PORT REVIEWED AND DEPLOYED at `e3f078b9`**. [Visual evidence](PRISM_RESEARCH_NATIVE_2026_11_07.md), [canonical data and release dependencies](RESEARCH_CHART_PAYLOADS_2026_11_07.md).
 - Reference: `populated-research; populatedTrendsList`.
 - Native targets: `trends/TrendsScreen.jsx, TrendLayer.jsx; charts/TrendRow.jsx, TrendDetail.jsx; research/ResearchChart.jsx`.
 - Required presentation and behavior: Market filters, six periods, records/sample counts/sparklines, expanded charts/tables/results and keyboard selection; do not fabricate evidence.
 
 ### 11. Research Teams
 
-- [x] Port and verify this area. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. Source `f93d7c65`; [native evidence](PRISM_RESEARCH_NATIVE_2026_11_07.md).
+- [x] Port and verify this area. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. Source `f93d7c65`; [native evidence](PRISM_RESEARCH_NATIVE_2026_11_07.md).
 - Reference: `populated-teams; populatedTeams`.
 - Native targets: `teams/TeamsScreen.jsx, TeamView.jsx, TeamSheet.jsx, TeamMatchup.jsx`.
 - Required presentation and behavior: Search all teams, own/opponent circles, records/last-five, home/road/PPG, margin chart and games, browse/scroll/focus preservation on Back, source Info.
 
 ### 12. NFL Fantasy browse, usage and comparison
 
-- [x] Port and verify this area. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. Sources `f93d7c65`, `2ac6ff1c`, corrected Light evidence `ce524dfc`; [native evidence](PRISM_RESEARCH_NATIVE_2026_11_07.md).
+- [x] Port and verify this area. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. Sources `f93d7c65`, `2ac6ff1c`, corrected Light evidence `ce524dfc`; [native evidence](PRISM_RESEARCH_NATIVE_2026_11_07.md).
 - Reference: `populated-fantasy; populatedFantasy`.
 - Native targets: `fantasy/FantasyScreen.jsx, FantasyTools.jsx and related native views`.
 - Required presentation and behavior: Search/position/pagination, scoring settings, actual points/usage profiles and missing/bye gaps, two/three-player comparison, native table scrolling and Back/focus retention.
 
 ### 13. NFL Fantasy rankings and accuracy
 
-- [x] Port and verify this area. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. Sources `f93d7c65`, `2ac6ff1c`; [native evidence](PRISM_RESEARCH_NATIVE_2026_11_07.md).
+- [x] Port and verify this area. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. Sources `f93d7c65`, `2ac6ff1c`; [native evidence](PRISM_RESEARCH_NATIVE_2026_11_07.md).
 - Reference: `populated-fantasy-rankings.jsx; populated-fantasy-accuracy.jsx; fantasyRankingsAccuracy`.
 - Native targets: `fantasy/FantasyReport.jsx and owning ranking views/models`.
 - Required presentation and behavior: Weekly/ROS/search/position/team/trend filters, rankings/profile links, report metrics/position rows/biggest misses, source/method/provisional labels and native paired error bars.
 
 ### 14. Bets overview, receipts and entry
 
-- [x] Port and verify this area. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. Source `b86ea0ba`, integrated `35ae5fc6`; [evidence](PRISM_BETS_CLOSEOUT_2026_11_07.md). Virtual Units finer precision remains a separate API/SQL dependency.
+- [x] Port and verify this area. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. Source `b86ea0ba`, integrated `35ae5fc6`; [evidence](PRISM_BETS_CLOSEOUT_2026_11_07.md). Virtual Units finer precision remains a separate API/SQL dependency.
 - Reference: `overview-closeout-bets/open-ticket/settled-ticket/entry captures; populated-bets; isolated-bet-editor.jsx; bets-number-choices.jsx; bets-book-choices.jsx`.
 - Native targets: `bets/Bets.jsx, TrackedBetRow.jsx and actual tracked editor/controller; web/src/trackedBetTerms.js`.
 - Required presentation and behavior: Open/settled receipts, single/parlay selection and terms, incomplete-leg guards, units/cash conversion, manual source catalog; unknown odds/return/source/time stays unknown.
 
 ### 15. Bets performance
 
-- [x] Port and verify this area. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Initial evidence](PRISM_BETS_NATIVE_2026_11_07.md) and [closeout](PRISM_BETS_CLOSEOUT_2026_11_07.md).
+- [x] Port and verify this area. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. [Initial evidence](PRISM_BETS_NATIVE_2026_11_07.md) and [closeout](PRISM_BETS_CLOSEOUT_2026_11_07.md).
 - Reference: `populated-bets-overview; betsOverviewPreview`.
 - Native targets: `bets/TrackedOverview.jsx, NetUnits.jsx and charts/filters`.
 - Required presentation and behavior: Net chart/keyboard-pointer selection, record/open counts/risk/ROI, breakdowns/matching tickets, result/type/source/date filters/reset, optional cash, zero-filter and unknown-price states.
 
 ### 16. Bets results and corrections
 
-- [x] Port and verify this area. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Initial evidence](PRISM_BETS_NATIVE_2026_11_07.md) and [closeout](PRISM_BETS_CLOSEOUT_2026_11_07.md).
+- [x] Port and verify this area. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. [Initial evidence](PRISM_BETS_NATIVE_2026_11_07.md) and [closeout](PRISM_BETS_CLOSEOUT_2026_11_07.md).
 - Reference: `populated-bets-changes; isolated-result-editor.jsx; betsChangesPreview`.
 - Native targets: `Actual result/correction editors and tracked receipts/history`.
 - Required presentation and behavior: Player-reported result/full return/source, validation/pending restoration, open-ticket corrections/reason, protected settled terms, retained versions and expandable before/after history.
 
 ### 17. Historical gap record
 
-- [x] Native visual port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [History/paper-gap/scorecard evidence](PRISM_HISTORY_SCORECARD_NATIVE_2026_11_07.md). Parent adapter integration review/CI remains separate.
+- [x] Native visual port and scoped independent review complete. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. [History/paper-gap/scorecard evidence](PRISM_HISTORY_SCORECARD_NATIVE_2026_11_07.md). Parent adapter integration review/CI remains separate.
 - Reference: `populated-gap-record; gapRecordPreview`.
 - Native targets: `Owning native gap-record/recommendation view; charts/TrendDetail.jsx, TrendLine.jsx; number-line presentation`.
 - Required presentation and behavior: Hit-rate/W-L-P, week/market/gap filters, paper-unit chart/outcome selection, spread/total details and Back retention; actual source records and explicit paper-unit assumptions.
 
 ### 18. NFL action layers
 
-- [ ] Native action compositions are **LOCALLY IMPLEMENTED AND REVIEWED / HELD DEPENDENCIES / NOT DEPLOYED**. [Initial fidelity ledger](PRISM_LEAGUE_ACTIONS_FIDELITY_FIXES_2026_11_07.md) and [integrated Menu/scope closeout](PRISM_IDENTITY_SCOPE_NATIVE_2026_11_07.md) record the earlier 38 paired, zero unverified and five held core scenarios. The later native-navigation evidence raises historical component pairing to 42 paired, zero unverified and one held Virtual minimum. [Expanded frame reconciliation](PRISM_EXPANDED_FRAME_CONTEXTS_2026_11_07.md) supplies the actual-root evidence and unambiguous context mapping; FEPL's separate same-route frame choice remains held. M-41 is prepared separately and not enabled. No 106/106 acceptance claim.
+- [ ] Native action compositions are **REVIEWED AND DEPLOYED for the scoped port / HELD DEPENDENCIES**. [Initial fidelity ledger](PRISM_LEAGUE_ACTIONS_FIDELITY_FIXES_2026_11_07.md) and [integrated Menu/scope closeout](PRISM_IDENTITY_SCOPE_NATIVE_2026_11_07.md) record the earlier 38 paired, zero unverified and five held core scenarios. The later native-navigation evidence raises historical component pairing to 42 paired, zero unverified and one held Virtual minimum. [Expanded frame reconciliation](PRISM_EXPANDED_FRAME_CONTEXTS_2026_11_07.md) supplies the actual-root evidence and unambiguous context mapping; FEPL's separate same-route frame choice remains held. M-41 is prepared separately and not enabled. No 106/106 acceptance claim.
 - Reference: `NFL_ACTIONS_NAVIGATION_REVIEW.md; populated-nfl-actions; isolated-nfl-actions.jsx; nflActionsNavigationPreview`.
 - Native targets: `play/ForfeitDialog.jsx; lines/YourPickSheet.jsx, EveryoneGuesses.jsx; bets/GameBetsSheet.jsx, EveryoneBets.jsx, PlaceBets.jsx; feed/PicksSheet.jsx, ReactorsSheet.jsx`.
 - Required presentation and behavior: All 106 approved captures: reveal/forfeit, saved drafts/pending/stale/scope, game/everyone bets and read states, feed hidden/picks/share uncertain, reactors/read states, Virtual entry/slip/locked/no-offer/busy/uncertain, source/rules Info and scrolled forms. Exact scenarios below.
 
 ### 19. Account overview, Profile and Reminders
 
-- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
+- [x] Local port and scoped independent review complete. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
 - Reference: `Account overview captures; populated-account; accountProfileRemindersPreview`.
 - Native targets: `me/MenuSheet.jsx, ProfileSettings.jsx, PickReminders.jsx`.
 - Required presentation and behavior: Name/unchanged/validation/conflict/uncertain check; reminders off/on/blocked/install/unsupported/unconfigured. Preserve actual subscriptions, permission request and granted-permission semantics.
 
 ### 20. Settings and guidance
 
-- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
+- [x] Local port and scoped independent review complete. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
 - Reference: `populated-account-tools; accountToolsPreview`.
 - Native targets: `me/AccountPreferences.jsx and guidance destinations`.
 - Required presentation and behavior: Manual book preferences/selected count, retained-unavailable and conflict drafts, getting-started preference; all 19 guidance topics and original source/license links.
 
 ### 21. Public app invite
 
-- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
+- [x] Local port and scoped independent review complete. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
 - Reference: `populated-app-invite; appInvitePreview`.
 - Native targets: `Account entry and actual app invite/share view/controller`.
 - Required presentation and behavior: Approved generic shareable public link; native device sharing when supported and manual-select fallback. Button/link is not authorization to send messages to others.
 
 ### 22. Authentication, recovery and first name
 
-- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
+- [x] Local port and scoped independent review complete. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
 - Reference: `populated-access; accessPreview; accessRecoveryPreview`.
 - Native targets: `web/src/AuthGate.jsx; me/NameStep.jsx`.
 - Required presentation and behavior: Sign-in/create/email confirmation/name; forgot/reset/account-neutral notice/mismatch/unavailable/loading. Preserve provider/session/recovery validation and returning-account skip behavior.
 
 ### 23. Session and retained-name recovery
 
-- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
+- [x] Local port and scoped independent review complete. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
 - Reference: `populated-session-recovery; sessionRecoveryPreview`.
 - Native targets: `me/SignInAgain.jsx, NameStep.jsx`.
 - Required presentation and behavior: Password/Google methods, failed/Google-only, name uncertain/offline/sign-in-required and saved invitation notice; explicit check versus Continue semantics.
 
 ### 24. Appearance
 
-- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
+- [x] Local port and scoped independent review complete. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
 - Reference: `populated-appearance; appearancePreview`.
 - Native targets: `Actual native theme/motion preferences and store`.
 - Required presentation and behavior: Dark/Light/System miniature preview, explicit and OS reduced motion, unavailable storage, device-only persistence and OS precedence.
 
 ### 25. Export
 
-- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
+- [x] Local port and scoped independent review complete. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
 - Reference: `populated-export; exportPreview`.
 - Native targets: `me/ExportSheet.jsx and actual authenticated export controller`.
 - Required presentation and behavior: Overview/categories/preparing/busy/completion/failure/retry/unavailable, owner-scoped data and actual device downloads; preserve excluded push devices/nothing deleted.
 
 ### 26. App continuity
 
-- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
+- [x] Local port and scoped independent review complete. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
 - Reference: `populated-continuity; isolated-continuity-views.jsx; continuityPreview`.
 - Native targets: `shell/AppGate.jsx, Boundary.jsx, native offline/failure/reload surfaces`.
 - Required presentation and behavior: Offline, startup skeleton, account failure, tab/page failure retaining navigation, dirty-reload warning; actual preservation and confirm-before-clear order.
 
 ### 27. League setup and invitations
 
-- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
+- [x] Local port and scoped independent review complete. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
 - Reference: `populated-league-setup; leagueSetupPreview`.
 - Native targets: `league/SwitcherSheet.jsx, CreateLeague.jsx, InvitePlayers.jsx`.
 - Required presentation and behavior: Community-first switcher, private Duel/Group creation, host-only invitation entry/link/status/revoke/join check. Retain actual permissions, token validation and uncertain readback.
 
 ### 28. League access recovery
 
-- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
+- [x] Local port and scoped independent review complete. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
 - Reference: `populated-league-access; isolated-league-access-views.jsx; leagueAccessPreview`.
 - Native targets: `Native access/removed/invite cards and league shell`.
 - Required presentation and behavior: Private access pending, removed Community with/without private fallback, saved invitation, joining busy/uncertain; records/retention and real access rules preserved.
 
 ### 29. Commissioner members
 
-- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Scoped independent reviews and root integration are complete; whole-branch CI/release and hosted acceptance remain separate; **NOT DEPLOYED**.
+- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Scoped independent reviews, root integration, exact-main CI and source deployment are complete; signed-in hosted acceptance remains separate. **SCOPED PORT DEPLOYED at `e3f078b9`**.
 - Reference: `populated-commissioner; commissionerMembersPreview`.
 - Native targets: `me/commissioner/CommissionerTools.jsx; me/CommunityMembers.jsx`.
 - Required presentation and behavior: Six native destinations, member list/remove/restore confirmations, self-protection, pending check and admin-required states; actual authorization/concurrency/readback.
 
 ### 30. Commissioner weekly operations
 
-- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Scoped independent reviews and root integration are complete; whole-branch CI/release and hosted acceptance remain separate; **NOT DEPLOYED**.
+- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Scoped independent reviews, root integration, exact-main CI and source deployment are complete; signed-in hosted acceptance remains separate. **SCOPED PORT DEPLOYED at `e3f078b9`**.
 - Reference: `populated-commissioner-status; commissionerOperationsPreview`.
 - Native targets: `Existing status/week-opening/settlement tools and controllers`.
 - Required presentation and behavior: Status, free-quota pause, uncertain settlement/check, week inputs, reviewed schedule and error; preserve schedule review, bounds, freshness and free limits.
 
 ### 31. Referee assignments
 
-- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Scoped independent reviews and root integration are complete; whole-branch CI/release and hosted acceptance remain separate; **NOT DEPLOYED**.
+- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Scoped independent reviews, root integration, exact-main CI and source deployment are complete; signed-in hosted acceptance remains separate. **SCOPED PORT DEPLOYED at `e3f078b9`**.
 - Reference: `populated-referees; refereesPreview`.
 - Native targets: `web/src/RefereeAssignments.jsx`.
 - Required presentation and behavior: Current/draft/busy/partial-save/read-error; retained remaining drafts/extra options/explicit clearing and hosted-over-file precedence.
 
 ### 32. Final-score review
 
-- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Scoped independent reviews and root integration are complete; whole-branch CI/release and hosted acceptance remain separate; **NOT DEPLOYED**.
+- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Scoped independent reviews, root integration, exact-main CI and source deployment are complete; signed-in hosted acceptance remains separate. **SCOPED PORT DEPLOYED at `e3f078b9`**.
 - Reference: `populated-final-review; finalScoresReviewPreview`.
 - Native targets: `Existing commissioner final-score review view/controller`.
 - Required presentation and behavior: Entry/completed assertion/first confirmation/source correction/conflict refresh-adopt-review/unavailable/busy; retain source scope, versions and Challenge grading warning.
 
 ### 33. Odds connection
 
-- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Scoped independent reviews and root integration are complete; whole-branch CI/release and hosted acceptance remain separate; **NOT DEPLOYED**.
+- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Scoped independent reviews, root integration, exact-main CI and source deployment are complete; signed-in hosted acceptance remains separate. **SCOPED PORT DEPLOYED at `e3f078b9`**.
 - Reference: `populated-odds-connection; oddsConnectionPreview`.
 - Native targets: `me/commissioner/OddsConnection.jsx`.
 - Required presentation and behavior: Initial/measured check/fetch count/quota block/pending/rate-limit/busy; preserve measured threshold/reserve, free-only limits and actual request/readback gates.
 
 ### 34. EPL correction review
 
-- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Scoped independent reviews and root integration are complete; whole-branch CI/release and hosted acceptance remain separate; **NOT DEPLOYED**.
+- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Scoped independent reviews, root integration, exact-main CI and source deployment are complete; signed-in hosted acceptance remains separate. **SCOPED PORT DEPLOYED at `e3f078b9`**.
 - Reference: `populated-epl-corrections; eplCorrectionsPreview`.
 - Native targets: `me/commissioner/EplCorrectionReviews.jsx`.
 - Required presentation and behavior: Ready/missing/empty/unavailable/failed/denied/loading/refreshing/stale, source times and signed differences; remains read-only.
 
 ### 35. EPL manager linking
 
-- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Premier League/FEPL native evidence](PRISM_EPL_NATIVE_2026_11_07.md); shared frame and release gates remain separate.
+- [x] Local port and scoped independent review complete. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. [Premier League/FEPL native evidence](PRISM_EPL_NATIVE_2026_11_07.md); shared frame and release gates remain separate.
 - Reference: `populated-epl-claim; isolated-epl-claim.jsx; eplManagerPreview`.
 - Native targets: `epl/ClaimCard.jsx`.
 - Required presentation and behavior: Choose/watching/linked/taken/already-linked/failed/uncertain/busy/no-managers; preserve first-claim concurrency, identity/grants and session watching.
 
 ### 36. EPL Home and recovery
 
-- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Premier League/FEPL native evidence](PRISM_EPL_NATIVE_2026_11_07.md); shared frame and release gates remain separate.
+- [x] Local port and scoped independent review complete. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. [Premier League/FEPL native evidence](PRISM_EPL_NATIVE_2026_11_07.md); shared frame and release gates remain separate.
 - Reference: `populated-epl-home; isolated-epl-home.jsx; eplHomeRecoveryPreview`.
 - Native targets: `epl/EplHome.jsx, PickATeam.jsx; epl/guess/HomeMoneylineProgress.jsx`.
 - Required presentation and behavior: Turn/picked/unlinked/all-in/locked/progress-failed/loading/failed/forbidden/off/no-week/stale/review and source popup; real clock/turn and independent progress recovery.
 
 ### 37. EPL draft, confirmation and backups
 
-- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Premier League/FEPL native evidence](PRISM_EPL_NATIVE_2026_11_07.md); shared frame and release gates remain separate.
+- [x] Local port and scoped independent review complete. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. [Premier League/FEPL native evidence](PRISM_EPL_NATIVE_2026_11_07.md); shared frame and release gates remain separate.
 - Reference: `populated-epl; isolated-epl-queue.jsx; eplDraftPreview`.
 - Native targets: `epl/DraftBoard.jsx, PickATeam.jsx, QueueSheet.jsx, MarginChart.jsx`.
 - Required presentation and behavior: Can-pick/waiting/closed, confirmation/latest pick change, ranking move/add/remove, skip taken clubs, first available ranked club and tied margin bonus presentation.
 
 ### 38. EPL Moneyline
 
-- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Premier League/FEPL native evidence](PRISM_EPL_NATIVE_2026_11_07.md); shared frame and release gates remain separate.
+- [x] Local port and scoped independent review complete. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. [Premier League/FEPL native evidence](PRISM_EPL_NATIVE_2026_11_07.md); shared frame and release gates remain separate.
 - Reference: `populated-epl-moneyline; isolated-epl-moneyline.jsx; eplMoneylinePreview`.
 - Native targets: `epl/guess/EplGuess.jsx, GuessCard.jsx, PriceStepper.jsx, DistanceLine.jsx, EplGuessLeaderboard.jsx`.
 - Required presentation and behavior: Entry/saved draft/results/closed/uncertain/stale/busy/read-only/unavailable/loading/failed; leaderboard/empty/loading/failed and expanded reveal. Actual quote/save/lock/privacy rules.
 
 ### 39. FEPL Fantasy
 
-- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Premier League/FEPL native evidence](PRISM_EPL_NATIVE_2026_11_07.md); shared frame and release gates remain separate.
+- [x] Local port and scoped independent review complete. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. [Premier League/FEPL native evidence](PRISM_EPL_NATIVE_2026_11_07.md); shared frame and release gates remain separate.
 - Reference: `populated-epl-fantasy; isolated-epl-fantasy.jsx; eplFantasyPreview`.
 - Native targets: `epl/fantasy/EplFantasy.jsx, Matchup.jsx, Standings.jsx, Rosters.jsx, Insights.jsx, WeeklyLine.jsx`.
 - Required presentation and behavior: Matchup/standings/rosters/insights/no-repeat/ambiguous/no-team/matchup gaps/standing missing/insight gaps/no detail/loading/failed/forbidden/off/no-data, expanded standing and source/estimate Info.
 
 ### 40. EPL shell
 
-- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Premier League/FEPL native evidence](PRISM_EPL_NATIVE_2026_11_07.md); shared frame and release gates remain separate.
+- [x] Local port and scoped independent review complete. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. [Premier League/FEPL native evidence](PRISM_EPL_NATIVE_2026_11_07.md); shared frame and release gates remain separate.
 - Reference: `EPL_SHELL_REVIEW.md; populated-epl-shell; isolated-epl-shell.jsx`.
 - Native targets: `epl/EplShell.jsx, EplApp.jsx`.
 - Required presentation and behavior: FEPL league sheet, History unavailable/NFL handoff, Bets unavailable and Info. Preserve existing availability; no new EPL history/betting feature.
 
 ### 41. Account Guess History
 
-- [x] Native visual port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [History/paper-gap/scorecard evidence](PRISM_HISTORY_SCORECARD_NATIVE_2026_11_07.md). Parent adapter integration review/CI remains separate.
+- [x] Native visual port and scoped independent review complete. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. [History/paper-gap/scorecard evidence](PRISM_HISTORY_SCORECARD_NATIVE_2026_11_07.md). Parent adapter integration review/CI remains separate.
 - Reference: `populated-account-history; isolated-account-history.jsx; accountGuessHistoryPreview`.
 - Native targets: `me/HistoryGuess.jsx, HistoryMatchup.jsx, HistoryPage.jsx`.
 - Required presentation and behavior: Nineteen states and expanded game/source/rules views, 44 captures: weeks/week/total/other-hidden/removed/sat-out/practice/empty/loading/failed/records-off/changes loading-failed-empty-held/draft-active/late/ruled/no-ballot.
 
 ### 42. Account Bets and Older History
 
-- [x] Native visual port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [History/paper-gap/scorecard evidence](PRISM_HISTORY_SCORECARD_NATIVE_2026_11_07.md). Parent adapter integration review/CI remains separate.
+- [x] Native visual port and scoped independent review complete. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. [History/paper-gap/scorecard evidence](PRISM_HISTORY_SCORECARD_NATIVE_2026_11_07.md). Parent adapter integration review/CI remains separate.
 - Reference: `HISTORY_BETS_OLDER_REVIEW.md; populated-history-records; isolated-history-records.jsx`.
 - Native targets: `me/HistoryBets.jsx, HistoryOlder.jsx`.
 - Required presentation and behavior: Twenty-four states and expanded/Info views, 60 captures: Bets week/read states; seven Older sections; older loading/failed/off/empty; independent Slips loading/failed/empty. Original records/redaction/provenance preserved.
 
 ### 43. Pick-focused scorecard
 
-- [x] Native visual port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [History/paper-gap/scorecard evidence](PRISM_HISTORY_SCORECARD_NATIVE_2026_11_07.md). Parent adapter integration review/CI remains separate.
+- [x] Native visual port and scoped independent review complete. Status: **REVIEWED AND DEPLOYED at `e3f078b9`; scoped acceptance limits remain**. [History/paper-gap/scorecard evidence](PRISM_HISTORY_SCORECARD_NATIVE_2026_11_07.md). Parent adapter integration review/CI remains separate.
 - Reference: `PICK_SCORECARD_REVIEW.md; pick-scorecard-review.html; previews/pick-scorecard-dark-phone.png and pick-scorecard-light-phone.png`.
 - Native targets: `Typed reusable History/Bets/shared-sheet presentation in appropriate native contexts`.
 - Required presentation and behavior: Opponent, separate team circles, team/market, saved guess, comparison/difference, points/status/shared-scale chart where mode and reveal allow. Never add Guess points to sportsbook tickets. Do not copy fictional values or invent quotes/times to fill fields.
