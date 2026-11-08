@@ -5,6 +5,8 @@ import crypto from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import assert from 'node:assert/strict';
 
+assert.equal(process.env.GTL_NAVIGATION_CAPTURE, '1', 'Set GTL_NAVIGATION_CAPTURE=1 for explicit capture closeout; evidence writes are disabled otherwise.');
+
 const authority = process.argv[2];
 assert.ok(authority, 'Pass the read-only owner-acceptance worktree path.');
 const sourceCommit = '1ba236960dfb8050538ba762b35e40eb2799e071';

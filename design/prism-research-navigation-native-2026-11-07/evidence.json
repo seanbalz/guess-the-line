@@ -115,7 +115,7 @@
     },
     {
       "file": "tests/cloud-browser/research-navigation-evidence.mjs",
-      "sha256": "3b42431eeb5f134f906e9aade97fb79454495169d0bb367ba74f164ea29301c6"
+      "sha256": "c50a00a040a4af03f6a77da94695c7d45e4d9406e1017c4c4bdf3b019667715b"
     },
     {
       "file": "tests/cloud-browser/theme-capture.mjs",

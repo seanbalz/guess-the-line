@@ -112,3 +112,33 @@ viewport sizes with reduced motion and zero simulated safe-area inset; no actual
 iPhone, browser-chrome or enlarged-text acceptance is claimed. Wider layouts are
 outside these phone evidence rows. No hosted data, migration apply, push, PR,
 merge or deployment occurred; this task's commits remain unpublished for review.
+
+## Capture-writer guard correction (I-1)
+
+The manifest helper now requires the exact environment value
+`GTL_NAVIGATION_CAPTURE=1` before inspecting arguments or evidence. Missing, `0`
+and `true` values exit 1 with an explicit instruction to set that flag. Actual
+CLI invocations with the read-only owner-authority path left all 21 reviewed
+files byte-identical in each case; the manifest SHA-256 before and after each
+rejection was `98559e522a2d1d94e3639890a3d7bb9d28cae7f0b4d71cb26a5500c2e4c7fa93`.
+
+An ignored local verifier invoked the changed helper with each rejected flag,
+then invoked a temporary copy with `GTL_NAVIGATION_CAPTURE=1`. Only that copy's
+final write target was redirected to owned `.local/navigation-guard-positive/`
+output; all source, authority, scenario and PNG checks ran unchanged. It exited
+0 and verified 16 captures, 18 authority files and 24 product/token files. The
+generated scratch receipt matched the reviewed receipt except its expected new
+generation time and the changed helper hash. Reviewed evidence was untouched by
+that positive invocation. Commands: `node .local/verify-navigation-guard.mjs`,
+`node --check tests/cloud-browser/research-navigation-evidence.mjs`,
+`python -X utf8 scripts/check-brand-docs.py`, and `git diff --check`; all passed.
+
+The committed receipt changes only the helper's SHA-256 from
+`3b42431eeb5f134f906e9aade97fb79454495169d0bb367ba74f164ea29301c6` to
+`c50a00a040a4af03f6a77da94695c7d45e4d9406e1017c4c4bdf3b019667715b`.
+All 16 PNGs, four scenario receipts, 24 product hashes, 18 authority references
+and the other four test-file hashes remain unchanged and were recomputed.
+Historical `capturedAt` remains `2026-11-08T03:59:10.480Z`, with historical
+`sourceCommit` `1ba236960dfb8050538ba762b35e40eb2799e071`. This correction is
+not a new capture or final-integration evidence claim. The browser spec and its
+capture gate are unchanged; no browser rerun was needed for this writer-only fix.
