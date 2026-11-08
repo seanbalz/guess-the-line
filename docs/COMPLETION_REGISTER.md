@@ -1,5 +1,19 @@
 # Guess The Line — current completion register
 
+## Saved-precision Virtual Units ROI checked locally — November 8, 2026
+
+Sean approved the recommended saved-four-place accounting correction (D-78).
+The [implementation record](VIRTUAL_ROI_SAVED_PRECISION_2026_11_08.md) documents
+the shared week/season model correction, synthetic half-unit tie impact,
+red/green arithmetic and SQL/API/native parity evidence. Existing percentage
+and amount display styles, qualification, privacy and ranking order remain.
+All saved selections/results/audits/timestamps are preserved in local read tests;
+no migration or writer changed. Hosted affected-rank counts were unavailable
+because the read connector requires reauthentication. Local verification does
+not establish deployed source or actual-phone acceptance. Independent review,
+exact-source CI and compatible API/frontend release remain open. Custom entry
+PR #497 / M-41 remains separate and unapplied; FEPL framing is still queued.
+
 ## Confirmed Prism rollout deployed and verified — November 8, 2026 UTC
 
 [Release evidence](RELEASE_2026_11_08_PRISM_ROLLOUT.md) records source

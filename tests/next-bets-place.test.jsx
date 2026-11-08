@@ -154,6 +154,19 @@ describe('your week (stage 45)', async () => {
     expect(one.units).toBe('—');
     expect(one.ret).toBe('—');
   });
+  it('shows saved-precision ROI while keeping the existing two-decimal amount formatting', () => {
+    for (const [units, netUnits, amount, roi] of [[0.5, 0.4545, '+0.45U', '+90.9%'], [0.01, 0.0091, '+0.01U', '+91%']]) {
+      const saved = weekCard({ ...data, bets: [
+        { userId: LUKE, gameId: 'SEA-DEN', market: 'spread', status: 'win', selection: { units }, result: { netUnits } },
+      ] }, LUKE);
+      expect(saved.units).toBe(amount);
+      expect(saved.ret).toBe(roi);
+      const html = renderToStaticMarkup(<div className="gx"><WeekCard week={saved}/></div>);
+      expect(html).toContain(roi);
+      expect(html).toContain(amount);
+      expect(markupProblems(html)).toEqual([]);
+    }
+  });
   it('passes the kit markup rules', () => {
     expect(markupProblems(renderToStaticMarkup(<div className="gx"><WeekCard week={week}/></div>))).toEqual([]);
   });
