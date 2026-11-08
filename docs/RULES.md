@@ -330,6 +330,13 @@ scheduler is a later stage.
 
 ## Virtual Units placement (M-11, written)
 
+**Prepared follow-up, November 7:** [M-41](VIRTUAL_UNITS_HUNDREDTHS_M41.md) prepares
+capability-gated hundredths (Custom 0.01–100U, quick/ordinary minimum 0.5U,
+0.1U taps) while retaining existing half-unit inputs. It is not applied or
+deployed; existing writers remain half-unit-only until the named apply.
+The existing board ROI quantization requires an explicit enablement decision.
+No payout, ranking, qualification or historical result is changed by preparation.
+
 M-11 (`20261028181000_gtl_bets_place.sql`, build plan stage 41) adds
 `POST /bets/place` for the published community week. It is written and not
 applied; it waits for Sean's "apply M-11" and a `gtl-api` deploy.

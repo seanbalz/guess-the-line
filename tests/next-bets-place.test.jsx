@@ -9,8 +9,8 @@ import { markupProblems, nameFrom, parseMarkup, walk } from './helpers/ui-markup
 vi.mock('../web/src/api.js', () => ({ betsApi: vi.fn() }));
 vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: vi.fn() }));
 
-const { PLACE_COPY, placeBoard, placeRequest, slipEntries, slipKey, stepUnits } = await import('../web/src/next/bets/place.js');
-const { PlaceGame } = await import('../web/src/next/bets/PlaceBets.jsx');
+const { PLACE_COPY, placeBoard, placeRequest, slipEntries, slipKey, stepUnits, validEntryUnits } = await import('../web/src/next/bets/place.js');
+const { PlaceGame, SlipRow } = await import('../web/src/next/bets/PlaceBets.jsx');
 
 const LUKE = '00000000-0000-4000-8000-000000000003', TROY = '00000000-0000-4000-8000-000000000002';
 const offer = (side, line, odds = -110, source = 'DraftKings') => ({ book: source.toLowerCase(), source, side, line, odds, observedAt: '2026-10-28T15:00:00.000Z', collectedAt: '2026-10-28T15:00:01.000Z' });
@@ -119,6 +119,50 @@ describe('a game card', () => {
     ]);
     expect(chips.map(chip => chip.attrs['aria-label'])).toEqual(['SEA +3.5 · −105, FanDuel', 'DEN −3.5 · −110, DraftKings']);
     expect(chips.some(chip => /gx-chip--text/.test(chip.attrs.class))).toBe(false);
+  });
+});
+
+describe('M-41 hundredths entry is gated by the saved database capability', () => {
+  const slip = amount => ({ 'SEA-DEN:spread': { gameId: 'SEA-DEN', market: 'spread', side: 'away', units: amount, customEntry: true } });
+  it('retains unsupported drafts and refuses a request against old schema/API reads', () => {
+    const legacy = placeBoard(data, LUKE), entries = slipEntries(legacy, slip('0.01'));
+    expect(legacy.customUnits).toBe(false);
+    expect(entries[0]).toMatchObject({ unitValue: '0.01', units: 0.01, validUnits: false });
+    expect(() => placeRequest(legacy, entries, 'r')).toThrow(/valid Virtual Units/);
+  });
+  it('keeps invalid text without rounding or dropping it; a reviewed cent stake reaches the payload exactly', () => {
+    const board = placeBoard({ ...data, unitRules: { hundredths: true } }, LUKE);
+    for (const value of ['', '0', '-1', '0.001', '100.01']) {
+      const entries = slipEntries(board, slip(value));
+      expect(entries).toHaveLength(1);
+      expect(entries[0].unitValue).toBe(value);
+      expect(entries[0].validUnits).toBe(false);
+      expect(() => placeRequest(board, entries, 'r')).toThrow();
+    }
+    for (const value of ['0.01','0.29','0.5','100']) {
+      expect(validEntryUnits(value,true)).toBe(true);
+      expect(placeRequest(board,slipEntries(board,slip(value)),'r').bets[0].units).toBe(Number(value));
+    }
+  });
+  it('quick steps keep 0.5U floor; explicitly custom stakes can step below it by 0.1U', () => {
+    expect(stepUnits(0.5,-1,true)).toBe(0.5);
+    expect(stepUnits(0.5,1,true)).toBe(0.6);
+    expect(stepUnits(0.11,-1,true,true)).toBe(0.01);
+    expect(stepUnits(0.01,1,true,true)).toBe(0.11);
+    expect(stepUnits(0.01,-1,true,true)).toBe(0.01);
+    expect(stepUnits(100,1,true,true)).toBe(100);
+  });
+  it('uses the selected Custom field only after capability, with invalid/busy accessibility states', () => {
+    const board = placeBoard({ ...data, unitRules: { hundredths: true } }, LUKE);
+    const entry = slipEntries(board,slip('0.001'))[0];
+    const markup = customUnits => renderToStaticMarkup(<div className="gx"><SlipRow entry={entry} customUnits={customUnits} disabled onUnits={()=>{}} onRemove={()=>{}}/></div>);
+    expect(markup(false)).not.toContain('type="number"');
+    const html = markup(true);
+    expect(html).toContain('value="0.001"');
+    expect(html).toContain('aria-invalid="true"');
+    expect(html).toContain('min="0.01" max="100" step="0.01"');
+    expect(html).toContain('Enter 0.01U–100U');
+    expect(markupProblems(html)).toEqual([]);
   });
 });
 

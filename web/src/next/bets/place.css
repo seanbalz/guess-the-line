@@ -29,3 +29,8 @@
 .gx .gx-place-week { min-width: 0; }
 .gx .gx-place-meter { min-width: 0; }
 .gx .gx-place-meter > .gx-t-meta { overflow-wrap: anywhere; }
+/* Selected populated-nfl-actions Custom field; native GTL tokens replace preview aliases. */
+.gx .gx-place-unit-field { display: grid; gap: 5px; font-size: 10px; line-height: 1.6; color: var(--gx-text-2); text-align: center; }
+.gx .gx-place-unit-field input { box-sizing: border-box; width: 96px; min-height: 48px; border: 1px solid var(--gx-border); border-radius: 15px; background: var(--gx-glass); color: var(--gx-text-1); font: 500 17px/1.5 var(--gx-font-body); text-align: center; box-shadow: var(--gx-glass-shadow); padding: 8px; }
+.gx .gx-place-unit-field input:focus-visible { outline: 3px solid var(--gx-accent-ink); outline-offset: 3px; }
+.gx .gx-place-unit-field input[aria-invalid=true] { border-color: var(--gx-loss); }

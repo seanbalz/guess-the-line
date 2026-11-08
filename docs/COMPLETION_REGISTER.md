@@ -1,5 +1,18 @@
 # Guess The Line — current completion register
 
+## Virtual Custom hundredths — prepared, enablement held — November 7, 2026
+
+[M-41 preparation and compatibility inventory](VIRTUAL_UNITS_HUNDREDTHS_M41.md)
+adds service-only gated support for 0.01–100U Custom entry, preserves existing
+half-unit stakes, and maps the selected native slip field with 0.1U taps and
+the amended 0.5U ordinary floor. Old schema/API reads keep half-unit controls.
+No accounting, scoring or historic result is changed. Local SQL tests cover
+three save paths, CAS/replay, grants and apply/rollback preservation; native
+browser checks cover invalid drafts, busy/uncertain retry and phone-width layouts.
+M-41 is not applied, merged or deployed. Enablement remains held for the explicit
+small-stake ROI choice, exact-source review/CI and Sean's separate `apply M-41`.
+The frozen v62 tracker is unchanged.
+
 ## Native Account integration and whole-page spacing repair — November 7, 2026
 
 Reviewed Account source and both correction commits are integrated as `f2af6c90`,

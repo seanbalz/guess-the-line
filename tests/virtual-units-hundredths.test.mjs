@@ -1,0 +1,136 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { createHash, randomUUID } from 'node:crypto';
+import { HOSTED } from './migrations.mjs';
+import { ACCOUNTS, createCommunityWorld, pgliteAvailable, storeBookLines } from './cloud-browser/community-world.mjs';
+import { sendBallot } from './helpers/guess-week.mjs';
+import { readVirtualUnitRules } from '../cloud/virtual-unit-rules.mjs';
+import { FEATURE_OFF } from '../cloud/optional-rpc.mjs';
+import { halfUnits, validVirtualUnits } from '../shared/virtual-unit-amount.mjs';
+
+const migration = fs.readFileSync('supabase/migrations/20261108022135_gtl_virtual_units_hundredths.sql', 'utf8');
+const rollback = fs.readFileSync('supabase/rollback/20261108022135_gtl_virtual_units_hundredths.sql', 'utf8');
+const skip = pgliteAvailable ? false : 'Optional local PGlite runtime is not installed.';
+const names = ['gtl_save_virtual_units_pick', 'gtl_save_recommended_virtual_pick', 'gtl_place_bets'];
+const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
+
+test('M-41 capabilities fail closed; only the explicit known version enables custom writes', async () => {
+  for (const result of [FEATURE_OFF, null, {}, { hundredths: true }, { version: 2, hundredths: true }, { version: 1, hundredths: false }])
+    assert.deepEqual(await readVirtualUnitRules(async () => result), { hundredths: false });
+  assert.deepEqual(await readVirtualUnitRules(), { hundredths: false });
+  assert.deepEqual(await readVirtualUnitRules(async () => { throw Error('offline'); }), { hundredths: false });
+  assert.deepEqual(await readVirtualUnitRules(async () => ({ version: 1, hundredths: true })), { hundredths: true });
+  for (const value of [0.01, 0.1, 0.29, 0.5, 0.99, 100, 100.5, 1000]) assert.equal(validVirtualUnits(value), true, String(value));
+  for (const value of [null, '0.01', 0, -1, NaN, Infinity, 0.001, 0.019, 100.01]) assert.equal(validVirtualUnits(value), false, String(value));
+  assert.equal(halfUnits(0.01), false);
+});
+
+async function fixture(t) {
+  const world = await createCommunityWorld({ migrations: HOSTED, games: 2, troyBallots: false, groupScreens: true, virtualUnits: true, optionalRpc: true });
+  t.after(() => world.db.close());
+  const { db, state } = world, { season, week } = state.league, [g0, g1] = state.games.map(g => g.id);
+  const lines = { spread: { [g0]: -3.5, [g1]: 6.5 }, total: { [g0]: 44.5, [g1]: 51.5 } };
+  const quotedAt = await storeBookLines(world, lines);
+  await sendBallot(world, 'luke', 'guess_spread', { [g0]: -7, [g1]: 3 });
+  await sendBallot(world, 'luke', 'guess_total', { [g0]: 48, [g1]: 50 });
+  const bet = (gameId, market, changes = {}) => ({ gameId, market, side: market === 'spread' ? 'home' : 'over', line: lines[market][gameId],
+    odds: -110, units: 0.01, source: 'DraftKings', quotedAt, expected: null, ...changes });
+  const place = (bets, requestId = randomUUID()) => world.api('luke', 'bets/place', { season, week, requestId, bets });
+  const rows = async () => (await db.query('select * from public.gtl_virtual_units_picks order by user_id,season,week,game_id,market')).rows;
+  const dataHash = async () => hash(await Promise.all([
+    ...['gtl_virtual_units_picks','gtl_virtual_units_settlements','gtl_bet_receipts','gtl_weekly_ballots'].map(async table =>
+      (await db.query(`select row_to_json(t) value from public.${table} t order by row_to_json(t)::text`)).rows),
+    db.query('select row_to_json(ps) value from public.gtl_weekly_ballots b cross join lateral public.gtl_ballot_pick_scores(b.season,b.week,b.mode,b.ballot,b.audit) ps order by row_to_json(ps)::text').then(result => result.rows),
+  ]));
+  const bodies = async () => (await db.query('select proname,prosrc,proargnames,proargtypes::text from pg_proc where proname=any($1) order by proname',[names])).rows;
+  return { world, db, season, week, g0, g1, bet, place, rows, dataHash, bodies };
+}
+
+test('M-41 upgrades all three writers, preserves exact history and rollback keeps custom saved rows', { skip }, async t => {
+  const f = await fixture(t);
+  const oldBodies = await f.bodies();
+  assert.equal((await f.world.api('luke', 'bets/read', {})).body.unitRules.hundredths, false);
+  assert.equal((await f.place([f.bet(f.g1, 'spread')])).status, 409, 'new API + old SQL refuses custom without writing');
+  assert.equal((await f.place([f.bet(f.g1, 'total', { units: 0.5 })])).status, 200, 'half stakes still work before apply');
+  const before = await f.dataHash();
+  await f.db.exec(migration);
+  assert.equal(await f.dataHash(), before, 'apply changes no pick, audit, receipt, ballot, score or result');
+  await f.db.exec(migration);
+  assert.equal(await f.dataHash(), before, 'apply is idempotent');
+  assert.equal((await f.world.api('luke', 'bets/read', {})).body.unitRules.hundredths, true);
+  for (const signature of ['gtl_virtual_unit_rules()', 'gtl_virtual_units_supported(numeric)']) {
+    for (const role of ['anon','authenticated','service_role'])
+      assert.equal((await f.db.query('select has_function_privilege($1,$2,\'EXECUTE\') ok',[role,`public.${signature}`])).rows[0].ok, role === 'service_role');
+  }
+  assert.deepEqual((await f.db.query('select proname,count(*)::int n,bool_or(prosecdef) definer from pg_proc where proname=any($1) group by proname',[names])).rows.map(row => [row.n,row.definer]), [[1,false],[1,false],[1,false]]);
+  for (const value of ['0.01','0.29','100','100.5','1000','0','-0.01','0.001','100.01','NaN','Infinity','-Infinity'])
+    assert.equal((await f.db.query('select public.gtl_virtual_units_supported($1::numeric) ok',[value])).rows[0].ok, validVirtualUnits(Number(value)), value);
+
+  const group = f.bet(f.g0, 'spread', { units: 0.29, source: 'draftkings' }); delete group.expected;
+  assert.equal((await f.world.api('luke', 'virtual-pick', group)).status, 200, 'group route accepts cents with capability');
+  const read = (await f.world.api('luke', 'bets/recommendations', {})).body;
+  assert.equal(read.virtual.unitRules.hundredths, true);
+  const offer = read.virtual.games.find(game => game.id === f.g0).offers.total.over;
+  const recommended = f.bet(f.g0, 'total', { source: offer.book, line: offer.line, odds: offer.odds, quotedAt: offer.observedAt }); delete recommended.expected;
+  const saved = await f.world.api('luke', 'bets/recommendations/place', { ...recommended, season: f.season, week: f.week, revision: read.virtual.revision });
+  assert.equal(saved.status, 200, JSON.stringify(saved.body));
+  const requestId = randomUUID(), slip = [f.bet(f.g1, 'spread')];
+  assert.equal((await f.place(slip, requestId)).status, 200);
+  const placedHash = await f.dataHash();
+  assert.equal((await f.place(slip, requestId)).body.placed.replayed, true);
+  assert.equal(await f.dataHash(), placedHash, 'replay does not add receipts/audits');
+  const existing = (await f.rows()).find(row => row.game_id === f.g1 && row.market === 'spread').selection;
+  const expected = Object.fromEntries(['side','line','odds','units','source','quotedAt'].map(key=>[key,existing[key]]));
+  const edit = f.bet(f.g1,'spread',{units:0.11,expected});
+  assert.equal((await f.place([edit])).status, 200);
+  assert.equal((await f.place([edit])).status, 409, 'cent stake stays in the exact expected-terms CAS');
+  const safeHash = await f.dataHash();
+  for (const amount of [0, -1, 0.001, 100.01]) assert.equal((await f.place([f.bet(f.g1,'spread',{units:amount,expected})])).status, 400);
+  assert.equal(await f.dataHash(), safeHash, 'invalid amounts write nothing');
+  await f.db.exec(rollback);
+  assert.equal(await f.dataHash(), safeHash, 'rollback preserves all new cent picks and history');
+  assert.deepEqual(await f.bodies(), oldBodies, 'all prior writer bodies/signatures restored byte for byte');
+  const restoredRules = await f.db.transaction(async tx => { await tx.exec('set local role service_role'); return (await tx.query('select public.gtl_virtual_unit_rules() value')).rows[0].value; });
+  assert.deepEqual(restoredRules,{version:1,hundredths:false},'rollback explicitly reports restored rules without a permission error');
+  assert.equal((await f.world.api('luke', 'bets/read', {})).body.unitRules.hundredths, false);
+  assert.equal((await f.place([f.bet(f.g1,'spread',{units:0.21,expected})])).status, 409);
+  assert.equal((await f.rows()).find(row => row.game_id===f.g1 && row.market==='spread').selection.units, 0.11, 'saved custom row remains readable after rollback');
+});
+
+test('existing D-26 settlement keeps four-place win profit, exact losses/returns and replay for cent stakes', { skip }, async t => {
+  const now = Date.now(), stamp = new Date(now - 3 * 3600_000).toISOString();
+  const world = await createCommunityWorld({ migrations: HOSTED, games: 2, troyBallots: false,
+    prepare: state => { state.league.deadline = stamp; state.games.forEach(game => { game.kickoff = new Date(now - 3600_000).toISOString(); }); } });
+  t.after(() => world.db.close());
+  const { db, state } = world, { season, week } = state.league, [g0,g1] = state.games.map(game => game.id);
+  const seed = async (who, game, market, side, line) => {
+    await db.query('insert into public.gtl_weekly_versions(user_id,season,week) values($1,$2,$3) on conflict do nothing',[ACCOUNTS[who].id,season,week]);
+    const selection = { gameId:game, market, side, line, odds:-110, units:0.01, source:'DraftKings', quotedAt:stamp, selectedAt:stamp, riskDollars:1 };
+    await db.query("insert into public.gtl_virtual_units_picks(user_id,season,week,game_id,market,selection,audit,created_at,updated_at) values($1,$2,$3,$4,$5,$6,'[]',$7,$7)", [ACCOUNTS[who].id,season,week,game,market,selection,stamp]);
+  };
+  await seed('luke',g0,'spread','home',-3.5);
+  await seed('troy',g0,'spread','away',3.5);
+  await seed('sean',g0,'total','over',45);
+  await seed('luke',g1,'total','over',44.5);
+  const snapshot = async () => (await db.query('select * from public.gtl_virtual_units_picks order by user_id,game_id,market')).rows;
+  const before = await snapshot();
+  await db.exec(migration);
+  assert.deepEqual(await snapshot(),before);
+  const results = { source:'Local fixture',sourceUrl:'https://example.invalid/finals.csv',observedAt:new Date(now-60_000).toISOString(),actorId:ACCOUNTS.sean.id,
+    games:[{gameId:g0,status:'final',home:31,away:14},{gameId:g1,status:'postponed'}] };
+  const settle = () => db.transaction(async tx => { await tx.exec('set local role service_role'); return tx.query('select public.gtl_settle_virtual_units($1,$2,$3)',[season,week,results]); });
+  await settle();
+  const settled = await snapshot();
+  const outcome = status => settled.find(row=>row.status===status);
+  assert.equal(outcome('win').result.netUnits,0.0091);
+  assert.equal(outcome('win').result.returnedUnits,0.0191);
+  assert.equal(outcome('loss').result.netUnits,-0.01);
+  assert.equal(outcome('loss').result.returnedUnits,0);
+  for(const status of ['push','void']) { assert.equal(outcome(status).result.netUnits,0); assert.equal(outcome(status).result.returnedUnits,0.01); }
+  assert.deepEqual(settled.map(row=>row.selection),before.map(row=>row.selection),'settlement never rewrites saved terms');
+  await settle();
+  assert.deepEqual(await snapshot(),settled,'replayed verified finals do not add an audit/result');
+  await db.exec(rollback);
+  assert.deepEqual(await snapshot(),settled,'rollback preserves nonempty settled-result and history hashes');
+});
