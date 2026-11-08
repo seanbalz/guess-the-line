@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import fs from 'node:fs';
+import { randomUUID } from 'node:crypto';
 import { ALL } from '../migrations.mjs';
 import { layoutProblems } from '../helpers/phone-layout.mjs';
 import { pacificDate, pacificToUtc } from '../../shared/nfl-schedule.mjs';
@@ -45,12 +46,14 @@ async function teamGames(page) {
   const teams = Object.fromEntries(Object.entries(RECORDS.teams).map(([code, t]) => [code, { ...t, games: [] }]));
   teams.SEA.games = LOG('SEA', [[1, 'SF', true, 24, 17], [2, 'ARI', false, 13, 27], [3, 'NO', true, 20, 20], [4, 'LAR', false, 31, 10]]);
   teams.DEN.games = LOG('DEN', [[1, 'KC', true, 17, 23], [2, 'LV', false, 30, 14], [3, 'LAC', true, 21, 24], [4, 'NYJ', false, 27, 3]]);
+  Object.assign(teams.SEA, { overall: { w: 2, l: 1, t: 1 }, home: { w: 1, l: 0, t: 1 }, road: { w: 1, l: 1, t: 0 }, pointsFor: 88, pointsAgainst: 74 });
+  Object.assign(teams.DEN, { overall: { w: 2, l: 2, t: 0 }, home: { w: 0, l: 2, t: 0 }, road: { w: 2, l: 0, t: 0 }, pointsFor: 95, pointsAgainst: 64 });
   await page.route(`${SUPABASE}/functions/v1/gtl-api/lines/teams`, route => route.fulfill({ headers: { 'access-control-allow-origin': '*' }, json: { season: 2026, throughWeek: 4, updatedAt: '2026-10-01T00:00:00Z', teams } }));
 }
 const landing = page => page.locator('[data-landing="research"]');
 const hero = page => page.locator('[data-research="hero"]');
 const tile = (page, key) => page.locator(`[data-research="tiles"] [data-tile="${key}"]`).getByRole('button');
-const row = (page, id) => page.locator(`.gx-prow[data-game="${id}"]`);
+const row = (page, id) => page.locator(`button[data-game="${id}"]`);
 const game = page => page.locator('[data-research="game"]');
 const team = page => page.locator('[data-research="team"]');
 const heading = (scope, name) => scope.getByRole('heading', { name, level: 2, exact: true });
@@ -117,9 +120,9 @@ test('the landing: one next-move card for this week’s games, four tiles, and n
     await shared(page, '#research');
     await expect(hero(page)).toBeVisible({ timeout: 30000 });
     const n = world.state.games.length;
-    await expect(hero(page).getByRole('heading', { level: 2 })).toHaveText(new RegExp(`^(${n} games|Week 6 results)$`));
-    await expect(hero(page).locator('[data-research="hero-line"]')).toHaveText(new RegExp(`^(\\d+ of ${n} kicked off|All ${n} games kicked off)$`));
-    await expect(hero(page).locator('.gx-meter3-seg')).toHaveCount(n);
+    await expect(hero(page).getByRole('heading', { level: 2 })).toHaveText(/^(Know the matchup\.|Week 6 results)$/);
+    await expect(hero(page).locator('[data-research="hero-line"]')).toHaveText(new RegExp(`(\\d+ of ${n} kicked off|All ${n} games kicked off)$`));
+    await expect(hero(page).locator('.gx-r-hero-matchup .gx-team')).toHaveCount(2);
     await expect(landing(page).locator('.gx-btn--primary'), 'the screen’s one lime button').toHaveCount(1);
     await expect(page.locator('[data-research="tiles"] > li')).toHaveCount(4);
     for (const [key, name] of [['games', /^Games, /], ['trends', /^Trends, /], ['fantasy', 'Fantasy, player rankings'], ['teams', 'Teams, all 32, records and margins']]) await expect(tile(page, key)).toHaveAccessibleName(name);
@@ -132,9 +135,9 @@ test('the landing: one next-move card for this week’s games, four tiles, and n
       await expect(landing(page)).toBeVisible();
       await expect(page.locator(`#gx-r-tile-${key}`), 'Back returns focus to the tile by its id').toBeFocused();
     }
-    await expect(page.locator('#gx-r-hero-action')).toHaveText('Open games');
+    await expect(page.locator('#gx-r-hero-action')).toHaveText('Open game');
     await page.locator('#gx-r-hero-action').click();
-    await expect(page).toHaveURL(/#research\/games(\?season=&week=)?$/);
+    await expect(page).toHaveURL(/#research\/games\?.*layer=game&item=SEA-DEN/);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
@@ -144,7 +147,8 @@ test('the first card counts this week’s games from the real /personal read (th
   try {
     await openAt(page);
     await expect(hero(page)).toBeVisible({ timeout: 30000 });
-    await expect(hero(page).getByRole('heading', { level: 2 })).toHaveText(`${world.state.games.length} games`, { timeout: 10000 });
+    await expect(hero(page).getByRole('heading', { level: 2 })).toHaveText('Know the matchup.', { timeout: 10000 });
+    await expect(hero(page).locator('[data-research="hero-line"]')).toContainText(`of ${world.state.games.length} kicked off`);
     await expect(tile(page, 'games')).not.toHaveAccessibleName('Games, no week open');
   } finally { await world.db.close(); }
 });
@@ -175,22 +179,22 @@ test('loading in the final shape: the landing card’s skeleton and the board’
 
     await shared(page, '#research/games');
     await expect(row(page, 'SEA-DEN')).toBeVisible({ timeout: 30000 });
-    await expect(page.locator('button.gx-prow [data-cell="loading"]')).toHaveCount(0);
-    const real = await row(page, 'SEA-DEN').evaluate(el => el.getBoundingClientRect().height);
+    await expect(page.locator('[data-game-card] [data-cell="loading"]')).toHaveCount(0);
+    const real = await page.locator('[data-game-card="SEA-DEN"]').evaluate(el => el.getBoundingClientRect().height);
     let open; const wait = new Promise(resolve => { open = resolve; });
     await page.route(`${SUPABASE}/functions/v1/gtl-api/personal`, async route => { await wait; await route.fallback(); });
     await page.reload();
-    const skel = page.locator('[data-skeleton="rows"] .gx-skel-row').first();
+    const skel = page.locator('[data-skeleton="cards"] .gx-skel-card').first();
     await expect(skel).toBeVisible();
-    await expect(page.locator('[data-skeleton="rows"] .gx-skel-row')).toHaveCount(4);
+    await expect(page.locator('[data-skeleton="cards"] .gx-skel-card')).toHaveCount(4);
     const rowDrawn = await skel.evaluate(el => el.getBoundingClientRect().height);
     test.info().annotations.push({ type: 'heights', description: `board skeleton row ${rowDrawn}px, row ${real}px` });
     // The skeleton holds a one-line row's height (72 px at 390 px, lines.css). A row grows by one text line when its words
     // wrap: the test world blocks webfonts, and CI's Linux faces (DejaVu Sans) are wider than Windows' fallbacks, so the
     // same row is 72 px here and 96 px there. Step 2's rule for the Home card (above): never a skeleton taller than the
     // real thing, and no jump larger than one wrapped line (a 20 px line and its 4 px gap, with room to 28 px).
-    expect(rowDrawn, `the skeleton row (${rowDrawn}px) is never taller than a row (${real}px)`).toBeLessThanOrEqual(real + 2);
-    expect(real - rowDrawn, `the skeleton row is ${rowDrawn}px, a row ${real}px: within one wrapped line`).toBeLessThanOrEqual(28);
+    expect(rowDrawn, `the loading card (${rowDrawn}px) is never taller than a ready card (${real}px)`).toBeLessThanOrEqual(real + 2);
+    expect(real - rowDrawn, `the loading card is ${rowDrawn}px, ready card ${real}px: within one title line`).toBeLessThanOrEqual(44);
     open(); await page.unroute(`${SUPABASE}/functions/v1/gtl-api/personal`);
     await expect(row(page, 'SEA-DEN')).toBeVisible();
     expect(world.errors).toEqual([]);
@@ -202,13 +206,13 @@ test('one game is a layer: a row, its heading focused, a reload, Back and Forwar
   try {
     await openAt(page, '#research/games');
     await expect(row(page, 'SEA-DEN')).toBeVisible({ timeout: 30000 });
-    await expect(row(page, 'SEA-DEN').locator('.gx-prow-title'), 'the row’s name, which the layer’s heading repeats').toHaveText('Seahawks @ Broncos');
+    await expect(row(page, 'SEA-DEN'), 'the research action keeps the native matchup and reveal details in its name').toHaveAccessibleName(/Seahawks at Broncos/);
     await row(page, 'SEA-DEN').click();
     await expect(page).toHaveURL(/#research\/games\?(.*&)?layer=game&item=SEA-DEN$/);
     await expect(heading(game(page), 'Seahawks @ Broncos'), 'a tap focuses the layer’s heading').toBeFocused();
     await expect(game(page).getByRole('button', { name: 'Back to Games', exact: true })).toBeVisible();
-    await expect(page.locator('.gx-prow[data-game]').first(), 'the board stays mounted, hidden, under the layer').toBeHidden();
-    await expect(page.locator('.gx-prow[data-game]')).toHaveCount(2);
+    await expect(page.locator('button[data-game]').first(), 'the board stays mounted, hidden, under the layer').toBeHidden();
+    await expect(page.locator('button[data-game]')).toHaveCount(2);
     await page.reload();
     await expect(heading(game(page), 'Seahawks @ Broncos')).toBeVisible({ timeout: 30000 });
     await expect(heading(game(page), 'Seahawks @ Broncos'), 'a load never moves focus').not.toBeFocused();
@@ -232,6 +236,7 @@ test('one game is a layer: a row, its heading focused, a reload, Back and Forwar
     await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
     await expect(heading(game(page), 'Texans @ Jaguars')).toBeFocused();
     await settle(page);
+    expect(await page.evaluate(() => document.querySelector('.gx-sport-mark').getBoundingClientRect().top >= document.querySelector('.gx-topbar').getBoundingClientRect().bottom), 'opening a lower graphical card starts its detail below the complete native sports control').toBe(true);
     await back(page).click();
     await expect(page.locator('#gx-l-row-HOU-JAX'), 'Back returns focus to the row by its id').toBeFocused();
     expect(await running(page), 'Back replays no row’s rise').not.toContain('gx-nest-unit-in');
@@ -261,8 +266,8 @@ test('the pager swaps the game in place and never widens the page: Next, Previou
   try {
     await openAt(page, '#research/games');
     await expect(row(page, 'SEA-DEN')).toBeVisible({ timeout: 30000 });
-    const first = await page.locator('.gx-prow[data-game]').first().getAttribute('data-game');
-    const second = await page.locator('.gx-prow[data-game]').nth(1).getAttribute('data-game');
+    const first = await page.locator('button[data-game]').first().getAttribute('data-game');
+    const second = await page.locator('button[data-game]').nth(1).getAttribute('data-game');
     // The layer names a game as its row does.
     const title = id => ({ 'SEA-DEN': 'Seahawks @ Broncos', 'HOU-JAX': 'Texans @ Jaguars' })[id];
     await row(page, first).click();
@@ -504,9 +509,84 @@ test('phone rules on every Research address: 320 and 390 px, Dark and Light, the
         await settle(page);
         const problems = await phoneProblems(page);
         if (problems.length) found[`${theme} ${width}${wide ? ' wide' : ''} ${address}`] = problems;
+        if (!wide) await page.screenshot({ path: test.info().outputPath(`prism-${address.replace(/[^a-zA-Z0-9]/g, '-')}-${theme}-${width}.png`), fullPage: true });
       }
     }
     expect(found).toEqual({});
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('approved Games cards retain day filters, live team statistics and keyboard comparison; Teams search survives Back', async ({ page, baseURL }, info) => {
+  const world = await world6(page, baseURL, state => { WEEK6(state); state.games[1].kickoff = new Date(Date.parse(state.games[0].kickoff) + DAY).toISOString(); });
+  try {
+    await teamGames(page);
+    const calls = gtlCalls(page);
+    await openAt(page, '#research/games');
+    const days = page.getByRole('group', { name: 'Game day', exact: true });
+    await expect(days.getByRole('button')).toHaveCount(3);
+    const day = days.getByRole('button').nth(1);
+    await day.click(); await expect(page.locator('[data-game-card]')).toHaveCount(1);
+    await expect(row(page, 'SEA-DEN')).toBeVisible();
+    expect(calls.filter(call => call.endsWith('/lines/assessments'))).toHaveLength(0);
+    for (const width of [320,390]) for (const theme of ['dark','light']) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, theme);
+      const card = page.locator('[data-game-card="SEA-DEN"]');
+      await expect(card.locator('.gx-game-bar').nth(0)).toContainText('22.0');
+      await expect(card.locator('.gx-game-bar').nth(1)).toContainText('23.8');
+      await expect(card.locator('.gx-team-form [role=listitem]')).toHaveCount(8);
+      await card.getByRole('button', { name: 'Compare stats', exact: true }).click();
+      await expect(card.locator('[data-chart=margin]')).toBeVisible();
+      await expect(card.getByRole('region', { name: 'Observed play statistics', exact: true })).toContainText('Both game markets must be open');
+      const slider = card.getByRole('slider'); await slider.focus(); await page.keyboard.press('Home');
+      await expect(slider).toHaveValue('0');
+      await card.getByRole('group', { name: 'Team statistics', exact: true }).locator('[data-team-choice="DEN"]').click();
+      await expect(card.locator('.gx-team-view')).toHaveAttribute('data-team','DEN');
+      expect(await phoneProblems(page)).toEqual([]);
+      await page.screenshot({ path: info.outputPath(`prism-games-compare-${width}-${theme}.png`), fullPage: true });
+      await card.getByRole('button', { name: 'Close stats', exact: true }).click();
+    }
+    expect(calls.some(call => call.endsWith('/lines/assessments'))).toBe(true);
+    await days.getByRole('button').first().click(); await expect(page.locator('[data-game-card]')).toHaveCount(2);
+    // Synthetic public observations through the real snapshot validator/projector: the two-market reveal gate,
+    // exact zero, missing sample, source and definitions stay independent from the graphical presentation.
+    const stamp = new Date(Date.now() - 5000).toISOString();
+    const observed = { gameId: 'SEA-DEN', teams: ['SEA','DEN'].map(code => ({ team: code, asOf: stamp, sourceHash: 'a'.repeat(64), sampleGames: 4, from: '2026-09-01', to: '2026-10-01', metrics: [
+      { id: 'passing-success', title: 'Pass play success', value: 0.5, sample: 20, excluded: 0, unit: 'share', definition: 'Synthetic observed dropbacks under the success rule.' },
+      { id: 'rushing-success', title: 'Run play success', value: null, sample: 0, excluded: 2, unit: 'share', definition: 'No qualifying synthetic carries observed.' },
+      { id: 'passing-yards-attempt', title: 'Passing yards per attempt', value: 0, sample: 4, excluded: 0, unit: 'yards per attempt', definition: 'Synthetic observed pass attempts, including incompletions.' },
+    ] })) };
+    await world.db.query('insert into public.gtl_research_snapshots(id,season,week,payload) values($1,$2,$3,$4)', [randomUUID(),2026,6,{ version:1,season:2026,week:6,generatedAt:stamp,candidates:[],quotes:[],sources:[],playStatistics:[observed] }]);
+    await storeBookLines(world, { spread: Object.fromEntries(world.state.games.map(game => [game.id,-3])), total: Object.fromEntries(world.state.games.map(game => [game.id,44])) });
+    await sendBallot(world,'luke','guess_spread',Object.fromEntries(world.state.games.map(game => [game.id,3])));
+    await sendBallot(world,'luke','guess_total',Object.fromEntries(world.state.games.map(game => [game.id,44])));
+    await page.reload();
+    const permitted = page.locator('[data-game-card="SEA-DEN"]');
+    await permitted.getByRole('button', { name:'Compare stats',exact:true }).click();
+    const playStats = permitted.getByRole('region',{name:'Observed play statistics',exact:true});
+    await expect(playStats).toContainText('50.0%'); await expect(playStats).toContainText('0.00');
+    await expect(playStats.locator('.gx-r-observed-row').nth(1)).toContainText('—');
+    await expect(playStats.getByRole('link',{name:'Data: nflverse · CC BY 4.0',exact:true})).toHaveAttribute('href','https://github.com/nflverse/nflverse-data/releases/tag/pbp');
+    await playStats.getByRole('button',{name:'About Passing yards per attempt',exact:true}).click();
+    await expect(page.getByRole('dialog',{name:'About Passing yards per attempt',exact:true})).toContainText('including incompletions'); await page.keyboard.press('Escape');
+    for (const theme of ['dark','light']) { await page.setViewportSize({width:390,height:844});await page.evaluate(theme=>{document.documentElement.dataset.theme=theme;},theme);expect(await phoneProblems(page)).toEqual([]);await page.screenshot({path:info.outputPath(`prism-games-observed-${theme}.png`),fullPage:true}); }
+    await row(page,'SEA-DEN').click();
+    await game(page).getByRole('group',{name:'Game research',exact:true}).getByRole('button',{name:'Team performance',exact:true}).click();
+    await expect(game(page).getByRole('region',{name:'Observed play statistics',exact:true})).toContainText('50.0%');
+    await expect(game(page).locator('.gx-r-team-stats > div')).toHaveCount(3);
+    for (const width of [320,390]) for (const theme of ['dark','light']) {
+      await page.setViewportSize({width,height:844});await page.evaluate(theme=>{document.documentElement.dataset.theme=theme;},theme);
+      expect(await phoneProblems(page)).toEqual([]);await page.evaluate(()=>scrollTo(0,0));
+      await page.screenshot({path:info.outputPath(`prism-game-performance-${width}-${theme}.png`),fullPage:true});
+    }
+    await back(page).click(); await expect(row(page,'SEA-DEN')).toBeFocused();
+    await shared(page, '#research/teams');
+    await page.getByRole('searchbox', { name: 'Find a team', exact: true }).fill('Seattle');
+    await expect(page.locator('[data-research=teams] .gx-prow')).toHaveCount(1);
+    await page.locator('#gx-r-team-SEA').click(); await expect(team(page)).toBeVisible(); await back(page).click();
+    await expect(page.getByRole('searchbox', { name: 'Find a team', exact: true })).toHaveValue('Seattle');
+    await expect(page.locator('#gx-r-team-SEA')).toBeFocused();
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

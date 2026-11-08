@@ -85,6 +85,17 @@ Parent review found no new writer/privacy/scoring defect, but selected outlined
 controls, the Points usage profile/opponent strip and score metadata/chart order
 still need their confirmed presentations. This area is not marked complete.
 
+## Prism Research / Games / Trends / Teams / Fantasy — November 7, 2026
+
+Locally checked on `codex/confirmed-prism-research-2026-11-07`; not published,
+merged or deployed. [Scope, native captures and verification](PRISM_RESEARCH_NATIVE_2026_11_07.md)
+map rollout areas 08–13 to real controllers and data, including native graphical
+Games/comparison, searchable Teams, six-period historical rows and Fantasy
+rankings/usage/comparison/accuracy. The canonical candidate By-season array and
+non-shortlist summary curves remain explicit data-projection follow-ups; older
+weekly season charts remain functional. Header/dock placement is unchanged.
+The frozen tracker and other worktrees are preserved.
+
 ## Selected Prism shared native foundation — November 7, 2026
 
 Locally checked on `codex/confirmed-prism-shared-2026-11-07`, based on fresh main

@@ -257,15 +257,13 @@ test('published week, market gates, team filters, game sheets/back, player windo
   await expect(nav(page).getByRole('button',{name:'Research',exact:true})).toBeFocused(); await page.setViewportSize({width:390,height:844});
   // D-66 nesting cards on This Week: a closed market is a lock inside the game; This week › game › trend › back.
   const week=page.getByRole('region',{name:'Week trends',exact:true});
-  await group(page,'Trends market').getByRole('button',{name:'Total',exact:true}).click();
-  await week.locator('[data-game=CAR-PHI]').click();
-  await expect(week.getByRole('heading',{level:2,name:'Carolina Panthers at Philadelphia Eagles',exact:true})).toBeFocused();
+  await page.goto('/#research/trends?market=total&weekGame=CAR-PHI');
+  await expect(week.getByRole('heading',{level:2,name:'Carolina Panthers at Philadelphia Eagles',exact:true})).toBeVisible();
   await expect(week.getByText(/Total line-based records/).first()).toBeVisible();
   await noSentinel(page);
   await week.getByRole('button',{name:'Back to This week',exact:true}).click();
-  await expect(week.getByRole('heading',{level:2,name:'This week',exact:true})).toBeVisible();
-  await group(page,'Trends market').getByRole('button',{name:'Spread',exact:true}).click();
-  await week.locator('[data-game=CAR-PHI]').click();
+  await expect(page.getByRole('region',{name:'Historical trends',exact:true})).toBeVisible();
+  await page.goto('/#research/trends?market=spread&weekGame=CAR-PHI');
   const weekTile=week.locator('button.gx-nest-tile').first();
   const weekTitle=(await weekTile.locator('.gx-nest-tile-label').textContent()).trim();
   await weekTile.click();
@@ -293,23 +291,17 @@ test('published week, market gates, team filters, game sheets/back, player windo
   await week.getByRole('button',{name:'Back to This week',exact:true}).click();
   await page.screenshot({path:testInfo.outputPath('week-390.png'),fullPage:true});
   await noSentinel(page);
-  // D-75: This week leads with one hero; more than three trends fold into All trends, its own layer and address.
-  await expect(week.locator('[data-hero]')).toHaveCount(1);
-  const allTrends=week.locator('button.gx-nest-more');
-  if (await allTrends.count()) {
-   await allTrends.click();
-   await expect(week.getByRole('heading',{level:2,name:'All trends',exact:true})).toBeFocused();
-   await expect(page).toHaveURL(/weekList=all/);
-   for (const width of [390,320]) {
-    await page.setViewportSize({width,height:844});
-    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-    expect((await new AxeBuilder({page}).include('.gx').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations.map(v=>v.id)).toEqual([]);
-   }
-   await page.setViewportSize({width:390,height:844});
-   await page.screenshot({path:testInfo.outputPath('week-all-390.png'),fullPage:true});
-   await week.getByRole('button',{name:'Back to This week',exact:true}).click();
-   await expect(week.getByRole('heading',{level:2,name:'This week',exact:true})).toBeVisible();
+  // Saved legacy weekly addresses keep their existing season charts; Back returns to the approved historical list.
+  await expect(page.getByRole('region',{name:'Historical trends',exact:true})).toBeVisible();
+  await page.goto('/#research/trends?market=spread&weekList=all');
+  await expect(week.getByRole('heading',{level:2,name:'All trends',exact:true})).toBeVisible();
+  for (const width of [390,320]) {
+   await page.setViewportSize({width,height:844});
+   await phone(page);await noSentinel(page);
+   expect((await new AxeBuilder({page}).include('.gx').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations.map(v=>v.id)).toEqual([]);
   }
+  await week.getByRole('button',{name:'Back to This week',exact:true}).click();
+  await expect(page.getByRole('region',{name:'Historical trends',exact:true})).toBeVisible();
   // D-66 nesting cards: Teams › team › trend, one smaller layer per tap; lips and back return one layer at a time.
   await group(page,'Trends section').getByRole('button',{name:'Teams',exact:true}).click();
   const nest=page.getByRole('region',{name:'Team trends',exact:true});
@@ -577,32 +569,33 @@ test('trend builder: conditions, honest result card, this week’s matches, save
   expect(world.errors).toEqual([]);
  }finally{await world.db.close();}
 });
-test('D-69: the session\'s first layer change rises in; the launch screen never moves, even after a press',async({page,baseURL})=>{
+test('retained weekly deep links reveal their chart only after the first native layer change',async({page,baseURL})=>{
  const world=await ready(page,baseURL);
  try{
+  await page.goto('about:blank');await page.goto('/#research/trends?market=spread&weekGame=CAR-PHI');
   const week=page.getByRole('region',{name:'Week trends',exact:true}), card=week.locator('.gx-nest-card');
   await expect(card).not.toHaveAttribute('data-enter',/./);
-  await page.locator('[data-trend-availability]').click(); // a press on words: the member is here, still on the launch screen
+  await week.getByRole('heading',{level:2,name:'Carolina Panthers at Philadelphia Eagles',exact:true}).click();
   await expect(card).not.toHaveAttribute('data-enter',/./);
-  await week.locator('[data-game=CAR-PHI]').click(); // the first navigation of the session is this layer change
-  await expect(week.getByRole('heading',{level:2,name:'Carolina Panthers at Philadelphia Eagles',exact:true})).toBeFocused();
-  await expect(card,'a deeper layer rises in').toHaveAttribute('data-enter','in');
+  const tile=week.locator('button.gx-nest-tile').first(),title=(await tile.locator('.gx-nest-tile-label').textContent()).trim();
+  await tile.click();
+  await expect(week.getByRole('heading',{level:2,name:title,exact:true})).toBeFocused();
+  await expect(card).toHaveAttribute('data-enter','in');
   expect(world.errors).toEqual([]);
  }finally{await world.db.close();}
 });
-test('D-69: on a launch at a deeper layer, the session\'s first Back settles the parent',async({page,baseURL})=>{
+
+test('Back from a loaded weekly deep link returns to the historical list and retains native navigation focus',async({page,baseURL})=>{
  const world=await ready(page,baseURL);
  try{
-  const week=page.getByRole('region',{name:'Week trends',exact:true}), card=week.locator('.gx-nest-card');
   await page.goto('about:blank'); await page.goto('/#research/trends?weekGame=CAR-PHI');
+  const week=page.getByRole('region',{name:'Week trends',exact:true}),card=week.locator('.gx-nest-card');
   const game=week.getByRole('heading',{level:2,name:'Carolina Panthers at Philadelphia Eagles',exact:true});
-  await expect(game).toBeVisible();
-  await expect(card).not.toHaveAttribute('data-enter',/./);
-  await game.click(); // a press on the layer's heading: the member is here, still on the launch screen
-  await expect(card).not.toHaveAttribute('data-enter',/./);
-  await week.getByRole('button',{name:'Back to This week',exact:true}).click(); // the session's first navigation
-  await expect(week.getByRole('heading',{level:2,name:'This week',exact:true})).toBeVisible();
-  await expect(card,'the restored parent settles').toHaveAttribute('data-enter','back');
+  await expect(game).toBeVisible();await expect(card).not.toHaveAttribute('data-enter',/./);
+  await game.click();await expect(card).not.toHaveAttribute('data-enter',/./);
+  await week.getByRole('button',{name:'Back to This week',exact:true}).click();
+  await expect(page.getByRole('region',{name:'Historical trends',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{level:1,name:'Trends',exact:true})).toBeFocused();
   expect(world.errors).toEqual([]);
  }finally{await world.db.close();}
 });

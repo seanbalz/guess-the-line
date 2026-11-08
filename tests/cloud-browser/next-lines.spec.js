@@ -57,7 +57,8 @@ const tabBar = page => page.getByRole('navigation', { name: 'Main' });
 const tab = (page, name) => tabBar(page).getByRole('button', { name: new RegExp(`^${name}(, .+)?$`) });
 const title = (page, name) => page.getByRole('heading', { name, level: 1, exact: true });
 const sheet = (page, name) => page.getByRole('dialog', { name, exact: true });
-const card = (page, id) => page.locator(`.gx-prow[data-game="${id}"]`);
+const card = (page, id) => page.locator(`button[data-game="${id}"]`);
+const gameCard = (page, id) => page.locator(`[data-game-card="${id}"]`);
 /** D-69 step 3: one game is a layer in Research › Games (it was the game sheet). */
 const gameLayer = (page, name) => page.locator('[data-research="game"]').filter({ has: page.getByRole('heading', { name, level: 2, exact: true }) });
 /** The game layer's name for a game id, as its board row says it ("Seahawks @ Broncos"). */
@@ -130,12 +131,12 @@ const clearOfBars = locator => locator.evaluate(el => { scrollTo(0, scrollY + el
  */
 const clearOfEdges = page => page.evaluate(() => {
   const edges = [document.querySelector('.gx-topbar')?.getBoundingClientRect().bottom, document.querySelector('.gx-tabbar')?.getBoundingClientRect().top].filter(Number.isFinite);
-  const controls = [...document.querySelectorAll('.gx-main :is(button, a[href], summary, input, select, textarea, [role="button"])')]
-    .map(el => el.getBoundingClientRect()).filter(r => r.height > 0);
+  const controls = [...document.querySelectorAll('.gx-main :is(button, a[href], summary, input, select, textarea, [role="button"]), .gx-sport-controls button')]
+    .map(el => ({ rect: el.getBoundingClientRect(), sport: el.matches('.gx-sport-controls button') })).filter(({rect}) => rect.height > 0);
   const room = document.documentElement.scrollHeight - innerHeight;
   const clear = shift => scrollY + shift >= 0 && scrollY + shift <= room
-    && controls.every(r => edges.every(edge => r.bottom - shift <= edge || r.top - shift >= edge));
-  for (let d = 0; d <= 120; d += 4) for (const shift of d ? [d, -d] : [0]) if (clear(shift)) { scrollBy(0, shift); return shift; }
+    && controls.every(({rect:r,sport}) => edges.every((edge,index) => r.bottom - shift <= (sport && index === 0 ? 0 : edge) || r.top - shift >= edge));
+  for (let d = 0; d <= 120; d++) for (const shift of d ? [d, -d] : [0]) if (clear(shift)) { scrollBy(0, shift); return shift; }
   return null;
 });
 
@@ -713,7 +714,7 @@ test('the board: kickoff groups, YOU tags, a lock icon on each closed market (ne
     const personal = (await world.api('luke', 'personal')).body;
     const expected = kickoffGroups(gamesOf(personal), { season: 2026, week: 6 }).map(g => g.label);
     await expect(page.locator('.gx-l-group > .gx-l-ghead h2')).toHaveText(expected);
-    await expect(page.locator('.gx-prow[data-game]')).toHaveCount(GAMES.length);
+    await expect(page.locator('button[data-game]')).toHaveCount(GAMES.length);
 
     // D-69 step 3: a picture row's face is the marks, the matchup, the records and the Spread over its word; everything else
     // the card drew (your YOU tags, the Total quote, a trend line or the weather word) is in the row's spoken name, and your
@@ -725,17 +726,17 @@ test('the board: kickoff groups, YOU tags, a lock icon on each closed market (ne
     await expect(card(page, 'HOU-JAX')).toHaveAttribute('aria-label', /Your spread pick JAX −9\./);
     // Every Spread is locked for Luke: an icon over "Locked", never a dash or a number; his sent Totals carry the current quotes.
     for (const id of GAMES) {
-      const cell = card(page, id).locator('.gx-prow-value [data-cell]');
+      const cell = gameCard(page, id).locator('.gx-game-quote [data-cell]');
       await expect(cell).toHaveAttribute('data-cell', 'locked');
       await expect(cell.locator('svg')).toHaveCount(1);
       expect((await cell.innerText()).trim()).toBe('');
-      await expect(card(page, id).locator('.gx-prow-word')).toHaveText('Locked');
+      await expect(gameCard(page, id).locator('.gx-game-quote > span').last()).toHaveText('Locked');
       await expect(card(page, id)).toHaveAttribute('aria-label', new RegExp(`Spread line hidden\\. Total ${String(LINES.total[id]).replace('.', '\\.')}\\. Current line\\.`));
     }
-    for (const text of await page.locator('.gx-prow[data-game] [data-cell="locked"]').allInnerTexts()) expect(text).not.toContain('—');
+    for (const text of await page.locator('[data-game-card] [data-cell="locked"]').allInnerTexts()) expect(text).not.toContain('—');
     await expect(sea).toHaveAttribute('aria-label', /Spread line hidden\. Total 43\.5\. Current line\..*Your spread pick SEA −4\. Your total pick 41\./);
     // Board trends: at most three trend lines on the board; one trend line or weather word per game at most, said by its row.
-    const spoken = await page.locator('.gx-prow[data-game]').evaluateAll(rows => rows.map(row => row.getAttribute('aria-label')));
+    const spoken = await page.locator('button[data-game]').evaluateAll(rows => rows.map(row => row.getAttribute('aria-label')));
     expect(spoken).toHaveLength(GAMES.length);
     expect(spoken.filter(name => /Trend: /.test(name)).length).toBeLessThanOrEqual(3);
     for (const name of spoken) expect((name.match(/Trend: |Kickoff weather: /g) ?? []).length).toBeLessThanOrEqual(1);
@@ -1011,7 +1012,7 @@ test('a 404 from either route: the weather row says "No current forecast" (D-45)
     await expect(game).not.toContainText('Not found');
     await page.goBack();
     await expect(card(page, 'SEA-DEN')).toBeVisible();
-    expect(await page.locator('.gx-prow[data-game]').evaluateAll(rows => rows.filter(row => /Kickoff weather/.test(row.getAttribute('aria-label'))).length), 'no forecast, no weather word on the board').toBe(0);
+    expect(await page.locator('button[data-game]').evaluateAll(rows => rows.filter(row => /Kickoff weather/.test(row.getAttribute('aria-label'))).length), 'no forecast, no weather word on the board').toBe(0);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
@@ -1408,14 +1409,14 @@ test('recorded finals have their own section and result provenance while incompl
     });
     await openLines(page);
     const finals = page.getByRole('region', { name: 'Final · 1 game' });
-    await expect(finals.locator('.gx-prow[data-game]')).toHaveCount(1);
-    await expect(finals.locator('.gx-prow[data-game]')).toHaveAttribute('data-game', 'SEA-DEN');
+    await expect(finals.locator('button[data-game]')).toHaveCount(1);
+    await expect(finals.locator('button[data-game]')).toHaveAttribute('data-game', 'SEA-DEN');
     // D-69 step 3: the row draws the score as its meta line over the word "Final"; its spoken name keeps the provenance.
-    await expect(card(page, 'SEA-DEN').locator('.gx-prow-meta')).toContainText('SEA 0–DEN 7');
-    await expect(card(page, 'SEA-DEN').locator('.gx-prow-word')).toHaveText('Final');
+    await expect(gameCard(page, 'SEA-DEN')).toContainText('SEA 0–DEN 7');
+    await expect(gameCard(page, 'SEA-DEN').locator('.gx-game-quote > span').last()).toHaveText('Final');
     await expect(card(page, 'SEA-DEN')).toHaveAttribute('aria-label', /Final · SEA 0–DEN 7.*Commissioner-reported result: Fixture commissioner.*Observed/);
-    await expect(page.getByRole('region', { name: /Kickoff passed.*3 games/ }).locator('.gx-prow[data-game]')).toHaveCount(3);
-    for (const id of GAMES) await expect(card(page, id).locator('[data-cell="locked"]')).toHaveCount(1);
+    await expect(page.getByRole('region', { name: /Kickoff passed.*3 games/ }).locator('button[data-game]')).toHaveCount(3);
+    for (const id of GAMES) await expect(gameCard(page, id).locator('[data-cell="locked"]')).toHaveCount(1);
     for (const theme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
       await page.evaluate(theme => { localStorage.setItem('gtl.theme', theme); window.dispatchEvent(new StorageEvent('storage', { key: 'gtl.theme', newValue: theme })); }, theme);
       await expect(page.locator('html')).toHaveAttribute('data-theme-preference', theme);
@@ -1423,7 +1424,7 @@ test('recorded finals have their own section and result provenance while incompl
       await page.setViewportSize({ width: 320, height: 844 }); await phoneChecks(page); expect(await axe(page)).toEqual([]);
       await finals.scrollIntoViewIfNeeded(); await page.screenshot({ path: info.outputPath(`recorded-final-${theme}-${forcedColors}.png`) });
     }
-    const displayedOrder = await page.locator('.gx-prow[data-game]').evaluateAll(cards => cards.map(card => card.dataset.game));
+    const displayedOrder = await page.locator('button[data-game]').evaluateAll(cards => cards.map(card => card.dataset.game));
     expect(displayedOrder).toEqual(['HOU-JAX', 'NO-NYG', 'WAS-SF', 'SEA-DEN']);
     const resultReads = apiCalls(page);
     await card(page, 'SEA-DEN').click(); await expect(gameLayer(page, 'Seahawks @ Broncos')).toBeVisible();
@@ -1470,7 +1471,7 @@ test('recorded finals have their own section and result provenance while incompl
     await page.goBack(); await expect(card(page, 'SEA-DEN')).toBeFocused();
     fail = true; await page.getByRole('button', { name: 'Refresh market lines' }).click();
     await expect(page.getByRole('button', { name: 'Retry market lines' })).toBeVisible();
-    await expect(finals).toHaveCount(0); await expect(page.locator('.gx-prow[data-game]')).toHaveCount(4);
+    await expect(finals).toHaveCount(0); await expect(page.locator('button[data-game]')).toHaveCount(4);
     await expect(page.locator('.gx')).not.toContainText('Fixture commissioner');
     await expect(page.locator('.gx')).not.toContainText('Final · SEA 0–DEN 7');
     expect(world.errors).toEqual([]);
@@ -1488,10 +1489,10 @@ test('a direct game open checks results on demand, ignores a late reply after pa
     // D-66: the board names its quotes' update once; no card repeats a source or update line.
     await expect(page.locator('[data-board-quotes]')).toContainText(/Quotes ((\w{3} )?\d{1,2}:\d{2} [AP]M PT|from \d+ updates)/);
     await expect(card(page, 'SEA-DEN')).not.toContainText('Updated');
-    await page.goto('/#trends'); await expect(title(page, 'Trends')).toBeVisible();
-    await expect(page.locator('[data-trend-availability]')).toBeVisible();
+    await page.goto('/#research/trends?weekGame=SEA-DEN'); await expect(title(page, 'Trends')).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Week trends', exact: true })).toContainText('Seattle Seahawks at Denver Broncos');
     const directCalls = apiCalls(page);
-    await page.locator('[data-game="SEA-DEN"]').click(); // D-66: Trends' game; its Game details opens Research › Games › the game
+    // A retained native weekly deep link still opens the real Game details controller.
     // D-69 step 3: Game details opens the game layer alone: no board was shown under it, so none is kept, and nothing
     // reads the week's quotes (no hidden /lines/read, nor its focus, visibility, online or 60 s reloads). The game's
     // recorded result waits for Check: it reads nothing for that until then (counted by the route from the tap).
@@ -1596,7 +1597,7 @@ test('Research › Games puts its first game above the tab bar at 390 x 844, wit
     await expect(page.locator('[data-board-quotes]')).toHaveText(/^Week 6 · Due .+ · Quotes (\w{3} )?\d{1,2}:\d{2} [AP]M PT$/);
     // The research row follows the last game card.
     expect(await page.getByRole('button', { name: 'Open weekly research', exact: true }).evaluate(row => {
-      const cards = [...document.querySelectorAll('.gx-prow[data-game]')];
+      const cards = [...document.querySelectorAll('button[data-game]')];
       return cards.length > 0 && cards.every(card => card.compareDocumentPosition(row) & Node.DOCUMENT_POSITION_FOLLOWING);
     })).toBe(true);
     const parts = () => page.locator('[data-board-quotes]').evaluate(line => [...line.querySelectorAll('.gx-meta-part')].map(part => {
@@ -1610,7 +1611,7 @@ test('Research › Games puts its first game above the tab bar at 390 x 844, wit
       await page.setViewportSize({ width: 390, height: 844 });
       await page.evaluate(() => window.scrollTo(0, 0));
       await settle(page);
-      const first = await page.evaluate(() => ({ card: document.querySelector('.gx-prow[data-game]').getBoundingClientRect().bottom,
+      const first = await page.evaluate(() => ({ card: document.querySelector('[data-game-card] .gx-game-matchup').getBoundingClientRect().bottom,
         bar: document.querySelector('nav[aria-label="Main"]').getBoundingClientRect().top }));
       expect(first.card, `${font}: the first game card ends above the tab bar (${JSON.stringify(first)})`).toBeLessThanOrEqual(first.bar);
       for (const width of [320, 390]) for (const theme of ['light', 'dark']) {
@@ -1663,7 +1664,7 @@ test('a delayed board reply cannot restore another account’s unlocked markets'
     await page.getByRole('button', { name: 'Your menu', exact: true }).click();
     await page.getByRole('button', { name: 'Sign out', exact: true }).click();
     await signIn(page, 'troy', { navigate: false }); await page.goto('/#lines');
-    await expect(card(page, 'SEA-DEN').locator('.gx-prow-value [data-cell]')).toHaveAttribute('data-cell', 'line');
+    await expect(gameCard(page, 'SEA-DEN').locator('.gx-game-quote [data-cell]')).toHaveAttribute('data-cell', 'line');
     await page.setViewportSize({ width: 320, height: 844 }); await phoneChecks(page);
     await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/lines/read'), async route => {
       const req = route.request(), response = await world.handler(new Request(req.url(), { method: req.method(), headers: req.headers(), body: req.postData() }));
@@ -1677,7 +1678,7 @@ test('a delayed board reply cannot restore another account’s unlocked markets'
     await page.getByRole('button', { name: 'Sign out', exact: true }).click();
     await signIn(page, 'luke', { navigate: false }); await page.goto('/#lines');
     await expect(card(page, 'SEA-DEN')).toHaveAttribute('aria-label', /Total 43\.5\./); release();
-    await expect(card(page, 'SEA-DEN').locator('.gx-prow-value [data-cell]')).toHaveAttribute('data-cell', 'locked');
+    await expect(gameCard(page, 'SEA-DEN').locator('.gx-game-quote [data-cell]')).toHaveAttribute('data-cell', 'locked');
     await noLeak(page, world, 'board after account switch'); expect(world.errors).toEqual([]);
   } finally { release(); await world.db.close(); }
 });
@@ -2537,16 +2538,16 @@ test('loaded spread quotes keep the full team-name column on phones', async ({ p
   try {
     await sendBallot(world, 'luke', 'guess_spread', { 'SEA-DEN': 4, 'HOU-JAX': -9, 'NO-NYG': 6, 'WAS-SF': 7 });
     await openLines(page);
-    await expect(page.locator('.gx-prow[data-game] [data-cell="line"]').first()).toBeVisible();
-    await expect(page.locator('.gx-prow[data-game] [data-cell="line"]')).toHaveCount(GAMES.length);
+    await expect(page.locator('[data-game-card] [data-cell="line"]').first()).toBeVisible();
+    await expect(page.locator('[data-game-card] [data-cell="line"]')).toHaveCount(GAMES.length);
     // D-69 step 3: in each row the name block and the quote never overlap, and the quote is never clipped.
     for (const width of [320, 390]) for (const theme of ['light', 'dark']) {
       await page.setViewportSize({ width, height: 844 });
       await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, theme);
       await ciFonts(page);
-      const rows = await page.locator('.gx-prow[data-game]').evaluateAll(rows => rows.map(row => {
-        const title = row.querySelector('.gx-prow-title'), t = title.getBoundingClientRect();
-        const value = row.querySelector('.gx-prow-value'), v = value.getBoundingClientRect();
+      const rows = await page.locator('[data-game-card]').evaluateAll(rows => rows.map(row => {
+        const title = row.querySelector('.gx-game-matchup'), t = title.getBoundingClientRect();
+        const value = row.querySelector('.gx-game-quote'), v = value.getBoundingClientRect();
         const overlap = Math.min(t.right, v.right) - Math.max(t.left, v.left) > 1 && Math.min(t.bottom, v.bottom) - Math.max(t.top, v.top) > 1;
         return { id: row.dataset.game, overlap, clipped: value.scrollWidth > value.clientWidth + 1 || v.right > row.getBoundingClientRect().right + 1, nameWidth: Math.round(t.width), title: title.textContent };
       }));

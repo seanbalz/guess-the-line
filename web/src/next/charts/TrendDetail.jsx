@@ -17,7 +17,7 @@ export const lineSelectionKey = (title, line) => JSON.stringify([title, line.sta
  * Function children receive `{ key, index, onSelect, chartId }` to link matching evidence.
  * `seasons` (optional): `{ rows, caption, headline, tiles }`. `pill` is the one-word state; `info` the ⓘ element.
  */
-export function TrendDetail({ title, pill, info, line, seasons, children, id }) {
+export function TrendDetail({ title, pill, info, line, seasons, children, id, headingLevel = 4 }) {
   const [view, setView] = useState('line');
   const headingId = useId(), seasonChartId = useId(), lineChartId = useId();
   const [selectedSeason, setSelectedSeason] = useState(null);
@@ -30,10 +30,11 @@ export function TrendDetail({ title, pill, info, line, seasons, children, id }) 
   const seasonIndex = matchingSeason < 0 ? rows.length - 1 : matchingSeason;
   const bySeason = view === 'seasons' && seasons;
   const shown = bySeason ? seasons : line;
+  const Heading = headingLevel === 3 ? 'h3' : 'h4';
   return (
-    <section className="gx-tc-card" aria-labelledby={headingId} id={id} data-trend-detail="">
+    <section className="gx-card gx-tc-card" aria-labelledby={headingId} id={id} data-trend-detail="">
       <div className="gx-tc-head">
-        <h4 className="gx-t-strong gx-grow" id={headingId}>{title}</h4>
+        <Heading className="gx-t-strong gx-grow" id={headingId}>{title}</Heading>
         {pill ? <span className="gx-tc-pill">{pill}</span> : null}
         {info}
       </div>

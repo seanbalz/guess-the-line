@@ -1,10 +1,10 @@
 // Detail-only content is loaded when a game sheet opens; the frame and pager stay in GameSheet.
-import { useId } from 'react';
+import { useId, useState } from 'react';
 import { LINES_COPY, refereeRow, sheetWeatherRow } from '../../../../shared/lines-view.mjs';
 import { WIND_CARD, refereeRows, shortCard } from '../../../../shared/trends-view.mjs';
 import { useOfficials, useWind } from './trendsHooks.js';
 import { useShell } from '../shell/context.js';
-import { Card, Icon, InfoButton, List, Pill, Row, Skeleton } from '../ui/index.js';
+import { Card, Icon, InfoButton, List, Pill, Row, Segmented, Skeleton } from '../ui/index.js';
 import { Expander, TrendList, TrendAvailability, TrendRefresh, WeatherDetail } from './parts.jsx';
 import { INFO } from '../info.js';
 import { GameNote } from './GameNote.jsx';
@@ -14,6 +14,7 @@ import { MarketDetails } from './MarketDetails.jsx';
 import { TeamMatchup } from '../teams/TeamMatchup.jsx';
 import { recordsThroughText } from '../teams/teamModel.js';
 import { useTeamSeason } from '../teams/teamsData.js';
+import { MatchupTeamPerformance } from '../research/MatchupTeamPerformance.jsx';
 import { RecordedResult } from './RecordedResult.jsx';
 import { useGameLines } from './useGameLines.js';
 
@@ -57,6 +58,7 @@ export default function GameDetails({ lines, view, result, onTeam = null }) {
   const officials = useOfficials(shown?.season, shown?.week, true);
   const wind = useWind(shown?.season, shown?.week, true);
   const teams = useTeamSeason();
+  const [panel, setPanel] = useState('markets');
   const sameWeek = wind.wind?.season === shown?.season && wind.wind?.week === shown?.week;
   const weather = sheetWeatherRow({ game: view, trendsGame: view.trendsGame, entry: sameWeek ? wind.wind?.games?.[view.id] ?? null : null, now: wind.now, loading: wind.loading,
     season: shown?.season, week: shown?.week, windCard: trendsWeek?.cards?.[WIND_CARD] ?? null });
@@ -71,6 +73,10 @@ export default function GameDetails({ lines, view, result, onTeam = null }) {
         <TeamMatchup away={view.away.code} home={view.home.code} season={shown?.season ?? null} from={view.title} onTeam={onTeam}/>
         {recordsThroughText(teams.data) && teams.data.season === shown?.season ? <p className="gx-t-meta gx-c-2 gx-l-through">{recordsThroughText(teams.data)}</p> : null}
       </div>
+
+      <Segmented label="Game research" value={panel} options={[{ value: 'markets', label: 'Trends & markets' }, { value: 'teams', label: 'Team performance' }]} onChange={setPanel}/>
+      {panel === 'teams' ? <MatchupTeamPerformance lines={lines} gameId={view.id} sides={[view.away, view.home]} status={teams.status} season={teams.data?.season === shown?.season ? teams.data : null}/> : null}
+      <div className="gx-vstack gx-gap-16" hidden={panel !== 'markets'}>
 
       <RecordedResult key={`${app.accountId}:${shown?.season}:${shown?.week}`} lines={lines} game={markets.status === 'ready' ? { ...view, started: markets.data.game.started === true } : view} snapshot={result}/>
 
@@ -119,5 +125,6 @@ export default function GameDetails({ lines, view, result, onTeam = null }) {
       </Card>
 
       {app.accountId && shown && <GameNote key={`${app.accountId}:${shown.season}:${shown.week}:${view.id}`} accountId={app.accountId} season={shown.season} week={shown.week} gameId={view.id} requestSignIn={app.requestSignIn} onSaved={() => app.refresh({ only: ['personal'] })}/>}
+      </div>
   </>;
 }

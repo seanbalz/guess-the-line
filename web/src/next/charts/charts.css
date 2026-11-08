@@ -256,3 +256,7 @@
   .gx-tc-table-wrap { border: 1px solid CanvasText; }
   .gx-tc-season-pick[aria-pressed="true"] { forced-color-adjust: none; background: Highlight; color: HighlightText; border: 1px solid Highlight; }
 }
+/* Keep the complete chart-view target under narrow/wrapped labels and high-contrast borders. */
+.gx-tc-seg { max-width: 100%; flex-wrap: wrap; }
+.gx-tc-seg > button { flex: 0 0 auto; min-width: 44px; min-height: 44px; }
+.gx .gx-tc-card.gx-card { border: 1px solid var(--gx-glass-line); border-radius: 28px; background: var(--gx-card-face); box-shadow: var(--gx-e1); }

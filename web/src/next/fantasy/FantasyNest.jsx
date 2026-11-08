@@ -12,7 +12,7 @@ import { FANTASY_AVAILABLE, FANTASY_INITIAL, useFantasySnapshot } from '../../fa
 import { useFantasyGameContext } from '../../fantasyContext.js';
 import { FantasyReport } from './FantasyReport.jsx';
 import { reportModel, reportTile } from './fantasyReport.js';
-import { Button, InfoButton, LockLine, Nest, Pill, Segmented, Switch, Skeleton } from '../ui/index.js';
+import { Button, InfoButton, LockLine, Nest, Pill, Segmented, Switch, Skeleton, TeamMark } from '../ui/index.js';
 import { PlayerCompare, PlayerProfileSheet, PlayerToolButtons } from './FantasyTools.jsx';
 
 export const FANTASY_PAGE = 50;
@@ -41,9 +41,9 @@ function PlayerRow({ player, scope, position, context, onOpen }) {
   const matchup = player.weekly?.status === 'bye' ? 'Bye this week'
     : context?.pill ?? (player.weekly?.opponent ? `${player.weekly.opponent} · ${date(player.weekly.kickoff)}` : 'Matchup unavailable');
   return <li className="gx-fantasy-player-item">
-    <button type="button" className="gx-nest-tile gx-fantasy-row" data-player={player.id} onClick={onOpen}>
+    <button type="button" className="gx-card gx-nest-tile gx-fantasy-row" data-player={player.id} onClick={onOpen}>
       <span className="gx-fantasy-row-top">
-        <span className="gx-fantasy-player-rank" aria-label={`${position === 'ALL' ? 'Overall' : position} rank ${player.rank}`}>#{player.rank}</span>
+        <span className="gx-fantasy-rank-picture"><TeamMark code={player.team} size={32} decorative/><span className="gx-fantasy-player-rank" aria-label={`${position === 'ALL' ? 'Overall' : position} rank ${player.rank}`}>#{player.rank}</span></span>
         <span className="gx-fantasy-player-main"><strong>{player.name}</strong>
           <span className="gx-t-meta">{player.team || 'Team unknown'} · {player.position}{player.positionRank ? ` ${player.positionRank}` : ''} · Overall {player.overallRank ?? '—'}</span></span>
         <span className="gx-fantasy-player-points"><strong>{number(player.points)}</strong><span className="gx-t-meta">est. pts</span></span>
@@ -113,7 +113,7 @@ export function FantasyNest({ navigationState, onNavigationState, view = {}, onL
         `${player.sampleGames ?? '—'} recorded games in the estimate. Player availability is not injury-adjusted.`,
         ...trends.map(t => `${t.direction === 'up' ? 'Rising' : 'Falling'} · ${t.label}: ${t.detail}`),
         'Matchup and kickoff context are observed nflverse data, not predictions.']} links={sourceLinks(snapshot)}/>}>
-      <p className="gx-t-meta">{player.team || 'Team unknown'} · {player.position}{player.positionRank ? ` ${player.positionRank}` : ''} · Overall {player.overallRank ?? '—'}</p>
+      <div className="gx-fantasy-profile-mark"><TeamMark code={player.team} size={48} decorative/><p className="gx-t-meta">{player.team || 'Team unknown'} · {player.position}{player.positionRank ? ` ${player.positionRank}` : ''} · Overall {player.overallRank ?? '—'}</p></div>
       <p className="gx-nest-big"><span className="gx-n-xl">{number(player.points)}</span><span className="gx-t-meta">est. pts · {scoringLabel}</span></p>
       <div className="gx-nest-tags">
         <Pill>{player.weekly?.status === 'bye' ? 'Bye this week' : context?.pill ?? (player.weekly?.opponent ? `${player.weekly.opponent} · ${date(player.weekly.kickoff)}` : 'Matchup unavailable')}</Pill>
@@ -179,13 +179,13 @@ export function FantasyNest({ navigationState, onNavigationState, view = {}, onL
         <Field name="Scoring" value={filters.scoring} onChange={value => update('scoring', value)} options={SCORING_OPTIONS}/>
         <Field name="Position" value={filters.position} onChange={value => update('position', value)} options={POSITION_OPTIONS}/>
       </div>
+      <FindPlayer value={filters.search} onChange={value => update('search', value)}/>
       <details className="gx-tr-details" data-fantasy="more-filters"><summary className="gx-t-strong">More filters</summary>
         <div className="gx-fantasy-filters">
           <div className="gx-fantasy-more-grid">
             <Field name="Passing touchdowns" value={filters.passingTds} onChange={value => update('passingTds', Number(value))} options={[{ value: 4, label: '4 points' }, { value: 6, label: '6 points' }]}/>
             <Field name="Team" value={filters.team} onChange={value => update('team', value)} options={[{ value: 'ALL', label: 'All teams' }, ...(rankings?.teams || []).map(team => ({ value: team, label: team }))]}/>
           </div>
-          <FindPlayer value={filters.search} onChange={value => update('search', value)}/>
           <Switch label="Strong trends only" sub={`Usage or scoring changes entering Week ${selectedWeek}.`} checked={filters.trendsOnly} onChange={value => update('trendsOnly', value)}/>
           <Button variant="secondary" onClick={reset}>Reset filters</Button>
         </div>

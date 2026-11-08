@@ -67,6 +67,45 @@
 
 .gx .gx-l-pick { overflow-wrap: anywhere; }
 
-/* D-69 step 3: while the week loads, skeleton rows stand in at a picture row's height (72 px at a 390 px phone, measured
-   in Task 9: tests/cloud-browser/next-research-layers.spec.js). */
-.gx .gx-l-skel .gx-skel-row { min-height: 72px; }
+/* Approved populated Games: sourced records/form, shared zero-based scoring bars and inline comparison. */
+.gx .gx-game-cards { display: grid; gap: 24px; list-style: none; margin: 0; padding: 0; }
+.gx .gx-game-cards > li { min-width: 0; }
+.gx .gx-game-card { display: flex; flex-direction: column; gap: 16px; padding: 18px; }
+.gx .gx-game-time, .gx .gx-game-actions { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.gx .gx-game-time { color: var(--gx-text-2); }
+.gx .gx-game-matchup { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; }
+.gx .gx-game-team { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; text-align: center; }
+.gx .gx-game-team > strong { overflow-wrap: anywhere; }
+.gx .gx-game-at { position: absolute; left: -20px; top: 18px; color: var(--gx-text-3); }
+.gx .gx-game-scoring { display: grid; gap: 8px; }
+.gx .gx-game-bar { display: grid; grid-template-columns: max-content minmax(0,1fr) max-content; align-items: center; gap: 8px; }
+.gx .gx-game-bar > strong { text-align: right; font-variant-numeric: tabular-nums; }
+.gx .gx-game-track { display: block; height: 8px; border-radius: 8px; background: var(--gx-border); overflow: hidden; }
+.gx .gx-game-track > span { display: block; height: 100%; background: var(--gx-accent-ink); border-radius: inherit; }
+.gx .gx-game-quote { display: flex; align-items: center; gap: 10px; color: var(--gx-text-2); }
+.gx .gx-game-quote > [data-cell] { margin-left: auto; color: var(--gx-text-1); }
+.gx .gx-game-actions > button { flex: 1 1 100px; }
+.gx .gx-game-comparison { padding-top: 16px; border-top: 1px solid var(--gx-glass-line); }
+.gx .gx-game-team-choice { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.gx .gx-game-team-choice > button { flex: 1; }
+.gx .gx-game-days { display: flex; gap: 8px; flex-wrap: wrap; }
+.gx .gx-game-days > button { flex: 1 1 60px; gap: 8px; }
+.gx .gx-game-days [aria-pressed=true], .gx .gx-game-team-choice [aria-pressed=true] { border-color: var(--gx-data); color: var(--gx-data); background: var(--gx-data-tint); }
+@media (forced-colors: active) { .gx .gx-game-track > span { background: Highlight; } .gx .gx-game-days [aria-pressed=true], .gx .gx-game-team-choice [aria-pressed=true] { outline: 2px solid Highlight; } }
+
+.gx .gx-l-skel .gx-skel-card { min-height: 375px; }
+.gx .gx-games-board { overflow-anchor: none; }
+.gx .gx-game-actions > button { white-space: normal; height: auto; }
+.gx .gx-game-quote { flex-wrap: wrap; }
+.gx .gx-game-team-choice > button { min-width: 0; height: auto; white-space: normal; }
+/* Expanded Games has its approved narrow comparison arrangement; game detail keeps three peer stats. */
+.gx .gx-game-card[data-expanded] { border-color: var(--gx-accent-ink); }
+.gx .gx-game-comparison .gx-game-team-choice { flex-direction: column; }
+.gx .gx-game-comparison .gx-r-team-stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.gx .gx-game-comparison .gx-r-team-stats > div:first-child { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.gx .gx-game-comparison .gx-r-team-stats > div:first-child dd { margin: 0; font-size: 22px; line-height: 28px; }
+.gx .gx-game-actions [data-game] { border: 2px solid var(--gx-accent-ink); background: transparent; }
+.gx .gx-game-days [aria-pressed=true], .gx .gx-game-team-choice [aria-pressed=true] { border-color: var(--gx-accent-ink); color: var(--gx-text-1); background: var(--gx-accent-tint); }
+/* Short lazy frames retain enough end clearance to scroll the sports control fully past the fixed header. */
+.gx [data-research=game].gx-screen { padding-bottom: calc(var(--gx-space-7) + var(--gx-size-touch) + var(--gx-space-3)); }
+@media (forced-colors: active) { .gx .gx-game-card[data-expanded], .gx .gx-game-actions [data-game] { border-color: Highlight; } }

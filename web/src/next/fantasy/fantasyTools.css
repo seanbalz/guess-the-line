@@ -33,3 +33,11 @@
 .gx .gx-fantasy-chosen-name:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
 @media (max-width: 359px) { .gx .gx-fantasy-table { font-size: 13px; } }
 .gx .gx-fantasy-compare .gx-seg-btn { white-space: nowrap; padding: 0 8px; }
+/* Reading values remain 16px in the approved profile/comparison tables at every phone size. */
+.gx .gx-fantasy-table { font-size: 16px; }
+.gx .gx-fantasy-table td { white-space: nowrap; }
+.gx .gx-fantasy-table thead th { font-size: 13px; }
+.gx .gx-fantasy-facts { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.gx .gx-fantasy-facts > div { padding: 12px; border: 1px solid var(--gx-glass-line); border-radius: 14px; background: var(--gx-data-tint); }
+.gx .gx-fantasy-facts dd { color: var(--gx-data); }
+.gx .gx-fantasy-table-wrap { min-width: 0; border: 1px solid var(--gx-glass-line); border-radius: 14px; background: var(--gx-surface-2); }

@@ -12,7 +12,7 @@ test('a failed game-detail stylesheet cannot leave the full Research view unstyl
     await expect(page.getByRole('navigation', { name: 'Main', exact: true })).toBeVisible();
     await page.goto('about:blank'); await page.goto('/#lines');
     // D-69 step 3: the board is picture rows, and a row opens the game as a layer (it was the game sheet).
-    const card = page.locator('.gx-prow[data-game]').first(); await expect(card).toBeVisible();
+    const card = page.locator('button[data-game]').first(); await expect(card).toBeVisible();
     // Root styles are already loaded. Fail only new detail stylesheet requests.
     await page.route('**/assets/*.css', route => {
       if (fail) { failed++; return route.abort('failed'); }

@@ -85,3 +85,20 @@
   .gx .gx-team-game[data-next] { border-left: 3px solid Highlight; }
   .gx .gx-team-week-select[aria-pressed="true"] { border: 2px solid Highlight; }
 }
+/* Approved Teams browser: search remains mounted while its native child layer is open. */
+.gx .gx-team-search { display: grid; gap: 8px; font: 500 16px/24px var(--gx-font-body); }
+.gx .gx-team-search input { width: 100%; min-width: 0; min-height: 44px; padding: 10px 12px; border: 1px solid var(--gx-border-strong); border-radius: 14px; color: var(--gx-text-1); background: var(--gx-surface-2); font: inherit; }
+.gx .gx-team-search input:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
+.gx .gx-team-list-meta { display: flex; flex-direction: column; gap: 8px; }
+.gx .gx-team-next { display: flex; align-items: center; gap: 6px; }
+.gx .gx-team-form { display: flex; gap: 4px; flex-wrap: wrap; }
+.gx .gx-team-form > span { display: inline-flex; justify-content: center; align-items: center; width: auto; min-width: 20px; height: auto; min-height: 22px; padding: 2px 4px; border-radius: 6px; font: 600 12px/18px var(--gx-font-body); text-transform: uppercase; }
+.gx .gx-team-form-win { color: var(--gx-win); background: var(--gx-win-tint); }
+.gx .gx-team-form-loss { color: var(--gx-loss); background: var(--gx-loss-tint); }
+.gx .gx-team-form-pending { color: var(--gx-pending); background: var(--gx-pending-tint); }
+.gx [data-research=teams] .gx-prows { gap: 12px; }
+.gx [data-research=teams] .gx-prow.gx-card, .gx .gx-team-tile.gx-card { background: var(--gx-card-face); border: 1px solid var(--gx-glass-line); border-radius: 28px; box-shadow: var(--gx-e1); }
+.gx [data-research=teams] .gx-prow { flex-wrap: nowrap; }
+.gx [data-research=teams] .gx-prow-main { flex-basis: 0; }
+.gx [data-research=teams] .gx-prow-value { font-size: 24px; }
+@media (forced-colors: active) { .gx .gx-team-form > span { border: 1px solid CanvasText; } }

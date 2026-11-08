@@ -1,0 +1,297 @@
+{
+  "kind": "GTL_PRISM_RESEARCH_NATIVE_EVIDENCE",
+  "generatedAt": "2026-11-08T00:14:42.412247+00:00",
+  "status": "Checked locally; not published, merged or deployed; canonical candidate season/spark projection remains open",
+  "branch": "codex/confirmed-prism-research-2026-11-07",
+  "baseCommit": "42a5ad9930a5712c6b357564701fbb5628b12b43",
+  "authorityCommit": "3ac2eb50513ba73447ef890e4a47863cde7bdd76",
+  "scopeAreas": [
+    "08",
+    "09",
+    "10",
+    "11",
+    "12",
+    "13"
+  ],
+  "dataBoundary": "Native real controllers with local fictional fixture-world evidence; no preview adapters/fixture series ship in production. Historical landing scoring is the existing fingerprinted public subset.",
+  "checks": {
+    "vitest": {
+      "files": 85,
+      "passed": 887
+    },
+    "nodeTokenChartContracts": {
+      "passed": 23
+    },
+    "nodeResearchFantasyModelsAndReveal": {
+      "passed": 94
+    },
+    "browserBroad": {
+      "cases": 106,
+      "initialPassed": 102,
+      "initialIssues": 4,
+      "allInitialIssuesReconciled": true
+    },
+    "browserFinalFocused": {
+      "passed": 4,
+      "files": [
+        "next-lines.spec.js",
+        "next-research-layers.spec.js",
+        "next-research.spec.js"
+      ],
+      "coverage": "Game-detail code/style/loading retry in both themes/forced colors; all Research phone routes at320/390both themes/wide type; day filters/actual PPG/form; both comparison arrangements; observed statistics true-zero/missing/two-market gate/definitions/credit through actual authenticated handler; Teams search and Back focus; standalone six-period/market/chart/table/source controls"
+    },
+    "typecheck": "passed",
+    "brandQa": "passed with Python UTF-8 mode",
+    "cloudTestBuild": "passed",
+    "cloudBundlePrivacyScan": "passed --bundle-only"
+  },
+  "remainingDataProjection": [
+    "Canonical /lines/research candidate has no exact per-season array; existing weekly-card perSeason is preserved.",
+    "Non-shortlist summary curves stay missing until real candidate detail exists; no synthetic series or weekly-ID join."
+  ],
+  "captures": [
+    {
+      "file": "native-research-dark-390.png",
+      "nativeTestCapture": "prism--research-dark-390.png",
+      "bytes": 214989,
+      "sha256": "231f5943230c5e15caf2b3fba49a1957560e5b544bd213a55a4eea1914c6ff1d"
+    },
+    {
+      "file": "native-research-light-390.png",
+      "nativeTestCapture": "prism--research-light-390.png",
+      "bytes": 233689,
+      "sha256": "0484ef4ad82e26a4a41088860cfda5b2cd59956d5eca75a7468d11d696ef5b32"
+    },
+    {
+      "file": "native-games-observed-dark-390.png",
+      "nativeTestCapture": "prism-games-observed-dark.png",
+      "bytes": 396779,
+      "sha256": "e02880d4f14b8cbb079a0a696d8cc7d08f7f6f690215cac420e96cd912a1db43"
+    },
+    {
+      "file": "native-games-observed-light-390.png",
+      "nativeTestCapture": "prism-games-observed-light.png",
+      "bytes": 413603,
+      "sha256": "673a904b32cb3b89acbf35fc39ba84b48cddc111ff56a8ed02afba059b3e2203"
+    },
+    {
+      "file": "native-game-performance-dark-390.png",
+      "nativeTestCapture": "prism-game-performance-390-dark.png",
+      "bytes": 282925,
+      "sha256": "1221b2a5e50e0bc481b5ae1f2dd4719c3a3f5185defc93eac2d4804bcf08a2a9"
+    },
+    {
+      "file": "native-game-performance-light-390.png",
+      "nativeTestCapture": "prism-game-performance-390-light.png",
+      "bytes": 297189,
+      "sha256": "ce0f9de9ed8a2bef8368719d471886bebf267a2f09213491a08b7c062b303033"
+    },
+    {
+      "file": "native-trends-list-dark-390.png",
+      "nativeTestCapture": "prism-trends-list-390-dark.png",
+      "bytes": 236815,
+      "sha256": "2a7c275ba44b2556cb6690dc6ca9a215b2267550bcac0b081c804336e38c3692"
+    },
+    {
+      "file": "native-trends-list-light-390.png",
+      "nativeTestCapture": "prism-trends-list-390-light.png",
+      "bytes": 258909,
+      "sha256": "2df80d030cde1f97c0f58d255b82d26881a4ed46c962e1a420fc916170c92f69"
+    },
+    {
+      "file": "native-teams-dark-390.png",
+      "nativeTestCapture": "prism--research-teams-dark-390.png",
+      "bytes": 558227,
+      "sha256": "044115fffba9ac1992092946ee75e86fc3f1978adc2836579be94a21c432043c"
+    },
+    {
+      "file": "native-teams-light-390.png",
+      "nativeTestCapture": "prism--research-teams-light-390.png",
+      "bytes": 579378,
+      "sha256": "bd2d57a41e35e638cfc3b6924882c73273eba5c9c1ef52f76e1c87b114720647"
+    },
+    {
+      "file": "native-team-detail-dark-390.png",
+      "nativeTestCapture": "prism--research-teams-layer-team-item-SEA-dark-390.png",
+      "bytes": 200253,
+      "sha256": "dc81c861a58d0ca333b9b02497b3b55370c3f0896ba54e3d77c454b2bf152205"
+    },
+    {
+      "file": "native-team-detail-light-390.png",
+      "nativeTestCapture": "prism--research-teams-layer-team-item-SEA-light-390.png",
+      "bytes": 203895,
+      "sha256": "e1098d577d9f6749b2fcf2894880d48f4753bcbe38def9c2fc9192e94004164e"
+    },
+    {
+      "file": "native-fantasy-report-dark-390.png",
+      "nativeTestCapture": "fantasy-report-390-dark.png",
+      "bytes": 218358,
+      "sha256": "586ef1c0a276016cd698cfcc0a8a557db9cf56d655c1040a9213dd10de448909"
+    },
+    {
+      "file": "native-fantasy-report-light-390.png",
+      "nativeTestCapture": "fantasy-report-390-light.png",
+      "bytes": 225408,
+      "sha256": "0878dd0cbf2b5555f114dc9a20755ae51d02fb0e10fa9488dd7b775b61934f80"
+    },
+    {
+      "file": "native-fantasy-compare-dark-390.png",
+      "nativeTestCapture": "fantasy-compare-390-dark.png",
+      "bytes": 116387,
+      "sha256": "a3c1b1bcd4aab2cd73440903f2c0a2fa8398bf55c38054fd7c1d376cd8f61e17"
+    },
+    {
+      "file": "native-fantasy-compare-light-390.png",
+      "nativeTestCapture": "fantasy-compare-390-light.png",
+      "bytes": 119595,
+      "sha256": "37f2c3a67546cbaf80bea0c364b1f51058162db774ccc22b1b0086a2b519c71b"
+    }
+  ],
+  "sourceFiles": [
+    {
+      "file": "tests/cloud-browser/fantasy.spec.js",
+      "sha256": "f05b80dd358f238b798865e36c9de4169bbfdb24cab2d07ad776e776168d3646"
+    },
+    {
+      "file": "tests/cloud-browser/next-lines.spec.js",
+      "sha256": "14536e02ce0c0da8a6df5aa302f7bfc1c58c181d73ebd1fca0a4cff808d58ca0"
+    },
+    {
+      "file": "tests/cloud-browser/next-phone-layout.spec.js",
+      "sha256": "4e41cdcbc05732f8f9ada534e1edf9f01a44ec4ce67fb2fb1ea7e07b59b2e6b7"
+    },
+    {
+      "file": "tests/cloud-browser/next-research-layers.spec.js",
+      "sha256": "f10cb93c67a6f64b8c5b3bf4c5de6a7d1640f40ca620d860618c84019c50ecce"
+    },
+    {
+      "file": "tests/cloud-browser/next-research.spec.js",
+      "sha256": "469f080cad4add03b8eb1d886dcb1dc5b04c1f74a825378b374e0d7496548c07"
+    },
+    {
+      "file": "tests/cloud-browser/next-shell.spec.js",
+      "sha256": "f8edd63defca67802620036bccce4dcabfbb7afb878a9505bf495af99e502242"
+    },
+    {
+      "file": "tests/cloud-browser/next-trends.spec.js",
+      "sha256": "37ecc4e80bc66180adab5d7fdbb0de4dc65608b1dee0f97869f52773a6bcfb94"
+    },
+    {
+      "file": "tests/cloud-browser/research-style-recovery.spec.js",
+      "sha256": "5536b50362702fc68445a49d8adfdc93788a6037a86daab1e18d95366634a115"
+    },
+    {
+      "file": "tests/next-fantasy-report.test.jsx",
+      "sha256": "70e83e0d504bb35aaec991d9bae2434f4310b3afddca29d7726ab19e122bd899"
+    },
+    {
+      "file": "tests/next-lines-ui.test.jsx",
+      "sha256": "e7a515d49dffd925bbd7b46a1f05caf8c458cbf143229ff1d94d1bddd5778750"
+    },
+    {
+      "file": "tests/next-research-landing-ui.test.jsx",
+      "sha256": "ba4aae6c0599e0ba102eac77fcca8a17e1881af479b875f7b1c5f5f8e127ca45"
+    },
+    {
+      "file": "web/src/next/charts/TrendDetail.jsx",
+      "sha256": "abe8eeb7d286a8d77bf3a0160f3a2158a714036aa02ed4b3cb2027d2d5c36ad3"
+    },
+    {
+      "file": "web/src/next/charts/charts.css",
+      "sha256": "49aeeda2422c005dd7ad90d39976ba58ba8421c1a5749524751006ab0fb3ea07"
+    },
+    {
+      "file": "web/src/next/fantasy/FantasyNest.jsx",
+      "sha256": "0cc845625ad9122482ad05f4c3ca9733a5add304641e5d8becd2356b391e74c2"
+    },
+    {
+      "file": "web/src/next/fantasy/FantasyReport.jsx",
+      "sha256": "0794df595d087552aa40933cbbb6fe0b4a9978d3a76c52d52c04766d0d4790bf"
+    },
+    {
+      "file": "web/src/next/fantasy/fantasy.css",
+      "sha256": "39ab3570cea224ec094da516a248b5be6b367251f19d639e8b566a7f3ba6753d"
+    },
+    {
+      "file": "web/src/next/fantasy/fantasyReport.js",
+      "sha256": "e960f07cb11c06a0afaaacf57e44323fcff95b9f2e69565b6a3e9c874fa1e2a2"
+    },
+    {
+      "file": "web/src/next/fantasy/fantasyTools.css",
+      "sha256": "08dad37ca914b9c666fea29ba93aa30102173481ca5cdd8dc96ac31a620e484c"
+    },
+    {
+      "file": "web/src/next/lines/GameDetails.jsx",
+      "sha256": "c9bdb15d3a196cc4766db680743035a757f378488410eeafde8cd7687bdaa064"
+    },
+    {
+      "file": "web/src/next/lines/GameLayer.jsx",
+      "sha256": "488b5ebd4d3f8be4d456eb98bb240118a1df5ed9e65f9ef5844d047d7048c619"
+    },
+    {
+      "file": "web/src/next/lines/LinesBoard.jsx",
+      "sha256": "58f2d732a7717f2520574de30b252405414066dab8c7d8be5533cc6bfa60976b"
+    },
+    {
+      "file": "web/src/next/lines/lines.css",
+      "sha256": "1bb7a864602fbe0971fdbef41cf8b2d6eaef20fe460c5dfcffd594a86f38099f"
+    },
+    {
+      "file": "web/src/next/research/MatchupResearch.jsx",
+      "sha256": "5f365685d1d1fda065e1e2079282817e9ae952b47fc41b207bc388fa55c616f7"
+    },
+    {
+      "file": "web/src/next/research/MatchupTeamPerformance.jsx",
+      "sha256": "928452febeb472cd8da310ce5aec3529c20c84f2f37091c14d3cb59599759094"
+    },
+    {
+      "file": "web/src/next/research/MatchupTeamPerformanceSlot.jsx",
+      "sha256": "843aa1806bfa77ef6d7b70d9821c000f79c86fee1a81599da3358a5c243d79aa"
+    },
+    {
+      "file": "web/src/next/research/ResearchCards.jsx",
+      "sha256": "b94a1b5009c9e401fcff277d5ac364c72c7b109db9b3fc799e53ffcf54a1cf5e"
+    },
+    {
+      "file": "web/src/next/research/ResearchLanding.jsx",
+      "sha256": "4021740824c913ddb1b496315f38da9e7021054acf578a2705d6a8c5d6019ffd"
+    },
+    {
+      "file": "web/src/next/research/landing.css",
+      "sha256": "6f6dc99344966c7623c99056948a65c64cefe84642ea6ae5ed060f6e6d1e15d6"
+    },
+    {
+      "file": "web/src/next/research/research.css",
+      "sha256": "9e042eb599658195d95a082792031df6be260a396f965aa61b4a48d099e9d3d5"
+    },
+    {
+      "file": "web/src/next/teams/TeamForm.jsx",
+      "sha256": "cd77130291852bf5e7512ad2d9722bff2b0e9f559c139a4e7f42971f10fd287e"
+    },
+    {
+      "file": "web/src/next/teams/TeamView.jsx",
+      "sha256": "cad53765d5d91af896577e0faaeffab9f28ce82440350a0f8909d13de10d521e"
+    },
+    {
+      "file": "web/src/next/teams/TeamsScreen.jsx",
+      "sha256": "389adeb41cca1f2b2216e36827be9446e147b5dd3b888e17a2443ee227d31a23"
+    },
+    {
+      "file": "web/src/next/teams/teams.css",
+      "sha256": "bdd7563dbbab6a4078f0248286a56dabf38b425594c2d1564feb048f7ef8bb35"
+    },
+    {
+      "file": "web/src/next/trends/HistoricalTrends.jsx",
+      "sha256": "a05089b2bdeeea36267dce716cf473d20069dc9ce981e054f5567a7e7c11795f"
+    },
+    {
+      "file": "web/src/next/trends/TrendsScreen.jsx",
+      "sha256": "c33dd5c8fe7d05507acdb8a395495856f4b142054d099335c740c89476ddf420"
+    },
+    {
+      "file": "web/src/next/trends/trends.css",
+      "sha256": "66e14ea1e332d3dd1c8fc8f5dd47efeb37dd136eb2664f5220700deb5daed598"
+    }
+  ],
+  "sourceFilesDigest": "2f6e189d93619e26a4172483fb058e2eb5c7d371bfac219a4c77cd310417fdc9"
+}

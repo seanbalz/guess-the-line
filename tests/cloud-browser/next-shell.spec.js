@@ -270,7 +270,7 @@ test.describe('the real app', () => {
           await expect(page.getByRole('button', { name: 'Back', exact: true })).toBeVisible();
         }
         // D-69 step 3: the legacy #lines lands on Research › Games, titled Games, its rows picture rows.
-        if (name === 'Games') { await expect(page.locator('.gx-l-group').first()).toBeVisible(); await expect(page.locator('.gx-prow[data-game]').first()).toBeVisible(); }
+        if (name === 'Games') { await expect(page.locator('.gx-l-group').first()).toBeVisible(); await expect(page.locator('button[data-game]').first()).toBeVisible(); }
       }
       const switcher = sheet(page, 'Your leagues');
       for (const fresh of [false, true]) {

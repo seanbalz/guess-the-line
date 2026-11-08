@@ -180,6 +180,12 @@ test.describe('fantasy rankings', () => {
           await page.keyboard.type('unlikely player name');
           await expect(screen.getByText('No players match these filters.', { exact: true })).toBeVisible();
           await page.keyboard.press('Tab');
+          await expect(more(screen).locator('summary')).toBeFocused();
+          await page.keyboard.press('Tab');
+          await expect(screen.getByRole('combobox', { name: 'Passing touchdowns', exact: true })).toBeFocused();
+          await page.keyboard.press('Tab');
+          await expect(screen.getByRole('combobox', { name: 'Team', exact: true })).toBeFocused();
+          await page.keyboard.press('Tab');
           await expect(screen.getByLabel('Strong trends only', { exact: true })).toBeFocused();
           await resetFilters(screen);
           await screen.getByRole('combobox', { name: 'Position', exact: true }).selectOption('WR');
@@ -272,6 +278,9 @@ test.describe('fantasy rankings', () => {
           for (const key of ['miss', 'baseline', 'within', 'graded']) await expect(card.locator(`[data-report="${key}"]`)).toBeVisible();
           await expect(card.getByRole('heading', { name: 'Off by, by position', exact: true })).toBeVisible();
           await expect(card.locator('details[data-fantasy="misses"] > summary')).toHaveText('Biggest misses');
+          const paired = card.locator('.gx-fantasy-error-track');
+          await expect(paired.first()).toBeVisible();
+          expect(await paired.evaluateAll(tracks => tracks.every(track => track.getBoundingClientRect().height === 8 && track.querySelector('span').getBoundingClientRect().height === 8)), 'paired error bars draw at their true nonzero height in the directly loaded Fantasy screen').toBe(true);
           await layout(page, screen);
           if (width < 1000) {
             await phoneRules(page, screen, `report card ${theme} ${width}`);

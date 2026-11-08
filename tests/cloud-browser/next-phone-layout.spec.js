@@ -145,10 +145,10 @@ test('Research › Games keeps whole matchups and records inside their rows at 3
     await page.setViewportSize({ width: 320, height: 844 });
     for (const wide of [false, true]) {
       await open(page, '#research/games', wide);
-      await expect(page.locator('button.gx-prow[data-game]')).toHaveCount(2);
-      await expect(page.locator('button.gx-prow [data-cell="loading"]')).toHaveCount(0);
+      await expect(page.locator('[data-game-card]')).toHaveCount(2);
+      await expect(page.locator('[data-game-card] [data-cell="loading"]')).toHaveCount(0);
       const spills = await page.evaluate(() => {
-        const rows = [...document.querySelectorAll('button.gx-prow[data-game]')];
+        const rows = [...document.querySelectorAll('[data-game-card]')];
         const was = rows.flatMap(row => [row, ...row.querySelectorAll('*')]).filter(el => !el.closest('svg')).map(el => [el, getComputedStyle(el)]).map(([el, cs]) => [el, parseFloat(cs.fontSize), cs.lineHeight]);
         for (const [el, size, leading] of was) {
           el.style.setProperty('font-size', `${size * 2}px`, 'important');
@@ -156,7 +156,7 @@ test('Research › Games keeps whole matchups and records inside their rows at 3
         }
         const out = [], inside = (r, box) => r.left >= box.left - 1 && r.right <= box.right + 1;
         for (const row of rows) {
-          const c = row.getBoundingClientRect(), main = row.querySelector('.gx-prow-main').getBoundingClientRect(), end = row.querySelector('.gx-prow-end').getBoundingClientRect();
+          const c = row.getBoundingClientRect(), main = row.querySelector('.gx-game-matchup').getBoundingClientRect(), end = row.querySelector('.gx-game-quote').getBoundingClientRect();
           if (!inside(c, { left: 0, right: document.documentElement.clientWidth })) out.push(`${row.dataset.game}: row leaves the screen`);
           if (main.right > end.left + 1 && main.bottom > end.top + 1) out.push(`${row.dataset.game}: the name block runs into the Spread`);
           for (const el of row.querySelectorAll('*')) {
@@ -173,7 +173,7 @@ test('Research › Games keeps whole matchups and records inside their rows at 3
         }
         // A word that fits its line is never split inside it (the title and the meta line wrap between words first).
         const measure = document.createElement('canvas').getContext('2d');
-        for (const el of document.querySelectorAll('button.gx-prow[data-game] .gx-prow-title, button.gx-prow[data-game] .gx-prow-meta')) {
+        for (const el of document.querySelectorAll('[data-game-card] .gx-game-team > strong, [data-game-card] .gx-game-time')) {
           const cs = getComputedStyle(el), room = el.getBoundingClientRect().width - 1;
           measure.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
           const text = el.firstChild;
