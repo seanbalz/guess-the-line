@@ -1,0 +1,476 @@
+{
+  "status": "partial_local_checkpoint_pending_independent_review",
+  "base": "1ba236960dfb8050538ba762b35e40eb2799e071",
+  "sourceCommit": "ece0598063bb8ce616f1198176a431e3f7bac9ac",
+  "referenceCommit": "3ac2eb50513ba73447ef890e4a47863cde7bdd76",
+  "referenceRecords": [
+    {
+      "file": "previews/overview-closeout-home-dark-phone.png",
+      "sha256": "8e4928e7b3b16520052ce8d1548b885a7c7ecaea52967ff50c220e584c87c2c0",
+      "theme": "dark"
+    },
+    {
+      "file": "previews/overview-closeout-home-light-phone.png",
+      "sha256": "048a249838f89e379c72e069471b4a861ebebdebbef8cc11c19ffca9b66d865b",
+      "theme": "light"
+    },
+    {
+      "file": "previews/overview-closeout-play-dark-phone.png",
+      "sha256": "d75bc115047bf4ce4eb9efce783ce8a6f8a75f8e82cda431db2b369204562c7b",
+      "theme": "dark"
+    },
+    {
+      "file": "previews/overview-closeout-play-light-phone.png",
+      "sha256": "4821fe850daa2158e758523c04cb56cb1a21875c67896b2c442033608526ecdb",
+      "theme": "light"
+    },
+    {
+      "file": "previews/overview-closeout-bets-dark-phone.png",
+      "sha256": "d973fa746eb88c2db47fa9856734ad031fb7d1f920fe25a98450b1ec854878cd",
+      "theme": "dark"
+    },
+    {
+      "file": "previews/overview-closeout-bets-light-phone.png",
+      "sha256": "16af8091e9c72925d28282503f31544de0b19272a9bf97d4703f98859fda70e8",
+      "theme": "light"
+    },
+    {
+      "file": "previews/league-wording-home-dark-phone.png",
+      "sha256": "53604c72bd7a38025d25a3d471a8c10778abebe46bec5e02062304ebe9070a07",
+      "theme": "dark"
+    },
+    {
+      "file": "previews/league-wording-home-light-phone.png",
+      "sha256": "87b61ca78e6352266ceca8fb1bf8849fb49f38a742c0d6f4493d2f2d511d54a5",
+      "theme": "light"
+    },
+    {
+      "file": "previews/league-wording-play-dark-phone.png",
+      "sha256": "77deee501c4c6c4754bb976c65892e7e900b141903090dc209ab3947c9feb416",
+      "theme": "dark"
+    },
+    {
+      "file": "previews/league-wording-play-light-phone.png",
+      "sha256": "724a9dd350528c41f0e403145e7c38e11bb12717d76ab92bbdce0196b23e80d3",
+      "theme": "light"
+    },
+    {
+      "file": "previews/league-wording-bets-dark-phone.png",
+      "sha256": "b78e60cb906887bde69dcc7accd63fac15ecc743f59191599e5b9aa42ac228a9",
+      "theme": "dark"
+    },
+    {
+      "file": "previews/league-wording-bets-light-phone.png",
+      "sha256": "0c286598c16462f5995b77e99fa4382d816f2321dd941cdb1131daed445cd136",
+      "theme": "light"
+    },
+    {
+      "file": "previews/overview-closeout-open-ticket-dark-phone.png",
+      "sha256": "d2a5623321a51e4e658110b6c0ae80274a31e2eafdd896c475c4b54168cfbda8",
+      "theme": "dark"
+    },
+    {
+      "file": "previews/overview-closeout-open-ticket-light-phone.png",
+      "sha256": "b1368123897a1647f4f7da3ab0411ba497c67bef56dce0c8c1ca5a66345fe242",
+      "theme": "light"
+    },
+    {
+      "file": "previews/overview-closeout-settled-ticket-dark-phone.png",
+      "sha256": "6820128b049b2db9f0c80ba240f3d1446bbfabbba78285ec8da2afd1c1794e1f",
+      "theme": "dark"
+    },
+    {
+      "file": "previews/overview-closeout-settled-ticket-light-phone.png",
+      "sha256": "8987ed1311081f3a75626fe6f86495ce6fd40deb851677ed63dfb84282912c29",
+      "theme": "light"
+    },
+    {
+      "file": "previews/team-league-circles-ticket-dark-phone.png",
+      "sha256": "50e3de187cd2281715ec7591415070bacd2c9e7eda7fa5763618df5a04892030",
+      "theme": "dark"
+    },
+    {
+      "file": "previews/team-league-circles-ticket-light-phone.png",
+      "sha256": "127bd42c524032431947453769beac653a9a873f991f5274be68d16a9772516b",
+      "theme": "light"
+    },
+    {
+      "file": "previews/overview-closeout-entry-selection-dark-phone.png",
+      "sha256": "b563afedb47310cfd6706dcddcd76e69a0903625379b4a7c4dcab057869f04d1",
+      "theme": "dark"
+    },
+    {
+      "file": "previews/overview-closeout-entry-selection-light-phone.png",
+      "sha256": "9abf696b4a1c9141d0beb987b362e736ec8a04bfaeab643c4427a781d137223b",
+      "theme": "light"
+    },
+    {
+      "file": "previews/overview-closeout-entry-terms-dark-phone.png",
+      "sha256": "10dc0af52a8b4dfc3ef9cce5b84f339db5729447942e663776e596a8f196e138",
+      "theme": "dark"
+    },
+    {
+      "file": "previews/overview-closeout-entry-terms-light-phone.png",
+      "sha256": "6aa229ace7c12ee13171abfba7193d18937d590904e32be102a3d88426c2b955",
+      "theme": "light"
+    }
+  ],
+  "captureMode": "GTL_CAPTURE_OVERVIEW_FRAME=1 only; normal checks use testInfo.outputPath",
+  "captures": [
+    {
+      "file": "bets-dark-320-bottom.png",
+      "sha256": "2ab04b7b75a42c91af51dfba3af491453b7864da39168a70a58311ef65741306"
+    },
+    {
+      "file": "bets-dark-320-full.png",
+      "sha256": "2e00996bb2636f23e447487a21e7d6d9b65db715d2942f01600403ce85dcdcd6"
+    },
+    {
+      "file": "bets-dark-390-bottom.png",
+      "sha256": "4dd85360865b5050fd3b8328fa62409a6679f49690f63bcd85c769a8eb6e8706"
+    },
+    {
+      "file": "bets-dark-390-full.png",
+      "sha256": "c50b461259b5180c2d295f86d93829d12e8fad7857291fe7b7416786c203ff6d"
+    },
+    {
+      "file": "bets-dark-768-bottom.png",
+      "sha256": "1f75a6e61a8c68b4107686eabd25bc46cc2d92dd296b066c6ea5d9dfbd6b36f3"
+    },
+    {
+      "file": "bets-dark-768-full.png",
+      "sha256": "0f8f9d283d4182e83399fa91ad8d5d78b644ae5090f7261c9b294d0819e4ff12"
+    },
+    {
+      "file": "bets-dark-forced-320.png",
+      "sha256": "984835b0ea4e8a68bbc4a1ef23c0c8fb9a6f158f07c7829af98d82472bb397f0"
+    },
+    {
+      "file": "bets-light-320-bottom.png",
+      "sha256": "a4aa4d1bff04d1b32deb42179b4520b78acd80266c0c52c88787fb859009baae"
+    },
+    {
+      "file": "bets-light-320-full.png",
+      "sha256": "e688134402a3155c5f88c2b9c582ed65554bc3fda01d5eba5192a003378ba8c4"
+    },
+    {
+      "file": "bets-light-390-bottom.png",
+      "sha256": "1fce9ec2bca4e4fc4b77e0a5c87adb80127d297b901ade29c82ba3de37617c9f"
+    },
+    {
+      "file": "bets-light-390-full.png",
+      "sha256": "1a9204a91954533bdcdbb50babbd396a7d6677d998ea21d998ed47520df1dd94"
+    },
+    {
+      "file": "bets-light-768-bottom.png",
+      "sha256": "118aa1c66031aebf4e15833c17bf3f198eb29d5cf270a9d0f1dbdbb4e1e79802"
+    },
+    {
+      "file": "bets-light-768-full.png",
+      "sha256": "de9a9e6a1379b5c24e4014df9bd95cc95cea6b80bb017db119efa3b394643862"
+    },
+    {
+      "file": "bets-light-forced-320.png",
+      "sha256": "8a3994ff6a1a15ac42094c6a471f78e971ff6a4214c020eeb98c5fc225b4bbc3"
+    },
+    {
+      "file": "home-dark-320-bottom.png",
+      "sha256": "fae5c3f9fafd122cdb38e63c656379745dd5c924d063dbe308ec400779ccc2b0"
+    },
+    {
+      "file": "home-dark-320-full.png",
+      "sha256": "bfeb72655b5993040f298528e171a2416fdce260e15bda3a3f160da343b461d0"
+    },
+    {
+      "file": "home-dark-390-bottom.png",
+      "sha256": "aac2582eb5b488d859cac8ac41ed42478e74fa1c4903768c7634e5fb8fb326b6"
+    },
+    {
+      "file": "home-dark-390-full.png",
+      "sha256": "01a0583471e599b84621748854e67a24b4bdd998453adf6595ee9d03ffe3691d"
+    },
+    {
+      "file": "home-dark-768-bottom.png",
+      "sha256": "b0897435bd8bef3651ea8a326e49e744f7032923962de1bea7b73cf9d132236a"
+    },
+    {
+      "file": "home-dark-768-full.png",
+      "sha256": "1aa18fb3b36a5097005ea7fa027a497c3225d4beb720a149c7a4a78182746921"
+    },
+    {
+      "file": "home-dark-forced-320.png",
+      "sha256": "04b5925e8b06444c6208b619db12d2ddce87de769ee8fb45cab316780ff6688a"
+    },
+    {
+      "file": "home-light-320-bottom.png",
+      "sha256": "210ebe6b8f57f435c106e6cd0caf5b92270d9306ca8356ac0b904918ef1f2957"
+    },
+    {
+      "file": "home-light-320-full.png",
+      "sha256": "f936a916f72f114aba8236f8a14e6cd342bec3c6ceb6ee2264585198630553a1"
+    },
+    {
+      "file": "home-light-390-bottom.png",
+      "sha256": "f2ecbd9efa42a07f0a635b6dc10abb53a5deceb4ce6baeaa67aa442bf3d09202"
+    },
+    {
+      "file": "home-light-390-full.png",
+      "sha256": "e25015888cb2b320dc7700afd261c243f246b91147d274547afe676a1e3a5d1f"
+    },
+    {
+      "file": "home-light-768-bottom.png",
+      "sha256": "0b042c867325d45a908bd3d7bb7bd5281b7afb9a3e4ecc9bd8e3c8ba62dd190d"
+    },
+    {
+      "file": "home-light-768-full.png",
+      "sha256": "c559780cdd48bc18382c589fb4fbe69525157d811217fc7b8b5a7ce327376b90"
+    },
+    {
+      "file": "home-light-forced-320.png",
+      "sha256": "a6915817629c8715dec52145de716c6c1d60f17206580709880c51f33f20fb2d"
+    },
+    {
+      "file": "open-ticket-dark-320-bottom.png",
+      "sha256": "4d52a3f35d8a69013e6875e4e365babac8326f1b96889b91220dfc266b15d842"
+    },
+    {
+      "file": "open-ticket-dark-320-full.png",
+      "sha256": "4d62c491e347ef6dc1c61a94a61745a3316006ddd6699d8fdfc5e46872f7b9e3"
+    },
+    {
+      "file": "open-ticket-dark-390-bottom.png",
+      "sha256": "b3ea4fd634992a1e9b00b1a9d83399b46dc99fb8d4680e0be8684580b9abe90f"
+    },
+    {
+      "file": "open-ticket-dark-390-full.png",
+      "sha256": "b28651055e1e73754dd43ab140a0066264273f764ae51e8e9c7c04358811ec2f"
+    },
+    {
+      "file": "open-ticket-light-320-bottom.png",
+      "sha256": "112e1a0f6ef2a84ca940b9871b4c275014a821efac973f9c077b23a80ab370d7"
+    },
+    {
+      "file": "open-ticket-light-320-full.png",
+      "sha256": "83062719b1e94a4a4fd13025012ad3fada44e53dc038f9c546a47a52af1d7f71"
+    },
+    {
+      "file": "open-ticket-light-390-bottom.png",
+      "sha256": "9f9aaa565b680fe40da27c284f399856c7d0538a8e275a7c2db457315d40dd46"
+    },
+    {
+      "file": "open-ticket-light-390-full.png",
+      "sha256": "3d280c04c35e82875fdaeff639122cc9b6c839f2b86ba8d068941c6418400cc0"
+    },
+    {
+      "file": "play-dark-320-bottom.png",
+      "sha256": "db04fa3974bfd290dfd4a179fe6328be02d8c9c45af135a8250a0b4b7789fd8a"
+    },
+    {
+      "file": "play-dark-320-full.png",
+      "sha256": "d76b693aa063c1d70b04ce81b2e1a7578d1d79c2f4ef30d9dcd054ebfd50d313"
+    },
+    {
+      "file": "play-dark-390-bottom.png",
+      "sha256": "7c5d136683d35d0bd11abc3a834eff189e886e9caa55a50fb1288c76b58f981b"
+    },
+    {
+      "file": "play-dark-390-full.png",
+      "sha256": "546936b0ad22f26652d593ae5649bd867725cb01f5b4c8fdcfb25d2c824be7d8"
+    },
+    {
+      "file": "play-dark-768-bottom.png",
+      "sha256": "57aa2048606dcf2ca0fead39c52c81f051b4d41a65816a7293707c2f188e3b17"
+    },
+    {
+      "file": "play-dark-768-full.png",
+      "sha256": "52f00fa35aebe2e6596d018f98a353d4744f7c544312724e7bc1ab4d2e2a6903"
+    },
+    {
+      "file": "play-dark-forced-320.png",
+      "sha256": "bedb9ed8d871cb43cdccfda53a12cea42403f3e92da3798dcac2a68f935dd74d"
+    },
+    {
+      "file": "play-light-320-bottom.png",
+      "sha256": "be9ae37ae06dc77f73dce680d45711182b87c851f3cb6c969eec26a3cd303ef8"
+    },
+    {
+      "file": "play-light-320-full.png",
+      "sha256": "221bf9974fb18104e7f792e882f4511a6d02f0e21b96dfb145d31d57ec06f505"
+    },
+    {
+      "file": "play-light-390-bottom.png",
+      "sha256": "ec3fcccdd13c46f7ca88c1d992b8aed09ae018b365e90f592ebcf95d87d8d633"
+    },
+    {
+      "file": "play-light-390-full.png",
+      "sha256": "d257bb6a935ce8993381f81101faceaaf1afc1721ec46369b8c7fee22af071b0"
+    },
+    {
+      "file": "play-light-768-bottom.png",
+      "sha256": "ac3eb295cd971e0a8d9a860450917c69bdf33da4c22176de3ac90f943bc95bae"
+    },
+    {
+      "file": "play-light-768-full.png",
+      "sha256": "1e42a770f228a38bc3455a69c6588c953e4d65246499a5f946585f43ecf2cdde"
+    },
+    {
+      "file": "play-light-forced-320.png",
+      "sha256": "768d6d7c823e2c5e8f1128f637a3b9185fa59c56c451493fa219525827040ac2"
+    },
+    {
+      "file": "settled-ticket-dark-320-bottom.png",
+      "sha256": "3da6a4a937256d5d02d6cd1e709e4eee752a52c2b52bcab1654f2a78899c125e"
+    },
+    {
+      "file": "settled-ticket-dark-320-full.png",
+      "sha256": "17c6659193eeda6e3c0bac642312ceda616a2d0f64931d38e8138dff4df23041"
+    },
+    {
+      "file": "settled-ticket-dark-390-bottom.png",
+      "sha256": "4e59f5588468f00650db38c44565ef030b8533c681480fbe7ccae0e225de7356"
+    },
+    {
+      "file": "settled-ticket-dark-390-full.png",
+      "sha256": "0ba7af0377850ea1dd269a5c6f7ef35317d0798da936881d3bfb9b40d0bf9a21"
+    },
+    {
+      "file": "settled-ticket-light-320-bottom.png",
+      "sha256": "f8d08fcbfd6dd11fc50ae8a68e0f3b387f0fc932e73d20ac5c4ce2b03176019e"
+    },
+    {
+      "file": "settled-ticket-light-320-full.png",
+      "sha256": "fd034b88c32794768d6260f5df54e9f00021856f6c16702c2df45c864b556042"
+    },
+    {
+      "file": "settled-ticket-light-390-bottom.png",
+      "sha256": "cda8d3e2889e393075ed5e0bbd57d54b701992c669d8452ca820cebd45c0700f"
+    },
+    {
+      "file": "settled-ticket-light-390-full.png",
+      "sha256": "cc267fd47a097f33d76c32bb3457e81f22db92ab6b300efcb1f1bbeecc00e43a"
+    }
+  ],
+  "pairs": [
+    {
+      "view": "home",
+      "theme": "dark",
+      "candidate": "home-dark-390-full.png",
+      "approvedWholeView": "previews/overview-closeout-home-dark-phone.png",
+      "approvedLaterWording": "previews/league-wording-home-dark-phone.png"
+    },
+    {
+      "view": "home",
+      "theme": "light",
+      "candidate": "home-light-390-full.png",
+      "approvedWholeView": "previews/overview-closeout-home-light-phone.png",
+      "approvedLaterWording": "previews/league-wording-home-light-phone.png"
+    },
+    {
+      "view": "play",
+      "theme": "dark",
+      "candidate": "play-dark-390-full.png",
+      "approvedWholeView": "previews/overview-closeout-play-dark-phone.png",
+      "approvedLaterWording": "previews/league-wording-play-dark-phone.png"
+    },
+    {
+      "view": "play",
+      "theme": "light",
+      "candidate": "play-light-390-full.png",
+      "approvedWholeView": "previews/overview-closeout-play-light-phone.png",
+      "approvedLaterWording": "previews/league-wording-play-light-phone.png"
+    },
+    {
+      "view": "bets",
+      "theme": "dark",
+      "candidate": "bets-dark-390-full.png",
+      "approvedWholeView": "previews/overview-closeout-bets-dark-phone.png",
+      "approvedLaterWording": "previews/league-wording-bets-dark-phone.png"
+    },
+    {
+      "view": "bets",
+      "theme": "light",
+      "candidate": "bets-light-390-full.png",
+      "approvedWholeView": "previews/overview-closeout-bets-light-phone.png",
+      "approvedLaterWording": "previews/league-wording-bets-light-phone.png"
+    },
+    {
+      "view": "open receipt",
+      "theme": "dark",
+      "candidate": "open-ticket-dark-390-full.png",
+      "approvedWholeView": "previews/overview-closeout-open-ticket-dark-phone.png"
+    },
+    {
+      "view": "open receipt",
+      "theme": "light",
+      "candidate": "open-ticket-light-390-full.png",
+      "approvedWholeView": "previews/overview-closeout-open-ticket-light-phone.png"
+    },
+    {
+      "view": "settled receipt",
+      "theme": "dark",
+      "candidate": "settled-ticket-dark-390-full.png",
+      "approvedWholeView": "previews/overview-closeout-settled-ticket-dark-phone.png",
+      "approvedLaterCircles": "previews/team-league-circles-ticket-dark-phone.png"
+    },
+    {
+      "view": "settled receipt",
+      "theme": "light",
+      "candidate": "settled-ticket-light-390-full.png",
+      "approvedWholeView": "previews/overview-closeout-settled-ticket-light-phone.png",
+      "approvedLaterCircles": "previews/team-league-circles-ticket-light-phone.png"
+    }
+  ],
+  "limits": [
+    "Partial frame checkpoint only; broader explicitly approved C contexts remain unfinished as listed in the scoped document.",
+    "Local Chromium and fictional migrated PGlite0.5.8 fixtures; no hosted, release or physical phone acceptance.",
+    "Reference and native data/device framing differ. Hashes prove bytes/provenance, not pixel equality.",
+    "Full-root screenshots preserve fixed dock at viewport y760; paired bottom screenshots prove content reachability.",
+    "Selected ticket intent is ephemeral in-memory state, not live expansion telemetry or a persistent receipt URL. Filters may hide it without fabricating a row.",
+    "Entry selection/terms approved references have no visible shell; no shell extension is inferred from those modal pairs.",
+    "Keyboard uses viewport-resize DOM probes plus original regression cases, not an actual iPhone keyboard.",
+    "Full check:cloud needs intentionally absent .env.cloud. Only bundle privacy was checked; no hosted call made.",
+    "Known unrelated BiasChart fixture-key and Vite chunk warnings not resolved by this task."
+  ],
+  "branch": "codex/prism-overview-frame-20261107",
+  "fetchedOriginMain": "7aa93a6ffe79eafb58bd6c7d12ec230b6d77b0e9",
+  "sourceFiles": {
+    "tests/cloud-browser/next-overview-frame.spec.js": "44d741cf0f39f7e65fc40576d628135e0a2c9981c2e929619130373fdc9224b6",
+    "tests/cloud-browser/next-shell.spec.js": "ee1b5cc8dff32da08c55b3a3e35c7d1b961e639dd01498d9c85a8802a931fb14",
+    "tests/fixtures/next-shell/harness.jsx": "964794b43389ca2174a6858c623bc63c2bf793e0773870551bed1fa0a7462b23",
+    "web/src/next/bets/Bets.jsx": "0928cd6f70766c64bc896dd7a7cdf23ee5925eccba687c299abe9e1eb7cf4f92",
+    "web/src/next/home/HomeBrand.jsx": "ebce7a34ea04d5c0848e3eefe3effc8d1d16dbff6c64f70ab96a9f5ec99b1f13",
+    "web/src/next/home/approvedHome.css": "606edbd1b5fa7cc3e120c3655ab3fb17815521dfc1252dd04239dd54456cadeb",
+    "web/src/next/shell/Frame.jsx": "36bbbd0607fb9229644466206d9322e924bffe20c43aadc2ba2bf777978c6078",
+    "web/src/next/shell/Shell.jsx": "4a618eeeb2fd62b857cbdd4d701fa5466e6873ea794cbeabc8a778a55a0b1830",
+    "web/src/next/shell/overviewFrame.css": "ea4b1acbdfa1863e26b4a8da67a197b064884c83c8936e452c38d84acbece636"
+  },
+  "scope": [
+    "Actual default-registry NFL Home/Play/Bets overview roots.",
+    "Actual NFL default-registry active/settled receipt-opening intent with existing nonempty selectedTicket.",
+    "Generic BetsLanding.open clears stale selectedTicket; generic lists and their local row expansion retain native frame."
+  ],
+  "notCompleted": [
+    "Additional named approved NFL Play, Research sections, Bets performance/gap/Virtual, Account History Page and named cover/continuity frame contexts.",
+    "Named approved EPL Home/Play frame contexts."
+  ],
+  "held": [
+    "FEPL Research/Fantasy has a concrete same-destination compact/native approval overlap; no frame choice inferred."
+  ],
+  "verification": {
+    "dedicatedBrowser": "11 passed final full matrix; subsequent both-sport receipt capture/filter/account checks2 passed",
+    "existingShell": "9 passed targeted real-app/harness cases",
+    "additionalOriginalBrowser": "6 passed Home/keyboard/root-scroll/skip-link cases including exact direct-Play GREEN restoration",
+    "lazyImports": "1 passed",
+    "node": "43 passed",
+    "components": "34 passed across4 relevant files",
+    "typecheck": "passed",
+    "brandQa": "python -X utf8 scripts/check-brand-docs.py passed",
+    "cloudBuild": "passed2193 modules; existing chunk-size warning retained",
+    "bundlePrivacy": "node scripts/check-cloud-boundary.mjs --bundle-only passed",
+    "regression": "Frozen baseline direct Play test failed at missing gx-overview-frame; restored implementation passed. Generic receipt->list countercheck failed until stale selectedTicket cleared."
+  },
+  "configAdapters": {
+    "playwright.overview.config.mjs": "import { defineConfig } from '@playwright/test';\nimport base from '../playwright.cloud.config.js';\nexport default defineConfig({...base,testDir:'../tests/cloud-browser',outputDir:'cloud-browser-results',use:{...base.use,baseURL:'http://127.0.0.1:5298'},webServer:{...base.webServer,cwd:process.cwd(),command:base.webServer.command.replaceAll('5198','5298'),url:'http://127.0.0.1:5298'}});\n\n",
+    "playwright.overview-imports.config.mjs": "import {defineConfig} from '@playwright/test';\nimport overview from './playwright.overview.config.mjs';\nexport default defineConfig({...overview,testDir:'../tests/performance'});\n"
+  }
+}

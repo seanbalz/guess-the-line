@@ -15,12 +15,24 @@ Each team and league mark has its own circle with contain-fit artwork and the
 existing decode/error fallback. The selected hybrid G has no circle. Sport control
 accessible names use National Football League and Premier League; the existing
 access, route values, dirty-draft guards and hidden NBA remain. The shared shell
-retains its separate league switcher outside the Home landing. Asset provenance
+retains its separate league switcher outside the approved NFL Home/Play/Bets
+overviews and explicit landing-origin selected-ticket receipt openings. Asset provenance
 is recorded in `web/src/next/ui/brand-assets/sources.json`.
 
 This foundation does not establish completion of the remaining per-screen layouts,
 actual-phone acceptance, merge or deployment. Home files and additive `home-*`
 tokens remain separately scoped as described below.
+
+## Confirmed overview framing closeout — November 7, 2026
+
+The separately approved whole-view Play/Bets overview captures at `6bfcfdbe`
+and later `league-wording-play/bets` captures at `5fe706bc` use Home's compact
+header and floating dock; the approved open/settled receipt views use that same
+frame. Entry selection/terms remain fullscreen dialogs. This port implements existing
+approval; it does not choose a global frame or answer the older cross-context
+question. [Scoped authority and local evidence](PRISM_OVERVIEW_FRAME_CLOSEOUT_2026_11_07.md)
+record the boundaries. League access remains in the Research header and Play's
+League layer. No Menu switcher is added.
 
 ## Approved Home release — November 7, 2026
 
@@ -36,10 +48,12 @@ Home uses the selected glossy-edge/frosted-center G (lime in Dark, deep green in
 Light), charcoal gradient / pale green canvas, ivory / dark-green text, floating
 glass cards and transparent primary button with the full green outline. The
 canonical `home-*` colors/effects and native Home font are additive entries in
-`design/tokens-next.json`. They apply only under `.gx-home-design`; all other
-page layouts and existing global tokens retain their current design. Each team
+`design/tokens-next.json`. The approved NFL Home/Play/Bets overview and selected-receipt frame shares
+these recipes under `.gx-overview-frame`; Home body rules stay under
+`.gx-home-design`. Research, other detail/page views, covers and EPL retain native framing within
+this scoped implementation; their separate approval scopes are not re-adjudicated. Each team
 and league mark has its own circle; the G has no circle. The sport switch keeps
-its existing access rules. Browser chrome follows Home while it is mounted and
+its existing access rules. Browser chrome follows the approved compact frame while it is mounted and
 restores the existing theme when leaving it.
 
 Use live shared reads for player figures. Home's mini Research chart is explicitly
