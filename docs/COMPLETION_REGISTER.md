@@ -8,9 +8,9 @@ forced-color findings and verified 254 native/134 reference/ten source hashes.
 The [integration spacing record](PRISM_INTEGRATION_SPACING_2026_11_07.md) adds
 scoped Games padding/team gaps and keyboard note clearance, retains all original
 behavior checks, and records 18 unique browser passes across focused runs plus
-913 component tests/type/27 strict Node contracts/Brand/build/privacy. Independent
-review of the parent spacing repair, exact-source CI and remaining full-scope
-ports/release gates remain required. No remaining rollout deployment is claimed.
+913 component tests/type/27 strict Node contracts/Brand/build/privacy. Independent review approved parent repair
+`596596f5852d74f703915620584fbd7c4a1fdc2e` without Critical/Important findings.
+Exact-source CI and remaining full-scope ports/release gates remain required. No remaining rollout deployment is claimed.
 
 ## Integrated Research data and League/action review closeout — November 7, 2026
 

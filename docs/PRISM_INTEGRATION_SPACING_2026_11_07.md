@@ -1,6 +1,8 @@
 # Native integration spacing repairs — November 7, 2026
 
-Status: implemented and checked locally; independent repair review and release pending.
+Status: implemented and checked locally; independent scoped repair review approved.
+Reviewed repair commit: `596596f5852d74f703915620584fbd7c4a1fdc2e`.
+Exact-source CI and release remain pending.
 Base: `52b900b5563d154898abc80aa41591bc9d4872e2` (includes reviewed Account integration).
 
 CI at earlier `7ce04475` exposed 14 failed browser cases across two shards.

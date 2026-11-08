@@ -115,6 +115,12 @@ The remaining areas below distinguish reviewed local implementation from release
   match. [Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md) retains the exact
   controller/privacy limits. Latest combined validation passes all 90 files /
   913 component tests and typecheck. Hosted release/phone acceptance remain open.
+- Parent integration repairs at `596596f5852d74f703915620584fbd7c4a1fdc2e`
+  passed independent scoped review without Critical/Important findings. The
+  approved Games 16px/6px spacing and note-field keyboard clearance retain native
+  behavior and all original geometry/privacy/controller assertions. Eighteen
+  unique browser cases passed across focused runs; [repair evidence and limits](PRISM_INTEGRATION_SPACING_2026_11_07.md).
+  Exact-source CI and all remaining per-area/release work are still required.
 - Tracked bet stakes support smaller custom values without backend changes.
   Virtual Units still has positive-half-unit enforcement in both API and SQL;
   its approved finer entry requires a separately reviewed compatibility change
