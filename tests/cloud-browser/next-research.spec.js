@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { ALL } from '../migrations.mjs';
 import { communityWorld, pgliteAvailable, sendBallot, signIn, storeBookLines } from './community-world.mjs';
+import { setCaptureTheme, themedScreenshot } from './theme-capture.mjs';
 
 test.use({ viewport: { width: 320, height: 844 } });
 test.beforeEach(() => test.skip(!pgliteAvailable, 'Local PGlite required. No hosted data.'));
@@ -740,11 +741,11 @@ test('approved historical rows use a full-width source spark and separated sampl
   const row=list.locator('[data-research-card]').first();
   await expect(row.locator('.gx-r-row-context')).toContainText('30 games');
   for(const width of [320,390]) for(const theme of ['dark','light']) for(const forcedColors of ['none','active']) {
-   await page.setViewportSize({width,height:844}); await page.emulateMedia({forcedColors,colorScheme:theme}); await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
+   await page.setViewportSize({width,height:844}); await setCaptureTheme(page,theme,{forcedColors});
    const size=await row.evaluate(el=>{const row=el.querySelector('.gx-tc-row').getBoundingClientRect(),spark=el.querySelector('.gx-tc-mini').getBoundingClientRect(),footer=el.querySelector('.gx-r-row-context').getBoundingClientRect();return {row:row.width,spark:spark.width,bottom:spark.bottom,footer:footer.top};});
    expect(size.spark).toBeGreaterThan(size.row*.8);expect(size.footer).toBeGreaterThanOrEqual(size.bottom);
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-   await page.screenshot({path:info.outputPath(`historical-rows-${width}-${theme}-${forcedColors}.png`),fullPage:true});
+   await themedScreenshot(page,info,`historical-rows-${width}-${theme}-${forcedColors}.png`,theme,{fullPage:true});
   }
   await page.emulateMedia({forcedColors:'none'});
   // Missing source curves stay absent; opening evidence uses the original candidate read.

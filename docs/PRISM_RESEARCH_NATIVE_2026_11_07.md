@@ -4,6 +4,55 @@ Status: **native implementation checked locally; not merged or deployed**.
 Canonical research per-season data remains an explicit follow-up below. This is
 not whole-app acceptance or a production release record.
 
+## Light capture correction — November 7, 2026
+
+Independent review found `players-390-light-none.png` and
+`historical-rows-390-light-none.png` byte-identical to their Dark counterparts.
+The test loops changed `data-theme` directly while ThemeProvider retained its
+saved Dark preference; media changes could reapply that preference. The shared
+test-only `theme-capture.mjs` now uses the existing `gtl.theme` storage-event
+synchronization used by ThemeProvider / `useThemePreference`, also present in
+the existing Trends test helper. Immediately before every affected matrix
+capture it asserts both saved/resolved theme attributes and the computed native
+canvas gradient/text against `tokens-next.json`: Porcelain/deep-green in Light,
+charcoal/ivory in Dark, and system canvas/ink under forced colors.
+
+This correction is on exclusive unpublished branch
+`fix/research-light-evidence-20261107`, created from freshly fetched main
+`7aa93a6f`, fast-forwarded to parent `be6bc29e3978917be78e409896ca4f5ea5a3b531`,
+then dependency imports `28ab5bde` (`f93d7c65`) and `07ba8e72` (`2ac6ff1c`).
+Both register entries were retained. The selected design authority remains
+`3ac2eb50513ba73447ef890e4a47863cde7bdd76`; its tree and the earlier capture
+worktree were read only. No product source or layout changed.
+
+Fresh focused verification: **3 actual-handler/PGlite browser tests passed,
+0 skipped, one worker, port 5240, 31.1 seconds**. These cover the two affected
+320/390px Dark/Light normal/forced capture matrices and explicit Light/Dark/Light
+preferences surviving opposite system media and reload. The regression first
+failed with the legacy dataset-only helper (`data-theme=light`,
+`data-theme-preference=dark`). Existing math, source/missing, search, pagination,
+usage Back/focus, comparison, target/layout and historical evidence/axe checks
+were preserved. The cloud-test build passed as the browser prerequisite with
+this worktree's explicit server cwd; Brand QA and diff whitespace checks passed.
+The earlier 14-case/browser and component/model results below retain their
+original provenance and were not rerun for this evidence-only correction.
+
+Only the two rejected PNGs were replaced. Visual inspection confirms Light;
+all **30** manifest hashes, byte sizes and PNG dimensions match, and the other
+28 captures are preserved. The replacement SHA-256 values are:
+
+- Players: `af17f969ea23985d20d9130bf0424cb63834fa38e9bef2fb9adfe5be05c3879f`
+  (390 × 2937, 492290 bytes).
+- Historical rows: `3cb624f2d6207e07235b550d23d9ecbd27e4829170e296a1ab9aae7ce73643f5`
+  (390 × 1768, 297042 bytes).
+
+Both differ from their retained Dark hashes. The
+[manifest](../design/prism-research-fidelity-2026-11-07/evidence.json)
+records rejected-entry provenance, exact test command and changed harness
+hashes. Independent parent re-review remains pending. Canonical By-season data,
+non-shortlist curves, shared frame decisions, physical-phone/hosted acceptance
+and release gates remain outside this correction. No push, PR, merge or deploy.
+
 ## Reviewed layout fixes — November 7, 2026
 
 The separate, unpublished `codex/research-visual-fidelity-2026-11-07` branch

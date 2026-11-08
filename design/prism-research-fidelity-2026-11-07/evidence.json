@@ -242,9 +242,10 @@
       "nativeTestCapture": "next-research-approved-his-44a9f-and-separated-sample-footer/historical-rows-390-light-none.png",
       "width": 390,
       "height": 1768,
-      "bytes": 267211,
-      "sha256": "e073ff5d2839bb4a286b5b73a1b30617d0d71e91fe5771976e640ad0ab4fa0ec",
-      "fullPage": true
+      "bytes": 297042,
+      "sha256": "3cb624f2d6207e07235b550d23d9ecbd27e4829170e296a1ab9aae7ce73643f5",
+      "fullPage": true,
+      "themeEvidence": "Explicit saved Light preference; data-theme-preference/data-theme and computed Porcelain gradient/deep-green text asserted immediately before capture."
     },
     {
       "file": "players-320-dark-active.png",
@@ -314,9 +315,10 @@
       "nativeTestCapture": "fantasy-approved-observed--79068-arison-in-both-phone-themes/players-390-light-none.png",
       "width": 390,
       "height": 2937,
-      "bytes": 453603,
-      "sha256": "5e41954d84e515da18ae6657cc0c8efe5cde01c5de0cd5aed9090551a4784259",
-      "fullPage": true
+      "bytes": 492290,
+      "sha256": "af17f969ea23985d20d9130bf0424cb63834fa38e9bef2fb9adfe5be05c3879f",
+      "fullPage": true,
+      "themeEvidence": "Explicit saved Light preference; data-theme-preference/data-theme and computed Porcelain gradient/deep-green text asserted immediately before capture."
     },
     {
       "file": "prism-game-performance-320-dark-forced.png",
@@ -444,5 +446,88 @@
       "sha256": "de4ed227a20aaba45ef8d882d1499d9005c0f91a1fd7b51fde503898b07cefeb",
       "fullPage": true
     }
-  ]
+  ],
+  "themeCaptureCorrection": {
+    "generatedAt": "2026-11-08T01:01:44.336Z",
+    "branch": "fix/research-light-evidence-20261107",
+    "freshMain": "7aa93a6f",
+    "parentIntegration": "be6bc29e3978917be78e409896ca4f5ea5a3b531",
+    "dependencies": [
+      {
+        "original": "f93d7c6560842be78ad0bd9a15d14632bb60fd0f",
+        "local": "28ab5bde"
+      },
+      {
+        "original": "2ac6ff1c31d52cba02b8c2f41ab7258035289925",
+        "local": "07ba8e72"
+      }
+    ],
+    "status": "Checked locally; independent parent re-review pending; no push/PR/merge/deploy",
+    "defect": "Two 390px normal Light files were byte-identical to Dark. Direct data-theme writes left ThemeProvider preference Dark; media changes could restore it.",
+    "fix": "Shared test-only helper uses the existing gtl.theme storage synchronization consumed by ThemeProvider/useThemePreference; asserts saved/resolved theme and computed canvas gradient/text tokens before each affected matrix capture. Forced colors check system Canvas/CanvasText.",
+    "replacedCaptures": [
+      "players-390-light-none.png",
+      "historical-rows-390-light-none.png"
+    ],
+    "priorRejectedEntries": [
+      {
+        "file": "players-390-light-none.png",
+        "nativeTestCapture": "fantasy-approved-observed--79068-arison-in-both-phone-themes/players-390-light-none.png",
+        "width": 390,
+        "height": 2937,
+        "bytes": 453603,
+        "sha256": "5e41954d84e515da18ae6657cc0c8efe5cde01c5de0cd5aed9090551a4784259",
+        "fullPage": true
+      },
+      {
+        "file": "historical-rows-390-light-none.png",
+        "nativeTestCapture": "next-research-approved-his-44a9f-and-separated-sample-footer/historical-rows-390-light-none.png",
+        "width": 390,
+        "height": 1768,
+        "bytes": 267211,
+        "sha256": "e073ff5d2839bb4a286b5b73a1b30617d0d71e91fe5771976e640ad0ab4fa0ec",
+        "fullPage": true
+      }
+    ],
+    "preservedCaptures": 28,
+    "checks": {
+      "redRegression": "Legacy dataset-only helper failed: data-theme light / data-theme-preference dark.",
+      "actualHandlerPGliteBrowser": {
+        "passed": 3,
+        "skipped": 0,
+        "workers": 1,
+        "port": 5240,
+        "durationSeconds": 31.1,
+        "command": "node node_modules/@playwright/test/cli.js test --config .local/research-light.config.mjs tests/cloud-browser/fantasy.spec.js tests/cloud-browser/next-research.spec.js --grep 'capture theme preference survives|approved observed Players browse|approved historical rows use a full-width'",
+        "coverage": [
+          "Explicit light/dark/light preference survives opposite system media and reload; saved gtl.theme remains selected.",
+          "Players 320/390 Dark/Light normal/forced matrix; existing layout/math/missing/search/pagination/usage Back/focus/comparison assertions retained; usage/rankings captures use same helper.",
+          "Historical rows 320/390 Dark/Light normal/forced matrix; original full-width curve/footer, missing curve, real candidate expansion/evidence, overflow and axe assertions retained."
+        ]
+      },
+      "cloudTestBuild": "Passed as focused Playwright webServer prerequisite; explicit worktree cwd, isolated strict port 5240.",
+      "priorChecks": "The original 14-case/browser, component/model/typecheck evidence above is preserved historical provenance, not rerun by this correction.",
+      "brandQa": "Passed with Python UTF-8 mode",
+      "manifest": "All 30 PNG SHA-256 values, byte sizes and dimensions verified; both corrected Light hashes differ from retained Dark; other 28 captures preserved",
+      "diffWhitespace": "Passed"
+    },
+    "captureRoot": ".local/.local/research-light-results",
+    "changedHarnessFiles": [
+      {
+        "file": "tests/cloud-browser/theme-capture.mjs",
+        "bytes": 2346,
+        "sha256": "eed0f10c4d3c7b12a1044b33a9d2bd15f2b39ce5f615853edcc16f207665dd7e"
+      },
+      {
+        "file": "tests/cloud-browser/fantasy.spec.js",
+        "bytes": 32098,
+        "sha256": "8ac3058d837fe03aae466be5a19151ee4346ce70e741ba782aa843cef12a52fe"
+      },
+      {
+        "file": "tests/cloud-browser/next-research.spec.js",
+        "bytes": 55222,
+        "sha256": "79d9c91362839874a89e48a1a99abb6a7e2d6bfbed82dc95aaf8ad52aed3fc0d"
+      }
+    ]
+  }
 }

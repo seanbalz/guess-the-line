@@ -1,5 +1,18 @@
 # Guess The Line — current completion register
 
+## Research Light capture evidence correction — November 7, 2026
+
+Exclusive unpublished branch `fix/research-light-evidence-20261107` fixes the
+ThemeProvider preference/media race in the affected test matrices and replaces
+the two 390px normal Light captures that review found identical to Dark. Product
+source/layout is unchanged. **3 focused actual-handler/PGlite browser tests
+passed, zero skipped**, including opposite-system/reload theme stability; the
+cloud-test build, Brand QA, all 30 image hashes/dimensions and diff checks passed.
+The other 28 captures remain unchanged. [Exact provenance, checks and hashes](PRISM_RESEARCH_NATIVE_2026_11_07.md#light-capture-correction--november-7-2026)
+preserve the prior verification separately. Independent parent re-review,
+canonical By-season/non-shortlist data, shared frame and hosted/phone/release
+gates remain open. No push, PR, merge or deployment.
+
 ## Reviewed Research / Fantasy layout fixes — November 7, 2026
 
 Exclusive unpublished branch `codex/research-visual-fidelity-2026-11-07`

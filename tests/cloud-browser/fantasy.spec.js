@@ -8,6 +8,7 @@ import { layoutProblems } from '../helpers/phone-layout.mjs';
 import { buildRankings, DEFAULT_FILTERS } from '../../shared/fantasy-rankings.mjs';
 import { snapshotFileName, reviewFileName, updateFantasyIndex, FANTASY_REPOSITORY } from '../../shared/fantasy-index.mjs';
 import { validateFantasyReview } from '../../shared/fantasy-review.mjs';
+import { assertCaptureTheme, setCaptureTheme, themedScreenshot } from './theme-capture.mjs';
 
 // The shipped public snapshot is exercised in both apps; authentication and community reads stay local in PGlite.
 const snapshot = JSON.parse(fs.readFileSync(new URL('../../shared/fantasy/2026-week-06.json', import.meta.url), 'utf8'));
@@ -362,6 +363,23 @@ test.describe('fantasy rankings', () => {
   });
 });
 
+test('capture theme preference survives opposite system media and reload', async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Local PGlite required; no hosted data.');
+  const { world } = await open(page, baseURL, 'next');
+  try {
+    for (const theme of ['light', 'dark', 'light']) {
+      await setCaptureTheme(page, theme, { forcedColors: 'none' });
+      await page.emulateMedia({ colorScheme: theme === 'light' ? 'dark' : 'light' });
+      await assertCaptureTheme(page, theme);
+      await expect.poll(() => page.evaluate(() => localStorage.getItem('gtl.theme'))).toBe(theme);
+      await page.reload();
+      await expect(root(page, 'next')).toBeVisible();
+      await assertCaptureTheme(page, theme);
+    }
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
 test('approved observed Players browse retains actual production, usage route and comparison in both phone themes', async ({page,baseURL},info)=>{
  test.setTimeout(240000); test.skip(!pgliteAvailable,'Local PGlite required; no hosted data.');
  const {world,screen}=await open(page,baseURL,'next');
@@ -375,10 +393,9 @@ test('approved observed Players browse retains actual production, usage route an
   await first.getByRole('button',{name:`Add to compare: ${name}`,exact:true}).click();
   await expect(first.getByRole('button',{name:`Remove from compare: ${name}`,exact:true})).toHaveAttribute('aria-pressed','true');
   for(const width of [320,390]) for(const theme of ['dark','light']) for(const forcedColors of ['none','active']) {
-   await page.setViewportSize({width,height:844}); await page.emulateMedia({forcedColors,colorScheme:theme});
-   await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
+   await page.setViewportSize({width,height:844}); await setCaptureTheme(page,theme,{forcedColors});
    await layout(page,screen); await phoneRules(page,screen,`Players ${width} ${theme} ${forcedColors}`);
-   await page.screenshot({path:info.outputPath(`players-${width}-${theme}-${forcedColors}.png`),fullPage:true});
+   await themedScreenshot(page,info,`players-${width}-${theme}-${forcedColors}.png`,theme,{fullPage:true});
   }
   await page.emulateMedia({forcedColors:'none'});
   const search=browse.getByRole('searchbox',{name:'Find a player',exact:true});
@@ -395,14 +412,14 @@ test('approved observed Players browse retains actual production, usage route an
   await expect(screen.getByRole('heading',{name:'Observed production',exact:true})).toBeVisible();
   await expect(screen.getByRole('table',{name:'Usage and actual fantasy points by week',exact:true}).locator('tbody tr')).toHaveCount(snapshot.statsThroughWeek);
   for(const width of [320,390]) for(const theme of ['dark','light']) {
-   await page.setViewportSize({width,height:844}); await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
+   await page.setViewportSize({width,height:844}); await setCaptureTheme(page,theme);
    await layout(page,screen); await phoneRules(page,screen,`Usage ${width} ${theme}`);
-   await page.screenshot({path:info.outputPath(`usage-${width}-${theme}.png`),fullPage:true});
+   await themedScreenshot(page,info,`usage-${width}-${theme}.png`,theme,{fullPage:true});
   }
   await backToFantasy(screen); await expect(browse.locator('[data-observed-player]')).toHaveCount(12); await expect(opener).toBeFocused();
   await screen.getByRole('group',{name:'Fantasy browse',exact:true}).getByRole('button',{name:'Rankings',exact:true}).click();
   await expect(list(screen)).toBeVisible();
-  for(const theme of ['dark','light']) { await page.setViewportSize({width:390,height:844});await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);await layout(page,screen);await page.screenshot({path:info.outputPath(`rankings-390-${theme}.png`),fullPage:true}); }
+  for(const theme of ['dark','light']) { await page.setViewportSize({width:390,height:844});await setCaptureTheme(page,theme);await layout(page,screen);await themedScreenshot(page,info,`rankings-390-${theme}.png`,theme,{fullPage:true}); }
   expect(world.errors).toEqual([]);
  } finally {await world.db.close();}
 });
