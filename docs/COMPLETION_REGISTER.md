@@ -1,5 +1,23 @@
 # Guess The Line — current completion register
 
+## Whole-app UI/UX sweep deployed and verified — November 8, 2026 UTC
+
+[Release evidence](RELEASE_2026_11_08_UI_UX_SWEEP.md) records exact source
+`a17f2082e5e07e95179726ac948c44c55a506d1f`, merged PR #502, all twelve corrected
+PR checks and all twelve main-push checks. Protected frontend release 42514212232
+verified Pages `968d3b5d-a115-42ea-8293-ce405ef42f91` and all 132 production assets
+at 19:21:34 UTC. Home’s selected floating bottom bar matches across existing
+NFL/EPL tabs; headers/body layouts remain contextual. Guidance rows, singular
+ticket counts and fresh detail entry/Back scrolling are corrected.
+
+The [audit](UI_UX_SWEEP_2026_11_08.md) preserves both-theme/browser/viewport
+coverage, controller/fixture limits, the initial CI failure and causal fix,
+source reviews and warning noise. API v52/metadata, 76-migration history and
+tracked data/backend source hashes are unchanged. No SQL, worker or API deploy.
+Actual-phone and signed-in production acceptance are not newly inferred. M-41,
+FEPL top-header choice, parked features and frozen v62 remain held/unchanged.
+Earlier local/pending entries below are historical.
+
 ## Whole-app UI/UX sweep checked locally — November 8, 2026
 
 [D-79](DECISIONS.md) confirms Home’s floating glass bottom navigation across all

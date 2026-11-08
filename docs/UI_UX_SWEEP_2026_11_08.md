@@ -1,9 +1,11 @@
 # App UX, formatting and scrolling sweep — November 8, 2026
 
-Status: initial corrections task-reviewed; CI scroll followup checked locally; renewed review, CI and release pending.
-Production remains at the separately recorded ROI release until the protected
-frontend release succeeds. This record must be updated with actual source and
-release receipts before claiming deployment.
+**Deployed and verified** from `a17f2082e5e07e95179726ac948c44c55a506d1f`.
+[Release evidence](RELEASE_2026_11_08_UI_UX_SWEEP.md) records all twelve corrected
+PR checks, all twelve exact-main checks, source/readiness gates, protected
+frontend deployment 42514212232 and 132 production asset matches at 19:21:34 UTC.
+API v52 and migration history remain unchanged. Local/pending statements below
+record earlier investigation stages; final release evidence supersedes them.
 
 ## Authority and scope
 
