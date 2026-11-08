@@ -136,3 +136,10 @@ two affected component files passed all 28 tests. The preceding full run passed
 browser checks passed for History Bets/Older/journal privacy and the D-77 paper
 record/filters. The strict boundary test remains unchanged. Independent review
 of this adapter and exact-source whole-branch CI/release remain required.
+
+
+The parent adapter at `a0eb47bb76004e641ee95a7c635a20050c078969` subsequently
+passed independent scoped review without Critical/Important findings. Combined
+History/EPL validation passed all 90 files / 914 component tests, typecheck and
+29 focused contracts. Exact-source CI, remaining area ports and release remain
+separate from this local approval.

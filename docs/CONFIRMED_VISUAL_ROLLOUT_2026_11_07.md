@@ -133,7 +133,30 @@ The remaining areas below distinguish reviewed local implementation from release
   before that stale assertion was repaired; both affected files then passed all
   28 tests. Two controller browsers passed for Older/Bets/journal privacy and
   paper grading/filters, plus 29 model/import/token/loading contracts and type.
-  Independent adapter review and fresh whole-branch CI remain required.
+  Independent adapter review approved `a0eb47bb` without Critical/Important findings.
+  Fresh combined validation after EPL integration passed all 90 files / 914
+  component tests, typecheck and 29 focused contracts. Whole-branch CI remains.
+- Premier League/FEPL areas 35–40: source `4ffd4572` / `64e7bfd5` is
+  integrated as `8e528825` / `726e8526`. Independent re-review closed primary
+  reading/nested action labels and the expanded-reveal glyph. All 27 source,
+  ten invariant, 640 current image, 72 retained representative image, 600 archived
+  image and 132 reference hashes matched in the owned fix tree. The review
+  sampled narrow/wide/Dark/Light/forced captures; it did not inspect every image.
+  [Native evidence](PRISM_EPL_NATIVE_2026_11_07.md) distinguishes 410 refreshed
+  and 230 retained captures, 24 passing browser cases and one focused reveal
+  check. Parent integration's native moneyline recovery/leaderboard browser
+  passed, preserving entry pauses and reference semantics. No hosted/phone or
+  remaining rollout deployment is claimed.
+- CI on earlier `3a9a9cff` passed Tests, Brand QA, dashboard, Persona and browser
+  shards 1/4 and 4/4; shards 2/4 and 3/4 found two remaining visual defects. Both
+  reproduced locally and their original browser cases now pass: the Games loader
+  uses 368px to match the shorter ready card, and the existing own-pick row wraps
+  the Late badge/chevron before shrinking its primary text below a readable width.
+  A diagnostic showed a 36.84px title box at 320px before this scoped row repair.
+  No text, font or assertion was removed. Affected 23 component checks, 27 strict
+  import/token/loading checks and typecheck pass. Independent review of these
+  last two parent repairs and fresh exact-source CI remain required. Temporary
+  regenerated action captures were restored to preserve their reviewed hashes.
 - Tracked bet stakes support smaller custom values without backend changes.
   Virtual Units still has positive-half-unit enforcement in both API and SQL;
   its approved finer entry requires a separately reviewed compatibility change
@@ -500,42 +523,42 @@ reference math/data only and must not enter the production bundle.
 
 ### 35. EPL manager linking
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Premier League/FEPL native evidence](PRISM_EPL_NATIVE_2026_11_07.md); shared frame and release gates remain separate.
 - Reference: `populated-epl-claim; isolated-epl-claim.jsx; eplManagerPreview`.
 - Native targets: `epl/ClaimCard.jsx`.
 - Required presentation and behavior: Choose/watching/linked/taken/already-linked/failed/uncertain/busy/no-managers; preserve first-claim concurrency, identity/grants and session watching.
 
 ### 36. EPL Home and recovery
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Premier League/FEPL native evidence](PRISM_EPL_NATIVE_2026_11_07.md); shared frame and release gates remain separate.
 - Reference: `populated-epl-home; isolated-epl-home.jsx; eplHomeRecoveryPreview`.
 - Native targets: `epl/EplHome.jsx, PickATeam.jsx; epl/guess/HomeMoneylineProgress.jsx`.
 - Required presentation and behavior: Turn/picked/unlinked/all-in/locked/progress-failed/loading/failed/forbidden/off/no-week/stale/review and source popup; real clock/turn and independent progress recovery.
 
 ### 37. EPL draft, confirmation and backups
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Premier League/FEPL native evidence](PRISM_EPL_NATIVE_2026_11_07.md); shared frame and release gates remain separate.
 - Reference: `populated-epl; isolated-epl-queue.jsx; eplDraftPreview`.
 - Native targets: `epl/DraftBoard.jsx, PickATeam.jsx, QueueSheet.jsx, MarginChart.jsx`.
 - Required presentation and behavior: Can-pick/waiting/closed, confirmation/latest pick change, ranking move/add/remove, skip taken clubs, first available ranked club and tied margin bonus presentation.
 
 ### 38. EPL Moneyline
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Premier League/FEPL native evidence](PRISM_EPL_NATIVE_2026_11_07.md); shared frame and release gates remain separate.
 - Reference: `populated-epl-moneyline; isolated-epl-moneyline.jsx; eplMoneylinePreview`.
 - Native targets: `epl/guess/EplGuess.jsx, GuessCard.jsx, PriceStepper.jsx, DistanceLine.jsx, EplGuessLeaderboard.jsx`.
 - Required presentation and behavior: Entry/saved draft/results/closed/uncertain/stale/busy/read-only/unavailable/loading/failed; leaderboard/empty/loading/failed and expanded reveal. Actual quote/save/lock/privacy rules.
 
 ### 39. FEPL Fantasy
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Premier League/FEPL native evidence](PRISM_EPL_NATIVE_2026_11_07.md); shared frame and release gates remain separate.
 - Reference: `populated-epl-fantasy; isolated-epl-fantasy.jsx; eplFantasyPreview`.
 - Native targets: `epl/fantasy/EplFantasy.jsx, Matchup.jsx, Standings.jsx, Rosters.jsx, Insights.jsx, WeeklyLine.jsx`.
 - Required presentation and behavior: Matchup/standings/rosters/insights/no-repeat/ambiguous/no-team/matchup gaps/standing missing/insight gaps/no detail/loading/failed/forbidden/off/no-data, expanded standing and source/estimate Info.
 
 ### 40. EPL shell
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Premier League/FEPL native evidence](PRISM_EPL_NATIVE_2026_11_07.md); shared frame and release gates remain separate.
 - Reference: `EPL_SHELL_REVIEW.md; populated-epl-shell; isolated-epl-shell.jsx`.
 - Native targets: `epl/EplShell.jsx, EplApp.jsx`.
 - Required presentation and behavior: FEPL league sheet, History unavailable/NFL handoff, Bets unavailable and Info. Preserve existing availability; no new EPL history/betting feature.

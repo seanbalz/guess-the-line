@@ -32,6 +32,9 @@
 .gx-l-ylab { flex: none; min-width: 56px; }
 .gx-l-ysub { display: flex; align-items: flex-start; gap: 4px; }
 .gx-l-ysub .gx-ic { margin-top: 3px; color: var(--gx-text-3); }
+/* Keep the saved guess readable before the late badge/chevron wrap below it. */
+.gx .gx-l-your-row { flex-wrap: wrap; }
+.gx .gx-l-your-row .gx-row-main { min-width: 100px; }
 .gx-l-tcard { display: flex; flex-direction: column; gap: 8px; }
 .gx-l-thead { display: flex; align-items: center; gap: 8px; }
 .gx-l-thead .gx-ic { color: var(--gx-text-3); }
@@ -93,7 +96,7 @@
 .gx .gx-game-days [aria-pressed=true], .gx .gx-game-team-choice [aria-pressed=true] { border-color: var(--gx-data); color: var(--gx-data); background: var(--gx-data-tint); }
 @media (forced-colors: active) { .gx .gx-game-track > span { background: Highlight; } .gx .gx-game-days [aria-pressed=true], .gx .gx-game-team-choice [aria-pressed=true] { outline: 2px solid Highlight; } }
 
-.gx .gx-l-skel .gx-skel-card { min-height: 375px; }
+.gx .gx-l-skel .gx-skel-card { min-height: 368px; }
 .gx .gx-games-board { overflow-anchor: none; }
 .gx .gx-game-actions > button { white-space: normal; height: auto; }
 .gx .gx-game-quote { flex-wrap: wrap; }

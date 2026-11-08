@@ -25,6 +25,7 @@ function YouRows({ rows, onOpen }) {
         {rows.map(row => (
           <Row
             key={row.market}
+            className="gx-l-your-row"
             onClick={onOpen ? () => onOpen(row.market) : undefined}
             chevron={Boolean(onOpen)}
             aria-label={onOpen ? `Open your ${row.label} pick. ${row.main}. ${row.sub}${row.late ? `. ${row.late}` : ''}` : undefined}

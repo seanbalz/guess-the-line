@@ -1,5 +1,18 @@
 # Guess The Line — current completion register
 
+## Reviewed EPL integration and final browser layout repairs — November 7, 2026
+
+Premier League/FEPL source `4ffd4572` / `64e7bfd5` is integrated as `8e528825` /
+`726e8526` after independent re-review closed reading/glyph findings. The parent
+History adapter `a0eb47bb` is also independently approved. Combined local source
+passes 90 files / 914 component tests, typecheck and 29 focused Node contracts;
+native moneyline recovery/leaderboard browser passed. [The rollout ledger](CONFIRMED_VISUAL_ROLLOUT_2026_11_07.md)
+records source/capture provenance and the actual retained/refreshed split.
+Earlier CI's two remaining layout defects reproduced locally and both original
+cases now pass after scoped loader-height and saved-pick row-width repairs.
+Their independent review/fresh CI and Commissioner/identity/unit compatibility/
+owner frame decision/release work remain open. No remaining rollout deployment.
+
 ## Integrated reviewed History and paper-gap scorecards — November 7, 2026
 
 Source `c8a4f8ef` / `7426e705` / `115af6b6` is integrated as `df487a79` /
