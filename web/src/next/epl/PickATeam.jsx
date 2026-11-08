@@ -5,7 +5,7 @@
 // off, a 401) shows its sentence and never the board. Every signed-in account reads the board (EPL open access); one not
 // linked to a manager sees it read-only, under the claim card (ClaimCard.jsx).
 import { useEffect, useId, useRef, useState } from 'react';
-import { Button, Card, Skeleton, Toast, InfoButton } from '../ui/index.js';
+import { Button, Card, Icon, Skeleton, Toast, InfoButton } from '../ui/index.js';
 import { Crest, CrestGrid, DraftBoard } from './DraftBoard.jsx';
 import { MarginChart } from './MarginChart.jsx';
 import { QueueSheet } from './QueueSheet.jsx';
@@ -17,10 +17,11 @@ import { useEplDraft } from './useEplDraft.js';
 /** The failed or loading read, or null when there is a board to draw. */
 export function DraftReadState({ state, model, onRetry }) {
   if (model) return null;
-  if (!state || state.status === 'loading') return <Skeleton label={PICK_COPY.loading} shape="panels" count={2}/>;
+  if (!state || state.status === 'loading') return <section className="gx-epl-read-state"><Icon icon="clock" size={32}/><Skeleton label={PICK_COPY.loading} shape="panels" count={2}/></section>;
   const problem = readProblem(state.error);
   const retry = problem === PICK_COPY.failed;
-  return <section className="gx-empty">
+  return <section className="gx-empty gx-epl-read-state">
+    <Icon icon="alert" size={32}/>
     <p className="gx-t-body">{problem}</p>
     {retry && onRetry ? <Button variant="secondary" onClick={onRetry}>{PICK_COPY.retry}</Button> : null}
   </section>;
@@ -51,6 +52,12 @@ export function PickATeamView({ model, state, selected, busy, notice, onSelect, 
   return <div className="gx-epl-pick">
     {state?.stale ? <p className="gx-t-meta gx-c-2">{PICK_COPY.stale}</p> : null}
     {claim}
+    {model.myClub ? <Card as="section" className="gx-epl-confirm" aria-label={model.backupPick ? PICK_COPY.backupConfirmed : "Your pick"}>
+      <Crest code={model.myClub.code} size="lg"/>
+      <h2 className="gx-t-section">{model.myClub.name}</h2>
+      <p className="gx-t-body">{model.backupPick ? PICK_COPY.backupAssigned(model.backupPick.name) : PICK_COPY.picked(model.myClub.name)}</p>
+      <p className="gx-t-meta">{model.canPick ? "You can change until the next manager picks or the draft closes." : "Your club is final."}</p>
+    </Card> : null}
     <Card as="section" variant="hero" className="gx-epl-hero" aria-labelledby={heroId}>
       <h2 className="gx-t-micro gx-epl-kicker" id={heroId}>{PICK_COPY.draftLabel(model.week)}</h2>
       <DraftBoard model={model}/>
@@ -60,19 +67,14 @@ export function PickATeamView({ model, state, selected, busy, notice, onSelect, 
         <StandingsSource source={model.standingsSource}/>
       </div>
     </Card>
-    {model.backupPick ? <Card as="section" aria-label={PICK_COPY.backupConfirmed}>
-      <Crest code={model.backupPick.club}/>
-      <h2 className="gx-t-section">{PICK_COPY.backupConfirmed}</h2>
-      <p className="gx-t-body">{PICK_COPY.backupAssigned(model.backupPick.name)}</p>
-    </Card> : null}
     {notice ? <Toast text={notice.text} tone={notice.tone} onDismiss={onDismissNotice} className="gx-epl-toast"/> : null}
-    {model.available.length && !model.locked ? <Card as="section" aria-labelledby={availId}>
+    {model.available.length && !model.locked ? <Card as="section" className="gx-epl-pool" aria-labelledby={availId}>
       <h2 className="gx-t-micro gx-c-2" id={availId}>{PICK_COPY.available}</h2>
       <CrestGrid model={model} selected={selected} onSelect={onSelect} busy={busy}/>
       {model.canPick || model.me === null ? null : <p className="gx-t-meta gx-c-2">{PICK_COPY.notYourTurn}</p>}
     </Card> : null}
     {model.queue !== null ? <Button variant="secondary" block disabled={model.locked || busy} onClick={onQueue}>{PICK_COPY.queue}</Button> : null}
-    <Card as="section" aria-labelledby={bonusId}>
+    <Card as="section" className="gx-epl-bonus" aria-labelledby={bonusId}>
       <h2 className="gx-t-micro gx-c-2" id={bonusId}>{PICK_COPY.bonusTitle}</h2>
       <MarginChart bonus={model.bonus} review={model.review} clubName={model.clubName}/>
     </Card>

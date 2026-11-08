@@ -5,6 +5,8 @@ import { eplApi } from '../api.js';
 import { createGuessController, guessProblem, isClosed, ownGuess } from './guessModel.js';
 import GuessCard from './GuessCard.jsx';
 import './guess.css';
+import { Crest } from '../DraftBoard.jsx';
+import { clubName } from '../clubName.js';
 
 export function GuessList({ state, now, selected, onSelect, onEdit, onSave, onReload, onWeek, onNavigate, guardNavigation = true, id = 'epl-guess' }) {
   const data = state.data;
@@ -26,7 +28,7 @@ export function GuessList({ state, now, selected, onSelect, onEdit, onSave, onRe
     {hero && data.available && data.ownerId ? <GuessCard key={hero.eventId} id={`${id}-hero`} hero fixture={hero} data={data} saved={ownGuess(data, hero.eventId)} now={now}
       draft={{ club: ownGuess(data, hero.eventId)?.club ?? '', price: String(ownGuess(data, hero.eventId)?.price ?? '+100'), ...state.drafts[hero.eventId] }}
       busy={state.busy || state.uncertain || state.status !== 'ready'} pending={state.busy} onEdit={patch => onEdit(hero.eventId, patch)} onSave={lock => onSave(hero.eventId, lock)}/> : null}
-    {open.length > 1 && data.available && data.ownerId ? <Card><h3 className="gx-t-section">Other matches</h3><ul className="gx-epl-guess-later">{open.filter(f => f !== hero).map(f => <li key={f.eventId}><Button block disabled={state.busy || state.uncertain} onClick={() => onSelect(f.eventId)}>{f.away} at {f.home}{state.drafts[f.eventId] ? ' · unsaved draft' : ownGuess(data, f.eventId) ? ' · draft saved' : ''}</Button></li>)}</ul></Card> : null}
+    {open.length > 1 && data.available && data.ownerId ? <Card><h3 className="gx-t-section">Other matches</h3><ul className="gx-epl-guess-later">{open.filter(f => f !== hero).map(f => <li key={f.eventId}><Button block disabled={state.busy || state.uncertain} onClick={() => onSelect(f.eventId)}><span className="gx-epl-next-match"><Crest code={f.away}/><span>{clubName(f.away)}<small>at {clubName(f.home)}</small></span><Crest code={f.home}/></span>{state.drafts[f.eventId] ? ' · unsaved draft' : ownGuess(data, f.eventId) ? ' · draft saved' : ''}</Button></li>)}</ul></Card> : null}
     {ordered.filter(f => f !== hero || !data.available || !data.ownerId).filter(f => !data.ownerId || !data.available || ownGuess(data, f.eventId)?.status === 'locked' || isClosed(f, now)).map((f, index) => <GuessCard key={f.eventId} id={`${id}-result-${index}`} fixture={f} data={data} now={now} saved={ownGuess(data, f.eventId)} draft={{ ...state.drafts[f.eventId], local: Boolean(state.drafts[f.eventId]) }}/>) }
     {!ordered.length ? <p className="gx-t-body">No fixtures are available for this matchweek.</p> : null}
     {onNavigate ? <Button variant="ghost" disabled={state.busy || state.uncertain} onClick={() => { if (!guardNavigation || !Object.keys(state.drafts).length || window.confirm('Leave without saving your changes?')) onNavigate({ tab: 'play', section: 'leaderboard' }); }}>Moneyline leaderboard</Button> : null}

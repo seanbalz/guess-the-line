@@ -18,11 +18,11 @@ function EplMenu(props) {
 function EplLeagues() {
   const shell = useShell();
   return <Sheet title="Your leagues" onClose={shell.closeSheet}>
-    <Card variant="flush"><List label="Leagues">
+    <Card variant="flush" className="gx-epl-leagues"><List label="Leagues">
       <Row size={64} start={<Avatar id="fepl" name="FEPL" size={40}/>} title="FEPL" sub="Premier League"
         end={<Icon icon="check" size={20} className="gx-c-accent"/>} aria-current="true" onClick={shell.closeSheet}/>
     </List></Card>
-    <p className="gx-t-meta">Pick a Team and Fantasy use FEPL. Your NFL leagues remain available when you switch to NFL.</p>
+    <p className="gx-t-meta">Pick a Team and Fantasy use FEPL. Your leagues from the National Football League remain available when you switch sports.</p>
   </Sheet>;
 }
 function EplHistory() {
@@ -30,8 +30,8 @@ function EplHistory() {
   return <div className="gx-screen" data-page="history">
     <Button variant="ghost" onClick={shell.closePage}><Icon icon="chevronLeft" size={20}/>Back</Button>
     <h1 className="gx-t-title">History</h1>
-    <section className="gx-empty"><p className="gx-t-body">EPL history is not available here yet. Your saved picks and records are kept.</p></section>
-    <Button onClick={() => navigateSport('#history')}>View NFL history</Button>
+    <section className="gx-empty gx-epl-shell-notice"><Icon icon="clock" size={32} aria-hidden="true"/><p className="gx-t-body">Premier League history is not available here yet. Your saved picks and records are kept.</p></section>
+    <Button onClick={() => navigateSport('#history')}>View National Football League history</Button>
   </div>;
 }
 export const EPL_SHELL = Object.freeze({

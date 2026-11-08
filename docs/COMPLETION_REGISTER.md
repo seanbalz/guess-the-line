@@ -92,6 +92,19 @@ retain the prior reviewed fixes and metadata floors. Typecheck, unchanged token
 and auth-bridge contracts, Brand QA, cloud build and bundle privacy pass. Parent
 independent review, CI and release gates remain open; no push, PR or deployment.
 
+## Premier League and FEPL native Prism — November 7, 2026
+
+Exclusive unpublished branch `codex/prism-epl-visuals-20261107` carries the
+approved area 35–40 native layouts: manager linking, Home/recovery, draft and
+ordered backups, Moneyline, FEPL Fantasy and existing shell notices. Full names,
+individual circular crests, 16px primary reading, 44px targets and actual-theme
+capture guards are implemented without changing controllers/scoring/provider
+logic. [Exact scope, authority and check runs](PRISM_EPL_NATIVE_2026_11_07.md) and
+[600-image state/reference/hash mapping](../design/prism-epl-native-2026-11-07/evidence.json)
+record local evidence; 56 representative images are versioned. Parent independent
+review, shared global-frame clarification, physical-device/hosted acceptance and
+release gates remain open. No push, PR, merge, migration or deployment.
+
 ## Research Light capture evidence correction — November 7, 2026
 
 Exclusive unpublished branch `fix/research-light-evidence-20261107` fixes the
