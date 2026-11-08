@@ -5,6 +5,7 @@ import { AccountSheet } from './AccountSheet.jsx';
 // own keys (`gtl.theme`, and the motion choice in `gtl.dashboard.preferences.v1`), so the two apps always agree.
 // Pick reminders (Board i39) opens the same way, with this device's push switch; its row shows only while the server can
 // send pushes (the shell's `pushConfigured`, from the Community read's stage 2 push guard).
+import { Activity, BookOpen, ChartNoAxesCombined, CloudSun, Coins, Database, History, Info, Settings2, Shield, SlidersHorizontal, Target, Ticket, Users } from 'lucide-react';
 import { lazy, Suspense, useState } from 'react';
 import { Avatar, Button, Card, Icon, DESTINATION_ICONS as ICON, LinkRow, List, Skeleton } from '../ui/index.js';
 import { useShell } from '../shell/context.js';
@@ -40,13 +41,15 @@ export const MENU_COPY = Object.freeze({
   notSaved: 'This browser isn’t saving settings, so this lasts until you close the page.',
 });
 
+const TOPIC_ICONS = { trends: ChartNoAxesCombined, gameBets: Users, yourPick: Target, guessPicks: Users, marketLines: Activity, research: BookOpen, researchData: Database, trackedBets: Ticket, recommended: SlidersHorizontal, virtual: Coins, everyone: Users, scores: Target, weather: CloudSun, points: ChartNoAxesCombined, history: History, trendBuilder: Settings2, teamRecords: Shield };
+
 /** D-55: every ⓘ topic in one list, with its sources and licenses. */
 function Guidance() {
   return GUIDANCE_ORDER.map(key => {
     const topic = INFO[key];
     return (
       <details key={key} className="gx-guidance-topic" data-guidance={key}>
-        <summary><span className="gx-account-icon"><Icon icon="info"/></span><span>{topic.title.replace(/^About /, '').replace(/^./, c => c.toUpperCase())}</span><Icon icon="chevronDown" size={20}/></summary>
+        <summary><span className="gx-account-icon"><Icon icon={TOPIC_ICONS[key] ?? Info}/></span><span>{topic.title.replace(/^About /, '').replace(/^./, c => c.toUpperCase())}{topic.links?.length ? <small>Sources included</small> : null}</span><Icon icon="chevronDown" size={20}/></summary>
         <div className="gx-guidance-body">{topic.body.map(text => <p key={text}>{text}</p>)}
         {(topic.links ?? []).map(link => <a key={link.url + link.text} href={link.url} target="_blank" rel="noreferrer">{link.text}</a>)}</div>
       </details>

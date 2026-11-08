@@ -5,6 +5,7 @@ import { randomUUID } from 'node:crypto';
 import { HOSTED } from '../migrations.mjs';
 import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 import { INFO, GUIDANCE_ORDER } from '../../web/src/next/info.js';
+import { assertCaptureTheme, setCaptureTheme } from './theme-capture.mjs';
 import { layoutProblems } from '../helpers/phone-layout.mjs';
 
 test.use({ viewport: { width: 390, height: 844 } });
@@ -28,9 +29,35 @@ async function inspect(page, name, testInfo) {
   const layer = await page.locator('dialog[open]').count() ? page.locator('dialog[open]').last() : page.locator('.gx-sheet:visible').last();
   const scope = await layer.count() ? layer : page.locator('main').last();
   for (const theme of ['dark','light']) {
-    await page.evaluate(value => document.documentElement.dataset.theme = value,theme);
+    await setCaptureTheme(page,theme);
+    const system = name === 'appearance-system-reduced';
+    if (system) await scope.getByRole('group',{name:'Theme',exact:true}).getByRole('button',{name:'System',exact:true}).click();
+    await assertCaptureTheme(page,theme,{preference:system?'system':theme});
+    const selector=page.getByRole('combobox',{name:'Color theme',exact:true});
+    if(await selector.count()) await expect(selector).toHaveValue(theme);
+    if(await scope.locator('.gx-appearance-mini').count()) {
+      await expect(scope.getByRole('group',{name:'Theme',exact:true}).getByRole('button',{name:system?'System':theme==='light'?'Light':'Dark',exact:true})).toHaveAttribute('aria-pressed','true');
+      await expect(scope.locator('.gx-appearance-mini')).toHaveAttribute('data-theme',theme);
+      await expect(scope.locator('.gx-appearance-mini header > span:last-child')).toHaveText(theme==='light'?'Porcelain':'Dark');
+      await expect(scope.getByRole('status')).toHaveText(system?`System → ${theme==='light'?'Light':'Dark'}`:`${theme==='light'?'Light':'Dark'} selected`);
+    }
+    for(const list of await page.locator('.gx-account-menu:visible .gx-list,.gx-switcher-prism:visible .gx-list').all()) await expect(list).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
+    for(const [selector,token] of [['.auth-oauth .auth-google','--gx-text-1'],['.auth-card > .empty-icon','--gx-accent-ink']]) {
+      const target=page.locator(selector);
+      if(await target.count()) expect(await target.evaluate((el,token)=>{const probe=document.createElement('span');probe.style.color=`var(${token})`;el.append(probe);const result=getComputedStyle(el).color===getComputedStyle(probe).color;probe.remove();return result;},token),`${name} ${selector} uses ${token}`).toBe(true);
+    }
+    const authCard=page.locator('.gx-access-prism .auth-card');
+    if(await authCard.count()) {
+      await expect(authCard.locator('h1')).toHaveCSS('margin-bottom','0px');
+      for(const button of await authCard.locator('button:visible').all()) await expect(button).toHaveCSS('font-size','16px');
+      await expect(authCard.locator('.empty-icon')).toHaveCSS('margin-bottom','0px');
+      for(const primary of await authCard.locator('.auth-form .primary').all()) await expect(primary).toHaveCSS('min-height','52px');
+      await expect(authCard.locator('.theme-selector')).toHaveCSS('border-top-width','1px');
+    }
+    const google=page.locator('.auth-oauth .auth-google');
+    if(await google.count()) expect(await google.evaluate(el=>{const probe=document.createElement('span');probe.style.background='var(--gx-card-face)';el.append(probe);const actual=getComputedStyle(el),expected=getComputedStyle(probe);const result=actual.backgroundImage===expected.backgroundImage&&actual.backgroundColor===expected.backgroundColor;probe.remove();return result;}),'Google uses selected glass').toBe(true);
     for (const brand of await page.locator('.gx-access-brand:visible').all()) expect(await brand.locator('img:visible').count(),`${name} ${theme} shows exactly one G`).toBe(1);
-    for (const width of [390,320]) {
+    for (const width of [390,320,...(['account','profile-draft','settings','guidance','appearance','export','league-switcher','league-create','league-invite','app-invite','access-sign-in','access-reset','name-step','session-expired','startup','league-access-pending'].includes(name)?[768,1440]:[])]) {
       await page.setViewportSize({width,height:844});
       for (const position of ['start','middle','end']) {
         await scope.evaluate((el,position) => { const scroller = el.querySelector('.gx-sheet-body') || (el.matches('dialog') ? el : document.scrollingElement); scroller.scrollTop = position === 'start' ? 0 : position === 'middle' ? scroller.scrollHeight / 2 : scroller.scrollHeight; },position);
@@ -39,11 +66,13 @@ async function inspect(page, name, testInfo) {
       }
       const badTargets = await scope.evaluate(root => [...root.querySelectorAll('button,a[href],input,select,textarea,summary')].filter(el => el.getClientRects().length && !el.closest('[hidden],[inert],dialog:not([open])')).map(el => ({name:el.getAttribute('aria-label')||el.textContent,rect:el.getBoundingClientRect()})).filter(({rect})=>rect.width<43.5||rect.height<43.5).map(({name})=>name));
       expect(badTargets,`${name} target sizes`).toEqual([]);
+      await assertCaptureTheme(page,theme,{preference:system?'system':theme});
       await page.screenshot({path:testInfo.outputPath(`${name}-${theme}-${width}-bottom.png`)});
     }
     expect((await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze()).violations).toEqual([]);
     await page.setViewportSize({width:390,height:1800});
     await scope.evaluate(el => { const body=el.querySelector('.gx-sheet-body');if(body)body.scrollTop=0;else scrollTo(0,0); });
+    await assertCaptureTheme(page,theme,{preference:system?'system':theme});
     await page.screenshot({path:testInfo.outputPath(`${name}-${theme}-390-full.png`),fullPage:true});
   }
   await page.setViewportSize({width:320,height:844});
@@ -86,7 +115,10 @@ test('native Account cards, guidance, preferences, theme, export and public shar
     await sheet(page,'Menu').getByRole('button',{name:'Guidance and sources',exact:true}).click();
     const guidance=sheet(page,'Guidance and sources');expect(await guidance.locator('details').count()).toBe(GUIDANCE_ORDER.length);
     for (const key of GUIDANCE_ORDER) {
-      const topic=guidance.locator(`[data-guidance="${key}"]`);await topic.locator('summary').click();
+      const topic=guidance.locator(`[data-guidance="${key}"]`);
+      await expect(topic.locator('summary small')).toHaveCount(INFO[key].links?.length?1:0);
+      if(INFO[key].links?.length) await expect(topic.locator('summary small')).toHaveText('Sources included');
+      await topic.locator('summary').click();
       expect(await topic.locator('.gx-guidance-body p').allTextContents()).toEqual(INFO[key].body);
       expect(await topic.locator('.gx-guidance-body a').evaluateAll(links=>links.map(a=>({text:a.textContent,url:a.href})))).toEqual(INFO[key].links||[]);
       await topic.locator('summary').click();
@@ -255,5 +287,37 @@ test('native password recovery validates a mismatch before changing the password
   await expect(page.getByRole('heading',{name:'Choose a new password.',exact:true})).toBeVisible();await page.getByLabel('New password',{exact:true}).fill('new-example-password');await page.getByLabel('Confirm new password',{exact:true}).fill('different-example');
   await inspect(page,'access-reset',testInfo);await page.getByRole('button',{name:'Save new password',exact:true}).click();await expect(page.getByRole('alert')).toContainText('The passwords do not match.');expect(changes).toEqual([]);await inspect(page,'access-reset-mismatch',testInfo);
   await page.getByLabel('Confirm new password',{exact:true}).fill('new-example-password');await page.getByRole('button',{name:'Save new password',exact:true}).click();await expect(page.getByRole('button',{name:'Your menu',exact:true})).toBeVisible();expect(changes).toHaveLength(1);expect(changes[0]).toMatchObject({password:'new-example-password',code_challenge:null,code_challenge_method:null});expect(world.errors).toEqual([]);
+ } finally {await world.db.close();}
+});
+
+
+test('Account theme controls retain explicit choices across opposite OS schemes, rapid changes and reload',async ({page,baseURL})=>{
+ const world=await communityWorld(page,baseURL,{migrations:HOSTED});
+ try {
+  await page.goto('/');
+  for(const theme of ['light','dark']) {
+   await page.getByRole('combobox',{name:'Color theme',exact:true}).selectOption(theme);
+   await page.emulateMedia({colorScheme:theme==='light'?'dark':'light'});
+   await assertCaptureTheme(page,theme);
+   await expect(page.getByRole('combobox',{name:'Color theme',exact:true})).toHaveValue(theme);
+   await page.reload();await expect(page.getByRole('combobox',{name:'Color theme',exact:true})).toHaveValue(theme);
+   await assertCaptureTheme(page,theme);
+  }
+  await signIn(page,'luke',{navigate:false});await menu(page);
+  await sheet(page,'Menu').getByRole('button',{name:'Appearance',exact:true}).click();
+  const appearance=sheet(page,'Appearance'), choices=appearance.getByRole('group',{name:'Theme',exact:true});
+  await choices.getByRole('button',{name:'Light',exact:true}).focus();await page.keyboard.press('Space');
+  await assertCaptureTheme(page,'light');await expect(choices.getByRole('button',{name:'Light',exact:true})).toBeFocused();
+  await page.evaluate(()=>{for(const value of ['dark','light','dark','light']) {localStorage.setItem('gtl.theme',value);window.dispatchEvent(new StorageEvent('storage',{key:'gtl.theme',newValue:value}));}});
+  await assertCaptureTheme(page,'light');await expect(choices.getByRole('button',{name:'Light',exact:true})).toHaveAttribute('aria-pressed','true');
+  await choices.getByRole('button',{name:'System',exact:true}).click();
+  for(const theme of ['dark','light']) {await page.emulateMedia({colorScheme:theme});await assertCaptureTheme(page,theme,{preference:'system'});await expect(appearance.locator('.gx-appearance-mini')).toHaveAttribute('data-theme',theme);await expect(choices.getByRole('button',{name:'System',exact:true})).toHaveAttribute('aria-pressed','true');}
+  await appearance.getByRole('button',{name:'Menu',exact:true}).click();await sheet(page,'Menu').getByRole('button',{name:'Guidance and sources',exact:true}).click();
+  const topic=sheet(page,'Guidance and sources').locator('[data-guidance="points"]');
+  await topic.locator('summary').focus();await page.keyboard.press('Enter');await expect(topic).toHaveAttribute('open','');
+  await page.keyboard.press('Space');await expect(topic).not.toHaveAttribute('open','');
+  await expect(topic.locator('.gx-account-icon svg')).toHaveClass(/lucide-chart-no-axes-combined/);
+  await expect(sheet(page,'Guidance and sources').locator('[data-guidance="weather"] .gx-account-icon svg')).toHaveClass(/lucide-cloud-sun/);
+  expect(world.errors).toEqual([]);
  } finally {await world.db.close();}
 });

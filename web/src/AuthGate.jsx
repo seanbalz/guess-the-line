@@ -137,37 +137,37 @@ export default function AuthGate({ children }) {
   if (session && !configurationError && !recovering) return children({ session, onSignOut: signOut });
   return <main className="gx auth-page gx-access-prism" id="main">
     <div className="gx-access-brand"><PrismBrand/><strong>Guess the Line</strong><span>YOUR GAME. EVERY WEEK.</span></div>
-    <section className="panel auth-card" aria-labelledby="auth-title">
-      <span className="empty-icon"><LockKeyhole size={25}/></span>
+    <section className="panel auth-card gx-auth-card" aria-labelledby="auth-title">
+      <span className="empty-icon gx-auth-empty-icon"><LockKeyhole size={25}/></span>
       <h1 id="auth-title">{configurationError ? 'Online setup needs attention.' : confirming ? 'Check your email.' : recovering ? 'Choose a new password.' : forgotten ? 'Get back in the game.' : creating ? 'Start your next rivalry.' : 'Your games. Any device.'}</h1>
       {/* Persona audit #33: one line that says what the game is, on the sign-in and create-account screens only. */}
-      {!configurationError && !confirming && !recovering && !forgotten && <p className="auth-pitch">Guess every National Football League game’s spread and total each week. Closest to the number scores. No real-money wagers.</p>}
-      <p className="auth-intro">{configurationError ? 'Your games are unavailable until the app configuration is complete.' : confirming ? 'Confirm your account, then return to sign in.' : recovering ? 'Save a new password for your game account.' : forgotten ? 'Request a password reset link for your game account.' : creating ? 'Create your own account. Start a game and invite your friends.' : 'Sign in to open your games, invitations and saved picks.'}</p>
-      {configurationError ? <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{configurationError}</span></div>
-        : loading ? <div className="auth-loading" role="status"><LoaderCircle className="spin" size={20}/>Checking your sign-in…</div>
+      {!configurationError && !confirming && !recovering && !forgotten && <p className="auth-pitch gx-auth-pitch">Guess every National Football League game’s spread and total each week. Closest to the number scores. No real-money wagers.</p>}
+      <p className="auth-intro gx-auth-intro">{configurationError ? 'Your games are unavailable until the app configuration is complete.' : confirming ? 'Confirm your account, then return to sign in.' : recovering ? 'Save a new password for your game account.' : forgotten ? 'Request a password reset link for your game account.' : creating ? 'Create your own account. Start a game and invite your friends.' : 'Sign in to open your games, invitations and saved picks.'}</p>
+      {configurationError ? <div className="error-banner gx-auth-error-banner" role="alert"><TriangleAlert size={18}/><span>{configurationError}</span></div>
+        : loading ? <div className="auth-loading gx-auth-loading" role="status"><LoaderCircle className="spin" size={20}/>Checking your sign-in…</div>
         : <>
-          {!!pendingInvitation() && <p className="auth-notice">Your invitation is saved in this tab. Use the Google account or email address that was invited, then accept after signing in.</p>}
-          {!confirming && !forgotten && !recovering && <div className="auth-tabs" aria-label="Account access"><button type="button" aria-pressed={!creating} onClick={() => changeScreen(false)} disabled={busy}>Sign in</button><button type="button" aria-pressed={creating} onClick={() => changeScreen(true)} disabled={busy}>Create account</button></div>}
-          {error && <div className="error-banner" role="alert"><TriangleAlert size={18}/><span>{error}</span></div>}
-          {notice && (confirming ? <div className="auth-mail-card" role="status"><MailCheck size={32} aria-hidden="true"/><strong>{email}</strong><p>{notice}</p></div> : <p className="auth-notice" role="status">{notice}</p>)}
-          {confirming && <><button type="button" className="primary" onClick={() => changeScreen(false)} disabled={busy}>Return to sign in</button><button type="button" className="auth-switch" onClick={resendConfirmation} disabled={busy || resendCooldown > 0}>{resendCooldown ? `Resend available in ${resendCooldown}s` : 'Resend confirmation email'}</button></>}
-          {!confirming && !forgotten && !recovering && <div className="auth-oauth">
-            <button type="button" className="secondary auth-google" onClick={continueWithGoogle} disabled={busy} aria-describedby="auth-oauth-help">{redirecting ? <><LoaderCircle className="spin" size={18} aria-hidden="true"/>Opening Google…</> : <><LogIn size={18} aria-hidden="true"/>Continue with Google</>}</button>
-            <p className="auth-help" id="auth-oauth-help">{creating ? 'New players can create an account with Google in one step.' : 'Signs in to the same account as an email sign-in with the same verified address.'}</p>
-            <p className="auth-divider"><span>or use email</span></p>
+          {!!pendingInvitation() && <p className="auth-notice gx-auth-notice">Your invitation is saved in this tab. Use the Google account or email address that was invited, then accept after signing in.</p>}
+          {!confirming && !forgotten && !recovering && <div className="auth-tabs gx-auth-tabs" aria-label="Account access"><button type="button" aria-pressed={!creating} onClick={() => changeScreen(false)} disabled={busy}>Sign in</button><button type="button" aria-pressed={creating} onClick={() => changeScreen(true)} disabled={busy}>Create account</button></div>}
+          {error && <div className="error-banner gx-auth-error-banner" role="alert"><TriangleAlert size={18}/><span>{error}</span></div>}
+          {notice && (confirming ? <div className="auth-mail-card gx-auth-mail-card" role="status"><MailCheck size={32} aria-hidden="true"/><strong>{email}</strong><p>{notice}</p></div> : <p className="auth-notice gx-auth-notice" role="status">{notice}</p>)}
+          {confirming && <><button type="button" className="primary gx-auth-primary" onClick={() => changeScreen(false)} disabled={busy}>Return to sign in</button><button type="button" className="auth-switch gx-auth-switch" onClick={resendConfirmation} disabled={busy || resendCooldown > 0}>{resendCooldown ? `Resend available in ${resendCooldown}s` : 'Resend confirmation email'}</button></>}
+          {!confirming && !forgotten && !recovering && <div className="auth-oauth gx-auth-oauth">
+            <button type="button" className="secondary auth-google gx-auth-google" onClick={continueWithGoogle} disabled={busy} aria-describedby="auth-oauth-help">{redirecting ? <><LoaderCircle className="spin" size={18} aria-hidden="true"/>Opening Google…</> : <><LogIn size={18} aria-hidden="true"/>Continue with Google</>}</button>
+            <p className="auth-help gx-auth-help" id="auth-oauth-help">{creating ? 'New players can create an account with Google in one step.' : 'Signs in to the same account as an email sign-in with the same verified address.'}</p>
+            <p className="auth-divider gx-auth-divider"><span>or use email</span></p>
           </div>}
-          {!confirming && <form className="auth-form" onSubmit={submit}>
+          {!confirming && <form className="auth-form gx-auth-form" onSubmit={submit}>
             {!recovering && <label htmlFor="auth-email">Email<input id="auth-email" name="email" type="email" autoComplete="email" required value={email} onChange={event => setEmail(event.target.value)} disabled={busy}/></label>}
             {!forgotten && <label htmlFor="auth-password">{recovering ? 'New password' : 'Password'}<input id="auth-password" name="password" type="password" autoComplete={creating || recovering ? 'new-password' : 'current-password'} required minLength={creating || recovering ? 8 : undefined} value={password} onChange={event => setPassword(event.target.value)} disabled={busy}/></label>}
             {recovering && <label htmlFor="confirm-password">Confirm new password<input id="confirm-password" type="password" autoComplete="new-password" required minLength={8} value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} disabled={busy}/></label>}
-            {creating && <p className="auth-help">Use at least 8 characters. Account creation may send a confirmation email. Invitations give access only to the game you accept.</p>}
-            <button className="primary" type="submit" disabled={busy}>{busy ? <><LoaderCircle className="spin" size={18}/>Please wait…</> : <>{recovering ? 'Save new password' : forgotten ? 'Send reset link' : creating ? 'Create account' : 'Sign in'}<ArrowRight size={18}/></>}</button>
+            {creating && <p className="auth-help gx-auth-help">Use at least 8 characters. Account creation may send a confirmation email. Invitations give access only to the game you accept.</p>}
+            <button className="primary gx-auth-primary" type="submit" disabled={busy}>{busy ? <><LoaderCircle className="spin" size={18}/>Please wait…</> : <>{recovering ? 'Save new password' : forgotten ? 'Send reset link' : creating ? 'Create account' : 'Sign in'}<ArrowRight size={18}/></>}</button>
           </form>}
-          {!confirming && !recovering && (forgotten ? <button className="auth-switch" onClick={() => changeScreen(false)} disabled={busy}>Back to sign in</button> : <div className="auth-support"><button onClick={() => { setForgotten(true); setError(''); setNotice(''); setPassword(''); }} disabled={busy}>Forgot password?</button><button onClick={resendConfirmation} disabled={busy || resendCooldown > 0}>{resendCooldown ? `Resend available in ${resendCooldown}s` : 'Resend confirmation email'}</button></div>)}
-          {recovering && <button className="auth-switch" disabled={busy} onClick={async () => { try { await signOut(); setRecovering(false); } catch (failure) { setError(failure.message); } }}>Cancel and sign out</button>}
-          <p className="auth-help">Use the same game account on every device. Each player uses their own account.</p>
+          {!confirming && !recovering && (forgotten ? <button className="auth-switch gx-auth-switch" onClick={() => changeScreen(false)} disabled={busy}>Back to sign in</button> : <div className="auth-support gx-auth-support"><button onClick={() => { setForgotten(true); setError(''); setNotice(''); setPassword(''); }} disabled={busy}>Forgot password?</button><button onClick={resendConfirmation} disabled={busy || resendCooldown > 0}>{resendCooldown ? `Resend available in ${resendCooldown}s` : 'Resend confirmation email'}</button></div>)}
+          {recovering && <button className="auth-switch gx-auth-switch" disabled={busy} onClick={async () => { try { await signOut(); setRecovering(false); } catch (failure) { setError(failure.message); } }}>Cancel and sign out</button>}
+          <p className="auth-help gx-auth-help">Use the same game account on every device. Each player uses their own account.</p>
         </>}
-      <LegalLinks className="auth-legal"/>
+      <LegalLinks className="auth-legal gx-auth-legal"/>
       <ThemeSelector/>
     </section>
   </main>;

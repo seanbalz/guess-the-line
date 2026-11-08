@@ -1,65 +1,79 @@
 {
   "date": "2026-11-07",
-  "capturedAt": "2026-11-08T00:54:56.490Z",
+  "capturedAt": "2026-11-08T01:33:30.980106+00:00",
   "status": "Local native source/capture verification; unpublished, not merged or deployed",
-  "branch": "codex/prism-account-recovery-20261107",
-  "integrationBase": "35ae5fc6c7dfa9d87ff22a3797b11c369a409590",
+  "branch": "fix/prism-account-visual-fidelity",
+  "integrationBase": "b5dea82d89029f644f504e436b610b215f7ea939",
   "authorityCommit": "3ac2eb50513ba73447ef890e4a47863cde7bdd76",
   "scope": "Confirmed rollout areas19–28 only",
   "checks": {
-    "vitest": {
-      "files": 88,
-      "tests": 903,
-      "failed": 0
-    },
-    "nodeContracts": {
-      "tests": 63,
-      "failed": 0
-    },
-    "authBridgeContract": {
-      "tests": 1,
-      "failed": 0
-    },
-    "originalBrowserControllersAndProviders": {
-      "tests": 23,
-      "failed": 0
-    },
-    "additionalNativeRecoveryAccessAppearanceChecks": {
-      "tests": 11,
-      "failed": 0
-    },
-    "newAreaBrowserMatrices": {
-      "tests": 8,
-      "failed": 0
-    },
-    "typecheck": "passed",
-    "brandQA": "passed",
-    "cloudBuild": "passed; existing chunk-size advisory",
-    "cloudBundlePrivacy": "passed --bundle-only; no live probe",
-    "browserPort": 5232,
+    "browserMatrices": 9,
+    "failed": 0,
+    "nativeStates": 38,
+    "browserPort": 5244,
     "widths": [
       320,
-      390
+      390,
+      768,
+      1440
     ],
-    "height": 844,
-    "themes": [
-      "dark",
-      "light"
-    ],
-    "forcedColors": true,
+    "wideRepresentativeStates": 16,
     "scrollPositions": [
       "start",
       "middle",
       "end"
     ],
+    "themes": [
+      "dark",
+      "light"
+    ],
+    "themePath": "existing gtl.theme + StorageEvent ThemeProvider sync; native Appearance/System and auth select interactions",
     "minTargetPixels": 44,
-    "guidance": {
-      "topics": 19,
-      "paragraphs": 70,
-      "originalSourceLinks": 13
-    }
+    "forcedColors": true,
+    "axe": "all 38 states both themes",
+    "keyboard": "Appearance Space, Guidance Enter/Space, existing focus retention",
+    "themeRegression": "opposite OS schemes, reload, rapid storage changes, System resolution, legacy inline variables and computed selected canvas/text",
+    "vitest": {
+      "files": 2,
+      "tests": 68,
+      "failed": 0
+    },
+    "nodeContracts": {
+      "tests": 51,
+      "failed": 0
+    },
+    "typecheck": "passed",
+    "brandQA": "passed",
+    "nativeTokenContracts": {
+      "tests": 15,
+      "failed": 0,
+      "unchanged": true
+    },
+    "nativeTypography": {
+      "metadataFloor": 13,
+      "explicitBodyAndActions": 16,
+      "inputs": 16,
+      "fontWeights": "explicit400 for normal shorthands",
+      "prefix": "gx-auth aliases; no exceptions"
+    },
+    "cloudBuild": "passed; existing chunk-size advisory",
+    "cloudBundlePrivacy": "passed --bundle-only; no live probe",
+    "finalAccessRefresh": {
+      "tests": 3,
+      "failed": 0,
+      "captures": 57,
+      "assertion": "every visible auth button has16px type; selected tokens/preference and16px inputs retained"
+    },
+    "existingGoogleAndProfileBrowser": {
+      "tests": 14,
+      "failed": 0,
+      "GoogleVisualCases": 6,
+      "GoogleProviderFlows": 5,
+      "ProfileRecoveryFlows": 3
+    },
+    "uniqueBrowserTests": 23
   },
-  "knownBaselineChecks": "next-app-view separation contract and next-loading contract hit existing Bets imports/bare-loading cases at integration base; parent owns fixes. New exact auth visual bridge passes independently.",
+  "knownBaselineChecks": "Original dependency notes are historical. Fresh unchanged next-tokens15 and strict three-import authbridge1 pass; no full CI claim.",
   "limitations": [
     "No hosted/deployment/physical-phone acceptance",
     "OS share sheet and fake browser push-device edge are local test doubles; real native controllers and push SQL are exercised",
@@ -828,1058 +842,1753 @@
       ]
     }
   ],
-  "nativeCaptureCount": 190,
+  "nativeCaptureCount": 254,
   "nativeStateCount": 38,
   "nativeCaptures": [
     {
       "file": "access-confirmation-dark-320-bottom.png",
       "state": "access-confirmation",
-      "sha256": "eb89aa8add0127fe883735e683996915e2c59bf4f3730ade25595684072b19f7",
+      "sha256": "03c5031343165a292e6b6c2162438436593a4888174477b9334a67009fd18e8e",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accessPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-confirmation-dark-390-full.png",
       "state": "access-confirmation",
-      "sha256": "d32abf2f8fca41daee80acb9166cb2df9d2532f214ae0f95ab248a421e420e48",
+      "sha256": "4513881794b05a427ea704218ffddc67e0fcb8daf95e03f1190476959b84615c",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accessPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-confirmation-forced-320.png",
       "state": "access-confirmation",
-      "sha256": "a151146a40ee2ffc3cf6fdec5a04d1aeb107e46f7f28bdbb7b3e818f116347ac",
+      "sha256": "549ecf411d3da1815ae0f304bc31c38f602f6b4e9e6af1f60cd8503734e72f87",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "accessPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-confirmation-light-320-bottom.png",
       "state": "access-confirmation",
-      "sha256": "3de9e742c3270b4e1cc7c04b437fc83b40c7006fc949d66aee34f4cace85c3fd",
+      "sha256": "4be4853f7fdba14429512205aa9bc2064046fd00053efb5b6aedb2e0a5b18ecf",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accessPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-confirmation-light-390-full.png",
       "state": "access-confirmation",
-      "sha256": "bd47398a0fae0696ad45b75ee16bdfae173be5bc1e3e97ada140a1dd84ec1279",
+      "sha256": "6e43d362ad4f9b64bf3b08d7f5f5489a304532a230b031ff1350cf0ccac6ead6",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accessPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-create-dark-320-bottom.png",
       "state": "access-create",
-      "sha256": "05728aada797177df6d550fef698f2791a53337dbd129204661591bac516b16d",
+      "sha256": "005d8ee0eb9ea60b3335545c557ccaaa5d0b4dc004710cd9fc2e22cd4ca839f6",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accessPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-create-dark-390-full.png",
       "state": "access-create",
-      "sha256": "fce9b413ab5a65bf3b8a2b405e23fd6c9039780bcee462ed3a1968680d50ce2e",
+      "sha256": "ee85e78026f1bc49381df61e801070331bf5a64d5d230756d398b054597a34fa",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accessPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-create-forced-320.png",
       "state": "access-create",
-      "sha256": "56e771498c4d3adc27ae9da9e64271266a99f9746cb787f1332208f9b7c54326",
+      "sha256": "c51a3d064bcf9114798a7f5488e60a334f631a03f0bdb1bb0e1d7c49c90fb01a",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "accessPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-create-light-320-bottom.png",
       "state": "access-create",
-      "sha256": "2d0656ad4c8070432bad2fbfad3a772fac2dcc7f0f1ce3d35a857efec71e6321",
+      "sha256": "e6e9ffe7e122f99769e07ed24d84ef9a8b7c92dc0eb2ba0c6abf93311d060ab0",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accessPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-create-light-390-full.png",
       "state": "access-create",
-      "sha256": "7bb426e6a40347785cb59328b3ef48a6787513feac287c8ee9aafc6a52f06312",
+      "sha256": "063decb46a11311a4e89f43b12054071f3c0d43c040e7f5722a3684667971b7c",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accessPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-forgot-dark-320-bottom.png",
       "state": "access-forgot",
-      "sha256": "d27d2dfaf7dabec45f871a2868d14468f76ba79679824212dce083549e3548d8",
+      "sha256": "9ced629a8cd65281d16caf5fe662cc32d6901e614015c39d59d3e1400bd78d0f",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accessRecoveryPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-forgot-dark-390-full.png",
       "state": "access-forgot",
-      "sha256": "3bdcb85c43705242f14d0204d970f3ef1d0dc81f8e13dd173d3d465a2889b60e",
+      "sha256": "176e0236065eea58509013add66012472e559f95dbe39909cb42b8c768e98f24",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accessRecoveryPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-forgot-forced-320.png",
       "state": "access-forgot",
-      "sha256": "92787ddd9c4d0cde1dab9f833cd91e1ef3b3b718d1251bea359ab206b59d62b7",
+      "sha256": "51f079ae222bacbf0357762496b96ef9b402a67546ae1fa7b191dba7b803a9bd",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "accessRecoveryPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-forgot-light-320-bottom.png",
       "state": "access-forgot",
-      "sha256": "9376af7988b0a347b11bf10fd0fa8d5699fc05e1c6e5350ff57f21b409e06ea4",
+      "sha256": "a70c7f26cc9be86422624c1cb51d1ff05c3c9b827df86a1136f50b599572a502",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accessRecoveryPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-forgot-light-390-full.png",
       "state": "access-forgot",
-      "sha256": "513fe735789e259c439c0c1199afdea2b1dd3ef9b88ea104a41bf3c3d26903d0",
+      "sha256": "bbc66e69f4f0bd189b774d02a848cbe3451b4a6583db50d1715b9e0cf8e6e393",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accessRecoveryPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "access-reset-dark-1440-bottom.png",
+      "state": "access-reset",
+      "sha256": "1066f30a1289a7c5cb0eb3063d16ec862cf350d2e80b34403d4a0da45f19aa4e",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessRecoveryPreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-reset-dark-320-bottom.png",
       "state": "access-reset",
-      "sha256": "57c368bc3b90ca27d59d365cfd4bf26484d10f9d04c989e6e740fab79cbbbdb4",
+      "sha256": "68fc2204fe44ed00cdb2112f2a7a3722eb5b557fb1a2a7f2fdbb94780f376203",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accessRecoveryPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-reset-dark-390-full.png",
       "state": "access-reset",
-      "sha256": "d406053441fa8ad9a9de3446bfbb185b5637f09635ba9b00e0cd1d4241a1dd49",
+      "sha256": "fb71783d72d65f930ff5c37be1882e434fa0a50a7986270f1b7580a75f290388",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accessRecoveryPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "access-reset-dark-768-bottom.png",
+      "state": "access-reset",
+      "sha256": "b5c77b2bec5ba0f157563f4b4787166ca6115e100edf896861eb3e88d260fd7c",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessRecoveryPreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-reset-forced-320.png",
       "state": "access-reset",
-      "sha256": "54b7a6db72c5eb0e8304124592bcfd1f630f613d22928b05e8da7743c67ba3a5",
+      "sha256": "c24e2320b3e4b68baa9491d9f9b265a0b3cf0821326b01c34812f23e3c27fb6a",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "accessRecoveryPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "access-reset-light-1440-bottom.png",
+      "state": "access-reset",
+      "sha256": "b3859fbd6e1fc4baf4ae6ec7b040cf1b588d038dec3989059c415706e1fb90a1",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessRecoveryPreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-reset-light-320-bottom.png",
       "state": "access-reset",
-      "sha256": "e8e8116487f62f490e515539315c2c4785ccc4896a45702ee43b6054c75cd66d",
+      "sha256": "ee18cb75cd1c0c95cc58b271adbccf81755b971d364d3cd2abe331a01aeba1a5",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accessRecoveryPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-reset-light-390-full.png",
       "state": "access-reset",
-      "sha256": "f35d3d3f9d22e4822beb8350c95ff8d2a75f77caa117c224402374d06174c1c2",
+      "sha256": "e83c9a763af90338c11f026557420034187bf35ddf8ecdc4515e77c369e4ccff",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accessRecoveryPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "access-reset-light-768-bottom.png",
+      "state": "access-reset",
+      "sha256": "2f5a6e5256b17c8b46ac94cbb8ce51e7d9033f838a5a2e77e944c4cc35ac0f1c",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessRecoveryPreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-reset-mismatch-dark-320-bottom.png",
       "state": "access-reset-mismatch",
-      "sha256": "053a983d58099597654981ac64256e046cec1929ccaf52fab51c659d0a330062",
+      "sha256": "14aa369b8ec5e8747e1c3d91a0000997bc5e280c1d275fcb0507e9cfa4b59fa6",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accessRecoveryPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-reset-mismatch-dark-390-full.png",
       "state": "access-reset-mismatch",
-      "sha256": "9a25405be38ec5102f8eecafd7bbdc82662c982f84ef6cf07f7ef7634b36b00a",
+      "sha256": "836586476b554e723c019c5a946187ffebfc7a850e388d50fac53be399f15242",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accessRecoveryPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-reset-mismatch-forced-320.png",
       "state": "access-reset-mismatch",
-      "sha256": "d40ce851b8e362d5da8f472e2c7c5bbacad7b53607fb2f739fc26599864734ce",
+      "sha256": "58fa520fdf4c54d1ea9cd75af266ee2dffc4f5a66482d648d254fd6c02d86490",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "accessRecoveryPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-reset-mismatch-light-320-bottom.png",
       "state": "access-reset-mismatch",
-      "sha256": "c9e242e2eeae6fbd790b6014e8a5ebc80995f0cb8aa13e53f91fea5e59298f31",
+      "sha256": "3f2f3507eea17e0fe7587fa356af7a99ce9411d8fc17d5cf9b63dfe0d18c141e",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accessRecoveryPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-reset-mismatch-light-390-full.png",
       "state": "access-reset-mismatch",
-      "sha256": "2cbeac072978b21cc2169803378c449387bdc952341d59dacc5b15b0ec3939b9",
+      "sha256": "2390d940816e064a924e76a644af024df1fe2ea75ba71f2fda17e4e2fc6abf26",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accessRecoveryPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-reset-requested-dark-320-bottom.png",
       "state": "access-reset-requested",
-      "sha256": "4f135bec5fe3791036ef575f38fac4b7d51f4a0a7173e5554ead637d6d08837e",
+      "sha256": "0bbd66a1964ef03a4f3bc6718b50d5c1b6d6a30823b152a4fef438d37b025083",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accessRecoveryPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-reset-requested-dark-390-full.png",
       "state": "access-reset-requested",
-      "sha256": "409bbe5aee5a642166c21d239c602d1712d6c2522c039cb62371530b0c88306d",
+      "sha256": "011f903cf9e177499f3964e39da975e2085722fcb97ddd6cdc09b4cdc40b9d0a",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accessRecoveryPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-reset-requested-forced-320.png",
       "state": "access-reset-requested",
-      "sha256": "f11fb814ca79336235eadbb884151d0fdbc34143b5f887807f5d221e651995f8",
+      "sha256": "414a2002f39a73aac0d2a79da35a338ad487a9bfafb63a18cd0b37dfa4b0a92d",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "accessRecoveryPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-reset-requested-light-320-bottom.png",
       "state": "access-reset-requested",
-      "sha256": "3c110e828ac3396f9e15d95b349e7e8e4169bb16f1cc2813340dfea7572bacf3",
+      "sha256": "845bee28de5915bdd500183d415d9dd3d37bc9b57aacbabe41840082411e2806",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accessRecoveryPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-reset-requested-light-390-full.png",
       "state": "access-reset-requested",
-      "sha256": "0c3763cd9d4c4fbd8e156e395ed3ae238d1b04bcdbcd73028409d13cf568370e",
+      "sha256": "d731d187ad7a42568acc3bb0528bfe0c3c079a13d233faefb8e4f362ed369524",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accessRecoveryPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "access-sign-in-dark-1440-bottom.png",
+      "state": "access-sign-in",
+      "sha256": "c26a02988ffe4ec82247140d2785477c9de0ff3d8756b40e12193c5009735d5d",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessPreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-sign-in-dark-320-bottom.png",
       "state": "access-sign-in",
-      "sha256": "ef54fb77bec2d60f1dcddece60a10c004588c433e997bb9a47c8c9222acc5de6",
+      "sha256": "dce830b8cdf8cfe57022fe8dff3c2aadef9ee0a3b3158c3a7e0755f5bf060a28",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accessPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-sign-in-dark-390-full.png",
       "state": "access-sign-in",
-      "sha256": "b8b47aca69b880697fe96dc374629b6c77589f8d20befe65a36a2d2c54c2efb9",
+      "sha256": "ee2e92fde4340786080832e05409b7009bd4bca4488edb644b71d22413979e03",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accessPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "access-sign-in-dark-768-bottom.png",
+      "state": "access-sign-in",
+      "sha256": "6505ce5c0505ef4c66158a1a90953c6964c512f6c593b3a9853eb32253e14d3a",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessPreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-sign-in-forced-320.png",
       "state": "access-sign-in",
-      "sha256": "b883dd0d57bd2a53472317744d52bd048acbb288a9967e5fcc4e40c0fd33833a",
+      "sha256": "271d6608c03e52b7d6f6158e8c4f12fd4b14d22648ece39eecb172a9735b9fe5",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "accessPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "access-sign-in-light-1440-bottom.png",
+      "state": "access-sign-in",
+      "sha256": "ca2d87b0f3aeb34304be7d245f48a4ea6010c1d9efca5427a42ae05565262446",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessPreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-sign-in-light-320-bottom.png",
       "state": "access-sign-in",
-      "sha256": "8b107dd9cc7377673a243a21976524efeb22c239391ed1ecf810cfbb0de82c9c",
+      "sha256": "d1aa406b33ac6b91c171899a6ec97f6b59cc04a20524f725ee4abd439718265f",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accessPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "access-sign-in-light-390-full.png",
       "state": "access-sign-in",
-      "sha256": "443f5950d62861a5d3cf940681dac42c287a3cfa183effc16f41a316fb0a233a",
+      "sha256": "f54a6cadade6a107ea6d22cbea948b436079093f284cbda5a954501f92c6a530",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accessPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "access-sign-in-light-768-bottom.png",
+      "state": "access-sign-in",
+      "sha256": "174d0460e8cf470fb89c64aedd27a77927cc6f39fa3d1dc0106b2855c2012c2e",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessPreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "account-dark-1440-bottom.png",
+      "state": "account",
+      "sha256": "276139f5ea566cb269587c9209959fdb1f6bfbc9b07404223588c6063d35feb8",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview",
+        "appInvitePreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "account-dark-320-bottom.png",
       "state": "account",
-      "sha256": "0add30f571cb67408b0039c96f878d9905f9a20f2f6f64f81254e34d148acb5f",
+      "sha256": "f82103275b7180745b538127b710c6b3e2c7e0f87172e8a00aebb04c1e618da6",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview",
         "appInvitePreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "account-dark-390-full.png",
       "state": "account",
-      "sha256": "7d8041a6e73999c31bf782942d259146ad7bed22dea800efb6d8964bdebac3e7",
+      "sha256": "44c6c08e12bb47f3d87bbded239b818a24ae935cd3682b1fcba515976222ac91",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview",
         "appInvitePreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "account-dark-768-bottom.png",
+      "state": "account",
+      "sha256": "2e2bc3f407de5e1b75dfda7406f79784df755808b27693e1c8cd38e1445e335d",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview",
+        "appInvitePreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "account-failed-dark-320-bottom.png",
       "state": "account-failed",
-      "sha256": "21029f0b21e42e64f02c6f7571eee8f858bab9bd67d5c911dab6373bd687c09e",
+      "sha256": "9835f08a16be9d9cd548092cf6a5061b4d122fbeeb0cddb8f8f8109382b5c10a",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "continuityPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "account-failed-dark-390-full.png",
       "state": "account-failed",
-      "sha256": "925850db8161d44d8ce722df744d826795fde81d663a27d262b712515305ac7a",
+      "sha256": "9abceb4fe974f026838640e982d39276c215fa32c3ac91a3f86813c1979d64c4",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "continuityPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "account-failed-forced-320.png",
       "state": "account-failed",
-      "sha256": "39970941a1ff32f80702a1d942714c937ed48239351b3ef8445e91be3e698b21",
+      "sha256": "06562a3ef9b2d2f4888aef3043e47068c22747f7f7c15de5faf4b62a3ed3590b",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "continuityPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "account-failed-light-320-bottom.png",
       "state": "account-failed",
-      "sha256": "780dd8bd0f7029a08489a3ecc882458980fe2791a550a7fedc0f8165d4017bcc",
+      "sha256": "c9a29381b34219822373d1906d430042654cbf492b2f37923e888047812f738f",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "continuityPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "account-failed-light-390-full.png",
       "state": "account-failed",
-      "sha256": "2aad945e7c8d1ce83f579ff690e6d9849cbf32218f4f8d08cb97fd9cb7e06d51",
+      "sha256": "4df2535345f7a2af66c15554f34b451428c8b198978e404f95d014502d75016f",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "continuityPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "account-forced-320.png",
       "state": "account",
-      "sha256": "2269138966b5d74b779a2b907d5b019b16675dc79e8fbe8eea0b8856f138ba66",
+      "sha256": "a99db8cb45e79df76fc38a6bb479b18bf84f008d8d8a08f8a7d24a7bc3664f33",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview",
         "appInvitePreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "account-light-1440-bottom.png",
+      "state": "account",
+      "sha256": "6e33ef12a4493c7c5d40f81069fd1122d44a118bda47cd609852a00d698bfea1",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview",
+        "appInvitePreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "account-light-320-bottom.png",
       "state": "account",
-      "sha256": "edcfe36ffbed8f16d5942d1e8fef059196f373dee28f8faf2aad8f408b6888fd",
+      "sha256": "80c4b7c833ec0b3735004f0c5efd2a3ad9c4fb3588f701caa289eab36258ce07",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview",
         "appInvitePreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "account-light-390-full.png",
       "state": "account",
-      "sha256": "c34881145a0f484ff0ebd3fab6164d60b1d50959c60ae14feeea6f7d2651d98c",
+      "sha256": "0b78be35ca94b78b48e69fb306b61977b553a0342008393cf0e9030960406b15",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview",
         "appInvitePreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "account-light-768-bottom.png",
+      "state": "account",
+      "sha256": "2c922c77f0e40bcd3116e77c9011b93e05e306f3b6dcabc8f8595ce842577eb1",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview",
+        "appInvitePreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "app-invite-dark-1440-bottom.png",
+      "state": "app-invite",
+      "sha256": "5b2f74ea529370fa100dcd2b94527b5a86879485e3b06eecc19659b4ad10752c",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "appInvitePreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "app-invite-dark-320-bottom.png",
       "state": "app-invite",
-      "sha256": "c329727e8d536c61edaa1996004112a524c4818582a29b81af88256b31c9cda5",
+      "sha256": "9c6c7b2301227e6d74615d2af7a7e4943e3a048c2f9e1adabf9ae7d3c0f42fa7",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "appInvitePreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "app-invite-dark-390-full.png",
       "state": "app-invite",
-      "sha256": "f9e80b08cc356ecb2d42add2af9e0a95f2d2a718ede4f45a7ad87b0845adf71e",
+      "sha256": "c009ca7498d0bc7fd14e2f84dbb0640bce7e6fe0edc0512a5c68ffa2d83d956d",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "appInvitePreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "app-invite-dark-768-bottom.png",
+      "state": "app-invite",
+      "sha256": "9d1a0d3adc0c30dd58e893127183d281da2e3ea10f8133bcbc3215b313a642f1",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "appInvitePreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "app-invite-fallback-dark-320-bottom.png",
       "state": "app-invite-fallback",
-      "sha256": "a44d093db05c23591fe528ae40d9d2bfff8a78137e522ffd71935cfc04b9f268",
+      "sha256": "fe62469c4ae31620aff1dfa3d0d6230c6f245ee593233f7a16ae804589339c4b",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "appInvitePreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "app-invite-fallback-dark-390-full.png",
       "state": "app-invite-fallback",
-      "sha256": "314a598fe1a13b3d9457afcb8cdecc9eec2e8b883adb7db1cb5a1ddcb93193c1",
+      "sha256": "455f9c5abe0f11551ee404e991aa8b1f641c55ac66c5c415977182d890b8c188",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "appInvitePreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "app-invite-fallback-forced-320.png",
       "state": "app-invite-fallback",
-      "sha256": "15120058b45722958dba52c2e5bb3887530861a89fd3e2b9fae83a9bdd367fa9",
+      "sha256": "5cf0989c774b03f2921d7e752290c420b2eb34e9d5a92ffdb15a4c095e12a8e7",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "appInvitePreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "app-invite-fallback-light-320-bottom.png",
       "state": "app-invite-fallback",
-      "sha256": "a756765e2bca498a24d5650cf043cf47f5852fd1ef6b1dc56d9177df8c24e47d",
+      "sha256": "77aa03d32e0018dc8d24c3123b72db5a3ac8d8bdc6319572bfe2583c1f629096",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "appInvitePreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "app-invite-fallback-light-390-full.png",
       "state": "app-invite-fallback",
-      "sha256": "5569e661551e965de4d6df5856c070c637214ccf7d4302568a1d7c60e92407ee",
+      "sha256": "cd57e8f166ef2e289dc7a908b524fa74a2bd0a81a5daf761134470ba52f9a355",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "appInvitePreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "app-invite-forced-320.png",
       "state": "app-invite",
-      "sha256": "15120058b45722958dba52c2e5bb3887530861a89fd3e2b9fae83a9bdd367fa9",
+      "sha256": "5cf0989c774b03f2921d7e752290c420b2eb34e9d5a92ffdb15a4c095e12a8e7",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "appInvitePreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "app-invite-light-1440-bottom.png",
+      "state": "app-invite",
+      "sha256": "21524a83b73ac9b35756d324d5f37e57e4e9edb08759b7648a67738247ce9bcc",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "appInvitePreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "app-invite-light-320-bottom.png",
       "state": "app-invite",
-      "sha256": "f66924740f63441af8e74b82602f8c074fba85c8ad652712b4824f33d4f3bcaf",
+      "sha256": "62007189398c33f61e0c1c4e1fa1cfcf428a584146e26b8c7dbb6930f38a519a",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "appInvitePreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "app-invite-light-390-full.png",
       "state": "app-invite",
-      "sha256": "65ea8e0ece848a24b53013a63cd30222e7e56018522fa59a68e76fe7bd33e052",
+      "sha256": "4b2d1c734dba1ee2a1401dc955ae5d3d1076b28fee66b59ecb833fb15ce9c6c6",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "appInvitePreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "app-invite-light-768-bottom.png",
+      "state": "app-invite",
+      "sha256": "f10754ed7762744d88ba1da1f370bb65b3495baceb25c0821d39a196cbb2a543",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "appInvitePreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "appearance-dark-1440-bottom.png",
+      "state": "appearance",
+      "sha256": "7dea8835487bfebdc8eb84cb12718d3f16097a29f3b6d5a6f46589f375aa64c3",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "appearancePreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "appearance-dark-320-bottom.png",
       "state": "appearance",
-      "sha256": "09bf9c532253c38c85adb86b51dad6c0b4932cdbce3461804ab92b864f640161",
+      "sha256": "abc9f882fd0660d546c7a84a7ef83669d68a93ad0d374511c6cfb8e8773cfa35",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "appearancePreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "appearance-dark-390-full.png",
       "state": "appearance",
-      "sha256": "0ec268838ef417e493e4b7a48b146276461643cc62156b0a1502e41416ff3fe1",
+      "sha256": "2ac106df67a46f1d0593a0a84d2f10896de6482f64083b88821723e8e8577b32",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "appearancePreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "appearance-dark-768-bottom.png",
+      "state": "appearance",
+      "sha256": "af994fa82095403a7c58bc6ecb52353e8a11b4f75d78b8251dcec059677dfdb7",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "appearancePreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "appearance-forced-320.png",
       "state": "appearance",
-      "sha256": "dd48731a7ff91abec2c228a3ee8b915235307c181f86b81aa7d1e4648560578d",
+      "sha256": "08b3f006504bffdf5aa0a3b02f9de04659a6ec313969763355d033c8d1c20e3c",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "appearancePreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "appearance-light-1440-bottom.png",
+      "state": "appearance",
+      "sha256": "734f01e5bf648c6d2cf53beb3ef54559f987389417aad0f4269c9c71f2609d74",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "appearancePreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "appearance-light-320-bottom.png",
       "state": "appearance",
-      "sha256": "9a14e97c98928050c1faf2f475a6880fac8bed89d6927a5ce1dbb23fc85a946f",
+      "sha256": "b4b3182ad5df5f1cd1fe322b38af39d4def2c440d16cc53ce2ce265b231a8af9",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "appearancePreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "appearance-light-390-full.png",
       "state": "appearance",
-      "sha256": "19db190cd73ba60b1f166da7e1cc7d20c199e80c6e137d9819116ad07e8a678f",
+      "sha256": "f0e96a3ec2b2635c15544e047aede9cc1be846bf5aca8acf061e47695d53dc1b",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "appearancePreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "appearance-light-768-bottom.png",
+      "state": "appearance",
+      "sha256": "04d5153b024ab6cb020781e0fcfda81a8d320964658adf1a69e5cbca6096cf76",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "appearancePreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "appearance-system-reduced-dark-320-bottom.png",
       "state": "appearance-system-reduced",
-      "sha256": "24138dfea53c48e06eeb149c7a5798c025689706474a01aec2abbdb955e53742",
+      "sha256": "2df7f18114aa669b9333472a856f7ae28ee481d836b8b4adbcb7bfb3e722327a",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "appearancePreview"
-      ]
+      ],
+      "themePreference": "system",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "appearance-system-reduced-dark-390-full.png",
       "state": "appearance-system-reduced",
-      "sha256": "8eb0380e835523f8db30b9b0d2204a000a3ee6fcc13bfbd7cbf2e50ff89e3213",
+      "sha256": "7783e84caa062f6c3ec4add2fee0e9e4ec0034e365f62a3c9c455789961c2e50",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "appearancePreview"
-      ]
+      ],
+      "themePreference": "system",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "appearance-system-reduced-forced-320.png",
       "state": "appearance-system-reduced",
-      "sha256": "c9d1fdbad37459165c5c0b68d5bf92e87e0bb252e16f1ab6005cabe96e6e6d60",
+      "sha256": "d5076e7bd0313d6dd04c48c06b8fd05a8d84312ce70639fb651ecc34c59dab0b",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "appearancePreview"
-      ]
+      ],
+      "themePreference": "system",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "appearance-system-reduced-light-320-bottom.png",
       "state": "appearance-system-reduced",
-      "sha256": "e39bf67f199372d192ac29aace2ed6693b747f5af5c0e54bc624a475629a5931",
+      "sha256": "99fa51b7803c61b27f7d2c0322f949fa5faca1696147877b141d398dbea516bc",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "appearancePreview"
-      ]
+      ],
+      "themePreference": "system",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "appearance-system-reduced-light-390-full.png",
       "state": "appearance-system-reduced",
-      "sha256": "b8ec96e2abb9b69c56f51592a0de0e6a8c2c71543b8de4fe510f53a605f74ebb",
+      "sha256": "8709cff9e979dfb7a596f8e81b2923b61aadb4a5bf3ab129dd2c07fdd1ac7556",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "appearancePreview"
-      ]
+      ],
+      "themePreference": "system",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "export-completion-dark-320-bottom.png",
       "state": "export-completion",
-      "sha256": "7de84b325e95471fa045b16b8849b69b8aa269939542aa3d4556625a12030cfb",
+      "sha256": "e4ed711edf9a8bbb28981b9279eb2cb4af4cfe7d0c2c364631e088d54c683c8d",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "exportPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "export-completion-dark-390-full.png",
       "state": "export-completion",
-      "sha256": "d4d14a6afea8ff2e59a60ae3362124dd5696be1c4ab090a2b9ff12dafc6d9ed5",
+      "sha256": "f96c14e5a3543a54ff3b5ea6c7d535dd5f4f54a0554b16b68e424636c28f259b",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "exportPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "export-completion-forced-320.png",
       "state": "export-completion",
-      "sha256": "a0a04517781a3e96bea381dc341db418260a85397db6c3ff3616d425cc8d9f63",
+      "sha256": "199bfabe4550739135c0d359d671ff5127e3f9363a9d83f26f94c3eed01f5db1",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "exportPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "export-completion-light-320-bottom.png",
       "state": "export-completion",
-      "sha256": "64e090f4cafff40a0d16df9525e32f0d6e04c2587ce6d16eab343fb979bb0f9e",
+      "sha256": "34165f3b0b5409360b5f53948d571ad5f42cc27d3db7877fa9aedd6a0a729572",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "exportPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "export-completion-light-390-full.png",
       "state": "export-completion",
-      "sha256": "c513ad04cea3d8ba7b3480c096121d27cd7884d5b64b565387ed4f2c47ee1fa2",
+      "sha256": "12f65c6bed64f3ed761367cc3e6b1a8e9a424796fee94895559ccfc2b9f1ed98",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "exportPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "export-dark-1440-bottom.png",
+      "state": "export",
+      "sha256": "51c6150aae28f5e3b1a757968f506a554b8f91a427d581dac44dd1b5ffa4fd89",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "exportPreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "export-dark-320-bottom.png",
       "state": "export",
-      "sha256": "259e8d1fa443918ad95f06d23fff20fd34da06946ed2a15a29169e0e663c7949",
+      "sha256": "e2a113b92549dc92de59748968c9e7bd81a299f7afb8ba5514f68de8ca079877",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "exportPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "export-dark-390-full.png",
       "state": "export",
-      "sha256": "3eef6617df66cb04ad351cdab5a391374edbd9b2c8ef96ff3affaf6566ea9707",
+      "sha256": "2b9a18ddb05c911ddb06e2673378f678727fed362c5dd1afd6660e5ad8ea7c1a",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "exportPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "export-dark-768-bottom.png",
+      "state": "export",
+      "sha256": "f00e8e1a73cc3d3e0b5ac0b6e68c003917c0d2f40096e9bd46fe653c87901fb8",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "exportPreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "export-forced-320.png",
       "state": "export",
-      "sha256": "a0a04517781a3e96bea381dc341db418260a85397db6c3ff3616d425cc8d9f63",
+      "sha256": "199bfabe4550739135c0d359d671ff5127e3f9363a9d83f26f94c3eed01f5db1",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "exportPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "export-light-1440-bottom.png",
+      "state": "export",
+      "sha256": "8044f985869fa59c57fa9edd9edc445807f2be172229b91a5884208ac90d5a0a",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "exportPreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "export-light-320-bottom.png",
       "state": "export",
-      "sha256": "4c7268a0c6d8308f80cc1b93ef120941d49e92883de34325150c328f3cbead55",
+      "sha256": "27fe9eca82652af86868a0045be3b0396fdb1f0c5ecad3ba4e128dc53097bf86",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "exportPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "export-light-390-full.png",
       "state": "export",
-      "sha256": "dcc3689b723d8e7c5b8b08f5dd0edb017a58cff9d7ae1024ecbb7fe7c5e33b48",
+      "sha256": "cb7e4b1dec6347c1ecee0b923223ad4c9dd5ed166f7447b372fe29bc0b1e1e45",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "exportPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "export-light-768-bottom.png",
+      "state": "export",
+      "sha256": "b0d99f4c73fb2093528c8da48e3fe0a7fac3d809ffb9923812bfe24e0f044ebd",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "exportPreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "export-preparing-dark-320-bottom.png",
       "state": "export-preparing",
-      "sha256": "8d28dade1f07114b705c36b52918bc70f367dd5dd9aa32de0f13451e0dd31d83",
+      "sha256": "2e3d82f8d98e12d62a26a3716015b7d3ab61aecd4c25be0621257805d99aced3",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "exportPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "export-preparing-dark-390-full.png",
       "state": "export-preparing",
-      "sha256": "df37fbb314ce76f56a903202963950bb27130fb553acca966c2201840f0ebafd",
+      "sha256": "9534939e1b1cfdce037ed95e7fd07c3fd45630a3d3d6b68ed3e19535af2a0e3c",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "exportPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "export-preparing-forced-320.png",
       "state": "export-preparing",
-      "sha256": "a0a04517781a3e96bea381dc341db418260a85397db6c3ff3616d425cc8d9f63",
+      "sha256": "199bfabe4550739135c0d359d671ff5127e3f9363a9d83f26f94c3eed01f5db1",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "exportPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "export-preparing-light-320-bottom.png",
       "state": "export-preparing",
-      "sha256": "b1613a7530b16b5ced70a71b801622e22364cd0212a5757968704833b74abba5",
+      "sha256": "8a36dbe5f9deaaa72a1bb74290d7bc3891d44b4e575afa8452bbee37aa9751f1",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "exportPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "export-preparing-light-390-full.png",
       "state": "export-preparing",
-      "sha256": "092a6f27b272c63ab403b33858b1006e291065ac6261484648f858da8efb1161",
+      "sha256": "c0020e2f1bfa77662b2c6f0a9f61068f0a250f77f6cca0a4750c0e51fc03a16a",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "exportPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "export-unavailable-dark-320-bottom.png",
       "state": "export-unavailable",
-      "sha256": "b66d93ad284cd088103da0617097fbbcb7767346de0d1072842a8ce2e86df8c2",
+      "sha256": "73c5d58ca1850e779ffe07e0ef9c79440741f2f0adc874201bb85a6bbb99c48e",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "exportPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "export-unavailable-dark-390-full.png",
       "state": "export-unavailable",
-      "sha256": "a2157a07f6a27929621f241d6f19a3f1a2d2fda67ed276aa659270822b2158d3",
+      "sha256": "f047c5d87fcb164ce323e03dc36a40dbda0ded25ce6e84b8a64e1a0e65f8f0e1",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "exportPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "export-unavailable-forced-320.png",
       "state": "export-unavailable",
-      "sha256": "a0a04517781a3e96bea381dc341db418260a85397db6c3ff3616d425cc8d9f63",
+      "sha256": "199bfabe4550739135c0d359d671ff5127e3f9363a9d83f26f94c3eed01f5db1",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "exportPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "export-unavailable-light-320-bottom.png",
       "state": "export-unavailable",
-      "sha256": "f11b3ce0f1a7a46d25dd2cd4f0fb8090daf5d1b13e328c3242622bcc463f19dc",
+      "sha256": "a183864a753ec0e0cbd0a00221959f1bc3d511fb24b43d308119d39b7b30e782",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "exportPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "export-unavailable-light-390-full.png",
       "state": "export-unavailable",
-      "sha256": "49ef935d0502c5fe4663103daa09e369aa6aee3c5c6b65a5c4ccb0aaa8bc9aac",
+      "sha256": "d42c0eda7aed9d5786f90a351d52a042a347e1d345b9a43f85ce0a0357c02c3c",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "exportPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "guidance-dark-1440-bottom.png",
+      "state": "guidance",
+      "sha256": "a3a8a96268362b7ef7636eae71aba5cb82f65c352e7226d5223a464fa89fe0b6",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "guidance-dark-320-bottom.png",
       "state": "guidance",
-      "sha256": "37b8f9a2eebdbfca9e770cdbefa7638b571d21cfe2f014d4122b616024c7ac82",
+      "sha256": "89626ccab5c1ebc037280739cbb0616f2bfe94921cf2658dfe9114b5d5e92795",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accountToolsPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "guidance-dark-390-full.png",
       "state": "guidance",
-      "sha256": "74d59eea60091b705f931bf57957fb121e7161c476c87b905d89db5169561fec",
+      "sha256": "2e6b751e28c1ed3dea376c6c2076b100097bde8cac720ab013add5191bc86913",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accountToolsPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "guidance-dark-768-bottom.png",
+      "state": "guidance",
+      "sha256": "8e852f08867a45ece823dfc15e31a8763a39e14bd4e96cc479ac1069274c56cf",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "guidance-expanded-dark-320-bottom.png",
       "state": "guidance-expanded",
-      "sha256": "c8777524267cb3045cebd0a994fc4117f889b997ad6928eb94382266c98b4fc1",
+      "sha256": "143ff7ba40e4a6d6eaa250b710001c7df5e36a5cdf6cabba95525d8d29a85048",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accountToolsPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "guidance-expanded-dark-390-full.png",
       "state": "guidance-expanded",
-      "sha256": "6a7fa6d1dfa8f7a3859c83d810f3f2427fab841c10fc52d30822032642069aa3",
+      "sha256": "990be28410364d51ee1f8b6e388018b6332bb8ec7ac7edc3646a1dfa193ba8d7",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accountToolsPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "guidance-expanded-forced-320.png",
       "state": "guidance-expanded",
-      "sha256": "e15c4604ae82d54f04d80aa077b28c5d9919c602b23cc90eefa91e8ee6271e4c",
+      "sha256": "4401f4393921e4c95e72108310f9f1864d2af32ebfe13c93d9887d7c1db95359",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "accountToolsPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "guidance-expanded-light-320-bottom.png",
       "state": "guidance-expanded",
-      "sha256": "faa69431b19696481bbbaa8d2ca09053d4192292d7aca4c47a5ee1548dedc94c",
+      "sha256": "339b227108c9d928587272934f9d2c80f3a7178f01355765d0cee7890e576b95",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accountToolsPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "guidance-expanded-light-390-full.png",
       "state": "guidance-expanded",
-      "sha256": "bbc49e2b38e2512a4e0a1b0400c0edc312e9ad4213e6c6d0ccb3e619c0fa8c5a",
+      "sha256": "6bd1becc6159c5ca51bb304fe925232d5b1d91a76ec5998f6d78992389867858",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accountToolsPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "guidance-forced-320.png",
       "state": "guidance",
-      "sha256": "d030114c880aff24c73b0678e5fb24ad78a31d4e11dc06c9db8302ddc30d6ee6",
+      "sha256": "2087045932d8a347da2880f6720b3b8d9eefcc4d0619699de8016156d6b6a010",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "accountToolsPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "guidance-light-1440-bottom.png",
+      "state": "guidance",
+      "sha256": "ba26c1ae5b4b759fe625a4aa700214fcbcfdd363dcedb2d0bf22bc2d49ccbd24",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "guidance-light-320-bottom.png",
       "state": "guidance",
-      "sha256": "70410bf0f7078f9b8d17c3c224a7a08e0173ae339541e1fa51a2b73a2eb85fc3",
+      "sha256": "d817822a5efe2cdfcd4e5465a2efe75ebcada7493946f12f36f9d42fd136ed7a",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accountToolsPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "guidance-light-390-full.png",
       "state": "guidance",
-      "sha256": "beef4975a54cff8a374ec5446f11427acb942a9201dba9edb3ea9d9fa56d8592",
+      "sha256": "2f021613c09d00fea1a7344114298dab809e1ca9e1d369a312e6afe6fd7d73fc",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accountToolsPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "guidance-light-768-bottom.png",
+      "state": "guidance",
+      "sha256": "c50a16205bc2166a42c12e84e7433a81b3b7557c3137ae3fbebcaa7f56424651",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "league-access-pending-dark-1440-bottom.png",
+      "state": "league-access-pending",
+      "sha256": "a62f179e389d01eff7235148bd90bd7bad980a6a5217e4549f82a89f722b7437",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "leagueAccessPreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "league-access-pending-dark-320-bottom.png",
@@ -1890,7 +2599,10 @@
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "leagueAccessPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "league-access-pending-dark-390-full.png",
@@ -1898,10 +2610,27 @@
       "sha256": "80aa006476a22ec01c5bd10cc937231294a3e9b3b36db1c622f1d0c984bdd1c8",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "leagueAccessPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "league-access-pending-dark-768-bottom.png",
+      "state": "league-access-pending",
+      "sha256": "53319d7c3ca40902428b80f0da0d6f3e30f73e3829b15c4df9e436a3620b30a7",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "leagueAccessPreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "league-access-pending-forced-320.png",
@@ -1909,10 +2638,27 @@
       "sha256": "635c09cc116e5ef10f57d0147afffeb847ab406b79b79205b9695a6092e17586",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "leagueAccessPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "league-access-pending-light-1440-bottom.png",
+      "state": "league-access-pending",
+      "sha256": "04ee2e4588dc2340caf2f611853595ec71dd8ad5e74e4c63ebdf1f2cc8325d05",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "leagueAccessPreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "league-access-pending-light-320-bottom.png",
@@ -1923,7 +2669,10 @@
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "leagueAccessPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "league-access-pending-light-390-full.png",
@@ -1931,10 +2680,27 @@
       "sha256": "7ff349eec0b7d9af22d15f3a708968dc2a3c8be4825e0342d385d23500a8dc23",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "leagueAccessPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "league-access-pending-light-768-bottom.png",
+      "state": "league-access-pending",
+      "sha256": "c604b3241437a0187010cb43ce8da5c56778955f55f40a7d9bfc46c024bc77f9",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "leagueAccessPreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "league-access-removed-dark-320-bottom.png",
@@ -1945,7 +2711,10 @@
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "leagueAccessPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "league-access-removed-dark-390-full.png",
@@ -1953,10 +2722,13 @@
       "sha256": "db920544f508cfa9b6fa8ec3567896207c56e072bb99ad81ff8e8e62e1f21dca",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "leagueAccessPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "league-access-removed-forced-320.png",
@@ -1964,10 +2736,13 @@
       "sha256": "ef33330bcf64cc39587806ec00db723b490d8fd65e16f6f08014efd6d333f2fe",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "leagueAccessPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "league-access-removed-light-320-bottom.png",
@@ -1978,7 +2753,10 @@
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "leagueAccessPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "league-access-removed-light-390-full.png",
@@ -1986,900 +2764,1553 @@
       "sha256": "0849f98a8b88ffede8c9064553429011cc810da892e05c6efa7b9bf2a579e1ed",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "leagueAccessPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "league-create-dark-1440-bottom.png",
+      "state": "league-create",
+      "sha256": "bf31031a40587381b2c4952e0704d56348e58ca5a4b08fd1e93f4e0bec45166a",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "league-create-dark-320-bottom.png",
       "state": "league-create",
-      "sha256": "92c49676718c9b900bb72097256d589e474c787560919eab21dffd92d22b5dc3",
+      "sha256": "5df14bf21e0a5e2868a613b79308185c4f4659092f65f6f90e382fdd64fdbd37",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "leagueSetupPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "league-create-dark-390-full.png",
       "state": "league-create",
-      "sha256": "d2319f896c5869b9eb811cb3d772c442399e95f61a9c22f4218a788d068455aa",
+      "sha256": "7a66ac0338ee20bae6810f5584dc07d88c2b42ba4ce50fe9f0194f1439ddac60",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "leagueSetupPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "league-create-dark-768-bottom.png",
+      "state": "league-create",
+      "sha256": "6ced3d48132c2b4f51887836dfe53471e3a2f21f4733fdd29f2267c07a5404a0",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "league-create-forced-320.png",
       "state": "league-create",
-      "sha256": "8aacd3febf2adf14706e9c09dce0d640adb749071c53d4d61d6427b827abc132",
+      "sha256": "60c4ff8becd3b35190721865f11ed9f90e58532e00b3915a45d2914ce7d5d9d1",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "leagueSetupPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "league-create-light-1440-bottom.png",
+      "state": "league-create",
+      "sha256": "81e783901bd78ed069ace7ea64423e5567a234159f92cb464f3c18300c1c4b26",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "league-create-light-320-bottom.png",
       "state": "league-create",
-      "sha256": "4c5393e6b90cac21c0268d19e10853c79291413435412f14c01c3253f1c22649",
+      "sha256": "7841346beb82fc3ef84a197f8a32affeae5bae052d3199d0a3c602c1e7b96a95",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "leagueSetupPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "league-create-light-390-full.png",
       "state": "league-create",
-      "sha256": "1ea5ad78faad4cce50180625ac15bec50b0d75e67d6c3f73880aeb30c9ccf3b5",
+      "sha256": "14241cdf8f130a93fc6bbfda55800b8feaf4567b20c898eea07699c50c8d49cb",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "leagueSetupPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "league-create-light-768-bottom.png",
+      "state": "league-create",
+      "sha256": "8c87ca83a225705cdda04ee21543cb3705759b65573b3bd72f5a69a99d28772b",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "league-invite-dark-1440-bottom.png",
+      "state": "league-invite",
+      "sha256": "7ce02c5c22c761e5ecd659f435156e2b1b25fe5fb7ff5079964240c87e2cfb06",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "league-invite-dark-320-bottom.png",
       "state": "league-invite",
-      "sha256": "45a6dbe767201432ac84c86ca132a3b34442e6c7ee0dffc0280cd02b4626a37f",
+      "sha256": "a212160ca02c96f0c5212e2c6396a9d7e1eb40d13f1811c6beb2df8baafb263d",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "leagueSetupPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "league-invite-dark-390-full.png",
       "state": "league-invite",
-      "sha256": "652608d3cdbbd3b917df809cd94f7c7a9d89dee09b5e126021f8e310e759e268",
+      "sha256": "21c7cfe8b2d345fd553419560d2ebc2da7ecde015d9b5917fbc6f7964e5bea25",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "leagueSetupPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "league-invite-dark-768-bottom.png",
+      "state": "league-invite",
+      "sha256": "5b4254f2db1936aa122051ff068894d14b87cf6cc6f8388a1a1be1a8df6ab33e",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "league-invite-forced-320.png",
       "state": "league-invite",
-      "sha256": "0b56ed92e116c01d35668b611293734399135b9ecd7747c2ce7ae77e74507835",
+      "sha256": "d90be3224376003d6215fc4d5c5937d0be39c69b60009da45007f8d2f5bf50b6",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "leagueSetupPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "league-invite-light-1440-bottom.png",
+      "state": "league-invite",
+      "sha256": "85d1c5fd87df3878ab83ce10496bba4da14a850e02f31122fc4cbfa6fd9eac5f",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "league-invite-light-320-bottom.png",
       "state": "league-invite",
-      "sha256": "8d496e560da0815d18d745975b257ccffcc1792015b99f01bd7610b47e6da8ea",
+      "sha256": "2567d565b45bce1fb9eddc6b69149d55c4b163b4157869bb6b607a5eeed27031",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "leagueSetupPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "league-invite-light-390-full.png",
       "state": "league-invite",
-      "sha256": "c8bf2ea4b9e40b7351ced52d052a8dc7f444b159f1e062e922c5e588cd1e2803",
+      "sha256": "8de95880f42ce780bc13e93997ecad2c9fcb4a430c634b9665695bf3a6c88514",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "leagueSetupPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "league-invite-light-768-bottom.png",
+      "state": "league-invite",
+      "sha256": "5ae4678cb8851b7c0ea828f265a54a99f7ecd6c277a8a96e1211a00cfdb0eade",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "league-switcher-dark-1440-bottom.png",
+      "state": "league-switcher",
+      "sha256": "8641266c0b1213d6550eab2c0f03ebed14ce792b2959539fbd77451844c8d04f",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "league-switcher-dark-320-bottom.png",
       "state": "league-switcher",
-      "sha256": "937fa7917bc0181469aecabd40f1f027f9bca4178c71afeccbf974dbe7ec0c66",
+      "sha256": "57e62743fe1fe960f1e247c2edf6e1a5b6161e9bc6dbaf8630f664b3a8aedc4c",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "leagueSetupPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "league-switcher-dark-390-full.png",
       "state": "league-switcher",
-      "sha256": "2dd1e69116585178a7bf6d3019e2bc4400ecda33bc4d4d5ed625532c0be89ece",
+      "sha256": "bdb7aa96464c1516b91d39175f9f85fa882042aecd2b134f86c556274f6e3f1b",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "leagueSetupPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "league-switcher-dark-768-bottom.png",
+      "state": "league-switcher",
+      "sha256": "52f4247a6e327a4e1bb7a40a2af9b0c12a76dab228b90efa68408b9b9cd9ba55",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "league-switcher-forced-320.png",
       "state": "league-switcher",
-      "sha256": "94d99768dbcaeab19b4873aca4bdc5967ffb0885382a259eb12496628faf9f84",
+      "sha256": "78bf8778cd249a503415e9c61045265f8a81914c649dc79af09e1a6e11ba6609",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "leagueSetupPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "league-switcher-light-1440-bottom.png",
+      "state": "league-switcher",
+      "sha256": "ef5949a65670ea0c5dd846f8bb0d49b49f46fc5158c2579a3ac5b80d7011dcbf",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "league-switcher-light-320-bottom.png",
       "state": "league-switcher",
-      "sha256": "705b65bc327e076c262e39577414854663ec2a9c42df8feabe9dee3c48e3bd8f",
+      "sha256": "19ac96c07653082d76ed9b24b2354db618acb0403aab0c14a803cd51f1a026cc",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "leagueSetupPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "league-switcher-light-390-full.png",
       "state": "league-switcher",
-      "sha256": "a156a57a99578f718c5bdfe240be383e1c7427d99a4f39ccbd966ae66715806b",
+      "sha256": "05a4ce9b637d345bbdba6c0420ab283f633a381cc059195c8c5703b47744571b",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "leagueSetupPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "league-switcher-light-768-bottom.png",
+      "state": "league-switcher",
+      "sha256": "343b74fb13af62c567ee27e43207db79c8c9ba15ec19693b1231ba97f5581542",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "leagueSetupPreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "name-step-dark-1440-bottom.png",
+      "state": "name-step",
+      "sha256": "531f931a614aadac24bc03a4f29632efaf3bdc626ed9b7d3d1e5b5a809f35387",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessPreview",
+        "sessionRecoveryPreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "name-step-dark-320-bottom.png",
       "state": "name-step",
-      "sha256": "57591c345a48c1f14aba1138e904bf1904d378b27f0fbf38f289649735ccfb2a",
+      "sha256": "ed73b7c8a3f4a5015aae1082467074592e0230be97788b8909d2d45ab1356f57",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accessPreview",
         "sessionRecoveryPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "name-step-dark-390-full.png",
       "state": "name-step",
-      "sha256": "c8705f0f29835a9e7e47a356e730b9c91460518f91d494d478065045b0b40729",
+      "sha256": "44dd8c1620f1da4ac8f0d6b518cbc7b94fa54afb5d9f751922164adc88cdf491",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accessPreview",
         "sessionRecoveryPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "name-step-dark-768-bottom.png",
+      "state": "name-step",
+      "sha256": "e1045e1e286867dfca519ebb01c13df7013c3619107a7580ac60810f4e3dbca0",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessPreview",
+        "sessionRecoveryPreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "name-step-forced-320.png",
       "state": "name-step",
-      "sha256": "6de9777b714e000348f781606774ac3df3b6baec01f2384139a005a3672461e1",
+      "sha256": "539d07f37339b854b1d3dc18aac87f62b02fabcec25db4d910e75d92f013a21c",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "accessPreview",
         "sessionRecoveryPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "name-step-light-1440-bottom.png",
+      "state": "name-step",
+      "sha256": "72e4815e67ed5d6d9164bcb52b99cbe0f59585d0a07324a25dec0cab2f4e8ee6",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessPreview",
+        "sessionRecoveryPreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "name-step-light-320-bottom.png",
       "state": "name-step",
-      "sha256": "682876d15f8751df4efb3bbf42b70a633e8410e01f13575daad87fd72ce8cd04",
+      "sha256": "9ee7df5d1b7c43d9f59b996ffc652d8c249c88b3723ac9df48df6f143fbfa68d",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accessPreview",
         "sessionRecoveryPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "name-step-light-390-full.png",
       "state": "name-step",
-      "sha256": "accbb4e3361d619f1a6e4e346e9a3995d81f0bd5bd135db11ebc326ebd82d8cd",
+      "sha256": "ac08e38ab366474c5bdd2fd16d8502e6d7301927f2a27cb907b2c8c423c99628",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accessPreview",
         "sessionRecoveryPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "name-step-light-768-bottom.png",
+      "state": "name-step",
+      "sha256": "b133288ccd7e6009f7447ccc8f3806d3ab24ca51227072d287fb3b6692d38f9c",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accessPreview",
+        "sessionRecoveryPreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "name-uncertain-dark-320-bottom.png",
       "state": "name-uncertain",
-      "sha256": "26cd2e8fc6355a38f0495f60b00d1ed520c4eb30eb666a81284be7edfc3364bf",
+      "sha256": "baa67ce4437ed2797287a23fe43a9179b6b25eb7a0957157f8a1f7bda4a819e9",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accessPreview",
         "sessionRecoveryPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "name-uncertain-dark-390-full.png",
       "state": "name-uncertain",
-      "sha256": "82b4ef41baa8a633815b94d966ef934e24d9aa8fe29f5ba6a2fa1dd08b97d03a",
+      "sha256": "260867c407d347161721b299ebca2076cb2b1cfc6b5a9da0d39fc44962290bc2",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accessPreview",
         "sessionRecoveryPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "name-uncertain-forced-320.png",
       "state": "name-uncertain",
-      "sha256": "bc97faa7475281c5254774ab50b434b89a723f2d90a94f54ea1a5ffd430769bd",
+      "sha256": "1806f5db5b7d9fca56354c2839f6c756e4c30d6caff82c104c48d5defef7e590",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "accessPreview",
         "sessionRecoveryPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "name-uncertain-light-320-bottom.png",
       "state": "name-uncertain",
-      "sha256": "24448ad3f0ab66e9204d0268aed53477fd3dea49493d805395c698a96c0297be",
+      "sha256": "5b008c7c3d3c67dda2f3d732606f566135c9b4115af983d747805289ff724ada",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accessPreview",
         "sessionRecoveryPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "name-uncertain-light-390-full.png",
       "state": "name-uncertain",
-      "sha256": "25ff8c0ffce8b2022a34703faa3d133598f25979f08d604b085218ff019fbb8f",
+      "sha256": "2e4e99c04033bc7bdc2dc05a0cbc558992108c48c437159ccfb2ebc7ba24526f",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accessPreview",
         "sessionRecoveryPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "offline-content-dark-320-bottom.png",
       "state": "offline-content",
-      "sha256": "a0795ac7d0a8b7f433a05af8ad71a97c1b629c3445fd0d152b36bb8ae35f8e65",
+      "sha256": "5df438f2d0afd434dc29db8da34745b4dedc531a9043b2d01a219c6fee291259",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "continuityPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "offline-content-dark-390-full.png",
       "state": "offline-content",
-      "sha256": "32fdceb31820d7f8710aca3f43dd5a3227b3b8382103db3aa6a6a99a7309cc90",
+      "sha256": "4ed9fbc2a987d3f84c935ad4993d5348afda706f0f533647b827f53074b38a4b",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "continuityPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "offline-content-forced-320.png",
       "state": "offline-content",
-      "sha256": "9d9a5171f9afc2c577fdde8194bcc996bb52f518658ce677dbb6d9a9315bac9a",
+      "sha256": "915aeaab3ef7508ec96c7a06e9cfd1ed9b5ea1add6686d7650d4b44c5590b9f0",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "continuityPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "offline-content-light-320-bottom.png",
       "state": "offline-content",
-      "sha256": "a566e4974c969eade0d5352247e5d9ce9dcf44b3a31353d8007792dc531fb3e9",
+      "sha256": "5fd4582d21b33f6122b20e23f91465b987f9fbef83ed2c2120993ab732db7ee6",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "continuityPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "offline-content-light-390-full.png",
       "state": "offline-content",
-      "sha256": "198a2be3f6877c820ff34c05e29a0dca8171567755ca9efecf71afa407c7cb39",
+      "sha256": "2bebc2b31c368cd9614168904d7d950770f4d0ba04c3e2800455246fa540a5f7",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "continuityPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "profile-conflict-dark-320-bottom.png",
       "state": "profile-conflict",
-      "sha256": "e518a04f649f077e40d52fce49c5dbeb04f6d75ea6c9e4ad0ac5d0cb59d9372f",
+      "sha256": "c5d2396fdc86620690e2410ceceb4e797e0af1a6122448e34f24ccd48ee3851a",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "profile-conflict-dark-390-full.png",
       "state": "profile-conflict",
-      "sha256": "efce1c910f2bdfd29bba714d58e27d1f13e961058c9de64e915e26114ea45d0d",
+      "sha256": "cd93d4959e2392eecc7a0056470630479d6cf644ec141b10da17ba3835407565",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "profile-conflict-forced-320.png",
       "state": "profile-conflict",
-      "sha256": "0b09938c5ccbac15f0a0c21b1471837be40d94172d4ce982dd56ae410a878447",
+      "sha256": "f6edf55f4d59ccb121efd11395b1b5db8a43a76c9bb15701b8d91796e52ff2f5",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "profile-conflict-light-320-bottom.png",
       "state": "profile-conflict",
-      "sha256": "39e69a15601006db90a57e3b814f5a735e01ff4877deed9ad209b1945089b0a9",
+      "sha256": "3d5b25a33494d1793aa068d1b9264a14d99ba5e918e0b8a8c774c3fc2bad826a",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "profile-conflict-light-390-full.png",
       "state": "profile-conflict",
-      "sha256": "e629a56992b4f79c5563df900c3db4f6595cee1dc95846af3fb774582d2d949c",
+      "sha256": "0e97f1f676ef29a3568b0eac475c0ff6b8547eef6dfb64b92ddbf98e0b6e8aad",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "profile-draft-dark-1440-bottom.png",
+      "state": "profile-draft",
+      "sha256": "e628e30419b13fc3774d928f7d1a73f041cbd80868b787c13ed52480acc9c211",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "profile-draft-dark-320-bottom.png",
       "state": "profile-draft",
-      "sha256": "72fa909a1672670dc5586515c99303c2b1f8098a3ded220c5a912d034d764499",
+      "sha256": "797d25b08b9aea961e4a64352ca98871fa7eefccd50c4fe0e1a10f717aab8fe7",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "profile-draft-dark-390-full.png",
       "state": "profile-draft",
-      "sha256": "e253bbbc2cd1273dcf8f387e9e90538f82cf1696d393beed00dced504b7cede2",
+      "sha256": "e90b1c32c570544dfe91510b321c0913fed49ddd2a322ed3e3506456788f3ad0",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "profile-draft-dark-768-bottom.png",
+      "state": "profile-draft",
+      "sha256": "ea7fdbb3b695db6d98ac8e2ac0a16dce749ae9a121932952ae80b72cd27ac6c4",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "profile-draft-forced-320.png",
       "state": "profile-draft",
-      "sha256": "6590785854970f217f37abf602db5223473e916e8b360a5b8319994539e15816",
+      "sha256": "cf6eb63d2bad6c027150ca0260ccb3ae7257027a3f3cb6fdfa87c62228760deb",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "profile-draft-light-1440-bottom.png",
+      "state": "profile-draft",
+      "sha256": "4180a9500ef3f32dda5d4a580604197735dec47bd794e0f3c7b08d31c7372c31",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "profile-draft-light-320-bottom.png",
       "state": "profile-draft",
-      "sha256": "f10d6cdd779d842c7656bf5504114645c5673310cce769ecb3d7f03528547f0f",
+      "sha256": "d746d5bb22abf38ebeca36786fda35d756948f50249d1afc944a643cadc6ae02",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "profile-draft-light-390-full.png",
       "state": "profile-draft",
-      "sha256": "14b474645f26d395bfe466ecc65ce2e82b6834e379ab25a59b501ae699aa371c",
+      "sha256": "6d1d62a998bc48612071bbc6f615e686c33db544aff515d67204b7efb800275f",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "profile-draft-light-768-bottom.png",
+      "state": "profile-draft",
+      "sha256": "c1f1db1377bdef877259e012a65ddd53075b8eb8a19f3a7d3d2b49fc20075f91",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountProfileRemindersPreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "profile-pending-dark-320-bottom.png",
       "state": "profile-pending",
-      "sha256": "f3980fbb3aa085c23455d35e13e88d8c4a79524c497e2aca3a5001e83411ec50",
+      "sha256": "7ef4ec588e24f4e001d3c30800ad89f2eacf8c3e417a33728c9d42a5625615f9",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "profile-pending-dark-390-full.png",
       "state": "profile-pending",
-      "sha256": "1a920731fe2ea552013970c6c0a613358441ead1a74ac707c385cff682b5ebb1",
+      "sha256": "8f6f2d6393ce6eabaf598fdcdb8c7cdd30700ac67575d6fd0cc60cd36a3cbe93",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "profile-pending-forced-320.png",
       "state": "profile-pending",
-      "sha256": "706ed57b0ef8bfdd9e7cf2b3dafd5a4a5b3b5b86cf72fc060e716aae4d4ce839",
+      "sha256": "bd1a92a03f565f075ae13dfb91d48b7028c75b94a07552115f17303049a55bda",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "profile-pending-light-320-bottom.png",
       "state": "profile-pending",
-      "sha256": "b21a4f52bafa58e66becba03459424ebdb96015207622b0eb5e97588b46636fb",
+      "sha256": "99243632b8ded607effb730a17e30042a80e65e7ea97ee520e17f3c99a4c9473",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "profile-pending-light-390-full.png",
       "state": "profile-pending",
-      "sha256": "6f3bbb05efcf74b32f2a7984daab5bfa5b24c22d3bc321d99fa9999b1bde72f2",
+      "sha256": "de40fa16d3b6180b54e7ec54be6d2a2642781f2e876afe97872af9877676c22a",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "reminders-blocked-dark-320-bottom.png",
       "state": "reminders-blocked",
-      "sha256": "3b71eb82184190d56d61d38ec3a8b87318d85fc3d67b359a3cb9032eb3f99faf",
+      "sha256": "969b27b982ce4560960f815de5df849ad251dbf29f2e37f528a7847244017edb",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "reminders-blocked-dark-390-full.png",
       "state": "reminders-blocked",
-      "sha256": "b0a49f97f18305d9501029849e5a248a25b48f58e03e08847ac79a7826a2a5b5",
+      "sha256": "a258072a10c495f4a89b1c76439ad1feb3caf21f7e0ab79f12389bd6d689d185",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "reminders-blocked-forced-320.png",
       "state": "reminders-blocked",
-      "sha256": "f8a286bcb5111c76f2a5f7fc3ca9c8e734cdf7059e1bdc8bdac47b678f545f31",
+      "sha256": "9284f48d0edb804b28b6cf80b712326a492b1332d170f6580dda83f96c54b5f0",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "reminders-blocked-light-320-bottom.png",
       "state": "reminders-blocked",
-      "sha256": "15b7f547a8855f55ed4c2b35a8623b559d2e5769a8dd2540170b200315e5f213",
+      "sha256": "6b2eb8a46b75ee1dfa44cc9519ba2e09eb7172f11e63e894d6ca461d4e40cd12",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "reminders-blocked-light-390-full.png",
       "state": "reminders-blocked",
-      "sha256": "c13ee5362bc46e6b8b450373ace2132e46e108a69ce2f3485ae9a8f92c7d061d",
+      "sha256": "0ad8c0e4cefda68340643b4a7c6bdc210d1873ce4cee62cb5b84cf984ebfaa9f",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "reminders-off-dark-320-bottom.png",
       "state": "reminders-off",
-      "sha256": "bf5d926ecc361f80992ad9aab642ff94fb5b3b99b1fcd911c3286cb3402d4e14",
+      "sha256": "3e8452f3ccd1182c8e2cc3142250cd7381908bbc562f5c3803614d758116f587",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "reminders-off-dark-390-full.png",
       "state": "reminders-off",
-      "sha256": "01eae017d58854385f2adc60dec8eeb86d74b61e522240c11a0ceae5176f1e26",
+      "sha256": "09e415f5532fe08f837764e5ae8e56a2c2510b306757ad25c36531296d839f54",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "reminders-off-forced-320.png",
       "state": "reminders-off",
-      "sha256": "e1f3a43d3dac5a350476bf70cb344930e6954cd78b4601a079041a0134a6e73b",
+      "sha256": "75871a212539937572f8cb17d07260cfb5599aede6d917501275fdff089aab7e",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "reminders-off-light-320-bottom.png",
       "state": "reminders-off",
-      "sha256": "fa2605747d18e8a85819429960baec96648033e328d027c811b791d66c931800",
+      "sha256": "1282eb8a6d97e3c8c56b577c9d1c4e0e2c9cbb44743aeeccc21ad90cec8b67e0",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "reminders-off-light-390-full.png",
       "state": "reminders-off",
-      "sha256": "1ca39b57503c12ca8624470ab6437cad4129dffd367d770cf887c68c1ecaac17",
+      "sha256": "83398827a9d4cb95c370f7fed7d8c74a8ab9f7edb91b376ce9f145e52e5c8312",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "reminders-on-dark-320-bottom.png",
       "state": "reminders-on",
-      "sha256": "f31dfdf46b765697193da7e068967c4aad96006672fa53b1fec5877bc9038ec3",
+      "sha256": "eaa20e0bf5c39bf527780aa88d67742a65ca7daeacfd05d10791b4398adead73",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "reminders-on-dark-390-full.png",
       "state": "reminders-on",
-      "sha256": "36b3022c40dbe64a23f1a67f32ad56729b3ee5718af26bd07aa262eda9554bf5",
+      "sha256": "c4945fd87165f1e099ced4ffea0ff201b3b122c5449f87c34b1bb4465976b798",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "reminders-on-forced-320.png",
       "state": "reminders-on",
-      "sha256": "88aa142df04ff5278faa952910e7cf4dc3a90204d3a239766639858411ed82d3",
+      "sha256": "7ae67f6f4a86070fcb5e71e3c250ee3bf1c6ddfb40b3b1f7928ded8cafd0c941",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "reminders-on-light-320-bottom.png",
       "state": "reminders-on",
-      "sha256": "93a7f8f057b581f84137218d7eac8950fffb19bceaf75a23ae9c70c826a3f7f4",
+      "sha256": "a2f36e4075237b6c31af866221ce916e6ac9714931bd86f5e03a97362507ae02",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "reminders-on-light-390-full.png",
       "state": "reminders-on",
-      "sha256": "d07492e545f91281bb6e7aea70302c76cdde690190f283f97f6d5aef6ea31b23",
+      "sha256": "6dc3109841d2a0f13a953b72e121e3b49926640a68d1b3297872546308d24905",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accountProfileRemindersPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "session-expired-dark-1440-bottom.png",
+      "state": "session-expired",
+      "sha256": "f52ad6d6c6f745a5b243f1ced8d2f8bb2c7b8c9889cf8e4b4843078361d3b225",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "sessionRecoveryPreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "session-expired-dark-320-bottom.png",
       "state": "session-expired",
-      "sha256": "84db6b4103f3f032f81306a8fd0c29781e522bb02dd502646910187f92a39bef",
+      "sha256": "e243f6e8df0a7c915f69a7c86ecd1aef47c41c2f79a79e03dce61774e2e368a8",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "sessionRecoveryPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "session-expired-dark-390-full.png",
       "state": "session-expired",
-      "sha256": "2c67b7f6c9cab434bac2f76cd717fbae5d98170c5b6c870251e599b24068f8fe",
+      "sha256": "8e466b1cf134f85a136a52cbce545bd1860673bcf66e02c8b19361ddca84b4be",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "sessionRecoveryPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "session-expired-dark-768-bottom.png",
+      "state": "session-expired",
+      "sha256": "7a54fcc0031bf5b0f8aca2565c45cb47d92d16aa3cf468ae6a6e69a667ab83d1",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "sessionRecoveryPreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "session-expired-forced-320.png",
       "state": "session-expired",
-      "sha256": "eb8417e74fddfb6c90372106b9f60bee2852297ad0c164fde863e23a44e2ce96",
+      "sha256": "8330168519871b75fe3c0829b5815039048aa84e8e1634c98449480c013f51c8",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "sessionRecoveryPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "session-expired-light-1440-bottom.png",
+      "state": "session-expired",
+      "sha256": "9763e2bb79358982709b4c785993694db82a8ea182e41aa142e30fd71628a16e",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "sessionRecoveryPreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "session-expired-light-320-bottom.png",
       "state": "session-expired",
-      "sha256": "c8f250ee3c50f62d9b40d075354a3f0c003d642d79012a5844e4e8b74de3b16a",
+      "sha256": "61c2b0b925b43051a614f0645bfaf6678b84caf02625c1ec7b4a6441d93bef9d",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "sessionRecoveryPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "session-expired-light-390-full.png",
       "state": "session-expired",
-      "sha256": "86e50cb8ac94dab086d4f4c432038957b9b8adac671a1c3043968ca9e140c75c",
+      "sha256": "f2c81fae009a22a8b713416921c8591d9b3ba980a0955f544fe91aba10143b23",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "sessionRecoveryPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "session-expired-light-768-bottom.png",
+      "state": "session-expired",
+      "sha256": "a1d17caf2ca250f7d9ecbc52c63d80a9b9453e9f34adda41c1a2493f49c5b1c4",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "sessionRecoveryPreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "settings-conflict-dark-320-bottom.png",
       "state": "settings-conflict",
-      "sha256": "98717099604b9a24b7f2247ead8a4d364a3215425fbf5bc580ff538cb01eef2e",
+      "sha256": "eab728d624b50c07e03beccb31c547e42458a771101ec647bed0bd5c0a1924b2",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accountToolsPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "settings-conflict-dark-390-full.png",
       "state": "settings-conflict",
-      "sha256": "f752046191b45e7c0586724c4a2735787524806f36d2b228467bd7d0e28284e3",
+      "sha256": "4376c036977168a1a78757b95be636908c0ed50133d292aaf804b5aeceda108e",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accountToolsPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "settings-conflict-forced-320.png",
       "state": "settings-conflict",
-      "sha256": "28c056e69b730664efbd0a3777310ad2dbdc73656a67ebbf23598e8fca12e7e7",
+      "sha256": "0a4b1776b90ad5249e04d3ec21ffb07a97e7ef5e9eab14d104b9d68448f67888",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "accountToolsPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "settings-conflict-light-320-bottom.png",
       "state": "settings-conflict",
-      "sha256": "727f6c0b91a1f530fa94de66eb13b092e5c388c3b1d75b2c672c69b033f1de0f",
+      "sha256": "9456bac246fd21ca6a62d82c2dd6a14af8f30f51b526f047bfabdde57e2326ac",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accountToolsPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "settings-conflict-light-390-full.png",
       "state": "settings-conflict",
-      "sha256": "d1d497ad2fc9da39a42fa3da1b63b880dcd51acb4aa61cbb4373f5b1d68b14ee",
+      "sha256": "5f99833f8342e17dcef05ea553e2a7a9d2ef1536c74a0204c8cee82eba08cdf0",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accountToolsPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "settings-dark-1440-bottom.png",
+      "state": "settings",
+      "sha256": "c650889b27919424bb5d271671d28f9131b10adf96f6adf5499eed06de5ac6bc",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "settings-dark-320-bottom.png",
       "state": "settings",
-      "sha256": "c3107d07a8b77f371a142eb59c411c812e9a50e528c73ef6ae953f190bc513b4",
+      "sha256": "ab5b5dabedfb6345f10181e92beac4ccc1264b041bcd11a7398895973cd6967b",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accountToolsPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "settings-dark-390-full.png",
       "state": "settings",
-      "sha256": "888ae69e6d9ac05dd5236abf1f4437805ad143ef31deae97b35e06b5d2646554",
+      "sha256": "86f62017270f93956981415b6b703fb3254407c1f94bcd9cac97bf95395ea324",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accountToolsPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "settings-dark-768-bottom.png",
+      "state": "settings",
+      "sha256": "f1332c3fc0e1ed3427c0aab8ad26a655aa57fbf4bed0453595f2de050a087bbe",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "settings-forced-320.png",
       "state": "settings",
-      "sha256": "aee1d8d3e94f5b9dc1c05023bd1117b707ab3755d5acf1f4b78458bc324a707b",
+      "sha256": "25527febdcf8c64bdec5c7ca04e5ba2b9b77637d8f71259b5c1178b1159eeba1",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "accountToolsPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "settings-light-1440-bottom.png",
+      "state": "settings",
+      "sha256": "7a897c7215e20bae00cac1bcba527f0040753052b58d077361e9e32d68cc4f64",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "settings-light-320-bottom.png",
       "state": "settings",
-      "sha256": "b9f107609a6216f7565baba1ba8e1e1f3c5b0c5f3d83f3f381930e86b86988fd",
+      "sha256": "f505f823693c90d5afebce6a75b791dabbd17aa76266036b5074738f032e6645",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accountToolsPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "settings-light-390-full.png",
       "state": "settings",
-      "sha256": "b4d0e490eec59473a207b99ef9c11ef3822c9c30cd42ffc8c000869988fc3645",
+      "sha256": "5126846aff25c9e2827b21804256386199ced3522702a0e33d8db860f2610f97",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accountToolsPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "settings-light-768-bottom.png",
+      "state": "settings",
+      "sha256": "bdb4666a7b871fc947fe2d87e731b84224c41e3a03faf2eb1fa262fa9fc01942",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "accountToolsPreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "settings-retained-unavailable-dark-320-bottom.png",
       "state": "settings-retained-unavailable",
-      "sha256": "bb65e1c2eba09196074cdf65335f66c6970d7dd9d0a9e42de2cd64a8b29b0eae",
+      "sha256": "204a761548ba129246c8dce3f68dd34ef224ce39e0a349bea93bf923e2ab4c11",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accountToolsPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "settings-retained-unavailable-dark-390-full.png",
       "state": "settings-retained-unavailable",
-      "sha256": "583f41313eae3d635cf1d4bc73d7c4371dd2e6629046ea025a70e5f17044b9ee",
+      "sha256": "d6fb6b1152ed65f0617b80e7ca44d3398227166f8de2e0ec3e80822de105c149",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accountToolsPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "settings-retained-unavailable-forced-320.png",
       "state": "settings-retained-unavailable",
-      "sha256": "28c056e69b730664efbd0a3777310ad2dbdc73656a67ebbf23598e8fca12e7e7",
+      "sha256": "0a4b1776b90ad5249e04d3ec21ffb07a97e7ef5e9eab14d104b9d68448f67888",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "accountToolsPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "settings-retained-unavailable-light-320-bottom.png",
       "state": "settings-retained-unavailable",
-      "sha256": "1e7abdbaefc7f9cb59bfd4d2ac5b2c9ecfe49796c401e3f7bee4901a999c5622",
+      "sha256": "647b718dda25393e38475739d7b7fcf0b059a1c8b46381e5c9a22e39f8923801",
       "width": 320,
       "height": 844,
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "accountToolsPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "settings-retained-unavailable-light-390-full.png",
       "state": "settings-retained-unavailable",
-      "sha256": "d07e59344d3fcf8ac16911f11c314331cf67d13c6d16e3e3e6bddf529088f5b1",
+      "sha256": "631618d1cd505558b1666ffd302541bf666853f85b00ffe8670f23ab96ae42f8",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "accountToolsPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "startup-dark-1440-bottom.png",
+      "state": "startup",
+      "sha256": "c52bf6a7d7c461a7f4a01d393ba7fa70e1d8598b2c6c1e83932e9cbc5df62ebb",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "continuityPreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "startup-dark-320-bottom.png",
@@ -2890,7 +4321,10 @@
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "continuityPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "startup-dark-390-full.png",
@@ -2898,10 +4332,27 @@
       "sha256": "81635014716850784086c3480f2105b8bfa840864c668f256d234ce7e731699a",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "continuityPreview"
-      ]
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "startup-dark-768-bottom.png",
+      "state": "startup",
+      "sha256": "59969f79cff862b7e44f141a9ee4ca596added6760683d6754f3ee0bb7a6d7f4",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "continuityPreview"
+      ],
+      "themePreference": "dark",
+      "resolvedTheme": "dark",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "startup-forced-320.png",
@@ -2909,10 +4360,27 @@
       "sha256": "da2763640e91fdec141b4a8a389c7550476aa021ef45d6909d456cac7008175a",
       "width": 320,
       "height": 844,
-      "view": "320x844 forced-colors",
+      "view": "320x844 forced-colors native scroll",
       "approvedLedgerKeys": [
         "continuityPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "startup-light-1440-bottom.png",
+      "state": "startup",
+      "sha256": "5792658b1d83b0e075025a7cbfd0ce986869fe529e43386a30e56c0e43191ec7",
+      "width": 1440,
+      "height": 844,
+      "view": "1440x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "continuityPreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "startup-light-320-bottom.png",
@@ -2923,7 +4391,10 @@
       "view": "320x844 bottom of native scroll",
       "approvedLedgerKeys": [
         "continuityPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     },
     {
       "file": "startup-light-390-full.png",
@@ -2931,10 +4402,95 @@
       "sha256": "8d195e3ee708165de070f74293d58d5230431160b80378cabb835f628f0524bf",
       "width": 390,
       "height": 1800,
-      "view": "extended native browser viewport, full composition",
+      "view": "390x1800 extended native composition",
       "approvedLedgerKeys": [
         "continuityPreview"
-      ]
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
+    },
+    {
+      "file": "startup-light-768-bottom.png",
+      "state": "startup",
+      "sha256": "ca86782b9e22cc756672706d9f7d5cd96f4391aa0171239584f76b7ed22c372d",
+      "width": 768,
+      "height": 844,
+      "view": "768x844 bottom of native scroll",
+      "approvedLedgerKeys": [
+        "continuityPreview"
+      ],
+      "themePreference": "light",
+      "resolvedTheme": "light",
+      "themeVerification": "ThemeProvider preference and resolved attributes, selected canvas/text tokens and legacy inline canvas/text/color-scheme asserted before theme captures; Appearance/auth controls asserted when present"
     }
-  ]
+  ],
+  "dependency": "8cc6f349afa88cce4777446f2e347d67bddd3182 (local cherry-pick e3624ae7)",
+  "priorChecks": {
+    "vitest": {
+      "files": 88,
+      "tests": 903,
+      "failed": 0
+    },
+    "nodeContracts": {
+      "tests": 63,
+      "failed": 0
+    },
+    "authBridgeContract": {
+      "tests": 1,
+      "failed": 0
+    },
+    "originalBrowserControllersAndProviders": {
+      "tests": 23,
+      "failed": 0
+    },
+    "additionalNativeRecoveryAccessAppearanceChecks": {
+      "tests": 11,
+      "failed": 0
+    },
+    "newAreaBrowserMatrices": {
+      "tests": 8,
+      "failed": 0
+    },
+    "typecheck": "passed",
+    "brandQA": "passed",
+    "cloudBuild": "passed; existing chunk-size advisory",
+    "cloudBundlePrivacy": "passed --bundle-only; no live probe",
+    "browserPort": 5232,
+    "widths": [
+      320,
+      390
+    ],
+    "height": 844,
+    "themes": [
+      "dark",
+      "light"
+    ],
+    "forcedColors": true,
+    "scrollPositions": [
+      "start",
+      "middle",
+      "end"
+    ],
+    "minTargetPixels": 44,
+    "guidance": {
+      "topics": 19,
+      "paragraphs": 70,
+      "originalSourceLinks": 13
+    }
+  },
+  "captureCorrection": "Supersedes all original 190 captures: original inspect changed only data-theme, leaving React preference, miniature, auth selector and legacy variables stale. Old Light captures did not establish actual Light product behavior. Fresh captures use the actual theme controller.",
+  "nativeTypeAdaptation": "Scaled approved access wrapper labels (populated-play.css14px, populated-access.css max35912px) do not override native BRAND_GUIDE D-38 floors: actions/inputs16px, sentence-case meta13px. No floor or prefix exception added.",
+  "nativeSourceHashes": {
+    "web/src/AuthGate.jsx": "aa7e85c4458fcf3c248fb2fb6d0d4bee272ac939a407c05887418dc4d7569e03",
+    "web/src/Theme.jsx": "f8ed497a6208fe77cad1c3c18fe9b28d9e1ef5e829941ea87d97ecd046042e92",
+    "web/src/next/me/MenuSheet.jsx": "cd4baba872ac55743c072c1e60b6aee90fd271476821f63d3b0e7a841ab9cab7",
+    "web/src/next/me/accountPrism.css": "9aaef0dbf565a91a23427299fbf1ba47275c6924965cba4a8b44332ede9d5ea3",
+    "web/src/next/me/accessPrism.css": "2bfa8c8f648c72a6794926916c2e90e48ae7fc70eaf1f568b85a806eed30a579",
+    "web/src/next/league/invitations.css": "568fdcd424cea6323d83f710aed894762b4290d73fc33a9878d298c03ceac954",
+    "tests/cloud-browser/next-prism-account.spec.js": "247421141fe4f4a3ea068edc429f6d2f91d1b49d7036874a5412bd8b2f0338a9",
+    "tests/cloud-browser/theme-capture.mjs": "e6a3b2382e999cf992bb070fe92ddc4775b417adc80cd07ff30ec50ece4b07ad",
+    "tests/cloud-browser/google-sign-in.spec.js": "029273ebd9467348555fd486c4d1f7e94946c0f66d1aa67e65fae0739ea73792",
+    "playwright.account-prism.config.js": "725f79b4a940ef02b5064c277530dc372b92554152f6528aaa9c2ccf7b4408be"
+  }
 }

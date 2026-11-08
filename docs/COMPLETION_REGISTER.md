@@ -1754,3 +1754,26 @@ for all other imports. Shared header/dock structure is held, Community/FEPL acce
 remains, and History/scorecard, new avatars/awards, NBA/Signal, API/SQL/provider and
 hosted data are outside this work. No push, PR, merge, migration, deployment or
 physical-phone acceptance is claimed; the task worktree is preserved for review.
+
+
+## Account Prism review correction — November 7, 2026
+
+Local fix on exclusive `fix/prism-account-visual-fidelity`, from integration
+`b5dea82d89029f644f504e436b610b215f7ea939` plus Account dependency
+`8cc6f349afa88cce4777446f2e347d67bddd3182`; parent independent review remains open.
+The [area correction](PRISM_ACCOUNT_NATIVE_2026_11_07.md#review-correction-actual-themes-and-scoped-cascade--november-7-2026)
+explains why direct dataset captures left preference/legacy variables stale.
+The [corrected evidence](../design/prism-account-native-2026-11-07/evidence.json)
+supersedes the original 190 captures and adds 64 category-wide captures: 254
+images, 38 states, actual themes, 320/390px phone checks and 768/1440px
+representatives. Scoped Account/Switcher backplates and auth cascade collisions
+are corrected; Guidance now uses approved topic icons and actual-source hints.
+All original guidance copy/links and auth/provider/profile/export/push/invite
+controllers remain. Native type floors are retained: 13px sentence-case meta,
+16px explicit reading/actions/inputs; gx-auth aliases and explicit font weights
+satisfy all 15 unchanged native-token checks and the strict auth bridge. Fresh nine-matrix browser, 68-component and 51-Node checks,
+typecheck and Brand QA passed. The existing Google/Profile suite passed 14
+cases (23 unique browser cases overall), followed by successful cloud build
+and bundle-only privacy verification; evidence is in the manifest. No hosted, phone, full-app or release acceptance, push, PR,
+merge or deploy. Shared-frame placement and the held exploration areas remain
+separate. Prior dependency checks above are historical, not rerun totals.

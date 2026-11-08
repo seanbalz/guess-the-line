@@ -32,8 +32,8 @@ native capture SHA-256 values and state-to-reference mappings.
 
 Native `me/accountPrism.css`, `me/accessPrism.css` and league-scoped styles use
 canonical selected tokens. This ports composition, spacing, graphics, forms,
-expanded topics and sheet hierarchy as well as material. Metadata has a 12px
-floor in the Account sheets; inputs remain 16px, and controls retain 44px targets.
+expanded topics and sheet hierarchy as well as material. The reviewed correction below retains the native 13px metadata
+floor and 16px body/action/input type; and controls retain 44px targets.
 The existing shell intentionally ellipsizes a long league title, with its full
 accessible name retained. The new check permits only that existing, verified
 clipped title; all content/form labels remain subject to overflow checks.
@@ -139,3 +139,92 @@ The capture manifest contains **190 hashed native images across 38 states**,
 including both full-composition themes, both 320px bottom/scroll views and one
 320px forced-colors image per state. The source approval-capture hashes are
 recorded separately; no preview fixture enters production source.
+
+
+## Review correction: actual themes and scoped cascade — November 7, 2026
+
+The original capture helper changed only `html.dataset.theme`. That did not
+update ThemeProvider's React preference, the Appearance miniature/selected
+label, auth selector or legacy inline variables. The original Light images
+therefore did not establish actual Light behavior in the product. The fresh
+[evidence manifest](../design/prism-account-native-2026-11-07/evidence.json)
+supersedes all 190 original capture records; earlier test totals above remain
+historical verification of the dependency, not this fix's fresh test count.
+
+The isolated fix branch `fix/prism-account-visual-fidelity` starts from freshly
+fetched `origin/main`, fast-forwards to `b5dea82d89029f644f504e436b610b215f7ea939`
+and cherry-picks the Account dependency `8cc6f349afa88cce4777446f2e347d67bddd3182`
+locally as `e3624ae7`. Neither another checkout nor the frozen tracker is changed.
+
+Captures now reuse the reviewed `theme-capture.mjs` storage-event path through
+the real ThemeProvider. They assert preference and resolved attributes, computed
+selected canvas/text, legacy inline canvas/text and color scheme. Auth's select,
+Appearance's selected button, miniature theme, Porcelain/Dark label and status
+must agree. The System/reduced-motion state retains System as the preference
+while resolving independently in each OS scheme. A separate regression checks
+explicit preferences against opposite OS media and reload, rapid storage changes,
+System changes, Space on the actual Appearance control and Enter/Space Guidance.
+
+Two local CSS cascade defects are corrected: Account/Switcher lists now expose
+the canvas between floating cards, and exact auth selectors keep the selected
+Google glass/ink, lock accent, heading spacing, primary sizing, error type and
+theme footer above equal-specificity legacy styles. No global legacy stylesheet
+or theme controller logic changes. Auth markup retains the legacy class hooks
+and adds `gx-auth-*` aliases for the scoped native CSS. ThemeSelector adds only
+a static alias, without a new controller or import exception. Google visual
+tests retain 16px text and now resolve selected scoped
+Prism tokens, including the background gradient, rather than the legacy
+surface. Their provider, ordering, 16px inputs and 44px target checks remain.
+
+Guidance uses the exact approved `TOPIC_ICONS` mapping from
+`populated-account-tools.jsx`, with Info as its original fallback. Only topics
+with actual source links show Sources included. All 19 topics, 70 original
+paragraphs and 13 original source/license links are still checked unchanged.
+
+The corrected manifest records **254 images across 38 states**: the regenerated
+190-image evidence set plus **64 captures for 16 category representatives at
+768px and 1440px in both actual themes**. Full scroll, overflow and 44px target
+checks run at all applicable widths. Each state also has start/middle/end phone
+checks, both-theme Axe checks, extended full-composition views and a 320px
+forced-colors view. Wide representatives cover Account, Profile, Settings,
+Guidance, Appearance, Export, app invite, league switch/create/invite, access,
+password recovery, name setup, session recovery, startup and league access.
+
+Fresh local checks on exclusive port **5244** passed nine Account browser
+matrices, 68 component tests, 51 Node/PGlite/provider/theme/import contracts,
+typecheck and Brand QA. The browser matrices include auth confirmation/reset,
+name retention, actual reminder permission boundaries, export preparation/
+completion, settings conflict review and private league access. Source review
+compares the fresh Light Account, Appearance, Auth and Guidance composition to
+the exact selected references: separate canvas row gaps, Light selected with a
+Porcelain miniature, glass Google/green lock and topic-specific source rows.
+No pixel identity is claimed between fictional preview frames and native data.
+
+The existing Google/Profile suite passed all 14 cases: six selected-token
+visual checks, five provider flows and three profile recovery/race checks. The
+final access-only refresh passed three repeated cases after asserting every auth
+button has 16px type, updating its 57 retained captures. This is 23 unique browser
+cases overall. Cloud build and bundle-only privacy passed (the existing chunk
+size advisory remains); no live denial probe ran. Parent independent review
+remains open.
+This branch is intentionally unpublished: no push, PR, merge, migration, hosted
+change, deployment or physical-phone/full-app acceptance is claimed. Shared
+frame/sports-row/dock positions, new avatars/awards, NBA and History remain held.
+
+
+### Native type floors and source authority
+
+The exact approved access preview at `3ac2eb50513ba73447ef890e4a47863cde7bdd76`
+wraps `.real-access.real-play`: `populated-play.css` sets its `.gx-btn` labels to
+14px, while `populated-access.css` at max-width 359px scales them to 12px.
+Those preview wrapper dimensions establish the selected composition, not an
+exception to BRAND_GUIDE D-38's native reading/action minimum of 16px and meta
+minimum of 13px. The original native port's 13px Google label was approximate;
+this correction keeps **16px native actions and inputs**, 13px sentence-case
+metadata and 16px explicit body/Guidance reading text. Account/league metadata
+is raised from 12px and sub-12px auth copy is removed. The selected hierarchy,
+spacing, glass, icons and controls remain; fresh captures show actual wrapping.
+No font-floor, prefix, token or import allowlist is added. All 15 unchanged
+`next-tokens.test.mjs` checks pass, including native CSS prefix, minimum size,
+font weights, contrast and token usage; the strict three-import auth bridge also
+passes. Normal input/font shorthands now explicitly specify weight 400.

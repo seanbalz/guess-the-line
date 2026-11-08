@@ -1,13 +1,15 @@
 import { expect } from '@playwright/test';
 import fs from 'node:fs';
 
+const legacyTokens = JSON.parse(fs.readFileSync(new URL('../../design/tokens.json', import.meta.url), 'utf8'));
 const tokens = JSON.parse(fs.readFileSync(new URL('../../design/tokens-next.json', import.meta.url), 'utf8'));
 
-export async function assertCaptureTheme(page, theme) {
-  await expect(page.locator('html')).toHaveAttribute('data-theme-preference', theme);
+export async function assertCaptureTheme(page, theme, { preference = theme } = {}) {
+  await expect(page.locator('html')).toHaveAttribute('data-theme-preference', preference);
   await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+  await expect.poll(() => page.evaluate(() => ({ scheme: document.documentElement.style.colorScheme, canvas: document.documentElement.style.getPropertyValue('--canvas'), text: document.documentElement.style.getPropertyValue('--text') }))).toEqual({ scheme: theme, canvas: legacyTokens.themes[theme].canvas ?? legacyTokens.colors.canvas, text: legacyTokens.themes[theme].text ?? legacyTokens.colors.text });
   await expect.poll(() => page.evaluate(({ color, effect }) => {
-    const root = document.querySelector('.gx'), actual = getComputedStyle(root);
+    const root = document.querySelector('.gx, .gx-access-prism'), actual = getComputedStyle(root);
     const forced = matchMedia('(forced-colors: active)').matches;
     // Normalize the selected tokens using the browser's CSS parser. In forced colors,
     // verify the system canvas/ink instead of expecting Porcelain/charcoal pixels.

@@ -7,13 +7,13 @@
 .gx .gx-league-capacity { display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: center; padding: 20px 16px; border: 1px solid var(--gx-border); border-radius: 25px; background: linear-gradient(135deg,color-mix(in srgb,var(--gx-accent-ink) 7%,transparent),transparent),var(--gx-card-face); box-shadow: var(--gx-glass-shadow); }
 .gx .gx-league-capacity > .gx-ic { color: var(--gx-accent-ink); }
 .gx .gx-league-capacity > strong { font-size: 38px; line-height: 1.2; font-weight: 600; color: var(--gx-accent-ink); }
-.gx .gx-league-capacity small { display: block; font-size: 12px; line-height: 1.8; font-weight: 400; color: var(--gx-text-2); margin-top: 5px; }
+.gx .gx-league-capacity small { display: block; font-size: 13px; line-height: 1.8; font-weight: 400; color: var(--gx-text-2); margin-top: 5px; }
 .gx .gx-league-capacity > p { grid-column: 1/-1; }
 .gx .gx-create-prism .gx-invite-stack { gap: 18px; }
 .gx .gx-switcher-prism .gx-row[aria-current=true] { border-color: var(--gx-accent-ink); background: linear-gradient(135deg,color-mix(in srgb,var(--gx-accent-ink) 7%,transparent),transparent),var(--gx-card-face); }
 .gx .gx-switcher-prism .gx-row-title { font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; }
 .gx .gx-switcher-prism .gx-league-row-name { white-space: normal; }
-.gx .gx-switcher-prism .gx-row-sub { margin-top: 5px; font-size: 12px; line-height: 1.8; }
+.gx .gx-switcher-prism .gx-row-sub { margin-top: 5px; font-size: 13px; line-height: 1.8; }
 .gx .gx-saved-invite,.gx .gx-created-invite { padding: 19px 14px; gap: 18px; border-color: var(--gx-accent-ink); background: linear-gradient(135deg,color-mix(in srgb,var(--gx-accent-ink) 7%,transparent),transparent),var(--gx-card-face); border-radius: 25px; }
 .gx .gx-saved-invite .gx-hstack > .gx-grow { min-width: 0; }
 .gx .gx-sent-invites { margin-top: 6px; gap: 14px; }

@@ -5,57 +5,59 @@
 .gx-access-brand { display: grid; justify-items: center; gap: 10px; padding: 12px 6px 0; text-align: center; }
 .gx-access-brand .gx-prism-brand { display: block; width: 70px; height: 70px; }
 .gx-access-brand strong { font: 600 21px/1.5 var(--gx-font-body); }
-.gx-access-brand > span:last-child:not(.gx-prism-brand) { font-size: 10px; letter-spacing: .08em; line-height: 1.8; color: var(--gx-text-2); }
-.gx-access-prism .auth-card,.gx-name-panel,.gx-start-panel { display: grid; align-content: start; gap: 18px; width: min(100%,420px); min-width: 0; padding: 23px 17px; border: 1px solid var(--gx-border); border-radius: 28px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); color: var(--gx-text-1); }
-.gx-access-prism .auth-card { max-width: 420px; }
-.gx-access-prism .empty-icon { display: grid; place-items: center; width: 49px; height: 49px; border: 1px solid var(--gx-border); border-radius: 16px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); color: var(--gx-accent-ink); margin: 0; }
-.gx-access-prism h1,.gx-name-prism h1 { font: 600 27px/1.3 var(--gx-font-body); letter-spacing: -.035em; overflow-wrap: anywhere; }
-.gx-access-prism :is(.auth-pitch,.auth-intro) { font-size: 12px; line-height: 1.85; color: var(--gx-text-2); }
-.gx-access-prism .auth-form,.gx-name-prism .gx-solo-form { display: grid; gap: 12px; min-width: 0; margin: 0; }
-.gx-access-prism .auth-form > label { display: grid; gap: 10px; font-size: 12px; font-weight: 600; line-height: 1.7; }
-.gx-access-prism .auth-form input,.gx-name-prism .gx-input,.gx .gx-reauth .gx-input { width: 100%; min-width: 0; min-height: 52px; padding: 12px; border: 1px solid var(--gx-border); border-radius: 16px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); color: var(--gx-text-1); font: 16px/1.5 var(--gx-font-body); }
-.gx-access-prism button { min-height: 44px; font-family: var(--gx-font-body); white-space: normal; }
-.gx-access-prism :is(.primary,.auth-google) { width: 100%; min-height: 52px; border-radius: 20px; box-shadow: var(--gx-secondary-shadow); font-size: 13px; font-weight: 600; }
-.gx-access-prism .primary { background: transparent; border: 3px solid var(--gx-accent-ink); color: var(--gx-primary-ink); box-shadow: var(--gx-primary-shadow); }
-.gx-access-prism :is(.auth-google,.auth-switch) { color: var(--gx-text-1); border: 1px solid var(--gx-border); background: var(--gx-card-face); }
-.gx-access-prism .auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 5px; border: 1px solid var(--gx-border); border-radius: 19px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); }
-.gx-access-prism .auth-tabs button { border: 1px solid transparent; border-radius: 14px; background: transparent; color: var(--gx-text-1); font-size: 12px; padding: 8px 5px; }
-.gx-access-prism .auth-tabs button[aria-pressed=true] { border-color: var(--gx-accent-ink); background: var(--gx-accent-tint); color: var(--gx-accent-ink); }
-.gx-access-prism .auth-oauth { display: grid; gap: 12px; margin: 0; }
-.gx-access-prism .auth-divider { display: flex; align-items: center; gap: 12px; font-size: 10px; color: var(--gx-text-2); }
-.gx-access-prism .auth-divider::before,.gx-access-prism .auth-divider::after { content: ''; height: 1px; flex: 1; background: var(--gx-border); }
-.gx-access-prism .auth-divider span { background: none; padding: 0; }
-.gx-access-prism .auth-help { font-size: 10px; line-height: 1.85; color: var(--gx-text-2); }
-.gx-access-prism .auth-support { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.gx-access-prism .auth-support button { background: transparent; border: 0; color: var(--gx-accent-ink); font-size: 11px; line-height: 1.7; padding: 8px 0; }
-.gx-access-prism :is(.auth-notice,.error-banner,.auth-loading) { padding: 14px 12px; border: 1px solid var(--gx-accent-ink); border-radius: 18px; background: var(--gx-card-face); color: var(--gx-text-1); font-size: 12px; line-height: 1.85; overflow-wrap: anywhere; }
-.gx-access-prism .error-banner { border-color: var(--gx-loss); }
-.gx-access-prism .auth-legal { margin: 0; border: 0; padding: 0; }
-.gx-access-prism .auth-legal a { display: inline-flex; min-height: 44px; align-items: center; color: var(--gx-text-2); font-size: 11px; }
-.gx-access-prism .theme-selector { display: grid; gap: 10px; padding: 14px 0 0; margin: 0; border: 0; border-top: 1px solid var(--gx-border); border-radius: 0; background: none; }
-.gx-access-prism .theme-selector select { min-height: 44px; background: var(--gx-surface-1); color: var(--gx-text-1); border: 1px solid var(--gx-border); border-radius: 12px; font: 16px var(--gx-font-body); }
-.gx-access-prism .theme-selector p { color: var(--gx-text-2); font-size: 10px; }
+.gx-access-brand > span:last-child:not(.gx-prism-brand) { font-size: 13px; letter-spacing: .08em; line-height: 1.8; color: var(--gx-text-2); }
+.gx-access-prism .gx-auth-card,.gx-name-panel,.gx-start-panel { display: grid; align-content: start; gap: 18px; width: min(100%,420px); min-width: 0; padding: 23px 17px; border: 1px solid var(--gx-border); border-radius: 28px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); color: var(--gx-text-1); }
+.gx-access-prism .gx-auth-card { max-width: 420px; }
+.gx-access-prism .gx-auth-card > .gx-auth-empty-icon { display: grid; place-items: center; width: 49px; height: 49px; border: 1px solid var(--gx-border); border-radius: 16px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); color: var(--gx-accent-ink); margin: 0; }
+.gx-access-prism .gx-auth-card h1,.gx-name-prism h1 { font: 600 27px/1.3 var(--gx-font-body); letter-spacing: -.035em; overflow-wrap: anywhere; margin: 0; }
+.gx-access-prism :is(.gx-auth-pitch,.gx-auth-intro) { font-size: 16px; line-height: 1.85; color: var(--gx-text-2); }
+.gx-access-prism .gx-auth-form,.gx-name-prism .gx-solo-form { display: grid; gap: 12px; min-width: 0; margin: 0; }
+.gx-access-prism .gx-auth-form > label { display: grid; gap: 10px; font-size: 13px; font-weight: 600; line-height: 1.7; }
+.gx-access-prism .gx-auth-form input,.gx-name-prism .gx-input,.gx .gx-reauth .gx-input { width: 100%; min-width: 0; min-height: 52px; padding: 12px; border: 1px solid var(--gx-border); border-radius: 16px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); color: var(--gx-text-1); font: 400 16px/1.5 var(--gx-font-body); }
+.gx-access-prism button { font-size: 16px; min-height: 44px; font-family: var(--gx-font-body); white-space: normal; }
+.gx-access-prism :is(.gx-auth-primary,.gx-auth-google) { width: 100%; min-height: 52px; border-radius: 20px; box-shadow: var(--gx-secondary-shadow); font-size: 16px; font-weight: 600; }
+.gx-access-prism .gx-auth-form .gx-auth-primary { min-height: 52px; font-size: 16px; }
+.gx-access-prism .gx-auth-primary { background: transparent; border: 3px solid var(--gx-accent-ink); color: var(--gx-primary-ink); box-shadow: var(--gx-primary-shadow); }
+.gx-access-prism .gx-auth-oauth .gx-auth-google { min-height: 52px; font-size: 16px; }
+.gx-access-prism .gx-auth-oauth .gx-auth-google,.gx-access-prism .gx-auth-switch { color: var(--gx-text-1); border: 1px solid var(--gx-border); background: var(--gx-card-face); }
+.gx-access-prism .gx-auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 5px; border: 1px solid var(--gx-border); border-radius: 19px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); }
+.gx-access-prism .gx-auth-tabs button { border: 1px solid transparent; border-radius: 14px; background: transparent; color: var(--gx-text-1); font-size: 16px; padding: 8px 5px; }
+.gx-access-prism .gx-auth-tabs button[aria-pressed=true] { border-color: var(--gx-accent-ink); background: var(--gx-accent-tint); color: var(--gx-accent-ink); }
+.gx-access-prism .gx-auth-oauth { display: grid; gap: 12px; margin: 0; }
+.gx-access-prism .gx-auth-divider { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--gx-text-2); }
+.gx-access-prism .gx-auth-divider::before,.gx-access-prism .gx-auth-divider::after { content: ''; height: 1px; flex: 1; background: var(--gx-border); }
+.gx-access-prism .gx-auth-divider span { background: none; padding: 0; }
+.gx-access-prism .gx-auth-help { font-size: 13px; line-height: 1.85; color: var(--gx-text-2); }
+.gx-access-prism .gx-auth-support { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.gx-access-prism .gx-auth-support button { background: transparent; border: 0; color: var(--gx-accent-ink); font-size: 16px; line-height: 1.7; padding: 8px 0; }
+.gx-access-prism :is(.gx-auth-notice,.gx-auth-error-banner,.gx-auth-loading) { padding: 14px 12px; border: 1px solid var(--gx-accent-ink); border-radius: 18px; background: var(--gx-card-face); color: var(--gx-text-1); font-size: 16px; line-height: 1.85; overflow-wrap: anywhere; }
+.gx-access-prism .gx-auth-card .gx-auth-error-banner { font-size: 16px; border-color: var(--gx-loss); }
+.gx-access-prism .gx-auth-legal { margin: 0; border: 0; padding: 0; }
+.gx-access-prism .gx-auth-legal a { display: inline-flex; min-height: 44px; align-items: center; color: var(--gx-text-2); font-size: 16px; }
+.gx-access-prism .gx-auth-card .gx-auth-theme-selector { display: grid; gap: 10px; padding: 14px 0 0; margin: 0; border: 0; border-top: 1px solid var(--gx-border); border-radius: 0; background: none; }
+.gx-access-prism .gx-auth-theme-selector select { min-height: 44px; background: var(--gx-surface-1); color: var(--gx-text-1); border: 1px solid var(--gx-border); border-radius: 12px; font: 400 16px var(--gx-font-body); }
+.gx-access-prism .gx-auth-theme-selector p { color: var(--gx-text-2); font-size: 13px; }
 .gx .gx-name-prism,.gx .gx-start-prism { gap: 22px; padding-top: 28px; }
 .gx .gx-name-panel { gap: 22px; }
 .gx .gx-name-prism .gx-solo-brand { gap: 18px; align-items: flex-start; text-align: left; }
 .gx .gx-name-prism .gx-solo-form { gap: 12px; }
-.gx .gx-name-prism .gx-name-invite,.gx .gx-name-prism .gx-solo-problem { display: flex; gap: 12px; padding: 16px 12px; border: 1px solid var(--gx-accent-ink); border-radius: 21px; background: var(--gx-accent-tint); font-size: 12px; line-height: 1.85; box-shadow: var(--gx-glass-shadow); }
+.gx .gx-name-prism .gx-name-invite,.gx .gx-name-prism .gx-solo-problem { display: flex; gap: 12px; padding: 16px 12px; border: 1px solid var(--gx-accent-ink); border-radius: 21px; background: var(--gx-accent-tint); font-size: 16px; line-height: 1.85; box-shadow: var(--gx-glass-shadow); }
 .gx .gx-name-prism .gx-name-invite > .gx-ic { flex: none; color: var(--gx-accent-ink); }
 .gx .gx-name-prism .gx-solo-problem { border-color: var(--gx-loss); background: var(--gx-card-face); }
 .gx .gx-name-prism [role=alert]:empty { position: absolute; width: 1px; height: 1px; padding: 0; border: 0; margin: 0; overflow: hidden; clip-path: inset(50%); }
 .gx .gx-reauth { max-height: calc(100dvh - 40px); overflow: auto; padding: 24px 18px; border-radius: 28px; background: var(--gx-card-face),var(--gx-canvas); box-shadow: var(--gx-glass-shadow); }
 .gx .gx-reauth .gx-dialog-title { font-size: 25px; line-height: 1.4; font-weight: 600; }
-.gx .gx-reauth .gx-dialog-text { font-size: 12px; line-height: 1.85; }
+.gx .gx-reauth .gx-dialog-text { font-size: 16px; line-height: 1.85; }
 .gx .gx-reauth .gx-dialog-actions { gap: 16px; }
 .gx .gx-session-account { white-space: normal; overflow-wrap: anywhere; }
 .gx .gx-reauth form { gap: 11px; }
-.gx .gx-reauth .gx-solo-problem { padding: 14px 12px; border: 1px solid var(--gx-loss); border-radius: 18px; font-size: 12px; line-height: 1.85; box-shadow: none; }
+.gx .gx-reauth .gx-solo-problem { padding: 14px 12px; border: 1px solid var(--gx-loss); border-radius: 18px; font-size: 16px; line-height: 1.85; box-shadow: none; }
 .gx .gx-start-panel { gap: 22px; }
 .gx .gx-start-panel h2 { font-size: 25px; line-height: 1.4; }
 .gx .gx-start-prism .gx-solo-card { gap: 20px; padding: 24px 17px; border: 1px solid var(--gx-border); border-radius: 28px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); }
-.gx .gx-start-prism .gx-solo-card p { font-size: 13px; line-height: 1.85; }
-@media(max-width:359px) { .gx-access-prism { padding-inline: 14px; }.gx-access-prism h1,.gx-name-prism h1 { font-size: 25px; }.gx .gx-reauth { padding: 22px 15px; } }
-@media(forced-colors:active) { .gx-access-prism :is(.auth-card,.empty-icon,.auth-notice,.error-banner),.gx-name-panel,.gx-start-panel,.gx .gx-reauth { border-color: CanvasText; }.gx-access-prism .auth-tabs button[aria-pressed=true] { outline: 2px solid Highlight; } }
+.gx .gx-start-prism .gx-solo-card p { font-size: 16px; line-height: 1.85; }
+@media(max-width:359px) { .gx-access-prism :is(.gx-auth-form .gx-auth-primary,.gx-auth-oauth .gx-auth-google) { font-size: 16px; } .gx-access-prism { padding-inline: 14px; }.gx-access-prism .gx-auth-card h1,.gx-name-prism h1 { font-size: 25px; }.gx .gx-reauth { padding: 22px 15px; } }
+@media(forced-colors:active) { .gx-access-prism :is(.gx-auth-card,.gx-auth-empty-icon,.gx-auth-notice,.gx-auth-error-banner),.gx-name-panel,.gx-start-panel,.gx .gx-reauth { border-color: CanvasText; }.gx-access-prism .gx-auth-tabs button[aria-pressed=true] { outline: 2px solid Highlight; } }
 /* Selected G artwork stays transparent and fills the access-brand allocation. */
 .gx-access-brand .gx-prism-brand { position: relative; display: grid; place-items: center; }
 .gx-access-brand .gx-prism-brand img { display: block; width: 100%; height: 100%; object-fit: contain; }
@@ -63,11 +65,11 @@
 :root[data-theme=light] .gx-access-brand .gx-prism-brand .gx-prism-dark { display: none; }
 :root[data-theme=light] .gx-access-brand .gx-prism-brand .gx-prism-light { display: block; }
 .gx-access-prism :is(button,input,select,a):focus-visible { outline: 3px solid var(--gx-focus); outline-offset: 3px; }
-.gx .gx-name-prism .gx-t-meta { font-size: 12px; line-height: 1.8; }
-.gx-access-prism .auth-mail-card { display: grid; justify-items: center; gap: 13px; min-width: 0; padding: 22px 12px; border: 1px solid var(--gx-border); border-radius: 24px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); text-align: center; }
-.gx-access-prism .auth-mail-card > svg { color: var(--gx-accent-ink); }
-.gx-access-prism .auth-mail-card > strong { font-size: 16px; line-height: 1.6; overflow-wrap: anywhere; }
-.gx-access-prism .auth-mail-card > p { font-size: 12px; line-height: 1.85; color: var(--gx-text-2); }
-.gx-access-prism .auth-loading { display: grid; justify-items: center; gap: 16px; padding: 28px 14px; }
-.gx-access-prism .auth-loading > svg { width: 38px; height: 38px; }
-.gx-access-prism .theme-selector svg { color: var(--gx-accent-ink); }
+.gx .gx-name-prism .gx-t-meta { font-size: 13px; line-height: 1.8; }
+.gx-access-prism .gx-auth-mail-card { display: grid; justify-items: center; gap: 13px; min-width: 0; padding: 22px 12px; border: 1px solid var(--gx-border); border-radius: 24px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); text-align: center; }
+.gx-access-prism .gx-auth-mail-card > svg { color: var(--gx-accent-ink); }
+.gx-access-prism .gx-auth-mail-card > strong { font-size: 16px; line-height: 1.6; overflow-wrap: anywhere; }
+.gx-access-prism .gx-auth-mail-card > p { font-size: 16px; line-height: 1.85; color: var(--gx-text-2); }
+.gx-access-prism .gx-auth-loading { display: grid; justify-items: center; gap: 16px; padding: 28px 14px; }
+.gx-access-prism .gx-auth-loading > svg { width: 38px; height: 38px; }
+.gx-access-prism .gx-auth-theme-selector svg { color: var(--gx-accent-ink); }
