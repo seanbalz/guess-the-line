@@ -2,7 +2,7 @@
 import './epl.css';
 import { useCallback } from 'react';
 import { useShell } from '../shell/context.js';
-import { Segmented } from '../ui/index.js';
+import { Icon, Segmented } from '../ui/index.js';
 import { eplApi } from './api.js';
 import { EPL_SECTIONS } from './route.js';
 import { EplHome } from './EplHome.jsx';
@@ -10,6 +10,7 @@ import { PickATeam } from './PickATeam.jsx';
 import { EplFantasy } from './fantasy/EplFantasy.jsx';
 import EplGuess from './guess/EplGuess.jsx';
 import EplGuessLeaderboard from './guess/EplGuessLeaderboard.jsx';
+import './prism-epl.css';
 
 export const EPL_COPY = Object.freeze({
   nav: 'EPL',
@@ -39,7 +40,7 @@ export function EplPlay({ route, onRoute, api, accountId, onDirtyChange }) {
   const section = route.section;
   const options = ['guess', 'pick', 'leaderboard'].map(value => ({ value, label: EPL_COPY.sections[value] }));
   return <div className="gx-screen" data-epl-section={section}>
-    <h1 className="gx-t-title">{EPL_COPY.tabs.play}</h1>
+    <h1 className="gx-t-title">{section === 'leaderboard' ? 'Moneyline leaderboard' : EPL_COPY.sections[section] ?? EPL_COPY.tabs.play}</h1>
     <Segmented className="gx-epl-play-tabs" label={EPL_COPY.tabs.play} value={section} options={options} onChange={value => onRoute({ tab: 'play', section: value })}/>
     {section === 'pick' ? <PickATeam api={api}/> : section === 'leaderboard'
       ? <EplGuessLeaderboard api={api} accountId={accountId}/>
@@ -49,7 +50,7 @@ export function EplPlay({ route, onRoute, api, accountId, onDirtyChange }) {
 
 function EplResearch({ api }) {
   return <div className="gx-screen" data-epl-section="fantasy">
-    <h1 className="gx-t-title">{EPL_COPY.tabs.research}</h1>
+    <h1 className="gx-t-title">FEPL Fantasy</h1>
     <EplFantasy api={api}/>
   </div>;
 }
@@ -57,6 +58,6 @@ function EplResearch({ api }) {
 function EplBets() {
   return <div className="gx-screen">
     <h1 className="gx-t-title">{EPL_COPY.tabs.bets}</h1>
-    <section className="gx-empty"><p className="gx-t-body">{EPL_COPY.noBets}</p></section>
+    <section className="gx-empty gx-epl-shell-notice"><Icon icon="ticket" size={32} aria-hidden="true"/><p className="gx-t-body">{EPL_COPY.noBets}</p></section>
   </div>;
 }

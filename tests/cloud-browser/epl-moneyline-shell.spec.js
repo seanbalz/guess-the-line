@@ -1,3 +1,5 @@
+import { captureEpl } from './epl-prism-capture.mjs';
+import { setCaptureTheme } from './theme-capture.mjs';
 // UI/shell acceptance only. Guess endpoint replies here are explicit fixtures; the separate
 // epl-moneyline-flow spec owns real SQL/handler/collector acceptance.
 import { test, expect } from '@playwright/test';
@@ -39,7 +41,7 @@ test('shared shell wires the EPL week and children, guards drafts once, and clea
     await signIn(page, 'luke', { navigate: false });
     await expect(page.getByRole('heading', { name: 'Matchweek 17', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Your menu', exact: true })).toBeVisible();
-    await page.getByRole('button', { name: 'ARS', exact: true }).click();
+    await page.getByRole('button', { name: 'Arsenal', exact: true }).click();
     await page.getByLabel('Your moneyline price', { exact: true }).fill('2147383848');
     await expect(page.getByRole('button', { name: 'Lock in', exact: true })).toBeDisabled();
     await expect(page.getByText(/storage limit/)).toBeVisible();
@@ -49,7 +51,7 @@ test('shared shell wires the EPL week and children, guards drafts once, and clea
     await expect(page.getByLabel('Your moneyline price', { exact: true })).toHaveValue('-135');
     expect(dialogs).toHaveLength(1);
     page.once('dialog', async dialog => { dialogs.push(dialog.message()); await dialog.dismiss(); });
-    await page.getByRole('group', { name: 'Sport', exact: true }).getByRole('button', { name: 'NFL', exact: true }).click();
+    await page.getByRole('group', { name: 'Sport', exact: true }).getByRole('button', { name: 'National Football League', exact: true }).click();
     await expect(page.getByLabel('Your moneyline price', { exact: true })).toHaveValue('-135');
     expect(dialogs).toHaveLength(2);
     await page.getByRole('button', { name: 'Save draft', exact: true }).click();
@@ -59,6 +61,7 @@ test('shared shell wires the EPL week and children, guards drafts once, and clea
     await page.getByRole('button', { name: 'Leaderboard', exact: true }).click();
     await expect(page.getByRole('heading', { name: '2026 moneyline leaderboard', exact: true })).toBeVisible();
     await expect(page.getByText('12.5', { exact: true })).toBeVisible();
+    await captureEpl(page,'moneyline-leaderboard','epl-moneyline-leaderboard');
     await page.goBack();
     await expect(page.getByLabel('Your moneyline price', { exact: true })).toHaveValue('-135');
     await page.getByRole('navigation', { name: 'Main', exact: true }).getByRole('button', { name: 'Bets', exact: true }).click();
@@ -67,7 +70,7 @@ test('shared shell wires the EPL week and children, guards drafts once, and clea
     await page.goBack();
     await expect(page.getByLabel('Your moneyline price', { exact: true })).toHaveValue('-135');
     for (const theme of ['dark', 'light']) {
-      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      await setCaptureTheme(page, theme);
       await page.setViewportSize({ width: 320, height: 844 });
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       expect(await page.getByRole('button', { name: 'Leaderboard', exact: true }).evaluate(button => { const range = document.createRange(); range.selectNodeContents(button); return range.getClientRects().length; })).toBe(1);
@@ -83,7 +86,7 @@ test('shared profile sign-out/account remount never draws the previous managerâ€
   const world = await fixture(page, baseURL);
   try {
     await page.goto('/#epl/play/guess'); await signIn(page, 'luke', { navigate: false });
-    await page.getByRole('button', { name: 'ARS', exact: true }).click();
+    await page.getByRole('button', { name: 'Arsenal', exact: true }).click();
     await page.getByLabel('Your moneyline price', { exact: true }).fill('-777');
     await page.getByRole('button', { name: 'Save draft', exact: true }).click();
     await expect(page.getByText('Draft saved.', { exact: true })).toBeVisible();
@@ -92,9 +95,51 @@ test('shared profile sign-out/account remount never draws the previous managerâ€
     await signIn(page, 'troy', { navigate: false });
     await expect(page.getByRole('heading', { name: 'Matchweek 17', exact: true })).toBeVisible();
     await expect(page.getByLabel('Your moneyline price', { exact: true })).toHaveValue('+100');
-    await expect(page.getByRole('button', { name: 'ARS', exact: true })).toHaveAttribute('aria-pressed', 'false');
+    await expect(page.getByRole('button', { name: 'Arsenal', exact: true })).toHaveAttribute('aria-pressed', 'false');
     expect(await page.locator('main').innerText()).not.toContain('777');
     expect(world.calls.filter(c => c.action === 'guess/read').at(-1).ownerId).toBe('manager-troy');
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
+});
+
+test('Prism native moneyline recovery and leaderboard states keep entry paused and references honest',async({page,baseURL})=>{
+ test.setTimeout(180000);
+ const world=await fixture(page,baseURL);let mode='ready',release;
+ const data={available:true,season:2026,week:17,ownerId:'manager-luke',fixtures:[game],guesses:[]};
+ await page.route('**/functions/v1/gtl-api/epl/guess/read',async route=>{
+  if(mode==='busy'||mode==='loading'){await new Promise(resolve=>{release=resolve;});return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(data)}).catch(()=>{});}
+  return route.fulfill({status:mode==='failed'?503:200,contentType:'application/json',body:JSON.stringify(mode==='failed'?{error:'Synthetic read failure'}:{...data,available:mode!=='unavailable',reason:mode==='unavailable'?'prices_not_verified':undefined})});
+ });
+ try{
+  await page.goto('/#epl/play/guess');await signIn(page,'luke',{navigate:false});
+  await expect(page.getByLabel('Your moneyline price',{exact:true})).toBeVisible();
+  mode='busy';await page.getByRole('button',{name:'Refresh saved guesses',exact:true}).click();
+  await expect(page.getByRole('button',{name:'Loading saved guessesâ€¦',exact:true})).toBeDisabled();
+  await captureEpl(page,'moneyline-busy','epl-moneyline-busy');release();release=null;
+  await expect(page.getByRole('button',{name:'Refresh saved guesses',exact:true})).toBeEnabled();
+  mode='failed';await page.getByRole('button',{name:'Refresh saved guesses',exact:true}).click();
+  await expect(page.getByText('Saved data could not be refreshed. Entry is paused until saved guesses load.',{exact:true})).toBeVisible();
+  await captureEpl(page,'moneyline-stale','epl-moneyline-stale');
+  for(const scenario of ['unavailable','failed','loading']){
+   mode=scenario;await page.reload();
+   if(scenario==='unavailable')await expect(page.getByText('Moneyline guessing isnâ€™t available this week.',{exact:true})).toBeVisible();
+   else if(scenario==='failed')await expect(page.locator('[data-epl-section="guess"] .gx-empty')).toBeVisible();
+   else await expect(page.locator('[data-epl-section="guess"] .gx-skel')).toBeVisible();
+   await captureEpl(page,`moneyline-${scenario}`,`epl-moneyline-${scenario}`);release?.();release=null;
+  }
+  mode='ready';
+  let ranking='empty';
+  await page.route('**/functions/v1/gtl-api/epl/guess/leaderboard',async route=>{
+   if(ranking==='loading'){await new Promise(resolve=>{release=resolve;});return route.fulfill({status:200,contentType:'application/json',body:'{"season":2026,"rows":[]}'}).catch(()=>{});}
+   return route.fulfill({status:ranking==='failed'?503:200,contentType:'application/json',body:JSON.stringify(ranking==='failed'?{error:'Synthetic ranking failure'}:{season:2026,rows:[]})});
+  });
+  for(const scenario of ['empty','failed','loading']){
+   ranking=scenario;await page.goto('/#epl/play/leaderboard');await page.reload();
+   if(scenario==='empty')await expect(page.getByText('No scored guesses yet.',{exact:true})).toBeVisible();
+   else if(scenario==='failed')await expect(page.locator('[data-epl-section="leaderboard"] .gx-empty')).toBeVisible();
+   else await expect(page.locator('[data-epl-section="leaderboard"] .gx-skel')).toBeVisible();
+   await captureEpl(page,`moneyline-leaderboard-${scenario}`,`epl-moneyline-leaderboard-${scenario}`);release?.();release=null;
+  }
+  expect(world.errors).toEqual([]);
+ }finally{release?.();await world.db.close();}
 });

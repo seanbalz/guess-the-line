@@ -1,5 +1,23 @@
 /* The League feed (redesign build plan stages 64 and 65; prototype league feed). Tokens only (tests/next-tokens.test.mjs). */
 .gx .gx-feed { overflow-wrap: anywhere; }
+.gx .gx-feed.gx-vstack { gap: 20px; }
+.gx .gx-feed-post.gx-card { gap: 15px; padding: 20px 16px; }
+.gx .gx-feed-post .gx-feed-head { gap: 10px; }
+.gx .gx-feed-post time { padding-top: 3px; }
+.gx .gx-feed-rx .gx-feed-cbtn { border: 1px solid var(--gx-border); border-radius: 14px; background: var(--gx-glass); box-shadow: var(--gx-secondary-shadow); padding-inline: 8px; }
+.gx .gx-feed-digest-head { flex-direction: column; gap: 12px; }
+.gx .gx-feed-digest-head time { align-self: flex-end; }
+.gx .gx-feed-embed.gx-feed-result { gap: 13px; padding: 18px 12px; border: 1px solid var(--gx-border); border-radius: 21px; box-shadow: var(--gx-secondary-shadow); text-align: center; }
+.gx .gx-feed-result-game { display: grid; justify-items: center; gap: 7px; }
+.gx .gx-feed-result-game .gx-mu-row { gap: 16px; }
+.gx .gx-feed-result-teams { display: grid; grid-template-columns: minmax(68px, 1fr) minmax(68px, 1fr); gap: 36px; }
+.gx .gx-feed-result .gx-mu-side { flex-direction: column; }
+.gx .gx-feed-result .gx-team { width: 52px; height: 52px; }
+.gx .gx-feed-result-value { display: grid; gap: 4px; }
+.gx .gx-feed-result-value > strong { font: 600 38px/1.2 var(--gx-font-num); font-variant-numeric: tabular-nums; letter-spacing: -1px; color: var(--gx-accent-ink); }
+.gx .gx-feed-result-value small { font: 500 14px/1.5 var(--gx-font-body); color: var(--gx-text-2); letter-spacing: 0; }
+.gx .gx-feed-result-bar { height: 5px; overflow: hidden; border-radius: 8px; background: var(--gx-border); }
+.gx .gx-feed-result-bar > span { display: block; height: 100%; background: var(--gx-accent-ink); border-radius: inherit; }
 .gx .gx-feed-post { display: flex; flex-direction: column; gap: var(--gx-space-3); }
 .gx .gx-feed-head { display: flex; align-items: flex-start; gap: var(--gx-space-3); min-width: 0; }
 .gx .gx-feed-head .gx-av-stack { flex: none; padding-top: var(--gx-space-1); }
@@ -34,8 +52,9 @@
   min-width: var(--gx-size-touch);
   height: var(--gx-size-touch);
   padding: 0 var(--gx-space-3);
-  border: 0;
-  border-radius: var(--gx-radius-pill);
+  border: 1px solid var(--gx-border);
+  border-radius: 14px;
+  box-shadow: var(--gx-secondary-shadow);
   background: var(--gx-surface-2);
   color: var(--gx-text-1);
   font: inherit;
@@ -74,16 +93,18 @@
   padding: var(--gx-space-2);
   border-radius: var(--gx-radius-lg);
 }
-.gx .gx-feed-pop-row { display: flex; justify-content: space-between; gap: 2px; }
+.gx .gx-feed-pop-row { display: flex; justify-content: space-between; gap: 0; }
 .gx .gx-feed-emo {
   display: grid;
   place-items: center;
   width: var(--gx-size-touch);
   height: var(--gx-size-touch);
   padding: 0;
-  border: 0;
-  border-radius: var(--gx-radius-pill);
-  background: transparent;
+  flex: none;
+  border: 1px solid var(--gx-border);
+  border-radius: 14px;
+  background: var(--gx-glass);
+  box-shadow: var(--gx-secondary-shadow);
   font-size: 24px;
   line-height: 1;
   cursor: pointer;
@@ -91,6 +112,7 @@
 .gx .gx-feed-emo--on { background: var(--gx-accent-tint); box-shadow: inset 0 0 0 1px var(--gx-accent-ink); }
 .gx .gx-feed-pop-who { align-self: center; }
 @media (forced-colors: active) {
+  .gx .gx-feed-result-bar > span { background: Highlight; }
   .gx .gx-feed-chip--mine,
   .gx .gx-feed-emo--on { outline: 2px solid Highlight; }
 }

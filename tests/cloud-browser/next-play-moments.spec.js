@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { HOSTED } from '../migrations.mjs';
 import { ACCOUNTS, SUPABASE, communityWorld, id, pgliteAvailable, signIn } from './community-world.mjs';
-import { openGame, openWeek } from './play-nest.mjs';
+import { openPicksWeek, openGame, openWeek } from './play-nest.mjs';
 
 // Play's game feel (design upgrade): the lock-in moment, the week progress strip, the reveal moment, the native guess
 // control and Play's quiet states, at 390 × 844. Fictional reads and writes over the local account fixture (the
@@ -80,7 +80,7 @@ async function fixture(page, baseURL, { open = true, beforeOpen } = {}) {
   await beforeOpen?.({ personal, control });
   await signIn(page, 'luke');
   await tabs(page).getByRole('button', { name: /^Play(,|$)/ }).click();
-  await page.getByRole('button', { name: 'Make picks', exact: true }).click();
+  await openPicksWeek(page);
   // That primary button's press tick (ui/haptics.js) is the kit's, not Play's: count buzzes from the guesses screen on.
   await page.evaluate(() => { window.__vibrations = []; });
   return { ...world, personal, writes, reads, control, kicked };
@@ -103,7 +103,7 @@ test('Monday pending answers refresh from saved references without changing draf
   await page.getByRole('button',{name:'Check for answers',exact:true}).click();
   const kicked=await openGame(page,world.kicked.id);
   await expect(kicked.locator('.gx-lock-receipt')).toContainText('10 / 10');
-  await expect(kicked.locator('.gx-receipt-pair')).toContainText('Line');
+  await expect(kicked.locator('.gx-pc-stats')).toContainText('Saved scoring line');
   const draft=await openGame(page,open.id);
   await expect(draft.locator('.gx-guess-num[data-value="3"]')).toHaveAttribute('aria-checked','true');
   await expect(draft.locator('.gx-lock-receipt')).toHaveCount(0);

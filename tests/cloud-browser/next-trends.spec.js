@@ -6,6 +6,23 @@ test.use({ viewport: { width: 390, height: 844 } });
 test.beforeEach(() => test.skip(!pgliteAvailable, 'Local PGlite required; no hosted requests.'));
 const nav = page => page.getByRole('navigation',{ name: 'Main' });
 const group = (page,name) => page.getByRole('group',{ name, exact: true });
+async function choosePlayerScopeViaResearch(page,name) {
+ // Compact Trends retains league access through the native Research root. Browser Back must restore
+ // the exact player/team layer, so the selected scope's pending/error read still masks its contents.
+ const address=page.url();
+ await nav(page).getByRole('button',{name:'Research',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Research',level:1,exact:true})).toBeVisible();
+ await page.locator('.gx-league-btn').click();
+ const leagues=page.getByRole('dialog',{name:'Your leagues',exact:true});
+ await leagues.locator('button').filter({hasText:name}).first().click();
+ await expect(leagues).toHaveCount(0);
+ await expect(page.locator('.gx-league-btn')).toContainText(name);
+ await page.goBack();
+ await expect(page).toHaveURL(address);
+ await expect(page.getByRole('heading',{name:'Trends',level:1,exact:true})).toBeVisible();
+ await expect(nav(page).getByRole('button',{name:'Research',exact:true})).toHaveAttribute('aria-current','page');
+ await expect(group(page,'Trends section').getByRole('button',{name:'Players',exact:true})).toHaveAttribute('aria-pressed','true');
+}
 const prepare = state => {
  state.league.season = 2026; state.league.week = 6;
  state.games = ['SEA-DEN','CAR-PHI','NO-NYG','WAS-SF'].map((id,i) => { const [awayCode,homeCode] = id.split('-'); return { ...state.games[i], id, away: awayCode, home: homeCode, awayCode, homeCode, matchup: awayCode+' @ '+homeCode }; });
@@ -71,7 +88,7 @@ test('a closed Source details draws nothing under its row, and it sits in a roun
    // [hidden] used to lose to the body's display: flex, so the closed body drew an empty 20px band.
    expect(await body.evaluate(el => ({ hidden: el.hidden, boxes: el.getClientRects().length, height: el.getBoundingClientRect().height }))).toEqual({ hidden: true, boxes: 0, height: 0 });
    const card = await row.evaluate(el => { const c = el.closest('.gx-card--flush'); return c ? getComputedStyle(c).borderTopLeftRadius : null; });
-   expect(card,'the Expander is wrapped in a flush card with rounded corners').toBe('16px');
+   expect(card,'the Expander uses the selected 28px floating-card corners').toBe('28px');
    await row.click(); await expect(row).toHaveAttribute('aria-expanded','true');
    expect(await body.evaluate(el => el.getBoundingClientRect().height)).toBeGreaterThan(0);
    await row.click(); await expect(row).toHaveAttribute('aria-expanded','false');
@@ -257,15 +274,13 @@ test('published week, market gates, team filters, game sheets/back, player windo
   await expect(nav(page).getByRole('button',{name:'Research',exact:true})).toBeFocused(); await page.setViewportSize({width:390,height:844});
   // D-66 nesting cards on This Week: a closed market is a lock inside the game; This week › game › trend › back.
   const week=page.getByRole('region',{name:'Week trends',exact:true});
-  await group(page,'Trends market').getByRole('button',{name:'Total',exact:true}).click();
-  await week.locator('[data-game=CAR-PHI]').click();
-  await expect(week.getByRole('heading',{level:2,name:'Carolina Panthers at Philadelphia Eagles',exact:true})).toBeFocused();
+  await page.goto('/#research/trends?market=total&weekGame=CAR-PHI');
+  await expect(week.getByRole('heading',{level:2,name:'Carolina Panthers at Philadelphia Eagles',exact:true})).toBeVisible();
   await expect(week.getByText(/Total line-based records/).first()).toBeVisible();
   await noSentinel(page);
   await week.getByRole('button',{name:'Back to This week',exact:true}).click();
-  await expect(week.getByRole('heading',{level:2,name:'This week',exact:true})).toBeVisible();
-  await group(page,'Trends market').getByRole('button',{name:'Spread',exact:true}).click();
-  await week.locator('[data-game=CAR-PHI]').click();
+  await expect(page.getByRole('region',{name:'Historical trends',exact:true})).toBeVisible();
+  await page.goto('/#research/trends?market=spread&weekGame=CAR-PHI');
   const weekTile=week.locator('button.gx-nest-tile').first();
   const weekTitle=(await weekTile.locator('.gx-nest-tile-label').textContent()).trim();
   await weekTile.click();
@@ -293,23 +308,17 @@ test('published week, market gates, team filters, game sheets/back, player windo
   await week.getByRole('button',{name:'Back to This week',exact:true}).click();
   await page.screenshot({path:testInfo.outputPath('week-390.png'),fullPage:true});
   await noSentinel(page);
-  // D-75: This week leads with one hero; more than three trends fold into All trends, its own layer and address.
-  await expect(week.locator('[data-hero]')).toHaveCount(1);
-  const allTrends=week.locator('button.gx-nest-more');
-  if (await allTrends.count()) {
-   await allTrends.click();
-   await expect(week.getByRole('heading',{level:2,name:'All trends',exact:true})).toBeFocused();
-   await expect(page).toHaveURL(/weekList=all/);
-   for (const width of [390,320]) {
-    await page.setViewportSize({width,height:844});
-    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-    expect((await new AxeBuilder({page}).include('.gx').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations.map(v=>v.id)).toEqual([]);
-   }
-   await page.setViewportSize({width:390,height:844});
-   await page.screenshot({path:testInfo.outputPath('week-all-390.png'),fullPage:true});
-   await week.getByRole('button',{name:'Back to This week',exact:true}).click();
-   await expect(week.getByRole('heading',{level:2,name:'This week',exact:true})).toBeVisible();
+  // Saved legacy weekly addresses keep their existing season charts; Back returns to the approved historical list.
+  await expect(page.getByRole('region',{name:'Historical trends',exact:true})).toBeVisible();
+  await page.goto('/#research/trends?market=spread&weekList=all');
+  await expect(week.getByRole('heading',{level:2,name:'All trends',exact:true})).toBeVisible();
+  for (const width of [390,320]) {
+   await page.setViewportSize({width,height:844});
+   await phone(page);await noSentinel(page);
+   expect((await new AxeBuilder({page}).include('.gx').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations.map(v=>v.id)).toEqual([]);
   }
+  await week.getByRole('button',{name:'Back to This week',exact:true}).click();
+  await expect(page.getByRole('region',{name:'Historical trends',exact:true})).toBeVisible();
   // D-66 nesting cards: Teams › team › trend, one smaller layer per tap; lips and back return one layer at a time.
   await group(page,'Trends section').getByRole('button',{name:'Teams',exact:true}).click();
   const nest=page.getByRole('region',{name:'Team trends',exact:true});
@@ -470,15 +479,15 @@ test('history error/retry, vanished data and private comparison unavailable fail
   await page.getByRole('button',{name:'Refresh player history',exact:true}).click();
   await expect(page.getByText(/No eligible locked guesses/)).toBeVisible();await expect(page.locator('[data-measure]')).toHaveCount(0);
   await page.route('**/functions/v1/gtl-api/league/comparison',route=>route.fulfill({status:503,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify({error:'Private comparison unavailable'})}));
-  await page.getByRole('button',{name:/^League: Community/}).click();
-  await page.getByRole('dialog',{name:'Your leagues',exact:true}).locator('button').filter({hasText:world.state.league.name}).first().click();
-  const prior=calls.length;await expect(page.getByRole('alert').filter({hasText:'Private comparison unavailable'})).toBeVisible();
+  const prior=calls.length;
+  await choosePlayerScopeViaResearch(page,world.state.league.name);
+  await expect(page.getByRole('alert').filter({hasText:'Private comparison unavailable'})).toBeVisible();
   await expect(page.getByText(/No eligible locked guesses/)).toHaveCount(0);await expect(page.locator('[data-measure],[data-player]')).toHaveCount(0);expect(calls.length).toBe(prior);
   expect(world.errors).toEqual([]);
  }finally{await world.db.close();}
 });
 
-test('populated scopes mask synchronously while private read waits; next account resets player filters',async({page,baseURL})=>{
+test('restored populated scopes stay masked while private read waits; next account resets player filters',async({page,baseURL})=>{
  const world=await ready(page,baseURL); let release; const waiting=new Promise(resolve=>{release=resolve;}); let privateStarted=false;
  try{
   await group(page,'Trends section').getByRole('button',{name:'Players',exact:true}).click();
@@ -486,15 +495,13 @@ test('populated scopes mask synchronously while private read waits; next account
   await page.locator('[data-measure=teams]').click(); await page.locator('[data-team=CAR]').click();
   await expect(page.getByRole('heading',{level:2,name:'Carolina Panthers',exact:true})).toBeVisible();
   await page.route('**/functions/v1/gtl-api/league/comparison',async route=>{privateStarted=true;await waiting;await route.fulfill({status:503,headers:{'access-control-allow-origin':'*'},contentType:'application/json',body:JSON.stringify({error:'Private scope unavailable'})});});
-  await page.getByRole('button',{name:/^League: Community/}).click();
-  await page.getByRole('dialog',{name:'Your leagues',exact:true}).locator('button').filter({hasText:world.state.league.name}).first().click();
+  await choosePlayerScopeViaResearch(page,world.state.league.name);
   await expect.poll(()=>privateStarted).toBe(true);
   await expect(page.getByText('Loading scoped player history…')).toBeVisible();
   await expect(page.getByRole('region',{name:'Player trends',exact:true})).toHaveCount(0);
   await expect(page.locator('[data-player],[data-measure],[data-direction]')).toHaveCount(0);
   release(); await expect(page.getByRole('alert').filter({hasText:'Private scope unavailable'})).toBeVisible();
-  await page.getByRole('button',{name:/^League:/}).click();
-  await page.getByRole('dialog',{name:'Your leagues',exact:true}).getByRole('button',{name:/Community/}).first().click();
+  await choosePlayerScopeViaResearch(page,'Community');
   await expect(page.getByRole('heading',{level:2,name:'Carolina Panthers',exact:true})).toBeVisible();
   await page.getByRole('button',{name:'Your menu',exact:true}).click(); await page.getByRole('button',{name:'Sign out',exact:true}).click();
   await signIn(page,'sean',{navigate:false});await expect(page.getByRole('heading',{name:'Trends',level:1})).toBeVisible();
@@ -577,32 +584,33 @@ test('trend builder: conditions, honest result card, this week’s matches, save
   expect(world.errors).toEqual([]);
  }finally{await world.db.close();}
 });
-test('D-69: the session\'s first layer change rises in; the launch screen never moves, even after a press',async({page,baseURL})=>{
+test('retained weekly deep links reveal their chart only after the first native layer change',async({page,baseURL})=>{
  const world=await ready(page,baseURL);
  try{
+  await page.goto('about:blank');await page.goto('/#research/trends?market=spread&weekGame=CAR-PHI');
   const week=page.getByRole('region',{name:'Week trends',exact:true}), card=week.locator('.gx-nest-card');
   await expect(card).not.toHaveAttribute('data-enter',/./);
-  await page.locator('[data-trend-availability]').click(); // a press on words: the member is here, still on the launch screen
+  await week.getByRole('heading',{level:2,name:'Carolina Panthers at Philadelphia Eagles',exact:true}).click();
   await expect(card).not.toHaveAttribute('data-enter',/./);
-  await week.locator('[data-game=CAR-PHI]').click(); // the first navigation of the session is this layer change
-  await expect(week.getByRole('heading',{level:2,name:'Carolina Panthers at Philadelphia Eagles',exact:true})).toBeFocused();
-  await expect(card,'a deeper layer rises in').toHaveAttribute('data-enter','in');
+  const tile=week.locator('button.gx-nest-tile').first(),title=(await tile.locator('.gx-nest-tile-label').textContent()).trim();
+  await tile.click();
+  await expect(week.getByRole('heading',{level:2,name:title,exact:true})).toBeFocused();
+  await expect(card).toHaveAttribute('data-enter','in');
   expect(world.errors).toEqual([]);
  }finally{await world.db.close();}
 });
-test('D-69: on a launch at a deeper layer, the session\'s first Back settles the parent',async({page,baseURL})=>{
+
+test('Back from a loaded weekly deep link returns to the historical list and retains native navigation focus',async({page,baseURL})=>{
  const world=await ready(page,baseURL);
  try{
-  const week=page.getByRole('region',{name:'Week trends',exact:true}), card=week.locator('.gx-nest-card');
   await page.goto('about:blank'); await page.goto('/#research/trends?weekGame=CAR-PHI');
+  const week=page.getByRole('region',{name:'Week trends',exact:true}),card=week.locator('.gx-nest-card');
   const game=week.getByRole('heading',{level:2,name:'Carolina Panthers at Philadelphia Eagles',exact:true});
-  await expect(game).toBeVisible();
-  await expect(card).not.toHaveAttribute('data-enter',/./);
-  await game.click(); // a press on the layer's heading: the member is here, still on the launch screen
-  await expect(card).not.toHaveAttribute('data-enter',/./);
-  await week.getByRole('button',{name:'Back to This week',exact:true}).click(); // the session's first navigation
-  await expect(week.getByRole('heading',{level:2,name:'This week',exact:true})).toBeVisible();
-  await expect(card,'the restored parent settles').toHaveAttribute('data-enter','back');
+  await expect(game).toBeVisible();await expect(card).not.toHaveAttribute('data-enter',/./);
+  await game.click();await expect(card).not.toHaveAttribute('data-enter',/./);
+  await week.getByRole('button',{name:'Back to This week',exact:true}).click();
+  await expect(page.getByRole('region',{name:'Historical trends',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{level:1,name:'Trends',exact:true})).toBeFocused();
   expect(world.errors).toEqual([]);
  }finally{await world.db.close();}
 });

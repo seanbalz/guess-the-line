@@ -6,10 +6,11 @@ import { communityDraftScope, readCommunityDraft, COMMUNITY_DRAFT_PREFIX } from 
 import { readSoloDraft, soloDraftScope } from '../../soloDraft.js';
 import { DRAFT_PREFIX, draftHasChanges, readDraft as readGroupDraft } from '../../predictionDraft.js';
 import { weekOpenAt } from '../../../../shared/nfl-schedule.mjs';
-import { Button, Card, Dialog, Icon, InfoButton, Matchup, Nest, Pill, Segmented, cx, teamCode } from '../ui/index.js';
+import { Button, Card, Dialog, Icon, InfoButton, Matchup, Nest, Pill, Segmented, cx } from '../ui/index.js';
 import { lightHaptic } from '../ui/haptics.js';
 import { motionReduced } from '../ui/motion.js';
 import { ShellContext } from '../shell/context.js';
+import { useFramePresentation } from '../shell/useFramePresentation.js';
 import { TeamMatchup } from '../teams/TeamMatchup.jsx';
 import { fmtFull } from '../format.js';
 import { GuessPicker, GUESS_HELP } from './GuessPicker.jsx';
@@ -22,6 +23,7 @@ import { usePopped } from '../moments/MomentsProvider.jsx';
 import { SCORE_MARKETS, lockConfirmed, lockedAt, mergeDraft, number, perGameReady, savedPicks } from './scoring.js';
 import './scores.css';
 import './moments.css';
+import './prismPlay.css';
 
 const keyOf = (accountId, data, mode) => `${COMMUNITY_DRAFT_PREFIX}per-game.${encodeURIComponent(accountId)}.${data.season}.${data.week}.${mode}`;
 function readDraft(key, data, mode) {
@@ -202,6 +204,10 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', f
   const kicked = data.games.filter(game => !(now < Date.parse(game.kickoff))).length;
   const mayOpen = progress.locked > 0 || kicked > 0 || satOut;
   const picksRead = useWeekPicks({ enabled: Boolean(reveal) && active && mayOpen, accountId, season: data.season, week: data.week, mode, version: `${progress.locked}:${kicked}:${satOut}`, onSignIn: onSignInAgain });
+  const frameGame = nest?.game ? data.games.find(game => game.id === nest.game) : null;
+  useFramePresentation('play-draft', Boolean(frameGame && active && !satOut && !busy && !uncertain && !error && !storageFailed
+    && picksRead.status !== 'error' && !lockedAt(ballot, frameGame.id)
+    && now >= openAt && now < Date.parse(data.deadline) && now < Date.parse(frameGame.kickoff)));
   function goTo(gameId) {
     const card = [...(section.current?.querySelectorAll('[data-game]') ?? [])].find(node => node.dataset.game === gameId);
     card?.focus({ preventScroll: true });
@@ -250,25 +256,30 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', f
     const focused = !nested && game.id === focusGame;
     const Frame = nested ? 'article' : Card, frame = nested ? {} : { as: 'article', tabIndex: -1 };
     return <Frame {...frame} key={game.id} className={cx('gx-vstack gx-gap-16 gx-play-game', nested && 'gx-play-game--nested', stamping && 'gx-play-stamp')} aria-label={`${game.awayCode} at ${game.homeCode} ${market}`} data-game={game.id} data-state={state} data-route-focus={focused ? '' : undefined} ref={focused ? focusedGame : undefined}>
-      <header className="gx-vstack gx-gap-8">
+      <header className="gx-card gx-vstack gx-gap-8 gx-play-matchup-card">
         <div className="gx-play-card-meta"><p className="gx-t-meta gx-c-2">{fmtFull(game.kickoff)}</p><Pill tone={tone} className={cx('gx-play-card-pill', stamping && 'gx-play-stamp-pill')}><Icon icon={STATE_ICONS[state]} size={12}/>{word}</Pill></div>
         {/* Nested, the nesting card's title is the heading; the marks below it still open each team. */}
         {inShell ? <TeamMatchup as={nested ? null : 'h2'} headingClassName="gx-score-matchup" away={game.awayCode} home={game.homeCode} season={data.season}/>
           : <h2 className="gx-score-matchup"><Matchup away={game.awayCode} home={game.homeCode} size={48} layout="stack"/></h2>}
+        {active && !lock && !opened?.open && !closed ? <p className="gx-play-hidden gx-t-meta gx-c-2"><Icon icon="lock" size={16}/>Line hidden until you lock this guess</p> : null}
       </header>
       {lock ? <ScoreReceipt game={game} mode={mode} row={receipt} guess={number(ballot.picks?.[game.id])} lockedAt={lock} onScore={onScore ? () => onScore({ season: data.season, week: data.week, market: mode, scoreGame: game.id }) : undefined}/>
         : !active ? <p className="gx-t-body" data-play="saved-guess">{number(value) === null ? 'No guess yet' : `${String(value) === String(base[game.id]) ? 'Your guess' : 'Unsaved guess'} · ${pickText(mode, game.awayCode, game.homeCode, number(value))}`}</p>
-        : <><div className="gx-play-entry"><GuessPicker mode={mode} value={value} away={shortName(game.awayCode)} home={shortName(game.homeCode)} teamLabels={{ away: teamCode(game.awayCode), home: teamCode(game.homeCode) }} disabled={unavailable} label={`${game.awayCode} at ${game.homeCode} ${market} guess`} onChange={value => { keep({ picks: { ...picks, [game.id]: value }, base, pending: null }); setNotice(''); }}/></div>
+        : <section className="gx-card gx-play-entry-card" aria-label={`Your ${market} guess`}><div className="gx-play-entry-heading"><div><p className="gx-t-micro gx-c-accent">Your {market} guess</p><h3 className="gx-t-section">{mode === 'guess_spread' ? 'Who’s the favorite?' : 'How many combined points?'}</h3></div><InfoButton title={`About ${market} guesses`} body={[GUESS_HELP[mode], 'A locked-in guess is final for this game and market. The other market and other games remain separate.']}/></div><div className="gx-play-entry"><GuessPicker mode={mode} value={value} away={shortName(game.awayCode)} home={shortName(game.homeCode)} disabled={unavailable} label={`${game.awayCode} at ${game.homeCode} ${market} guess`} onChange={value => { keep({ picks: { ...picks, [game.id]: value }, base, pending: null }); setNotice(''); }}/></div>
+          {!closed && !satOut && !notOpen && number(value) !== null ? <p className="gx-t-meta gx-c-2 gx-play-final-note">Draft · editable</p> : null}
           {!closed && !satOut && !notOpen && <Button variant={nested ? 'primary' : 'secondary'} haptic={false} disabled={unavailable || number(value) === null} onClick={() => setConfirm(game.id)}>Lock in {market}</Button>}
           {closed && number(value) !== null && <p className="gx-t-meta gx-c-2">Your draft is preserved. It was not locked in and does not score.</p>}
-        </>}
+          {!closed && !satOut && !notOpen ? <p className="gx-t-meta gx-c-2 gx-play-final-note">Final once locked. Just this game. Just {market}.</p> : null}
+        </section>}
       {opened?.open ? <RevealPicks accountId={accountId} season={data.season} week={data.week} mode={mode} game={game} reveal={opened}
         own={lock ? { id: accountId, name: 'You', pick: number(ballot.picks?.[game.id]) } : null} line={lock ? number(receipt?.reference?.value) : null}/> : null}
     </Frame>;
   }
   const dialogs = <>
     {/* A lock-in buzzes only once a fresh read confirms it (vibrate above), so its button skips the kit's press tick. */}
-    <Dialog open={Boolean(selected)} title={`Lock in ${market}?`} text={selected ? `${selected.awayCode} at ${selected.homeCode}: ${pickText(mode, selected.awayCode, selected.homeCode, picks[selected.id])}. This guess is final. ${now >= Date.parse(data.deadline) ? 'This pick will be marked Late. ' : ''}Only this game’s ${market} line and picks open. The other market stays separate.` : ''} onClose={() => { if (!busy) setConfirm(null); }}><Button onClick={() => setConfirm(null)}>Keep editing</Button><Button variant="primary" haptic={false} disabled={busy} onClick={() => save(confirm)}>Confirm lock-in</Button></Dialog>
+    <Dialog className="gx-play-confirm" open={Boolean(selected)} title={`Lock in ${market}?`} text={selected ? `This guess is final. ${now >= Date.parse(data.deadline) ? 'This pick will be marked Late. ' : ''}Only this game’s ${market} line and picks open. The other market stays separate.` : ''} onClose={() => { if (!busy) setConfirm(null); }}>
+      {selected ? <div className="gx-play-confirm-call"><span className="gx-t-micro gx-c-accent">Your {market} guess</span><strong className="gx-n-l">{pickText(mode, selected.awayCode, selected.homeCode, picks[selected.id])}</strong><small className="gx-t-meta gx-c-2">{shortName(selected.awayCode)} at {shortName(selected.homeCode)} · Week {data.week}</small></div> : null}
+      <Button onClick={() => setConfirm(null)}>Keep editing</Button><Button variant="primary" haptic={false} disabled={busy} onClick={() => save(confirm)}>Confirm lock-in</Button></Dialog>
     <Dialog open={confirmSitOut} title={`Sit out Week ${data.week} ${market}?`} text={`This is final for the remaining ${market} games this week. Your locked guesses keep their points and your drafts stay visible. You cannot lock more ${market} guesses this week. Other players’ ${market} picks become available in the feed. ${mode === 'guess_spread' ? 'Total' : 'Spread'} is not affected.`} onClose={() => { if (!busy) setConfirmSitOut(false); }}><Button onClick={() => setConfirmSitOut(false)}>Keep playing</Button><Button variant="primary" disabled={busy || !canSitOut} onClick={sitOut}>Confirm sit-out</Button></Dialog>
   </>;
   const marketControl = <Segmented label="Market" options={SCORE_MARKETS} value={mode} onChange={value => { if (!busy && !uncertain) onMode?.(value); }}/>;
@@ -285,6 +296,7 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', f
       {open ? <Nest label="Your guesses" layer={`game:${open.id}`} title={`${open.awayCode} @ ${open.homeCode}`}
         lips={[...(nest.root ? [nest.root] : []), { key: 'week', label: `Week ${data.week} · ${market}`, onOpen: nest.onWeek }]}
         info={<InfoButton title={`How to make a ${market} guess`} body={[GUESS_HELP[mode]]}/>}>
+        {marketControl}
         {gameCard(open, true)}
         {/* Next opens the next game still to lock in this card's place; it is the primary button once Lock in is gone. */}
         {after && active ? <Button variant={lockable(open) ? 'ghost' : 'primary'} iconEnd="chevronRight" className="gx-play-next" onClick={() => nest.onOpen(after.id)}>Next to lock · <Matchup away={after.game.awayCode} home={after.game.homeCode}/></Button>

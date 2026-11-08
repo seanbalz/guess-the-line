@@ -49,6 +49,12 @@ temporary; it does not approve a new brand direction or retire the prototype.
 Bets adds `web/src/liveBets.css`, scoped under
 `.gx .gx-bets`, for the existing forms and tables. League keeps comment drafts
 mounted when the reply form is collapsed.
+
+The confirmed November 7 Prism port keeps its additional retained-editor skin in
+this same `web/src/liveBets.css` adapter. The native adapter supplies low-level
+Matchup/TeamMark identity components to the retained editor as optional view
+slots; the shared editor imports no new-app component or shell. Its read/write
+controller and native import-boundary checks remain unchanged.
 History no longer imports `HistoryLine`: `web/src/next/league/historyModel.js`
 words each line and result itself and keeps every line and game note the
 established history screen showed (pending, provisional and imported reference

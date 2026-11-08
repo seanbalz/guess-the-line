@@ -13,6 +13,7 @@ import { randomUUID } from 'node:crypto';
 import { ACCOUNTS, pgliteAvailable, signIn } from './community-world.mjs';
 import { addOlderRecords, historyWorld, FINALS, SELECTIONS } from './history-world.mjs';
 import { layoutProblems } from '../helpers/phone-layout.mjs';
+import { setCaptureTheme, themedScreenshot } from './theme-capture.mjs';
 import { createEngine } from '../../server/engine.mjs';
 import { seed } from '../../server/store.mjs';
 
@@ -39,7 +40,7 @@ const back = page => history(page).getByRole('button', { name: 'Older records', 
 async function phoneChecks(page, label, testInfo) {
   const found = {};
   for (const theme of ['dark', 'light']) {
-    await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+    await setCaptureTheme(page, theme);
     for (const width of [390, 320]) {
       await page.setViewportSize({ width, height: 844 });
       await page.evaluate(() => window.scrollTo(0, 0));

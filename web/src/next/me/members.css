@@ -1,3 +1,16 @@
 .gx .gx-members-stack { display: grid; gap: var(--gx-space-3); min-width: 0; }
 .gx .gx-members-name { overflow-wrap: anywhere; }
 .gx .gx-members-problem { color: var(--gx-loss); }
+.gx .gx-members-stack { gap: 19px; }
+.gx .gx-members :is(h3,p) { margin: 0; }
+.gx .gx-members-intro, .gx .gx-members .gx-card { display: grid; gap: 18px; padding: 20px 14px; border: 1px solid var(--gx-border); border-radius: 25px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); min-width: 0; }
+.gx .gx-members-intro { background: linear-gradient(135deg,var(--gx-accent-tint),var(--gx-surface-2)); }
+.gx .gx-members .gx-cm-heading { display: flex; align-items: center; gap: 12px; }
+.gx .gx-members .gx-cm-icon { display: grid; place-items: center; width: 53px; height: 53px; flex: none; border: 1px solid var(--gx-border); border-radius: 18px; background: var(--gx-glass); box-shadow: var(--gx-glass-shadow); color: var(--gx-accent-ink); }
+.gx .gx-members-head { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.gx .gx-members-head > div { min-width: 0; }
+.gx .gx-members-head p { margin-top: 6px; }
+.gx .gx-members [data-decision="remove"] { border-color: var(--gx-loss); }
+.gx .gx-members [data-pending] { border-color: var(--gx-accent-ink); }
+.gx .gx-members-intro { -webkit-backdrop-filter: var(--gx-glass-blur); backdrop-filter: var(--gx-glass-blur); }
+@media(forced-colors:active) { .gx .gx-members :is(.gx-members-intro,.gx-card,.gx-cm-icon) { border-color: CanvasText; box-shadow: none; } }

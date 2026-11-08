@@ -97,7 +97,7 @@ test('the PNG icons (home screen 180, manifest 192 and 512, notification badge 1
   assert.deepEqual(manifest.icons, [192, 512].map(size => ({ src: `/app-icon-${size}.png`, sizes: `${size}x${size}`, type: 'image/png', purpose: 'any' })));
   assert.equal(manifest.background_color, nextTokens.themeColor.dark);
   assert.equal(manifest.theme_color, nextTokens.themeColor.dark);
-  assert.equal(nextTokens.themeColor.dark, '#070B16');
+  assert.equal(nextTokens.themeColor.dark, '#202126');
   assert.ok(![manifest.background_color, manifest.theme_color].includes(navy), 'the old app navy does not come back');
   assert.ok(contrast(lime, nextTokens.themeColor.dark) >= 3, 'the lime G on the splash color');
   // iOS shows a transparent home-screen icon on black.

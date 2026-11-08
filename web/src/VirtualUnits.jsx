@@ -38,11 +38,8 @@ export const BETS_VISIBLE_NOTE = "Coming soon: everyone in the league will see e
 
 function Stat({ label, value, detail }) { return <div className="stat"><span>{label}</span><strong>{value}</strong><small>{detail}</small></div>; }
 
-// D-77 (Sean, November 3, 2026: "Your gaps' paper record", then option 1, "Hit rate hero"): one hero card with the share
-// of your decided gaps that beat the closing line (W / (W + L), as D-75's win rate), the record and units, and one dot per
-// graded gap in kickoff order. The fine print opens from its info button. Your own /lines/read only (gapRecord).
 const GAP_WORDS = { win: ['W', 'Win'], loss: ['L', 'Loss'], push: ['P', 'Push'] };
-function GapRecord({ record, week }) {
+function LegacyGapRecord({ record, week }) {
   const [about, setAbout] = useState(false);
   const decided = record.wins + record.losses, waiting = record.notGraded.noFinal + record.notGraded.noLine, favorable = record.favorable;
   const rate = decided ? `${(record.wins / decided * 100).toFixed(1)}%` : '—';
@@ -66,7 +63,7 @@ function closedReviewReason(game, now, result) {
   return null;
 }
 
-export default function VirtualUnits({ leagueId, accountId, onDirty, onSaved, onSignInAgain, onTrackTicket, embedded = false, initialView = 'all', showViewTabs = true, accountRecommendations = false, recommendedMarket, onRecommendedMarket, marketControl }) {
+export default function VirtualUnits({ leagueId, accountId, onDirty, onSaved, onSignInAgain, onTrackTicket, embedded = false, initialView = 'all', showViewTabs = true, accountRecommendations = false, recommendedMarket, onRecommendedMarket, marketControl, GapRecordView = LegacyGapRecord }) {
   const [data, setData] = useState(null), [loading, setLoading] = useState(true), [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState('');
   const [selections, setSelections] = useState({}), [uncertain, setUncertain] = useState(null);
   const [view, setView] = useState(initialView === 'recommended' ? 'recommended' : 'all');
@@ -273,7 +270,7 @@ export default function VirtualUnits({ leagueId, accountId, onDirty, onSaved, on
       {settledCount > 0 && data.settlement?.lastSettledAt && <p className="virtual-settlement-note" role="status"><CircleCheckBig size={15}/>{settledCount} settled pick{settledCount === 1 ? '' : 's'}{data.summary.pending ? ` · ${data.summary.pending} still pending` : ''} · finals as of {date(data.settlement.lastSettledAt)} PT</p>}
       <div className="virtual-game-grid">{data.games.map(game => <GameCard key={game.id} game={game} result={data.results?.[game.id]} picks={picks} selections={selections} choose={choose} changeUnits={changeUnits} save={save} busy={busy || loading || Boolean(uncertain)} rules={data.rules}/>)}</div></>}
     {view === 'recommended' && data && !loading && <section className="recommended-bets" aria-label="Recommended bets">
-      {gaps && <GapRecord record={gaps} week={data.week}/>}
+      {gaps && <GapRecordView key={`${accountId}:${gapWeek}:${market}`} record={gaps} board={gapBoard.board} week={data.week}/>}
       {historical ? <p className="recommended-source" role="status">Viewing {data.season} Week {data.week}{data.picks?.length ? '' : ' · No saved virtual picks this week.'}</p>
         : !personal ? <p className="loading" role="status">Loading your saved guesses…</p>
         : recommendations.status !== 'ready' ? <div className="recommended-empty" role="status"><p>Your guesses and these lines are not available for the same week.</p><button className="secondary" onClick={refresh}>Refresh recommendations</button></div>

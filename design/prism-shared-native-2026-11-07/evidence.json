@@ -1,0 +1,54 @@
+{
+  "scope": "Shared selected Prism native foundation and identity; native header league pill, separate circle sport row and bottom-bar positions retained pending owner resolution against the other approved prototype layout.",
+  "base": "42a5ad9930a5712c6b357564701fbb5628b12b43",
+  "branch": "codex/confirmed-prism-shared-2026-11-07",
+  "authority": {
+    "commit": "3ac2eb50513ba73447ef890e4a47863cde7bdd76",
+    "directory": "design/style-directions-2026-11-04",
+    "recipes": [
+      "SELECTED_DESIGN_HANDOFF.md",
+      "selected-system-review.json",
+      "selected-system-review.js",
+      "glass-card-options.js",
+      "dark-character-options.json",
+      "visual-icon-treatments.css"
+    ],
+    "nativeFrameCaptures": [
+      "previews/league-wording-native-nfl-dark-phone.png",
+      "previews/league-wording-native-epl-light-phone.png"
+    ],
+    "otherApprovedComposition": "previews/league-wording-play-dark-phone.png shows header circles/floating dock; do not infer native-frame placement approval from its material approval."
+  },
+  "verification": {
+    "nodeContracts": 32,
+    "uiComponents": 58,
+    "fullShellAndUiBrowsers": 53,
+    "finalAfterEdgeGlossFocusedBrowsers": 13,
+    "browserCommand": "playwright test next-ui.spec.js next-shell.spec.js shared-sport-interface.spec.js with focused shared-material, fallback, transparency, axe, navigation, focus, profile and draft-guard cases; isolated port5294",
+    "typecheck": "passed",
+    "brandQa": "passed",
+    "cloudBundleScan": "passed --bundle-only",
+    "hostedBoundary": "Not run: task checkout has no .env.cloud; no hosted credentials copied or hosted reads needed.",
+    "homePreservation": "Verified Home directory, font, platformWeights, homeThemeColor and every home-* color/effect equal origin/main."
+  },
+  "captures": [
+    {
+      "file": "native-play-dark.png",
+      "sha256": "747b846d887e9665a2eb006e4e03bdbe429624ed776245a6fef600cd15b91c9b",
+      "meaning": "Actual native Play screen with fictional local PGlite account/week; captures shared material/identity, not a completed per-screen redesign."
+    },
+    {
+      "file": "native-play-light.png",
+      "sha256": "11a1e3e163d0555943ff4c81c99a1eef610b8228a035f1fb37642c89c8672b6b",
+      "meaning": "Actual native Play screen with fictional local PGlite account/week; captures shared material/identity, not a completed per-screen redesign."
+    }
+  ],
+  "notEstablished": [
+    "Remaining per-screen layouts",
+    "Structural header/dock choice",
+    "Real-account or real-phone acceptance",
+    "Push or PR",
+    "Merge or deployment",
+    "API/SQL/data/provider changes"
+  ]
+}

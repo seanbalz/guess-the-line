@@ -13,7 +13,7 @@ export const REPORT_COPY = Object.freeze({
 
 export function reportModel(review, filters, scoringLabel) {
   const s = summarizeReview(review, filters);
-  const miss = row => ({ id: row.id, title: row.name, meta: `${row.team} ${row.position} · est. ${number(row.estimate)} · actual ${number(row.actual)}`,
+  const miss = row => ({ id: row.id, team: row.team, title: row.name, meta: `${row.team} ${row.position} · est. ${number(row.estimate)} · actual ${number(row.actual)}`,
     value: signed(row.diff), word: row.diff > 0 ? 'too high' : 'too low' });
   return {
     week: review.week, status: review.status, graded: s.graded, mae: s.mae,
@@ -26,7 +26,7 @@ export function reportModel(review, filters, scoringLabel) {
     ],
     positions: s.byPosition.map(r => {
       const beat = r.baselineMae !== null && r.pairedMae !== null && r.pairedMae < r.baselineMae;
-      return { position: r.position, value: number(r.pairedMae), meta: `${r.graded} graded · season average ${number(r.baselineMae)}`,
+      return { position: r.position, pairedMae: r.pairedMae, baselineMae: r.baselineMae, graded: r.graded, value: number(r.pairedMae), meta: `${r.graded} graded · season average ${number(r.baselineMae)}`,
         word: r.baselineMae === null ? 'No average' : beat ? 'Beat average' : 'Behind average', tone: beat ? 'good' : 'plain' };
     }),
     overs: s.overs.map(miss), unders: s.unders.map(miss),

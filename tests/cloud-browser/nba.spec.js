@@ -334,8 +334,8 @@ for (const view of ['next']) test(`${view} sport entry/return, NFL and NBA draft
     // NBA is hidden from the switch; retained bookmarked routes still honor unsaved-draft guards.
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: /^Play/ }).click();
-    // The Play landing (D-69 P1B) opens the per-game editor from its one primary action.
-    await page.getByRole('button', { name: 'Make picks', exact: true }).click();
+    // The confirmed Play overview opens each market directly.
+    await page.getByRole('group', { name: 'Guess market', exact: true }).getByRole('button', { name: 'Spread', exact: true }).click();
     // The current per-game entry owns the Shell dirty registry (D-70: a game's card opens from its week tile).
     await page.locator('.gx-per-game [data-tile]').first().click();
     await page.getByRole('button', { name: /Pick'em/i }).first().click();

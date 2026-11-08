@@ -1,5 +1,56 @@
 # GUESS THE LINE — BRAND & DESIGN SYSTEM v1.0
 
+## Approved shared Prism foundation — November 7, 2026
+
+Sean authorized the remaining selected visual updates after reviewing the November
+4–7 Prism Glass mockups. The selected-system review at commit
+`3ac2eb50513ba73447ef890e4a47863cde7bdd76` is the recipe authority;
+PR #491 is source material only. Shared native tokens now carry the selected
+charcoal gradient / Porcelain canvas, ivory / deep-green ink, system typography,
+28px floating glass cards and transparent primary actions with a full 3px green
+outline. Lucide geometry stays; shell icons use the selected glossy glass material.
+Muted and semantic colors keep their meanings and tested contrast.
+
+Each team and league mark has its own circle with contain-fit artwork and the
+existing decode/error fallback. The selected hybrid G has no circle. Sport control
+accessible names use National Football League and Premier League; the existing
+access, route values, dirty-draft guards and hidden NBA remain. The shared shell
+retains its separate league switcher in native contexts, including the actual NFL
+Research landing and held FEPL Research destination. Confirmed compact contexts
+retain existing league access through Play's League and named access covers. Asset provenance
+is recorded in `web/src/next/ui/brand-assets/sources.json`.
+
+This foundation does not establish completion of the remaining per-screen layouts,
+actual-phone acceptance, merge or deployment. Home files and additive `home-*`
+tokens remain separately scoped as described below.
+
+## Confirmed overview framing closeout — November 7, 2026
+
+The separately approved whole-view Play/Bets overview captures at `6bfcfdbe`
+and later `league-wording-play/bets` captures at `5fe706bc` use Home's compact
+header and floating dock; the approved open/settled receipt views use that same
+frame. Entry selection/terms remain fullscreen dialogs. This port implements existing
+approval; it does not choose a global frame or answer the older cross-context
+question. [Scoped authority and local evidence](PRISM_OVERVIEW_FRAME_CLOSEOUT_2026_11_07.md)
+record the boundaries. League access remains in the Research header and Play's
+League layer. No Menu switcher is added.
+
+## Expanded confirmed context framing — November 7, 2026
+
+The [expanded context record](PRISM_EXPANDED_FRAME_CONTEXTS_2026_11_07.md)
+maps additional supplied whole-screen approvals to their existing production
+router, screen, page and named cover identities. Play's opened editable drafts,
+Points week/draft/profile, Score and League board/feed; named NFL Research
+sections; Bets performance/gap/Virtual; actual NFL History; EPL Home/Play; and
+pending/removed covers share the eagerly loaded compact frame. Home body rules
+remain Home-only. Unshown draft/Points locked, busy, error and pending variants
+retain their existing frame; no unseen receipt approval is inferred.
+
+FEPL Research remains native with its frame choice held because its two approved
+directions overlap on the same actual destination. NFL Research's distinct root,
+EPL Bets and unavailable EPL History retain native navigation. Body-only layers
+inherit their opener. This is a context mapping, not a global frame selection.
+
 ## Approved Home release — November 7, 2026
 
 Sean approved the two `league-wording-home` phone mockups at review commit
@@ -14,10 +65,12 @@ Home uses the selected glossy-edge/frosted-center G (lime in Dark, deep green in
 Light), charcoal gradient / pale green canvas, ivory / dark-green text, floating
 glass cards and transparent primary button with the full green outline. The
 canonical `home-*` colors/effects and native Home font are additive entries in
-`design/tokens-next.json`. They apply only under `.gx-home-design`; all other
-page layouts and existing global tokens retain their current design. Each team
+`design/tokens-next.json`. The approved compact context frame shares
+these recipes under `.gx-overview-frame`; Home body rules stay under
+`.gx-home-design`. The expanded record above names the additional compact contexts
+and exact native/held boundaries; unknown/custom destinations stay native. Each team
 and league mark has its own circle; the G has no circle. The sport switch keeps
-its existing access rules. Browser chrome follows Home while it is mounted and
+its existing access rules. Browser chrome follows the approved compact frame while it is mounted and
 restores the existing theme when leaving it.
 
 Use live shared reads for player figures. Home's mini Research chart is explicitly
@@ -243,7 +296,7 @@ its first six units follow 30 ms apart (160 ms), a restored parent settles (200 
 screen (160 ms). The bars never animate.
 
 ### Themes, contrast and other modes
-- Dark is the default. Light applies when `Theme.jsx` sets `data-theme="light"` on `<html>` (it resolves System), or `data-theme="light"` on the app root. Light keeps the layout; glows become 2px rings; every lime fill gets a 1px `accent-ink` edge, since lime on the light surfaces is only 1.07 to 1.32:1 (1.07 on surface-3, 1.32 on white; the edge is 7.06:1 on white).
+- Dark is the default. Light applies when `Theme.jsx` sets `data-theme="light"` on `<html>` (it resolves System), or `data-theme="light"` on the app root. Light keeps the layout; glows become 2px rings; every lime fill gets a 1px `accent-ink` edge, since lime on the light surfaces is only 1.08 to 1.23:1 (the outlined primary now uses accent-ink directly).
 - Checked on the token values for both themes (`tests/next-tokens.test.mjs`): at least 4.5:1 for every text and icon color on every surface and on your-row tint, each state color and `text-1`/`text-2` on the state tints, text on lime and on solid state fills; at least 3:1 for control outlines, the focus ring and the edge of a lime fill. Lowest text pairs: dark `text-3` on your-row tint 4.80, light `win` on surface-3 4.87. Lowest outline: light `border-strong` on surface-3 3.39. Avatar initials 9.41 (Iris) to 13.94 (Butter).
 - Known limits, handled by rule 7: win and lime are close in lightness, live and loss are similar in lightness, and the `border` hairline is decorative.
 - Forced colors (Windows high contrast): controls draw a real border; selected chips, odds buttons and segments use Highlight.

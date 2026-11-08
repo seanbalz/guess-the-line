@@ -1,3 +1,4 @@
+import { AccountSheet } from '../me/AccountSheet.jsx';
 // `sh.switcher`, "Your leagues" (redesign build plan stage 11; prototype spec 3.6; inventory rows 5, 8, 9, 12, 13).
 // The league pill and the old `#groups` link open it. Invitations come first: the invite link saved in this tab (Join
 // or Dismiss) and the invites sent to this account's email (Join). Then the leagues: the Community first, then this
@@ -6,11 +7,13 @@
 //
 // Join is a write: it is sent once and never retried by itself. A lost answer says to check, and the leagues below are
 // read again, so a league that was joined shows up there.
+import '../me/accountPrism.css';
+import './invitations.css';
 import { lazy, Suspense, useId, useState } from 'react';
 import { useAppData } from '../data/AppData.jsx';
 import { fmtFull, plural } from '../format.js';
 import { useShell } from '../shell/context.js';
-import { Avatar, Button, Card, Icon, LinkRow, List, Row, Sheet, Skeleton } from '../ui/index.js';
+import { Avatar, Button, Card, Icon, LinkRow, List, Row, Skeleton } from '../ui/index.js';
 
 const CreateLeague = lazy(() => import('./CreateLeague.jsx').then(module => ({ default: module.CreateLeague })));
 const InvitePlayers = lazy(() => import('./InvitePlayers.jsx').then(module => ({ default: module.InvitePlayers })));
@@ -48,7 +51,7 @@ function rowMeta(row) {
 
 function InviteCard({ who, title, meta, primary, joinLabel, busy, problem, onJoin, onDismiss, dismissLabel }) {
   return (
-    <Card variant="wait" className="gx-vstack gx-gap-12">
+    <Card variant="wait" className="gx-vstack gx-gap-12 gx-saved-invite">
       <div className="gx-hstack gx-gap-12">
         <Avatar id={who} name={who} size={40}/>
         <div className="gx-vstack gx-grow">
@@ -98,18 +101,18 @@ export function SwitcherSheet({ args = {} }) {
     shell.closeSheet();
   }
 
-  if (args.createLeague) return <Suspense fallback={<Sheet title="Create a league" onClose={shell.closeSheet}><Skeleton label="Loading league creation…" shape="panels" count={2}/></Sheet>}>
+  if (args.createLeague) return <Suspense fallback={<AccountSheet title="Create a league" onClose={shell.closeSheet}><Skeleton label="Loading league creation…" shape="panels" count={2}/></AccountSheet>}>
     <CreateLeague key={app.accountId}/>
   </Suspense>;
   const hosted = app.leagues.filter(row => row.host && !row.community && row.id !== 'sean-troy-luke');
   const inviteLeague = hosted.find(row => row.id === args.inviteLeagueId);
-  if (inviteLeague) return <Suspense fallback={<Sheet title={`Invite to ${inviteLeague.name}`} onClose={shell.closeSheet}
-    back={{ label: 'Your leagues', onBack: () => shell.setSheetArgs({ inviteLeagueId: null }) }}><Skeleton label="Loading invitations…" shape="panels" count={2}/></Sheet>}>
+  if (inviteLeague) return <Suspense fallback={<AccountSheet title={`Invite to ${inviteLeague.name}`} onClose={shell.closeSheet}
+    back={{ label: 'Your leagues', onBack: () => shell.setSheetArgs({ inviteLeagueId: null }) }}><Skeleton label="Loading invitations…" shape="panels" count={2}/></AccountSheet>}>
     <InvitePlayers key={`${app.accountId}:${inviteLeague.id}`} league={inviteLeague}/>
   </Suspense>;
 
   return (
-    <Sheet title={SWITCHER_COPY.title} onClose={shell.closeSheet}>
+    <AccountSheet className="gx-account-prism gx-switcher-prism" title={SWITCHER_COPY.title} onClose={shell.closeSheet}>
       {hasInvites ? (
         <section className="gx-vstack gx-gap-8" aria-labelledby={invitesId}>
           <h3 className="gx-t-micro gx-c-2" id={invitesId}>{SWITCHER_COPY.invitations}</h3>
@@ -163,6 +166,6 @@ export function SwitcherSheet({ args = {} }) {
         {hosted.map(row => <LinkRow key={row.id} icon="plus" onClick={() => shell.setSheetArgs({ inviteLeagueId: row.id })}>Invite to {row.name}</LinkRow>)}
       </List></Card>}
       <Button variant={hasInvites ? 'secondary' : 'primary'} block onClick={() => shell.setSheetArgs({ createLeague: true, inviteLeagueId: null })}>Create a league</Button>
-    </Sheet>
+    </AccountSheet>
   );
 }

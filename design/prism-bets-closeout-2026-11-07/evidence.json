@@ -1,0 +1,177 @@
+{
+  "kind": "GTL_PRISM_BETS_COMPOSITION_CLOSEOUT",
+  "date": "2026-11-07",
+  "scope": "Four Bets composition gaps only; native real controllers with local synthetic account fixtures",
+  "branch": "codex/prism-bets-closeout-2026-11-07",
+  "freshOriginMain": "70c2b85ea7466ca308c8e69006b4ec09888267a7",
+  "integrationBase": "3a57e4886ca90e293d89520f255bde128252e652",
+  "approvalCommit": "3ac2eb50513ba73447ef890e4a47863cde7bdd76",
+  "port": 5224,
+  "approvalFiles": [
+    {
+      "file": "selected-system-review.json",
+      "sha256": "cb235f3e396944f083c9cea87cc60c9d67bafac390b317ccd63e6665537dd236"
+    },
+    {
+      "file": "populated-bets.jsx",
+      "sha256": "03f06feb621789d1f4bee9efab7781bde6dfcff5964821e8d01a214e750934c0"
+    },
+    {
+      "file": "populated-bets.css",
+      "sha256": "56606b3d13dbde6adb395e98e461a7720317739920fac20da1f840a8971a9a57"
+    },
+    {
+      "file": "populated-bets-overview.jsx",
+      "sha256": "c7c504c080681a4dc6f02864445db2fbfcb8982cc3e03675005597af7011a559"
+    },
+    {
+      "file": "populated-bets-overview.css",
+      "sha256": "d2d58b4450f4576c418790b59287a7465ad266b180dc48a1082fc3df17dabd18"
+    },
+    {
+      "file": "populated-bets-changes.jsx",
+      "sha256": "0fa2ee743d2fb8f4dd6a3392bc07ee34fe25670debbd43a3f4348f0e885e9f44"
+    },
+    {
+      "file": "populated-bets-changes.css",
+      "sha256": "ce7f3a2a25ad969ec8753fa7f4f5c1f0aa72e3afe6dc8056ce25c3e2d25d4dcc"
+    },
+    {
+      "file": "previews/overview-closeout-bets-dark-phone.png",
+      "sha256": "d973fa746eb88c2db47fa9856734ad031fb7d1f920fe25a98450b1ec854878cd"
+    },
+    {
+      "file": "previews/overview-closeout-bets-light-phone.png",
+      "sha256": "16af8091e9c72925d28282503f31544de0b19272a9bf97d4703f98859fda70e8"
+    },
+    {
+      "file": "previews/bets-entry-selection-light-phone.png",
+      "sha256": "fba79bda516c9c2d8874bf6f0bbd4523dbf40ebb345f93b90fbfd9bf99d388d1"
+    },
+    {
+      "file": "previews/bets-changes-correction-history-dark-phone.png",
+      "sha256": "8b1c7ff08fd8bc542bbe382284e37d864df5860d63314b9c3dec8e0d47b458d2"
+    },
+    {
+      "file": "previews/overview-closeout-open-ticket-dark-phone.png",
+      "sha256": "d2a5623321a51e4e658110b6c0ae80274a31e2eafdd896c475c4b54168cfbda8"
+    },
+    {
+      "file": "previews/overview-closeout-open-ticket-light-phone.png",
+      "sha256": "b1368123897a1647f4f7da3ab0411ba497c67bef56dce0c8c1ca5a66345fe242"
+    },
+    {
+      "file": "previews/overview-closeout-settled-ticket-dark-phone.png",
+      "sha256": "6820128b049b2db9f0c80ba240f3d1446bbfabbba78285ec8da2afd1c1794e1f"
+    },
+    {
+      "file": "previews/overview-closeout-settled-ticket-light-phone.png",
+      "sha256": "8987ed1311081f3a75626fe6f86495ce6fd40deb851677ed63dfb84282912c29"
+    },
+    {
+      "file": "previews/overview-closeout-entry-selection-dark-phone.png",
+      "sha256": "b563afedb47310cfd6706dcddcd76e69a0903625379b4a7c4dcab057869f04d1"
+    },
+    {
+      "file": "previews/overview-closeout-entry-selection-light-phone.png",
+      "sha256": "9abf696b4a1c9141d0beb987b362e736ec8a04bfaeab643c4427a781d137223b"
+    },
+    {
+      "file": "previews/overview-closeout-entry-terms-dark-phone.png",
+      "sha256": "10dc0af52a8b4dfc3ef9cce5b84f339db5729447942e663776e596a8f196e138"
+    },
+    {
+      "file": "previews/overview-closeout-entry-terms-light-phone.png",
+      "sha256": "6aa229ace7c12ee13171abfba7193d18937d590904e32be102a3d88426c2b955"
+    }
+  ],
+  "captures": [
+    {
+      "file": "tickets-recommendation-dark-320.png",
+      "sha256": "7476024b3cc9bbc9f4fdff909abde8d89c6c82b8c0be62590ca2161c090a301b"
+    },
+    {
+      "file": "tickets-recommendation-dark-390.png",
+      "sha256": "497894c2fcc1c097642112e34e46c4cd5b8e3461a4a498f82c29c9e3fcfe66cc"
+    },
+    {
+      "file": "tickets-recommendation-light-320.png",
+      "sha256": "d6a108b44f78f62c0270920c022b19beb68fc40707dfe2ee5533e072744094ec"
+    },
+    {
+      "file": "tickets-recommendation-light-390.png",
+      "sha256": "6324bb178ad747da87850d650699c96d1af53333c180ad7a4187a72cf390e683"
+    },
+    {
+      "file": "landing-forced-320.png",
+      "sha256": "14f437edced1bc23ac97117a5ce4b11decf4736f6349111f12713ef2dba35ec3"
+    },
+    {
+      "file": "history-forced-320.png",
+      "sha256": "87b63dff0aa6e76b52750efd87e217189fcf794912bf924e0adf9df0b10d48dd"
+    },
+    {
+      "file": "entry-selection-dark-390.png",
+      "sha256": "0fa5d95131ce86876e8ca9a041ff49e7054e2857b35ac29280916fe8b9f814b7"
+    },
+    {
+      "file": "entry-selection-light-390.png",
+      "sha256": "e2992fb57f52936f4392f2b7aee2c2597fafe0efc2ab0e61f2817df65aba68f8"
+    },
+    {
+      "file": "receipt-actions-history-dark-390.png",
+      "sha256": "4ff9699ce239b51bc32cdcc2d8b020890def7736771b5835ef57579de9e07f1a"
+    },
+    {
+      "file": "receipt-actions-history-light-390.png",
+      "sha256": "91efdb9c24ce7bf43ab5ddb4de811e1268026cf847a2f98c17776c3202772995"
+    },
+    {
+      "file": "saved-history-dark-390.png",
+      "sha256": "698b570ad94f3c18364c48782580100498095328b60b2cd4aae8dae601f67036"
+    },
+    {
+      "file": "saved-history-light-390.png",
+      "sha256": "50e0e8ed38a989a6e79b7583882539bd49e4b6c14ca29ed3f6e2e20352251b5a"
+    },
+    {
+      "file": "open-ticket-dark-390.png",
+      "sha256": "ee3b9fc9a871740243e2a693e4ed7fdcf05acfdf6bef46ff9cca4d7133aabda7"
+    },
+    {
+      "file": "open-ticket-light-390.png",
+      "sha256": "3e968f3cb9cab6f15c093dd75821086c3ebc808e9d3c64b32d139dd0f3e69df6"
+    },
+    {
+      "file": "parlay-receipt-dark-390.png",
+      "sha256": "e93d5f3588320ec026c63bdf8bbeb94d4810f9783430beeddabfe13a0c66f3da"
+    },
+    {
+      "file": "parlay-receipt-light-390.png",
+      "sha256": "8b50d74b5a2bfecb5f0dc15bf7bdac2cd47fdc8977a7a1c8708bd79bdc936848"
+    }
+  ],
+  "visualReview": {
+    "ticketPreviews": "Actual owner selections/statuses with Open/View; explicit excluded and unknown evidence retained; complete lists behind All ticket views.",
+    "recommendation": "Account-permitted retained assessment supplies matchup, theme-specific circles and actual label; no sample matchup, quote or forecast.",
+    "entry": "Two full-name team choices with registry marks; stored away/home and arbitrary selection text retained.",
+    "history": "Separate receipt card, direct owner action stack, separate numbered history card with changed-field disclosures.",
+    "frames": "Native header/dock/league access retained; unresolved broader frame question not implemented."
+  },
+  "limits": [
+    "Local synthetic PGlite account fixtures, not hosted data or physical-phone acceptance.",
+    "Virtual Units half-unit precision remains unchanged; writer/API/SQL dependency remains in PRISM_BETS_NATIVE_2026_11_07.md.",
+    "No push, PR, merge, migration or deployment.",
+    "Hosted signed-out denial checks unavailable here without .env.cloud; bundle-only scan is separate."
+  ],
+  "verification": {
+    "typecheck": "npm run typecheck: exit 0",
+    "vitest": "npx vitest run: 87 files, 900 tests passed on final source",
+    "node": "68 focused accounting, source, privacy and token tests passed; 20 shared-read/token checks passed (15 overlap)",
+    "browser": "25 passed on port 5224: next-bets-landing, next-bets-live, research-assessments",
+    "themes": "Light/Dark at 320/390; forced-color history, teaser and manual-source selection; axe checks returned zero violations in the tested regions",
+    "build": "npm run build:cloud: exit 0; existing large-chunk advisory remains",
+    "boundary": "npm run check:cloud -- --bundle-only: exit 0; hosted denial check not run (missing .env.cloud)",
+    "diff": "git diff --check: exit 0"
+  }
+}

@@ -1,0 +1,271 @@
+{
+  "name": "points-slot-draft",
+  "captures": [
+    {
+      "file": "points-slot-draft-dark-390.png",
+      "sha256": "99bee95a2441e47b048494533d5584d1b3eca4824ce81e1d0de0576ef46f6a44",
+      "route": "#play/points?item=QB",
+      "context": "play-points",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 76,
+        "bottom": 76
+      },
+      "tabs": {
+        "x": 16,
+        "y": 760,
+        "width": 358,
+        "height": 72,
+        "bottom": 832
+      },
+      "stored": "dark",
+      "resolved": "dark",
+      "ink": "rgb(243, 233, 215)",
+      "background": "linear-gradient(150deg, rgb(42, 45, 55) 0%, rgb(32, 33, 38) 50%, rgb(23, 24, 29) 100%)",
+      "gradient": "linear-gradient(150deg, rgb(42, 45, 55) 0%, rgb(32, 33, 38) 50%, rgb(23, 24, 29) 100%)",
+      "targets": [
+        {
+          "name": "Guess The Line, home",
+          "width": 64,
+          "height": 54
+        },
+        {
+          "name": "National Football League",
+          "width": 52,
+          "height": 52
+        },
+        {
+          "name": "Your menu",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "name": "Home",
+          "width": 87,
+          "height": 62
+        },
+        {
+          "name": "Play, 2 ballots due",
+          "width": 87,
+          "height": 62
+        },
+        {
+          "name": "Bets",
+          "width": 87,
+          "height": 62
+        },
+        {
+          "name": "Research",
+          "width": 87,
+          "height": 62
+        }
+      ],
+      "decoded": true
+    },
+    {
+      "file": "points-slot-draft-dark-320.png",
+      "sha256": "abc11c924aa73d75e0776eb6ad074cc31c76f71d546d158824a25b5f768b40bf",
+      "route": "#play/points?item=QB",
+      "context": "play-points",
+      "theme": "dark",
+      "width": 320,
+      "height": 844,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 76,
+        "bottom": 76
+      },
+      "tabs": {
+        "x": 16,
+        "y": 760,
+        "width": 288,
+        "height": 72,
+        "bottom": 832
+      },
+      "stored": "dark",
+      "resolved": "dark",
+      "ink": "rgb(243, 233, 215)",
+      "background": "linear-gradient(150deg, rgb(42, 45, 55) 0%, rgb(32, 33, 38) 50%, rgb(23, 24, 29) 100%)",
+      "gradient": "linear-gradient(150deg, rgb(42, 45, 55) 0%, rgb(32, 33, 38) 50%, rgb(23, 24, 29) 100%)",
+      "targets": [
+        {
+          "name": "Guess The Line, home",
+          "width": 64,
+          "height": 54
+        },
+        {
+          "name": "National Football League",
+          "width": 52,
+          "height": 52
+        },
+        {
+          "name": "Your menu",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "name": "Home",
+          "width": 69.5,
+          "height": 62
+        },
+        {
+          "name": "Play, 2 ballots due",
+          "width": 69.5,
+          "height": 62
+        },
+        {
+          "name": "Bets",
+          "width": 69.5,
+          "height": 62
+        },
+        {
+          "name": "Research",
+          "width": 69.5,
+          "height": 62
+        }
+      ],
+      "decoded": true
+    },
+    {
+      "file": "points-slot-draft-light-390.png",
+      "sha256": "576826b2a510aa879154d83ee25da7116062b116ebc561013be0cc0388539d09",
+      "route": "#play/points?item=QB",
+      "context": "play-points",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 76,
+        "bottom": 76
+      },
+      "tabs": {
+        "x": 16,
+        "y": 760,
+        "width": 358,
+        "height": 72,
+        "bottom": 832
+      },
+      "stored": "light",
+      "resolved": "light",
+      "ink": "rgb(36, 49, 40)",
+      "background": "linear-gradient(150deg, rgb(250, 251, 246), rgb(233, 236, 232) 55%, rgb(224, 231, 222))",
+      "gradient": "linear-gradient(150deg, rgb(250, 251, 246), rgb(233, 236, 232) 55%, rgb(224, 231, 222))",
+      "targets": [
+        {
+          "name": "Guess The Line, home",
+          "width": 64,
+          "height": 54
+        },
+        {
+          "name": "National Football League",
+          "width": 52,
+          "height": 52
+        },
+        {
+          "name": "Your menu",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "name": "Home",
+          "width": 87,
+          "height": 62
+        },
+        {
+          "name": "Play, 2 ballots due",
+          "width": 87,
+          "height": 62
+        },
+        {
+          "name": "Bets",
+          "width": 87,
+          "height": 62
+        },
+        {
+          "name": "Research",
+          "width": 87,
+          "height": 62
+        }
+      ],
+      "decoded": true
+    },
+    {
+      "file": "points-slot-draft-light-320.png",
+      "sha256": "8ee84d6aad01355e7f66653153677fe7408fc3f33ebb0705b41a8de3786bb96d",
+      "route": "#play/points?item=QB",
+      "context": "play-points",
+      "theme": "light",
+      "width": 320,
+      "height": 844,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 76,
+        "bottom": 76
+      },
+      "tabs": {
+        "x": 16,
+        "y": 760,
+        "width": 288,
+        "height": 72,
+        "bottom": 832
+      },
+      "stored": "light",
+      "resolved": "light",
+      "ink": "rgb(36, 49, 40)",
+      "background": "linear-gradient(150deg, rgb(250, 251, 246), rgb(233, 236, 232) 55%, rgb(224, 231, 222))",
+      "gradient": "linear-gradient(150deg, rgb(250, 251, 246), rgb(233, 236, 232) 55%, rgb(224, 231, 222))",
+      "targets": [
+        {
+          "name": "Guess The Line, home",
+          "width": 64,
+          "height": 54
+        },
+        {
+          "name": "National Football League",
+          "width": 52,
+          "height": 52
+        },
+        {
+          "name": "Your menu",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "name": "Home",
+          "width": 69.5,
+          "height": 62
+        },
+        {
+          "name": "Play, 2 ballots due",
+          "width": 69.5,
+          "height": 62
+        },
+        {
+          "name": "Bets",
+          "width": 69.5,
+          "height": 62
+        },
+        {
+          "name": "Research",
+          "width": 69.5,
+          "height": 62
+        }
+      ],
+      "decoded": true
+    }
+  ],
+  "source": "expanded task source; see manifest",
+  "scope": "Actual production controllers, disposable fixture data, outer-frame review only"
+}

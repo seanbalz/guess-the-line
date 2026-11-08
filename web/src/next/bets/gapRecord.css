@@ -1,0 +1,50 @@
+/* Native historical paper-gap record; no quotes, grading rules or reader changes. */
+.gx .gx-gap-record,.gx .gx-gap-overview:not([hidden]) { display:grid; gap:var(--gx-space-5); min-width:0; }
+.gx .gx-gap-record :is(.gx-gap-hero,.gx-gap-detail,.gx-gap-row) { display:grid; gap:var(--gx-space-4); min-width:0; background:var(--gx-card-face); border:1px solid var(--gx-glass-line); box-shadow:var(--gx-glass-shadow); border-radius:var(--gx-radius-md); padding:var(--gx-space-5) var(--gx-space-4); }
+.gx .gx-gap-options { padding:0 var(--gx-space-4); border:1px solid var(--gx-border); border-radius:var(--gx-radius-sm); background:var(--gx-card-face); }
+.gx .gx-gap-options>summary { min-height:48px; display:flex; align-items:center; cursor:pointer; font-size:16px; line-height:24px; }
+.gx .gx-gap-options .gx-seg { margin-bottom:var(--gx-space-4); }
+.gx .gx-gap-rate { display:flex; align-items:center; gap:var(--gx-space-4); }
+.gx .gx-gap-rate svg { flex:none; width:84px; height:84px; transform:rotate(-90deg); }
+.gx .gx-gap-rate circle { fill:none; stroke:var(--gx-track); stroke-width:7px; }
+.gx .gx-gap-rate circle.gx-gap-rate-fill { stroke:var(--gx-accent-ink); }
+.gx .gx-gap-rate>div { display:grid; gap:var(--gx-space-2); min-width:0; }
+.gx .gx-gap-rate strong { font:600 40px/1.1 var(--gx-font-num); color:var(--gx-accent-ink); font-variant-numeric:tabular-nums; }
+.gx .gx-gap-rate span { color:var(--gx-text-2); font-size:16px; line-height:24px; }
+.gx .gx-gap-record :is(.gx-gap-blocks,.gx-gap-list) { list-style:none; margin:0; padding:0; display:grid; gap:var(--gx-space-3); min-width:0; }
+.gx .gx-gap-blocks { grid-template-columns:repeat(auto-fit,minmax(44px,1fr)); }
+.gx .gx-bets .gx-gap-record .gx-gap-blocks button { min-width:44px; min-height:44px; width:100%; padding:var(--gx-space-2); border:1px solid var(--gx-border); border-radius:var(--gx-radius-xs); background:var(--gx-card-face); color:var(--gx-text-1); font:600 16px/24px var(--gx-font-body); }
+.gx .gx-gap-record .gx-gap-blocks button[aria-pressed=true] { outline:3px solid var(--gx-accent-ink); outline-offset:2px; }
+.gx .gx-gap-matchup { display:grid; grid-template-columns:minmax(0,1fr) 16px minmax(0,1fr); gap:var(--gx-space-2); text-align:center; align-items:center; }
+.gx .gx-gap-matchup>span:first-child,.gx .gx-gap-matchup>span:last-child { display:grid; justify-items:center; align-content:start; gap:var(--gx-space-2); min-width:0; }
+.gx .gx-gap-matchup strong { font-size:16px; line-height:24px; overflow-wrap:anywhere; }
+.gx .gx-gap-pair { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--gx-space-2); }
+.gx .gx-gap-pair>div { display:grid; gap:var(--gx-space-2); padding:var(--gx-space-3); border:1px solid var(--gx-border); border-radius:var(--gx-radius-sm); min-width:0; background:var(--gx-card-face); }
+.gx .gx-gap-pair small { color:var(--gx-text-2); font-size:13px; line-height:20px; }
+.gx .gx-gap-pair strong { font-size:16px; line-height:24px; overflow-wrap:anywhere; }
+.gx .gx-gap-pair>div+div strong { color:var(--gx-accent-ink); }
+.gx .gx-gap-outcome { color:var(--gx-text-2); border:1px solid currentColor; border-radius:var(--gx-radius-xs); padding:4px 8px; font-size:13px; line-height:20px; }
+.gx .gx-gap-record [data-outcome=loss],.gx .gx-bets .gx-gap-record .gx-gap-blocks button[data-outcome=loss] { color:var(--gx-loss); border-color:var(--gx-loss); }
+.gx .gx-gap-record [data-outcome=win],.gx .gx-bets .gx-gap-record .gx-gap-blocks button[data-outcome=win] { color:var(--gx-accent-ink); border-color:var(--gx-accent-ink); }
+.gx .gx-gap-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--gx-space-2); }
+.gx .gx-bets .gx-gap-record .gx-gap-actions button { white-space:normal; font:600 16px/24px var(--gx-font-body); min-height:44px; display:flex; align-items:center; justify-content:center; gap:4px; padding:8px; }
+.gx .gx-gap-row[data-current=true] { border-color:var(--gx-accent-ink); }
+.gx .gx-gap-detail-stats,.gx .gx-gap-final { display:grid; gap:var(--gx-space-3); }
+.gx .gx-gap-detail-stats p,.gx .gx-gap-final p { display:flex; flex-wrap:wrap; justify-content:space-between; gap:var(--gx-space-3); font-size:16px; line-height:24px; }
+.gx .gx-gap-detail-stats p>span { color:var(--gx-text-2); }
+.gx .gx-gap-detail-stats p>strong { max-width:100%; }
+.gx .gx-gap-axis>div { position:relative; height:32px; margin-inline:8px; }
+.gx .gx-gap-axis-track { position:absolute; top:14px; width:100%; height:4px; background:var(--gx-track); }
+.gx .gx-gap-axis i,.gx .gx-gap-axis b { position:absolute; top:10px; width:12px; height:12px; background:var(--gx-text-1); border-radius:50%; translate:-50% 0; }
+.gx .gx-gap-axis b { background:var(--gx-accent-ink); border-radius:0; translate:-50% 0; rotate:45deg; }
+.gx .gx-gap-record[data-paper-negative=true] .gx-tc-path { stroke:var(--gx-loss); }
+.gx .gx-gap-record[data-paper-negative=true] .gx-tc-area { fill:var(--gx-loss); opacity:.1; }
+.gx .gx-gap-record[data-paper-negative=true] .gx-tc-glow { opacity:0; }
+.gx .gx-gap-record[data-paper-negative=true] :is(.gx-tc-big,.gx-tc-tiles>li:nth-child(2) .gx-tc-tile-value) { color:var(--gx-loss); }
+@media(max-width:359px) { .gx .gx-gap-pair,.gx .gx-gap-actions { grid-template-columns:1fr; } .gx .gx-gap-rate strong { font-size:34px; } }
+@media(forced-colors:active) { .gx .gx-gap-record :is(.gx-gap-hero,.gx-gap-row,.gx-gap-detail,.gx-gap-pair>div) { background:Canvas; border-color:CanvasText; box-shadow:none; } .gx .gx-gap-rate circle { stroke:CanvasText; } .gx .gx-gap-rate circle.gx-gap-rate-fill { stroke:Highlight; } .gx .gx-gap-axis-track,.gx .gx-gap-axis i { background:CanvasText; forced-color-adjust:none; } .gx .gx-gap-axis b { background:Highlight; forced-color-adjust:none; } }
+.gx .gx-gap-record .gx-between { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:var(--gx-space-2); }
+.gx .gx-gap-record :is(.gx-seg-btn,.gx-btn) { font-size:16px; line-height:24px; }
+.gx .gx-gap-record :is(.gx-tc-pill,.gx-tc-badge,.gx-tc-tile-label,.gx-tc-tile-sub) { font-size:13px; line-height:20px; }
+
+@media(forced-colors:active) { .gx .gx-bets .gx-gap-record .gx-gap-blocks button[data-outcome] { color:CanvasText; border-color:CanvasText; background:Canvas; } .gx .gx-bets .gx-gap-record .gx-gap-blocks button[aria-pressed=true] { outline-color:Highlight; } }

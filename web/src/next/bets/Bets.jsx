@@ -1,3 +1,4 @@
+import { GapRecord } from './GapRecord.jsx';
 import { lazy, useCallback, useEffect, useMemo, useState } from 'react';
 import { Deferred } from '../ui/Deferred.jsx';
 import { useAppData } from '../data/AppData.jsx';
@@ -11,13 +12,22 @@ import { EveryoneBets } from './EveryoneBets.jsx';
 import { PlaceBets } from './PlaceBets.jsx';
 import { Segmented } from '../ui/Segmented.jsx';
 import { TrackedBetRow } from './TrackedBetRow.jsx';
-import { FocusAction, FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
+import { FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
+import { Card } from '../ui/Card.jsx';
+import { TicketPreviews, RecommendationTeaser } from './BetsLandingCards.jsx';
+import { BetsSummary } from './BetsSummary.jsx';
 import { DESTINATION_ICONS as ICON } from '../ui/destinations.js';
 import { useTicketSummary } from './useTicketSummary.js';
 import { draftParts, savedTicketToast } from './recommendationReview.js';
 import { recommendationMarket } from '../../../../shared/recommended-bets.mjs';
+import { forgetSharedReads } from '../../sharedReads.js';
 import './bets.css';
 import '../../liveBets.css';
+import './prism-bets.css';
+import { Matchup } from '../ui/Matchup.jsx';
+import { TeamMark } from '../ui/TeamMark.jsx';
+
+const BET_EDITOR_IDENTITY = { Matchup, TeamMark };
 
 const SocialBetTracker = lazy(() => import('../../SocialBetTracker.jsx'));
 // Each view's fine print, behind the title's ⓘ (D-55).
@@ -36,16 +46,19 @@ export function Bets() {
 
 function BetsLanding() {
   const app = useAppData(), shell = useShell(), read = useTicketSummary(app);
-  const open = view => shell.go('bets', { view:view==='overview'?'tracked':view, trackedPane:view==='overview'?'overview':'tickets', season: null, week: null, period: view==='overview'?'all':null, matchup: null, assessment: null });
-  const count = key => read.loading ? 'Loading your tickets…' : read.error ? 'Unavailable · open to retry' : `${read[key]} ${read[key] === 1 ? 'ticket' : 'tickets'} · all weeks`;
+  const open = view => shell.go('bets', { view:view==='overview'?'tracked':view, trackedPane:view==='overview'?'overview':'tickets', selectedTicket: null, season: null, week: null, period: view==='overview'?'all':null, matchup: null, assessment: null });
+  const openTicket = entry => shell.go('bets', { view: entry.outcome === 'pending' ? 'active' : 'settled', trackedPane: 'tickets', period: 'all', season: null, week: null, selectedTicket: entry.id, trackers: {} });
   return <section className="gx-screen gx-bets" data-landing="bets">
     <h1 className="gx-t-title">Bets</h1>
-    <FocusAction title="Your tickets. All together." description="Keep a record of the bets you placed elsewhere." action="Add a bet" onAction={() => open('add')}/>
-    <FocusRows label="Your bets">
-      <FocusRow icon={ICON.overview} title="Overview" sub="Performance, bet types and sportsbooks" onClick={() => open('overview')}/>
-      <FocusRow icon={ICON.activeTickets} title="Active tickets" sub={count('active')} onClick={() => open('active')}/>
-      <FocusRow icon={ICON.settledTickets} title="Settled tickets" sub={count('settled')} onClick={() => open('settled')}/>
-      <FocusRow icon={ICON.researchPicks} title="Research recommendations" sub="Independent game and player-prop assessments" onClick={() => open('research')}/>
+    <BetsSummary read={read}/>
+    <Card as="section" className="gx-bets-landing-tickets" aria-labelledby="gx-tickets-heading">
+      <div className="gx-bets-card-heading"><h2 id="gx-tickets-heading">Tickets</h2><span className="gx-t-meta gx-c-2">{read.model ? `${read.model.entries.length} tracked` : '—'}</span></div>
+      <TicketPreviews read={read} onOpen={openTicket}/>
+      <details className="gx-bets-ticket-views"><summary>All ticket views</summary><div><Button variant="ghost" onClick={() => open('active')}>Active tickets</Button><Button variant="ghost" onClick={() => open('settled')}>Settled tickets</Button></div></details>
+      <div className="gx-bets-landing-actions"><Button variant="secondary" aria-label="Add a bet" onClick={() => open('add')}>Track a bet +</Button><Button variant="ghost" onClick={() => open('overview')}>Overview</Button></div>
+    </Card>
+    <RecommendationTeaser onOpen={(matchup, assessment) => shell.go('bets', { view: 'research', matchup: matchup ?? null, assessment: assessment ?? null })}/>
+    <FocusRows label="More Bets tools">
       <FocusRow icon={ICON.guessGap} title="Your guess vs. market" sub="Compare your locked guesses with current lines" onClick={() => open('recommended')}/>
       <FocusRow icon={ICON.virtualUnits} title="Virtual Units" sub="Your separate play-money picks" onClick={() => open('virtual')}/>
       <FocusRow icon={ICON.everyone} title="Everyone’s picks" sub="Friends’ Virtual Units picks this week" onClick={() => open('everyone')}/>
@@ -80,7 +93,10 @@ function BetsDetail() {
   const dirty = useCallback(value => drafts.mark('view', value), [drafts]);
   const reviewDirty = useCallback(value => drafts.mark('review', value), [drafts]);
   useEffect(() => clearDirty, [clearDirty]);
-  const saved = () => app.refresh({ only: ['community', 'personal'] });
+  const saved = () => {
+    forgetSharedReads(`${app.accountId}:ticket-summary`);
+    app.refresh({ only: ['community', 'personal'] });
+  };
   function choose(next) {
     if (next === view || !shell.confirmLeave()) return;
     clearDirty();
@@ -114,7 +130,7 @@ function BetsDetail() {
   const topic = destination === 'everyone' ? 'everyone' : TOPIC[view];
   if (view === 'research') return <>
     <Deferred resetKey={`${app.accountId}:research`} label="research recommendations"><ResearchAssessments key={app.accountId} onDirty={dirty} onTrack={trackRecommendation}/></Deferred>
-    {ticketRequest?.accountId === app.accountId && <Deferred resetKey={ticketRequest.id} label="bet review"><SocialBetTracker key={ticketRequest.id} player={app.accountId} reviewOnly initialView="mybets" ticketRequest={ticketRequest} onReviewDone={reviewDone} onDirty={reviewDirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred>}
+    {ticketRequest?.accountId === app.accountId && <div className="gx-bets gx-live-workflow"><Deferred resetKey={ticketRequest.id} label="bet review"><SocialBetTracker editorIdentity={BET_EDITOR_IDENTITY} key={ticketRequest.id} player={app.accountId} reviewOnly initialView="mybets" ticketRequest={ticketRequest} onReviewDone={reviewDone} onDirty={reviewDirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred></div>}
   </>;
   return <section className="gx-screen gx-bets gx-live-workflow" aria-labelledby="gx-bets-title">
     <header className="gx-bets-heading">
@@ -129,10 +145,10 @@ function BetsDetail() {
       <Button aria-label="Virtual Units" aria-pressed={view === 'virtual'} onClick={() => choose('virtual')}>Virtual</Button>
     </div>
     {view === 'tracked' ? <>
-      <Deferred label="tracked bets"><SocialBetTracker key={`${app.accountId}:${destination}:${shell.state.nav}`} player={app.accountId} initialOutcome={destination === 'active' ? 'pending' : destination === 'settled' ? 'settled' : ''} initialAllHistory={destination === 'active' || destination === 'settled'} autoCreate={destination === 'add'} navigationState={trackerState} onNavigationState={rememberTracker} initialView="mybets" embedded compactTickets TicketRow={TrackedBetRow} MetricsView={NetUnits} OverviewView={TrackedOverview} initialTrackedPane={route.trackedPane??'tickets'} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred>
+      <Deferred label="tracked bets"><SocialBetTracker editorIdentity={BET_EDITOR_IDENTITY} key={`${app.accountId}:${destination}:${shell.state.nav}`} player={app.accountId} initialExpandedTicket={route.selectedTicket} initialOutcome={destination === 'active' ? 'pending' : destination === 'settled' ? 'settled' : ''} initialAllHistory={destination === 'active' || destination === 'settled'} autoCreate={destination === 'add'} navigationState={trackerState} onNavigationState={rememberTracker} initialView="mybets" embedded compactTickets TicketRow={TrackedBetRow} MetricsView={NetUnits} OverviewView={TrackedOverview} initialTrackedPane={route.trackedPane??'tickets'} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred>
     </> : view === 'recommended' ? <>
-      <Deferred resetKey={`${app.accountId}:recommended`} label="recommended bets"><VirtualUnits key={`${app.accountId}:recommended`} accountId={app.accountId} embedded initialView="recommended" accountRecommendations showViewTabs={false} recommendedMarket={recommendedMarket} onRecommendedMarket={chooseRecommendedMarket} marketControl={marketControl} onTrackTicket={trackRecommendation} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred>
-      {ticketRequest?.accountId === app.accountId && <Deferred resetKey={ticketRequest.id} label="bet review"><SocialBetTracker key={ticketRequest.id} player={app.accountId} reviewOnly initialView="mybets" ticketRequest={ticketRequest} onReviewDone={reviewDone} onDirty={reviewDirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred>}
+      <Deferred resetKey={`${app.accountId}:recommended`} label="recommended bets"><VirtualUnits GapRecordView={GapRecord} key={`${app.accountId}:recommended`} accountId={app.accountId} embedded initialView="recommended" accountRecommendations showViewTabs={false} recommendedMarket={recommendedMarket} onRecommendedMarket={chooseRecommendedMarket} marketControl={marketControl} onTrackTicket={trackRecommendation} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred>
+      {ticketRequest?.accountId === app.accountId && <Deferred resetKey={ticketRequest.id} label="bet review"><SocialBetTracker editorIdentity={BET_EDITOR_IDENTITY} key={ticketRequest.id} player={app.accountId} reviewOnly initialView="mybets" ticketRequest={ticketRequest} onReviewDone={reviewDone} onDirty={reviewDirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred>}
     </> : <>
       <Segmented label="Virtual Units view" value={destination === 'everyone' ? 'everyone' : 'virtual'} onChange={chooseVirtual} options={VIRTUAL_VIEWS}/>
       {/* Stages 43 and 44 (Sean, October 28, 2026): Your picks is the account-level placing screen for every league. */}

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { ALL, HOSTED } from '../migrations.mjs';
 import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
-import { chooseMarket, openGame, openWeek } from './play-nest.mjs';
+import { openPicksWeek, chooseMarket, openGame, openWeek } from './play-nest.mjs';
 
 // UI contract checks use fictional reads/writes over a local account fixture. SQL authority is tested separately.
 test.use({ viewport: { width: 390, height: 844 } });
@@ -37,7 +37,7 @@ async function fixture(page, baseURL, { beforePlay } = {}) {
   await signIn(page, 'luke');
   if (beforePlay) { await expect(tabs(page)).toBeVisible(); await beforePlay(personal); }
   await tabs(page).getByRole('button', { name: /^Play(,|$)/ }).click();
-  await page.getByRole('button', { name: 'Make picks', exact: true }).click();
+  await openPicksWeek(page);
   await expect(page.locator('.gx-per-game')).toBeVisible();
   return { ...world, personal, writes, control };
 }
@@ -55,6 +55,7 @@ async function shots(page, info, name) {
     await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
     for (const width of [390, 320]) {
       await page.setViewportSize({ width, height: 844 });
+      await page.evaluate(() => window.scrollTo(0, 0));
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
       expect(axe.violations.map(item => `${item.id}: ${item.nodes.map(node => node.target.join(' ')).join(', ')}`)).toEqual([]);
@@ -70,6 +71,10 @@ test('one guess locks after confirmation, keeps the other market open, and links
     const game = world.personal.games[0];
     const card = await choose(page, game.id);
     await shots(page, info, 'per-game-picks');
+    const selectedChip = card.locator('.gx-guess-num.gx-chip--on');
+    await expect(selectedChip).toHaveAttribute('aria-checked', 'true');
+    expect(await selectedChip.evaluate(el => getComputedStyle(el).borderTopStyle)).toBe('solid');
+    expect(await selectedChip.evaluate(el => parseFloat(getComputedStyle(el).borderRadius) < el.offsetHeight / 2)).toBe(true);
 
     await card.getByRole('button', { name: 'Lock in Spread', exact: true }).click();
     const dialog = page.getByRole('alertdialog', { name: 'Lock in Spread?' });
@@ -96,7 +101,7 @@ test('one guess locks after confirmation, keeps the other market open, and links
     await expect(page.locator('.gx-nest-card')).toContainText('/ 10 points'); // a reload reopens the layer
     await shots(page, info, 'score-game');
     await page.getByRole('button', { name: 'Back to Your score', exact: true }).click();
-    await expect(page.getByRole('region', { name: 'Personal score summary' })).toContainText('8 points');
+    await expect(page.getByRole('region', { name: 'Personal score summary' }).getByRole('img', { name: '8 of 10 possible points', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'About your scores', exact: true }).click();
     await expect(page.getByRole('dialog', { name: 'About your scores' })).toContainText('8 personal points waiting for kickoff');
     await page.keyboard.press('Escape');
@@ -109,7 +114,7 @@ test('one guess locks after confirmation, keeps the other market open, and links
     await page.getByRole('button', { name: `Week ${world.personal.week - 1}`, exact: true }).click();
     await expect(page.getByText('No saved Spread guesses for this week.')).toBeVisible();
     await page.getByRole('button', { name: `Week ${world.personal.week}`, exact: true }).click();
-    await expect(page.getByRole('region', { name: 'Personal score summary' })).toContainText('8 points');
+    await expect(page.getByRole('region', { name: 'Personal score summary' }).getByRole('img', { name: '8 of 10 possible points', exact: true })).toBeVisible();
     await shots(page, info, 'weekly-score');
     // Back closes one layer: a row opens its game and the browser Back button returns to the list.
     await page.locator('.gx-ys-row').first().click();
@@ -147,7 +152,7 @@ test('native sit-out keeps an existing lock and unsaved draft, confirms through 
     });
     await signIn(page, 'luke');
     await tabs(page).getByRole('button', { name: /^Play(,|$)/ }).click();
-    await page.getByRole('button', { name: 'Make picks', exact: true }).click();
+    await openPicksWeek(page);
     await expect(page.locator('.gx-per-game')).toBeVisible();
     const [first, second] = world.state.games, card = await choose(page, first.id);
     await card.getByRole('button', { name: 'Lock in Spread' }).click();

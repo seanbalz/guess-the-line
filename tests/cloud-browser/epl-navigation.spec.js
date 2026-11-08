@@ -30,7 +30,7 @@ test('EPL tab navigation opens the default Play section and preserves explicit s
     await expect(draft).toBeVisible();
     await expect(page.getByRole('button', { name: 'Pick a Team', exact: true })).toHaveAttribute('aria-pressed', 'true');
     await nav.getByRole('button', { name: 'Research', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'Fantasy', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'FEPL Fantasy', exact: true })).toBeVisible();
     await nav.getByRole('button', { name: 'Play', exact: true }).click();
     await expect(draft).toBeVisible();
     await page.getByRole('button', { name: 'Guess the Line', exact: true }).click();

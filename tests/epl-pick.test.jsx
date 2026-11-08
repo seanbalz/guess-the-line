@@ -273,11 +273,17 @@ describe('EPL Home', () => {
     expect(text(page)).toContain('Matchweek 9');
     expect(text(page)).toContain('Darin picks next · 7 of 8 in');
     expect(page).toContain('role="timer"');
-    expect(text(page)).toContain('Sat 5:30 AM PT · MUN @ CHE');
+    expect(text(page)).toContain('Sat 5:30 AM PT · Manchester United @ Chelsea');
     expect(text(page)).toContain('Tottenham Hotspur');
-    expect(text(page)).toContain('vs CRY');
+    expect(text(page)).toContain('vs Crystal Palace');
     expect(text(page)).toMatch(/Pick order\s*4\s*\/ 8/);
     expect(markupProblems(page)).toEqual([]);
+  });
+  it('labels a retained Home board stale and shows the actual review state', () => {
+    const retained = home(boardModel(read(), BEFORE), { state: { stale: true } });
+    expect(text(retained)).toContain(PICK_COPY.stale);
+    const review = home(boardModel(read({ status: 'needs_review' }), BEFORE));
+    expect(text(review)).toContain(PICK_COPY.review);
   });
   it('says "You pick next" on your turn', () => {
     expect(text(home(boardModel(read(), BEFORE)))).toContain('You pick next · 7 of 8 in');

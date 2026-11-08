@@ -1,0 +1,162 @@
+{
+  "status": "local native fixtures; unpublished; no hosted or physical-phone acceptance",
+  "date": "2026-11-07",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "browserPort": 5218,
+  "branch": "codex/confirmed-prism-bets-landing-2026-11-07",
+  "integrationBase": "b5e1f269a2294a1b77b4d909534935ca5228b793",
+  "sharedMediaDependency": "642a240c (local cherry-pick 8e973744)",
+  "authorityTree": "3ac2eb50513ba73447ef890e4a47863cde7bdd76",
+  "overviewApprovalCommit": "6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd",
+  "dataMeaning": "Fictional local accounts and exact manual ticket terms on the real cloud handler plus PGlite. No current sportsbook quotes or real player tickets. Counts and charts are native computed results, not preview illustrations.",
+  "captureMeaning": "Native viewport captures; landing-full files show the entire scroll. Header/dock retained; full Overview capture is scrolled to its performance region.",
+  "captures": [
+    {
+      "file": "correction-terms-dark-390.png",
+      "sha256": "3c935cbd1c26db496d6e8fe9bc1e4b3f7a043516350a5c96a923731195152eb5"
+    },
+    {
+      "file": "correction-terms-light-390.png",
+      "sha256": "7cbf2ea07b9c8c703f2f2ed1fc8b007d1edfe35383e348bed34a7fa1118bd48b"
+    },
+    {
+      "file": "entry-selection-dark-390.png",
+      "sha256": "1d6a1ccf1fd5005c0ec6df2a7e692883fa4ea6cb21be2b5076bfbb44e3f2bbb9"
+    },
+    {
+      "file": "entry-selection-light-390.png",
+      "sha256": "fe7efd8c45b8137a0efe487c126ec4682dba625816e9f05d87486ce6fd9f38c0"
+    },
+    {
+      "file": "full-overview-dark-390.png",
+      "sha256": "392b6dee60a5ca57edfe9d9e0037bfd0968632c76f083b62c62f1f6cbf2e6da8"
+    },
+    {
+      "file": "full-overview-light-390.png",
+      "sha256": "401dbd802c48b673e44d1bb3af3dd12c976671dc04b113924187a7919363b57b"
+    },
+    {
+      "file": "landing-dark-390.png",
+      "sha256": "97f501e5c8e95f7587f0821f274d7897bf60c3ee2ed4de59c72668d57f64b17f"
+    },
+    {
+      "file": "landing-full-dark-390.png",
+      "sha256": "e1e7edd13a307e78e8881cc73237e1527ea54290bec92db97cd9a9e33db5e480"
+    },
+    {
+      "file": "landing-full-light-390.png",
+      "sha256": "36672abc25c3b2ea23b52caea0cac4bb0dcfbf504ca8e738d3ebc8ad190d9ffb"
+    },
+    {
+      "file": "landing-light-390.png",
+      "sha256": "38921efe36b5917d14e19cb3686d49abeb61398ca3901005be3de704875b7e31"
+    },
+    {
+      "file": "open-ticket-dark-390.png",
+      "sha256": "debcf175185b156ee97af69a3b8a09804d1f6c8af2b805767bef2d345b3303d7"
+    },
+    {
+      "file": "open-ticket-light-390.png",
+      "sha256": "a2cf08e59fd41d71f69ff1abf126ec0bfb7ede8f12a5d15bed839577be96ae58"
+    },
+    {
+      "file": "parlay-receipt-dark-390.png",
+      "sha256": "da0982d601cbb1ea211d08e4c03b4e7b00f2921255a920d79a88fdc0cceb11b8"
+    },
+    {
+      "file": "parlay-receipt-light-390.png",
+      "sha256": "0135a1c78f6f3929663087fec2893bed0371fc334028d239db834f1f9ad41b5f"
+    },
+    {
+      "file": "saved-history-dark-390.png",
+      "sha256": "730d83d08846374fe1b11c7b31cd17fdd07e31956c92d2af597abf16585d2fad"
+    },
+    {
+      "file": "saved-history-light-390.png",
+      "sha256": "1d2f30929e1ff23b11d4e2d94dc5e066658cd4fbc3cea7b443048e828e1e740e"
+    }
+  ],
+  "productionAndTestSources": [
+    {
+      "file": "web/src/next/bets/Bets.jsx",
+      "sha256": "56266782f47d4bcd6ee6af0fcd9ffba6847cd2a488596a41d53a0bf9b1ea9d7d"
+    },
+    {
+      "file": "web/src/next/bets/BetsSummary.jsx",
+      "sha256": "99e84ca200aa5c79a8814e385e139213530feded21fc4f1be24c274a9e8a2ba4"
+    },
+    {
+      "file": "web/src/next/bets/useTicketSummary.js",
+      "sha256": "cf2ec43f9415d65c638f70efbfc13aaaed5a87e1d883264550a7dd1ee13f5e33"
+    },
+    {
+      "file": "web/src/next/bets/prism-bets.css",
+      "sha256": "fe7dc23f7890617c7d638d2d97d7fa0620155ee7975594123e37376294f26ec3"
+    },
+    {
+      "file": "web/src/SocialBetTracker.jsx",
+      "sha256": "2dcc40a4610ea1cd8b9e0096b196d2197e0f7af2a6f13c83bc66e795ce3d7bb0"
+    },
+    {
+      "file": "web/src/BetChangeHistory.jsx",
+      "sha256": "fac8d950279e4278d45b0034bdc87e2a25d08e96cde838ef861f9e6c7c4672ac"
+    },
+    {
+      "file": "web/src/prismBets.css",
+      "sha256": "906525f4c1f339f74589a6b7ba2069681d8f3ce6cd7428161f650d450c4e1b07"
+    },
+    {
+      "file": "tests/cloud-browser/next-bets-landing.spec.js",
+      "sha256": "fa1fea5cb34d7a6ca6863e1302ec2c53a145e8f613e5318eef812952d908111b"
+    },
+    {
+      "file": "tests/next-bets-landing.test.jsx",
+      "sha256": "060ae4b83f3016c16d03c239fdc3a8f05a7d9db70c565ce6c21f4155d5a8e6cc"
+    }
+  ],
+  "readOnlyAuthority": [
+    {
+      "file": "selected-system-review.json",
+      "sha256": "cb235f3e396944f083c9cea87cc60c9d67bafac390b317ccd63e6665537dd236"
+    },
+    {
+      "file": "app.js",
+      "sha256": "f78eebf46a187b6450a603a3552f4710004730ae6ffc4e316cf68dff99e552f6"
+    },
+    {
+      "file": "populated-bets.jsx",
+      "sha256": "03f06feb621789d1f4bee9efab7781bde6dfcff5964821e8d01a214e750934c0"
+    },
+    {
+      "file": "populated-bets.css",
+      "sha256": "56606b3d13dbde6adb395e98e461a7720317739920fac20da1f840a8971a9a57"
+    },
+    {
+      "file": "populated-bets-overview.jsx",
+      "sha256": "c7c504c080681a4dc6f02864445db2fbfcb8982cc3e03675005597af7011a559"
+    },
+    {
+      "file": "populated-bets-overview.css",
+      "sha256": "d2d58b4450f4576c418790b59287a7465ad266b180dc48a1082fc3df17dabd18"
+    },
+    {
+      "file": "populated-bets-changes.jsx",
+      "sha256": "0fa2ee743d2fb8f4dd6a3392bc07ee34fe25670debbd43a3f4348f0e885e9f44"
+    },
+    {
+      "file": "populated-bets-changes.css",
+      "sha256": "ce7f3a2a25ad969ec8753fa7f4f5c1f0aa72e3afe6dc8056ce25c3e2d25d4dcc"
+    },
+    {
+      "file": "previews/overview-closeout-bets-dark-phone.png",
+      "sha256": "d973fa746eb88c2db47fa9856734ad031fb7d1f920fe25a98450b1ec854878cd"
+    },
+    {
+      "file": "previews/overview-closeout-bets-light-phone.png",
+      "sha256": "16af8091e9c72925d28282503f31544de0b19272a9bf97d4703f98859fda70e8"
+    }
+  ]
+}

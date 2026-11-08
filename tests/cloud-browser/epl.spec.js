@@ -1,3 +1,4 @@
+import { setCaptureTheme } from './theme-capture.mjs';
 // D-68 acceptance through the real auth tree, EPL routes and M-30/M-31 on disposable PGlite.
 // Every identity, lineup, projection and queue here is synthetic; no hosted account is read or changed.
 import { test, expect } from '@playwright/test';
@@ -83,6 +84,7 @@ test('saved backup becomes the confirmed team as the previous manager picks, wit
   await world.db.query('update public.gtl_epl_managers set user_id=$1 where owner_id=$2',[ACCOUNTS.luke.id,ADAM]);
   await enter(page,'troy');
   await expect(page.getByRole('region',{name:'Backup pick confirmed'})).toHaveCount(0);
+  await captureEpl(page,'draft-waiting','epl-waiting');
   await page.getByRole('button',{name:'Set my backup ranking (queue)',exact:true}).click();
   await expect(page.getByRole('dialog',{name:'Backup ranking'})).toContainText('When your turn starts');
   await expect(page.getByRole('dialog',{name:'Backup ranking'})).toContainText('your turn stays open for a manual pick');
@@ -98,10 +100,14 @@ test('saved backup becomes the confirmed team as the previous manager picks, wit
   await page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));await expect(toast).toHaveCount(0);
   await page.reload();await expect(confirmation).toBeVisible();await expect(toast).toHaveCount(0);
   for(const theme of ['light','dark'])for(const width of [320,390]){
-   await page.evaluate(t=>document.documentElement.dataset.theme=t,theme);await page.setViewportSize({width,height:844});await layout(page);
+   await setCaptureTheme(page,theme);await page.setViewportSize({width,height:844});await layout(page);
    const scan=await new AxeBuilder({page}).include('.gx-epl').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(scan.violations.map(v=>v.id)).toEqual([]);
    await page.screenshot({path:`.local/queue-confirmation/${theme}-${width}.png`,fullPage:true});
   }
+  await captureEpl(page,'draft-backup-confirmed','epl-backup-confirmation');
+  await page.getByRole('button',{name:/^Chelsea, at Arsenal/}).click();
+  await expect(page.getByRole('button',{name:'Change to Chelsea',exact:true})).toBeVisible();
+  await captureEpl(page,'draft-latest-change','epl-draft-board');
   expect(world.calls.filter(c=>c.path==='epl/draft/pick'||c.path==='epl/queue/save')).toEqual([]);
   expect(world.errors).toEqual([]);
  }finally{await world.db.close();}
@@ -148,9 +154,9 @@ test('open board stays read-only, a claim enables only its owner queue, and Fant
     await expect(page.getByText('Your projection · Adam', { exact: true })).toBeVisible();
     await expect(page.getByText('No projection', { exact: true })).toBeVisible();
     fs.mkdirSync('.local/previews/epl-access', { recursive: true });
-    for (const width of [320, 390, 1440]) for (const theme of ['dark', 'light']) {
+    for (const width of [320, 390, 768, 1440]) for (const theme of ['dark', 'light']) {
       await page.setViewportSize({ width, height: 900 });
-      await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+      await setCaptureTheme(page, theme);
       for (const section of ['Matchup', 'Standings', 'Rosters', 'Insights']) {
         await page.getByRole('button', { name: section, exact: true }).click();
         await layout(page);
@@ -185,7 +191,7 @@ test('a competing claim refreshes the read-only board; unlinked Fantasy and Just
     expect((await world.db.query("select count(*)::int n from public.gtl_epl_link_audit where owner_id=$1 and action='claim'", [ADAM])).rows[0].n).toBe(1);
     for (const theme of ['dark', 'light']) {
       await page.setViewportSize({ width: 320, height: 900 });
-      await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+      await setCaptureTheme(page, theme);
       await layout(page);
       expect((await new AxeBuilder({ page }).include('.gx-epl').withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze()).violations).toEqual([]);
     }
@@ -235,4 +241,163 @@ test('automatic alias linking survives reload without duplicate audit; Fantasy r
     await expect(page.getByText('No Sleeper data is saved yet.', { exact: true })).toBeVisible();
     expect(world.errors).toEqual([]);
   } finally { release?.(); await world.db.close(); }
+});
+import { captureEpl } from './epl-prism-capture.mjs';
+import { fantasyExample, FANTASY_SCENARIOS } from '../fixtures/epl-prism-fantasy.mjs';
+
+test('Prism native EPL claim, Home, draft, queue and existing shell states', async ({page,baseURL})=>{
+ test.skip(!pgliteAvailable,'Disposable PGlite required.');test.setTimeout(240000);
+ const world=await fixture(page,baseURL);
+ try{
+  await enter(page,'luke','#epl/home');
+  await expect(page.getByRole('heading',{name:'Which FEPL manager are you?'})).toBeVisible();
+  await captureEpl(page,'claim-home-unlinked','epl-manager-choose / epl-home-unlinked',{forced:true});
+  let finishClaim;
+  world.controls.holdPath='epl/claim';world.controls.holdRead=new Promise(resolve=>{finishClaim=resolve;});
+  await page.getByRole('button',{name:'Adam',exact:true}).click();
+  await expect.poll(()=>world.controls.held).toBe(true);
+  await captureEpl(page,'claim-busy','epl-manager-busy');
+  world.controls.holdRead=null;finishClaim();
+  await expect(page.getByText('You pick next · 0 of 3 in',{exact:true})).toBeVisible();
+  await captureEpl(page,'claim-linked','epl-manager-linked');
+  await page.locator('.gx-epl-toast').getByRole('button',{name:'Dismiss',exact:true}).click();
+  await captureEpl(page,'home-turn','epl-home-turn',{representative:true});
+  await page.getByRole('button',{name:'Make your pick',exact:true}).click();
+  await page.getByRole('button',{name:/^Arsenal, vs Chelsea/}).click();
+  await captureEpl(page,'draft-can-pick','epl-draft',{forced:true});
+  await page.getByRole('button',{name:'Pick Arsenal',exact:true}).click();
+  await expect(page.getByRole('region',{name:'Your pick',exact:true})).toBeVisible();
+  await captureEpl(page,'team-confirmed','epl-confirmation');
+  await page.getByRole('button',{name:'Set my backup ranking (queue)',exact:true}).click();
+  await page.getByRole('button',{name:'Add Arsenal',exact:true}).click();
+  await page.getByRole('button',{name:'Add Liverpool',exact:true}).click();
+  await page.getByRole('button',{name:'Move Liverpool up',exact:true}).click();
+  await expect(page.locator('.gx-epl-queue-row').first()).toContainText('Liverpool');
+  await captureEpl(page,'ranked-backups','epl-draft queue',{forced:true});
+  await page.getByRole('dialog',{name:'Backup ranking'}).focus();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog',{name:'Backup ranking'})).toHaveCount(0);
+  await page.getByRole('navigation',{name:'Main',exact:true}).getByRole('button',{name:'Home',exact:true}).click();
+  await expect(page.locator('.gx-epl-tile-club')).toContainText('Arsenal');
+  await captureEpl(page,'home-picked','epl-home-picked');
+  // EPL Home is compact; the actual FEPL Research destination retains league access.
+  await page.getByRole('navigation',{name:'Main',exact:true}).getByRole('button',{name:'Research',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'FEPL Fantasy',exact:true})).toBeVisible();
+  await expect(page.getByRole('navigation',{name:'Main',exact:true}).getByRole('button',{name:'Research',exact:true})).toHaveAttribute('aria-current','page');
+  await expect(page.getByRole('button',{name:'Premier League',exact:true})).toHaveAttribute('aria-pressed','true');
+  await expect(page.locator('.gx-league-btn')).toContainText('FEPL');
+  await page.locator('.gx-league-btn').click();
+  await expect(page.getByRole('dialog',{name:'Your leagues',exact:true}).getByRole('button',{name:/FEPL/})).toHaveAttribute('aria-current','true');
+  await captureEpl(page,'shell-leagues','epl-shell-leagues',{forced:true});
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.gx-league-btn')).toBeFocused();
+  await page.getByRole('button',{name:'Your menu',exact:true}).click();
+  await page.getByRole('dialog',{name:'Menu',exact:true}).getByRole('button',{name:'History',exact:true}).click();
+  await expect(page.getByText('Premier League history is not available here yet. Your saved picks and records are kept.',{exact:true})).toBeVisible();
+  await captureEpl(page,'shell-history','epl-shell-history');
+  await page.getByRole('button',{name:'Back',exact:true}).click();
+  await page.getByRole('navigation',{name:'Main',exact:true}).getByRole('button',{name:'Bets',exact:true}).click();
+  await captureEpl(page,'shell-bets','epl-shell-bets',{forced:true});
+  expect(world.errors).toEqual([]);
+ }finally{await world.db.close();}
+});
+
+test('Prism native FEPL Fantasy maps every reviewed observation, gap and refusal input', async({page,baseURL})=>{
+ test.skip(!pgliteAvailable,'Disposable PGlite required.');test.setTimeout(300000);
+ const world=await fixture(page,baseURL);let example=fantasyExample('matchup'),hold;
+ await page.route('**/functions/v1/gtl-api/epl/fantasy/read',async route=>{
+  if(example.state.status==='loading'){await new Promise(resolve=>{hold=resolve;});return route.fulfill({status:503,contentType:'application/json',body:'{"error":"Synthetic delayed read"}'}).catch(()=>{});}
+  const err=example.state.error;
+  return route.fulfill({status:err?.status??(err?503:200),contentType:'application/json',body:JSON.stringify(err?{code:err.code,error:'Synthetic reviewed refusal'}:example.state.data)});
+ });
+ try{
+  await enter(page,'luke','#epl/research');
+  for(const scenario of FANTASY_SCENARIOS){
+   example=fantasyExample(scenario);
+   await page.reload();
+   await expect(page.getByRole('heading',{name:'FEPL Fantasy',exact:true})).toBeVisible();
+   if(example.section!=='matchup')await page.getByRole('button',{name:example.section[0].toUpperCase()+example.section.slice(1),exact:true}).click();
+   if(example.state.status==='loaded')await expect(page.locator('.gx-epl-fx-footer')).toBeVisible();
+   else if(example.state.status==='failed')await expect(page.locator('.gx-epl-fx .gx-empty')).toBeVisible();
+   else await expect(page.locator('.gx-epl-fx .gx-skel')).toBeVisible();
+   await captureEpl(page,`fantasy-${scenario}`,`epl-fantasy-${scenario}`,{representative:['matchup','insights'].includes(scenario),forced:['matchup','standings','insights-gaps','forbidden'].includes(scenario)});
+   if(scenario==='standings'){await page.locator('.gx-epl-fx-stand-head').first().click();await captureEpl(page,'fantasy-standing-expanded','epl-fantasy-standings expanded');}
+   if(scenario==='matchup'){await page.getByRole('button',{name:'About win chance'}).click();await captureEpl(page,'fantasy-estimate-info','epl-fantasy-matchup estimate Info');await page.getByRole('button',{name:'Close',exact:true}).click();}
+   hold?.();hold=null;
+  }
+  expect(world.errors).toEqual([]);
+ }finally{hold?.();await world.db.close();}
+});
+
+test('Prism native draft recovery labels retained data, clears refusals and opens stored-source guidance',async({page,baseURL})=>{
+ test.skip(!pgliteAvailable,'Disposable PGlite required.');test.setTimeout(180000);
+ const world=await fixture(page,baseURL);let mode='ready',read,release;
+ try{
+  await enter(page,'troy','#epl/home');
+  read=structuredClone(world.replies.filter(r=>r.path==='epl/draft/read').at(-1).body);
+  await page.route('**/functions/v1/gtl-api/epl/draft/read',async route=>{
+   if(mode==='loading'){await new Promise(resolve=>{release=resolve;});return route.fulfill({status:503,contentType:'application/json',body:'{"error":"Delayed synthetic read"}'}).catch(()=>{});}
+   const errors={failed:{status:503},forbidden:{status:403},off:{status:503,code:'GTL_EPL_OFF'},'no-week':{status:503,code:'GTL_EPL_NO_WEEK'}};
+   const err=errors[mode];return route.fulfill({status:err?.status??200,contentType:'application/json',body:JSON.stringify(err?{error:'Synthetic review failure',code:err.code}:read)});
+  });
+  mode='failed';await page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));
+  await expect(page.getByText('Couldn’t refresh the draft. Showing the last board.',{exact:true})).toBeVisible();
+  await captureEpl(page,'home-stale','epl-home-stale');
+  mode='ready';read.status='needs_review';read.standingsSource={kind:'wikimedia-community',official:false,dataAsOf:'2026-10-25',source:{url:'https://en.wikipedia.org/w/index.php?title=2026%E2%80%9327%20Premier%20League&oldid=1382589055'},license:{url:'https://creativecommons.org/licenses/by-sa/4.0/'}};
+  await page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));
+  await expect(page.getByText('Results under review',{exact:true})).toBeVisible();
+  await captureEpl(page,'home-review','epl-home-review');
+  await page.getByRole('button',{name:'About table fallback',exact:true}).click();
+  await expect(page.getByRole('dialog',{name:'About table fallback',exact:true})).toBeVisible();
+  await captureEpl(page,'draft-source-info','epl-home-review source Info');
+  await page.getByRole('dialog',{name:'About table fallback',exact:true}).getByRole('button',{name:'Close',exact:true}).click();
+  read.status='open';read.onTheClock=null;read.picks=read.order.map((manager,i)=>({ownerId:manager.ownerId,club:read.clubs[i].code,final:true}));delete read.standingsSource;
+  await page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));
+  await expect(page.getByText('All 3 picks in',{exact:true})).toBeVisible();
+  await captureEpl(page,'home-all-in','epl-home-all-in');
+  read.status='closed';await page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));
+  await expect(page.getByText('Draft locked · 3 of 3 in',{exact:true})).toBeVisible();
+  await captureEpl(page,'home-locked','epl-home-locked');
+  await page.goto('/#epl/play/pick');await page.reload();
+  await expect(page.getByRole('button',{name:'Draft locked',exact:true})).toBeDisabled();
+  await captureEpl(page,'draft-closed','epl-closed');
+  for(const scenario of ['failed','forbidden','off','no-week','loading']){
+   mode=scenario;await page.goto('/#epl/play/pick');await page.reload();
+   if(scenario==='loading')await expect(page.locator('.gx-epl-read-state .gx-skel')).toBeVisible();
+   else await expect(page.locator('.gx-epl-read-state.gx-empty')).toBeVisible();
+   await expect(page.locator('.gx-epl-nodes')).toHaveCount(0);
+   await captureEpl(page,`draft-recovery-${scenario}`,`epl-home-${scenario}`,{forced:scenario==='forbidden'});
+   release?.();release=null;
+  }
+  expect(world.errors).toEqual([]);
+ }finally{release?.();await world.db.close();}
+});
+
+test('Prism native manager outcomes preserve first-claim refusals, uncertain replies and session watching',async({page,baseURL})=>{
+ test.skip(!pgliteAvailable,'Disposable PGlite required.');test.setTimeout(120000);
+ const world=await fixture(page,baseURL);let outcome='taken';
+ await page.route('**/functions/v1/gtl-api/epl/claim',route=>{
+  const failures={taken:{status:409,code:'GTL_EPL_CLAIMED'},'already-linked':{status:409,code:'GTL_EPL_ALREADY_LINKED'},failed:{status:400,code:'SYNTHETIC_DEFINITE_REFUSAL'},uncertain:{status:503}};
+  const f=failures[outcome];return route.fulfill({status:f.status,contentType:'application/json',body:JSON.stringify({code:f.code,error:'Synthetic claim response for native recovery'})});
+ });
+ try{
+  await enter(page,'luke','#epl/home');
+  const original=structuredClone(world.replies.filter(r=>r.path==='epl/draft/read').at(-1).body);
+  for(const scenario of ['taken','already-linked','failed','uncertain']){
+   outcome=scenario;await page.reload();await page.getByRole('button',{name:'Adam',exact:true}).click();
+   await expect(page.locator('.gx-epl-toast')).toBeVisible();
+   await captureEpl(page,`claim-${scenario}`,`epl-manager-${scenario}`);
+   await expect(page.getByRole('button',{name:'Set my backup ranking (queue)',exact:true})).toHaveCount(0);
+  }
+  await page.locator('.gx-epl-toast').getByRole('button',{name:'Dismiss',exact:true}).click();
+  await page.getByRole('button',{name:'Just watching',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'Which FEPL manager are you?',exact:true})).toHaveCount(0);
+  await captureEpl(page,'claim-watching','epl-manager-watching');
+  await page.evaluate(()=>sessionStorage.removeItem('gtl-epl-just-watching'));
+  await page.route('**/functions/v1/gtl-api/epl/draft/read',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({...original,me:null,claim:{managers:[]}})}));
+  await page.reload();await expect(page.locator('.gx-epl-home .gx-epl-hero')).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Which FEPL manager are you?',exact:true})).toHaveCount(0);
+  await captureEpl(page,'claim-no-managers','epl-manager-no-managers');
+  expect(world.errors).toEqual([]);
+ }finally{await world.db.close();}
 });

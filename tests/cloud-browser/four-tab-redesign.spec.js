@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { ALL } from '../migrations.mjs';
 import { communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
+import { assertCaptureTheme, setCaptureTheme } from './theme-capture.mjs';
 
 test.use({ viewport: { width: 390, height: 844 } });
 test.setTimeout(120000);
@@ -18,22 +19,29 @@ test('four simple roots, detail origins, reload and phone geometry', async ({ pa
     await expect(page.locator('[data-landing="home"]')).toBeVisible();
     await expect(main(page).getByRole('button')).toHaveCount(4);
     for (const theme of ['dark', 'light']) {
-      await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
+      await setCaptureTheme(page, theme);
       for (const width of [390, 320]) {
         await page.setViewportSize({ width, height: 844 });
         for (const name of ['Home', 'Play', 'Bets', 'Research']) {
           await tab(page, name).click();
           const root = page.locator(`[data-landing="${name.toLowerCase()}"]`);
           await expect(root).toBeVisible();
-          await expect(root.locator(name === 'Home' ? '.gx-home-primary' : '.gx-btn--primary')).toHaveCount(1);
+          const compact = name !== 'Research'; // Approved Home, Play and Bets roots; Research retains its native frame.
+          if (compact) await expect(page.locator('.gx')).toHaveClass(/\bgx-overview-frame\b/);
+          else await expect(page.locator('.gx')).not.toHaveClass(/\bgx-overview-frame\b/);
+          await assertCaptureTheme(page, theme);
+          if (name === 'Play') {
+            // The confirmed overview exposes Spread / Total / Points directly.
+            await expect(root.getByRole('group', { name: 'Guess market', exact: true }).getByRole('button')).toHaveCount(3);
+          } else await expect(root.locator(name === 'Home' ? '.gx-home-primary' : '.gx-btn--primary')).toHaveCount(1);
           expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
           await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
           const geometry = await main(page).evaluate(el => {
             const rect = el.getBoundingClientRect();
             return { bottom: rect.bottom, viewport: innerHeight, labels: [...el.querySelectorAll('.gx-tab-label')].map(label => parseFloat(getComputedStyle(label).fontSize)) };
           });
-          expect(Math.abs(geometry.bottom - (geometry.viewport - (name === 'Home' ? 12 : 0)))).toBeLessThan(2);
-          expect(geometry.labels.every(size => size >= (name === 'Home' ? 13 : 16))).toBe(true); // Approved compact Home navigation.
+          expect(Math.abs(geometry.bottom - (geometry.viewport - (compact ? 12 : 0)))).toBeLessThan(2);
+          expect(geometry.labels.every(size => size >= (compact ? 13 : 16))).toBe(true); // Compact navigation metadata only.
           // D-69 4.3: a tab screen fades in after the launch; contrast is checked once it has settled.
           await page.evaluate(() => Promise.all(document.getAnimations().filter(a => a.playState === 'running' && Number.isFinite(a.effect?.getComputedTiming().endTime)).map(a => a.finished.catch(() => {}))));
           const result = await new AxeBuilder({ page }).include('.gx').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
@@ -66,10 +74,13 @@ test('four simple roots, detail origins, reload and phone geometry', async ({ pa
     await expect(page.locator('[data-landing="research"]')).toBeVisible();
     await page.getByRole('button', { name: /^Trends/ }).click();
     await expect(page.getByRole('heading', { name: 'Trends', exact: true })).toBeVisible();
-    // D-66: This Week is nesting cards; a game is one layer in. D-69 step 3: its Game details opens Research › Games ›
-    // that game as a layer (no longer a dialog), and the All trends sheet still opens over it.
-    await page.locator('[data-game]').first().click();
-    const details = page.getByRole('button', { name: /^Game details/ }).first();
+    // The confirmed Trends root is the historical row list. Games remains the public
+    // matchup entry; its exact weekly evidence is still reachable through All trends.
+    await expect(page.getByRole('region', { name: 'Historical trends', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await expect(page.locator('[data-landing="research"]')).toBeVisible();
+    await page.getByRole('button', { name: /^Games/ }).click();
+    const details = page.locator('button[data-game]').first();
     await details.click();
     const game = page.locator('[data-research="game"]');
     await expect(game).toBeVisible();
@@ -81,12 +92,10 @@ test('four simple roots, detail origins, reload and phone geometry', async ({ pa
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(game).toBeVisible();
-    // Back closes one layer at a time: the game layer to Trends' game, that game to This week, then the Research landing.
+    // Back closes one layer at a time: the game to its Games list, then Research.
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await expect(game).toHaveCount(0);
     await expect(details).toBeVisible();
-    await page.getByRole('button', { name: 'Back', exact: true }).click();
-    await expect(page.getByRole('heading', { level: 2, name: 'This week', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await expect(page.locator('[data-landing="research"]')).toBeVisible();
     expect(world.errors).toEqual([]);

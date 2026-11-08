@@ -21,6 +21,7 @@ vi.mock('../web/src/dashboardPreferences.js', () => ({ useDashboardPreferences: 
 vi.mock('../web/src/trendsLoaders.js', () => ({ rememberOfficial: vi.fn() }));
 vi.mock('../web/src/next/lines/trendsHooks.js', () => ({ useTrendWeek: () => ({ status: 'loading', week: null, retry: vi.fn() }) }));
 const { MenuSheet } = await import('../web/src/next/me/MenuSheet.jsx');
+const { OddsConnection } = await import('../web/src/next/me/commissioner/OddsConnection.jsx');
 const { CommissionerTools, COMMISSIONER_COPY } = await import('../web/src/next/me/commissioner/CommissionerTools.jsx');
 
 const root = path.resolve(import.meta.dirname, '..');
@@ -68,6 +69,14 @@ describe('Menu › Commissioner tools visibility', () => {
 });
 
 describe('Commissioner tools routes and adapter', () => {
+  it('renders the initial count-only connection state before any reply exists', () => {
+    const html = render(<OddsConnection data={{}}/>, true);
+    expect(markupProblems(html)).toEqual([]);
+    expect(html).toContain('Check connection (zero-credit)');
+    expect(html).toMatch(/disabled[^>]*>Fetch current lines/);
+    expect(html).not.toContain('Request counts');
+  });
+
   it('call the old screens’ gtl-api routes and no others', () => {
     expect(routes(read('web/src/next/me/commissioner/CommissionerTools.jsx'))).toEqual(
       ['read', 'set', 'state', 'virtual-units', 'virtual-units/settle', 'week-open']);
@@ -113,9 +122,9 @@ describe('Menu and Commissioner tools rows (quick wins A9, A23)', () => {
     shellState.pushConfigured = true;
     const rows = glyphs(render(<MenuSheet args={{}}/>, true));
     delete shellState.pushConfigured;
-    expect(rows.map(([words]) => words)).toEqual(['Community members', 'Commissioner tools', 'Profile', 'History', 'Export my data', 'Settings · sportsbooks and guidance', 'Pick reminders', 'Guidance and sources', 'Appearance']);
+    expect(rows.map(([words]) => words)).toEqual(['Community members', 'Commissioner tools', 'Invite friends', 'Profile', 'History', 'Export my data', 'Settings · sportsbooks and guidance', 'Pick reminders', 'Guidance and sources', 'Appearance']);
     expect(repeated(rows)).toEqual([]);
-    expect(rows.map(([, glyph]) => glyph)).toEqual(['members', 'commissioner', 'profile', 'history', 'export', 'settings', 'reminders', 'guidance', 'appearance'].map(kebab));
+    expect(rows.map(([, glyph]) => glyph)).toEqual(['members', 'commissioner', 'appInvite', 'profile', 'history', 'export', 'settings', 'reminders', 'guidance', 'appearance'].map(kebab));
   });
 
   it('the tools hub uses each glyph once and opens on its rows', () => {

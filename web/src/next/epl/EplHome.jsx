@@ -8,11 +8,13 @@ import { useId } from 'react';
 import { Button, Card, Countdown } from '../ui/index.js';
 import { fmtDay, fmtWhen } from '../format.js';
 import { Crest } from './DraftBoard.jsx';
-import { DraftReadState } from './PickATeam.jsx';
-import { boardModel } from './draftModel.js';
+import { DraftReadState, StandingsSource } from './PickATeam.jsx';
+import { MarginChart } from './MarginChart.jsx';
+import { boardModel, PICK_COPY } from './draftModel.js';
 import { eplApi } from './api.js';
 import { useEplDraft } from './useEplDraft.js';
 import { ClaimCard } from './ClaimCard.jsx';
+import { clubName } from './clubName.js';
 import { HomeMoneylineProgress, useHomeMoneylineProgress } from './guess/HomeMoneylineProgress.jsx';
 
 export const HOME_COPY = Object.freeze({
@@ -41,29 +43,34 @@ function headline(model) {
 
 export function EplHomeView({ model, state, now, onOpenPick, onOpenGuess, moneyline, onRetry, claim = null }) {
   const heroId = useId();
-  if (!model) return <div className="gx-screen">
+  if (!model) return <div className="gx-screen gx-epl-home">
     <h1 className="gx-t-title">{HOME_COPY.fallbackTitle}</h1>
     <DraftReadState state={state} model={model} onRetry={onRetry}/>
   </div>;
   const first = model.firstMatch;
   const mine = model.myNode;
-  return <div className="gx-screen">
+  return <div className="gx-screen gx-epl-home">
     <h1 className="gx-t-title">{HOME_COPY.title(model.week)}</h1>
     {claim}
+    {state?.stale ? <p className="gx-epl-stale gx-t-body" role="status">{PICK_COPY.stale}</p> : null}
     <Card as="section" variant="hero" className="gx-epl-hero" aria-labelledby={heroId}>
-      <p className="gx-t-micro gx-epl-kicker">{HOME_COPY.due}</p>
+      <p data-epl-text="metadata" className="gx-t-micro gx-epl-kicker">{HOME_COPY.due}</p>
       <h2 className="gx-epl-headline" id={heroId}>{headline(model)}</h2>
       <Countdown target={model.deadline} now={now} label={HOME_COPY.countdown} doneLabel={HOME_COPY.done} className="gx-epl-cd"/>
-      {first ? <p className="gx-t-meta gx-epl-hero-meta">{fmtWhen(first.kickoff)} · {first.away} @ {first.home}</p> : null}
+      {first ? <p data-epl-text="metadata" className="gx-t-meta gx-epl-hero-meta">{fmtWhen(first.kickoff)} · {clubName(first.away)} @ {clubName(first.home)}</p> : null}
       <Button variant={model.onClockMe ? 'primary' : 'secondary'} block onClick={onOpenPick}>{model.onClockMe ? HOME_COPY.pickNow : HOME_COPY.open}</Button>
     </Card>
+    {model.review || model.standingsSource ? <Card as="section" className="gx-epl-bonus" aria-label="Draft review and source">
+      {model.review ? <MarginChart bonus={model.bonus} review clubName={model.clubName}/> : null}
+      <StandingsSource source={model.standingsSource}/>
+    </Card> : null}
     <HomeMoneylineProgress state={moneyline} onOpenGuess={onOpenGuess}/>
     {mine ? <div className="gx-epl-tiles">
       <Card className="gx-epl-tile">
         <span className="gx-t-micro gx-c-2">{HOME_COPY.yourPick}</span>
         {model.myClub ? <>
           <span className="gx-epl-tile-club"><Crest code={model.myClub.code}/><span className="gx-t-strong">{model.myClub.name}</span></span>
-          {model.myClub.opponent ? <span className="gx-t-meta">{model.myClub.home ? 'vs' : 'at'} {model.myClub.opponent} · {fmtDay(model.myClub.kickoff)}</span> : null}
+          {model.myClub.opponent ? <span className="gx-t-meta">{model.myClub.home ? 'vs' : 'at'} {clubName(model.myClub.opponent)} · {fmtDay(model.myClub.kickoff)}</span> : null}
         </> : <span className="gx-t-body gx-c-2">{HOME_COPY.notPicked}</span>}
       </Card>
       <Card className="gx-epl-tile">

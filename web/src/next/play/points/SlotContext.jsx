@@ -5,9 +5,10 @@
 // The profile's code (FantasyTools and its stylesheet) loads on that tap, as Research › Fantasy loads its own on a visit.
 import { lazy, Suspense, useId, useLayoutEffect, useRef, useState } from 'react';
 import { Boundary } from '../../shell/Boundary.jsx';
-import { Button, Card, Skeleton } from '../../ui/index.js';
+import { Button, Card, Skeleton, TeamMark } from '../../ui/index.js';
 import { retryViewImport } from '../../ui/retryViewImport.js';
 import { CONTEXT_COPY, contextNumber, gamesText, slotContext } from './pointsContext.js';
+import { PointsObserved } from './PointsObserved.jsx';
 
 const importProfile = retryViewImport(() => import('./PointsProfile.jsx'));
 const loadProfile = () => lazy(importProfile);
@@ -65,11 +66,15 @@ export function SlotContext({ week, slot, snapshot: state, settings, onProfile }
       <dl className="gx-pt-context-tiles">
         <Tile label="Last 3" value={context.recent.value} note={gamesText(context.recent.games)}/>
         <Tile label="Season" value={context.season.value} note={gamesText(context.season.games)}/>
-        <Tile label={context.opponent ? `${context.opponent} allows` : 'Opponent allows'} value={context.allowed?.value ?? null}
-          note={context.allowed ? `to ${context.allowed.positions} · ${gamesText(context.allowed.games)}` : 'not in this data'} missing="not available"/>
       </dl>
+      <div className="gx-pt-context-opponent">
+        {context.opponent ? <TeamMark code={context.opponent.split(' ').at(-1)} size={32} decorative/> : null}
+        <span className="gx-t-body">{context.opponent ? `${context.opponent} allows` : 'Opponent allows'}<small className="gx-t-meta gx-pt-sub">{context.allowed ? `to ${context.allowed.positions} · ${gamesText(context.allowed.games)}` : 'not in this data'}</small></span>
+        <strong className="gx-n-m"><Value value={context.allowed?.value ?? null} missing="not available"/></strong>
+      </div>
+      <PointsObserved snapshot={state} slot={slot} settings={settings}/>
       <p className="gx-t-meta gx-pt-sub" data-points-report>{report}</p>
-      {context.found ? <Button variant="ghost" iconEnd="chevronRight" onClick={onProfile} aria-label={`${CONTEXT_COPY.profile}: ${slot.name}`}>{CONTEXT_COPY.profile}</Button> : null}
+      {context.found ? <Button variant="secondary" iconEnd="chevronRight" onClick={onProfile} aria-label={`Usage & weekly chart: ${slot.name}`}>Usage &amp; weekly chart</Button> : null}
     </>;
   }
   return <Card as="section" className="gx-vstack gx-gap-12 gx-pt-context" aria-labelledby={titleId} data-points-context={slot.slot}>

@@ -31,7 +31,7 @@ export function EplFantasyView({ state, section = 'matchup', onSection, onRetry 
     </section>;
   } else body = <>
     <Panel view={state.data}/>
-    <p className="gx-t-meta gx-c-2 gx-epl-fx-footer">{FANTASY_COPY.footer(fmtWhen(state.data.capturedAt))}</p>
+    <p data-epl-text="metadata" className="gx-t-meta gx-c-2 gx-epl-fx-footer">{FANTASY_COPY.footer(fmtWhen(state.data.capturedAt))}</p>
   </>;
   return <div className="gx-epl-fx" data-epl-fantasy={section}>
     <h2 className="gx-t-section">{FANTASY_COPY.title}</h2>

@@ -7,19 +7,19 @@
 
 /* ===== type ===== */
 .gx-t-display {
-  font: 800 40px/40px var(--gx-font-display);
-  text-transform: uppercase;
-  letter-spacing: 0.01em;
+  font: 600 40px/40px var(--gx-font-display);
+  text-transform: none;
+  letter-spacing: -0.02em;
 }
 .gx-t-title {
-  font: 800 28px/32px var(--gx-font-display);
-  text-transform: uppercase;
-  letter-spacing: 0.01em;
+  font: 600 28px/32px var(--gx-font-display);
+  text-transform: none;
+  letter-spacing: -0.02em;
 }
 .gx-t-section {
-  font: 700 20px/24px var(--gx-font-display);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font: 600 20px/24px var(--gx-font-display);
+  text-transform: none;
+  letter-spacing: -0.02em;
 }
 .gx-t-team {
   font: 700 20px/24px var(--gx-font-num);
@@ -156,14 +156,17 @@
 }
 .gx-btn--primary {
   min-height: var(--gx-size-primary);
-  background: var(--gx-accent);
-  color: var(--gx-accent-text);
-  box-shadow: var(--gx-lime-edge);
+  border: 3px solid var(--gx-accent-ink);
+  background: transparent;
+  color: var(--gx-primary-ink);
+  box-shadow: var(--gx-primary-shadow);
+  -webkit-backdrop-filter: var(--gx-glass-blur);
+  backdrop-filter: var(--gx-glass-blur);
 }
 .gx-btn--secondary {
   background: transparent;
   color: var(--gx-text-1);
-  box-shadow: inset 0 0 0 1px var(--gx-border-strong);
+  box-shadow: inset 0 0 0 1px var(--gx-border-strong), var(--gx-secondary-shadow);
 }
 .gx-btn--danger {
   background: transparent;
@@ -177,6 +180,7 @@
 .gx-btn:disabled,
 .gx-btn[aria-disabled="true"],
 .gx-btn--disabled {
+  border-color: transparent;
   background: var(--gx-surface-2);
   color: var(--gx-text-3);
   box-shadow: none;
@@ -274,14 +278,17 @@ textarea.gx-input { min-height: 96px; padding: 12px 16px; resize: vertical; }
 /* ===== cards and lists ===== */
 .gx-card {
   padding: 16px;
+  border: 1px solid var(--gx-glass-line);
   border-radius: var(--gx-radius-md);
-  background: var(--gx-surface-1);
+  background: var(--gx-card-face);
   box-shadow: var(--gx-e1);
+  -webkit-backdrop-filter: var(--gx-glass-blur);
+  backdrop-filter: var(--gx-glass-blur);
 }
 /* D-55: each root's one action card glows (deep blue in Dark, a soft white report card in Light), with glass
    countdown tiles. 24 radius. */
 .gx-card--hero {
-  padding: 20px;
+  padding: 18px;
   border-radius: var(--gx-radius-lg);
   background: var(--gx-hero-card);
   box-shadow: var(--gx-hero-ring);
@@ -703,6 +710,7 @@ textarea.gx-input { min-height: 96px; padding: 12px 16px; resize: vertical; }
   overflow: hidden;
   border-radius: var(--gx-radius-lg) var(--gx-radius-lg) 0 0;
   background: var(--gx-surface-2);
+  background-image: var(--gx-card-face);
   box-shadow: var(--gx-e3);
   animation: gx-sheet-in var(--gx-dur-base) var(--gx-ease-enter);
 }
@@ -725,9 +733,9 @@ textarea.gx-input { min-height: 96px; padding: 12px 16px; resize: vertical; }
 .gx-sheet-title {
   flex: 1 1 auto;
   min-width: 0;
-  font: 700 20px/24px var(--gx-font-display);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font: 600 20px/24px var(--gx-font-display);
+  text-transform: none;
+  letter-spacing: -0.02em;
 }
 .gx-sheet-body {
   flex: 1 1 auto;
@@ -767,6 +775,7 @@ textarea.gx-input { min-height: 96px; padding: 12px 16px; resize: vertical; }
   border: 0;
   border-radius: var(--gx-radius-lg);
   background: var(--gx-surface-2);
+  background-image: var(--gx-card-face);
   color: var(--gx-text-1);
   box-shadow: var(--gx-e2);
 }
@@ -790,6 +799,7 @@ textarea.gx-input { min-height: 96px; padding: 12px 16px; resize: vertical; }
   border: 0;
   border-radius: var(--gx-radius-lg) var(--gx-radius-lg) 0 0;
   background: var(--gx-surface-2);
+  background-image: var(--gx-card-face);
   color: var(--gx-text-1);
   box-shadow: var(--gx-e3);
   overflow-y: auto;
@@ -802,7 +812,7 @@ textarea.gx-input { min-height: 96px; padding: 12px 16px; resize: vertical; }
 .gx-info-links { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
 .gx-info-link { display: inline-flex; align-items: center; min-height: 44px; color: var(--gx-data); text-decoration: underline; }
 .gx-info-btn { flex: none; color: var(--gx-text-2); }
-.gx-dialog-title { font: 700 20px/24px var(--gx-font-display); text-transform: uppercase; letter-spacing: 0.04em; }
+.gx-dialog-title { font: 600 20px/24px var(--gx-font-display); text-transform: none; letter-spacing: -0.02em; }
 .gx-dialog-text { color: var(--gx-text-2); }
 .gx-dialog-actions { display: flex; flex-direction: column; gap: 8px; }
 /* Positioned by its owner (the reaction picker sits above the post it reacts to). */
@@ -909,44 +919,51 @@ textarea.gx-input { min-height: 96px; padding: 12px 16px; resize: vertical; }
 .gx-cd-done .gx-ic { color: var(--gx-text-3); }
 /* The gate banner's way in and skip: text buttons in a column, aligned with the sentence above. */
 .gx-gate-acts { display: flex; flex-direction: column; align-items: flex-start; margin-left: -8px; }
-/* Team mark (D-22, DP-27): a square tile with a 1px ring; the abbreviation shows until the image has decoded. A wider
-   fallback font widens the tile around the letters instead of clipping them; the tile's size never changes on load. */
+/* Prism team mark: one circular glass background per team. DP-27's reserved size and decode/error fallback remain. */
 .gx-team {
   position: relative;
   flex: none;
   display: inline-grid;
   place-items: center;
+  width: 32px;
   min-width: 32px;
   height: 32px;
   padding: 0 2px;
   overflow: hidden;
-  border-radius: var(--gx-radius-xs);
-  background: var(--gx-surface-2);
-  box-shadow: inset 0 0 0 1px var(--gx-border-strong);
+  border: 1px solid var(--gx-glass-line);
+  border-radius: 50%;
+  background: var(--gx-card-face);
+  box-shadow: var(--gx-glass-shadow);
   color: var(--gx-text-1);
 }
-.gx-team--24 { min-width: 24px; height: 24px; }
-.gx-team--48 { min-width: 48px; height: 48px; border-radius: var(--gx-radius-sm); }
+.gx-team--24 { width: 24px; min-width: 24px; height: 24px; }
+.gx-team--48 { width: 48px; min-width: 48px; height: 48px; }
 .gx-team-code {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
   font: 700 13px/1 var(--gx-font-num);
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
   text-transform: uppercase;
   white-space: nowrap;
+  letter-spacing: -0.03em;
 }
 .gx-team--24 .gx-team-code { font-size: 12px; letter-spacing: 0; text-transform: uppercase; }
 .gx-team--48 .gx-team-code { font-size: 16px; }
 .gx-team-img {
   position: absolute;
-  top: 3px;
-  left: 3px;
-  width: calc(100% - 6px);
-  height: calc(100% - 6px);
+  top: 12%;
+  left: 12%;
+  width: 76%;
+  height: 76%;
   object-fit: contain;
   opacity: 0;
 }
 .gx-team--loaded .gx-team-img { opacity: 1; }
-/* D-46 official logos sit in the tile with no backing chip in either theme (Sean, October 15, 2026). */
+/* The image itself stays transparent; its parent supplies the selected individual glass circle. */
 .gx-team--loaded .gx-team-code { visibility: hidden; }
 /* The Field monogram (D-44): the Yardline G alone in accent-ink (lime in dark, deep green in light) on a transparent
    background, with no tile, edge or shadow (Brand.jsx geometry). The box keeps its size, so nothing around it moves. */
@@ -1010,7 +1027,30 @@ textarea.gx-input { min-height: 96px; padding: 12px 16px; resize: vertical; }
 .gx-switch-input:disabled,
 .gx-switch-row:has(.gx-switch-input:disabled) { cursor: default; }
 
+/* The selected neutral edge reflection, retained at .65 opacity in the final card recipe. */
+.gx:not(.gx-home-design) .gx-card,
+.gx:not(.gx-home-design) .gx-nest-card { position: relative; -webkit-backdrop-filter: var(--gx-card-filter); backdrop-filter: var(--gx-card-filter); }
+.gx:not(.gx-home-design) .gx-card::before,
+.gx:not(.gx-home-design) .gx-nest-card::before { content: ''; position: absolute; inset: 1px; border-radius: inherit; padding: 1px; background: var(--gx-card-edge); opacity: var(--gx-card-gloss); -webkit-mask: linear-gradient(var(--gx-mask-solid) 0 0) content-box, linear-gradient(var(--gx-mask-solid) 0 0); mask: linear-gradient(var(--gx-mask-solid) 0 0) content-box, linear-gradient(var(--gx-mask-solid) 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; }
+@media (prefers-reduced-transparency: reduce) {
+  .gx:not(.gx-home-design) .gx-card::before,
+  .gx:not(.gx-home-design) .gx-nest-card::before { display: none; }
+}
+
 /* ===== forced colors (Windows high contrast): glows and inset outlines drop, so draw real borders ===== */
+/* Readable opaque fallback; !important lets this accessibility preference survive lazy screen CSS. */
+@media (prefers-reduced-transparency: reduce) {
+  .gx .gx-card,
+  .gx .gx-nest-card,
+  .gx .gx-nest-tile,
+  .gx .gx-team {
+    background: var(--gx-surface-1) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+  .gx .gx-btn { -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+
 @media (forced-colors: active) {
   .gx-av-initials { color: CanvasText; background: Canvas; border: 1px solid CanvasText; }
   .gx-btn--primary,
@@ -1046,4 +1086,6 @@ textarea.gx-input { min-height: 96px; padding: 12px 16px; resize: vertical; }
   .gx-meter3-seg--on { forced-color-adjust: none; background: CanvasText; }
   .gx-row--you { border-left: 3px solid Highlight; }
   .gx-switch-input:checked + .gx-switch { forced-color-adjust: none; background: Highlight; }
+  .gx:not(.gx-home-design) .gx-card::before,
+  .gx:not(.gx-home-design) .gx-nest-card::before { display: none; }
 }

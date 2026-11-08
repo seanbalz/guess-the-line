@@ -21,6 +21,7 @@ export const DESTINATION_ICONS = Object.freeze({
   // Menu
   members: 'people',
   commissioner: 'shieldCheck',
+  appInvite: 'userPlus', // Owner-selected public app invitation, separate from private league access.
   profile: 'circleUser',
   history: 'clock',
   export: 'download',

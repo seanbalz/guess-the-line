@@ -27,7 +27,7 @@ import './sheet.css';
  * paging sheet: `{ index, count, onMove(step), unit, prevLabel, nextLabel }`, where `onMove(-1 | 1)` shows the previous
  * or next page (by changing what the sheet draws) and `unit` names a page ("game": "SEA @ DEN, game 2 of 14").
  */
-export function Sheet({ title, onClose, back, tall = false, footer, closeLabel = 'Close', initialFocusRef, pager, className, children }) {
+export function Sheet({ title, onClose, back, tall = false, footer, closeLabel = 'Close', initialFocusRef, pager, bodyTabIndex, className, children }) {
   const panel = useRef(null), scrim = useRef(null), body = useRef(null);
   const titleId = useId();
   const onKeyDown = useModal(panel, { onEscape: onClose, initialFocusRef });
@@ -73,7 +73,7 @@ export function Sheet({ title, onClose, back, tall = false, footer, closeLabel =
             ) : null}
             <IconButton icon={X} label={closeLabel} onClick={onClose}/>
           </div>
-          <div ref={body} className={cx('gx-sheet-body', place && 'gx-sheet-body--pager')} onPointerDown={place ? paging.onPointerDown : undefined}>
+          <div ref={body} tabIndex={bodyTabIndex} className={cx('gx-sheet-body', place && 'gx-sheet-body--pager')} onPointerDown={place ? paging.onPointerDown : undefined}>
             {back ? heading : null}
             {children}
           </div>

@@ -17,11 +17,11 @@ export function MiniArea({ values }) {
 }
 
 /** `values` draw the mini area; `value` is the number on the right ("+45.2 U"); `controls` is the detail's id. */
-export function TrendRow({ title, sub, values, value, open, controls, onToggle }) {
+export function TrendRow({ title, displayTitle = title, sub, values, value, open, controls, onToggle }) {
   return (
     <button type="button" className="gx-tc-row" aria-expanded={open} aria-controls={controls} onClick={onToggle}>
       <span className="gx-tc-row-main">
-        <span className="gx-t-strong">{title}</span>
+        <span className="gx-t-strong">{displayTitle}</span>
         {sub ? <span className="gx-tc-row-sub">{sub}</span> : null}
       </span>
       <MiniArea values={values}/>

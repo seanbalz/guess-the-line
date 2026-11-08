@@ -1,7 +1,7 @@
 // Fixture-only commissioner review UI. Existing auth/commissioner navigation uses local PGlite; this new read returns
 // fabricated normalized API data. Separate Node adapter tests enforce the new endpoint's real server-side admin guard.
 import { test, expect } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
+import { captureCommissioner } from './commissioner-capture.mjs';
 import { communityWorld, pgliteAvailable, signIn, SUPABASE } from './community-world.mjs';
 
 test.use({ viewport: { width: 390, height: 844 } });
@@ -27,32 +27,30 @@ test('commissioner loads correction evidence only when opening its tool, with a 
     await page.getByRole('button', { name: 'Your menu', exact: true }).click();
     await page.getByRole('button', { name: 'Commissioner tools', exact: true }).click();
     const sheet = page.getByRole('dialog').last();
-    await expect(sheet.getByRole('button', { name: 'EPL stat corrections', exact: true })).toBeVisible();
+    await expect(sheet.getByRole('button', { name: 'Premier League stat corrections', exact: true })).toBeVisible();
     expect(calls).toBe(0); expect(chunks).toHaveLength(0);
-    await sheet.getByRole('button', { name: 'EPL stat corrections', exact: true }).click();
+    await sheet.getByRole('button', { name: 'Premier League stat corrections', exact: true }).click();
     await expect(sheet.getByRole('heading', { name: 'MW9 stat correction needs review' })).toBeVisible();
     expect(calls).toBe(1); expect(chunks).toHaveLength(1);
     await expect(sheet.getByText('MW10 has 1 recorded pick. Its stored picks and draft order are preserved.')).toBeVisible();
-    await expect(sheet.getByText('500.25 → 501.25 (+1)')).toBeVisible();
-    for (const theme of ['dark', 'light']) {
-      await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
-      await page.setViewportSize({ width: theme === 'dark' ? 390 : 320, height: 844 });
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-      expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze()).violations).toEqual([]);
-      await page.screenshot({ path: testInfo.outputPath(`epl-correction-review-${theme}.png`) });
-    }
+    await expect(sheet.locator('.gx-cm-comparison').filter({ hasText: 'Season points' })).toContainText('501.25');
+    await captureCommissioner(page, testInfo, 'corrections-ready');
     status = 'error'; await sheet.getByRole('button', { name: 'Refresh reviews', exact: true }).click();
     await expect(sheet.getByText('Could not refresh. Showing the last loaded reviews.')).toBeVisible();
     await expect(sheet.getByRole('heading', { name: 'MW9 stat correction needs review' })).toBeVisible();
+    await captureCommissioner(page, testInfo, 'corrections-stale', { compact: true });
     status = 'unavailable'; await sheet.getByRole('button', { name: 'Refresh reviews', exact: true }).click();
-    await expect(sheet.getByText('EPL correction checks are not available yet.')).toBeVisible();
+    await expect(sheet.getByText('Premier League correction checks are not available yet.')).toBeVisible();
     await expect(sheet.getByRole('heading', { name: 'MW9 stat correction needs review' })).toHaveCount(0);
+    await captureCommissioner(page, testInfo, 'corrections-unavailable', { compact: true });
     status = 'empty'; await sheet.getByRole('button', { name: 'Refresh reviews', exact: true }).click();
-    await expect(sheet.getByText('No EPL stat corrections are awaiting review.')).toBeVisible();
+    await expect(sheet.getByText('No Premier League stat corrections are awaiting review.')).toBeVisible();
+    await captureCommissioner(page, testInfo, 'corrections-empty', { compact: true });
     status = 'ready'; await sheet.getByRole('button', { name: 'Refresh reviews', exact: true }).click();
     await expect(sheet.getByRole('heading', { name: 'MW9 stat correction needs review' })).toBeVisible();
     status = 'forbidden'; await sheet.getByRole('button', { name: 'Refresh reviews', exact: true }).click();
     await expect(sheet.getByText('Only the Community commissioner can view these corrections.')).toBeVisible();
     await expect(sheet.getByRole('heading', { name: 'MW9 stat correction needs review' })).toHaveCount(0);
+    await captureCommissioner(page, testInfo, 'corrections-denied', { compact: true });
   } finally { await world.db.close(); }
 });

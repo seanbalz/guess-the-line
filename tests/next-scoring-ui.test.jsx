@@ -23,8 +23,10 @@ describe('Your score (D-69, mockup Q1-B)', () => {
     expect(markupProblems(html)).toEqual([]);
     const text = words(html);
     expect(html).toContain('aria-label="Personal score summary"');
-    expect(text).toContain('Week 6 · Spread 8 points');
-    expect(text).toContain('Line DEN −5 · You DEN −3 · off by 2');
+    expect(text).toContain('Week 6 · Spread Accuracy points');
+    expect(html).toContain('aria-label="8 of 10 possible points"');
+    expect(text).toContain('Saved scoring line DEN −5 Your guess DEN −3 Off by 2 Oct 18');
+    expect(text).toContain('1 scored game 0 exact guesses');
     expect(text).toContain('8 / 10');
     expect(text).toContain('Week 6 · all games scored'); // the layer's one meta line
     // D-38: the standings and the counts sit behind "About your scores" (scoreFinePrint, tested in next-your-score).
@@ -32,9 +34,10 @@ describe('Your score (D-69, mockup Q1-B)', () => {
     expect(html).not.toContain('Standings · games started');
     expect(text).toContain('Refresh scores'); expect(text).toContain('View this week’s picks'); expect(text).toContain('Compare players');
   });
-  it('the hero and the game layer put a real space between the number and the word "points" (copy-paste and screen readers read "8 points")', () => {
+  it('the accuracy ring names its actual score and denominator; the game layer separates the number and points', () => {
     const hero = render();
-    expect(hero).toMatch(/>8<\/span>\s+<span class="gx-t-body gx-c-2">points<\/span>/);
+    expect(hero).toContain('role="img" aria-label="8 of 10 possible points"');
+    expect(hero).toContain('stroke-dasharray="80 100"');
     const layer = render({ scoreGame: game.id });
     expect(layer).toMatch(/>8<\/span>\s+<span class="gx-t-body gx-c-2">\/ 10 points<\/span>/);
   });
@@ -93,15 +96,18 @@ describe('Your score (D-69, mockup Q1-B)', () => {
     const zero = renderToStaticMarkup(<ScoreReceipt game={game} mode="guess_total" guess={44} lockedAt="2026-10-15T18:00:00Z" row={{ lockedIn: true, points: 0, reference: { value: 60, source: 'Fixture' } }}/>);
     expect(zero).toContain('0 / 10'); expect(zero).toContain('Missed by 16');
   });
-  it('D-62: the locked-in card leads with the points, one sentence and your guess beside the saved line; the rest sits behind ⓘ', () => {
+  it('approved pick-focused receipt shows the saved guess, authoritative points, team context and shared comparison; provenance stays behind ⓘ', () => {
     const row = { lockedIn: true, eligible: true, points: 8, reference: { value: -2, source: 'Synthetic three-book median', observedAt: '2026-10-27T19:29:00Z', rule: 'first_line_after_submission' } };
     const props = { game: { id: 'PHI-JAX', awayCode: 'PHI', homeCode: 'JAX' }, mode: 'guess_spread', row, guess: -3, lockedAt: '2026-10-27T19:30:00Z' };
     const html = renderToStaticMarkup(<div className="gx"><ScoreReceipt {...props} onScore={() => {}}/></div>);
     expect(markupProblems(html)).toEqual([]);
     const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-    // Picture first: the score, the one sentence, then "You JAX −3" beside "Line JAX −2", and the weekly-score link.
-    expect(text).toBe('8 / 10 points Missed by 1 You JAX −3 Line JAX −2 View weekly score');
-    expect(html.indexOf('gx-n-l')).toBeLessThan(html.indexOf('Missed by 1'));
+    // Full scorecard keeps saved values and the scorer's points, with two separate team circles.
+    for (const value of ['Guess the Spread', '8 / 10', 'POINTS', 'Philadelphia Eagles', 'Jaguars', 'Jacksonville', 'Saved scoring line', 'Point difference', 'Missed by 1', 'View weekly score']) expect(text).toContain(value);
+    expect(html).toContain('aria-label="8 of 10 points"');
+    expect(html).toContain('Saved line −2, saved guess −3, difference 1 points on a scale');
+    expect(html.match(/class="gx-team gx-team--/g)).toHaveLength(2);
+    expect(html.indexOf('gx-pick-scorecard')).toBeLessThan(html.indexOf('Missed by 1'));
     expect(html).toContain('aria-label="About this score"');
     // Nothing is removed: the lock-in time, the guess and line in words, the source with its observed time and the rule.
     expect(receiptDetails(props)).toEqual([

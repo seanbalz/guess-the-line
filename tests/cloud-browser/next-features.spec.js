@@ -70,9 +70,9 @@ test('before the job has run: an empty recap with no sample, streaks at 0 and th
   await seedFinishedWeek(world);
   await openNewApp(page);
   // The landing's Your score tile makes this device's first read of the score source, which seeds Luke's plain Bullseye
-  // moments as seen (a Bullseye badge shares Your score's Bullseye id). Wait for its loaded name, so that seeding has
+  // moments as seen (a Bullseye badge shares Your score's Bullseye id). Wait for its loaded scope, so that seeding has
   // happened before the landing unmounts; otherwise the overlay's count below depends on which reply came first.
-  await expect(page.locator('[data-play-tile="score"]').getByRole('button')).toHaveAccessibleName(/^Your score, (?!loading)/);
+  await expect(page.locator('.gx-play-score-card')).toContainText('Personal season accuracy points');
   const row = page.getByRole('button', { name: /^Badges, 0 earned/ });
   await expect(row).toBeVisible();
   await row.click();

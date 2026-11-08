@@ -10,10 +10,10 @@ import path from 'node:path';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { markupProblems, parseMarkup, walk } from './helpers/ui-markup.mjs';
 
-const state = vi.hoisted(() => ({ app: null, personal: { status: 'error', data: null, error: { status: 404 } }, read: { loading: true, data: null, error: null } }));
+const state = vi.hoisted(() => ({ app: null, personal: { status: 'error', data: null, error: { status: 404 } }, read: { loading: false, data: { entries: [] }, error: null } }));
 vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: () => state.app, useSharedRead: () => state.personal }));
 vi.mock('../web/src/next/home/homeData.js', () => ({ useHomeData: () => ({ app: state.app, community: state.app.community, viewer: 'fixture', preferences: {} }) }));
-vi.mock('../web/src/next/league/useLeagueRead.jsx', () => ({ useLeagueRead: () => state.read, LeagueFailure: () => <p>Read failed</p> }));
+vi.mock('../web/src/next/league/useLeagueRead.jsx', async importOriginal => ({ ...await importOriginal(), useLeagueRead: () => state.read, LeagueFailure: () => <p>Read failed</p> }));
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn(), meApi: vi.fn(), socialApi: vi.fn() }));
 // Research's sections are other screens with their own tests; only its landing is drawn here (its read, /personal, is a week with nothing published: the no-week card and the four tiles).
 vi.mock('../web/src/next/teams/TeamsScreen.jsx', () => ({ TeamsScreen: () => null })); // D-69 step 3: the team list and its layer
@@ -69,7 +69,7 @@ describe('A9: one glyph per destination on the landings', () => {
       expect(list.filter(([, glyph]) => !glyph), `${name}: every row has a glyph`).toEqual([]);
       expect(duplicates(list), name).toEqual([]);
     }
-    expect(rows(screens.Bets).map(([title]) => title)).toEqual(['Overview', 'Active tickets', 'Settled tickets', 'Research recommendations', 'Your guess vs. market', 'Virtual Units', 'Everyone’s picks']);
+    expect(rows(screens.Bets).map(([title]) => title)).toEqual(['Your guess vs. market', 'Virtual Units', 'Everyone’s picks']);
     expect(tiles(screens.Research).map(([title]) => title)).toEqual(['Games', 'Trends', 'Fantasy', 'Teams']);
     expect(rows(screens.Research), 'Research’s destinations are tiles, not rows').toEqual([]);
     expect(homeLinks(screens.Home).map(([title]) => title)).toEqual(['League. Spread Community standings', 'Research. Explore games and trends']);
@@ -78,14 +78,15 @@ describe('A9: one glyph per destination on the landings', () => {
 
   it('a destination keeps its glyph from every screen that links to it', () => {
     const glyph = (html, title) => rows(html).find(([name]) => name === title)?.[1];
-    expect(glyph(screens.Bets, 'Research recommendations')).toBe(glyphOf('researchPicks'));
+    expect(glyph(screens.Bets, 'Your guess vs. market')).toBe(glyphOf('guessGap'));
     const tileGlyph = (html, title) => tiles(html).find(([name]) => name === title)?.[1];
     expect(tileGlyph(screens.Research, 'Trends')).toBe(glyphOf('trends'));
     expect(tileGlyph(screens.Research, 'Fantasy')).toBe(glyphOf('fantasy'));
     expect(tileGlyph(screens.Research, 'Games')).toBe(glyphOf('games'));
     expect(tileGlyph(screens.Research, 'Teams')).toBe(glyphOf('teams'));
     expect(homeLinks(screens.Home).map(([,glyph]) => glyph)).toEqual(['lucide-users', 'lucide-chart-line']);
-    expect(glyph(screens.Bets, 'Active tickets')).toBe(glyphOf('activeTickets'));
+    expect(glyph(screens.Bets, 'Virtual Units')).toBe(glyphOf('virtualUnits'));
+    expect(glyph(screens.Bets, 'Everyone’s picks')).toBe(glyphOf('everyone'));
   });
 
   it('every glyph in the map is one the kit draws (the Lucide outline set)', () => {
@@ -94,10 +95,11 @@ describe('A9: one glyph per destination on the landings', () => {
 
   it('the landing headline is the title style, and only Home keeps the display line', () => {
     expect(screens.Research, 'Research').not.toContain('gx-t-display');
-    const headline = nodes(screens.Bets).find(n => n.tag === 'h2' && n.parent?.attrs?.class?.includes('gx-focus-action'));
+    const headline = nodes(screens.Bets).find(n => n.tag === 'h1');
     expect(headline.attrs.class, 'Bets').toBe('gx-t-title');
+    expect(textOf(headline)).toBe('Bets');
     expect(screens.Bets, 'Bets').not.toContain('gx-t-display');
-    expect(textOf(nodes(screens.Bets).find(n => n.tag === 'h2' && n.attrs.class === 'gx-t-title'))).toBe('Your tickets. All together.');
+    expect(nodes(screens.Bets).filter(n => n.tag === 'h2').map(textOf)).toEqual(['Your tracked bets', 'Tickets', 'Recommended']);
   });
 
   it('row icons are text-2, never lime (rule 2: lime is the one primary action)', () => {

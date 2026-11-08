@@ -1,3 +1,4 @@
+import { AccountSheet } from '../me/AccountSheet.jsx';
 // Q17-A: host-only invitations through the existing authorized lobby API.
 // Links stay in this mounted account/view only. A lost write reply is checked, never replayed automatically.
 import { useEffect, useId, useRef, useState } from 'react';
@@ -5,7 +6,7 @@ import { cloudApi } from '../../api.js';
 import { useAppData } from '../data/AppData.jsx';
 import { fmtFull } from '../format.js';
 import { useShell } from '../shell/context.js';
-import { Button, Card, Sheet } from '../ui/index.js';
+import { Button, Card, Icon } from '../ui/index.js';
 import './invitations.css';
 
 export function InvitePlayers({ league }) {
@@ -96,7 +97,8 @@ export function InvitePlayers({ league }) {
     }
   }
   function leave(next) { if (!request.current && shell.confirmLeave()) next(); }
-  return <Sheet title={`Invite to ${league.name}`} back={{ label: 'Your leagues', onBack: () => leave(() => shell.setSheetArgs({ inviteLeagueId: null })) }} onClose={() => leave(shell.closeSheet)}>
+  return <AccountSheet className="gx-account-prism gx-invite-prism" title={`Invite to ${league.name}`} back={{ label: 'Your leagues', onBack: () => leave(() => shell.setSheetArgs({ inviteLeagueId: null })) }} onClose={() => leave(shell.closeSheet)}>
+    <div className="gx-account-heading"><span className="gx-account-icon"><Icon icon="userPlus"/></span><h3>Bring your friends in.</h3></div>
     <p className="gx-t-body">Create a link for one email address. Only that account can join. Email is not sent automatically.</p>
     {!created && <form className="gx-invite-stack" onSubmit={event => write('create', null, event)}>
       <label className="gx-field" htmlFor={fieldId}><span className="gx-t-strong">Their email address</span>
@@ -106,7 +108,7 @@ export function InvitePlayers({ league }) {
     </form>}
     <div role="alert">{problem && <p className="gx-t-body gx-invite-problem">{problem}</p>}</div>
     <p className="gx-t-body" role="status">{notice}</p>
-    {created && <Card className="gx-invite-stack" aria-label="New invitation">
+    {created && <Card className="gx-invite-stack gx-created-invite" aria-label="New invitation">
       <h3 className="gx-t-strong">Your invitation link is ready</h3>
       <p className="gx-t-body gx-invite-email">For {created.email}</p>
       <p className="gx-t-meta">Save it before closing. Existing links are not shown again.</p>
@@ -115,7 +117,7 @@ export function InvitePlayers({ league }) {
       <p className="gx-t-meta">Expires {fmtFull(created.expiresAt)}</p>
       <Button variant="ghost-2" disabled={busy} onClick={() => { if (shell.confirmLeave()) { setCreated(null); setNotice(''); } }}>Start another invitation</Button>
     </Card>}
-    <section className="gx-invite-stack" aria-label="Sent invitations" aria-busy={loading}>
+    <section className="gx-invite-stack gx-sent-invites" aria-label="Sent invitations" aria-busy={loading}>
       <h3 className="gx-t-section">Sent invitations</h3>
       {readProblem && <p className="gx-t-body gx-invite-problem" role="alert">{readProblem}</p>}
       {loading && <p className="gx-t-meta">Checking invitations…</p>}
@@ -127,5 +129,5 @@ export function InvitePlayers({ league }) {
       </Card>)}
       <Button disabled={loading || busy} onClick={() => refresh(lifetime.current)}>Refresh invitations</Button>
     </section>
-  </Sheet>;
+  </AccountSheet>;
 }
