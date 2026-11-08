@@ -1,5 +1,22 @@
 # Guess The Line — current completion register
 
+## Expanded CI corrections reviewed and combined — November 7, 2026
+
+[The scoped closeout](PRISM_EXPANDED_CI_CLOSEOUT_2026_11_07.md) records all 22
+previous browser CI failures, their reviewed corrections and the separately
+exposed Back-scroll race. Source through `04daf0b6` has task approval: retained
+league access, EPL label fitting, identical G assets served externally, precise
+compact-header checks, capture output opt-ins and
+[history scroll ownership](BACK_SCROLL_RESTORATION_2026_11_07.md).
+Privacy scanners, API/SQL/scoring, saved references and frame-approval boundaries
+remain intact. FEPL stays native pending its separate owner choice.
+
+Fresh combined checks pass 923 component tests, 89 Node contracts and 11 browser
+flows, plus typecheck, Brand QA, build, bundle privacy and whitespace. All 1,759
+design-file hashes match the baseline. The final whole-branch addendum, exact-
+source CI and protected frontend-then-API release remain open. Only Home is live.
+M-41 remains separate and unapplied; frozen v62 and parked scope are unchanged.
+
 ## Browser Back-scroll ownership fixed locally — November 7, 2026
 
 The [restoration record](BACK_SCROLL_RESTORATION_2026_11_07.md) documents a

@@ -1,5 +1,30 @@
 # Final confirmed Prism source review — November 7, 2026
 
+## Final CI follow-up source review — November 8, 2026 UTC
+
+The final whole-branch addendum approves product/test source
+`04daf0b63b0d18b734f029deda7d7fd219421d41` against main `7aa93a6f`:
+**spec and quality approved, no Critical or Important findings; merge remains
+subject to fresh exact-source CI**. All scoped CI repairs have independent
+approval. The separate Back-scroll issue has local regression closure through
+controlled native-browser evidence and the existing history connection fix.
+
+[The closeout record](PRISM_EXPANDED_CI_CLOSEOUT_2026_11_07.md) records all 22
+previous CI failures, source mappings, preserved privacy checks, intrinsic EPL
+label fitting, identical external G artwork and capture output opt-ins. The
+review independently checked all 1,759 current design-file raw hashes and the
+identical worker/root source tree. Root logs confirm 923 component tests, 89
+Node contracts, 11 combined browser cases, typecheck, Brand QA, build and bundle
+privacy. The three authoritative green ordering attachments are in the aggregate
+JSON; inaccurate separate filenames in an ignored handoff are not evidence.
+Documentation spacing is corrected. Existing fixture-key and build-size warnings
+remain Minor; no threshold or scanner rule changed.
+
+This is source approval, not deployment, new physical-phone acceptance, an answer
+to the FEPL frame question or authorization to apply M-41. Exact PR/main CI and
+the protected frontend-then-API release gates remain. The earlier records below
+retain their original sources and validation totals.
+
 ## Expanded integration review — November 8, 2026 UTC
 
 A fresh independent whole-branch review covers `7aa93a6f` through integrated

@@ -8,6 +8,16 @@ The remaining areas below distinguish reviewed local implementation from release
 
 ## Current implementation evidence
 
+The [expanded CI closeout](PRISM_EXPANDED_CI_CLOSEOUT_2026_11_07.md) supersedes
+older check totals below for product/test source `04daf0b6`. All 22 previous CI
+failures have reviewed corrections. The later Back-scroll race has independent
+local regression closure. Fresh root checks pass 923 component tests, 89 Node
+contracts and 11 browser flows, plus typecheck, Brand QA, build, privacy and
+whitespace. All 1,759 design-file hashes match. Final source review, exact-source
+CI and protected frontend-then-API release remain open. The FEPL frame choice and
+M-41/ROI boundaries stay held. Only Home is live; local checks do not establish
+deployment or physical-phone acceptance.
+
 Expanded frame source is now integrated through `c5d7f10e`; task reviews approve
 both the context implementation and the seven-file test-only CI corrections.
 [Expanded frame evidence](PRISM_EXPANDED_FRAME_CONTEXTS_2026_11_07.md) covers all
