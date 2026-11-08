@@ -1,3 +1,4 @@
+import { GapRecord } from './GapRecord.jsx';
 import { lazy, useCallback, useEffect, useMemo, useState } from 'react';
 import { Deferred } from '../ui/Deferred.jsx';
 import { useAppData } from '../data/AppData.jsx';
@@ -146,7 +147,7 @@ function BetsDetail() {
     {view === 'tracked' ? <>
       <Deferred label="tracked bets"><SocialBetTracker editorIdentity={BET_EDITOR_IDENTITY} key={`${app.accountId}:${destination}:${shell.state.nav}`} player={app.accountId} initialExpandedTicket={route.selectedTicket} initialOutcome={destination === 'active' ? 'pending' : destination === 'settled' ? 'settled' : ''} initialAllHistory={destination === 'active' || destination === 'settled'} autoCreate={destination === 'add'} navigationState={trackerState} onNavigationState={rememberTracker} initialView="mybets" embedded compactTickets TicketRow={TrackedBetRow} MetricsView={NetUnits} OverviewView={TrackedOverview} initialTrackedPane={route.trackedPane??'tickets'} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred>
     </> : view === 'recommended' ? <>
-      <Deferred resetKey={`${app.accountId}:recommended`} label="recommended bets"><VirtualUnits key={`${app.accountId}:recommended`} accountId={app.accountId} embedded initialView="recommended" accountRecommendations showViewTabs={false} recommendedMarket={recommendedMarket} onRecommendedMarket={chooseRecommendedMarket} marketControl={marketControl} onTrackTicket={trackRecommendation} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred>
+      <Deferred resetKey={`${app.accountId}:recommended`} label="recommended bets"><VirtualUnits GapRecordView={GapRecord} key={`${app.accountId}:recommended`} accountId={app.accountId} embedded initialView="recommended" accountRecommendations showViewTabs={false} recommendedMarket={recommendedMarket} onRecommendedMarket={chooseRecommendedMarket} marketControl={marketControl} onTrackTicket={trackRecommendation} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred>
       {ticketRequest?.accountId === app.accountId && <Deferred resetKey={ticketRequest.id} label="bet review"><SocialBetTracker editorIdentity={BET_EDITOR_IDENTITY} key={ticketRequest.id} player={app.accountId} reviewOnly initialView="mybets" ticketRequest={ticketRequest} onReviewDone={reviewDone} onDirty={reviewDirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred>}
     </> : <>
       <Segmented label="Virtual Units view" value={destination === 'everyone' ? 'everyone' : 'virtual'} onChange={chooseVirtual} options={VIRTUAL_VIEWS}/>

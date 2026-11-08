@@ -113,3 +113,26 @@ passed. The existing build chunk warning remains. These are local Chromium and
 fictional-account/PGlite checks; physical phones, hosted access, release acceptance
 and independent parent re-review remain separate. No push, PR, merge, deployment
 or migration apply occurred.
+
+
+## Parent integration adapter — November 7, 2026
+
+The root integrated the reviewed source and both closeout commits as `df487a79`,
+`78bf5040` and `b52e86b0`. Independent re-review approved the scoped color/icon
+fix and all 94 hashes in its original source worktree. These source snapshots
+remain provenance, rather than being rewritten to represent later integration.
+
+The combined root check found the retained `VirtualUnits.jsx` importing native
+`GapRecord`, which violates the unchanged app boundary. The integration restores
+the exact prior local GapRecord fallback and accepts an optional view component;
+only native Bets imports/injects the selected GapRecord. The same gated board,
+record, week and key still reach it. No reader, save, grading or filter changes.
+The root also updates the receipt test's exact accessible name to its approved
+full team names, preserving assertions on the actual saved guess/reference.
+
+Verification: 29 model/import/token/loading contracts and typecheck passed; the
+two affected component files passed all 28 tests. The preceding full run passed
+912/913 before the stale name expectation was repaired. Two real-handler/PGlite
+browser checks passed for History Bets/Older/journal privacy and the D-77 paper
+record/filters. The strict boundary test remains unchanged. Independent review
+of this adapter and exact-source whole-branch CI/release remain required.

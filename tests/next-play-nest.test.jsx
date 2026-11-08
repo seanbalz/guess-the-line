@@ -191,7 +191,7 @@ describe('rules that are not per-game: the same cards, read-only', () => {
   it('a submitted game: its receipt with your guess and your saved line, no picker and no Lock in', () => {
     const html = readOnly('DEN-CAR');
     expect(markupProblems(html)).toEqual([]);
-    const receipt = nodes(html).find(n => n.attrs?.['aria-label'] === 'DEN at CAR Total receipt');
+    const receipt = nodes(html).find(n => n.attrs?.['aria-label'] === 'Denver Broncos at Carolina Panthers Total receipt');
     expect(textOf(receipt)).toContain('41');
     expect(textOf(receipt)).toContain('42.5');
     expect(html).not.toContain('gx-guess');

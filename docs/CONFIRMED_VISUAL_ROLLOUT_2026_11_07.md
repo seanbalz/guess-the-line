@@ -121,6 +121,19 @@ The remaining areas below distinguish reviewed local implementation from release
   behavior and all original geometry/privacy/controller assertions. Eighteen
   unique browser cases passed across focused runs; [repair evidence and limits](PRISM_INTEGRATION_SPACING_2026_11_07.md).
   Exact-source CI and all remaining per-area/release work are still required.
+- History, paper-gap record and pick-focused scorecard: source `c8a4f8ef` /
+  `7426e705` / `115af6b6` is integrated as `df487a79` / `78bf5040` / `b52e86b0`.
+  Independent re-review approved outcome colors and Older leading glass icons,
+  checking all 64 captures, 21 source and nine reference hashes in the owned
+  source worktree. [Native evidence](PRISM_HISTORY_SCORECARD_NATIVE_2026_11_07.md).
+  Parent integration found one stale short-name receipt assertion and a new
+  native import in the retained workflow. The corrected native adapter injects
+  GapRecord as an optional view and restores the local workflow's old fallback;
+  strict import contracts stay unchanged. The full component run passed 912/913
+  before that stale assertion was repaired; both affected files then passed all
+  28 tests. Two controller browsers passed for Older/Bets/journal privacy and
+  paper grading/filters, plus 29 model/import/token/loading contracts and type.
+  Independent adapter review and fresh whole-branch CI remain required.
 - Tracked bet stakes support smaller custom values without backend changes.
   Virtual Units still has positive-half-unit enforcement in both API and SQL;
   its approved finer entry requires a separately reviewed compatibility change
@@ -361,7 +374,7 @@ reference math/data only and must not enter the production bundle.
 
 ### 17. Historical gap record
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Native visual port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [History/paper-gap/scorecard evidence](PRISM_HISTORY_SCORECARD_NATIVE_2026_11_07.md). Parent adapter integration review/CI remains separate.
 - Reference: `populated-gap-record; gapRecordPreview`.
 - Native targets: `Owning native gap-record/recommendation view; charts/TrendDetail.jsx, TrendLine.jsx; number-line presentation`.
 - Required presentation and behavior: Hit-rate/W-L-P, week/market/gap filters, paper-unit chart/outcome selection, spread/total details and Back retention; actual source records and explicit paper-unit assumptions.
@@ -529,21 +542,21 @@ reference math/data only and must not enter the production bundle.
 
 ### 41. Account Guess History
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Native visual port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [History/paper-gap/scorecard evidence](PRISM_HISTORY_SCORECARD_NATIVE_2026_11_07.md). Parent adapter integration review/CI remains separate.
 - Reference: `populated-account-history; isolated-account-history.jsx; accountGuessHistoryPreview`.
 - Native targets: `me/HistoryGuess.jsx, HistoryMatchup.jsx, HistoryPage.jsx`.
 - Required presentation and behavior: Nineteen states and expanded game/source/rules views, 44 captures: weeks/week/total/other-hidden/removed/sat-out/practice/empty/loading/failed/records-off/changes loading-failed-empty-held/draft-active/late/ruled/no-ballot.
 
 ### 42. Account Bets and Older History
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Native visual port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [History/paper-gap/scorecard evidence](PRISM_HISTORY_SCORECARD_NATIVE_2026_11_07.md). Parent adapter integration review/CI remains separate.
 - Reference: `HISTORY_BETS_OLDER_REVIEW.md; populated-history-records; isolated-history-records.jsx`.
 - Native targets: `me/HistoryBets.jsx, HistoryOlder.jsx`.
 - Required presentation and behavior: Twenty-four states and expanded/Info views, 60 captures: Bets week/read states; seven Older sections; older loading/failed/off/empty; independent Slips loading/failed/empty. Original records/redaction/provenance preserved.
 
 ### 43. Pick-focused scorecard
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Native visual port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [History/paper-gap/scorecard evidence](PRISM_HISTORY_SCORECARD_NATIVE_2026_11_07.md). Parent adapter integration review/CI remains separate.
 - Reference: `PICK_SCORECARD_REVIEW.md; pick-scorecard-review.html; previews/pick-scorecard-dark-phone.png and pick-scorecard-light-phone.png`.
 - Native targets: `Typed reusable History/Bets/shared-sheet presentation in appropriate native contexts`.
 - Required presentation and behavior: Opponent, separate team circles, team/market, saved guess, comparison/difference, points/status/shared-scale chart where mode and reveal allow. Never add Guess points to sportsbook tickets. Do not copy fictional values or invent quotes/times to fill fields.

@@ -1,5 +1,17 @@
 # Guess The Line — current completion register
 
+## Integrated reviewed History and paper-gap scorecards — November 7, 2026
+
+Source `c8a4f8ef` / `7426e705` / `115af6b6` is integrated as `df487a79` /
+`78bf5040` / `b52e86b0`; independent re-review closed both color/icon findings.
+[The parent adapter record](PRISM_HISTORY_SCORECARD_NATIVE_2026_11_07.md#parent-integration-adapter--november-7-2026)
+records the retained-workflow view injection, restored local fallback and exact
+full-name receipt assertion. The original strict import test is unchanged.
+Two controller browsers, 29 focused Node checks, typecheck and the affected
+28 component tests pass. Full run was 912/913 before the stale assertion fix;
+fresh whole-branch validation remains required. This is local integration,
+not deployment or complete acceptance of held/shared/hosted/phone work.
+
 ## Native Account integration and whole-page spacing repair — November 7, 2026
 
 Reviewed Account source and both correction commits are integrated as `f2af6c90`,
