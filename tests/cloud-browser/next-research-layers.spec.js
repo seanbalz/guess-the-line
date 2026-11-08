@@ -201,6 +201,59 @@ test('loading in the final shape: the landing card’s skeleton and the board’
   } finally { await world.db.close(); }
 });
 
+test('Back keeps the board position when native traversal follows the completed Shell restoration', async ({ page, baseURL }) => {
+  const world = await world6(page, baseURL);
+  try {
+    await openAt(page, '#research/games');
+    await expect(row(page, 'HOU-JAX')).toBeVisible();
+    await page.setViewportSize({ width: 390, height: 480 });
+    await settle(page);
+    const scrolled = await page.evaluate(() => {
+      scrollTo(0, scrollY + document.querySelector('#gx-l-row-HOU-JAX').getBoundingClientRect().top - 160);
+      return scrollY;
+    });
+    expect(scrolled).toBeGreaterThan(40);
+    // Control only the scheduling of real native calls. React still renders/focuses the detail and
+    // Shell still saves/restores its private position; the browser owns the actual entries/traversal.
+    await page.evaluate(() => {
+      const events = [];
+      const note = type => events.push({ type, time: performance.now(), scroll: scrollY, hash: location.hash,
+        mode: history.scrollRestoration, max: document.documentElement.scrollHeight - innerHeight });
+      const push = history.pushState.bind(history), back = history.back.bind(history);
+      let pendingPush, pendingBack;
+      history.pushState = (...args) => { note('push-held'); pendingPush = args; };
+      history.back = () => { note('back-held'); pendingBack = true; };
+      for (const type of ['scroll', 'popstate', 'hashchange']) addEventListener(type, () => note(type));
+      window.__historyRace = { events, note,
+        push() { if (!pendingPush) throw new Error('No pending native push'); note('push-native'); push(...pendingPush); pendingPush = null; history.pushState = push; },
+        back() { if (!pendingBack) throw new Error('No pending native Back'); note('back-native'); back(); pendingBack = false; history.back = back; },
+      };
+    });
+    const box = await row(page, 'HOU-JAX').boundingBox();
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    await expect(heading(game(page), 'Texans @ Jaguars')).toBeFocused();
+    await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
+    // Let the detail's zero position reach rendering before pushState snapshots the departing entry.
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    await page.evaluate(() => window.__historyRace.push());
+    await expect(page).toHaveURL(/layer=game&item=HOU-JAX/);
+    await back(page).click();
+    await expect(row(page, 'HOU-JAX')).toBeFocused();
+    await expect.poll(() => page.evaluate(() => Math.round(scrollY))).toBe(Math.round(scrolled));
+    expect(await running(page)).not.toContain('gx-nest-unit-in');
+    await page.evaluate(() => { window.__historyRace.note('shell-restored'); window.__historyRace.back(); });
+    await expect(page).toHaveURL(/#research\/games$/);
+    await expect.poll(() => page.evaluate(() => window.__historyRace.events.some(e => e.type === 'hashchange'))).toBe(true);
+    await expect.poll(() => page.evaluate(() => Math.round(scrollY)), 'native Back must preserve Shell’s restored board position').toBe(Math.round(scrolled));
+    await expect(row(page, 'HOU-JAX')).toBeFocused();
+    expect(world.errors).toEqual([]);
+  } finally {
+    const events = await page.evaluate(() => window.__historyRace?.events);
+    if (events) await test.info().attach('history-ordering', { body: JSON.stringify(events, null, 2), contentType: 'application/json' });
+    await world.db.close();
+  }
+});
+
 test('one game is a layer: a row, its heading focused, a reload, Back and Forward, the lip; Back keeps the board’s scroll and replays no rise', async ({ page, baseURL }) => {
   const world = await world6(page, baseURL);
   try {

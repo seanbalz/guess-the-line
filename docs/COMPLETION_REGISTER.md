@@ -1,5 +1,17 @@
 # Guess The Line — current completion register
 
+## Browser Back-scroll ownership fixed locally — November 7, 2026
+
+The [restoration record](BACK_SCROLL_RESTORATION_2026_11_07.md) documents a
+deterministic native-history reproduction of the Research board returning to
+zero after Shell restored its saved position. The history connection now owns
+manual restoration for its lifetime and restores the prior mode on cleanup.
+Controlled and original flows pass 6/6; eight focused browser cases and 58
+router/state tests pass without skips. Typecheck and Brand QA pass; all 1759
+tracked design files retain their hashes. No route, data, layout or frozen
+artifact changes. Local fix only; independent review, aggregate addendum,
+combined CI and release evidence remain open.
+
 ## EPL compact Play labels fitted — November 7, 2026
 
 The [scoped fitting record](PRISM_EPL_COMPACT_LABELS_2026_11_07.md) addresses the

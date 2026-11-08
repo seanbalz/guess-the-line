@@ -65,6 +65,47 @@ function app(win, confirmLeave, route) {
 }
 
 
+test('history connection owns manual scroll restoration and restores the previous mode once', () => {
+  for (const previous of ['auto', 'manual']) {
+    const win = fakeWindow();
+    win.history.scrollRestoration = previous;
+    const shell = app(win);
+    assert.equal(win.history.scrollRestoration, 'manual');
+    shell.dispatch({ type: 'go', tab: 'research', view: { section: 'games' } });
+    assert.equal(win.history.scrollRestoration, 'manual');
+    shell.connection.disconnect();
+    assert.equal(win.history.scrollRestoration, previous);
+    win.history.scrollRestoration = 'auto';
+    shell.connection.disconnect();
+    assert.equal(win.history.scrollRestoration, 'auto', 'repeat cleanup must not overwrite a later owner');
+    assert.equal(win.listeners.size, 0);
+  }
+});
+test('scroll ownership leaves unsupported or inaccessible APIs and a later mode choice alone', () => {
+  const unsupported = fakeWindow();
+  app(unsupported).connection.disconnect();
+  assert.equal('scrollRestoration' in unsupported.history, false);
+  for (const descriptor of [
+    { get() { throw new Error('not accessible'); } },
+    { value: 'auto', writable: false },
+    { get() { return 'auto'; }, set() { throw new Error('not writable'); } },
+  ]) {
+    const win = fakeWindow();
+    Object.defineProperty(win.history, 'scrollRestoration', descriptor);
+    const shell = app(win);
+    shell.dispatch({ type: 'tab', tab: 'research' });
+    assert.equal(win.location.hash, '#research');
+    shell.connection.disconnect();
+    assert.equal(win.listeners.size, 0);
+  }
+  const win = fakeWindow();
+  win.history.scrollRestoration = 'manual';
+  const shell = app(win);
+  win.history.scrollRestoration = 'auto';
+  shell.connection.disconnect();
+  assert.equal(win.history.scrollRestoration, 'auto');
+});
+
 test('legacy links map to explicit details while authentication and unknown fragments stay untouched', () => {
   for (const [fragment, tab, section] of [['#trends','research','trends'], ['#lines','research','games'], ['#fantasy','research','fantasy'], ['#league','play','league'], ['#feed','play','league'], ['#picks-total','play','picks']]) {
     const place = placeFromFragment(fragment); assert.equal(place.tab,tab); assert.equal(place.view.section,section);

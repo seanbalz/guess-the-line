@@ -630,7 +630,7 @@ test.describe('the shell harness', () => {
     await opener.scrollIntoViewIfNeeded();
     const original = await page.evaluate(() => scrollY);
     expect(original).toBeGreaterThan(1000);
-    await page.evaluate(() => { history.scrollRestoration = 'manual'; document.documentElement.style.overflowAnchor = 'none'; window.__delayHome = true; });
+    await page.evaluate(() => { document.documentElement.style.overflowAnchor = 'none'; window.__delayHome = true; });
     await opener.click();
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await expect(title(page, 'Shell harness')).toBeVisible();
