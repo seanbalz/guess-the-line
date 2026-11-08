@@ -1,5 +1,26 @@
 # Guess The Line — current completion register
 
+## Confirmed Prism rollout deployed and verified — November 8, 2026 UTC
+
+[Release evidence](RELEASE_2026_11_08_PRISM_ROLLOUT.md) records source
+`e3f078b9e831dda46412487251b191ebdd5637c4`, merged PR #495, all twelve exact-main
+CI checks, separate protected frontend-then-API runs and the actual public
+Research publication. Pages `31417a19-3cea-47fc-bc0a-9b776df4724b` passed all 132
+production asset checks at 07:52:55 UTC. API v51 is ACTIVE with JWT verification
+true, verified at 08:04:54 UTC; remote API bytes were not independently matched.
+The release record states that source-acceptance limit explicitly.
+
+The approved unambiguous body/frame ports, spacing, readable EPL labels and
+Back-scroll correction are shipped in both themes. Fresh history remains 76
+versions with the reviewed digest; only existing M-33/M-34/M-35 are pending.
+No SQL or workers were deployed. All six public Research assets were downloaded
+and hash-verified with season rows and compact series in each sample.
+
+Earlier local-only/not-deployed entries below are historical. FEPL's separate
+frame choice remains queued after the pending ROI answer; M-41 remains separate
+PR #497 and unapplied. No new phone acceptance, private-board sync, avatar,
+award, NBA or parked Signal work is claimed. Frozen v62 remains unchanged.
+
 ## Expanded CI corrections reviewed and combined — November 7, 2026
 
 [The scoped closeout](PRISM_EXPANDED_CI_CLOSEOUT_2026_11_07.md) records all 22
