@@ -98,7 +98,7 @@
   "sourceHashes": [
     {
       "path": "playwright.prism-history.config.js",
-      "sha256": "812191b28ab3a3ecbb5881f38939451b353ff853fcca24a71161b9bf8b725dc7"
+      "sha256": "044846e88231c65dd151b0c7993b0c83ec19cde802c6bfe22d85461777f40963"
     },
     {
       "path": "tests/cloud-browser/next-history-older.spec.js",
@@ -118,7 +118,7 @@
     },
     {
       "path": "tests/cloud-browser/next-prism-history.spec.js",
-      "sha256": "cae00164aca5632e63a31888a80433acbaa8dbbd2d6cd946ee91f3ee3f73cba1"
+      "sha256": "7ced019e958f004456cf0c299d4c1aa1386510b5b881487ceec08bfb2e5fa6dd"
     },
     {
       "path": "tests/cloud-browser/recommended-bets.spec.js",
@@ -126,11 +126,11 @@
     },
     {
       "path": "tests/next-gap-record-view.test.mjs",
-      "sha256": "4fd6416fb67cc147c584c3c340be34c25aab515c23fa89c97a605fec08cd9d79"
+      "sha256": "8a675159c6f1324c01ac71e8b9b3ba11f31e4b5e5d77e8b684b73a8d30a22cff"
     },
     {
       "path": "tests/next-pick-scorecard.test.mjs",
-      "sha256": "d1efcadc027fbc9dc339489ab7acdde5f1458526bf655687d8405645f2992661"
+      "sha256": "95c0ef0ba8cc9d6e9d40149ca5402767831d76bc7792411e6ec172f00d022e14"
     },
     {
       "path": "tests/next-scoring-ui.test.jsx",
@@ -138,7 +138,7 @@
     },
     {
       "path": "web/src/next/bets/gapRecord.css",
-      "sha256": "4a8cbef3b867e2034d9535ae543a1e3d399f923cfc6e040a53fc7aa1c3909bbf"
+      "sha256": "e4a391c3554961b42b1c16dc0c5ce511e4b215df8989c6979d8cc2c98d2e027b"
     },
     {
       "path": "web/src/next/bets/GapRecord.jsx",
@@ -166,7 +166,7 @@
     },
     {
       "path": "web/src/next/ui/pickScorecard.css",
-      "sha256": "2ff2dd5d83eff34e0c40e7f5d2d08d6f7c99cad8fbe0482dcaea9fb0a2fbafdc"
+      "sha256": "df651da13816af2dbbbd4a0078160f7f2b3dc5abcaec9e01ed52ceacc773ab24"
     },
     {
       "path": "web/src/next/ui/pickScorecard.js",
@@ -174,7 +174,7 @@
     },
     {
       "path": "web/src/next/ui/PickScorecard.jsx",
-      "sha256": "662d451b19df1138437a6f80b71ae613956554bc39ea58c8e9ec1a2b446b1bac"
+      "sha256": "2e46551b3e799a946fd514d1f9cc6b7baa9fda443f76322e64e3e04137e7253b"
     },
     {
       "path": "web/src/VirtualUnits.jsx",
