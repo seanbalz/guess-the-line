@@ -271,8 +271,8 @@
     },
     {
       "file": "playwright.identity-prism.config.js",
-      "bytes": 465,
-      "sha256": "f7e8782d4eca4c5ebcc91d07fe123a7dc04fbd38e1a93efa0a12cda6a2b732c8"
+      "bytes": 500,
+      "sha256": "70726ccec335ff8fc1744ac8a743fe847dff948baa9374857088a1d59b877247"
     },
     {
       "file": "tests/cloud-browser/next-lines.spec.js",
@@ -306,8 +306,8 @@
     },
     {
       "file": "tests/next-prism-identity-scope.test.jsx",
-      "bytes": 4119,
-      "sha256": "78fb5d103c7d72607df8d9952f1e77c7b24e1f8b67a2f686b2cab2e3a0f12654"
+      "bytes": 4331,
+      "sha256": "9baeb23f3ccfc10dbb3e491d2f5d9dfe5262c7edad1fab926584f5d3e717b172"
     },
     {
       "file": "web/public/team-logos/sources.json",
@@ -316,13 +316,13 @@
     },
     {
       "file": "web/src/next/charts/TrendDetail.jsx",
-      "bytes": 3970,
-      "sha256": "f1c0ffbea19be769cf12f11e67e5341096cf8f0936f107d3a35633c8b9a62f3b"
+      "bytes": 3913,
+      "sha256": "12ba8c5c1a267f71b042c2fc7db3443da255afb0f7a8f3f5e6831fc0408c54e3"
     },
     {
       "file": "web/src/next/charts/TrendRow.jsx",
-      "bytes": 1590,
-      "sha256": "792305e77b829020123caa9727089f579c2b335a18c89aa79266fcec7d0b10b9"
+      "bytes": 1557,
+      "sha256": "ff13308d9a379bb2e968a8e4f85fdfd228f514e9dc6d4796d298d9957bad7978"
     },
     {
       "file": "web/src/next/epl/DraftBoard.jsx",
@@ -346,8 +346,8 @@
     },
     {
       "file": "web/src/next/leagueWords.js",
-      "bytes": 266,
-      "sha256": "2b9a7061d6d8e37a0ea984f786a9c88356677d4afa7a494a635a5d8b5cb60971"
+      "bytes": 475,
+      "sha256": "9e742c4f5b7fbaf612ea5d39aa0972a01695a6ea5d6a7dce63437acaf51b6729"
     },
     {
       "file": "web/src/next/lines/GameActions.jsx",
@@ -371,8 +371,8 @@
     },
     {
       "file": "web/src/next/lines/parts.jsx",
-      "bytes": 11989,
-      "sha256": "93bb8f86ee3fda45d01d90dd5dcb9a50c01fc15b4a5864ce505104ba934f5df9"
+      "bytes": 12048,
+      "sha256": "72d8b34a7c31694b668d4e18675ee7860e05204545db6bd0e4ad7b8c39d17899"
     },
     {
       "file": "web/src/next/me/AccountSheet.jsx",
@@ -406,8 +406,8 @@
     },
     {
       "file": "web/src/next/research/ResearchCards.jsx",
-      "bytes": 24391,
-      "sha256": "86cf9c822e05884dee983cc5d2971c33e245585f11f82d42e138d8987aed68ca"
+      "bytes": 24701,
+      "sha256": "00365904c6b5b39ae33ce7e3a1a1b5cc8fa5d08947a9782f189001a35247460e"
     },
     {
       "file": "web/src/next/shell/Frame.jsx",
@@ -426,13 +426,13 @@
     },
     {
       "file": "web/src/next/trends/TrendLayer.jsx",
-      "bytes": 7654,
-      "sha256": "75fd54c11882b6b9fc7fb7d693d20872a76be426e5ca124e51f323137dc5f614"
+      "bytes": 7625,
+      "sha256": "12fcd09a8fcd373c20da21ddb399093449641d68bfb6f669ccdadd54c68e4894"
     },
     {
       "file": "web/src/next/trends/WindowRecords.jsx",
-      "bytes": 2044,
-      "sha256": "7454dbf44ee4f1239321a875ff70808b9619c3d57f708b34dc30438db1a5463b"
+      "bytes": 2029,
+      "sha256": "360587060a5d5800ffc51fb52b00813c11324e9aa9341e852528c85662f03cdc"
     },
     {
       "file": "web/src/next/ui/Matchup.jsx",
@@ -461,8 +461,8 @@
     },
     {
       "file": "docs/PRISM_IDENTITY_SCOPE_NATIVE_2026_11_07.md",
-      "bytes": 7767,
-      "sha256": "2166bc20f1fa3f84579989f6f7510d0850d33a4e215006f0146f42bebdfc2cfd"
+      "bytes": 8268,
+      "sha256": "2d7c0869a225ebdcb65fe58224c8091b2b25d48404a157750c68903f976c206d"
     }
   ],
   "identityAssets": [
@@ -1260,7 +1260,7 @@
     "cloudBuild": "passed; existing chunk warning",
     "bundlePrivacy": "passed",
     "hosted": "not run",
-    "finalFollowup": "919 Vitest + type/Brand repeated after raw title-key preservation; two game-label/action browsers passed again; final cloud build/privacy repeated"
+    "finalFollowup": "Opt-in displayTitle boundary preserves arbitrary custom/source-reported titles and original line keys; final type/919 Vitest/41 Node/Brand/build/privacy pass; 97 focused components and two native public-row/season/table selection + period/account isolation browsers pass after this boundary correction"
   },
   "limits": [
     "Global header/sports-row/dock position remains held",

@@ -1,4 +1,4 @@
-import { leagueWords } from '../leagueWords.js';
+import { trendWords } from '../leagueWords.js';
 import { trendAvailabilitySummary, trendAvailabilityText } from '../../trendsAvailability.js';
 // Pieces the Lines board, the game sheet and the All trends sheet share (redesign build plan stage 13): the short
 // trend card, a row that opens in place, and the credits. They draw what shared/lines-view.mjs and
@@ -22,7 +22,7 @@ export function ShortTrend({ card, rules, as = 'li', variant }) {
   if (card.locked) {
     return (
       <Card as={as} variant={variant} className="gx-l-tcard" data-trend="locked">
-        <span className="gx-l-thead"><Icon icon="lock" size={16}/><span className="gx-t-strong gx-grow">{leagueWords(card.title)}</span></span>
+        <span className="gx-l-thead"><Icon icon="lock" size={16}/><span className="gx-t-strong gx-grow">{trendWords(card)}</span></span>
         <p className="gx-t-body gx-c-2">{lockedTrendText(card.gate, rules)}</p>
       </Card>
     );
@@ -31,10 +31,10 @@ export function ShortTrend({ card, rules, as = 'li', variant }) {
     <Card as={as} variant={variant} className="gx-l-tcard" data-trend={card.kind}>
       <span className="gx-l-thead">
         <Icon icon="diamond" size={16} fill/>
-        <span className="gx-t-strong gx-grow">{leagueWords(card.title)}</span>
+        <span className="gx-t-strong gx-grow">{trendWords(card)}</span>
         {card.pct !== null ? <span className="gx-n-m">{card.pct}%</span> : null}
       </span>
-      <p className="gx-t-body gx-c-2">{leagueWords(card.sentence)}</p>
+      <p className="gx-t-body gx-c-2">{trendWords(card, card.sentence)}</p>
       <p className="gx-l-tnums">
         <span className="gx-sr-only">Record </span><span className="gx-n-s">{card.record}</span>
         <span className="gx-t-meta">{card.sample}</span>
@@ -149,17 +149,17 @@ function TrendItem({ card, rules, open, onToggle, variant }) {
   return (
     <li className="gx-tc-item" data-trend={card.kind} data-trend-key={card.key}>
       <div className="gx-tc-rowcard">
-        <TrendRow title={card.title} sub={trendRowSub(card)} values={chart?.spark} value={chart ? `${signed(chart.units)} U` : null} open={open} controls={id} onToggle={onToggle}/>
+        <TrendRow title={card.title} displayTitle={trendWords(card)} sub={trendRowSub(card)} values={chart?.spark} value={chart ? `${signed(chart.units)} U` : null} open={open} controls={id} onToggle={onToggle}/>
         {open && !chart ? (
           <div className="gx-tc-rowtext" id={id}>
-            <p className="gx-t-body gx-c-2">{leagueWords(card.sentence)}</p>
+            <p className="gx-t-body gx-c-2">{trendWords(card, card.sentence)}</p>
             <p className="gx-l-tnums"><span className="gx-sr-only">Record </span><span className="gx-n-s">{card.record}</span><span className="gx-t-meta">{card.sample}</span></p>
             <p className="gx-t-label gx-c-2">{card.tierLabel}</p>
             {card.notes?.map(note => <p className="gx-t-meta" key={note}>{note}</p>)}
           </div>
         ) : null}
       </div>
-      {open && chart ? <TrendDetail id={id} title={card.title} pill={tierPill(card.tier)} info={info} {...trendDetailProps(card)}/> : null}
+      {open && chart ? <TrendDetail id={id} title={card.title} displayTitle={trendWords(card)} pill={tierPill(card.tier)} info={info} {...trendDetailProps(card)}/> : null}
     </li>
   );
 }

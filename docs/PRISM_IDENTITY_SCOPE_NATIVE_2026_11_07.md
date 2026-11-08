@@ -35,7 +35,9 @@ controllers over fictional local PGlite data; no hosted account or provider is r
 - App invitation prose, scoring guidance, Research season/condition explanations
   and the Premier League matchweek accessible name use full league names.
   App-authored trend titles/short explanations expand at their rendered boundary,
-  including chart control names. Original title values, selection fingerprints,
+  including chart control names. Expansion is explicitly opt-in: registered built-in legacy titles and computed
+  Research copy only; custom/saved/source-reported titles keep literal display.
+  Original title values, selection fingerprints,
   predicates, IDs, API objects and option values are preserved. FEPL stays FEPL.
   Verbatim source/license attribution remains intact, including the source caveat
   beginning “NFL data belongs…” and publisher identifiers such as NFL.com/nflverse.
@@ -91,6 +93,7 @@ Final product-source verification:
 - `npx vitest run` — 91 files / 919 tests passed. Existing BiasChart key warnings remain unrelated.
 - `node --test tests/next-app-view.test.mjs tests/next-tokens.test.mjs tests/brand-mark.test.mjs tests/team-marks.test.mjs tests/theme-tokens.test.mjs` — 41 passed, no skips.
 - `npx playwright test --config playwright.identity-prism.config.js --grep 'native menu|saved scope refuses|external account|approved Games labels|sit-out operational prose|axe in dark and light at 390 and 320|DP-27:|D-46:|Prism:|three-letter fallbacks|game action bar opens'` — 15 passed in 1.7 minutes, no skips; result recorded in manifest.
+- After the final opt-in wording boundary, 97 focused component tests and the full 919-test run pass again; `npx playwright test --config playwright.identity-prism.config.js --grep 'all public-source row curves|opened non-shortlist detail'` passes both native public-row/season/table selection and period/account isolation cases, no skips.
 - `python -X utf8 scripts/check-brand-docs.py`, test-configured `npm run build:cloud`, `npm run check:cloud -- --bundle-only`, and whitespace checks — passed. The build retains its existing chunk-size warning; hosted probes were not run.
 
 The native set contains 114 captures: 50 Menu/saved-scope views, four Games views

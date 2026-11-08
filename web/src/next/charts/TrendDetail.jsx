@@ -1,4 +1,3 @@
-import { leagueWords } from '../leagueWords.js';
 // D-55 opened trend (round 3 board R1/R2): the glow card with the title, a one-word state pill and its ⓘ, a
 // "Since … / By season" switch when seasons exist, the headline number, the chart (line or stems), up to three tiles
 // and, by season, the season table. It draws what it is given; shared/trends-view.mjs and the research reply decide.
@@ -18,7 +17,7 @@ export const lineSelectionKey = (title, line) => JSON.stringify([title, line.sta
  * Function children receive `{ key, index, onSelect, chartId }` to link matching evidence.
  * `seasons` (optional): `{ rows, caption, headline, tiles }`. `pill` is the one-word state; `info` the ⓘ element.
  */
-export function TrendDetail({ title, pill, info, line, seasons, children, id, headingLevel = 4 }) {
+export function TrendDetail({ title, displayTitle = title, pill, info, line, seasons, children, id, headingLevel = 4 }) {
   const [view, setView] = useState('line');
   const headingId = useId(), seasonChartId = useId(), lineChartId = useId();
   const [selectedSeason, setSelectedSeason] = useState(null);
@@ -35,12 +34,12 @@ export function TrendDetail({ title, pill, info, line, seasons, children, id, he
   return (
     <section className="gx-card gx-tc-card" aria-labelledby={headingId} id={id} data-trend-detail="">
       <div className="gx-tc-head">
-        <Heading className="gx-t-strong gx-grow" id={headingId}>{leagueWords(title)}</Heading>
+        <Heading className="gx-t-strong gx-grow" id={headingId}>{displayTitle}</Heading>
         {pill ? <span className="gx-tc-pill">{pill}</span> : null}
         {info}
       </div>
       {seasons ? (
-        <div className="gx-tc-seg" role="group" aria-label={`Chart view · ${leagueWords(title)}`}>
+        <div className="gx-tc-seg" role="group" aria-label={`Chart view · ${displayTitle}`}>
           <button type="button" aria-pressed={!bySeason} onClick={() => setView('line')}>{line.start ? `Since ${line.start}` : 'All games'}</button>
           <button type="button" aria-pressed={Boolean(bySeason)} onClick={() => setView('seasons')}>By season</button>
         </div>
@@ -49,10 +48,10 @@ export function TrendDetail({ title, pill, info, line, seasons, children, id, he
         <span className="gx-tc-big">{shown.headline.value}</span>
         <span className="gx-tc-headline-sub">{shown.headline.sub}</span>
       </p>
-      {bySeason ? <SeasonStems id={seasonChartId} seasons={rows} contextLabel={leagueWords(title)} selectedIndex={seasonIndex} onSelect={index => setSelectedSeason(rows[index].season)}/> : <TrendLine id={lineChartId} values={line.values} tip={line.tip} start={line.start} end={line.end} label={line.label} contextLabel={leagueWords(title)} formatValue={line.formatValue}
+      {bySeason ? <SeasonStems id={seasonChartId} seasons={rows} contextLabel={displayTitle} selectedIndex={seasonIndex} onSelect={index => setSelectedSeason(rows[index].season)}/> : <TrendLine id={lineChartId} values={line.values} tip={line.tip} start={line.start} end={line.end} label={line.label} contextLabel={displayTitle} formatValue={line.formatValue}
         selectedIndex={lineSelection.index} onSelect={lineSelection.onSelect}/>}
       <StatTiles tiles={shown.tiles}/>
-      {bySeason ? <SeasonTable seasons={rows} caption={seasons.caption} contextLabel={leagueWords(title)} selectedSeason={rows[seasonIndex]?.season} onSelect={setSelectedSeason} chartId={seasonChartId}/> : null}
+      {bySeason ? <SeasonTable seasons={rows} caption={seasons.caption} contextLabel={displayTitle} selectedSeason={rows[seasonIndex]?.season} onSelect={setSelectedSeason} chartId={seasonChartId}/> : null}
       {typeof children === 'function' ? children({ ...lineSelection, chartId: lineChartId }) : children}
     </section>
   );

@@ -89,7 +89,7 @@ function ResearchDetail({ candidateId, request, withChart, selection, preparedCa
       {withChart && line ? <TrendLine id={chartId} values={line.values} tip={line.tip} start={line.start} end={line.end} label={line.label} selectedIndex={localSelection.index} onSelect={localSelection.onSelect}/> : null}
       <HistoricalTable candidate={candidate} selection={linked}/>
       <p className="gx-t-meta">Qualification uses the canonical recent sample, regardless of this display period. {candidate.qualification.label}. {(candidate.qualification.reasons ?? []).map(reason).join(' ')}</p>
-      <p className="gx-t-meta">Conditions: {leagueWords(candidate.conditionDescriptions?.join('; ')) || 'See situation title'}. Registered {researchDate(candidate.registeredAt)} · {candidate.sourceState === 'source-reported' ? 'Source-reported · not verified' : 'Computed from permitted National Football League history'}.</p>
+      <p className="gx-t-meta">Conditions: {(candidate.sourceState === 'source-reported' ? candidate.conditionDescriptions?.join('; ') : leagueWords(candidate.conditionDescriptions?.join('; '))) || 'See situation title'}. Registered {researchDate(candidate.registeredAt)} · {candidate.sourceState === 'source-reported' ? 'Source-reported · not verified' : 'Computed from permitted National Football League history'}.</p>
       <RecordSummary record={candidate.recent} label="Canonical recent sample"/>
       <RecordSummary record={candidate.seasonRecord} label="Snapshot season"/>
       <RecordSummary record={candidate.historical} label="Available history"/>
@@ -161,7 +161,7 @@ function ResearchOpened({ candidate: summary, request, id, headingLevel, info, e
     <div className="gx-l-sechead"><p className="gx-t-meta gx-grow">{consistencyText(summary)}</p>{info}</div>
     {evidenceBlock()}
   </div>;
-  return <TrendDetail id={id} title={candidate.title} headingLevel={headingLevel} pill={consistencyPill(candidate)} info={info} seasons={researchSeasons(candidate)}
+  return <TrendDetail id={id} title={candidate.title} displayTitle={candidate.sourceState === 'source-reported' ? candidate.title : leagueWords(candidate.title)} headingLevel={headingLevel} pill={consistencyPill(candidate)} info={info} seasons={researchSeasons(candidate)}
     line={{ ...line, headline: { value: `${signed(units)} U`, sub: [record, r.coverage?.from ? `${researchDate(r.coverage.from)} to ${researchDate(r.coverage.to)}` : 'selected period', 'Illustrative units at -110'].filter(Boolean).join(' · ') },
       tiles: [{ label: 'Win rate', value: pct === null ? '—' : `${pct}%`, meter: pct, sub: pct === null ? 'No decided games' : undefined },
         { label: 'Games', value: String(r.sample ?? '—'), sub: PERIODS[candidate.period] ?? 'Selected period' }] }}>
@@ -181,7 +181,7 @@ function ResearchCard({ candidate, gameId, request, open, onToggle, valueMetric,
   const record = r.sample ? recordText(r.wins ?? 0, r.losses ?? 0, r.pushes ?? 0) : null;
   return <li className="gx-tc-item gx-r-card" data-research-card={candidate.id}>
     <div className="gx-card gx-tc-rowcard">
-      <TrendRow title={candidate.title} sub={historical ? [candidate.market === 'spread' ? 'ATS' : 'Total', record].filter(Boolean).join(' · ') : [consistencyPill(candidate), record, showSample && Number.isFinite(r.sample) ? `${r.sample.toLocaleString('en-US')} games` : null].filter(Boolean).join(' · ')}
+      <TrendRow title={candidate.title} displayTitle={candidate.sourceState === 'source-reported' ? candidate.title : leagueWords(candidate.title)} sub={historical ? [candidate.market === 'spread' ? 'ATS' : 'Total', record].filter(Boolean).join(' · ') : [consistencyPill(candidate), record, showSample && Number.isFinite(r.sample) ? `${r.sample.toLocaleString('en-US')} games` : null].filter(Boolean).join(' · ')}
         values={preview?.values} value={valueMetric === 'winRate' ? pct === null ? '—' : `${pct}%` : Number.isFinite(units) ? `${signed(units)} U` : null} open={open} controls={id} onToggle={onToggle}/>
       {historical ? <div className="gx-r-row-context"><span>{candidate.conditionDescriptions?.join('; ') || readable(candidate.family)}{consistencyPill(candidate) ? ` · ${consistencyPill(candidate)}` : ''}</span><span>{Number.isFinite(r.sample) ? `${r.sample.toLocaleString('en-US')} games` : 'Sample unavailable'}</span></div> : null}
     </div>

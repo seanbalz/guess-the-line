@@ -39,9 +39,9 @@ describe('app-authored league labels keep source identity intact', () => {
     const candidate = { id: 't_rookie_hc', title: 'First-year NFL head coach' };
     const line = { values: [0, 1], tip: i => ({ value: `${i} U`, label: `Game ${i}` }), start: 2025, end: 2026, label: 'Exact observed sample', headline: {value:'1 U'}, tiles:[] };
     const key = lineSelectionKey(candidate.title, line);
-    const row = renderToStaticMarkup(<TrendRow title={candidate.title} value="1 U"/>);
+    const row = renderToStaticMarkup(<TrendRow title={candidate.title} displayTitle={leagueWords(candidate.title)} value="1 U"/>);
     expect(row).toContain('First-year National Football League head coach');
-    const detail = renderToStaticMarkup(<TrendDetail title={candidate.title} line={line} seasons={{rows:[]}}/>);
+    const detail = renderToStaticMarkup(<TrendDetail title={candidate.title} displayTitle={leagueWords(candidate.title)} line={line} seasons={{rows:[]}}/>);
     expect(detail).toContain('Chart view · First-year National Football League head coach');
     expect(detail).toContain('Move along the line · First-year National Football League head coach');
     expect(lineSelectionKey(candidate.title, line)).toBe(key);
@@ -50,5 +50,6 @@ describe('app-authored league labels keep source identity intact', () => {
   it('retains FEPL and non-string content; callers leave source credits and code literals outside this helper', () => {
     expect(leagueWords('FEPL · EPL history · NFL season')).toBe('FEPL · Premier League history · National Football League season');
     expect(leagueWords(null)).toBe(null);
+    expect(renderToStaticMarkup(<TrendRow title="My NFL and EPL source title"/>)).toContain('My NFL and EPL source title');
   });
 });
