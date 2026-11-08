@@ -59,12 +59,12 @@ export function DetailBack({ onBack }) {
 }
 
 /**
- * Four-tab bar: the one showing marked with aria-current and the lime bar; a counter or dot
+ * Four-tab bar: the one showing marked with aria-current and the selected tint; a counter or dot
  * from each tab's slot file, in its name too ("Play, 1 ballot due").
  */
-export function TabBar({ current, data, onTab }) {
+export function TabBar({ current, data, onTab, barRef }) {
   return (
-    <nav className="gx-tabbar" aria-label={SHELL_COPY.tabs}>
+    <nav ref={barRef} className="gx-tabbar" aria-label={SHELL_COPY.tabs}>
       <div className="gx-tabbar-inner">
         {TABS.map(tab => {
           const on = tab === current;

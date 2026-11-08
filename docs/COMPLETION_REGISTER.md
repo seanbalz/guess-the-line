@@ -1,5 +1,27 @@
 # Guess The Line — current completion register
 
+## Whole-app UI/UX sweep checked locally — November 8, 2026
+
+[D-79](DECISIONS.md) confirms Home’s floating glass bottom navigation across all
+existing NFL/EPL tabs while preserving contextual top headers and approved body
+layouts. The [sweep record](UI_UX_SWEEP_2026_11_08.md) documents fresh screen,
+formatting, chart, overlay and scrolling coverage in both themes, narrow/wide and
+short/landscape viewports, plus Chromium and mobile WebKit emulation.
+
+Local corrections share the bottom recipe/actual-height clearance, restore the
+Guidance sheet’s intrinsically sized topic rows, and fix singular tracked-ticket
+copy. Task reviews approve both initial source changes with no Critical/Important
+findings; inherited validation warnings remain recorded. Initial PR CI exposed a
+fourth issue: a short detail retained opener scroll. Nest’s entry reset is checked
+locally at `219e546699368925a913b08e6cf34745349d2fd2`, preserving exact Back position
+and focus; renewed delta review and CI are required. Source commits are
+`4ce541942c12751862672d8cb89209d819fd452e` and
+`3175462f6839e01fece3d4d43c8171b07983ff1e`. Final branch review, exact CI, publication,
+merge and protected frontend release remain pending; this is not a deployment
+claim. The separate held FEPL top-header choice, M-41, API/database/worker state,
+parked features and frozen v62 remain unchanged. Actual-phone acceptance is not
+newly inferred from emulation or Sean’s navigation assumption.
+
 ## Saved-precision Virtual Units ROI deployed — November 8, 2026 UTC
 
 [Release evidence](RELEASE_2026_11_08_VIRTUAL_ROI.md) records exact source

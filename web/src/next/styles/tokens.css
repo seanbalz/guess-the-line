@@ -43,7 +43,8 @@
   --gx-size-touch: 44px;
   --gx-size-primary: 52px;
   --gx-size-topbar: 56px;
-  --gx-size-tabbar: 64px;
+  --gx-size-tabbar: 72px;
+  --gx-size-tabbar-gap: 12px;
   --gx-size-dock: 56px;
   --gx-size-gutter: 16px;
   --gx-size-content: 520px;

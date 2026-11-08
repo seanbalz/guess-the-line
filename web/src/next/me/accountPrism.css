@@ -70,6 +70,9 @@
 .gx .gx-settings-books small { display: block; font-size: 13px; line-height: 1.7; color: var(--gx-text-2); }
 .gx .gx-settings-guidance { display: grid; gap: 18px; }
 /* All original guidance paragraphs and links live in these expandable cards. */
+/* Hidden overflow gives details a zero automatic grid minimum. Keep each track
+   at its intrinsic content size so the scrollport cannot compress closed summaries. */
+.gx .gx-guidance .gx-sheet-body { grid-auto-rows: min-content; }
 .gx .gx-guidance-topic { border: 1px solid var(--gx-border); border-radius: 24px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); overflow: hidden; min-width: 0; }
 .gx .gx-guidance-topic > summary { display: flex; align-items: center; gap: 12px; min-height: 78px; padding: 14px 12px; list-style: none; cursor: pointer; font-size: 16px; line-height: 1.7; font-weight: 600; }
 .gx .gx-guidance-topic > summary::-webkit-details-marker { display: none; }
