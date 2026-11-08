@@ -1,7 +1,7 @@
 // Authenticated projection only. Full family evaluation is an offline operation;
 // requests read a compact prepared snapshot and verify its completed-source hash.
 import * as T from '../shared/trends.mjs';
-import { RESEARCH_VERSION, RESEARCH_PERIODS, applyAccessibleLines, applyResearchCandidate, completedSourceText, scheduleSourceText, finalAvailableAt, sha256 } from '../shared/trends-research-candidates.mjs';
+import { RESEARCH_VERSION, RESEARCH_PERIODS, applyAccessibleLines, applyResearchCandidate, completedSourceText, scheduleSourceText, finalAvailableAt, sha256, compactResearchRowSeries } from '../shared/trends-research-candidates.mjs';
 import { researchLean, researchShortlist } from '../shared/trends-research.mjs';
 import { projectReviewedSources, validateReviewedFeed } from '../shared/trends-research-sources.mjs';
 import { easternToUtc } from '../shared/nfl-schedule.mjs';
@@ -17,6 +17,12 @@ const group = g => ({ id: g.id, market: g.market, memberIds: g.memberIds, direct
   overlaps: g.overlaps, role: g.role, roleLabel: g.roleLabel, tone: g.tone });
 const compactLean = lean => ({ state: lean.state, direction: lean.direction, label: lean.label, tone: lean.tone, reasons: [...lean.reasons], counts: lean.counts,
   groups: lean.groups.map(group), supporting: lean.supporting.map(group), alternatives: lean.alternatives.map(group), context: lean.context.map(c => c.id) });
+const projectSeries = series => ({ binned: series.binned, selectedSample: series.selectedSample, tableMatchesChart: series.tableMatchesChart, label: series.label,
+  points: series.points.map(p => ({ from: new Date(p.from).toISOString(), to: new Date(p.to).toISOString(), sample: p.sample,
+    wins: p.wins, losses: p.losses, pushes: p.pushes, illustrativeUnits: p.illustrativeUnits, actualUnits: p.actualUnits })) });
+const projectSeason = s => ({ season: s.season, sample: s.sample, wins: s.wins, losses: s.losses, pushes: s.pushes,
+  illustrativeUnits: s.illustrativeUnits, actualUnits: s.actualUnits,
+  priceCoverage: { priced: s.priceCoverage.priced, total: s.priceCoverage.total, complete: s.priceCoverage.complete } });
 
 export function validateResearchRequest(body) {
   if (body.period !== undefined && !RESEARCH_PERIODS.includes(body.period)) throw new TypeError('Check the research period.');
@@ -151,7 +157,11 @@ export function createResearchProvider({ loadSchedule, loadSnapshot = async () =
         registeredAt: c.registeredAt, historicalTier: c.historicalTier, sourceState: c.sourceState, period: options.period, record: summary(sample.record),
         qualification: detail ? c.qualification : { qualifies: c.qualification.qualifies, route: c.qualification.route, label: c.qualification.label, reasons: c.qualification.reasons }, inputCoverage: c.inputCoverage,
         applications: applications.get(c.id), ...(detail ? { recent: summary(c.recent), historical: summary(c.historical), seasonRecord: summary(c.seasonRecord), prospective: summary(c.prospective), retrospective: summary(c.retrospective), limitations: history.limitations } : {}),
-        ...(chart ? { series: { ...sample.series, points: sample.series.points.map(p => ({ ...p, from: new Date(p.from).toISOString(), to: new Date(p.to).toISOString() })) } } : {}) };
+        // Every permitted row gets a bounded real preview. Old assets can merge
+        // their <=48 prepared bins here; no family evaluation or history scan.
+        rowSeries: projectSeries(sample.rowSeries ?? compactResearchRowSeries(sample.series)),
+        ...(chart ? { series: projectSeries(sample.series),
+          ...(Array.isArray(sample.perSeason) ? { perSeason: sample.perSeason.map(projectSeason) } : {}) } : {}) };
     }).sort((a, b) => a.id.localeCompare(b.id));
     return { version: RESEARCH_VERSION, season: board.season, week: board.week, now, history, ...publicSources, shortlist, candidates, games, explore,
       statistics: data ? matchupStatistics(board, data.rows, decisionAt, finalAvailableAt) : [],

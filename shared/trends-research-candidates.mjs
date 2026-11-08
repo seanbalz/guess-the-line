@@ -140,6 +140,39 @@ export function compactResearchSeries(record, maxPoints = 48) {
   return { points: bins, binned: size > 1, selectedSample: record.sample, tableMatchesChart: true, label: record.illustrativeLabel };
 }
 
+/** Offline only. Group the already validated selected records by NFL season,
+ * before chronological bins can cross either a calendar or season boundary.
+ * Keep the canonical record's price coverage and rounding; no raw identities.
+ */
+export function researchSeasonSummaries(record) {
+  const seasons = new Map();
+  for (const row of record.records) {
+    if (!seasons.has(row.season)) seasons.set(row.season, []);
+    seasons.get(row.season).push(row);
+  }
+  return [...seasons].sort(([a], [b]) => a - b).map(([season, rows]) => {
+    const r = researchRecord(rows);
+    return { season, sample: r.sample, wins: r.wins, losses: r.losses, pushes: r.pushes,
+      illustrativeUnits: r.illustrativeUnits, actualUnits: r.actualUnits, priceCoverage: r.priceCoverage };
+  });
+}
+
+/** A row preview, never an indexable detail series. Adjacent prepared bins are
+ * merged with exact counts and the final cumulative endpoint, without new math.
+ * Also usable for older snapshots: at most 48 prepared bins, never raw history.
+ */
+export function compactResearchRowSeries(series) {
+  const points = [], size = Math.max(1, Math.ceil(series.points.length / 12));
+  for (let i = 0; i < series.points.length; i += size) {
+    const bins = series.points.slice(i, i + size), last = bins.at(-1);
+    points.push({ from: bins[0].from, to: last.to,
+      ...Object.fromEntries(['sample', 'wins', 'losses', 'pushes'].map(key => [key, bins.reduce((n, p) => n + p[key], 0)])),
+      illustrativeUnits: last.illustrativeUnits, actualUnits: last.actualUnits });
+  }
+  return { points, binned: series.binned || size > 1, selectedSample: series.selectedSample,
+    tableMatchesChart: false, label: series.label };
+}
+
 /** Offline only: full family evaluation exceeds hosted Edge CPU/memory limits.
  * Do not call this builder from a request. Outputs no raw unplayed line/price.
  */
@@ -151,11 +184,12 @@ export async function createResearchSnapshot({ csv, now, season, registry, venue
     if (!e.qualification.qualifies) e.matchedGameIds = [];
     const periods = Object.fromEntries(RESEARCH_PERIODS.map(period => {
       const r = researchRecord(selectResearchPeriod(candidate.records, { now, season, period }));
-      return [period, { record: summary(r), series: compactResearchSeries(r) }];
+      const series = compactResearchSeries(r);
+      return [period, { record: summary(r), series, rowSeries: compactResearchRowSeries(series), perSeason: researchSeasonSummaries(r) }];
     }));
     // Numeric dates avoid hundreds of thousands of repeated ISO allocations in
     // a hosted isolate. Only selected public series are formatted back to ISO.
-    for (const sample of Object.values(periods)) for (const point of sample.series.points) {
+    for (const sample of Object.values(periods)) for (const point of [...sample.series.points, ...sample.rowSeries.points]) {
       point.from = Date.parse(point.from); point.to = Date.parse(point.to);
     }
     return { ...e, inputCoverage: candidate.inputCoverage, preset: { id: candidate.preset.id, market: candidate.preset.market, atoms: candidate.preset.atoms }, periods };

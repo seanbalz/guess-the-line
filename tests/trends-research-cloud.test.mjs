@@ -68,6 +68,36 @@ test('current applicability uses app spread sign and never unknown cross-market 
   assert.ok(applied.some(a => a.direction === 'home'));
 });
 
+test('all permitted rows get bounded exact previews; seasons and full series stay on shortlist/detail', async () => {
+  const provider = await getProvider();
+  for (const period of candidateModule.RESEARCH_PERIODS) {
+    const reply = await provider.read({ board: board(), period });
+    assert.ok(reply.candidates.length > 3);
+    for (const c of reply.candidates) {
+      assert.ok(c.rowSeries.points.length <= 12);
+      assert.equal(c.rowSeries.points.reduce((n, p) => n + p.sample, 0), c.record.sample);
+      if (c.series) {
+        assert.ok(reply.shortlist.includes(c.id)); assert.ok(c.series.points.length <= 48);
+        assert.equal(c.perSeason.reduce((n, s) => n + s.sample, 0), c.record.sample);
+      } else assert.equal(c.perSeason, undefined);
+    }
+    assert.ok(Buffer.byteLength(JSON.stringify(reply)) < 1_000_000);
+    assert.ok(!JSON.stringify(reply).includes('matchedGameIds'));
+    assert.ok(!JSON.stringify(reply).includes('"records"'));
+    const id = reply.candidates.find(c => !c.series).id;
+    const detail = await provider.read({ board: board(), period, candidateId: id });
+    assert.ok(detail.candidates.find(c => c.id === id).series);
+    assert.ok(Array.isArray(detail.candidates.find(c => c.id === id).perSeason));
+  }
+  const old = structuredClone(await getFixtureSnapshot());
+  for (const c of old.candidates) for (const sample of Object.values(c.periods)) { delete sample.rowSeries; delete sample.perSeason; }
+  const older = await (await getProvider({ loadSnapshot: async () => old })).read({ board: board() });
+  assert.ok(older.candidates.every(c => c.rowSeries.points.length <= 12 && c.perSeason === undefined));
+  const closed = await provider.read({ board: board(false) });
+  assert.deepEqual(closed.candidates, []);
+  await assert.rejects(provider.read({ board: board(false), candidateId: older.candidates[0].id }), /unavailable/);
+});
+
 test('freshness detects overdue missing finals, absent season and refresh failure with backoff', async () => {
   let time = Date.parse(now), loads = 0, fail = false;
   const provider = await getProvider({ clock: () => time, loadSchedule: async () => { loads++; if (fail) throw Error('private provider detail'); return csv; } });
