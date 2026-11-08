@@ -9,6 +9,9 @@ import { setNativeActionTheme } from '../helpers/native-action-theme.mjs';
 import { layoutProblems } from '../helpers/phone-layout.mjs';
 import { pointsContextSnapshot } from '../fixtures/points-context-snapshot.mjs';
 import { FANTASY_REPOSITORY, snapshotFileName, updateFantasyIndex } from '../../shared/fantasy-index.mjs';
+import { createResearchSnapshot } from '../../shared/trends-research-candidates.mjs';
+import { createResearchProvider } from '../../cloud/trends-research.mjs';
+import { row, registry, venues, corrections, T, historyCsv } from '../trends-fixture.mjs';
 
 const capturing = process.env.GTL_CAPTURE_EXPANDED_FRAME === '1';
 const output = path.resolve('design/prism-expanded-frame-native-2026-11-07');
@@ -58,7 +61,7 @@ async function captureFamily(page,info,name,context,{wide=false,forced=false,bot
     expect(audit.violations.map(v=>v.id)).toEqual([]);
     const file=`${name}-${theme}-${width}.png`,destination=capturing?path.join(output,file):info.outputPath(file);
     if(capturing)fs.mkdirSync(output,{recursive:true});
-    await page.screenshot({path:destination,fullPage:true});
+    await page.screenshot({path:destination});
     captures.push({file,sha256:crypto.createHash('sha256').update(fs.readFileSync(destination)).digest('hex'),route:new URL(page.url()).hash,context,theme,width,height:844,...proof});
   }
   if(forced) {
@@ -70,8 +73,26 @@ async function captureFamily(page,info,name,context,{wide=false,forced=false,bot
 }
 
 test('named NFL Research sections, Play Score/League and Bets tools use their actual confirmed hosts',async({page,baseURL},info)=>{
-  const world=await communityWorld(page,baseURL,{migrations:ALL,optionalRpc:true});
+  let provider;
+  const world=await communityWorld(page,baseURL,{migrations:ALL,optionalRpc:true,research:{read:request=>provider.read(request)}});
   try {
+    // Same real public-history/provider fixture as research-chart-payloads. Only
+    // future slate/accounts/quotes are synthetic; the historical curves are not.
+    const history=T.parseCsvRows(historyCsv).rows.filter(r=>Number(r.season)>=2021);
+    const targets=world.state.games.map(g=>{
+      const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23',weekday:'long'}).formatToParts(new Date(g.kickoff)).map(p=>[p.type,p.value]));
+      return row({season:world.state.league.season,week:world.state.league.week,gameday:`${parts.year}-${parts.month}-${parts.day}`,gametime:`${parts.hour}:${parts.minute}`,weekday:parts.weekday,away_team:g.id.split('-')[0],home_team:g.id.split('-')[1]});
+    });
+    const csv=T.writeCompactCsv([...history,...targets]),now=new Date(Date.now()-1000).toISOString();
+    const snapshot=await createResearchSnapshot({csv,now,season:world.state.league.season,registry,venues,corrections});
+    provider=createResearchProvider({loadSchedule:async()=>csv,loadSnapshot:async()=>snapshot,venues,corrections});
+    await storeBookLines(world,{spread:Object.fromEntries(world.state.games.map(g=>[g.id,-3])),total:Object.fromEntries(world.state.games.map(g=>[g.id,44]))});
+    await sendBallot(world,'luke','guess_total',Object.fromEntries(world.state.games.map(g=>[g.id,42])));
+    const {season,week}=world.state.league,game=world.state.games[0];
+    const read=await world.api('luke','social/read',{season,week});
+    const ticket=await world.api('luke','social/create',{season,week,weekRevision:read.body.weekRevision,requestId:crypto.randomUUID(),kind:'single',legs:[{gameId:game.id,market:'prop',side:'Expanded overview fixture',line:30,selection:'Fixture 30+ receiving yards'}],stakeUnits:1,odds:100,source:'Book A',notes:'Expanded frame analytics fixture'});
+    expect(ticket.status).toBe(200);const entry=ticket.body.entries.find(e=>e.notes==='Expanded frame analytics fixture');
+    const settled=await world.api('luke','social/settle',{season,week,weekRevision:ticket.body.weekRevision,requestId:crypto.randomUUID(),entryId:entry.id,revision:entry.revision,outcome:'win',actualReturnUnits:null,reason:'Local fictional result'});expect(settled.status).toBe(200);
     await page.goto('/#research/games');await signIn(page,'luke',{navigate:false});
     for(const [hash,context,ready] of [
       ['research/games','research-games','.gx-game-card'],['research/teams','research-teams','h1'],
@@ -83,6 +104,11 @@ test('named NFL Research sections, Play Score/League and Bets tools use their ac
       await page.goto(`/#${hash}`);
       if(context==='bets-overview')await page.getByRole('button',{name:'Overview',exact:true}).click();
       await expect(page.locator('main').locator(ready).first()).toBeVisible();
+      if(context==='research-trends') {
+        await page.getByRole('combobox',{name:'Evidence period',exact:true}).selectOption('all');
+        await expect(page.locator('[data-research-card]').first()).toBeVisible();
+      }
+      if(context==='research-fantasy')await expect(page.locator('.gx-fantasy-row').first()).toBeVisible();
       await captureFamily(page,info,context,context,{wide:context==='play-league',forced:context==='research-games'});
     }
     // Both League feed and board keep the actual Your leagues opener.
@@ -147,7 +173,7 @@ test('Points week, editable slot and profile use supplied contexts; locking and 
     await page.getByRole('button',{name:/^Lock in \d+$/,exact:false}).click();await expect(page.getByRole('alertdialog')).toBeVisible();
     await expect(root(page)).toHaveAttribute('data-frame-context','play-points');
     await page.getByRole('button',{name:'Confirm lock-in',exact:true}).click();await expect(page.getByText(/^Locked in \d+\./)).toBeVisible();await native(page);
-    await page.goBack();await expect(root(page)).toHaveAttribute('data-frame-context','play-points');
+    await page.getByRole('button',{name:'Back to Week 7 Points',exact:true}).click();await expect(root(page)).toHaveAttribute('data-frame-context','play-points');
     expect(world.errors).toEqual([]);
   } finally {await close(page,world);}
 });
