@@ -1,5 +1,17 @@
 # Guess The Line — current completion register
 
+## Native Account integration and whole-page spacing repair — November 7, 2026
+
+Reviewed Account source and both correction commits are integrated as `f2af6c90`,
+`43fa91a8` and `52b900b5`. Independent review closed both final Important type/
+forced-color findings and verified 254 native/134 reference/ten source hashes.
+The [integration spacing record](PRISM_INTEGRATION_SPACING_2026_11_07.md) adds
+scoped Games padding/team gaps and keyboard note clearance, retains all original
+behavior checks, and records 18 unique browser passes across focused runs plus
+913 component tests/type/27 strict Node contracts/Brand/build/privacy. Independent
+review of the parent spacing repair, exact-source CI and remaining full-scope
+ports/release gates remain required. No remaining rollout deployment is claimed.
+
 ## Integrated Research data and League/action review closeout — November 7, 2026
 
 Branch `codex/confirmed-prism-shared-2026-11-07`, draft [PR #495](https://github.com/seanbalz/guess-the-line/pull/495),

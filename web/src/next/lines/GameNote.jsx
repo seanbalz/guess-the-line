@@ -99,7 +99,12 @@ export function GameNote({ accountId, season, week, gameId, requestSignIn, onSav
     {/* While the saved note loads: a skeleton field in place of the note (a kept draft shows its own field). */}
     {loading && (draft ? <p className="gx-sr-only" role="status">Loading your saved note…</p> : <Skeleton label="Loading your saved note…" shape="block"/>)}
     {error && <p className="gx-game-note-error gx-t-body" role="alert">{error}</p>}
-    {draft && <><label className="gx-game-note-label" htmlFor={`${label}-text`}>Your note</label><textarea id={`${label}-text`} aria-describedby={tooLong ? `${help} ${label}-limit` : help} maxLength={NOTE_WRITE_MAX} rows={5} value={draft.text} disabled={busy || loading || Boolean(pending) || !saved} onChange={event => { keep({ ...draft, text: event.target.value }); setNotice(''); }}/><p className="gx-game-note-count gx-t-meta gx-c-2">{draft.text.length.toLocaleString()} / 2,000 characters</p></>}
+    {draft && <><label className="gx-game-note-label" htmlFor={`${label}-text`}>Your note</label><textarea id={`${label}-text`} aria-describedby={tooLong ? `${help} ${label}-limit` : help} maxLength={NOTE_WRITE_MAX} rows={5} value={draft.text} disabled={busy || loading || Boolean(pending) || !saved} onFocus={event => {
+      // Chromium may scroll only a textarea's caret on Tab. Reconcile the whole
+      // field with the document's fixed-bar scroll padding after native focus.
+      const field = event.currentTarget;
+      requestAnimationFrame(() => { if (document.activeElement === field) field.scrollIntoView({ block: 'nearest' }); });
+    }} onChange={event => { keep({ ...draft, text: event.target.value }); setNotice(''); }}/><p className="gx-game-note-count gx-t-meta gx-c-2">{draft.text.length.toLocaleString()} / 2,000 characters</p></>}
     {tooLong && <p id={`${label}-limit`} className="gx-t-body gx-c-2">This note is longer than the current save limit. Its full text is kept. Shorten it or clear it before saving.</p>}
     {notice && <p className="gx-t-body gx-c-2" role="status">{notice}</p>}
     {storageUnavailable && dirty && <p className="gx-t-meta gx-c-2">This browser cannot keep a recovery copy. Keep this page open until your note is saved.</p>}

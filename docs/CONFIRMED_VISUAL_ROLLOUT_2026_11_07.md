@@ -107,6 +107,14 @@ The remaining areas below distinguish reviewed local implementation from release
   and browser shards 1/4; shards 2/3 exposed stale pre-port selectors/layout
   assumptions plus game-note keyboard clearance and a wide-font Games spacing
   issue. Those findings need repair and fresh exact-source CI before release.
+- Account/access/recovery areas 19–28: reviewed source `8cc6f349`, `952ad5fc`
+  and `2c844f04` is integrated as `f2af6c90`, `43fa91a8` and `52b900b5`.
+  Independent re-review closed actual-theme evidence, scoped List/auth cascade,
+  Guidance, wide layouts, primary 16px type and forced-colors switches. All 254
+  native captures across 38 states, 134 reference captures and ten source hashes
+  match. [Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md) retains the exact
+  controller/privacy limits. Latest combined validation passes all 90 files /
+  913 component tests and typecheck. Hosted release/phone acceptance remain open.
 - Tracked bet stakes support smaller custom values without backend changes.
   Virtual Units still has positive-half-unit enforcement in both API and SQL;
   its approved finer entry requires a separately reviewed compatibility change
@@ -361,70 +369,70 @@ reference math/data only and must not enter the production bundle.
 
 ### 19. Account overview, Profile and Reminders
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
 - Reference: `Account overview captures; populated-account; accountProfileRemindersPreview`.
 - Native targets: `me/MenuSheet.jsx, ProfileSettings.jsx, PickReminders.jsx`.
 - Required presentation and behavior: Name/unchanged/validation/conflict/uncertain check; reminders off/on/blocked/install/unsupported/unconfigured. Preserve actual subscriptions, permission request and granted-permission semantics.
 
 ### 20. Settings and guidance
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
 - Reference: `populated-account-tools; accountToolsPreview`.
 - Native targets: `me/AccountPreferences.jsx and guidance destinations`.
 - Required presentation and behavior: Manual book preferences/selected count, retained-unavailable and conflict drafts, getting-started preference; all 19 guidance topics and original source/license links.
 
 ### 21. Public app invite
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
 - Reference: `populated-app-invite; appInvitePreview`.
 - Native targets: `Account entry and actual app invite/share view/controller`.
 - Required presentation and behavior: Approved generic shareable public link; native device sharing when supported and manual-select fallback. Button/link is not authorization to send messages to others.
 
 ### 22. Authentication, recovery and first name
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
 - Reference: `populated-access; accessPreview; accessRecoveryPreview`.
 - Native targets: `web/src/AuthGate.jsx; me/NameStep.jsx`.
 - Required presentation and behavior: Sign-in/create/email confirmation/name; forgot/reset/account-neutral notice/mismatch/unavailable/loading. Preserve provider/session/recovery validation and returning-account skip behavior.
 
 ### 23. Session and retained-name recovery
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
 - Reference: `populated-session-recovery; sessionRecoveryPreview`.
 - Native targets: `me/SignInAgain.jsx, NameStep.jsx`.
 - Required presentation and behavior: Password/Google methods, failed/Google-only, name uncertain/offline/sign-in-required and saved invitation notice; explicit check versus Continue semantics.
 
 ### 24. Appearance
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
 - Reference: `populated-appearance; appearancePreview`.
 - Native targets: `Actual native theme/motion preferences and store`.
 - Required presentation and behavior: Dark/Light/System miniature preview, explicit and OS reduced motion, unavailable storage, device-only persistence and OS precedence.
 
 ### 25. Export
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
 - Reference: `populated-export; exportPreview`.
 - Native targets: `me/ExportSheet.jsx and actual authenticated export controller`.
 - Required presentation and behavior: Overview/categories/preparing/busy/completion/failure/retry/unavailable, owner-scoped data and actual device downloads; preserve excluded push devices/nothing deleted.
 
 ### 26. App continuity
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
 - Reference: `populated-continuity; isolated-continuity-views.jsx; continuityPreview`.
 - Native targets: `shell/AppGate.jsx, Boundary.jsx, native offline/failure/reload surfaces`.
 - Required presentation and behavior: Offline, startup skeleton, account failure, tab/page failure retaining navigation, dirty-reload warning; actual preservation and confirm-before-clear order.
 
 ### 27. League setup and invitations
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
 - Reference: `populated-league-setup; leagueSetupPreview`.
 - Native targets: `league/SwitcherSheet.jsx, CreateLeague.jsx, InvitePlayers.jsx`.
 - Required presentation and behavior: Community-first switcher, private Duel/Group creation, host-only invitation entry/link/status/revoke/join check. Retain actual permissions, token validation and uncertain readback.
 
 ### 28. League access recovery
 
-- [ ] Port and verify this area. Status: **NOT IMPLEMENTED / NOT DEPLOYED** by this audit.
+- [x] Local port and scoped independent review complete. Status: **LOCALLY IMPLEMENTED AND REVIEWED / NOT DEPLOYED**. [Native Account evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md).
 - Reference: `populated-league-access; isolated-league-access-views.jsx; leagueAccessPreview`.
 - Native targets: `Native access/removed/invite cards and league shell`.
 - Required presentation and behavior: Private access pending, removed Community with/without private fallback, saved invitation, joining busy/uncertain; records/retention and real access rules preserved.

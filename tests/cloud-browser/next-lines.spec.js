@@ -1,3 +1,4 @@
+import { setCaptureTheme } from './theme-capture.mjs';
 import { nativeActionCaptures, nativeActionPairs } from '../helpers/native-action-captures.mjs';
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
@@ -1619,7 +1620,7 @@ test('Research › Games puts its first game above the tab bar at 390 x 844, wit
       expect(first.card, `${font}: the first game card ends above the tab bar (${JSON.stringify(first)})`).toBeLessThanOrEqual(first.bar);
       for (const width of [320, 390]) for (const theme of ['light', 'dark']) {
         await page.setViewportSize({ width, height: 844 });
-        await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, theme);
+        await setCaptureTheme(page, theme);
         const meta = await parts();
         expect(meta.length, `${font} ${width} ${theme}: the meta line is in parts`).toBe(3);
         expect(meta.filter(part => part.text.trimStart().startsWith('·')), `${font} ${width} ${theme}: no part starts with "·"`).toEqual([]);
@@ -1827,13 +1828,14 @@ test('game action bar opens the selected matchup and market without writing or d
     await page.setViewportSize({ width: 320, height: 844 });
     await expect(actions.getByRole('button', { name: 'Open Spread for HOU at JAX' })).toBeInViewport();
     for (const theme of ['dark', 'light']) {
-      await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
+      await setCaptureTheme(page, theme);
       await page.setViewportSize({ width: 320, height: 844 });
-      // The actions sit at the end of the layer: at the page's end they are on screen, above the tab bar.
-      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+      // The approved compact overview places actions before the research panels.
+      await actions.scrollIntoViewIfNeeded();
       await expect(actions).toBeInViewport();
       await phoneChecks(page); expect(await axe(page)).toEqual([]);
       await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+      await actions.scrollIntoViewIfNeeded();
       await page.screenshot({ path: testInfo.outputPath(`game-actions-${theme}.png`) });
     }
     const note = gameLayer(page, 'Texans @ Jaguars').getByRole('textbox', { name: 'Your note' });

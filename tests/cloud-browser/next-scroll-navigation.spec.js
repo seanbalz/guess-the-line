@@ -156,6 +156,8 @@ test('the tab bar stays at the bottom while every page scrolls, and nothing is l
         await page.locator('.gx-main').evaluate(main => { main.setAttribute('tabindex', '-1'); main.focus({ preventScroll: true }); main.removeAttribute('tabindex'); });
         for (let i = 0; i < TAB_PRESSES; i++) {
           await page.keyboard.press('Tab');
+          // Inspect the painted focus position after native/custom scroll reconciliation.
+          await page.evaluate(() => new Promise(resolve => requestAnimationFrame(resolve)));
           const problem = await page.evaluate(focusProblem);
           if (problem) note(label, [`Tab ${i + 1}: ${problem}`]);
         }
