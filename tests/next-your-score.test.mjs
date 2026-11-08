@@ -66,7 +66,7 @@ test('rows (Q1-B): a scored game says Line · You · off by with its points pill
 test('hero: the server\'s week total, out of what the scored games could earn, with Bullseyes and the average miss; a filter says Selected games', () => {
   const e = entry([pick('SEA-DEN', -3, 10, -3), pick('LAC-LV', 4, 5, 6.5)]);
   const hero = heroModel({ mode: 'guess_spread', week: 8, entry: e, rows: rowsOf(e) });
-  assert.deepEqual(hero, { eyebrow: 'Week 8 · Spread', points: 15, count: true, share: 0.75, bar: 75, meterLabel: '15 of 20 possible points',
+  assert.deepEqual(hero, { eyebrow: 'Week 8 · Spread', points: 15, count: true, scored: 2, exact: 1, share: 0.75, bar: 75, meterLabel: '15 of 20 possible points',
     line: '20 possible · 1 Bullseye · avg miss 1.3', note: null });
   const filtered = heroModel({ mode: 'guess_spread', week: 8, entry: e, rows: scoreRows(week8, e, { team: 'LV' }), filtered: true });
   assert.deepEqual([filtered.eyebrow, filtered.points, filtered.count], ['Selected games', 5, false], 'a filtered subtotal never counts up');

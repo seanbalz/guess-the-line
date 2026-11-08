@@ -1,5 +1,17 @@
 # Guess The Line — current completion register
 
+## Reviewed Play/Points/Score visual closeout — November 7, 2026
+
+The four reviewed gaps are implemented on exclusive unpublished branch
+`codex/prism-play-score-closeout-2026-11-07`: Points usage-profile card hierarchy,
+glass draft/score controls, score hero/row/game ordering, and the Points opponent
+strip/usage action. The approved League supporting podium now uses the existing
+rank read; native earned-badge counts and moment behavior remain intact.
+[Approval mapping, verification and native capture hashes](PRISM_PLAY_SCORE_NATIVE_2026_11_07.md#native-closeout-of-reviewed-visual-gaps--november-7-2026)
+record the actual scope. All figures use existing permitted source data and
+missing/House states. Header/dock structure remains the separate pending owner
+question; no hosted release or physical-phone acceptance is claimed.
+
 ## Confirmed Bets landing and saved history — November 7, 2026
 
 The missing approved Bets landing hierarchy is now native on exclusive branch

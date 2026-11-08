@@ -1,0 +1,241 @@
+{
+  "date": "2026-11-07",
+  "status": "Local native closeout, unpublished",
+  "authorityCommit": "3ac2eb50513ba73447ef890e4a47863cde7bdd76",
+  "integrationBase": "3a57e4886ca90e293d89520f255bde128252e652",
+  "branch": "codex/prism-play-score-closeout-2026-11-07",
+  "runtime": "Native production components and controllers, real local PGlite/cloud handler with fictional isolated fixture accounts and source replies. No live account or physical iPhone acceptance.",
+  "port": 5222,
+  "checks": {
+    "browser": {
+      "passed": 5,
+      "skipped": 0,
+      "themes": [
+        "dark",
+        "light"
+      ],
+      "phoneWidths": [
+        320,
+        390
+      ],
+      "additionalDraftTargetWidths": [
+        360,
+        375,
+        380,
+        381
+      ],
+      "keyboardReducedMotion": true,
+      "houseAndAccountGuards": true,
+      "sourceReceipt": true,
+      "signedSpreadAndTotalAxes": true,
+      "privacySentinelsExcluded": true
+    },
+    "vitest": 91,
+    "nodeModelTokenMotion": 24,
+    "typecheck": "passed",
+    "cloudBuild": "passed, existing >500kB chunk warnings",
+    "bundlePrivacy": "passed",
+    "finalExpandedRankedOverviewScoreCase": "passed after League supporting-card addition and responsive season-rank wrap"
+  },
+  "captures": [
+    {
+      "file": "per-game-picks-320-dark.png",
+      "width": 320,
+      "theme": "dark",
+      "sha256": "9563ff02d67b7f49db9a331520a5f59850f1ca15c036527b33b9082c49f2bdcd"
+    },
+    {
+      "file": "per-game-picks-320-light.png",
+      "width": 320,
+      "theme": "light",
+      "sha256": "d1a876297523a611e3e3cfc8f3618e393ccf1846c3b89e0ab9a6859edf6ddc53"
+    },
+    {
+      "file": "per-game-picks-390-dark.png",
+      "width": 390,
+      "theme": "dark",
+      "sha256": "f7f0a792a96d79f154dc437d271fff90fccd671d0d61fdfa17629550af83d3c6"
+    },
+    {
+      "file": "per-game-picks-390-light.png",
+      "width": 390,
+      "theme": "light",
+      "sha256": "d45007aa4ae34fefe7460ef4e1b244eaf7d983e73dc4daada28bd2a39a051ce5"
+    },
+    {
+      "file": "points-context-profile-locked-320-dark.png",
+      "width": 320,
+      "theme": "dark",
+      "sha256": "2d665343bc1287fda6c5d1a871fb62fa8b1da199bfde105215425c5fbbf71507"
+    },
+    {
+      "file": "points-context-profile-locked-320-light.png",
+      "width": 320,
+      "theme": "light",
+      "sha256": "344b218e15d217a28af25da48e5d0db4ea68b9e39cc3ccb6c14570107745d286"
+    },
+    {
+      "file": "points-context-profile-locked-390-dark.png",
+      "width": 390,
+      "theme": "dark",
+      "sha256": "c2f8cd5ce0e740ce1be164fbc1260a97926129cc084a362fd97aebe5f5440322"
+    },
+    {
+      "file": "points-context-profile-locked-390-light.png",
+      "width": 390,
+      "theme": "light",
+      "sha256": "85360247bcc9fb81ae0ea871d04fcd4a544002f4ebd44eb5fabc939c96a8bf18"
+    },
+    {
+      "file": "points-context-profile-open-320-dark.png",
+      "width": 320,
+      "theme": "dark",
+      "sha256": "56364e84e617920b9ec6188cdf8fde8cae76fb4b60b4dbc7f9e62edf5f08e65d"
+    },
+    {
+      "file": "points-context-profile-open-320-light.png",
+      "width": 320,
+      "theme": "light",
+      "sha256": "808129ff7329ecf9059371a7f2ba023df511fae71333877526dae03763e82487"
+    },
+    {
+      "file": "points-context-profile-open-390-dark.png",
+      "width": 390,
+      "theme": "dark",
+      "sha256": "436e936cdfbfb09e1cc58afc518e400c9055c20b2843d152ddfa4e3ab755b1dd"
+    },
+    {
+      "file": "points-context-profile-open-390-light.png",
+      "width": 390,
+      "theme": "light",
+      "sha256": "279b4ea1301102f03e3f9221b3fa4ccd3f0034da15a5e9ae1012a23fed765049"
+    },
+    {
+      "file": "points-context-strip-320-dark.png",
+      "width": 320,
+      "theme": "dark",
+      "sha256": "bb61ef051df0b417e7fb25fce36349dcc9deeacea65d30104b3c3b59cfca8167"
+    },
+    {
+      "file": "points-context-strip-320-light.png",
+      "width": 320,
+      "theme": "light",
+      "sha256": "75c0914fe34568cefd8655b42fdd4ad8b9b3f9943babd673a893a0f8acf23038"
+    },
+    {
+      "file": "points-context-strip-390-dark.png",
+      "width": 390,
+      "theme": "dark",
+      "sha256": "768a3bd3d56dc5fb6b760464a39d2d90386d2f004f1ce97f111e76eb4e018077"
+    },
+    {
+      "file": "points-context-strip-390-light.png",
+      "width": 390,
+      "theme": "light",
+      "sha256": "f7705ea9d64348e7628f467bd25266c9a06601e0680bcc7274b79f67b39c2e6d"
+    },
+    {
+      "file": "prism-play-320-dark.png",
+      "width": 320,
+      "theme": "dark",
+      "sha256": "80a24f51d804df6ce136ad5d8e1f13ee5f6c005150a6851a87191aa7d09567c2"
+    },
+    {
+      "file": "prism-play-320-light.png",
+      "width": 320,
+      "theme": "light",
+      "sha256": "7ee4edebe09c223eb514459fbaafff19d8c2bc62e2883a1a90f1372a576f0cb9"
+    },
+    {
+      "file": "prism-play-390-dark.png",
+      "width": 390,
+      "theme": "dark",
+      "sha256": "ddee5ec9517178c3df4dab83acaa4332fbef9e10f251343cca5bcb42ae1c9140"
+    },
+    {
+      "file": "prism-play-390-light.png",
+      "width": 390,
+      "theme": "light",
+      "sha256": "2007cbdc9cb6629ee5ede9387e30ea967310052aa90e1b37f4f145523a695dd0"
+    },
+    {
+      "file": "score-game-320-dark.png",
+      "width": 320,
+      "theme": "dark",
+      "sha256": "2af779050dfa70098084f85c27afec719026a786dd2947521bfc7a13fb811a10"
+    },
+    {
+      "file": "score-game-320-light.png",
+      "width": 320,
+      "theme": "light",
+      "sha256": "04dcdf44282cd1e8130ab2b26220af706988be29f555ae0a9f18088a90b2b2cc"
+    },
+    {
+      "file": "score-game-390-dark.png",
+      "width": 390,
+      "theme": "dark",
+      "sha256": "8bfee5275ff8ae0d4b7c6c122236ecd86bf0d5c8391e613c6843f00623943ad6"
+    },
+    {
+      "file": "score-game-390-light.png",
+      "width": 390,
+      "theme": "light",
+      "sha256": "80f0a8fc7fa8b9d0b2324271ac39fe070052ab73fc61dcf9c405006b772be360"
+    },
+    {
+      "file": "score-game-values-320-dark.png",
+      "width": 320,
+      "theme": "dark",
+      "sha256": "8c0d7f0fd6bb40db718e3ec099a12f1836cd4a957acede793c6ef42ac77fc7d7"
+    },
+    {
+      "file": "score-game-values-320-light.png",
+      "width": 320,
+      "theme": "light",
+      "sha256": "6e674af2670ed61ae38811f2696c27cc9f11b07150bb3807b7f35b5e88c30e46"
+    },
+    {
+      "file": "score-game-values-390-dark.png",
+      "width": 390,
+      "theme": "dark",
+      "sha256": "2926b0cd140e0a2546656e96dc7572cfa1c0fad7874765851cca871c39562191"
+    },
+    {
+      "file": "score-game-values-390-light.png",
+      "width": 390,
+      "theme": "light",
+      "sha256": "e97a44058277cb4a4323b8e31419ff14f0c40ae79dab4cfd6f3ce2d7d39f235e"
+    },
+    {
+      "file": "weekly-score-320-dark.png",
+      "width": 320,
+      "theme": "dark",
+      "sha256": "2d53027a82da02bc1b91028fd736da41a6d97e3d36f5a11c2bf8c2fda7aa5e85"
+    },
+    {
+      "file": "weekly-score-320-light.png",
+      "width": 320,
+      "theme": "light",
+      "sha256": "6d3b000575e4b3f9e5c66b1d11fb629cc72e35494ef7c50fdfebe521d9380267"
+    },
+    {
+      "file": "weekly-score-390-dark.png",
+      "width": 390,
+      "theme": "dark",
+      "sha256": "23c2e0babedf70a2198049af6e650e4535af33bb3f0231771bea373b226ffd12"
+    },
+    {
+      "file": "weekly-score-390-light.png",
+      "width": 390,
+      "theme": "light",
+      "sha256": "8761b79742ec6dba136dfe705d9e3d099b725e2cc8757363b5fc764a1c4aa0c2"
+    }
+  ],
+  "scopeLimits": [
+    "Native header/dock and reachable league switch preserved pending separate owner decision.",
+    "Full-page native captures retain fixed native navigation at the viewport boundary; they are not mockup framing or physical-phone acceptance.",
+    "No API, SQL, provider, scoring, data, lock or reveal rule changed.",
+    "No missing-data prerequisite blocks the four implemented structures. Snapshot/source missing states continue to show explicit unavailable/lock lines."
+  ],
+  "supportingCards": "Approved League decorative podium, actual Spread rank highlight only. Exact adjacent Awards authority has an empty middle; existing native Badges earned counts and moments retained, no new award behavior."
+}

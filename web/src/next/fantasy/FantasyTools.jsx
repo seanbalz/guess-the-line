@@ -94,14 +94,14 @@ export function PlayerProfileSheet({ snapshot, playerId, settings, onClose, comp
  * House (D-56), which stays hidden until the viewer locks in the player or he kicks off. The rest-of-season estimate
  * goes with it, since it is the same weekly estimate times the games left.
  */
-export function PlayerProfileBody({ profile, snapshot, settings, compare, estimateLocked = null }) {
+export function PlayerProfileBody({ profile, snapshot, settings, compare, estimateLocked = null, pointsPresentation = false }) {
   const { player, weeks, summary, estimate } = profile, scoringLabel = label(SCORING_OPTIONS, settings.scoring);
   const usageCell = (row, key) => <Value value={row.usage[key]} whole/>;
   return <>
     <p className="gx-t-meta">{player.team} · {player.position}{player.status ? ` · ${player.status}` : ''}</p>
     <p className="gx-t-meta">{scoringLabel} · {settings.passingTds}-point passing TDs · Stats through Week {snapshot.statsThroughWeek}</p>
     {compare && <div className="gx-fantasy-tool-actions"><CompareToggle player={player} {...compare}/></div>}
-    <section className="gx-vstack gx-gap-12" aria-labelledby={`${player.id}-observed`}>
+    <section className={`gx-vstack gx-gap-12${pointsPresentation ? ' gx-card gx-pt-profile-observed' : ''}`} aria-labelledby={`${player.id}-observed`}>
       <h3 className="gx-t-section" id={`${player.id}-observed`}>Observed production</h3>
       <p className="gx-t-meta">Completed games only. {games(summary.season.games)} recorded{profile.byeKnown ? '' : '; byes are not marked in this snapshot'}.</p>
       {weeks.length ? <WeeklyChart weeks={weeks}/> : <p className="gx-t-body">No completed weeks yet.</p>}
@@ -115,7 +115,7 @@ export function PlayerProfileBody({ profile, snapshot, settings, compare, estima
       </table></div>}
       <Averages summary={summary}/>
     </section>
-    <Card variant="s2" as="section" className="gx-vstack gx-gap-8" aria-labelledby={`${player.id}-estimate`}>
+    <Card variant={pointsPresentation ? undefined : "s2"} as="section" className="gx-vstack gx-gap-8" aria-labelledby={`${player.id}-estimate`}>
       <h3 className="gx-t-section" id={`${player.id}-estimate`}>GTL estimate</h3>
       {estimateLocked ? <LockLine>{estimateLocked}</LockLine> : <>
       <p className="gx-t-meta">An estimate from {games(estimate.sampleGames)} of recorded play, not an observed result or expert projection.</p>
@@ -127,7 +127,7 @@ export function PlayerProfileBody({ profile, snapshot, settings, compare, estima
       {estimate.restOfSeason && <p className="gx-t-body">Rest of season: <strong><Value value={estimate.restOfSeason.points} missing="unavailable"/></strong> est. points over {games(estimate.restOfSeason.games)} scheduled.</p>}
       </>}
     </Card>
-    <section className="gx-vstack gx-gap-8" aria-labelledby={`${player.id}-opponent`}>
+    <section className={`gx-vstack gx-gap-8${pointsPresentation ? ' gx-card gx-pt-profile-opponent' : ''}`} aria-labelledby={`${player.id}-opponent`}>
       <h3 className="gx-t-section" id={`${player.id}-opponent`}>Opponent context</h3>
       <Opponent profile={profile} scoringLabel={scoringLabel}/>
     </section>

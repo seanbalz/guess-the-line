@@ -21,7 +21,7 @@ const { ShellContext } = await import('../web/src/next/shell/context.js');
 const { LeagueScreen } = await import('../web/src/next/league/LeagueScreen.jsx');
 const { LeagueHistory } = await import('../web/src/next/league/LeagueHistory.jsx');
 const { leagueLayer } = await import('../web/src/next/league/leagueModel.js');
-const { LeagueTile } = await import('../web/src/next/league/LeagueTile.jsx');
+const { LeagueTile, LeaguePodium } = await import('../web/src/next/league/LeagueTile.jsx');
 const { seenKey } = await import('../web/src/next/feed/feedModel.js');
 const { rankKey } = await import('../web/src/next/league/rankMoment.js');
 
@@ -155,4 +155,9 @@ describe('League › History (P6A)', () => {
     const tiles = find(find(parseMarkup(render(<LeagueScreen/>, { view: 'history' })), n => n.attrs['aria-label'] === 'Seasons')[0], n => n.tag === 'button');
     expect(tiles.map(tile => [tile.attrs['aria-label'], tile.attrs['aria-pressed']])).toEqual([['Season 2026, showing', 'true'], ['Season 2025', 'false']]);
   });
+});
+
+it('the approved support podium outlines only the actual top-three place; unranked and lower ranks receive no false highlight', () => {
+  expect(renderToStaticMarkup(<LeaguePodium rank={2}/>)).toContain('data-place="2" data-you="true"');
+  for (const rank of [null, 4]) expect(renderToStaticMarkup(<LeaguePodium rank={rank}/>)).not.toContain('data-you');
 });

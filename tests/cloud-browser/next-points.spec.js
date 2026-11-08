@@ -436,8 +436,9 @@ async function contextChecks(page, scope, info, name, extra = async () => {}) {
       expect(await page.evaluate(layoutProblems), `${name} ${theme} ${width}`).toEqual([]);
       await targets(scope);
       await extra(`${theme} ${width}`);
+      await page.evaluate(() => window.scrollTo(0, 0));
       expect((await new AxeBuilder({ page }).withTags(AXE).analyze()).violations.map(v => v.id), `${name} ${theme} ${width}`).toEqual([]);
-      await page.screenshot({ path: info.outputPath(`${name}-${width}-${theme}.png`) });
+      await page.screenshot({ path: info.outputPath(`${name}-${width}-${theme}.png`), fullPage: true });
     }
   }
   await page.evaluate(() => { delete document.documentElement.dataset.theme; });
@@ -457,13 +458,13 @@ test('Player context: averages with game counts, the opponent, the report and it
   await expect(strip.getByText('15.3', { exact: true })).toBeVisible();
   await expect(strip).toContainText(/Last 3\s*15\.3\s*3 games/);
   await expect(strip).toContainText(/Season\s*15\.6\s*5 games/);
-  await expect(strip).toContainText(/@ CLE allows\s*15\.2\s*to QBs · 5 games/);
+  await expect(strip).toContainText(/@ CLE allows\s*to QBs · 5 games\s*15\.2/);
   await expect(strip).toContainText(`Limited Participation in Practice · as of ${CONTEXT_SNAPSHOT_TIMES.asOfText}`);
   await expect(sheet).not.toContainText(String(CONTEXT_HOUSE.QB));
   await expect(sheet).not.toContainText(/implied/i);
   // The glow card keeps its full height above the strip : nothing in it is covered.
   const uncovered = async where => {
-    for (const control of [sheet.getByRole('button', { name: 'Save draft', exact: true }), strip.getByRole('button', { name: 'Open profile: Fixture QB Player' })]) {
+    for (const control of [sheet.getByRole('button', { name: 'Save draft', exact: true }), strip.getByRole('button', { name: 'Usage & weekly chart: Fixture QB Player' })]) {
       await control.scrollIntoViewIfNeeded();
       expect(await control.evaluate(el => { const r = el.getBoundingClientRect(); return document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)?.closest('button') === el; }), where).toBe(true);
     }
@@ -477,7 +478,7 @@ test('Player context: averages with game counts, the opponent, the report and it
   for (let i = 0; i < 4; i++) await page.keyboard.press('PageUp');
   await page.keyboard.press('ArrowUp');
   await expect(spin).toHaveAttribute('aria-valuenow', '21');
-  await strip.getByRole('button', { name: 'Open profile: Fixture QB Player' }).click();
+  await strip.getByRole('button', { name: 'Usage & weekly chart: Fixture QB Player' }).click();
   // The profile is the slot's next layer, with its own address; the unsaved 21 goes with it, so nothing asks.
   await expect(page).toHaveURL(/#play\/points\?layer=profile&item=QB$/);
   const profile = sheet;
@@ -487,6 +488,9 @@ test('Player context: averages with game counts, the opponent, the report and it
   await expect(profile).toContainText('GTL’s estimate for this week is the House. It opens once you lock in this player, or at his kickoff.');
   await expect(profile).not.toContainText(String(CONTEXT_HOUSE.QB));
   await expect(profile).not.toContainText('Rest of season');
+  await expect(profile.locator('.gx-pt-profile-observed')).toContainText('18.0');
+  await expect(profile.locator('.gx-pt-profile-opponent')).toContainText('Opponent context');
+  await expect(profile.locator('.gx-pt-profile-identity .gx-team')).toHaveCount(1);
   await contextChecks(page, profile, info, 'points-context-profile-locked');
   await profile.getByRole('button', { name: 'Back to QB · Fixture QB Player', exact: true }).click();
   await expect(page).toHaveURL(/#play\/points\?item=QB$/);
@@ -497,9 +501,10 @@ test('Player context: averages with game counts, the opponent, the report and it
   await page.getByRole('alertdialog', { name: 'Lock in 21?' }).getByRole('button', { name: 'Confirm lock-in' }).click();
   await expect(sheet.getByText(/^Locked in 21\./)).toBeVisible();
   await expect(strip).not.toContainText(String(CONTEXT_HOUSE.QB));
-  await strip.getByRole('button', { name: 'Open profile: Fixture QB Player' }).click();
+  await strip.getByRole('button', { name: 'Usage & weekly chart: Fixture QB Player' }).click();
   await expect(profile).toContainText(String(CONTEXT_HOUSE.QB));
   await expect(profile).not.toContainText('GTL’s estimate for this week is the House');
+  await contextChecks(page, profile, info, 'points-context-profile-open');
 
   // Missing values read "—", never 0: the WR has no recorded games, the FLEX is not in the snapshot. Back closes one
   // layer at a time: the profile, then the slot.
@@ -510,13 +515,13 @@ test('Player context: averages with game counts, the opponent, the report and it
   await expect(sheet.getByRole('heading', { name: 'WR · Fixture WR Player', exact: true })).toBeVisible();
   const wr = sheet.getByRole('region', { name: 'Player context' });
   await expect(wr).toContainText(/Last 3\s*—\s*no recorded games\s*no games/);
-  await expect(wr).toContainText(/@ DEN allows\s*15\.0\s*to WRs · 2 games/);
+  await expect(wr).toContainText(/@ DEN allows\s*to WRs · 2 games\s*15\.0/);
   await page.goBack();
   await page.locator('[data-slot="FLEX"]').click();
   await expect(sheet.getByRole('heading', { name: 'FLEX · Fixture FLEX Player', exact: true })).toBeVisible();
   const flex = sheet.getByRole('region', { name: 'Player context' });
   await expect(flex).toContainText('Not in this week’s player data');
-  await expect(flex.getByRole('button', { name: /Open profile/ })).toHaveCount(0);
+  await expect(flex.getByRole('button', { name: /Usage & weekly chart/ })).toHaveCount(0);
   expect(await flex.innerText()).not.toMatch(/(^|\s)0(\.0)?(\s|$)/);
   await page.goBack();
 
@@ -530,7 +535,7 @@ test('Player context: averages with game counts, the opponent, the report and it
   await page.locator('[data-slot="QB"]').click();
   const seanSheet = pointsLayer(page);
   await expect(seanSheet.getByRole('spinbutton', { name: 'Your guess' })).toHaveAttribute('aria-valuetext', 'No guess yet');
-  await seanSheet.getByRole('region', { name: 'Player context' }).getByRole('button', { name: 'Open profile: Fixture QB Player' }).click();
+  await seanSheet.getByRole('region', { name: 'Player context' }).getByRole('button', { name: 'Usage & weekly chart: Fixture QB Player' }).click();
   await expect(seanSheet).toContainText('GTL’s estimate for this week is the House');
   await expect(seanSheet).not.toContainText(String(CONTEXT_HOUSE.QB));
   logs.check();

@@ -93,3 +93,73 @@ variants retain their native meaningful arrangements; this handoff does not
 claim new visual approval of those variants. No API, SQL, migration, collector,
 provider budget, permission or reveal policy changed. No push, PR, merge or
 deployment was performed by this subtask.
+
+
+## Native closeout of reviewed visual gaps — November 7, 2026
+
+Exclusive branch `codex/prism-play-score-closeout-2026-11-07` started from freshly
+fetched `origin/main` at `70c2b85ea7466ca308c8e69006b4ec09888267a7`, then
+fast-forwarded its own checkout to local integration
+`3a57e4886ca90e293d89520f255bde128252e652`. This section supersedes the earlier
+partial presentation claims for the following four arrangements. Approval
+remains the read-only owner worktree at
+`3ac2eb50513ba73447ef890e4a47863cde7bdd76`.
+
+- **Points usage profile:** the circled identity/position row, floating Observed
+  production card containing the actual completed-week chart and both tables,
+  separate GTL estimate card, and separate Opponent context card now follow
+  `points-profile-dark-phone.png`. Positive production bars and points use the
+  shared theme accent; negative observations retain their loss treatment. The
+  existing Fantasy body opts into this presentation only from Points. Its data,
+  empty/source states, estimate/House guard and other Fantasy contexts remain
+  unchanged. No sample series enters production.
+- **Draft and score controls:** favorite and number chips, market/view segments
+  and score week chips use glass surfaces, tinted/outlined selection and rounded
+  rectangles from shared tokens. Existing check marks, arrow-key behavior,
+  draft preservation and 44px targets remain active. Compare with the approved
+  `play-spread-draft` and `score-spread-week` captures.
+- **Weekly/game score:** scored-game and exact-guess counts sit beside the ring
+  and come from the same permitted authoritative rows. The season rank wraps
+  when required at narrow widths. Row footers show exact/off-by, the actual
+  kickoff date and an arrow; they no longer repeat the paired line/guess values.
+  The existing signed number line now precedes those pairs in the game layer,
+  matching `score-spread-game`/`score-total-game`. Saved qualifying references,
+  receipt sources, missing/pending/zero states, sign conventions and privacy
+  filtering are preserved.
+- **Points slot context:** two observed-average tiles are followed by the
+  circled opponent-logo strip, its actual allowed average/sample, the existing
+  observed spark and the outlined Usage & weekly chart action, as in
+  `points-draft`. Reports, snapshot time, retries and absent values remain native.
+
+A follow-up comparison with `overview-closeout-play-{dark,light}-phone.png`
+found the League supporting card still lacked the approved podium. It now draws
+that decorative 3/2/1 graphic and outlines only the viewer's actual top-three
+Spread rank from the existing Community read. The numbers identify podium
+places, not a points series; missing/lower ranks and private groups get no false
+highlight. Existing rank text, group player counts, NEW/feed/moment behavior and
+navigation remain native. The adjacent approved overview card is titled Awards
+with an empty center and Badges & streaks link; it does not approve a new badge
+shelf graphic. Native Badges retains its existing earned count, waiting badge
+name, NEW and destination. No new award or popup behavior was added.
+
+Local verification: 91 focused component checks and 24 model/token/motion checks
+passed. Five native browser cases passed; after the supporting-card follow-up,
+the expanded ranked overview/score case passed again. These cover the actual
+lock-confirmation/receipt/source flow, independent markets, hidden sentinels,
+zero versus pending, observed Points data, House and account guards, unsaved
+profile round trip, keyboard/reduced motion, image/layout accessibility and
+44px targets in both themes at 320/390px (additional draft widths through 390px).
+Typecheck, cloud build and bundle-only privacy scan passed; the build retains
+its existing large-chunk warnings. No hosted credential or real-player/phone
+acceptance is established.
+
+[Closeout capture evidence](../design/prism-play-score-closeout-2026-11-07/evidence.json)
+records native capture hashes and exact scope. Its isolated test accounts and
+source replies are fictional. Full-page captures retain the current native
+fixed navigation at the viewport boundary; extra game-value captures show the
+paired values below the signed chart. Header/dock structure and the reachable
+league switch remain unchanged pending the separate owner decision. No data
+prerequisite blocks these four arrangements. Provider/source availability still
+controls whether actual observations or explicit unavailable/lock states show.
+No API, SQL, migration, provider, data or lock/reveal rule changed. This is an
+unpublished local handoff: no push, PR, merge or deployment.

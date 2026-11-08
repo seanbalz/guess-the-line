@@ -97,7 +97,7 @@ export function heroModel({ mode, week, entry, rows, filtered = false }) {
   const market = MODE_LABEL[mode];
   return {
     eyebrow: filtered ? 'Selected games' : `${Number.isInteger(week) ? `Week ${week} · ` : ''}${market}`,
-    points, count: !filtered,
+    points, count: !filtered, scored: scored.length, exact: bulls,
     share, bar: share === null ? null : pct(share), meterLabel: share === null ? null : `${show(points)} of ${possible} possible points`,
     line: scored.length ? [`${possible} possible`, `${bulls} ${bulls === 1 ? 'Bullseye' : 'Bullseyes'}`, avg === null ? null : `avg miss ${show(avg)}`].filter(Boolean).join(' · ') : null,
     note: !entry ? `No saved ${market} guesses for this week.` : entry.eligible === false ? 'Not eligible for scoring this week.' : null,

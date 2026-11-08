@@ -35,3 +35,12 @@
 @media (max-width: 600px) {
   .gx .gx-play-overview-games { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Approved supporting-card podium. Its fixed place heights illustrate 3/2/1; only a real top-three rank is outlined. */
+.gx .gx-play-support-tiles .gx-tile { min-height: 196px; }
+.gx .gx-play-league-podium { display: flex; align-items: flex-end; justify-content: center; gap: var(--gx-space-2); width: 100%; }
+.gx .gx-play-league-podium > span { display: flex; align-items: center; justify-content: center; width: 32px; height: 64px; border: 1px solid var(--gx-glass-line); border-radius: var(--gx-radius-xs) var(--gx-radius-xs) 0 0; background: var(--gx-glass); color: var(--gx-text-2); font: 600 13px/18px var(--gx-font-num); font-variant-numeric: tabular-nums; }
+.gx .gx-play-league-podium > [data-place="2"] { height: 48px; }
+.gx .gx-play-league-podium > [data-place="3"] { height: 32px; }
+.gx .gx-play-league-podium > [data-you="true"] { border-color: var(--gx-accent-ink); background: var(--gx-accent-tint); color: var(--gx-accent-ink); }
+@media (forced-colors: active) { .gx .gx-play-league-podium > span { border-color: CanvasText; } .gx .gx-play-league-podium > [data-you="true"] { outline: 2px solid Highlight; } }

@@ -93,7 +93,7 @@ function PlayLanding() {
     </Card>
     <div data-play-tile="score"><ScoreTile expanded onOpen={patch => openPlay(shell, 'score', patch)}/></div>
     <ul className="gx-tiles gx-play-support-tiles" aria-label="More Play sections">
-      <li data-play-tile="league"><LeagueTile onOpen={() => openPlay(shell, 'league')}/></li>
+      <li data-play-tile="league"><LeagueTile graphical onOpen={() => openPlay(shell, 'league')}/></li>
       <li data-play-tile="badges"><BadgesTile onOpen={() => openPlay(shell, 'features')}/></li>
       {!overview ? <li data-play-tile="compare"><CompareTile onOpen={view => openPlay(shell, 'compare', view)}/></li> : null}
     </ul>

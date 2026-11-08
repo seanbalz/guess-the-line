@@ -25,7 +25,8 @@ describe('Your score (D-69, mockup Q1-B)', () => {
     expect(html).toContain('aria-label="Personal score summary"');
     expect(text).toContain('Week 6 · Spread Accuracy points');
     expect(html).toContain('aria-label="8 of 10 possible points"');
-    expect(text).toContain('Line DEN −5 · You DEN −3 · off by 2');
+    expect(text).toContain('Saved scoring line DEN −5 Your guess DEN −3 Off by 2 Oct 18');
+    expect(text).toContain('1 scored game 0 exact guesses');
     expect(text).toContain('8 / 10');
     expect(text).toContain('Week 6 · all games scored'); // the layer's one meta line
     // D-38: the standings and the counts sit behind "About your scores" (scoreFinePrint, tested in next-your-score).

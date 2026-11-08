@@ -55,6 +55,7 @@ async function shots(page, info, name) {
     await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
     for (const width of [390, 320]) {
       await page.setViewportSize({ width, height: 844 });
+      await page.evaluate(() => window.scrollTo(0, 0));
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
       expect(axe.violations.map(item => `${item.id}: ${item.nodes.map(node => node.target.join(' ')).join(', ')}`)).toEqual([]);
@@ -70,6 +71,10 @@ test('one guess locks after confirmation, keeps the other market open, and links
     const game = world.personal.games[0];
     const card = await choose(page, game.id);
     await shots(page, info, 'per-game-picks');
+    const selectedChip = card.locator('.gx-guess-num.gx-chip--on');
+    await expect(selectedChip).toHaveAttribute('aria-checked', 'true');
+    expect(await selectedChip.evaluate(el => getComputedStyle(el).borderTopStyle)).toBe('solid');
+    expect(await selectedChip.evaluate(el => parseFloat(getComputedStyle(el).borderRadius) < el.offsetHeight / 2)).toBe(true);
 
     await card.getByRole('button', { name: 'Lock in Spread', exact: true }).click();
     const dialog = page.getByRole('alertdialog', { name: 'Lock in Spread?' });

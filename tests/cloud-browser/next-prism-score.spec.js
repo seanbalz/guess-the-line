@@ -25,18 +25,33 @@ test('Prism score: authoritative points, zero, pending, hidden, separate markets
     ] };
     await page.route(`${SUPABASE}/functions/v1/gtl-api/personal`, route => route.fulfill({ json: personal }));
     await page.route(`${SUPABASE}/functions/v1/gtl-api/community/history`, route => route.fulfill({ json: history }));
+    const communityRead = await world.api('luke', 'community/read', {});
+    expect(communityRead.status).toBe(200);
+    const community = structuredClone(communityRead.body);
+    community.standings = [{ userId: ACCOUNTS.sean.id, mode: 'guess_spread', seasonPoints: 40, seasonScored: 5 }, { userId: ACCOUNTS.luke.id, mode: 'guess_spread', seasonPoints: 28, seasonScored: 5 }];
+    await page.route(`${SUPABASE}/functions/v1/gtl-api/community/read`, route => route.fulfill({ json: community }));
     await signIn(page, 'luke');
     await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: /^Play(,|$)/ }).click();
     await expect(page.locator('.gx-play-overview-games [data-overview-game]')).toHaveCount(2);
     await expect(page.locator('.gx-play-score-card')).toContainText('Personal season accuracy points · Spread');
     await expect(page.locator('.gx-play-score-chart')).toHaveAttribute('aria-label', /Week 8: 0 cumulative personal points, Week 9: 28 cumulative personal points/);
+    await expect(page.locator('.gx-play-league-podium [data-you="true"]')).toHaveAttribute('data-place', '2');
     for (const theme of ['dark', 'light']) {
       await page.evaluate(value => { document.documentElement.dataset.theme = value; window.scrollTo(0, 0); }, theme);
-      await page.locator('[data-landing="play"]').screenshot({ path: info.outputPath(`prism-play-${theme}-phone.png`) });
+      for (const width of [320, 390]) {
+        await page.setViewportSize({ width, height: 844 });
+        await page.evaluate(() => window.scrollTo(0, 0));
+        expect(await page.evaluate(layoutProblems), `${theme} overview ${width}`).toEqual([]);
+        await page.locator('[data-landing="play"]').screenshot({ path: info.outputPath(`prism-play-${width}-${theme}.png`) });
+      }
     }
     await page.getByRole('button', { name: 'Open score & history' }).click();
     const summary = page.getByRole('region', { name: 'Personal score summary' });
     await expect(summary.getByRole('img', { name: '28 of 50 possible points' })).toBeVisible();
+    await expect(summary.locator('.gx-ys-hero-head')).toContainText('5 scored games');
+    await expect(summary.locator('.gx-ys-hero-head')).toContainText('1 exact guess');
+    await expect(page.locator('.gx-ys-row-meta').first()).toContainText('Off by 8');
+    await expect(page.locator('.gx-ys-row-meta').first()).not.toContainText(/Line|You/);
     await expect(page.locator('.gx-ys-row')).toHaveCount(6);
     await expect(page.locator('.gx-ys-row').first()).toContainText('0 / 10');
     await expect(page.locator('.gx-ys-row').nth(2)).toContainText('Waiting');
@@ -44,6 +59,14 @@ test('Prism score: authoritative points, zero, pending, hidden, separate markets
     await expect(page.locator('.gx-ys-row').nth(4)).toContainText('Hidden');
     await expect(page.locator('[data-play="score"]')).not.toContainText('934');
     await expect(page.locator('[data-play="score"]')).not.toContainText('999');
+    for (const theme of ['dark', 'light']) {
+      await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+      for (const width of [320, 390]) {
+        await page.setViewportSize({ width, height: 844 });
+        await page.evaluate(() => window.scrollTo(0, 0));
+        await page.screenshot({ path: info.outputPath(`weekly-score-${width}-${theme}.png`), fullPage: true });
+      }
+    }
     await page.getByRole('button', { name: 'Show all 8 games' }).click();
     await expect(page.locator('.gx-ys-row')).toHaveCount(8);
     for (const theme of ['dark', 'light']) {
@@ -69,6 +92,18 @@ test('Prism score: authoritative points, zero, pending, hidden, separate markets
     await expect(summary.getByRole('img', { name: '3 of 10 possible points' })).toBeVisible();
     await page.locator('.gx-ys-row').first().click();
     await expect(page.getByRole('img', { name: /^Line 44.5, you 48, off by 3.5$/ })).toBeVisible();
+    expect(await page.locator('.gx-ys-game-detail').evaluate(el => el.querySelector('.gx-ys-line').compareDocumentPosition(el.querySelector('.gx-ys-pair')) & Node.DOCUMENT_POSITION_FOLLOWING)).toBeTruthy();
+    for (const theme of ['dark', 'light']) {
+      await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+      for (const width of [320, 390]) {
+        await page.setViewportSize({ width, height: 844 });
+        await page.evaluate(() => window.scrollTo(0, 0));
+        expect(await page.evaluate(layoutProblems), `${theme} game ${width}`).toEqual([]);
+        await page.screenshot({ path: info.outputPath(`score-game-${width}-${theme}.png`), fullPage: true });
+        await page.locator('.gx-ys-pair').scrollIntoViewIfNeeded();
+        await page.screenshot({ path: info.outputPath(`score-game-values-${width}-${theme}.png`) });
+      }
+    }
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

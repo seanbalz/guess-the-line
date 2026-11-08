@@ -8,7 +8,7 @@ import { communityApi } from '../../api.js';
 import { show } from '../../communityFormat.js';
 import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
-import { Button, InfoButton, Matchup, Move, Pill, Segmented, Skeleton, TeamMark, cx, matchupWords } from '../ui/index.js';
+import { Button, InfoButton, Matchup, Move, Pill, Segmented, Skeleton, TeamMark, Icon, cx, matchupWords } from '../ui/index.js';
 import { shortName } from '../../communityFormat.js';
 import { AccuracyRing } from './AccuracyRing.jsx';
 import { CountUp } from '../ui/CountUp.jsx';
@@ -28,6 +28,7 @@ import { weekFinal } from './scoreMoments.js';
 import { gameView, heroModel, layerMeta, rowView, scoreFinePrint, sideText } from './yourScore.js';
 import './scores.css';
 import './yourScore.css';
+import './prismPlay.css';
 
 export function WeeklyScore() {
   const app = useAppData(), shell = useShell(), view = shell.state.views.play;
@@ -145,6 +146,8 @@ function ScoreHero({ hero, possible, rank, mode, account, figure }) {
       <div className="gx-ys-hero-head">
         <h3 className="gx-t-micro gx-c-2">{hero.eyebrow}</h3>
         <p className="gx-t-strong">Accuracy points</p>
+        <p className="gx-t-meta gx-c-2">{hero.scored} scored {hero.scored === 1 ? 'game' : 'games'}</p>
+        <p className="gx-t-meta gx-ys-exacts"><Icon icon="target" size={16}/>{hero.exact} exact {hero.exact === 1 ? 'guess' : 'guesses'}</p>
       </div>
       {rank ? <SeasonRankChip rank={rank} mode={mode}/> : null}
     </div>
@@ -167,6 +170,8 @@ function SeasonRankChip({ rank, mode }) {
 /** One picture row (Q1-B): the matchup as marks, BULLSEYE, the points pill, "Line · You · off by" and the bar. */
 function ScoreRow({ row, mode, onOpen }) {
   const v = rowView(row, mode);
+  const hasPair = row.points !== null && number(row.reference?.value) !== null && row.guess !== null;
+  const footer = hasPair ? v.bullseye ? 'Exact guess' : `Off by ${show(Math.abs(row.guess - row.reference.value))}` : v.meta;
   return <li>
     <button type="button" className="gx-card gx-ys-row" data-game={row.game.id} onClick={onOpen}>
       <span className="gx-ys-row-top">
@@ -174,12 +179,18 @@ function ScoreRow({ row, mode, onOpen }) {
         {v.bullseye ? <span className="gx-t-micro gx-ys-bull">Bullseye</span> : null}
         <span className={cx('gx-ys-pill', v.pill.number ? 'gx-n-s' : 'gx-t-micro')} data-tier={v.pill.tier}>{v.pill.text}</span>
       </span>
-      {row.points !== null && number(row.reference?.value) !== null && row.guess !== null ? <ScorePair row={row} mode={mode}/> : null}
-      <span className="gx-t-meta gx-c-2 gx-ys-row-meta">{v.meta}</span>
+      {hasPair ? <ScorePair row={row} mode={mode}/> : null}
+      <span className="gx-t-meta gx-c-2 gx-ys-row-meta">
+        <span>{footer}</span>
+        <span>{scoreDate(row.game.kickoff)} <Icon icon="chevronRight" size={16}/></span>
+      </span>
       {v.share !== null ? <span className="gx-ys-bar" data-tier={v.pill.tier} aria-hidden="true"><span style={{ width: `${Math.round(v.share * 1000) / 10}%` }}></span></span> : null}
     </button>
   </li>;
 }
+
+const scoreDay = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', month: 'short', day: 'numeric' });
+function scoreDate(iso) { const time = Date.parse(iso ?? ''); return Number.isFinite(time) ? scoreDay.format(new Date(time)) : 'Kickoff unavailable'; }
 
 function ScoreMatchup({ game, large = false }) {
   return <span className={cx('gx-mu', 'gx-ys-matchup', large && 'gx-ys-matchup--large')} role="img" aria-label={matchupWords(game.awayCode, game.homeCode)}>
@@ -214,8 +225,8 @@ function GameBody({ row, mode, week }) {
       {v.late ? <Pill tone="pending">{v.late}</Pill> : null}
     </div> : null}
     {v.sentence ? <p className="gx-t-strong">{v.sentence}</p> : null}
-    {v.line ? <ScorePair row={row} mode={mode}/> : null}
     {v.line ? <NumberLine line={v.line}/> : v.you ? <p className="gx-t-body">You · {v.you}</p> : null}
+    {v.line ? <ScorePair row={row} mode={mode}/> : null}
     {v.line ? <p className="gx-t-meta gx-c-2">Each half point off costs 1 point.</p> : null}
     <p className="gx-t-meta gx-c-2">Kickoff {fmtFull(row.game.kickoff)}</p>
   </section>;

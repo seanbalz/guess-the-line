@@ -33,3 +33,38 @@
 /* These approved screens float their actual content cards on the canvas. Nest still owns routes, lips and focus. */
 .gx .gx-per-game--nest > .gx-nest > .gx-nest-card { margin-inline: 0; padding: 0; border: 0; background: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
 .gx .gx-per-game--nest > .gx-nest > .gx-nest-card::before { display: none; }
+
+/* Approved glass controls: selected state is an outline/tint and check, never a neon fill. */
+.gx .gx-play-entry-card .gx-chip,
+.gx .gx-per-game .gx-seg,
+.gx .gx-per-game .gx-seg-btn,
+.gx .gx-ys .gx-seg,
+.gx .gx-ys .gx-seg-btn,
+.gx .gx-ys .gx-week-chips .gx-chip {
+  border: 1px solid var(--gx-glass-line);
+  border-radius: var(--gx-radius-sm);
+  background: var(--gx-glass);
+  box-shadow: var(--gx-glass-shadow);
+  color: var(--gx-text-1);
+}
+.gx .gx-per-game .gx-seg, .gx .gx-ys .gx-seg { padding: var(--gx-space-1); gap: var(--gx-space-1); }
+.gx .gx-per-game .gx-seg-btn, .gx .gx-ys .gx-seg-btn { border-color: transparent; background: transparent; box-shadow: none; }
+.gx .gx-play-entry-card .gx-chip--on,
+.gx .gx-per-game .gx-seg-btn--on,
+.gx .gx-ys .gx-seg-btn--on,
+.gx .gx-ys .gx-week-chips .gx-chip--on {
+  border-color: var(--gx-accent-ink);
+  color: var(--gx-accent-ink);
+  background: var(--gx-accent-tint);
+  box-shadow: var(--gx-glass-shadow);
+}
+@media (forced-colors: active) {
+  .gx .gx-play-entry-card .gx-chip, .gx .gx-ys .gx-week-chips .gx-chip { border-color: CanvasText; }
+  .gx .gx-play-entry-card .gx-chip--on, .gx .gx-per-game .gx-seg-btn--on,
+  .gx .gx-ys .gx-seg-btn--on, .gx .gx-ys .gx-week-chips .gx-chip--on { border-color: Highlight; outline: 1px solid Highlight; }
+}
+
+.gx .gx-play-entry-card .gx-chip,
+.gx .gx-per-game .gx-seg-btn,
+.gx .gx-ys .gx-seg-btn,
+.gx .gx-ys .gx-week-chips .gx-chip { border-radius: calc(var(--gx-radius-sm) - var(--gx-radius-xs)); }
