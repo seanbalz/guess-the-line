@@ -155,8 +155,28 @@ The remaining areas below distinguish reviewed local implementation from release
   A diagnostic showed a 36.84px title box at 320px before this scoped row repair.
   No text, font or assertion was removed. Affected 23 component checks, 27 strict
   import/token/loading checks and typecheck pass. Independent review of these
-  last two parent repairs and fresh exact-source CI remain required. Temporary
+  last two parent repairs at `d945e953` subsequently passed independent scoped
+  review without Critical/Important findings. Fresh exact-source CI remains required. Temporary
   regenerated action captures were restored to preserve their reviewed hashes.
+- Commissioner areas 29–34 are integrated from reviewed source/evidence
+  `8d9b9691`, `113e036c`, `055e5840`, `9ebfa67b`, `15099103`, `212d43e6`
+  as `d02e1b58`, `3047fc60`, `30e111fe`, `a284afda`, `5d4bd26e`, `c8893d13`.
+  Final independent review closed pinned tool footers/form association, retained
+  final-action styling/reading sizes, stale Light referee evidence and full-width
+  busy actions. [Final evidence](PRISM_COMMISSIONER_CAPTURE_PAINT_FIX_2026_11_07.md)
+  records 232 images: 89 refreshed and 143 retained; all 21 source, 21 authority
+  source, 232 native and 78 reference-image hashes matched. No referee product
+  paint change was needed. Combined root validation passes 90 files / 915
+  component tests, typecheck and 27 strict contracts. Two integrated real-handler
+  browser cases passed final correction/review/adoption and odds count-only/
+  busy/rate-limit guards. Whole-branch review, exact-source CI and release remain.
+- Custom Virtual Units source is separately published in draft
+  [PR #497](https://github.com/seanbalz/guess-the-line/pull/497), branch
+  `codex/m41-retry-precision-20261107`, at
+  `a3bd900b7b65f7469a5d9400815e44be9fbb7580`, independently reviewed and
+  synchronized 0 ahead / 0 behind. It is not integrated or enabled in this visual
+  branch. Its concrete ROI/accounting decision and named `apply M-41` remain
+  prerequisites; no SQL or hosted data change has occurred.
 - Tracked bet stakes support smaller custom values without backend changes.
   Virtual Units still has positive-half-unit enforcement in both API and SQL;
   its approved finer entry requires a separately reviewed compatibility change
@@ -481,42 +501,42 @@ reference math/data only and must not enter the production bundle.
 
 ### 29. Commissioner members
 
-- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Independent review/integration and hosted acceptance remain separate; **NOT DEPLOYED**.
+- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Scoped independent reviews and root integration are complete; whole-branch CI/release and hosted acceptance remain separate; **NOT DEPLOYED**.
 - Reference: `populated-commissioner; commissionerMembersPreview`.
 - Native targets: `me/commissioner/CommissionerTools.jsx; me/CommunityMembers.jsx`.
 - Required presentation and behavior: Six native destinations, member list/remove/restore confirmations, self-protection, pending check and admin-required states; actual authorization/concurrency/readback.
 
 ### 30. Commissioner weekly operations
 
-- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Independent review/integration and hosted acceptance remain separate; **NOT DEPLOYED**.
+- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Scoped independent reviews and root integration are complete; whole-branch CI/release and hosted acceptance remain separate; **NOT DEPLOYED**.
 - Reference: `populated-commissioner-status; commissionerOperationsPreview`.
 - Native targets: `Existing status/week-opening/settlement tools and controllers`.
 - Required presentation and behavior: Status, free-quota pause, uncertain settlement/check, week inputs, reviewed schedule and error; preserve schedule review, bounds, freshness and free limits.
 
 ### 31. Referee assignments
 
-- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Independent review/integration and hosted acceptance remain separate; **NOT DEPLOYED**.
+- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Scoped independent reviews and root integration are complete; whole-branch CI/release and hosted acceptance remain separate; **NOT DEPLOYED**.
 - Reference: `populated-referees; refereesPreview`.
 - Native targets: `web/src/RefereeAssignments.jsx`.
 - Required presentation and behavior: Current/draft/busy/partial-save/read-error; retained remaining drafts/extra options/explicit clearing and hosted-over-file precedence.
 
 ### 32. Final-score review
 
-- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Independent review/integration and hosted acceptance remain separate; **NOT DEPLOYED**.
+- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Scoped independent reviews and root integration are complete; whole-branch CI/release and hosted acceptance remain separate; **NOT DEPLOYED**.
 - Reference: `populated-final-review; finalScoresReviewPreview`.
 - Native targets: `Existing commissioner final-score review view/controller`.
 - Required presentation and behavior: Entry/completed assertion/first confirmation/source correction/conflict refresh-adopt-review/unavailable/busy; retain source scope, versions and Challenge grading warning.
 
 ### 33. Odds connection
 
-- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Independent review/integration and hosted acceptance remain separate; **NOT DEPLOYED**.
+- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Scoped independent reviews and root integration are complete; whole-branch CI/release and hosted acceptance remain separate; **NOT DEPLOYED**.
 - Reference: `populated-odds-connection; oddsConnectionPreview`.
 - Native targets: `me/commissioner/OddsConnection.jsx`.
 - Required presentation and behavior: Initial/measured check/fetch count/quota block/pending/rate-limit/busy; preserve measured threshold/reserve, free-only limits and actual request/readback gates.
 
 ### 34. EPL correction review
 
-- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Independent review/integration and hosted acceptance remain separate; **NOT DEPLOYED**.
+- [x] Native port implemented locally. [Commissioner source, capture and state evidence](PRISM_COMMISSIONER_NATIVE_2026_11_07.md). Scoped independent reviews and root integration are complete; whole-branch CI/release and hosted acceptance remain separate; **NOT DEPLOYED**.
 - Reference: `populated-epl-corrections; eplCorrectionsPreview`.
 - Native targets: `me/commissioner/EplCorrectionReviews.jsx`.
 - Required presentation and behavior: Ready/missing/empty/unavailable/failed/denied/loading/refreshing/stale, source times and signed differences; remains read-only.

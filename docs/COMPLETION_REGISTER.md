@@ -1,5 +1,22 @@
 # Guess The Line — current completion register
 
+## Reviewed Commissioner integration and separate M-41 preparation — November 7, 2026
+
+All six Commissioner source/evidence commits are integrated through `c8893d13`.
+Final independent review at `212d43e6` closed every scoped Important/Minor issue;
+[the final record](PRISM_COMMISSIONER_CAPTURE_PAINT_FIX_2026_11_07.md) distinguishes
+89 refreshed and 143 retained captures. Root checks passed 915 component tests,
+typecheck, 27 strict contracts and two actual-controller final/odds browser flows.
+Whole-branch review, exact-source CI and release remain; no remaining rollout
+deployment is claimed.
+
+Separately, reviewed Custom Virtual Units preparation is published in draft
+[PR #497](https://github.com/seanbalz/guess-the-line/pull/497) at
+`a3bd900b7b65f7469a5d9400815e44be9fbb7580`, branch
+`codex/m41-retry-precision-20261107`, synchronized 0/0 on November 8 at 03:02 UTC.
+It remains outside the visual branch, with the documented ROI/accounting decision
+and explicit named migration apply still held. No SQL, hosted write or release.
+
 ## Reviewed EPL integration and final browser layout repairs — November 7, 2026
 
 Premier League/FEPL source `4ffd4572` / `64e7bfd5` is integrated as `8e528825` /
