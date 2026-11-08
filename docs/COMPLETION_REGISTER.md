@@ -28,6 +28,20 @@ passed 911 component tests, typecheck, 51 focused data/token Node checks, four
 controller browsers, Brand QA, cloud build and bundle privacy. Earlier PR CI
 found remaining stale-path/keyboard-clearance/wide-font issues; repair and fresh
 exact-source checks remain required before release.
+## History and pick-focused Prism scorecards — November 7, 2026
+
+Exclusive unpublished branch `codex/prism-history-scorecard-2026-11-07` ports the
+confirmed historical-gap, Guess History, Bets/Older History and paired saved
+Guess scorecard directions. Existing readers, owner/reveal boundaries, saved
+references, authoritative points, paper grading and record-only controls remain.
+[Scope, approval provenance and exact verification](PRISM_HISTORY_SCORECARD_NATIVE_2026_11_07.md)
+link 64 native capture hashes and implementation source hashes. 59 Node / 12
+component checks and 10 scoped handler/PGlite browser checks passed; final
+three-test capture and two-test narrow-layout runs passed, with true saved
+Dark/Light preference, 320/390, representative 768/1440 and forced colors.
+Typecheck, Brand QA, cloud build and bundle privacy passed. Independent parent
+review, held shell placement, actual-account/phone/hosted and release gates
+remain open. No push, PR, merge, deployment or migration apply.
 
 ## League/action list-surface correction — November 7, 2026
 

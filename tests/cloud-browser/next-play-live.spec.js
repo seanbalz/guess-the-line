@@ -75,8 +75,8 @@ test('historical D-16 rules: the landing and the per-game cards show every saved
     const receipt = sent.getByRole('region', { name: /Spread receipt/ });
     await expect(receipt).toBeVisible();
     // The owner's saved line (the stored 3-book median, -2.5 for the first game) is the D-16 reference the server kept.
-    await expect(receipt.locator('.gx-receipt-chip', { hasText: 'Line' })).toContainText('2.5');
-    await expect(receipt.locator('.gx-receipt-chip--you')).toContainText('3');
+    await expect(receipt.locator('.gx-pc-stats > div').first()).toContainText('2.5');
+    await expect(receipt.locator('.gx-pc-value')).toContainText('3');
     await expect(page.getByRole('button', { name: writer })).toHaveCount(0);
     expect(writes).toEqual([]);
     expect(world.errors).toEqual([]);

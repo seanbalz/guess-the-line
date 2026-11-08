@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, signIn, sendBallot, storeBookLines } from './community-world.mjs';
 import { HOSTED } from '../migrations.mjs';
+import { setCaptureTheme } from './theme-capture.mjs';
 
 // These recommendations use fictional saved guesses, retained three-book quotes, the hosted schema plus this
 // release's additive writer on PGlite. The network fixture rejects unmocked external traffic; no real bet is placed.
@@ -159,7 +160,7 @@ for (const width of [390, 320]) test(`two recommended bets save in a row without
     await market(page, 'Totals').click();
     // The first bet is reviewed in dark and the second in light, so each width is seen in both themes.
     for (const [game, theme] of [[first, 'dark'], [second, 'light']]) {
-      await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
+      await setCaptureTheme(page, theme);
       const card = await openTotal(page, game.id);
       await card.getByRole('button', { name: 'Track this bet', exact: true }).click();
       const editor = page.getByRole('dialog', { name: 'Review recommended bet' });
@@ -271,7 +272,7 @@ test('saved guesses rank the top three; expanding retains small gaps and both si
     expect(calls.some(call => call.path.startsWith('odds/') || call.path === 'virtual-units' || call.path === 'virtual-pick')).toBe(false);
 
     for (const theme of ['dark', 'light']) {
-      await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
+      await setCaptureTheme(page, theme);
       for (const width of [390, 320]) {
         await page.setViewportSize({ width, height: 844 });
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${theme} ${width}px fits`).toBe(true);
@@ -581,7 +582,7 @@ test('All, Spreads and Totals filter the full ranked list before the top three, 
     expect(await picksCount(world)).toBe(0);
 
     for (const theme of ['dark', 'light']) {
-      await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
+      await setCaptureTheme(page, theme);
       for (const width of [390, 320]) {
         await page.setViewportSize({ width, height: 844 });
         await page.evaluate(() => scrollTo(0, 0));
@@ -629,7 +630,7 @@ test('a market without eligible recommendations says so, never shows draft guess
     await expect(region(page)).not.toContainText('No differences to show yet');
     await expect(region(page)).toContainText('0 gaps');
     for (const theme of ['dark', 'light']) {
-      await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
+      await setCaptureTheme(page, theme);
       for (const width of [390, 320]) {
         await page.setViewportSize({ width, height: 844 });
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${theme} ${width}px fits`).toBe(true);
@@ -734,25 +735,29 @@ test('D-77: your gaps vs. closing lines grade finished games on the side your gu
     const card = page.getByRole('region', { name: 'Your gaps vs. closing lines', exact: true });
     // Option 1, "Hit rate hero": 5 of 7 decided gaps beat the close, one dot per gap in kickoff order.
     await expect(card).toContainText('71.4%');
-    await expect(card).toContainText('beat the close');
-    await expect(card).toContainText('5–2 · +2.55U at −110');
-    const dots = card.getByRole('list', { name: 'Each gap, in kickoff order' }).getByRole('listitem');
+    await expect(card).toContainText('Gap win rate');
+    await expect(card).toContainText('5–2–0 W–L–P');
+    await expect(card).toContainText('+2.55U');
+    const dots = card.getByRole('list', { name: 'Each gap, in kickoff order' }).getByRole('button');
     await expect(dots).toHaveCount(7);
     expect(await dots.evaluateAll(list => list.map(dot => dot.dataset.outcome))).toEqual(['win', 'win', 'loss', 'loss', 'win', 'win', 'win']);
-    await expect(dots.first()).toHaveAttribute('aria-label', /^\w+ at \w+ spread: Win$/);
+    await expect(dots.first()).toHaveAttribute('aria-label', /^Select gap 1: .+ at .+, spread, Win$/);
     // The fine print opens from the info button.
     await expect(card).not.toContainText('a paper record, not bets placed');
     await card.getByRole('button', { name: 'About your gaps', exact: true }).click();
-    await expect(card).toContainText('a paper record, not bets placed');
-    await expect(card).toContainText('Gaps of 10% or more: 4–2.');
-    await card.getByRole('button', { name: 'About your gaps', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: 'About your gaps' })).toContainText('a paper record, not bets placed');
+    await page.getByRole('dialog', { name: 'About your gaps' }).getByRole('button', { name: 'Close', exact: true }).click();
+    await card.locator('.gx-gap-options summary').click();
+    await card.getByRole('button', { name: '10%+ gaps', exact: true }).click();
+    await expect(card).toContainText('4–2–0 W–L–P');
+    await card.getByRole('button', { name: 'All gaps', exact: true }).click();
     await expect(card).not.toContainText('a paper record, not bets placed');
     await market(page, 'Spreads').click();
     await expect(card).toContainText('75.0%');
-    await expect(card).toContainText('3–1 ·');
+    await expect(card).toContainText('3–1–0 W–L–P');
     await market(page, 'Totals').click();
     await expect(card).toContainText('66.7%');
-    await expect(card).toContainText('2–1 ·');
+    await expect(card).toContainText('2–1–0 W–L–P');
     await market(page, 'All').click();
     await expect(card).toContainText('71.4%');
     const reads = calls.filter(call => call.path === 'lines/read');
@@ -760,16 +765,44 @@ test('D-77: your gaps vs. closing lines grade finished games on the side your gu
     expect(reads.every(call => call.body.season === season && call.body.week === week)).toBe(true);
     expect(placements(calls)).toEqual([]);
     for (const theme of ['dark', 'light']) {
-      await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
-      for (const width of [390, 320]) {
+      await setCaptureTheme(page, theme);
+      for (const width of [320, 390, 768, 1440]) {
         await page.setViewportSize({ width, height: 844 });
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${theme} ${width}px fits`).toBe(true);
         const scan = await new AxeBuilder({ page }).include('.gx-bets').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
         expect(scan.violations.map(issue => ({ id: issue.id, targets: issue.nodes.map(node => node.target) }))).toEqual([]);
-        await card.scrollIntoViewIfNeeded();
-        await page.screenshot({ path: testInfo.outputPath(`gap-record-${theme}-${width}.png`) });
+        await card.locator('.gx-gap-hero').scrollIntoViewIfNeeded();
+        await card.screenshot({ path: testInfo.outputPath(`gap-record-${theme}-${width}.png`) });
       }
     }
+    // Outcome controls share the chart selection; detail/back retains it and the expanded list.
+    await card.getByRole('button', { name: /^Select gap 2:/ }).click();
+    await card.getByRole('button', { name: 'Show all 7 gaps', exact: true }).click();
+    await expect(card.locator('.gx-gap-row')).toHaveCount(7);
+    const readCount = calls.filter(call => call.path === 'lines/read').length;
+    for (const index of [0, 1]) {
+      await card.getByRole('button', { name: 'Gap details', exact: true }).nth(index).click();
+      await expect(card.locator('.gx-gap-detail')).toContainText(index ? 'Total' : 'Spread');
+      await expect(card.locator('.gx-gap-detail')).toContainText('Recorded final');
+      for (const theme of ['dark', 'light']) {
+        await setCaptureTheme(page, theme);
+        for (const width of [320, 390]) {
+          await page.setViewportSize({ width, height: 844 });
+          expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+          await card.locator('.gx-gap-detail').screenshot({ path: testInfo.outputPath(`gap-detail-${index ? 'total' : 'spread'}-${theme}-${width}.png`) });
+        }
+      }
+      await card.getByRole('button', { name: 'Back to gaps', exact: true }).click();
+      await expect(card.getByRole('button', { name: 'Gap details', exact: true }).nth(index)).toBeFocused();
+      await expect(card.getByRole('button', { name: /^Select gap 2:/ })).toHaveAttribute('aria-pressed', 'true');
+      await expect(card.locator('.gx-gap-row')).toHaveCount(7);
+    }
+    await page.setViewportSize({ width: 320, height: 844 });
+    await setCaptureTheme(page, 'dark', { forcedColors: 'active' });
+    await card.screenshot({ path: testInfo.outputPath('gap-record-forced-320.png') });
+    await page.emulateMedia({ forcedColors: 'none' });
+    expect(calls.filter(call => call.path === 'lines/read')).toHaveLength(readCount);
+    expect(placements(calls)).toEqual([]);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

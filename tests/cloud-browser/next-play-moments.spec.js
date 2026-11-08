@@ -103,7 +103,7 @@ test('Monday pending answers refresh from saved references without changing draf
   await page.getByRole('button',{name:'Check for answers',exact:true}).click();
   const kicked=await openGame(page,world.kicked.id);
   await expect(kicked.locator('.gx-lock-receipt')).toContainText('10 / 10');
-  await expect(kicked.locator('.gx-receipt-pair')).toContainText('Line');
+  await expect(kicked.locator('.gx-pc-stats')).toContainText('Saved scoring line');
   const draft=await openGame(page,open.id);
   await expect(draft.locator('.gx-guess-num[data-value="3"]')).toHaveAttribute('aria-checked','true');
   await expect(draft.locator('.gx-lock-receipt')).toHaveCount(0);

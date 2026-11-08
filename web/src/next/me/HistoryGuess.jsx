@@ -13,6 +13,7 @@ import { DASH, fmtFull, SEP } from '../format.js';
 import { picksHidden } from '../copy.js';
 import { HISTORY_MARKETS, MARKET_WORD, changeLines, entryFor, gameRow, weekPointsWords, weekStatus } from './historyFormat.js';
 import { HistoryMatchup } from './HistoryMatchup.jsx';
+import { PickScorecard } from '../ui/PickScorecard.jsx';
 
 export const GUESS_COPY = Object.freeze({
   loading: 'Loading history…',
@@ -124,7 +125,7 @@ function WeekDetail({ week, data, player, mode, own, forfeit, onBack }) {
       {rows.length ? (
         <Card variant="flush" className="gx-history-games">
           <ul className="gx-history-game-list" aria-label={`Week ${week.week} games`}>
-            {rows.map(row => <GameRow key={row.gameId} row={row}/>)}
+            {rows.map(row => <GameRow key={row.gameId} row={row} own={own}/>)}
           </ul>
         </Card>
       ) : null}
@@ -139,7 +140,7 @@ function WeekDetail({ week, data, player, mode, own, forfeit, onBack }) {
   );
 }
 
-function GameRow({ row }) {
+function GameRow({ row, own }) {
   return (
     <li className="gx-history-game" data-game={row.gameId}>
       <details>
@@ -156,7 +157,8 @@ function GameRow({ row }) {
         </summary>
         <div className="gx-vstack gx-gap-8 gx-history-game-body">
           {row.hidden ? <p className="gx-t-body gx-c-2">Hidden until you lock in this game, or at its kickoff.</p> : <>
-            <p className="gx-t-body">Guess{SEP}{row.guess}</p>
+            <PickScorecard game={{ awayCode: row.away, homeCode: row.home }} mode={row.mode} guess={row.guessValue} line={row.lineValue} points={row.pointsValue} own={own}
+              status={row.closedDraft ? 'Closed at kickoff' : row.draft ? 'Draft' : row.locked ? 'Locked in' : 'No guess'} comparisonLabel={row.line?.startsWith('Commissioner-ruled') ? 'Commissioner-ruled line' : 'Saved scoring line'}/>
             {row.line ? <p className="gx-t-body">{row.line}</p> : null}
             {row.late ? <Pill tone="pending">{row.late}</Pill> : null}
             {row.detail.map(line => <p key={line} className="gx-t-meta gx-c-2">{line}</p>)}

@@ -1,0 +1,635 @@
+{
+  "date": "2026-11-07",
+  "status": "local implementation; independent parent review pending",
+  "branch": "codex/prism-history-scorecard-2026-11-07",
+  "integrationBase": "893ee2baf5cae9350f6175abb93417c6021e00a5",
+  "freshOriginMain": "7aa93a6ffe79eafb58bd6c7d12ec230b6d77b0e9",
+  "referenceCommit": "3ac2eb50513ba73447ef890e4a47863cde7bdd76",
+  "referenceHashes": [
+    {
+      "path": "design/style-directions-2026-11-04/SELECTED_DESIGN_HANDOFF.md",
+      "sha256": "e6872b255ad2894e56943dff3ce3d5853431b5b1c1c1f3bd4883ca77a05ef5dd"
+    },
+    {
+      "path": "design/style-directions-2026-11-04/selected-system-review.json",
+      "sha256": "cb235f3e396944f083c9cea87cc60c9d67bafac390b317ccd63e6665537dd236"
+    },
+    {
+      "path": "design/style-directions-2026-11-04/PICK_SCORECARD_REVIEW.md",
+      "sha256": "758aba9a689a931e9926993dc92109f503355419513811bf3ce4aa8e6c2080f4"
+    },
+    {
+      "path": "design/style-directions-2026-11-04/pick-scorecard-review.html",
+      "sha256": "8bd4eae07c85a3964b6cc428f0853155e936dca5d18a9da1b763a92b21322224"
+    },
+    {
+      "path": "design/style-directions-2026-11-04/populated-account-history.css",
+      "sha256": "80bfae4fbf0fb10f0d0573456913f322575c81491492122b1deffa5c805d587e"
+    },
+    {
+      "path": "design/style-directions-2026-11-04/populated-history-records.css",
+      "sha256": "f5d78bab54960043fd20db30d6fe78f49e473f62c62557c9b5ecfb6dd5cf320e"
+    },
+    {
+      "path": "design/style-directions-2026-11-04/populated-gap-record.jsx",
+      "sha256": "d794e6e30c372dd7564820c42490541f56f19d865f017d414c55d20fed07d0ff"
+    },
+    {
+      "path": "design/style-directions-2026-11-04/populated-gap-record.css",
+      "sha256": "4c4bd254e7920fea812f5490bd6c3650c2958a767aa23f61ecbdc1edfb59eeb6"
+    },
+    {
+      "path": "design/style-directions-2026-11-04/HISTORY_BETS_OLDER_REVIEW.md",
+      "sha256": "2e42383e6d65e85537f1014ce21ee92cd79b1fc8d26c097b565b3911fe0a0858"
+    }
+  ],
+  "approvalBasis": "Confirmed owner approval of the exact pick-focused paired composition supersedes stale pending wording in the read-only reference; areas 17 and 41-43 supplied directions already approved.",
+  "scopedImplementation": [
+    "History Guess glass weeks, outlined controls, expanded pick-focused scorecard and retained owner timeline",
+    "History Bets and Older records use scoped native glass, reading sizes and unchanged record/read-only gates",
+    "Locked owner receipt reuses the same pick scorecard, with original provenance, timing, Late marker and weekly navigation",
+    "Historical gap record uses existing graded record/board, existing week/market controls, 10%+ visual filter, native paper-unit chart, linked outcomes, first-six/all list and detail/back focus/scroll"
+  ],
+  "preserved": [
+    "SQL/API/readers/writers and account/reveal/owner/eligibility boundaries",
+    "saved values and authoritative Guess points; no local Guess scoring",
+    "existing GAP_WIN_UNITS convention; gap-paper units are distinct from Guess accuracy and tracked sportsbook tickets",
+    "missing/pending/hidden/ineligible/removed/records-off wording and read-only older records",
+    "global List defaults, shell/header/sport/dock placement, held avatars, NBA, awards, free provider budget and migration state"
+  ],
+  "verification": {
+    "node": "59 passed, zero failed/skipped: next-tokens, next-gap-record-view, next-pick-scorecard, next-history-format, next-league-history, score-history, recommended-bets",
+    "component": "12 passed: next-scoring-ui.test.jsx",
+    "browser": "10 passed in combined scoped contracts; 3 passed final token/CSS capture run; 2 passed final narrow paired-pill/capture refinement. All local PGlite/fictional-account, no skips.",
+    "browserCommand": "npx playwright test --config playwright.prism-history.config.js tests/cloud-browser/next-prism-history.spec.js tests/cloud-browser/next-history.spec.js tests/cloud-browser/next-history-older.spec.js tests/cloud-browser/recommended-bets.spec.js tests/cloud-browser/next-play-live.spec.js tests/cloud-browser/next-play-moments.spec.js tests/cloud-browser/next-per-game-scoring.spec.js --grep \"D-77|Prism History|Guess weeks|Bets weeks|older records for|another member reads|historical D-16 rules|Monday pending answers|one guess locks\"",
+    "finalCaptureRuns": [
+      "npx playwright test --config playwright.prism-history.config.js tests/cloud-browser/next-prism-history.spec.js tests/cloud-browser/recommended-bets.spec.js --grep \"Prism History|D-77\" --output .local/prism-history-final",
+      "npx playwright test --config playwright.prism-history.config.js tests/cloud-browser/next-prism-history.spec.js --output .local/prism-history-supplement"
+    ],
+    "browserCoverage": [
+      "saved ThemeProvider preference plus asserted computed canvas/text tokens before captures",
+      "Dark/Light 320/390/768/1440 and 320 forced colors for representative Guess, Bets, Older and Journal; dark/light 320/390 Spread and Total paper-gap details",
+      "zero/pending/draft/hidden/ineligible/Total, owner/other-member records, removed member, Late, historical totals, record-off/slips fallback",
+      "layout/overflow, native History control 16px and 44px floors, axe, lock-in and weekly link, Monday pending refresh",
+      "paper record chart selection, 10%+ and market filters, expanded list, detail/back focus, selection and scroll retained, no extra reader or placement calls"
+    ],
+    "requiredChecks": [
+      "npm run typecheck passed",
+      "python -X utf8 scripts/check-brand-docs.py passed",
+      "npm run build:cloud passed (existing large-chunk warning)",
+      "npm run check:cloud -- --bundle-only passed",
+      "git diff --check passed"
+    ]
+  },
+  "visualInspection": [
+    "pick-card-dark-320.png",
+    "pick-card-light-390.png",
+    "guess-scorecard-dark-320.png",
+    "guess-scorecard-light-390.png",
+    "gap-detail-spread-light-390.png",
+    "gap-detail-total-dark-320.png"
+  ],
+  "limits": [
+    "Browser fixtures/captures do not establish actual account, physical-device, hosted-data or production-release acceptance.",
+    "Full-page captures retain the current fixed shell/dock, whose placement is held by the parent; cropped pick-card captures also show the entire approved composition.",
+    "Source/CI integration and independent parent review remain required. Full cloud authenticated/hosted checks were not run: this task checkout has no .env.cloud; bundle-only boundary scan passed.",
+    "No push, PR, merge, deployment or migration apply. No held avatar/photo, NBA or award work."
+  ],
+  "sourceHashes": [
+    {
+      "path": "playwright.prism-history.config.js",
+      "sha256": "812191b28ab3a3ecbb5881f38939451b353ff853fcca24a71161b9bf8b725dc7"
+    },
+    {
+      "path": "tests/cloud-browser/next-history-older.spec.js",
+      "sha256": "38b64ef52312d592f6ee61ff3ea2963d221d19f985364b4feb0437eacd1b56ad"
+    },
+    {
+      "path": "tests/cloud-browser/next-history.spec.js",
+      "sha256": "59d9fa1371c7cfc4ff3dd2b52e4ea1ee2e56c646a5ee3e6b4e7b76b38e2a92c9"
+    },
+    {
+      "path": "tests/cloud-browser/next-play-live.spec.js",
+      "sha256": "e8d58171bc1bb2a4dcf550154492d7760176e870eca01bd978ba3bc4b29172eb"
+    },
+    {
+      "path": "tests/cloud-browser/next-play-moments.spec.js",
+      "sha256": "38b0ef5106a42b4fb824495b2076d3aab03b3974758ca14b88d9f5b803cde1c8"
+    },
+    {
+      "path": "tests/cloud-browser/next-prism-history.spec.js",
+      "sha256": "cae00164aca5632e63a31888a80433acbaa8dbbd2d6cd946ee91f3ee3f73cba1"
+    },
+    {
+      "path": "tests/cloud-browser/recommended-bets.spec.js",
+      "sha256": "fa5c71415873fa65252d412c0e4ec29d379e9563de3d597062eff8e104b6f8c0"
+    },
+    {
+      "path": "tests/next-gap-record-view.test.mjs",
+      "sha256": "4fd6416fb67cc147c584c3c340be34c25aab515c23fa89c97a605fec08cd9d79"
+    },
+    {
+      "path": "tests/next-pick-scorecard.test.mjs",
+      "sha256": "d1efcadc027fbc9dc339489ab7acdde5f1458526bf655687d8405645f2992661"
+    },
+    {
+      "path": "tests/next-scoring-ui.test.jsx",
+      "sha256": "53058eea7642e1de38780e637ed70b47d95afc5286ed40e83a2a339352f56064"
+    },
+    {
+      "path": "web/src/next/bets/gapRecord.css",
+      "sha256": "4a8cbef3b867e2034d9535ae543a1e3d399f923cfc6e040a53fc7aa1c3909bbf"
+    },
+    {
+      "path": "web/src/next/bets/GapRecord.jsx",
+      "sha256": "404b292aa84a392d6778ff0d565417080727fccf0f7f4c5c3baa290d1555bff8"
+    },
+    {
+      "path": "web/src/next/bets/gapRecordView.js",
+      "sha256": "ce1badc7ac1372c2876bac1f080afb4accf23658a1fc5624d04cfc4100af6242"
+    },
+    {
+      "path": "web/src/next/me/history.css",
+      "sha256": "d5714c9ad9291c9ec72c9a0f74259b10d76842734384b5c802cdc7839062167c"
+    },
+    {
+      "path": "web/src/next/me/historyFormat.js",
+      "sha256": "9d4b61044f4aca2e3d06918c90ce541e0678607dfaa2848be922899665825e4e"
+    },
+    {
+      "path": "web/src/next/me/HistoryGuess.jsx",
+      "sha256": "3c12e52332cc033934c6f4dac49f7feaa0ccebe0824cd2715547c6da87ac1942"
+    },
+    {
+      "path": "web/src/next/play/ScoreReceipt.jsx",
+      "sha256": "f7ff29f0a70544656f3bd58826d9307f2f75ce924e47574f4038f2474e97588d"
+    },
+    {
+      "path": "web/src/next/ui/pickScorecard.css",
+      "sha256": "2ff2dd5d83eff34e0c40e7f5d2d08d6f7c99cad8fbe0482dcaea9fb0a2fbafdc"
+    },
+    {
+      "path": "web/src/next/ui/pickScorecard.js",
+      "sha256": "ae50340960143ac8f4f0a55c5dd09c6a94792d0824028e4f095638791deee03d"
+    },
+    {
+      "path": "web/src/next/ui/PickScorecard.jsx",
+      "sha256": "662d451b19df1138437a6f80b71ae613956554bc39ea58c8e9ec1a2b446b1bac"
+    },
+    {
+      "path": "web/src/VirtualUnits.jsx",
+      "sha256": "f7f5d7ebe5df6398b522d92d187f94e91a9c6ffdc8a8494b92216f489169619e"
+    }
+  ],
+  "captureCount": 64,
+  "captures": [
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/gap-detail-spread-dark-320.png",
+      "sha256": "54ea4727f963c087a8a93e707db43a5d25c0f4bca699d781194183496b483fea",
+      "width": 288,
+      "height": 743,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/gap-detail-spread-dark-390.png",
+      "sha256": "8c9910b52037a28293d9784d45040a18ba58aac45b81459bcfff434d05d80dab",
+      "width": 358,
+      "height": 681,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/gap-detail-spread-light-320.png",
+      "sha256": "1c5ec35fb3962e3e9bd5730edb2a78e9078f5a09a683b538b8d61fbc8329047f",
+      "width": 288,
+      "height": 743,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/gap-detail-spread-light-390.png",
+      "sha256": "7fcf0c238b2dd8cc7224fb4155defb4f45440ded2d050684e0b48c8101fb22a1",
+      "width": 358,
+      "height": 681,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/gap-detail-total-dark-320.png",
+      "sha256": "b986bf30040a52b37fa40933e68864743e150a93c8d9973f991f5ca81a902f04",
+      "width": 288,
+      "height": 743,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/gap-detail-total-dark-390.png",
+      "sha256": "0c09e0953750ed70a89e463bb5ccf2a8623ecb7756fc1b5dc738fecc9b99efb4",
+      "width": 358,
+      "height": 657,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/gap-detail-total-light-320.png",
+      "sha256": "900af50ca246152a9d63b02561abeeac3afb0fa305d087d2bdf5b6047fea54c9",
+      "width": 288,
+      "height": 743,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/gap-detail-total-light-390.png",
+      "sha256": "4bf5c5d40c1c8ccbe9dc5a090446d08d0c906e99d52d3d536fedca308ece832b",
+      "width": 358,
+      "height": 657,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/gap-record-dark-1440.png",
+      "sha256": "df5bfc53f01eb3f9654147a313f95de15b302bc3fda8c567a8e5a2284624d657",
+      "width": 488,
+      "height": 3092,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/gap-record-dark-320.png",
+      "sha256": "4ee371936878ec003381a23a3ec3c0985c2768402c2c96a7cb01449e1d3efe1b",
+      "width": 288,
+      "height": 4222,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/gap-record-dark-390.png",
+      "sha256": "110dc02f685f7fd1dd9f0a85fdf6c2f408a645d470b6a97e18b8285836c3726f",
+      "width": 358,
+      "height": 3462,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/gap-record-dark-768.png",
+      "sha256": "5c649849ead84c7950e3a25d6fbc0067587faa95f463c8878779bf68e1e13d03",
+      "width": 488,
+      "height": 3092,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/gap-record-forced-320.png",
+      "sha256": "04b0ab6c109a50ffd58d0dfda3df78c198d290de516ee4ef582f8ced2b5138f3",
+      "width": 288,
+      "height": 4772,
+      "theme": "forced-colors"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/gap-record-light-1440.png",
+      "sha256": "c49e0c4ccbe0349145c443883c60e4e9be87f0b63621d0485eaac536b40774f0",
+      "width": 488,
+      "height": 3092,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/gap-record-light-320.png",
+      "sha256": "008a43f459e3061a6b417a050e3b9cb338021af541b6805159b3fb41bdbb5e42",
+      "width": 288,
+      "height": 4222,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/gap-record-light-390.png",
+      "sha256": "4f18d3c896d30161fd96228b665114fa918db67466bc8e442ccea794a8f861b1",
+      "width": 358,
+      "height": 3462,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/gap-record-light-768.png",
+      "sha256": "7a3228a2008d588b3ce67f835fa41dcc7e1b09ab7c61c5b474f0f60a142c89b0",
+      "width": 488,
+      "height": 3092,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/guess-scorecard-dark-1440.png",
+      "sha256": "2ff72ee993c638f8055f04e46ed7688dea93ca9c339e3c0384288a4dbc0b6e27",
+      "width": 1440,
+      "height": 2093,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/guess-scorecard-dark-320.png",
+      "sha256": "b9615559a56713ee3b79cbb3b216580f0eeb378627f5f8d0bd91f06ce0cbe8b8",
+      "width": 320,
+      "height": 2259,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/guess-scorecard-dark-390.png",
+      "sha256": "4af8d6efcbc3c95d45f33a8d9bd614125525095c8c27045729f34ddbc3ff1e70",
+      "width": 390,
+      "height": 2093,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/guess-scorecard-dark-768.png",
+      "sha256": "4c59e4bbfa60899a0bb977fde1757afaf0395ed0d2ec85851b0b231c3f4942bd",
+      "width": 768,
+      "height": 2093,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/guess-scorecard-forced-320.png",
+      "sha256": "ba58c8b170132b129b5b375e93adeb20e17131ee4755c8e24029c8b7f60694f8",
+      "width": 320,
+      "height": 2259,
+      "theme": "forced-colors"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/guess-scorecard-light-1440.png",
+      "sha256": "4afdf04e5b5b9ad69a8bfb71cc7e7bdcaac4ea2fd3c484308be7f6156dbacd5f",
+      "width": 1440,
+      "height": 2093,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/guess-scorecard-light-320.png",
+      "sha256": "fd6aa3ed3f7dff03a605788d22772c073caf67073fbc08e1f5b00a093159be3d",
+      "width": 320,
+      "height": 2259,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/guess-scorecard-light-390.png",
+      "sha256": "49869441ea6ed0f09014bfb02cabade2d612907b2bd343e37f2d94d7c3c55939",
+      "width": 390,
+      "height": 2093,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/guess-scorecard-light-768.png",
+      "sha256": "ca68e23acdf3ede4cd683fa657bb37695af5098ed2a7a9d171b432cad58a1a1d",
+      "width": 768,
+      "height": 2093,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/guess-total-light-320.png",
+      "sha256": "c5c4a28d1f8621d176a92b5538e735a266f4bf1fd81aaad857449c5d5e03a92e",
+      "width": 320,
+      "height": 3533,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-bets-dark-1440.png",
+      "sha256": "b3638226776a8d604dc966cb0b736c088e9ad832bdc8ee206cf0f828339f26c4",
+      "width": 1440,
+      "height": 909,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-bets-dark-320.png",
+      "sha256": "55ea7d4fdb7baae07158d22f53afbaffe820a6ccddac8f0ef177a63099f5cf4c",
+      "width": 320,
+      "height": 1033,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-bets-dark-390.png",
+      "sha256": "0350d06f9a54c99c360f3ed66b3981632f1c31636311891b4e4af826e45ea6f8",
+      "width": 390,
+      "height": 985,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-bets-dark-768.png",
+      "sha256": "a92cf02ae0da8cf9702d9bf76e5e257cbf9c8ae217d682220fe8e127f10aa0ef",
+      "width": 768,
+      "height": 909,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-bets-forced-320.png",
+      "sha256": "fd6bc029851fa09a056a4859b1ded264add9d23ed2b6b641777a541c3f457970",
+      "width": 320,
+      "height": 1033,
+      "theme": "forced-colors"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-bets-light-1440.png",
+      "sha256": "74363b428e339f35015eb1648ad778b85eff23196801b7202dff96d374980d75",
+      "width": 1440,
+      "height": 909,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-bets-light-320.png",
+      "sha256": "79475d9618ae7424abb3acce609e28f68db6a757113d7f5c3734af2be95417cc",
+      "width": 320,
+      "height": 1033,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-bets-light-390.png",
+      "sha256": "d3e54369983a5d7b9a1e64f2b4648769e04b6c685a0319493d1b8feb1821586e",
+      "width": 390,
+      "height": 985,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-bets-light-768.png",
+      "sha256": "52e54e1fd3f1a40bc464f85a5bc72f337b4eca3be760393324bc3b5db349efe5",
+      "width": 768,
+      "height": 909,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-journal-dark-1440.png",
+      "sha256": "0cb671bf03259009f5542b9ac257f37890a9e94747e06705c833f72a70a1a446",
+      "width": 1440,
+      "height": 1247,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-journal-dark-320.png",
+      "sha256": "c1e9793f5bca4afcbd7c783fbc1f1447f5ed93f43b25637e2a6ca2e476d6c053",
+      "width": 320,
+      "height": 1415,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-journal-dark-390.png",
+      "sha256": "34519737da27b01c0af60bcc82e7931949c090cdc3db5ed9e5b61c81d6ce266b",
+      "width": 390,
+      "height": 1279,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-journal-dark-768.png",
+      "sha256": "6bb198dc49466c7084c335a5a01b87a61daff1149b14a88581fad84759af17e0",
+      "width": 768,
+      "height": 1247,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-journal-forced-320.png",
+      "sha256": "4c322ed1667fdab2c345d8f40a1214256cd975770985a352b92ef52d85edc9d7",
+      "width": 320,
+      "height": 1415,
+      "theme": "forced-colors"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-journal-light-1440.png",
+      "sha256": "fbb9d8f9ee78b46c0d004cd572d6ba62af3cd715c1f851b4ff2ba543f52d82e7",
+      "width": 1440,
+      "height": 1247,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-journal-light-320.png",
+      "sha256": "827c58495cac2b7e1048b824f661d14caa569baf7ee263af0e4741bc19cb2103",
+      "width": 320,
+      "height": 1415,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-journal-light-390.png",
+      "sha256": "bcc82c2e26e81d2aa6adfffcf698605383b59cb77970b2cdbf52eb5a2f6375c1",
+      "width": 390,
+      "height": 1279,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-journal-light-768.png",
+      "sha256": "a6d6dafc2573ccdcd17911d1d947eb2694d321a3b7b01fc0a4c508bc174df7d0",
+      "width": 768,
+      "height": 1247,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-older-dark-1440.png",
+      "sha256": "5ef62d5b5e59e0b3fc292359baf086dd86094377c4693e060b5f52e54e0be168",
+      "width": 1440,
+      "height": 1063,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-older-dark-320.png",
+      "sha256": "940f5adb3bad7d38d1fb10f6b7a4ef74874b24a7a3a145274f66adb9d52997d6",
+      "width": 320,
+      "height": 1081,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-older-dark-390.png",
+      "sha256": "334b91f775ddc850933fd2b192a330e25a3cab7b53c248ca233d5204e0efad7e",
+      "width": 390,
+      "height": 1063,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-older-dark-768.png",
+      "sha256": "3f0defb05f6ad63ccdad73a0e63177b52530f6f4af564b165891b383ece0cefb",
+      "width": 768,
+      "height": 1063,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-older-forced-320.png",
+      "sha256": "bde8514f0a19c9ef1b8ec2f1ddaa2dcdbb6c7321a8218e1c4912d6c5286a6710",
+      "width": 320,
+      "height": 1081,
+      "theme": "forced-colors"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-older-light-1440.png",
+      "sha256": "083fb033bf961fe95ed55668759157ae9b817be461e92765232b7d31a1be902f",
+      "width": 1440,
+      "height": 1063,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-older-light-320.png",
+      "sha256": "4916209f90100401b17c0d87d2316dfa33e231925e9818f0b731ef9527b3bcea",
+      "width": 320,
+      "height": 1081,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-older-light-390.png",
+      "sha256": "22c710c315d3555def745035b4114e53ad38dd7fb4d0e07ee3c337674ae3b410",
+      "width": 390,
+      "height": 1063,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-older-light-768.png",
+      "sha256": "1b9c26812889c42a1770bc973abce52817e8695c36caad02e3384c5edc6df8ac",
+      "width": 768,
+      "height": 1063,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-records-off-dark-320.png",
+      "sha256": "20694436befc755c80f30aabc5f32a5ec36d192571f49a7549531f2f69b77bc5",
+      "width": 320,
+      "height": 900,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/history-records-off-light-320.png",
+      "sha256": "e1a156a82ff67b664bda229b95b7ee585a8f87e8e0f4784b88c4fdd23f4131e0",
+      "width": 320,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/pick-card-dark-1440.png",
+      "sha256": "352a10d1b9671ec5e3e99b7e7776d63a27803e77679e86ced8e84738a1d43b0b",
+      "width": 448,
+      "height": 569,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/pick-card-dark-320.png",
+      "sha256": "5e7546ec4795595cbd2349c412c804fd270ceb79f1c849a3fbf54369c31206a9",
+      "width": 264,
+      "height": 621,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/pick-card-dark-390.png",
+      "sha256": "e649484f6aaba34c4ebb4792ccaed39d982fc0f86273abe22871027f68dde913",
+      "width": 318,
+      "height": 569,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/pick-card-dark-768.png",
+      "sha256": "bd903cc4bf669798550534e73b6c259fdaf9c12baac3f4d7bde3fe3029aa7908",
+      "width": 448,
+      "height": 569,
+      "theme": "dark"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/pick-card-light-1440.png",
+      "sha256": "880a4439b962c3968647fabc8b10ba9907e2a02dc3fa409d9e8f32e6d9fa8dde",
+      "width": 448,
+      "height": 569,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/pick-card-light-320.png",
+      "sha256": "4c8e7d05f4e3836782dc169386492e4ab7975a5730a1fb84e3fa308efac40de6",
+      "width": 264,
+      "height": 621,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/pick-card-light-390.png",
+      "sha256": "4a6f668ebe1b2065efcf1f24286b105fa46d33041fb8d159ac5a5261e4fc3ca8",
+      "width": 318,
+      "height": 569,
+      "theme": "light"
+    },
+    {
+      "path": "design/prism-history-scorecard-native-2026-11-07/pick-card-light-768.png",
+      "sha256": "d5237ef0913008619af01120bd98f6ea66ef52b8834e25c677c6d80614ddd425",
+      "width": 448,
+      "height": 569,
+      "theme": "light"
+    }
+  ]
+}

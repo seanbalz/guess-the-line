@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowDown, ArrowUp, Check, ChevronDown, Circle, CircleCheckBig, Clock3, Eye, Info, Lock, Minus, Plus, RefreshCw, ShieldCheck, TrendingUp } from 'lucide-react';
+import { ArrowDown, ArrowUp, Check, ChevronDown, Circle, CircleCheckBig, Clock3, Eye, Lock, Minus, Plus, RefreshCw, ShieldCheck, TrendingUp } from 'lucide-react';
 import { cloudApi, date, linesApi, signed } from './api';
 import { lockSentence } from './lineLock';
 import { buildRecommendations, gapRecord, recommendationList, recommendationMarket } from '../../shared/recommended-bets.mjs';
 import { RecommendationTrendDetail, useRecommendationTrends } from './RecommendationTrends.jsx';
 import './recommendedBets.css';
+import { GapRecord } from './next/bets/GapRecord.jsx';
 
 const STAKES = [0.5, 1, 1.5, 2, 2.5, 3];
 const money = value => value == null ? '—' : Number(value) > 0 ? `+${value}` : `−${Math.abs(value)}`;
@@ -38,27 +39,6 @@ export const BETS_VISIBLE_NOTE = "Coming soon: everyone in the league will see e
 
 function Stat({ label, value, detail }) { return <div className="stat"><span>{label}</span><strong>{value}</strong><small>{detail}</small></div>; }
 
-// D-77 (Sean, November 3, 2026: "Your gaps' paper record", then option 1, "Hit rate hero"): one hero card with the share
-// of your decided gaps that beat the closing line (W / (W + L), as D-75's win rate), the record and units, and one dot per
-// graded gap in kickoff order. The fine print opens from its info button. Your own /lines/read only (gapRecord).
-const GAP_WORDS = { win: ['W', 'Win'], loss: ['L', 'Loss'], push: ['P', 'Push'] };
-function GapRecord({ record, week }) {
-  const [about, setAbout] = useState(false);
-  const decided = record.wins + record.losses, waiting = record.notGraded.noFinal + record.notGraded.noLine, favorable = record.favorable;
-  const rate = decided ? `${(record.wins / decided * 100).toFixed(1)}%` : '—';
-  const tally = value => `${value.wins}–${value.losses}${value.pushes ? `–${value.pushes}` : ''}`;
-  return <section className="gx-card gx-card--hero recommended-gap-hero" aria-label="Your gaps vs. closing lines">
-    <div className="recommended-gap-top"><span className="gx-t-micro">Your gaps · Week {week}</span>
-      <button type="button" className="recommended-gap-about" aria-label="About your gaps" aria-expanded={about} onClick={() => setAbout(open => !open)}><Info size={20} aria-hidden="true"/></button></div>
-    {record.graded.length ? <>
-      <div className="recommended-gap-rate"><span className="gx-n-xl">{rate}</span><span className="gx-t-body">beat the close</span></div>
-      <p className="gx-t-meta">{tally(record)} · {units(record.netUnits)} at −110</p>
-      <ol className="recommended-gap-dots" aria-label="Each gap, in kickoff order">{record.graded.map(gap => <li key={`${gap.gameId}:${gap.market}`} data-outcome={gap.outcome}
-        aria-label={`${gap.gameId.replace('-', ' at ')} ${gap.market === 'spread' ? 'spread' : 'total'}: ${GAP_WORDS[gap.outcome][1]}`}><span aria-hidden="true">{GAP_WORDS[gap.outcome][0]}</span></li>)}</ol>
-    </> : <p className="gx-t-body">No finished games with a gap yet.</p>}
-    {about && <p className="gx-t-meta">Each locked guess that differed from the last three-book line before kickoff, graded on the side your guess favored: a paper record, not bets placed. 1 U a gap at −110. Gaps of 10% or more: {tally(favorable)}.{waiting ? ` ${waiting} not graded yet.` : ''}</p>}
-  </section>;
-}
 function closedReviewReason(game, now, result) {
   if (!game || !Number.isFinite(Date.parse(game.kickoff))) return 'Matchup unavailable';
   if (Date.parse(game.kickoff) <= now) return 'Kickoff reached';
@@ -273,7 +253,7 @@ export default function VirtualUnits({ leagueId, accountId, onDirty, onSaved, on
       {settledCount > 0 && data.settlement?.lastSettledAt && <p className="virtual-settlement-note" role="status"><CircleCheckBig size={15}/>{settledCount} settled pick{settledCount === 1 ? '' : 's'}{data.summary.pending ? ` · ${data.summary.pending} still pending` : ''} · finals as of {date(data.settlement.lastSettledAt)} PT</p>}
       <div className="virtual-game-grid">{data.games.map(game => <GameCard key={game.id} game={game} result={data.results?.[game.id]} picks={picks} selections={selections} choose={choose} changeUnits={changeUnits} save={save} busy={busy || loading || Boolean(uncertain)} rules={data.rules}/>)}</div></>}
     {view === 'recommended' && data && !loading && <section className="recommended-bets" aria-label="Recommended bets">
-      {gaps && <GapRecord record={gaps} week={data.week}/>}
+      {gaps && <GapRecord key={`${accountId}:${gapWeek}:${market}`} record={gaps} board={gapBoard.board} week={data.week}/>}
       {historical ? <p className="recommended-source" role="status">Viewing {data.season} Week {data.week}{data.picks?.length ? '' : ' · No saved virtual picks this week.'}</p>
         : !personal ? <p className="loading" role="status">Loading your saved guesses…</p>
         : recommendations.status !== 'ready' ? <div className="recommended-empty" role="status"><p>Your guesses and these lines are not available for the same week.</p><button className="secondary" onClick={refresh}>Refresh recommendations</button></div>

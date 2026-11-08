@@ -28,3 +28,42 @@
 .gx .gx-history-more[open] > summary { margin-bottom: var(--gx-space-2); }
 .gx .gx-history-snapshot .gx-history-more > summary { flex-direction: column; align-items: flex-start; justify-content: center; color: var(--gx-text-1); padding-block: var(--gx-space-1); }
 .gx .gx-history-snapshot + .gx-history-snapshot { border-top: 1px solid var(--gx-border); padding-top: var(--gx-space-3); }
+/* Scoped native History presentation. Controllers, records and hidden values retain their existing paths. */
+.gx .gx-history { gap:var(--gx-space-6); }
+.gx .gx-history :is(.gx-card,.gx-history-game,.gx-history-note) { background:var(--gx-card-face); border:1px solid var(--gx-glass-line); box-shadow:var(--gx-glass-shadow); backdrop-filter:var(--gx-glass-blur); }
+.gx .gx-history .gx-card--flush { padding:6px; }
+.gx .gx-history .gx-list { gap:var(--gx-space-3); background:transparent; border:0; box-shadow:none; }
+.gx .gx-history :is(.gx-row,.gx-link-row) { min-height:76px; padding:var(--gx-space-4) var(--gx-space-3); border:1px solid var(--gx-glass-line); border-radius:var(--gx-radius-sm); background:var(--gx-card-face); }
+.gx .gx-history :is(.gx-row-title,.gx-link-row,.gx-history-more>summary,.gx-history-up) { font-size:16px; line-height:24px; }
+.gx .gx-history :is(.gx-row-sub,.gx-t-meta) { font-size:13px; line-height:20px; }
+.gx .gx-history .gx-row-main { gap:var(--gx-space-2); }
+.gx .gx-history .gx-row-end { max-width:40%; white-space:normal; }
+.gx .gx-history .gx-row { flex-wrap:wrap; }
+.gx .gx-history .gx-row-main { min-width:100px; }
+.gx .gx-history .gx-link-row { gap:var(--gx-space-3); }
+.gx .gx-history .gx-link-row>.gx-ic { flex:none; }
+.gx .gx-history [data-week-points] { color:var(--gx-accent-ink); font-size:24px; line-height:32px; }
+.gx .gx-history :is(.gx-chip,.gx-seg-btn) { font-size:16px; line-height:24px; min-height:44px; }
+.gx .gx-history .gx-seg { padding:var(--gx-space-1); gap:var(--gx-space-1); }
+.gx .gx-history-game-list { display:grid; gap:var(--gx-space-3); }
+.gx .gx-history-game { border-radius:var(--gx-radius-sm); overflow:hidden; }
+.gx .gx-history-game-head { flex-wrap:wrap; min-height:88px; padding:var(--gx-space-4) var(--gx-space-3); }
+.gx .gx-history-game-head>.gx-grow { min-width:130px; gap:var(--gx-space-2); }
+.gx .gx-history-game-head .gx-history-game-end { margin-left:auto; }
+.gx .gx-history-game-head .gx-history-chev { margin-left:auto; }
+.gx .gx-history-game-body { gap:var(--gx-space-3); padding:0 var(--gx-space-3) var(--gx-space-4); }
+.gx .gx-history-games { background:transparent; box-shadow:none; border:0; backdrop-filter:none; }
+.gx .gx-history-changes>li { gap:var(--gx-space-3); padding:var(--gx-space-4); border:1px solid var(--gx-border); border-left:3px solid var(--gx-accent-ink); border-radius:4px var(--gx-radius-sm) var(--gx-radius-sm) 4px; background:var(--gx-card-face); }
+.gx .gx-history [data-closed-draft] { padding:var(--gx-space-4); border:1px solid var(--gx-border); border-radius:var(--gx-radius-sm); background:var(--gx-card-face); }
+.gx .gx-history .gx-history-note { padding:var(--gx-space-4); }
+.gx .gx-history .gx-history-more>summary { min-height:48px; }
+.gx .gx-history .gx-history-plain { gap:var(--gx-space-5); }
+.gx .gx-history [data-journal-summary]>.gx-t-strong { color:var(--gx-accent-ink); font-size:24px; line-height:32px; }
+@media(forced-colors:active) { .gx .gx-history :is(.gx-card,.gx-history-game,.gx-row,.gx-link-row,.gx-history-note) { background:Canvas; border-color:CanvasText; box-shadow:none; backdrop-filter:none; } .gx .gx-history .gx-list { background:transparent; } .gx .gx-history-changes>li { border-left-color:Highlight; } }
+/* Keep view/player selectors in the approved outlined glass recipe. */
+.gx .gx-history .gx-chip--on { border:2px solid var(--gx-accent-ink); background:var(--gx-card-face); color:var(--gx-accent-ink); }
+.gx .gx-history .gx-seg { border:1px solid var(--gx-glass-line); border-radius:23px; background:var(--gx-card-face); box-shadow:var(--gx-glass-shadow); }
+.gx .gx-history .gx-seg-btn { border:1px solid transparent; border-radius:16px; padding:8px; }
+.gx .gx-history .gx-seg-btn--on { border-color:var(--gx-accent-ink); color:var(--gx-accent-ink); background:var(--gx-card-face); }
+.gx .gx-history .gx-history-bets-end>.gx-t-meta { font-size:16px; line-height:24px; }
+.gx .gx-history .gx-back-btn { font-size:16px; line-height:24px; min-height:44px; }
