@@ -10,6 +10,7 @@
 //   (`/results/review`, `/odds/preflight`, `/odds/collect`).
 // - EPL stat corrections: read-only original/corrected totals and preserved draft context; loaded only when opened.
 // The code loads only when the commissioner opens the tools.
+import { CalendarDays, ClipboardList, Coins, Plug, ShieldCheck } from 'lucide-react';
 import { lazy, Suspense, useCallback, useEffect, useId, useRef, useState } from 'react';
 import { cloudApi, communityApi, officialsApi } from '../../../api.js';
 import { rememberOfficial } from '../../../trendsLoaders.js';
@@ -21,6 +22,7 @@ import { useShell } from '../../shell/context.js';
 import { Button, Card, DESTINATION_ICONS as ICON, LinkRow, List, Pill, Sheet, Skeleton } from '../../ui/index.js';
 import { FinalScoresEditor, oddsScheduleText } from './LegacyTools.jsx';
 import { OddsConnection } from './OddsConnection.jsx';
+import { ToolHeading, ToolMatchup } from './ToolPresentation.jsx';
 import './commissioner.css';
 const EplCorrectionReviews = lazy(() => import('./EplCorrectionReviews.jsx'));
 
@@ -69,7 +71,8 @@ function Problem({ children }) {
 
 function Hub({ open }) {
   return <>
-    <Card variant="flush"><List>
+    <div className="gx-cm-intro"><ToolHeading icon={ShieldCheck} detail="Member access, weekly operations and source reviews">Community administration</ToolHeading></div>
+    <Card variant="flush" className="gx-cm-menu"><List>
       {COMMISSIONER_COPY.tools.map(tool => <LinkRow key={tool.id} icon={tool.icon} onClick={() => open(tool.id)}>{tool.label}</LinkRow>)}
     </List></Card>
   </>;
@@ -85,7 +88,7 @@ function WeekOpeningStatus() {
   const state = failed ? 'Unavailable' : !status ? 'Loading…' : status.enabled ? 'Enabled' : status.configured ? 'Disabled' : 'Not configured';
   const last = status?.lastRunAt ? `Last run ${fmtFull(status.lastRunAt)} · ${status.lastStatus}${status.lastReason ? ` (${status.lastReason.replaceAll('_', ' ')})` : ''}` : status ? 'No runs yet' : '';
   return <Card className="gx-cm-stack" data-status="week-open">
-    <h3 className="gx-t-strong">Automatic week opening</h3>
+    <ToolHeading icon={CalendarDays} detail="Mondays 12:00 AM PT">Automatic week opening</ToolHeading>
     <p className="gx-t-body"><Pill tone={status?.enabled ? 'win' : 'pending'}>{state}</Pill></p>
     <p className="gx-t-meta gx-c-2">Mondays 12:00 AM PT{last ? ` · ${last}` : ''}</p>
   </Card>;
@@ -129,20 +132,21 @@ function Status({ app, week }) {
   return <>
     <WeekOpeningStatus/>
     <Card className="gx-cm-stack" data-status="odds">
-      <h3 className="gx-t-strong">Odds refresh</h3>
+      <ToolHeading icon={Plug}>Odds refresh</ToolHeading>
       <p className="gx-t-body">{triple.loading ? 'Loading…' : odds.label}</p>
-      <p className="gx-t-meta gx-c-2">{triple.loading ? '' : odds.details}</p>
+      <details className="gx-cm-details"><summary>Schedule details</summary><p className="gx-t-body gx-c-2">{triple.loading ? '' : odds.details}</p></details>
     </Card>
     <Card className="gx-cm-stack" data-status="settlement">
-      <h3 className="gx-t-strong">Virtual Units settlement{target ? ` · Week ${target.week}` : ''}</h3>
+      <ToolHeading icon={Coins} detail={target ? `Week ${target.week}` : undefined}>Virtual Units settlement</ToolHeading>
       {virtual.loading ? <p className="gx-t-body">Loading…</p> : virtual.data ? <>
-        <p className="gx-t-body">{settlement?.settledGames ? `${settlement.settledGames} of ${virtual.data.games?.length ?? '—'} games settled` : 'No games settled yet'}</p>
+        <div className="gx-cm-settled-count"><strong>{settlement?.settledGames ?? 0}<small> / {virtual.data.games?.length ?? '—'}</small></strong><span className="gx-t-body">{settlement?.settledGames ? `${settlement.settledGames} of ${virtual.data.games?.length ?? '—'} games settled` : 'No games settled yet'}</span></div>
+        {!!virtual.data.games?.length && <meter className="gx-cm-meter" aria-label="Games settled" min={0} max={virtual.data.games.length} value={settlement?.settledGames ?? 0}/> }
         <p className="gx-t-meta gx-c-2">{settlement?.lastSettledAt ? `Finals as of ${fmtFull(settlement.lastSettledAt)}` : 'Finals settle after each results refresh.'}</p>
       </> : <p className="gx-t-body">Settlement status unavailable.</p>}
       <Problem>{problem}</Problem>
       <p className="gx-t-body" role="status">{notice}</p>
       {uncertain ? <Button disabled={busy} onClick={check}>Check saved results</Button>
-        : <Button disabled={busy || !target} onClick={settle}>{busy ? 'Settling…' : 'Settle finals now'}</Button>}
+        : <Button variant="primary" disabled={busy || !target} onClick={settle}>{busy ? 'Settling…' : 'Settle finals now'}</Button>}
     </Card>
   </>;
 }
@@ -152,6 +156,7 @@ function Status({ app, week }) {
 function WeekOpening({ app, week, notice: carried = '', onNotice }) {
   const id = useId();
   const [season, setSeason] = useState(String(week?.season || new Date().getFullYear())), [number, setNumber] = useState(String((week?.week || 0) + 1));
+  const [allGames, setAllGames] = useState(false);
   const [preview, setPreview] = useState(null), [busy, setBusy] = useState(false), [problem, setProblem] = useState(''), [notice, setNoticeState] = useState(carried);
   const setNotice = message => { setNoticeState(message); onNotice?.(message); };
   const live = useRef(true);
@@ -171,9 +176,9 @@ function WeekOpening({ app, week, notice: carried = '', onNotice }) {
     } catch (failure) { if (live.current) setProblem(plain(failure)); }
     finally { if (live.current) setBusy(false); }
   }
-  const edit = setter => event => { setter(event.target.value); setPreview(null); };
+  const edit = setter => event => { setter(event.target.value); setPreview(null); setAllGames(false); };
   return <>
-    <p className="gx-t-body gx-c-2">Weeks open automatically Mondays at 12:00 AM PT. Review the public NFL schedule here, or publish early if the automatic opening fails. Nothing changes until you publish.</p>
+    <p className="gx-t-body gx-c-2">Weeks open automatically Mondays at 12:00 AM PT. Review the public National Football League schedule here, or publish early if the automatic opening fails. Nothing changes until you publish.</p>
     <div className="gx-cm-fields">
       <label className="gx-t-label" htmlFor={`${id}-season`}>Season<input id={`${id}-season`} className="gx-input gx-n-s" type="number" inputMode="numeric" min={2000} max={2200} value={season} disabled={busy} onChange={edit(setSeason)}/></label>
       <label className="gx-t-label" htmlFor={`${id}-week`}>Week<input id={`${id}-week`} className="gx-input gx-n-s" type="number" inputMode="numeric" min={1} max={25} value={number} disabled={busy} onChange={edit(setNumber)}/></label>
@@ -182,11 +187,12 @@ function WeekOpening({ app, week, notice: carried = '', onNotice }) {
     <Problem>{problem}</Problem>
     <p className="gx-t-body" role="status">{notice}</p>
     {preview && <Card className="gx-cm-stack" data-preview>
-      <h3 className="gx-t-strong">Week {preview.week} · {preview.games.length} games</h3>
+      <ToolHeading icon={CalendarDays}>Week {preview.week} · {preview.games.length} games</ToolHeading>
       <ul className="gx-cm-games" aria-label={`Week ${preview.week} schedule`}>
-        {preview.games.map(game => <li key={game.id}><span className="gx-t-strong">{game.matchup}{game.neutral ? ' (neutral)' : ''}</span><span className="gx-t-meta gx-c-2">{fmtFull(game.kickoff)}</span></li>)}
+        {preview.games.slice(0, allGames ? undefined : 3).map(game => <li key={game.id}><ToolMatchup game={game}/><span className="gx-t-strong">{game.matchup}{game.neutral ? ' (neutral)' : ''}</span><span className="gx-t-meta gx-c-2">{fmtFull(game.kickoff)}</span></li>)}
       </ul>
-      <p className="gx-t-meta gx-c-2">Picks lock {fmtFull(preview.deadline)}</p>
+      {preview.games.length > 3 && <><p className="gx-t-meta gx-c-2">Showing {allGames ? preview.games.length : 3} of {preview.games.length} games</p><Button aria-expanded={allGames} onClick={() => setAllGames(!allGames)}>{allGames ? 'Show first 3 games' : `Show all ${preview.games.length} games`}</Button></>}
+      <p className="gx-t-body gx-c-2">Picks lock {fmtFull(preview.deadline)}</p>
       <Button variant="primary" block disabled={busy} onClick={() => run('publish')}>{busy ? 'Publishing…' : `Publish Week ${preview.week}`}</Button>
     </Card>}
   </>;
@@ -196,6 +202,7 @@ function Referees({ app, week }) {
   const id = useId();
   const season = week?.season, number = week?.week;
   const trends = useTrendWeek(season, number, Boolean(week), app.accountId);
+  const [allGames, setAllGames] = useState(false);
   const [hosted, setHosted] = useState(null), [state, setState] = useState('loading'), [drafts, setDrafts] = useState({});
   const [busy, setBusy] = useState(false), [notice, setNotice] = useState(''), [problem, setProblem] = useState('');
   useEffect(() => {
@@ -229,23 +236,25 @@ function Referees({ app, week }) {
     } finally { setBusy(false); }
   }
   return <>
-    <p className="gx-t-body gx-c-2">Week {number}. Pick each game’s referee once the NFL announces crews. Every member’s trends then show that referee’s records. Changes are kept with their history, never deleted.</p>
+    <p className="gx-t-body gx-c-2">Week {number}. Pick each game’s referee once the National Football League announces crews. Every member’s trends then show that referee’s records. Changes are kept with their history, never deleted.</p>
     {trends.status === 'loading' && <Skeleton label={`Loading Week ${number} games…`} shape="panels" count={2}/>}
     {trends.status === 'missing' && <p className="gx-t-body" role="status">The Week {number} trends file is not published yet, so there is no game or referee list to choose from.</p>}
     {trends.status === 'error' && <div role="alert" className="gx-cm-stack"><p className="gx-t-body gx-cm-problem">The Week {number} games could not load.</p><Button onClick={trends.retry}>Retry</Button></div>}
     {state === 'not_deployed' && <p className="gx-t-body" role="status">Saving referees needs the next gtl-api deploy and the game officials migration.</p>}
     <Problem>{problem}</Problem>
+    {trends.status === 'ready' && <div className="gx-cm-ref-summary"><ToolHeading icon={ClipboardList} detail={`${season} · Week ${number}`}>{games.length} games</ToolHeading><span className="gx-cm-draft-count"><strong>{changed.length}</strong><span>draft{changed.length === 1 ? '' : 's'}</span></span></div>}
     {trends.status === 'ready' && <form className="gx-cm-stack" aria-label="Game referees" onSubmit={event => { event.preventDefault(); void save(); }}>
-      {games.map(game => {
+      {games.slice(0, allGames ? undefined : 3).map(game => {
         const value = Object.hasOwn(drafts, game.id) ? drafts[game.id] : current(game.id), selectId = `${id}-${game.id}`;
         const extra = value && !options.includes(value) ? [value] : [];
-        return <label key={game.id} className="gx-t-label gx-cm-field" htmlFor={selectId}>Referee for {game.away} at {game.home}
-          <select id={selectId} className="gx-input" value={value} disabled={state !== 'ready'} aria-disabled={busy || undefined} onChange={event => { if (!busy) setDrafts(d => ({ ...d, [game.id]: event.target.value })); }}>
+        return <article key={game.id} className="gx-cm-ref-game" data-dirty={value !== current(game.id)}><div className="gx-cm-ref-top"><ToolMatchup game={game}/><span className="gx-t-meta">{value !== current(game.id) ? 'Draft' : value ? 'Current' : 'Not assigned'}</span></div><h3 className="gx-t-strong">{game.away} at {game.home}</h3>{game.kickoff && <p className="gx-t-meta gx-c-2">{fmtFull(game.kickoff)}{game.neutral ? ' · Neutral site' : ''}</p>}<label className="gx-t-label gx-cm-field" htmlFor={selectId}>Referee
+          <select id={selectId} aria-label={`Referee for ${game.away} at ${game.home}`} className="gx-input" value={value} disabled={state !== 'ready'} aria-disabled={busy || undefined} onChange={event => { if (!busy) setDrafts(d => ({ ...d, [game.id]: event.target.value })); }}>
             <option value="">Not assigned yet</option>
             {[...extra, ...options].map(name => <option key={name} value={name}>{name}</option>)}
           </select>
-        </label>;
+        </label><p className="gx-t-meta gx-c-2">Current: {current(game.id) || 'Not assigned yet'}</p></article>;
       })}
+      {games.length > 3 && <><p className="gx-t-meta gx-c-2">Showing {allGames ? games.length : 3} of {games.length} games · drafts count the full list</p><Button aria-expanded={allGames} onClick={() => setAllGames(!allGames)}>{allGames ? 'Show first 3 games' : `Show all ${games.length} games`}</Button></>}
       <p className="gx-t-body" role="status">{notice}</p>
       <Button type="submit" variant="primary" block aria-disabled={busy || !changed.length || state !== 'ready' || undefined}>{busy ? 'Saving…' : changed.length ? `Save ${changed.length} ${changed.length === 1 ? 'referee' : 'referees'}` : 'Save referees'}</Button>
     </form>}

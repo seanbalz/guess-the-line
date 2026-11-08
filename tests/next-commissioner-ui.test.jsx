@@ -21,6 +21,7 @@ vi.mock('../web/src/dashboardPreferences.js', () => ({ useDashboardPreferences: 
 vi.mock('../web/src/trendsLoaders.js', () => ({ rememberOfficial: vi.fn() }));
 vi.mock('../web/src/next/lines/trendsHooks.js', () => ({ useTrendWeek: () => ({ status: 'loading', week: null, retry: vi.fn() }) }));
 const { MenuSheet } = await import('../web/src/next/me/MenuSheet.jsx');
+const { OddsConnection } = await import('../web/src/next/me/commissioner/OddsConnection.jsx');
 const { CommissionerTools, COMMISSIONER_COPY } = await import('../web/src/next/me/commissioner/CommissionerTools.jsx');
 
 const root = path.resolve(import.meta.dirname, '..');
@@ -68,6 +69,14 @@ describe('Menu › Commissioner tools visibility', () => {
 });
 
 describe('Commissioner tools routes and adapter', () => {
+  it('renders the initial count-only connection state before any reply exists', () => {
+    const html = render(<OddsConnection data={{}}/>, true);
+    expect(markupProblems(html)).toEqual([]);
+    expect(html).toContain('Check connection (zero-credit)');
+    expect(html).toMatch(/disabled[^>]*>Fetch current lines/);
+    expect(html).not.toContain('Request counts');
+  });
+
   it('call the old screens’ gtl-api routes and no others', () => {
     expect(routes(read('web/src/next/me/commissioner/CommissionerTools.jsx'))).toEqual(
       ['read', 'set', 'state', 'virtual-units', 'virtual-units/settle', 'week-open']);

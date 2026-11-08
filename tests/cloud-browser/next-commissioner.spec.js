@@ -3,7 +3,7 @@
 // write, the odds provider and Virtual Units settlement) are answered by the spec, so no live provider is ever called.
 // Fixture accounts only: Sean is the Community commissioner and the Triple Threat commissioner, Luke a player.
 import { test, expect } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
+import { captureCommissioner } from './commissioner-capture.mjs';
 import { ACCOUNTS, communityWorld, pgliteAvailable, signIn, SUPABASE } from './community-world.mjs';
 import { layoutProblems } from '../helpers/phone-layout.mjs';
 
@@ -27,16 +27,7 @@ async function tool(page, name) {
   await expect(sheet(page).getByRole('heading', { name, exact: true })).toBeVisible();
 }
 async function back(page) { await sheet(page).getByRole('button', { name: 'Commissioner tools', exact: true }).click(); }
-async function checkLayout(page, testInfo, name) {
-  for (const theme of ['dark', 'light']) {
-    await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
-    await page.setViewportSize({ width: 320, height: 740 });
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${name} ${theme} fits 320px`).toBe(true);
-    expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze()).violations, `${name} ${theme}`).toEqual([]);
-    await page.screenshot({ path: testInfo.outputPath(`commissioner-${name}-${theme}.png`) });
-  }
-  await page.setViewportSize({ width: 390, height: 844 });
-}
+async function checkLayout(page, testInfo, name) { await captureCommissioner(page, testInfo, name); }
 /** A public-schedule fixture for the week after the open one, kicking off later this week (never a live download). */
 function scheduleFor(season, week) {
   const day = offset => new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10);
@@ -84,6 +75,7 @@ test('the commissioner reaches every tool; status, week opening and referees use
     const before = await slates();
     await tool(page, 'Week opening');
     await expect(sheet(page).getByLabel('Week', { exact: true })).toHaveValue(String(open.week + 1));
+    await captureCommissioner(page, testInfo, 'weeks-entry', { compact: true });
     await sheet(page).getByRole('button', { name: 'Review schedule', exact: true }).click();
     await expect(sheet(page).getByRole('list', { name: `Week ${open.week + 1} schedule` })).toContainText('Seattle Seahawks @ Denver Broncos');
     expect(await slates()).toEqual(before);
@@ -152,6 +144,7 @@ test('Final scores reuses the old editor and Odds connection is native for the T
     await form.getByRole('checkbox').check();
     await checkLayout(page, testInfo, 'results');
     await form.getByRole('button', { name: 'Review final result', exact: true }).click();
+    await checkLayout(page, testInfo, 'final-confirmation');
     await page.getByRole('button', { name: 'Confirm commissioner-reported final', exact: true }).click();
     await expect(page.getByText('Final result saved · Version 1', { exact: true })).toBeVisible();
     expect(reviews).toHaveLength(1);
@@ -166,10 +159,12 @@ test('Final scores reuses the old editor and Odds connection is native for the T
     // A check that has not finished says so; checking again reuses its request id, so it never starts a second request.
     await check.click();
     await expect(odd.getByRole('alert')).toContainText('This request has not completed.');
+    await captureCommissioner(page, testInfo, 'odds-pending', { compact: true });
     await expect(odd.getByText('Request not completed', { exact: true })).toBeVisible();
     await check.click();
     // It finished with too few credits: fetching stays off.
     await expect(odd.getByRole('alert')).toContainText('at least 52 free credits');
+    await captureCommissioner(page, testInfo, 'odds-quota-blocked', { compact: true });
     await expect(fetch).toBeDisabled();
     await check.click();
     await expect(odd.getByText('Connection check completed', { exact: true })).toBeVisible();

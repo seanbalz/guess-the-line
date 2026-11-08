@@ -1,10 +1,12 @@
 // Stage 78, Members: the existing Community commissioner grant, never a private league's host flag.
+import { LockKeyhole, ShieldCheck, Users } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { cloudApi } from '../../api.js';
 import { readNextDraft, removeNextDraft, writeNextDraft } from '../../nextDrafts.js';
 import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
-import { Button, Card, Sheet } from '../ui/index.js';
+import { Avatar, Button, Card, Sheet } from '../ui/index.js';
+import { ToolHeading } from './commissioner/ToolPresentation.jsx';
 import './members.css';
 
 const PENDING = 'community-member-check';
@@ -111,28 +113,28 @@ export function CommunityMembers() {
   function review(member) { setSelected(member); setNotice(''); setProblem(''); }
   const allowed = data?.admin === true;
   return <Sheet title={selected && !pending ? `${selected.removed ? 'Restore' : 'Remove'} Community access?` : 'Community members'}
-    back={{ label: 'Menu', onBack: () => leave(() => shell.setSheetArgs({ sub: null })) }} onClose={() => leave(shell.closeSheet)} tall>
-    <p className="gx-t-body">Removal blocks Community access. Guesses, scores, bets, posts and comments stay recorded and visible under their existing rules. Private-league memberships stay unchanged.</p>
+    back={{ label: 'Menu', onBack: () => leave(() => shell.setSheetArgs({ sub: null })) }} onClose={() => leave(shell.closeSheet)} tall className="gx-members">
+    <div className="gx-members-intro"><ToolHeading icon={Users}>Community access</ToolHeading><p className="gx-t-body">Removal blocks Community access. Guesses, scores, bets, posts and comments stay recorded and visible under their existing rules. Private-league memberships stay unchanged.</p></div>
     <div role="alert">{problem && <p className="gx-t-body gx-members-problem">{problem}</p>}</div>
     <p className="gx-t-body" role="status">{notice}</p>
     {busy && <p className="gx-t-meta">Checking Community access…</p>}
-    {pending ? <Card className="gx-members-stack">
-      <p className="gx-t-strong">An access change needs checking</p>
+    {pending ? <Card className="gx-members-stack gx-members-decision" data-pending>
+      <ToolHeading icon={ShieldCheck}>An access change needs checking</ToolHeading>
       <p className="gx-t-body">Check saved access to see the current state. This never repeats the change.</p>
       {!kept && <p className="gx-t-meta">This browser cannot keep the check after you close this screen. Keep it open until access is checked.</p>}
       <Button variant="primary" disabled={busy} onClick={() => refresh()}>Check saved access</Button>
-    </Card> : selected ? <Card className="gx-members-stack">
-      <h3 className="gx-t-strong gx-members-name">{selected.displayName}</h3>
+    </Card> : selected ? <Card className="gx-members-stack gx-members-decision" data-decision={selected.removed ? 'restore' : 'remove'}>
+      <div className="gx-members-head"><Avatar id={selected.id} name={selected.displayName} size={40}/><h3 className="gx-t-strong gx-members-name">{selected.displayName}</h3></div>
       <p className="gx-t-body">{selected.removed ? 'Restore this member’s Community access? Their existing records will still be there.' : 'Remove this member’s Community access? You can restore access here later. This does not delete their account or records.'}</p>
       <Button disabled={busy} onClick={() => { setSelected(null); setProblem(''); }}>Cancel</Button>
       <Button variant={selected.removed ? 'primary' : 'danger'} disabled={busy || !allowed} onClick={save}>{selected.removed ? 'Restore access' : 'Remove access'}</Button>
     </Card> : allowed ? <section aria-label="Members" className="gx-members-stack">
-      {data.members.map(member => <Card key={member.id} className="gx-members-stack">
-        <h3 className="gx-t-strong gx-members-name">{member.displayName}{member.id === app.accountId ? ' · You' : ''}</h3>
-        <p className="gx-t-meta">{member.removed ? 'Community access removed · records kept' : 'Community access active'}</p>
+      {data.members.map(member => <Card key={member.id} className="gx-members-stack gx-members-member">
+        <div className="gx-members-head"><Avatar id={member.id} name={member.displayName} size={40}/><div><h3 className="gx-t-strong gx-members-name">{member.displayName}{member.id === app.accountId ? ' · You' : ''}</h3>
+        <p className="gx-t-meta gx-c-2">{member.removed ? 'Community access removed · records kept' : 'Community access active'}</p></div></div>
         {member.id !== app.accountId && <Button disabled={busy} aria-label={`${member.removed ? 'Restore' : 'Remove'} Community access for ${member.displayName}`} onClick={() => review(member)}>{member.removed ? 'Restore access…' : 'Remove access…'}</Button>}
       </Card>)}
-    </section> : null}
+    </section> : !busy && <Card className="gx-members-stack"><ToolHeading icon={LockKeyhole}>Community admin required</ToolHeading><p className="gx-t-body">Administrative access is required for this member list.</p></Card>}
     {!pending && <Button disabled={busy} onClick={() => refresh()}>Refresh members</Button>}
   </Sheet>;
 }
