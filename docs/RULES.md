@@ -366,6 +366,14 @@ definition for the API and the screens.
   counts, including a voided row, which keeps its credit.
 - **Record, net units and ROI** come from settled rows only. A loss without a
   saved net costs its units. ROI is "—" until something settles.
+  D-78 (November 8, 2026) confirms that unit amounts retain the saved four
+  decimal places through weekly and season totals; ROI is net divided by
+  settled risk, rounded only as a percentage to the existing two places.
+  Do not first round each result or week to cents. A 0.5U win with saved net
+  +0.4545U gives 90.9%, while amount labels keep their existing formatting.
+  [Implementation and release state](VIRTUAL_ROI_SAVED_PRECISION_2026_11_08.md)
+  are recorded separately; the earlier M-12 not-applied statement above is
+  historical (M-12 was applied October 27).
 - **The weekly board** lists qualified players by ROI, then net units, then
   wins. A "—" ROI ranks after every number, and equal players share a rank
   ("T-2").

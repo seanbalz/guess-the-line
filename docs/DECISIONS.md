@@ -1,5 +1,28 @@
 # Decision log
 
+## D-78 — Virtual Units ROI uses saved four-place results (November 8, 2026)
+
+Sean confirmed **“Move forward with rec”** after reviewing the discrepancy
+between saved D-26 results and the shared board's cent-normalized calculation.
+Use saved four-decimal unit amounts consistently through week and season
+aggregation, then round the ROI percentage at its existing two-place boundary.
+For example, +0.4545U on 0.5U is 90.9%; +0.0091U on 0.01U is 91%.
+
+Qualification remains three placed picks **or** 3U. Pending and void rows keep
+their qualification credit; settled wins, losses and pushes alone determine
+risk, net and ROI. Ranking remains ROI, then net units, then wins with shared
+equal ranks. Saved fractions can split previously cent-rounded ties, including
+existing half-unit picks. Keep existing amount/percentage presentation and
+every saved selection, result, audit, receipt, score and timestamp.
+
+This authorizes the shared reader correction, compatible API/frontend release
+and verification; it does not authorize a migration or data rewrite. Custom
+Virtual entry remains separate PR #497 / M-41, with no apply/enable approval
+from this decision. Tracked real bets, awards policy and the queued FEPL frame
+choice remain separate. [Local evidence and release requirements](VIRTUAL_ROI_SAVED_PRECISION_2026_11_08.md)
+distinguish synthetic impact from hosted evidence; this entry establishes no
+deployment by itself.
+
 ## D-77 — Recommended: your gaps vs. closing lines, and actionable rows first (November 3, 2026)
 
 Sean picked "Recommendation card" from board item 10 (the two ideas kept from D-51's closed PR #140), then "Your gaps'
