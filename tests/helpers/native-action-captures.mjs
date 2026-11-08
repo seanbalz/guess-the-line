@@ -6,7 +6,7 @@ import { assertNativeActionTheme, setNativeActionTheme } from './native-action-t
 
 /** Capture actual native action controllers, including the lower scroll body. */
 export async function nativeActionCaptures(page, name, check, { widths = [390, 320], forced = true } = {}) {
-  const output = path.resolve('design/prism-league-actions-native-2026-11-07');
+  const output = path.resolve(process.env.GTL_NATIVE_ACTION_CAPTURE === '1' ? 'design/prism-league-actions-native-2026-11-07' : '.local/native-action-replay');
   fs.mkdirSync(output, { recursive: true });
   const states = ['dark', 'light'].flatMap(theme => widths.map(width => ({ theme, width, forced: false })));
   if (forced) states.push({ theme: 'light', width: 320, forced: true });

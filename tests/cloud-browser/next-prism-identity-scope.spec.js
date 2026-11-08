@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import fs from 'node:fs';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 import { ALL } from '../migrations.mjs';
 import { layoutProblems } from '../helpers/phone-layout.mjs';
 import { assertNativeActionTheme, setNativeActionTheme } from '../helpers/native-action-theme.mjs';
@@ -10,7 +11,7 @@ import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, signIn } from './c
 test.use({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
 test.setTimeout(180000);
 test.beforeEach(() => test.skip(!pgliteAvailable, 'Local PGlite required.'));
-const output = path.resolve('design/prism-identity-scope-native-2026-11-07');
+const output = path.resolve(process.env.GTL_IDENTITY_SCOPE_CAPTURE === '1' ? 'design/prism-identity-scope-native-2026-11-07' : '.local/identity-scope-replay');
 async function capture(page, name) {
   fs.mkdirSync(output, { recursive: true });
   for (const state of [{theme:'dark',width:390},{theme:'light',width:390},{theme:'dark',width:320},{theme:'light',width:320},{theme:'light',width:320,forced:true}]) {
@@ -120,7 +121,7 @@ test('external account transition purges an open forfeit and saved sheet without
     expect(world.errors).toEqual([]);
   } finally {await page.unrouteAll({behavior:'wait'});await page.close();await world.db.close();}
 });
-test('approved Games labels, native circles and full team action names keep their actual layout',async({page,baseURL})=>{
+test('approved Games labels, compact brand, native circles and full team action names keep their actual layout',async({page,baseURL},info)=>{
   const world=await communityWorld(page,baseURL,{migrations:ALL,optionalRpc:true});
   try {
     await open(page);
@@ -136,8 +137,27 @@ test('approved Games labels, native circles and full team action names keep thei
         await expect(mark).toHaveCSS('border-radius','50%');
         await expect(mark.locator('img')).toHaveCSS('object-fit','contain');
       }
-      const brand=page.locator('.gx-prism-brand');await expect(brand).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
-      await expect(brand.locator('img:visible')).toHaveCount(1);
+      const frame=page.locator('.gx-overview-frame[data-frame-context="research-games"]');await expect(frame).toHaveCount(1);
+      await expect(page.locator('.gx-prism-brand')).toHaveCount(0);
+      const brand=frame.locator('.gx-topbar .gx-home-brand');await expect(brand).toHaveCount(1);
+      await expect(brand).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
+      await expect(brand).toHaveCSS('background-image','none');await expect(brand).toHaveCSS('border-radius','0px');
+      await expect(brand.locator('..')).toHaveAccessibleName('Guess The Line, home');
+      const visible=brand.locator('img:visible');await expect(visible).toHaveCount(1);
+      await expect(visible).toHaveClass(`gx-home-brand-${theme}`);
+      await expect(brand).toHaveCSS('width','64px');await expect(brand).toHaveCSS('height','54px');
+      await expect(visible).toHaveCSS('width','64px');await expect(visible).toHaveCSS('height','54px');
+      await expect(brand.locator('img')).toHaveCount(2);
+      for(const [variant,file] of [['dark','lime.svg'],['light','light-deep-green.svg']]) {
+        const image=brand.locator(`.gx-home-brand-${variant}`);
+        await expect(image).toHaveAttribute('src',new RegExp(`^/assets/${file.slice(0,-4)}-[\\w-]+\\.svg$`));
+        const loaded=await image.evaluate(async img=>{await img.decode();return {src:img.currentSrc,complete:img.complete,naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight};});
+        expect(loaded.complete).toBe(true);expect(loaded.naturalWidth).toBeGreaterThan(0);expect(loaded.naturalHeight).toBeGreaterThan(0);
+        const response=await page.request.get(loaded.src);expect(response.ok()).toBe(true);expect(response.headers()['content-type']).toContain('image/svg+xml');
+        const hash=createHash('sha256').update(await response.body()).digest('hex');
+        expect(hash).toBe(createHash('sha256').update(fs.readFileSync(path.resolve('web/src/next/home/assets',file))).digest('hex'));
+        info.annotations.push({type:'brand-asset',description:JSON.stringify({theme,width,variant,...loaded,sha256:hash})});
+      }
       await assertNativeActionTheme(page,theme);
       await page.screenshot({path:path.join(output,`identity-games-${theme}-${width}.png`),fullPage:true});
     }

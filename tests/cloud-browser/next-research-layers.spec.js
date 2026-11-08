@@ -237,7 +237,32 @@ test('one game is a layer: a row, its heading focused, a reload, Back and Forwar
     await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
     await expect(heading(game(page), 'Texans @ Jaguars')).toBeFocused();
     await settle(page);
-    expect(await page.evaluate(() => document.querySelector('.gx-sport-mark').getBoundingClientRect().top >= document.querySelector('.gx-topbar').getBoundingClientRect().bottom), 'opening a lower graphical card starts its detail below the complete native sports control').toBe(true);
+    const frame = page.locator('.gx-overview-frame[data-frame-context="research-games"]');
+    await expect(frame).toHaveCount(1);
+    await expect(frame.locator('.gx-topbar .gx-home-brand')).toHaveCount(1);
+    await expect(page.locator('.gx-prism-brand,.gx-sport-controls,.gx-sport-mark')).toHaveCount(0);
+    const sports = frame.locator('.gx-topbar').getByRole('navigation', { name: 'Sports', exact: true });
+    await expect(sports).toHaveCount(1);
+    const sport = sports.getByRole('button', { name: 'National Football League', exact: true });
+    await expect(sports.getByRole('button')).toHaveCount(1);
+    await expect(sport).toHaveAttribute('aria-pressed', 'true');
+    await expect(sport).toHaveCSS('border-radius', '50%');
+    await expect(sport).toHaveCSS('width', '52px');await expect(sport).toHaveCSS('height', '52px');
+    const geometry = await heading(game(page), 'Texans @ Jaguars').evaluate(el => {
+      const header = document.querySelector('.gx-topbar').getBoundingClientRect();
+      const sports = document.querySelector('.gx-topbar .gx-home-sports').getBoundingClientRect();
+      const control = document.querySelector('.gx-topbar .gx-home-sport').getBoundingClientRect();
+      return { headerTop: header.top, headerBottom: header.bottom, sportsTop: sports.top, sportsBottom: sports.bottom,
+        controlTop: control.top, controlBottom: control.bottom, width: control.width, height: control.height, titleTop: el.getBoundingClientRect().top };
+    });
+    expect(geometry.headerTop, 'opening a lower card returns the complete compact header to the top').toBeGreaterThanOrEqual(-1);
+    expect(geometry.sportsTop, 'sports stay inside the header').toBeGreaterThanOrEqual(geometry.headerTop - 1);
+    expect(geometry.sportsBottom, 'the whole sports row fits inside the header').toBeLessThanOrEqual(geometry.headerBottom + 1);
+    expect(geometry.controlTop).toBeGreaterThanOrEqual(geometry.sportsTop - 1);
+    expect(geometry.controlBottom).toBeLessThanOrEqual(geometry.sportsBottom + 1);
+    expect(geometry.width).toBeGreaterThanOrEqual(44);expect(geometry.height).toBeGreaterThanOrEqual(44);
+    expect(geometry.titleTop, 'opening a lower graphical card starts its detail below the complete compact header and sports control').toBeGreaterThanOrEqual(geometry.headerBottom - 1);
+    test.info().annotations.push({ type: 'compact-header-geometry', description: JSON.stringify(geometry) });
     await back(page).click();
     await expect(page.locator('#gx-l-row-HOU-JAX'), 'Back returns focus to the row by its id').toBeFocused();
     expect(await running(page), 'Back replays no row’s rise').not.toContain('gx-nest-unit-in');

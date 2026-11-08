@@ -1,7 +1,7 @@
 import { useLayoutEffect } from 'react';
 import { homeThemeColor, themeColor } from '../../../../design/tokens-next.json';
-import dark from './assets/lime.svg';
-import light from './assets/light-deep-green.svg';
+import dark from './assets/lime.svg?no-inline';
+import light from './assets/light-deep-green.svg?no-inline';
 
 /** Scoped browser chrome follows the approved overview frame while mounted and restores the existing page theme on exit. */
 export function HomeBrand() {
