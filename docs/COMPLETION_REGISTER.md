@@ -13,6 +13,20 @@ preserve the prior verification separately. Independent parent re-review,
 canonical By-season/non-shortlist data, shared frame and hosted/phone/release
 gates remain open. No push, PR, merge or deployment.
 
+## Canonical Research season charts and row curves — November 7, 2026
+
+Unpublished implementation `0bec834d6d21f6dc2ec88d0610b9fdc0b2f1b00b`
+adds exact selected-record NFL season summaries, bounded real previews for all
+permitted rows, and native By-season/detail selection with one lazy read for an
+opened non-shortlist row. [Source, native captures, public-data reproduction and
+release compatibility](RESEARCH_CHART_PAYLOADS_2026_11_07.md) record the scope.
+39 Node / 46 component / eight focused native browser checks, typecheck, Brand
+QA, cloud build and bundle privacy passed. Six actual free public-data assets
+reproduced byte for byte within existing size limits. This resolves the earlier
+canonical prepared-data dependency locally; API/frontend integration and the
+existing hourly public refresh from merged source are still required. No
+push/PR/merge, hosted publication, deployment or phone acceptance is claimed.
+
 ## Reviewed Research / Fantasy layout fixes — November 7, 2026
 
 Exclusive unpublished branch `codex/research-visual-fidelity-2026-11-07`
