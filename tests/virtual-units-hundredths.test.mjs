@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import { createHash, randomUUID } from 'node:crypto';
 import { HOSTED } from './migrations.mjs';
 import { ACCOUNTS, createCommunityWorld, pgliteAvailable, storeBookLines } from './cloud-browser/community-world.mjs';
-import { sendBallot } from './helpers/guess-week.mjs';
+import { sendBallot, serviceSql } from './helpers/guess-week.mjs';
 import { readVirtualUnitRules } from '../cloud/virtual-unit-rules.mjs';
 import { FEATURE_OFF } from '../cloud/optional-rpc.mjs';
 import { halfUnits, validVirtualUnits } from '../shared/virtual-unit-amount.mjs';
@@ -47,6 +47,48 @@ async function fixture(t) {
   const bodies = async () => (await db.query('select proname,prosrc,proargnames,proargtypes::text from pg_proc where proname=any($1) order by proname',[names])).rows;
   return { world, db, season, week, g0, g1, bet, place, rows, dataHash, bodies };
 }
+
+test('recommendation API and SQL separate malformed amounts, unsupported cents and supported writes', { skip }, async t => {
+  const f = await fixture(t), rpc = serviceSql(f.db);
+  for (const hundredths of [false, true]) {
+    if (hundredths) await f.db.exec(migration);
+    const read = (await f.world.api('luke', 'bets/recommendations', {})).body;
+    assert.equal(read.virtual.unitRules.hundredths, hundredths);
+    const offer = read.virtual.games.find(game => game.id === f.g0).offers.spread.home;
+    const pick = { gameId: f.g0, market: 'spread', side: 'home', line: offer.line, odds: offer.odds,
+      units: 0.1, source: offer.book, quotedAt: offer.observedAt };
+    const place = patch => f.world.api('luke', 'bets/recommendations/place', {
+      ...pick, ...patch, season: f.season, week: f.week, revision: read.virtual.revision,
+    });
+    const sql = patch => rpc('gtl_save_recommended_virtual_pick', { p_user: ACCOUNTS.luke.id, p_season: f.season,
+      p_week: f.week, p_revision: read.virtual.revision, p_body: { ...pick, source: offer.source, ...patch } });
+    const before = await f.dataHash();
+    for (const units of [0, -1, '0.1', 0.001, 0.010000000001, 0.999999999999, 100.01]) {
+      assert.equal((await place({ units })).status, 400, String(units));
+      await assert.rejects(() => sql({ units }), /GTL_VIRTUAL_INVALID/);
+    }
+    assert.equal(await f.dataHash(), before, 'malformed API and direct SQL attempts preserve picks, audits, receipts, ballots and scores');
+    if (!hundredths) {
+      assert.equal((await place({})).status, 409, 'valid cents need M-41 capability');
+      await assert.rejects(() => sql({}), /GTL_VIRTUAL_INVALID/);
+      assert.equal(await f.dataHash(), before, 'old SQL and the API refuse unsupported cents without writes');
+    } else {
+      const saved = await place({});
+      assert.equal(saved.status, 200, JSON.stringify(saved.body));
+      const row = (await f.rows()).find(row => row.game_id === f.g0 && row.market === 'spread');
+      assert.equal(row.selection.units, 0.1);
+      assert.equal(row.audit.length, 1);
+      assert.equal(row.audit[0].type, 'placed');
+    }
+    const current = (await f.world.api('luke', 'bets/recommendations', {})).body.virtual;
+    const gameId = hundredths ? f.g1 : f.g0, halfOffer = current.games.find(game => game.id === gameId).offers.total.over;
+    const half = await f.world.api('luke', 'bets/recommendations/place', { season: f.season, week: f.week, revision: current.revision,
+      gameId, market: 'total', side: 'over', line: halfOffer.line, odds: halfOffer.odds, units: 0.5,
+      source: halfOffer.book, quotedAt: halfOffer.observedAt });
+    assert.equal(half.status, 200, JSON.stringify(half.body));
+    assert.equal((await f.rows()).find(row => row.game_id === gameId && row.market === 'total').selection.units, 0.5);
+  }
+});
 
 test('M-41 upgrades all three writers, preserves exact history and rollback keeps custom saved rows', { skip }, async t => {
   const f = await fixture(t);
