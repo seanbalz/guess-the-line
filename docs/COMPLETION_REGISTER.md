@@ -12,6 +12,21 @@ record the actual scope. All figures use existing permitted source data and
 missing/House states. Header/dock structure remains the separate pending owner
 question; no hosted release or physical-phone acceptance is claimed.
 
+## Confirmed Bets four-item closeout — November 7, 2026
+
+Exclusive branch `codex/prism-bets-closeout-2026-11-07`, over integration
+`3a57e4886ca90e293d89520f255bde128252e652`, closes the four remaining Bets
+composition gaps: actual individual ticket previews/Open/View, permitted retained
+research matchup teaser, full-name team choices with marks, and separate
+receipt → owner actions → numbered history. The [closeout record](PRISM_BETS_CLOSEOUT_2026_11_07.md)
+links sixteen capture hashes and the inspected approval sources. Final-source
+verification: typecheck; 900 Vitest tests; focused accounting/privacy/cache/token
+checks; 25 actual-controller browser checks including account isolation and both
+phone themes/forced colors; cloud build and bundle-only privacy scan. This is
+unpublished local work; no push/PR/merge/deploy, hosted denial probe or physical
+phone acceptance is claimed. Virtual Units precision and the unresolved broader
+frame placement remain as documented.
+
 ## Confirmed Bets landing and saved history — November 7, 2026
 
 The missing approved Bets landing hierarchy is now native on exclusive branch

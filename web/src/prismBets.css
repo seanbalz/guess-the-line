@@ -12,7 +12,7 @@
 .gx .gx-bets.gx-live-workflow .social-change-step { display: grid; place-items: center; align-self: start; width: 28px; height: 28px; border: 1px solid var(--gx-accent-ink); border-radius: 10px; color: var(--gx-accent-ink); background: var(--gx-accent-tint); font: 600 12px/1.5 var(--gx-font-body); }
 .gx .gx-bets.gx-live-workflow .social-change-history li p { margin: 7px 0 0; }
 .gx .gx-bets.gx-live-workflow .social-change-summary { display: grid; gap: 9px; padding: 14px 10px; border: 1px solid var(--gx-border); border-radius: 16px; background: var(--gx-glass); }
-.gx .gx-bets.gx-live-workflow .social-change-summary > div { display: grid; grid-template-columns: 40px minmax(0,1fr); gap: 9px; }
+.gx .gx-bets.gx-live-workflow .social-change-summary > div { display: grid; grid-template-columns: 52px minmax(0,1fr); gap: 9px; }
 .gx .gx-bets.gx-live-workflow .social-change-history :is(dt,dd) { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .gx .gx-bets.gx-live-workflow .social-change-history dd { display: grid; gap: 4px; }
 .gx .gx-bets.gx-live-workflow .social-change-history summary { min-height: 44px; padding: 12px 0; color: var(--gx-accent-ink); }
@@ -80,3 +80,12 @@
   .gx .gx-bets.gx-live-workflow :is(.social-tracker,.social-modal) button[aria-pressed="true"]:not([class*="gx-"]) { border-color: Highlight; color: HighlightText; background: Highlight; }
   .gx .gx-bets.gx-live-workflow :is(.social-tracker,.social-modal) button:disabled:not([class*="gx-"]) { border-color: GrayText; color: GrayText; background: ButtonFace; }
 }
+
+.gx .gx-bets.gx-live-workflow .social-ticket-followup { display: grid; gap: 22px; padding-top: 20px; }
+.gx .gx-bets.gx-live-workflow .social-ticket-followup .social-owner-actions { display: grid; gap: 10px; margin: 0; }
+.gx .gx-bets.gx-live-workflow .social-ticket-followup .social-owner-actions > button { min-height: 48px; }
+.gx .gx-bets.gx-live-workflow .social-entry-options .gx-team { flex-shrink: 0; }
+.gx .gx-bets.gx-live-workflow .social-entry-options:has(> button .gx-team) { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+.gx .gx-bets.gx-live-workflow .social-entry-options > button:has(.gx-team) { min-width: 0; flex-direction: column; justify-content: center; text-align: center; font-size: 16px; gap: 8px; }
+
+.gx .gx-bets.gx-live-workflow .social-change-summary dt { overflow-wrap: normal; }

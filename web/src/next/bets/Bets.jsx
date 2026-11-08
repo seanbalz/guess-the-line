@@ -13,6 +13,7 @@ import { Segmented } from '../ui/Segmented.jsx';
 import { TrackedBetRow } from './TrackedBetRow.jsx';
 import { FocusRows, FocusRow } from '../ui/FocusLanding.jsx';
 import { Card } from '../ui/Card.jsx';
+import { TicketPreviews, RecommendationTeaser } from './BetsLandingCards.jsx';
 import { BetsSummary } from './BetsSummary.jsx';
 import { DESTINATION_ICONS as ICON } from '../ui/destinations.js';
 import { useTicketSummary } from './useTicketSummary.js';
@@ -42,23 +43,17 @@ export function Bets() {
 function BetsLanding() {
   const app = useAppData(), shell = useShell(), read = useTicketSummary(app);
   const open = view => shell.go('bets', { view:view==='overview'?'tracked':view, trackedPane:view==='overview'?'overview':'tickets', season: null, week: null, period: view==='overview'?'all':null, matchup: null, assessment: null });
-  const count = key => read.loading ? 'Loading your tickets…' : read.error ? 'Unavailable · open to retry' : `${read[key]} ${read[key] === 1 ? 'ticket' : 'tickets'} · all weeks`;
+  const openTicket = entry => shell.go('bets', { view: entry.outcome === 'pending' ? 'active' : 'settled', trackedPane: 'tickets', period: 'all', season: null, week: null, selectedTicket: entry.id, trackers: {} });
   return <section className="gx-screen gx-bets" data-landing="bets">
     <h1 className="gx-t-title">Bets</h1>
     <BetsSummary read={read}/>
     <Card as="section" className="gx-bets-landing-tickets" aria-labelledby="gx-tickets-heading">
       <div className="gx-bets-card-heading"><h2 id="gx-tickets-heading">Tickets</h2><span className="gx-t-meta gx-c-2">{read.model ? `${read.model.entries.length} tracked` : '—'}</span></div>
-      <FocusRows label="Your tickets">
-      <FocusRow icon={ICON.activeTickets} title="Active tickets" sub={count('active')} onClick={() => open('active')}/>
-      <FocusRow icon={ICON.settledTickets} title="Settled tickets" sub={count('settled')} onClick={() => open('settled')}/>
-      </FocusRows>
+      <TicketPreviews read={read} onOpen={openTicket}/>
+      <details className="gx-bets-ticket-views"><summary>All ticket views</summary><div><Button variant="ghost" onClick={() => open('active')}>Active tickets</Button><Button variant="ghost" onClick={() => open('settled')}>Settled tickets</Button></div></details>
       <div className="gx-bets-landing-actions"><Button variant="secondary" aria-label="Add a bet" onClick={() => open('add')}>Track a bet +</Button><Button variant="ghost" onClick={() => open('overview')}>Overview</Button></div>
     </Card>
-    <Card as="section" className="gx-bets-landing-recommended" aria-labelledby="gx-recommended-heading">
-      <h2 id="gx-recommended-heading">Recommended</h2>
-      <p className="gx-t-body gx-c-2">Game research and your saved gaps, together.</p>
-      <Button variant="primary" block onClick={() => open('research')}>Explore recommendations ↗</Button>
-    </Card>
+    <RecommendationTeaser onOpen={(matchup, assessment) => shell.go('bets', { view: 'research', matchup: matchup ?? null, assessment: assessment ?? null })}/>
     <FocusRows label="More Bets tools">
       <FocusRow icon={ICON.guessGap} title="Your guess vs. market" sub="Compare your locked guesses with current lines" onClick={() => open('recommended')}/>
       <FocusRow icon={ICON.virtualUnits} title="Virtual Units" sub="Your separate play-money picks" onClick={() => open('virtual')}/>
@@ -146,7 +141,7 @@ function BetsDetail() {
       <Button aria-label="Virtual Units" aria-pressed={view === 'virtual'} onClick={() => choose('virtual')}>Virtual</Button>
     </div>
     {view === 'tracked' ? <>
-      <Deferred label="tracked bets"><SocialBetTracker key={`${app.accountId}:${destination}:${shell.state.nav}`} player={app.accountId} initialOutcome={destination === 'active' ? 'pending' : destination === 'settled' ? 'settled' : ''} initialAllHistory={destination === 'active' || destination === 'settled'} autoCreate={destination === 'add'} navigationState={trackerState} onNavigationState={rememberTracker} initialView="mybets" embedded compactTickets TicketRow={TrackedBetRow} MetricsView={NetUnits} OverviewView={TrackedOverview} initialTrackedPane={route.trackedPane??'tickets'} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred>
+      <Deferred label="tracked bets"><SocialBetTracker key={`${app.accountId}:${destination}:${shell.state.nav}`} player={app.accountId} initialExpandedTicket={route.selectedTicket} initialOutcome={destination === 'active' ? 'pending' : destination === 'settled' ? 'settled' : ''} initialAllHistory={destination === 'active' || destination === 'settled'} autoCreate={destination === 'add'} navigationState={trackerState} onNavigationState={rememberTracker} initialView="mybets" embedded compactTickets TicketRow={TrackedBetRow} MetricsView={NetUnits} OverviewView={TrackedOverview} initialTrackedPane={route.trackedPane??'tickets'} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred>
     </> : view === 'recommended' ? <>
       <Deferred resetKey={`${app.accountId}:recommended`} label="recommended bets"><VirtualUnits key={`${app.accountId}:recommended`} accountId={app.accountId} embedded initialView="recommended" accountRecommendations showViewTabs={false} recommendedMarket={recommendedMarket} onRecommendedMarket={chooseRecommendedMarket} marketControl={marketControl} onTrackTicket={trackRecommendation} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred>
       {ticketRequest?.accountId === app.accountId && <Deferred resetKey={ticketRequest.id} label="bet review"><SocialBetTracker key={ticketRequest.id} player={app.accountId} reviewOnly initialView="mybets" ticketRequest={ticketRequest} onReviewDone={reviewDone} onDirty={reviewDirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred>}

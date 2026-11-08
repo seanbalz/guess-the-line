@@ -1,5 +1,8 @@
 # Confirmed Bets landing and saved history — November 7, 2026
 
+The four composition differences listed in this historical handoff are now
+closed by the [subsequent native closeout](PRISM_BETS_CLOSEOUT_2026_11_07.md).
+
 Owner: Sean Balsiger. Status: local native implementation and fixture verification;
 unpublished, not hosted or accepted on a physical phone.
 

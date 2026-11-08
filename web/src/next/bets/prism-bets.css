@@ -64,3 +64,18 @@
   .gx .gx-bets .gx-seg-btn--on { outline: 2px solid Highlight; }
   .gx .gx-bets .gx-overview-bar-track > span { background: CanvasText; }
 }
+
+.gx .gx-bets .gx-ticket-previews { list-style: none; padding: 0; margin: 0; }
+.gx .gx-bets .gx-ticket-previews > li { display: grid; grid-template-columns: 42px minmax(0,1fr) auto; gap: 10px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--gx-border); }
+.gx .gx-bets .gx-ticket-preview-icon { display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid var(--gx-border); border-radius: 14px; background: var(--gx-accent-tint); box-shadow: var(--gx-glass-shadow); color: var(--gx-accent-ink); }
+.gx .gx-bets .gx-ticket-previews li > div { display: grid; justify-items: start; gap: 6px; min-width: 0; overflow-wrap: anywhere; }
+.gx .gx-bets .gx-ticket-previews strong { font: 600 14px/1.5 var(--gx-font-body); }
+.gx .gx-bets .gx-ticket-previews .gx-btn { padding-inline: 0; color: var(--gx-accent-ink); white-space: nowrap; }
+.gx .gx-bets .gx-bets-research-matchup { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); align-items: center; gap: 14px; }
+.gx .gx-bets .gx-bets-research-team { display: grid; justify-items: center; align-self: start; text-align: center; gap: 10px; font: 500 13px/1.5 var(--gx-font-body); }
+@media (max-width:359px) { .gx .gx-bets .gx-ticket-previews > li { grid-template-columns: 32px minmax(0,1fr) auto; gap: 8px; } .gx .gx-bets .gx-ticket-preview-icon { width:32px; height:36px; } }
+@media (forced-colors:active) { .gx .gx-bets :is(.gx-ticket-preview-icon,.gx-ticket-previews > li) { border-color: CanvasText; } }
+
+.gx .gx-bets .gx-tracked-row { overflow: visible; }
+.gx .gx-bets .gx-tracked-receipt { padding: 0; overflow: hidden; }
+@media (forced-colors:active) { .gx .gx-bets .gx-tracked-row { border: 0; } .gx .gx-bets .gx-tracked-receipt { border-color: CanvasText; } }

@@ -1,3 +1,4 @@
+import { TEAM_NAMES } from '../../shared/nfl-schedule.mjs';
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import fs from 'node:fs';
@@ -31,7 +32,7 @@ async function fillTicket(page, gameId) {
   await expect(editor.getByRole('button', {name: 'Save tracked bet', exact: true})).toBeDisabled();
   await expect(editor.getByRole('group', {name: 'Units risked', exact: true}).getByRole('button', {name: 'Unknown', exact: true})).toHaveAttribute('aria-pressed', 'true');
   await editor.getByRole('group', { name: 'Matchup', exact: true }).getByRole('button', { name: gameId.replace('-', ' @ '), exact: true }).click();
-  await editor.getByRole('group', { name: 'Team', exact: true }).getByRole('button', { name: gameId.split('-')[1], exact: true }).click();
+  await editor.getByRole('group', { name: 'Team', exact: true }).getByRole('button', { name: TEAM_NAMES[gameId.split('-')[1]], exact: true }).click();
   await editor.getByRole('button', { name: 'Favorite (−)', exact: true }).click();
   await editor.getByRole('group', { name: 'Exact signed spread', exact: true }).getByRole('button', { name: '−3.5', exact: true }).click();
   await editor.getByRole('group', { name: 'American odds', exact: true }).getByRole('button', { name: '−110', exact: true }).click();
@@ -132,6 +133,7 @@ test('Bets roots open creation from fresh all-week lists and remembered Add scop
     await openBets(page);
     for (const destination of ['Active tickets', 'Settled tickets']) {
       await tab(page, 'Bets').click();
+      await page.getByText('All ticket views', { exact: true }).click();
       await page.getByRole('button', { name: destination, exact: true }).click();
       await expect(page.getByLabel('Competition week')).toHaveValue('all');
       await expect(page.getByRole('button', { name: 'Add bet', exact: true })).toBeEnabled();
@@ -288,7 +290,7 @@ test('custom ticket terms stay exact when switching back to buttons and changing
     await editor.getByRole('button', { name: 'Change matchup', exact: true }).click();
     const nextId = world.state.games[1].id;
     await editor.getByRole('group', { name: 'Matchup', exact: true }).getByRole('button', { name: nextId.replace('-', ' @ '), exact: true }).click();
-    await editor.getByRole('group', { name: 'Team', exact: true }).getByRole('button', { name: nextId.split('-')[0], exact: true }).click();
+    await editor.getByRole('group', { name: 'Team', exact: true }).getByRole('button', { name: TEAM_NAMES[nextId.split('-')[0]], exact: true }).click();
     await expect(editor.getByRole('button', { name: 'Save tracked bet', exact: true })).toBeDisabled();
     // A custom price and stake are ticket-level terms, so changing the matchup must not rewrite them.
     await expect(editor.getByRole('spinbutton', { name: 'American odds', exact: true })).toHaveValue('-112.5');
@@ -533,7 +535,7 @@ test('an inclusion save finishing after a filter change does not invalidate the 
     });
     await page.locator('.gx-tracked-preview').click();
     await page.locator('.gx-tracked-menu').click();
-    await page.locator('.social-bet-card').getByText('Details & history', { exact: true }).click();
+    await page.locator('.social-bet-card').getByText('Receipt metadata', { exact: true }).click();
     await page.getByRole('button', { name: /Exclude from records/ }).click();
     await expect.poll(() => saveHeld).toBe(true);
     await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/social/read'), async route => {
@@ -699,7 +701,7 @@ test('approved manual ticket controls save 0.01U with exact odds and keep source
   await expect(page.locator('.gx-tracked-preview-money')).toContainText('0.01U');
   await page.reload();await expect(page.locator('.gx-tracked-preview-money')).toContainText('0.01U');
   const row=page.locator('.gx-tracked-row');await row.locator('.gx-tracked-preview').click();
-  await row.getByRole('button',{name:'Ticket details',exact:true}).click();await row.getByText('Details & history',{exact:true}).click();
+  await expect(row.getByRole('region',{name:'Ticket change history'})).toBeVisible();
   await row.getByRole('button',{name:'Report result',exact:true}).click();
   const result=page.getByRole('dialog',{name:'Report this bet’s result',exact:true});
   await result.getByLabel('Actual total return in units (optional)',{exact:true}).fill('0.03');
@@ -739,7 +741,7 @@ test('guided milestone keeps 70+ and four-decimal units after save and correctio
   const row=page.locator('.gx-tracked-row');await expect(row.locator('.gx-tracked-preview')).toContainText('70+');await expect(row.locator('.gx-tracked-preview')).toContainText('$7.47');
   await row.getByRole('button',{name:'Expand Fixture Runner',exact:true}).click();await expect(row.locator('.gx-tracked-money')).toContainText('0.0747U');
   expect(calls.find(c=>c.path==='social/create').body.legs[0]).toMatchObject({line:70,selection:'Fixture Runner 70+ rushing yards'});
-  await row.getByRole('button',{name:'Ticket details',exact:true}).click();await row.getByText('Details & history',{exact:true}).click();await row.getByRole('button',{name:'Correct ticket',exact:true}).click();
+  await expect(row.getByRole('region',{name:'Ticket change history'})).toBeVisible();await row.getByRole('button',{name:'Correct ticket',exact:true}).click();
   const correction=page.getByRole('dialog',{name:'Correct saved bet'});await correction.getByLabel('Reason for correction',{exact:true}).fill('Reviewed exact recorded milestone');await correction.getByRole('button',{name:'Save correction',exact:true}).click();await expect(correction).toHaveCount(0);
   const fixed=calls.find(c=>c.path==='social/correct');expect(fixed.body.stakeUnits).toBe(.0747);expect(fixed.body.legs[0].selection).toBe('Fixture Runner 70+ rushing yards');expect(world.errors).toEqual([]);
  }finally{await world.db.close();}
