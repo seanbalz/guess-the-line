@@ -1206,7 +1206,10 @@
 }
 .gx.gx-epl .gx-epl-play-tabs {
   display: grid;
-  grid-template-columns: repeat(3,minmax(0,1fr));
+  /* Keep the approved three tabs and equal tracks when space allows. The
+     unbroken Leaderboard label needs its intrinsic width at the 16px floor;
+     the two multiword labels can wrap at spaces on compact phones. */
+  grid-template-columns: repeat(2,minmax(0,1fr)) minmax(max-content,1fr);
   gap: 5px;
   padding: 5px;
   border: 1px solid var(--gx-border-strong);

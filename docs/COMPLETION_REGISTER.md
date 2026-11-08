@@ -1,5 +1,16 @@
 # Guess The Line — current completion register
 
+## EPL compact Play labels fitted — November 7, 2026
+
+The [scoped fitting record](PRISM_EPL_COMPACT_LABELS_2026_11_07.md) addresses the
+actual Linux CI Leaderboard overflow with an intrinsic minimum for the existing
+last grid column. Full labels, 16px type, 44px targets and wide equal tracks
+remain. A deterministic fallback-metric red/green regression plus the original
+EPL expanded-frame case pass 5/5; Brand QA passes 15/15 and scoped EPL components
+45/45. All 128 expanded PNGs, 30 receipts and 80 historical files retain their
+SHA-256 values. Local verification only; independent review, combined CI and
+release remain open. No API, data, scoring, migration or FEPL frame change.
+
 ## Expanded confirmed frames integrated; final combined verification — November 7, 2026
 
 Independently approved expanded source `d3c1b01b` / `9047ba20` / `272e2b05`
