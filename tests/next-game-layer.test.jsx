@@ -38,6 +38,14 @@ const byClass = (html, cls) => nodes(html).filter(n => (n.attrs?.class ?? '').sp
 afterEach(() => { state.lines = null; rememberBoard(null); });
 
 describe('the game layer', () => {
+  it('leads with a compact Game overview, then game actions, then research panels', () => {
+    state.lines = lines();
+    const html = render(<GameLayer id="SEA-DEN"/>);
+    expect(html).toContain('Game overview');
+    expect(html.indexOf('Game overview')).toBeLessThan(html.indexOf('Actions for this game'));
+    expect(html.indexOf('Actions for this game')).toBeLessThan(html.indexOf('aria-label="Game research"'));
+    expect(html).toContain('gx-game-overview');
+  });
   const order = gamesOf(personal);
   const titleOf = g => `${g.away} @ ${g.home}`;
   // The layer names a game as its board row does (nicknames); the League feed's game sheet keeps the codes (titleOf).
@@ -51,8 +59,8 @@ describe('the game layer', () => {
     const heading = nodes(html).find(n => n.tag === 'h2' && n.attrs['data-route-focus'] !== undefined);
     expect(textOf(heading)).toBe(nameOf(order[1]));
     expect(nameOf(order[1])).toMatch(/^[A-Z][a-z0-9]+ @ [A-Z][a-z0-9]+$/);
-    expect(nodes(html).find(n => n.tag === 'section' && n.attrs.class === 'gx-nest').attrs['aria-label']).toBe(nameOf(order[1]));
-    expect(byClass(html, 'gx-nest-lip').map(nameFrom)).toEqual(['Back to Games']);
+    expect(byClass(html, 'gx-nest')[0].attrs['aria-label']).toBe(nameOf(order[1]));
+    expect(byClass(html, 'gx-nest-lip')).toEqual([]); // The native shell Back retains the board route.
     expect(textOf(nodes(html).find(n => n.attrs?.['aria-live'] === 'polite'))).toBe(`${nameOf(order[1])}, game 2 of ${order.length}`);
     expect(byClass(html, 'gx-sheet-page').map(n => n.attrs['aria-label'])).toEqual([`Previous game, ${nameOf(order[0])}`, `Next game, ${nameOf(order[2])}`]);
     expect(byClass(html, 'gx-pager-body')[0].attrs.class).toContain('gx-sheet-body--pager');

@@ -30,7 +30,7 @@ export function HistoricalTrends({ lines, market, view, onChange, onBuild }) {
       </div>
       {data.history.status !== 'fresh' ? <p className="gx-t-meta" role="status">History: {data.history.status}. Dated evidence remains descriptive.</p> : null}
       <h2 className="gx-sr-only">Historical situations</h2>
-      <ResearchCards data={data} ids={ids} limit={limit} request={request} openFirst={false} valueMetric="winRate" showSample headingLevel={3}/>
+      <ResearchCards data={data} ids={ids} limit={limit} request={request} openFirst={false} valueMetric="winRate" historical showSample headingLevel={3}/>
       {ids.length > limit ? <Button variant="secondary" onClick={() => setLimit(value => value + 12)}>Show more situations</Button> : null}
       <p className="gx-t-meta gx-c-2">Curves show illustrative units at −110. Historical results, not a current-game recommendation.</p>
     </> : null}

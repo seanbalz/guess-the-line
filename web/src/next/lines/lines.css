@@ -109,3 +109,25 @@
 /* Short lazy frames retain enough end clearance to scroll the sports control fully past the fixed header. */
 .gx [data-research=game].gx-screen { padding-bottom: calc(var(--gx-space-7) + var(--gx-size-touch) + var(--gx-space-3)); }
 @media (forced-colors: active) { .gx .gx-game-card[data-expanded], .gx .gx-game-actions [data-game] { border-color: Highlight; } }
+/* Game overview, native actions, then research: preserve pager and route focus without the older tall wrapper. */
+.gx .gx-game-research.gx-nest[data-depth="0"] > .gx-nest-card { padding: 0; margin: 0; border: 0; border-radius: 0; box-shadow: none; background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.gx .gx-game-research.gx-nest > .gx-nest-card::before { display: none; }
+.gx .gx-game-research > .gx-nest-card > .gx-nest-head { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.gx .gx-game-research .gx-game-overview { padding: 18px; }
+.gx .gx-game-overview-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.gx .gx-game-overview-teams { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; }
+.gx .gx-game-overview-side { position: relative; min-width: 0; }
+.gx .gx-game-overview-side > button { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; min-height: var(--gx-size-touch); padding: 4px; border: 0; background: transparent; color: var(--gx-text-1); cursor: pointer; }
+.gx .gx-game-overview-side > button:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
+.gx .gx-game-overview-side > button > span { max-width: 100%; overflow-wrap: anywhere; }
+.gx .gx-game-overview-at { position: absolute; left: -18px; top: 40%; }
+.gx .gx-game-research .gx-l-actions { margin: 8px 0; justify-content: flex-start; }
+.gx .gx-game-research .gx-l-actions > button { flex: 0 1 auto; padding-inline: 16px; border-radius: var(--gx-radius-pill); }
+.gx .gx-game-research [aria-label="Game research"] { align-items: stretch; gap: 8px; border-radius: 0; background: transparent; }
+.gx .gx-game-research [aria-label="Game research"] > button { min-width: 0; min-height: var(--gx-size-touch); height: auto; padding: 10px 8px; white-space: normal; border: 1px solid var(--gx-glass-line); border-radius: 20px; background: var(--gx-card-face); box-shadow: var(--gx-e1); }
+.gx .gx-game-research [aria-label="Game research"] > button[aria-pressed=true] { border-color: var(--gx-accent-ink); color: var(--gx-text-1); background: var(--gx-accent-tint); }
+@media (forced-colors: active) {
+  .gx .gx-game-research [aria-label="Game research"] { border: 0; box-shadow: none; }
+  .gx .gx-game-research [aria-label="Game research"] > button { forced-color-adjust: none; border-color: CanvasText; color: CanvasText; background: Canvas; box-shadow: none; }
+  .gx .gx-game-research [aria-label="Game research"] > button[aria-pressed=true] { border-color: Highlight; color: HighlightText; background: Highlight; }
+}

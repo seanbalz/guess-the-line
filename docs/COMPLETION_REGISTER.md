@@ -1,5 +1,18 @@
 # Guess The Line — current completion register
 
+## Reviewed Research / Fantasy layout fixes — November 7, 2026
+
+Exclusive unpublished branch `codex/research-visual-fidelity-2026-11-07`
+implements the three independently identified composition gaps: actual observed
+Players browse and addressable usage, full-width historical trend curves with a
+separated sample footer, and compact game overview → actions → Research panels.
+Native source/missing/bye, reveal, paging, comparison, Back/focus and scroll
+controllers remain. [Area scope and evidence](PRISM_RESEARCH_NATIVE_2026_11_07.md#reviewed-layout-fixes--november-7-2026)
+record the exact approval sources and local browser captures. Canonical candidate
+By-season and non-shortlist curves remain backend dependencies; shared frame
+placement remains the parent's owner question. This is local review work, not
+whole-area approval, hosted acceptance, publication or deployment.
+
 ## Reviewed Play/Points/Score visual closeout — November 7, 2026
 
 The four reviewed gaps are implemented on exclusive unpublished branch

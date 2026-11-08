@@ -210,7 +210,8 @@ test('one game is a layer: a row, its heading focused, a reload, Back and Forwar
     await row(page, 'SEA-DEN').click();
     await expect(page).toHaveURL(/#research\/games\?(.*&)?layer=game&item=SEA-DEN$/);
     await expect(heading(game(page), 'Seahawks @ Broncos'), 'a tap focuses the layer’s heading').toBeFocused();
-    await expect(game(page).getByRole('button', { name: 'Back to Games', exact: true })).toBeVisible();
+    await expect(game(page).getByRole('region', { name: 'Game overview', exact: true })).toBeVisible();
+    await expect(back(page), 'the native shell Back closes the compact game overview').toBeVisible();
     await expect(page.locator('button[data-game]').first(), 'the board stays mounted, hidden, under the layer').toBeHidden();
     await expect(page.locator('button[data-game]')).toHaveCount(2);
     await page.reload();
@@ -221,7 +222,7 @@ test('one game is a layer: a row, its heading focused, a reload, Back and Forwar
     await expect(row(page, 'SEA-DEN')).toBeVisible();
     await page.goForward();
     await expect(heading(game(page), 'Seahawks @ Broncos')).toBeVisible();
-    await game(page).getByRole('button', { name: 'Back to Games', exact: true }).click();
+    await back(page).click();
     await expect(row(page, 'SEA-DEN')).toBeVisible();
     await expect(game(page)).toHaveCount(0);
 
@@ -575,11 +576,16 @@ test('approved Games cards retain day filters, live team statistics and keyboard
     await game(page).getByRole('group',{name:'Game research',exact:true}).getByRole('button',{name:'Team performance',exact:true}).click();
     await expect(game(page).getByRole('region',{name:'Observed play statistics',exact:true})).toContainText('50.0%');
     await expect(game(page).locator('.gx-r-team-stats > div')).toHaveCount(3);
-    for (const width of [320,390]) for (const theme of ['dark','light']) {
-      await page.setViewportSize({width,height:844});await page.evaluate(theme=>{document.documentElement.dataset.theme=theme;},theme);
+    for (const width of [320,390]) for (const theme of ['dark','light']) for (const forcedColors of ['none','active']) {
+      await page.setViewportSize({width,height:844});await page.emulateMedia({forcedColors,colorScheme:theme});await page.evaluate(theme=>{document.documentElement.dataset.theme=theme;},theme);
       expect(await phoneProblems(page)).toEqual([]);await page.evaluate(()=>scrollTo(0,0));
-      await page.screenshot({path:info.outputPath(`prism-game-performance-${width}-${theme}.png`),fullPage:true});
+      if (forcedColors === 'active') expect(await game(page).getByRole('group',{name:'Game research',exact:true}).getByRole('button',{pressed:true}).evaluate(el=>{
+        const probe=document.createElement('span');probe.style.backgroundColor='Highlight';document.body.append(probe);
+        const expected=getComputedStyle(probe).backgroundColor;probe.remove();return getComputedStyle(el).backgroundColor === expected;
+      }), 'the selected research tab uses the user’s system Highlight').toBe(true);
+      await page.screenshot({path:info.outputPath(`prism-game-performance-${width}-${theme}${forcedColors === 'active' ? '-forced' : ''}.png`),fullPage:true});
     }
+    await page.emulateMedia({forcedColors:'none'});
     await back(page).click(); await expect(row(page,'SEA-DEN')).toBeFocused();
     await shared(page, '#research/teams');
     await page.getByRole('searchbox', { name: 'Find a team', exact: true }).fill('Seattle');

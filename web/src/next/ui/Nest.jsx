@@ -39,7 +39,7 @@ export function useEntrance() {
  * `lips`: the open parents, outermost first, `{ key, label, onOpen }`. `layer` names the current layer (it moves focus
  * when it changes). `info` is the layer's ⓘ (fine print lives there, D-55 rule 10).
  */
-export function Nest({ label, lips = [], layer, title, info, children, className }) {
+export function Nest({ label, lips = [], layer, title, info, children, className, headingClassName }) {
   const heading = useRef(null), shown = useRef(layer), last = useRef(null), latch = useRef({ layer: undefined, enter: undefined });
   // The entrance is decided once per layer (a re-render of the same layer, such as a data load, keeps it, so the
   // animation is never cut short); under StrictMode's double render both passes read the same latch.
@@ -65,7 +65,7 @@ export function Nest({ label, lips = [], layer, title, info, children, className
       ) : null}
       <div key={layer ?? 'layer'} className="gx-nest-card" style={depth(lips.length)} data-enter={enter}>
         <div className="gx-nest-head">
-          <h2 ref={heading} className="gx-t-section gx-nest-title" tabIndex={-1} data-route-focus>{title}</h2>
+          <h2 ref={heading} className={cx('gx-t-section gx-nest-title', headingClassName)} tabIndex={-1} data-route-focus>{title}</h2>
           {info}
         </div>
         {children}

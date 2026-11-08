@@ -60,6 +60,14 @@ describe('Fantasy nesting cards', () => {
     expect(lips(html)).toEqual(['Back to Fantasy']);
     expect(html).toContain('gx-fantasy-compare');
   });
+  it('observed usage opens by roster id independently of a ranking, retaining missing weeks and separate estimates', () => {
+    const player = snapshot.players.find(player => player.history.length);
+    const html = render({ fantasyLayer: 'usage', fantasyPlayer: player.id }, { navigationState: { selection: '2026-06', browse: 'players', filters: { ...DEFAULT_FILTERS, search: 'excluded from rankings' } } });
+    expect(lips(html)).toEqual(['Back to Fantasy']);
+    expect(html).toContain('Observed production'); expect(html).toContain('Usage and actual fantasy points by week');
+    expect(html).toContain('GTL estimate'); expect(html).toContain(player.name);
+    expect(markupProblems(html)).toEqual([]);
+  });
   it('the layer and player are route keys; opening each is a step and back closes one layer', () => {
     const fragment = fragmentFor('research', { section: 'fantasy' }, { fantasy: { fantasyLayer: 'player', fantasyPlayer: rows[0].id } });
     expect(placeFromFragment(fragment).adapters.fantasy).toMatchObject({ fantasyLayer: 'player', fantasyPlayer: rows[0].id });

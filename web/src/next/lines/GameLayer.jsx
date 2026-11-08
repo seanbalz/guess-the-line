@@ -13,6 +13,7 @@ import { RESEARCH_NAMES, closeGame, gameName, layerTitle, openTeam, pageGame } f
 import { actionsForGame, GameActions } from './GameActions.jsx';
 import { gamePager, openedBoardOrder, openedBoardResult } from './gameOrder.js';
 import { GameDetailsSlot } from './GameDetailsSlot.jsx';
+import { GameOverview } from './GameOverview.jsx';
 import { rememberedBoard } from './boardContext.js';
 import { useLinesData } from './linesData.js';
 import './lines.css';
@@ -56,14 +57,15 @@ export function GameLayer({ id }) {
   const actions = actionGame ? actionsForGame(actionGame, { accountId: app.accountId, personal: personal.data }) : [];
   const lips = [{ key: 'games', label: RESEARCH_NAMES.games, onOpen: () => closeGame(shell) }];
   return <div ref={root} className="gx-screen" data-research="game" data-game-layer={id}>
-    <h1 className="gx-t-title">{RESEARCH_NAMES.games}</h1>
-    <Nest label={title} lips={lips} layer="game" title={title}>
+    <h1 className={view ? 'gx-sr-only' : 'gx-t-title'}>{RESEARCH_NAMES.games}</h1>
+    <Nest className={view ? 'gx-game-research' : undefined} headingClassName={view ? 'gx-sr-only' : undefined} label={title} lips={view ? [] : lips} layer="game" title={title}>
       {!personal.data ? <Waiting personal={personal} onRetry={() => app.refresh({ only: ['personal'] })}/>
         : !view ? <p className="gx-t-body gx-c-2" role="status">{LINES_COPY.notOnBoard}</p>
-        : <LayerPager title={title} pager={pager} page={view.id}>
-            <GameDetailsSlot lines={lines} view={view} result={result} onTeam={code => openTeam(shell, code)}/>
-            {actions.length ? <GameActions game={actionGame} actions={actions} shell={shell}/> : null}
-          </LayerPager>}
+        : <><GameOverview view={view} season={shown?.season} week={shown?.week} onTeam={code => openTeam(shell, code)}/>
+          {actions.length ? <GameActions game={actionGame} actions={actions} shell={shell}/> : null}
+          <LayerPager title={title} pager={pager} page={view.id}>
+            <GameDetailsSlot compact lines={lines} view={view} result={result} onTeam={code => openTeam(shell, code)}/>
+          </LayerPager></>}
     </Nest>
   </div>;
 }

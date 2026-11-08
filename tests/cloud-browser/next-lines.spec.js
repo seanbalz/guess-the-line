@@ -64,7 +64,8 @@ const gameLayer = (page, name) => page.locator('[data-research="game"]').filter(
 /** The game layer's name for a game id, as its board row says it ("Seahawks @ Broncos"). */
 const layerName = id => id.split('-').map(code => teamOf(code).nick).join(' @ ');
 /** D-69 step 3: the game layer's lip, "Back to Games" (it was the sheet's Close; Escape was its other close). */
-const lip = (page, name) => gameLayer(page, name).getByRole('button', { name: 'Back to Games', exact: true });
+// The approved compact overview uses the native shell Back above the game instead of a second Games lip.
+const lip = page => page.getByRole('button', { name: 'Back', exact: true });
 /** D-69 step 3: a team from a game is Research › Teams › that team (it was the team sheet). */
 const teamLayer = (page, name) => page.locator('[data-research="team"]').filter({ has: page.getByRole('heading', { name, level: 2, exact: true }) });
 

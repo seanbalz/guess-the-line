@@ -361,3 +361,48 @@ test.describe('fantasy rankings', () => {
     } finally { await world.db.close(); }
   });
 });
+
+test('approved observed Players browse retains actual production, usage route and comparison in both phone themes', async ({page,baseURL},info)=>{
+ test.setTimeout(240000); test.skip(!pgliteAvailable,'Local PGlite required; no hosted data.');
+ const {world,screen}=await open(page,baseURL,'next');
+ try {
+  await screen.getByRole('group',{name:'Fantasy browse',exact:true}).getByRole('button',{name:'Players',exact:true}).click();
+  const browse=screen.getByRole('region',{name:'Player research',exact:true});
+  await expect(browse.locator('[data-observed-player]')).toHaveCount(6);
+  const first=browse.locator('[data-observed-player]').first(), id=await first.getAttribute('data-observed-player');
+  const name=await first.getByRole('heading').innerText();
+  await expect(first).toContainText('pts / game'); await expect(first).not.toContainText('est. pts');
+  await first.getByRole('button',{name:`Add to compare: ${name}`,exact:true}).click();
+  await expect(first.getByRole('button',{name:`Remove from compare: ${name}`,exact:true})).toHaveAttribute('aria-pressed','true');
+  for(const width of [320,390]) for(const theme of ['dark','light']) for(const forcedColors of ['none','active']) {
+   await page.setViewportSize({width,height:844}); await page.emulateMedia({forcedColors,colorScheme:theme});
+   await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
+   await layout(page,screen); await phoneRules(page,screen,`Players ${width} ${theme} ${forcedColors}`);
+   await page.screenshot({path:info.outputPath(`players-${width}-${theme}-${forcedColors}.png`),fullPage:true});
+  }
+  await page.emulateMedia({forcedColors:'none'});
+  const search=browse.getByRole('searchbox',{name:'Find a player',exact:true});
+  await search.fill(name); await expect(browse.locator('[data-observed-player]')).toHaveCount(1); await search.fill('');
+  await browse.getByRole('combobox',{name:'Position',exact:true}).selectOption('QB');
+  await expect(browse.locator('[data-observed-player]').first().locator('.gx-fantasy-observed-head')).toContainText('QB');
+  await browse.getByRole('combobox',{name:'Position',exact:true}).selectOption('ALL');
+  await screen.getByRole('button',{name:/^Show more recorded players/}).click();
+  await expect(browse.locator('[data-observed-player]')).toHaveCount(12);
+  const usageName=await browse.locator('[data-observed-player]').last().getByRole('heading').innerText();
+  const opener=browse.locator('[data-observed-player]').last().getByRole('button',{name:`Usage & production: ${usageName}`,exact:true});
+  await opener.click(); await expect(page).toHaveURL(/fantasyLayer=usage/);
+  await expect(screen.getByRole('heading',{name:usageName,level:2,exact:true})).toBeFocused();
+  await expect(screen.getByRole('heading',{name:'Observed production',exact:true})).toBeVisible();
+  await expect(screen.getByRole('table',{name:'Usage and actual fantasy points by week',exact:true}).locator('tbody tr')).toHaveCount(snapshot.statsThroughWeek);
+  for(const width of [320,390]) for(const theme of ['dark','light']) {
+   await page.setViewportSize({width,height:844}); await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
+   await layout(page,screen); await phoneRules(page,screen,`Usage ${width} ${theme}`);
+   await page.screenshot({path:info.outputPath(`usage-${width}-${theme}.png`),fullPage:true});
+  }
+  await backToFantasy(screen); await expect(browse.locator('[data-observed-player]')).toHaveCount(12); await expect(opener).toBeFocused();
+  await screen.getByRole('group',{name:'Fantasy browse',exact:true}).getByRole('button',{name:'Rankings',exact:true}).click();
+  await expect(list(screen)).toBeVisible();
+  for(const theme of ['dark','light']) { await page.setViewportSize({width:390,height:844});await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);await layout(page,screen);await page.screenshot({path:info.outputPath(`rankings-390-${theme}.png`),fullPage:true}); }
+  expect(world.errors).toEqual([]);
+ } finally {await world.db.close();}
+});

@@ -730,3 +730,28 @@ test('approved historical Trends rows use real scoped controllers, six periods, 
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
+
+test('approved historical rows use a full-width source spark and separated sample footer',async({page,baseURL},info)=>{
+ test.setTimeout(120000); const {world}=await setup(page,baseURL,{multipleBins:true});
+ try {
+  await page.goto('/#research/trends');
+  const list=page.getByRole('region',{name:'Historical trends',exact:true});
+  await expect(list.locator('[data-research-card]')).toHaveCount(5);
+  const row=list.locator('[data-research-card]').first();
+  await expect(row.locator('.gx-r-row-context')).toContainText('30 games');
+  for(const width of [320,390]) for(const theme of ['dark','light']) for(const forcedColors of ['none','active']) {
+   await page.setViewportSize({width,height:844}); await page.emulateMedia({forcedColors,colorScheme:theme}); await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
+   const size=await row.evaluate(el=>{const row=el.querySelector('.gx-tc-row').getBoundingClientRect(),spark=el.querySelector('.gx-tc-mini').getBoundingClientRect(),footer=el.querySelector('.gx-r-row-context').getBoundingClientRect();return {row:row.width,spark:spark.width,bottom:spark.bottom,footer:footer.top};});
+   expect(size.spark).toBeGreaterThan(size.row*.8);expect(size.footer).toBeGreaterThanOrEqual(size.bottom);
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+   await page.screenshot({path:info.outputPath(`historical-rows-${width}-${theme}-${forcedColors}.png`),fullPage:true});
+  }
+  await page.emulateMedia({forcedColors:'none'});
+  // Missing source curves stay absent; opening evidence uses the original candidate read.
+  await expect(list.locator('[data-research-card="synthetic-opposition"] .gx-tc-mini')).toHaveCount(0);
+  await row.getByRole('button',{expanded:false}).click();await expect(row.getByRole('slider')).toBeVisible();
+  await row.getByRole('button',{name:'View evidence',exact:true}).click();await expect(row.getByRole('table')).toBeVisible();
+  const violations=(await new AxeBuilder({page}).analyze()).violations.map(item=>item.id);expect(violations).toEqual([]);
+  expect(world.errors).toEqual([]);
+ } finally {await world.db.close();}
+});

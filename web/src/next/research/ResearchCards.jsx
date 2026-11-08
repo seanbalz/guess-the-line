@@ -125,7 +125,7 @@ const consistencyText = candidate => (candidate.sourceState === 'source-reported
   : /^Tier [12] historical consistency$/.test(candidate.qualification.label) ? 'Historical consistency · not proven' : candidate.qualification.label);
 const consistencyPill = candidate => (candidate.sourceState === 'source-reported' ? 'Not verified' : /not proven/i.test(consistencyText(candidate)) ? 'Not proven' : null);
 
-function ResearchCard({ candidate, gameId, request, open, onToggle, valueMetric, showSample, headingLevel }) {
+function ResearchCard({ candidate, gameId, request, open, onToggle, valueMetric, showSample, headingLevel, historical }) {
   const id = useId();
   const [evidence, setEvidence] = useState(false);
   const applications = candidate.applications?.filter(a => !gameId || a.gameId === gameId) ?? [];
@@ -144,8 +144,9 @@ function ResearchCard({ candidate, gameId, request, open, onToggle, valueMetric,
   ];
   return <li className="gx-tc-item gx-r-card" data-research-card={candidate.id}>
     <div className="gx-card gx-tc-rowcard">
-      <TrendRow title={candidate.title} sub={[consistencyPill(candidate), record, showSample && Number.isFinite(r.sample) ? `${r.sample.toLocaleString('en-US')} games` : null].filter(Boolean).join(' · ')}
+      <TrendRow title={candidate.title} sub={historical ? [candidate.market === 'spread' ? 'ATS' : 'Total', record].filter(Boolean).join(' · ') : [consistencyPill(candidate), record, showSample && Number.isFinite(r.sample) ? `${r.sample.toLocaleString('en-US')} games` : null].filter(Boolean).join(' · ')}
         values={line?.values} value={valueMetric === 'winRate' ? pct === null ? '—' : `${pct}%` : Number.isFinite(units) ? `${signed(units)} U` : null} open={open} controls={id} onToggle={onToggle}/>
+      {historical ? <div className="gx-r-row-context"><span>{candidate.conditionDescriptions?.join('; ') || readable(candidate.family)}{consistencyPill(candidate) ? ` · ${consistencyPill(candidate)}` : ''}</span><span>{Number.isFinite(r.sample) ? `${r.sample.toLocaleString('en-US')} games` : 'Sample unavailable'}</span></div> : null}
       {open && !line ? <div className="gx-tc-rowtext" id={id}>
         <RecordSummary record={candidate.record} label="Selected period"/>
         <div className="gx-l-sechead"><p className="gx-t-meta gx-grow">{consistencyText(candidate)}</p>{info}</div>
@@ -161,11 +162,11 @@ function ResearchCard({ candidate, gameId, request, open, onToggle, valueMetric,
 /** The candidates a research list shows: `ids` (else the reply's shortlist), once each, at most `limit`, known ones only. */
 export const researchSelection = (data, ids, limit = 3) => [...new Set(ids ?? data?.shortlist ?? [])].slice(0, limit).map(id => data?.candidates.find(c => c.id === id)).filter(Boolean);
 /** Research as D-55 compact rows; one opens at a time, and the first opens on its own unless `openFirst` is false. */
-export function ResearchCards({ data, ids, limit = 3, gameId, request, openFirst = true, valueMetric = 'units', showSample = false, headingLevel = 4 }) {
+export function ResearchCards({ data, ids, limit = 3, gameId, request, openFirst = true, valueMetric = 'units', showSample = false, headingLevel = 4, historical = false }) {
   const selected = researchSelection(data, ids, limit);
   const [open, setOpen] = useState(() => (openFirst ? selected[0]?.id ?? null : null));
   return selected.length ? <ul className="gx-tc-list" aria-label="Research">{selected.map(c => <ResearchCard key={`${c.id}:${c.period}`} candidate={c} gameId={gameId} request={request}
-    open={open === c.id} valueMetric={valueMetric} showSample={showSample} headingLevel={headingLevel} onToggle={() => setOpen(value => (value === c.id ? null : c.id))}/>)}</ul>
+    open={open === c.id} valueMetric={valueMetric} showSample={showSample} historical={historical} headingLevel={headingLevel} onToggle={() => setOpen(value => (value === c.id ? null : c.id))}/>)}</ul>
     : <p className="gx-t-body gx-c-2">No qualifying research in this view. Explore other situations.</p>;
 }
 function directionLabel(game, market, direction) {

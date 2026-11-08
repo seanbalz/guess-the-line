@@ -83,3 +83,26 @@
 .gx .gx-fantasy-error-bar[data-method=GTL] .gx-fantasy-error-track > span { background: var(--gx-accent-ink); }
 @media (forced-colors: active) { .gx .gx-fantasy-error-track { border: 1px solid CanvasText; } .gx .gx-fantasy-error-track > span { background: CanvasText; } .gx .gx-fantasy-error-bar[data-method=GTL] .gx-fantasy-error-track > span { background: Highlight; } }
 .gx .gx-fantasy-error-track { display: block; height: 8px; border-radius: 8px; background: var(--gx-border); overflow: hidden; }
+/* Approved observed-production browse: full-width recorded-game spark and separate native tools. */
+.gx .gx-fantasy-browse-filters { display: grid; grid-template-columns: minmax(0,1fr) minmax(80px,0.4fr); gap: 8px; }
+.gx .gx-fantasy-observed-list { display: flex; flex-direction: column; gap: 20px; list-style: none; margin: 0; padding: 0; min-width: 0; }
+.gx .gx-fantasy-observed-list > li { min-width: 0; }
+.gx .gx-fantasy-observed { padding: 16px; }
+.gx .gx-fantasy-observed-head { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.gx .gx-fantasy-observed-head .gx-grow { min-width: 0; overflow-wrap: anywhere; }
+.gx .gx-fantasy-observed-average { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
+.gx .gx-fantasy-observed-average > strong { color: var(--gx-accent-ink); }
+.gx .gx-fantasy-observed-spark .gx-tc-mini { display: block; width: 100%; height: 48px; }
+.gx .gx-fantasy-observed-spark .gx-tc-mini-line { stroke: var(--gx-accent-ink); }
+.gx .gx-fantasy-observed-spark .gx-tc-mini-area { fill: var(--gx-accent-ink); }
+.gx .gx-fantasy-observed-averages { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; font: 500 16px/24px var(--gx-font-body); }
+.gx .gx-fantasy-observed-averages dt { color: var(--gx-text-2); }
+.gx .gx-fantasy-observed-averages dd { margin: 0; font-variant-numeric: tabular-nums; }
+@media (forced-colors: active) { .gx .gx-fantasy-observed-spark .gx-tc-mini-line { stroke: CanvasText; } .gx .gx-fantasy-observed-spark .gx-tc-mini-area { display: none; } }
+.gx .gx-fantasy-browse.gx-nest[data-depth="0"] > .gx-nest-card { padding: 0; border: 0; background: transparent; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.gx .gx-fantasy-browse.gx-nest > .gx-nest-card::before { display: none; }
+.gx .gx-fantasy-observed .gx-fantasy-tool-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); align-items: stretch; }
+.gx .gx-fantasy-observed .gx-fantasy-tool-actions > .gx-btn { width: 100%; min-width: 0; height: auto; min-height: var(--gx-size-touch); white-space: normal; padding: 10px 8px; }
+.gx .gx-fantasy-observed .gx-btn--ghost { border: 1px solid var(--gx-glass-line); border-radius: 20px; background: var(--gx-surface-2); box-shadow: var(--gx-e1); color: var(--gx-text-1); }
+.gx .gx-fantasy-observed .gx-btn[aria-pressed=true] { border-color: var(--gx-accent-ink); }
+.gx .gx-fantasy > [aria-label='Fantasy browse'] .gx-seg-btn { min-width: 0; white-space: normal; height: auto; }
