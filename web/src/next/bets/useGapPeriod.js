@@ -4,8 +4,12 @@ import { gapRecord } from '../../../../shared/recommended-bets.mjs';
 import { combineGapBoards, loadGapBoards, periodWeeks, publishedGapWeeks, weekKey } from './gapPeriods.js';
 
 const weekLabel = w => `${w.season} Week ${w.week}`;
-export function useGapPeriod({ board, season, week, slates = [], accountId, market = 'all', onSignInAgain }) {
-  const [period, setPeriod] = useState('week'), [range, applyRange] = useState(null);
+export function useGapPeriod({ board, season, week, slates = [], accountId, market = 'all', onSignInAgain, periodSelection, onPeriodSelectionChange }) {
+  const [localSelection, setLocalSelection] = useState({ period: 'week', range: null });
+  const { period, range } = periodSelection ?? localSelection;
+  const setSelection = onPeriodSelectionChange ?? setLocalSelection;
+  const setPeriod = period => setSelection({ period, range });
+  const applyRange = range => setSelection({ period, range });
   const [state, setState] = useState(null), [attempt, setAttempt] = useState(0);
   const auth = useRef(onSignInAgain); auth.current = onSignInAgain;
   const weeksKey = JSON.stringify(publishedGapWeeks(slates));
