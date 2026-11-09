@@ -12,6 +12,16 @@ browser cases, 39 Node checks, six UI checks and build/QA passed. Actual-compone
 data. Owner review, exact CI, merge, protected deploy and real-phone acceptance
 remain separate. PR #507 still owns the prior release-evidence reconciliation.
 
+## Comparable NFL gap scale checked locally — November 9, 2026
+
+[D-81](DECISIONS.md) replaces percentage-of-line gap ranking with a shared
+historical scale calibrated separately for Spread and Total. Sean chose the
+NFL-wide baseline and top-quarter Large highlight. The
+[implementation evidence](NFL_GAP_SCALE_2026_11_09.md) records the frozen
+2016–2025 sample, reproducible aggregate, shared ranking/colors/history filter,
+source limitations and verification. This is review work, not a merge or release
+claim. No saved pick/reference, API, migration, provider or collector changes.
+
 ## Player Props design approved; source audit partial — November 9, 2026
 
 Sean approved both Dark/Light boards with alignment to the rest of the app as a
@@ -80,6 +90,46 @@ alone need not create the required scrolled shelf. The release record preserves
 the original failed PR #507 run and the explicit-centering correction, with all
 navigation/focus/scroll assertions retained. This changes no application source
 and does not require redeployment.
+
+## EPL expansion requirements confirmed — November 9, 2026
+
+The [requirements and delivery sequence](EPL_FEATURES_2026_11_09.md) and D-68
+addendum record Sean's answers in this conversation: optional three-way entry,
+one locked guess per match and a combined leaderboard; automatic recommendations
+ranked by current favorable gap with supporting trends; reviewed final Sleeper
+screenshot scores opening the next draft; and independent winner announcements
+with opt-in push. Source inspection identified two-way storage, coupled
+snapshot/award/rollover processing and roughly twelve-hourly result collection
+as implementation work. Status: **planned, not built or deployed**. Sean supplied
+a representative screenshot: human inspection established the four-card/eight-
+manager layout, actual-score versus projection positions and absent season-total
+tiebreak data. The requirements record now defines import/review handling; this
+is not tested OCR or a live import. Private images/scores remain outside Git.
+No runtime, database, migration, notification or frozen-v62 change.
+
+## Gap record period filters deployed and verified — November 9, 2026 UTC
+
+[Release evidence](RELEASE_2026_11_09_GAP_RECORD_PERIODS.md) records merged PR #505,
+source `9a34f9e47d5fb7dd32eecd6fdc697cef53340ed9`, all twelve exact PR/main checks,
+protected readiness and frontend-only deploy 42665392227. Pages
+`3e81d5b5-5ad5-4f62-9014-c728f047e070` and all 132 production assets verified at
+17:35:54 UTC. Week, This season, All time and inclusive Custom range combine
+existing D-77 records without averaging weekly percentages. Recommendation week
+and placement remain independent; failed periods do not show partial totals.
+
+API v52 metadata and 76-migration history remain unchanged. No SQL/API/worker or
+provider deployment. Local synthetic multiweek tests and public two-theme smoke
+do not establish physical-phone or signed-in production acceptance. The new
+Player Props guessing feature is still in design, not included in this release.
+M-41, held FEPL framing, parked work and frozen v62 remain separate. Earlier
+local/pending period-filter entries below are historical.
+
+The publication followup also corrects an existing badge-test setup: visibility
+alone need not create the required scrolled shelf. The release record preserves
+the original failed PR #507 run and the explicit-centering correction, with all
+navigation/focus/scroll assertions retained. This changes no application source
+and does not require redeployment.
+
 
 ## Gap win rate period filters checked locally — November 9, 2026
 
