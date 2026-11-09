@@ -1,5 +1,21 @@
 # Guess The Line — current completion register
 
+## Player Props design approved; source audit partial — November 9, 2026
+
+Sean approved both Dark/Light boards with alignment to the rest of the app as a
+condition. [D-82](DECISIONS.md) and the
+[approved design](superpowers/specs/2026-11-09-player-props-design.md) preserve
+optional athlete/stat selection, separate native-unit average-miss accuracy,
+entry-only market hiding and the existing shared Prism components/navigation.
+
+The [readiness audit](PLAYER_PROPS_READINESS_2026_11_09.md) verifies all eleven raw
+stat fields in a checksum-matched public Week 1–9 source. Hosted prop-quote,
+roster/event, quota and final-result readiness is unverified: the Supabase
+connection requires reauthentication. The
+[read-only readiness plan](superpowers/plans/2026-11-09-player-props-readiness.md)
+keeps those unknowns distinct from observed absence. No Player Props mode,
+migration, provider-credit request, collector activation or deployment is included.
+
 ## Gap win rate period filters checked locally — November 9, 2026
 
 Sean approved the [D-80](DECISIONS.md) dark/light period-control mockup. The

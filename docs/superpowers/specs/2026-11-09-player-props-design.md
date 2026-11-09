@@ -50,6 +50,12 @@ lines, partial-game periods, binary anytime/first/last touchdown prices and
 unidentified custom selections are outside this numeric-line guessing catalog.
 This does not guarantee coverage for every athlete, stat or game.
 
+Source baseline is `9a34f9e47d5fb7dd32eecd6fdc697cef53340ed9`. Separate PR #508
+reserves D-81 for NFL spread/total gap magnitude; this feature is D-82. Reconcile
+fresh-main filter vocabulary and interfaces before a product implementation plan
+is executable. That NFL game-line calibration is not a prop-stat calibration and
+must not normalize or combine the selected native-unit prop accuracy scores.
+
 ## Entry and final lock-in
 
 The entry mockup adds a Player Props mode choice, position/search controls,
