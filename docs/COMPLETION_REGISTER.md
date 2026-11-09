@@ -1,5 +1,14 @@
 # Guess The Line — current completion register
 
+## Gap period follow-up findings — November 9, 2026
+
+The [post-release review](GAP_PERIOD_FOLLOWUP_REVIEW_2026_11_09.md) reproduces
+two UI issues on PR #505's deployed source: recommendation-week changes/Refresh
+lines reset the record period, and an expanded list retains its old row limit
+when the period grows. Both remain unfixed. Actual components were exercised
+with synthetic local reads; no production data or application source changed.
+Signed-in/phone acceptance and PR #507's release-evidence merge remain separate.
+
 ## Gap win rate period filters checked locally — November 9, 2026
 
 Sean approved the [D-80](DECISIONS.md) dark/light period-control mockup. The
