@@ -36,9 +36,11 @@ export function useGapPeriod({ board, season, week, slates = [], accountId, mark
   const record = useMemo(() => gapRecord(shownBoard, { market }), [shownBoard, market]);
   const title = period === 'week' ? `Week ${week}` : period === 'all' ? 'All time'
     : period === 'season' ? `${weeks.at(-1)?.season ?? season} season`
-    : selected.length ? `${weekLabel(selected[0])} – ${weekLabel(selected.at(-1))}` : 'Custom range';
+    : selected.length && selected[0].season === selected.at(-1).season
+      ? `Weeks ${selected[0].week}–${selected.at(-1).week}` : 'Custom range';
   const coverage = period === 'week' ? `${season} · Selected recommendation week`
-    : `${period === 'all' ? 'All retained weeks' : 'Selected published weeks'} · ${selected.length} ${selected.length === 1 ? 'week' : 'weeks'}`;
+    : `${period === 'all' ? 'All retained weeks' : period === 'custom' && selected.length
+      ? `${weekLabel(selected[0])} – ${weekLabel(selected.at(-1))}` : 'Selected published weeks'} · ${selected.length} ${selected.length === 1 ? 'week' : 'weeks'}`;
   return { period, setPeriod, range, applyRange, weeks, title, coverage, status, record, board: shownBoard,
     error: error || state?.error, retry: () => { setState(null); setAttempt(n => n + 1); } };
 }

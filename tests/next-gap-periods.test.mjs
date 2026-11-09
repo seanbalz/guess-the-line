@@ -91,3 +91,17 @@ test('an aborted load launches no further weekly reads', async () => {
   await assert.rejects(loadGapBoards(slates, { signal: controller.signal, read: async () => { reads++; return board(2026, 5); } }), { name: 'AbortError' });
   assert.equal(reads, 0);
 });
+
+test('aborting in-flight reads prevents scheduling the remainder and cannot resolve a partial board', async () => {
+  const controller = new AbortController(), started = [];
+  const pending = loadGapBoards(Array.from({ length: 8 }, (_, i) => ({ season: 2026, week: i + 1 })), {
+    signal: controller.signal, read: async (scope, signal) => {
+      started.push(scope.week);
+      await new Promise((resolve, reject) => signal.addEventListener('abort', () => reject(signal.reason), { once: true }));
+      return board(scope.season, scope.week);
+    },
+  });
+  controller.abort();
+  await assert.rejects(pending, { name: 'AbortError' });
+  assert.deepEqual(started, [1, 2, 3]);
+});
