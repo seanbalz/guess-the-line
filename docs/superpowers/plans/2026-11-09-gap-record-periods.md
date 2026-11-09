@@ -21,15 +21,15 @@ GapRecord presentation. The recommendation week and writes remain independent.
 
 Files: create `web/src/next/bets/gapPeriods.js`; create `tests/next-gap-periods.test.mjs`.
 
-- [ ] Test first: select weeks for Week/season/all/custom, reject reversed or unknown
+- [x] Test first: select weeks for Week/season/all/custom, reject reversed or unknown
   bounds, combine duplicate matchup IDs without collisions and calculate weighted
   win rate with pushes using real D-77 fixtures. Example: 1–0 plus 1–3 => 2/5 = 40%.
-- [ ] Run `node --test tests/next-gap-periods.test.mjs`; observe missing-feature failure.
-- [ ] Implement `periodWeeks(slates, {period, season, week, from, to})`,
+- [x] Run `node --test tests/next-gap-periods.test.mjs`; observe missing-feature failure.
+- [x] Implement `periodWeeks(slates, {period, season, week, from, to})`,
   `combineGapBoards(boards)` and `loadGapBoards(weeks, {board, read, signal})`.
   Loader reuses matching board, validates each returned scope, bounds concurrency
   to three and rejects failures instead of returning partial totals.
-- [ ] Run model tests plus `tests/next-gap-record-view.test.mjs` and
+- [x] Run model tests plus `tests/next-gap-record-view.test.mjs` and
   `tests/recommended-bets.test.mjs`; require zero failures. Commit named files.
 
 ## Task 2 — approved controls and current component integration
@@ -38,24 +38,24 @@ Files: create `web/src/next/bets/useGapPeriod.js` and `GapPeriodControl.jsx`;
 modify `GapRecord.jsx`, `gapRecordView.js`, `gapRecord.css`,
 `web/src/VirtualUnits.jsx`; create `tests/next-gap-periods-ui.test.jsx`.
 
-- [ ] Test labelled controls, selected period summary, no stale numbers during
+- [x] Test labelled controls, selected period summary, no stale numbers during
   loading/error, Retry, range Apply and row season/week provenance before code.
-- [ ] Run focused Vitest to observe the expected missing UI failure.
-- [ ] Wire `season`, `week`, `slates`, `market`, account identity and sign-in retry
+- [x] Run focused Vitest to observe the expected missing UI failure.
+- [x] Wire `season`, `week`, `slates`, `market`, account identity and sign-in retry
   from VirtualUnits into GapRecord. Retain Week default and existing recommendation
   selection. Hook reads only on applied scope changes, aborts superseded reads and
   recomputes market/tier from the complete combined board.
-- [ ] Render approved Record period, Custom From/To/Apply and coverage copy with
+- [x] Render approved Record period, Custom From/To/Apply and coverage copy with
   native selects. Error/empty/loading states are local to the record. Detail and
   list use actual row season/week, not the recommendation's displayed week.
-- [ ] Verify focused tests, typecheck, Brand QA and build. Commit named files.
+- [x] Verify focused tests, typecheck, Brand QA and build. Commit named files.
 
 ## Task 3 — browser verification, review and release
 
-- [ ] Use an isolated CLI browser and controlled signed-in fixture, both themes
+- [x] Use an isolated CLI browser and controlled signed-in fixture, both themes
   at 320/390/768px. Exercise All time, This season, cross-week Custom, error/retry,
   market/tier, detail/Back and end clearance; inspect captures. No new browser spec.
-- [ ] Run `npm test`, `npm run typecheck`, `python scripts/check-brand-docs.py`,
+- [x] Run `npm test`, `npm run typecheck`, `python scripts/check-brand-docs.py`,
   `npm run build`, and `git diff --check`; record actual counts and limitations.
 - [ ] Update completion register with evidence, create reviewed source PR, push and
   run sync:check. Obtain code-review approval and exact-head required CI.

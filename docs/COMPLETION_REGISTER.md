@@ -1,5 +1,17 @@
 # Guess The Line — current completion register
 
+## Gap win rate period filters checked locally — November 9, 2026
+
+Sean approved the [D-80](DECISIONS.md) dark/light period-control mockup. The
+[implementation evidence](GAP_RECORD_PERIODS_2026_11_09.md) records Week,
+This season, All time and inclusive Custom range, complete-period loading,
+count-weighted rate, actual row provenance and unchanged D-77 grading. Existing
+authenticated weekly reads are reused; recommendation selection/writes remain
+independent. Both browser engines/themes and independent review passed locally.
+Exact source/CI, merge and protected frontend release remain separate gates;
+this entry is not a deployment claim. No SQL/API/provider change, M-41 apply,
+parked feature work or new physical-phone acceptance is included.
+
 ## Whole-app UI/UX sweep deployed and verified — November 8, 2026 UTC
 
 [Release evidence](RELEASE_2026_11_08_UI_UX_SWEEP.md) records exact source

@@ -1,5 +1,25 @@
 # Decision log
 
+## D-80 — Gap win rate historical periods (November 9, 2026)
+
+Sean asked to view Gap win rate across all time or multiple weeks, said **“Add
+reccomendations”** to the proposed All time / This season / Custom range choices,
+then approved their dark/light control mockup with **“Good”**. Retain Week and add
+these three periods. Custom is a continuous inclusive range of published weeks,
+including across seasons. This season means the latest published season; All
+time means all retained published weeks advertised by the authenticated reader.
+
+Keep recommendation Week independent. Combine permitted game records and run the
+existing D-77 grading: wins divided by wins plus losses, never an average of weekly
+rates. Pushes stay in W–L–P/paper ROI, outside the win-rate denominator. Market and
+10%+ filters apply across the selected period. Show actual season/week provenance,
+missing evidence and loading/error states; never present a partial read as All time.
+
+Use the approved Prism controls and existing authenticated weekly readers, bounded
+and cancelled on scope changes. This selects no new scoring, provider, permission,
+writer or migration behavior. [Implementation evidence](GAP_RECORD_PERIODS_2026_11_09.md)
+separates local checks from exact CI, merge, protected release and phone acceptance.
+
 ## D-79 — Home’s floating bottom navigation across the app (November 8, 2026)
 
 Sean requested a comprehensive UX, formatting and scrolling sweep and matching
