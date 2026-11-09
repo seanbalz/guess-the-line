@@ -16,6 +16,8 @@ import { GapPeriodControl } from "./GapPeriodControl.jsx";
 import { Skeleton } from "../ui/Skeleton.jsx";
 import "./gapRecord.css";
 import { GAP_WIN_UNITS } from "../../../../shared/recommended-bets.mjs";
+import { TRENDS_LINKS } from "../info.js";
+import { GAP_SCALE_NOTES } from "../../../../shared/nfl-gap-scale.mjs";
 
 const outcomes = {
   win: ["W", "Win"],
@@ -109,8 +111,10 @@ export function GapRecord(props) {
       body={[
         "Each locked guess that differed from the last qualifying three-book line before kickoff, graded on the side your guess favored: a paper record, not bets placed. Drafts, sit-outs, even guesses and absent evidence do not become graded gaps.",
         `1U per gap at the standard −110 convention, not actual sportsbook prices or placed bets. Win rate is wins divided by wins plus losses. ${waiting} not graded yet.`,
-        "The 10%+ filter uses relative guess distance: spread uses the greater of the closing-reference magnitude or 3; total uses its reference. This is not a win probability or a tested betting edge.",
+        ...GAP_SCALE_NOTES,
+        "The historical Large gaps filter reclassifies past gaps with this fixed baseline; the outcomes, guesses and lines stay unchanged. It is not a point-in-time strategy backtest.",
       ]}
+      links={TRENDS_LINKS}
     />
   );
   const line = {
@@ -224,12 +228,12 @@ export function GapRecord(props) {
           : period.status === 'choose' ? <p className="gx-t-body">Choose From and To, then apply the range.</p>
           : <>
         <details className="gx-gap-options">
-          <summary>Gap size filter{tier === "large" ? " · 10%+" : ""}</summary>
+          <summary>Gap size filter{tier === "large" ? " · Large gaps" : ""}</summary>
           <Segmented
             label="Gap size"
             options={[
               { value: "all", label: "All gaps" },
-              { value: "large", label: "10%+ gaps" },
+              { value: "large", label: "Large gaps" },
             ]}
             value={tier}
             onChange={(value) => {
@@ -351,7 +355,7 @@ export function GapRecord(props) {
             )}
           </TrendDetail>
         ) : (
-          <p className="gx-t-body">No finished games with a gap yet.</p>
+          <p className="gx-t-body">{tier === 'large' ? 'No finished games with a large gap yet.' : 'No finished games with a gap yet.'}</p>
         )}
         </>}
       </div>

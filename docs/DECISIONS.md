@@ -1,5 +1,34 @@
 # Decision log
 
+## D-81 — Comparable NFL spread and total gap sizes (November 9, 2026)
+
+Sean asked to readdress Spread versus Total gaps so a large difference in either
+market receives comparable prominence. He confirmed a shared scale, then chose
+**A — NFL-wide baseline**: compare gaps with historical final-result versus
+market-line errors, separately for winning margin and combined score. Asked
+about the highlight boundary, he chose **“Top quarter: highlight unusually large
+gaps (Recommended)”**.
+
+Replace D-54's percentage-of-line calculation and three-point spread denominator
+with a fixed empirical historical gap-size score from 0 to 100. Implementation
+uses the retained 2016–2025 regular-season NFL sample, 2,639 finals per market.
+A positive gap's score is the share of that market's historical absolute errors
+no larger than the gap; zero means no difference. Large starts at score 75
+(14 spread points / 14.5 total points in this sample). Keep raw points visible.
+This describes magnitude, not win probability, model confidence or betting EV.
+
+Use the same scale for ranking, side colors and the historical **Large gaps**
+filter, replacing D-77/D-80's 10%+ filter. D-77's actionable-first order remains.
+The full paper record still grades the same permitted guesses against their
+closing lines; only its large-gap subset changes. Historical classification
+uses this fixed baseline retrospectively, not a point-in-time strategy backtest.
+Own saved scoring references, game points, all picks, results, audits, deadlines,
+quote selection and reveal permissions remain unchanged.
+
+The [implementation and evidence](NFL_GAP_SCALE_2026_11_09.md) record the exact
+source, method, source limitations and checks. This decision authorizes the
+reviewable implementation; it does not itself establish merge or deployment.
+
 ## D-80 — Gap win rate historical periods (November 9, 2026)
 
 Sean asked to view Gap win rate across all time or multiple weeks, said **“Add

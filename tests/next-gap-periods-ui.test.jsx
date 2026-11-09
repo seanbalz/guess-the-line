@@ -7,7 +7,7 @@ const state = vi.hoisted(() => ({ value: null }));
 vi.mock('../web/src/next/bets/useGapPeriod.js', () => ({ useGapPeriod: () => state.value }));
 const weeks = [{ season: 2025, week: 18 }, { season: 2026, week: 5 }, { season: 2026, week: 6 }];
 const board = { games: [] };
-const record = { wins: 2, losses: 3, pushes: 1, netUnits: -1.18, roi: -19.7, favorable: { wins: 2, losses: 3, pushes: 1 }, even: 2, notGraded: { noLine: 1, noFinal: 2 }, graded: [] };
+const record = { wins: 2, losses: 3, pushes: 1, netUnits: -1.18, roi: -19.7, large: { wins: 2, losses: 3, pushes: 1 }, even: 2, notGraded: { noLine: 1, noFinal: 2 }, graded: [] };
 const render = (patch = {}) => {
   state.value = { period: 'all', weeks, title: 'All time', coverage: 'All retained weeks · 3 weeks', status: 'ready', board, record, setPeriod: vi.fn(), applyRange: vi.fn(), retry: vi.fn(), ...patch };
   return renderToStaticMarkup(<GapRecord record={record} board={board} season={2026} week={6}/>);

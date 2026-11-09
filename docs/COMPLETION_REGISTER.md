@@ -1,5 +1,15 @@
 # Guess The Line — current completion register
 
+## Comparable NFL gap scale checked locally — November 9, 2026
+
+[D-81](DECISIONS.md) replaces percentage-of-line gap ranking with a shared
+historical scale calibrated separately for Spread and Total. Sean chose the
+NFL-wide baseline and top-quarter Large highlight. The
+[implementation evidence](NFL_GAP_SCALE_2026_11_09.md) records the frozen
+2016–2025 sample, reproducible aggregate, shared ranking/colors/history filter,
+source limitations and verification. This is review work, not a merge or release
+claim. No saved pick/reference, API, migration, provider or collector changes.
+
 ## Gap win rate period filters checked locally — November 9, 2026
 
 Sean approved the [D-80](DECISIONS.md) dark/light period-control mockup. The

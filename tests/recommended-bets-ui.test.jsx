@@ -11,29 +11,32 @@ const observedAt = '2099-10-08T15:00:00.000Z';
 const row = {
   game: { id: 'NYJ-BUF', away: 'NYJ', home: 'BUF', awayCode: 'NYJ', homeCode: 'BUF', kickoff: '2099-10-08T20:00:00.000Z' },
   market: 'spread', guess: -11, reference: { value: -10, observedAt, source: 'Named-book median', books: 3 },
-  gap: 1, gapPercent: 10, denominator: 10, side: 'away', offer: null,
+  gap: 1, gapScore: 10.685865858279652, side: 'home', offer: null,
   evaluations: {
-    away: { side: 'away', advantage: 1, color: 'green', label: 'Favorable' },
-    home: { side: 'home', advantage: -1, color: 'red', label: 'Against your guess' },
+    home: { side: 'home', advantage: 1, color: 'yellow', label: 'Small gap' },
+    away: { side: 'away', advantage: -1, color: 'yellow', label: 'Small gap' },
   },
 };
 
 describe('compact recommendation', () => {
-  it('shows comparable percentage and point gaps in a native disclosure', () => {
+  it('shows historical size and point gaps in a native disclosure without implying probability', () => {
     const html = renderToStaticMarkup(<RecommendationCard row={row} season={2099} week={5} now={Date.parse(observedAt)} />);
     expect(html).toContain('<details');
     expect(html).toContain('<summary');
-    expect(html).toContain('10.0% gap');
+    expect(html).toContain('Size 10.7/100');
+    expect(html).toContain('Historical gap size 10.7 out of 100');
     expect(html).toContain('1 pt gap');
     expect(html).toContain('NYJ at BUF');
     expect(html).toContain('Latest consensus');
   });
 
-  it('labels small-spread normalization and keeps both sides in expanded detail', () => {
-    const html = renderToStaticMarkup(<RecommendationCard row={{ ...row, reference: { ...row.reference, value: -2 }, denominator: 3 }} season={2099} week={5} now={Date.parse(observedAt)} />);
-    expect(html).toContain('3-point minimum spread');
-    expect(html).toContain('Favorable');
-    expect(html).toContain('Against your guess');
+  it('keeps both directions and the Large label without a small-line denominator', () => {
+    const large = { ...row, guess: -16, reference: { ...row.reference, value: -2 }, gap: 14, gapScore: 75.8,
+      evaluations: { home: { advantage: 14, color: 'green', label: 'Large gap in your direction' }, away: { advantage: -14, color: 'red', label: 'Large gap against your guess' } } };
+    const html = renderToStaticMarkup(<RecommendationCard row={large} season={2099} week={5} now={Date.parse(observedAt)} />);
+    expect(html).not.toContain('3-point minimum spread');
+    expect(html).toContain('Large gap in your direction');
+    expect(html).toContain('Large gap against your guess');
   });
 
   it('uses actual historical record, sample, period and credit without forecasting', () => {
