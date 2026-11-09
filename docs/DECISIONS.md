@@ -483,6 +483,22 @@ not asked before the build, so it took the spec's defaults; each is reversible:
 
 ## D-68 — Premier League: Sleeper FEPL, Pick a Team and EPL moneyline (October 28, 2026)
 
+**Expansion ruling — November 9, 2026.** Sean confirmed the
+[EPL feature requirements](EPL_FEATURES_2026_11_09.md), one question at a time:
+choose one two-way or three-way outcome/price per match, final once locked;
+combine both markets on the existing average-distance leaderboard. Automatic
+recommended bets rank by favorable gap from the latest available odds, with
+trends/analysis as context only and no manual picks. Competition references
+stay fixed. Commissioner-reviewed screenshots contain final Sleeper weekly
+scores with bonuses already included; confirmation calculates next week's
+order, opens the draft and notifies the first picker while preserving existing
+picks. Show verified end-of-week Pick a Team winners on Home and Pick a Team
+without waiting for the fantasy upload, and push to opted-in league members.
+Existing bonus/tie rules remain. This supersedes the original two-way-only and
+empty EPL Bets scope below. These are confirmed requirements, not implemented
+or deployed behavior; extraction examples, source checks and release gates
+remain part of delivery.
+
 **Bonus accounting ruling — November 2, 2026.** Sean: "I add bonuses to sleeper,
 unless I shouldn’t." Keep that workflow. Final weekly scores, season standings
 and draft tie-breaks use Sleeper totals as shown; GTL never adds the bonus again.
