@@ -1,6 +1,47 @@
 # Gap period follow-up review — November 9, 2026
 
-Owner: Sean Balsiger · Version 1 · Status: two reproduced UI findings, not fixed.
+Owner: Sean Balsiger · Version 2 · Status: both findings fixed locally; not deployed.
+
+## Implementation and mockup update
+
+Sean asked to fix both issues and send mockups. The parent recommendation
+controller now retains only period/custom-range intent across its child reloads,
+scoped to the account. The composed board remains inside the keyed child with
+the same cancellation, complete-read and hidden-stale-state checks. Expansion
+stores a boolean, so an expanded list always includes every current row and the
+collapse control remains accurate. This adds no persistent browser storage.
+
+[Dark/Light before-and-after review](../design/gap-period-fixes-2026-11-09/index.html),
+[Dark overview](../design/gap-period-fixes-2026-11-09/dark-overview.png) and
+[Light overview](../design/gap-period-fixes-2026-11-09/light-overview.png) use actual
+app components with synthetic local accounts, slates, references and finals.
+The original appearance and grading rules remain unchanged. User review, exact
+CI, merge and protected frontend deployment remain separate.
+
+Verification of the fixes:
+
+- Both new lifecycle regressions failed against the unfixed source for the
+  reported reasons, then passed with the implementation.
+- The full 21-case recommendation browser suite passed. A final three-case run
+  includes those two regressions and a new actual fixture sign-out/sign-in test:
+  the second account starts at Week with zero graded gaps, never the first
+  account's All time result. This is 22 unique browser cases across the runs,
+  not hosted authentication or physical-phone acceptance.
+- 39 focused Node checks and six UI render checks passed, with zero skips.
+  Typecheck, Brand/D-18 documentation QA, cloud build, bundle-only privacy scan
+  and whitespace checks passed.
+- Paired 390px Dark/Light captures show All time and applied Custom range
+  retained after refresh, and all fourteen rows after growing an expanded
+  seven-row week. Capture fixture errors were empty for both versions.
+
+Initial private test-run setup failed before tests due to worktree dependency
+links and config working directory; both were corrected. The browser CLI did
+not support importing the fixture, so capture used the repository's Playwright
+runtime. The preview-sheet renderer's initial implicit-label lookup timed out;
+its explicit selector rendered both sheets successfully. Existing Vite chunk
+size and NO_COLOR warnings remain. These setup attempts are not test passes.
+
+The earlier findings and their original observations follow for provenance.
 
 Scope is [PR #505](https://github.com/seanbalz/guess-the-line/pull/505) only,
 source `9a34f9e47d5fb7dd32eecd6fdc697cef53340ed9`. Its
@@ -52,9 +93,10 @@ Initial tool setup encountered sandbox DNS/loopback isolation, an incorrect CLI
 snippet format and development entry pre-transform warnings; these are separate
 from the completed state-transition checks. This is local behavioral evidence,
 not a full production sign-in, real phone, server account-switch or visual audit.
-No application implementation was changed. Add regression coverage for both
-transitions with their eventual fixes; the committed UI tests currently mock the
-period hook and do not exercise these parent unmount/remount transitions.
+No application implementation was changed during the initial review. At that
+point the committed UI tests mocked the period hook and did not exercise these
+parent unmount/remount transitions; the implementation update above adds that
+regression coverage to the real controller browser suite.
 
 ## Remaining acceptance and documentation
 

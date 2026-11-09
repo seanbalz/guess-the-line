@@ -1,13 +1,16 @@
 # Guess The Line — current completion register
 
-## Gap period follow-up findings — November 9, 2026
+## Gap period follow-up fixes and mockups — November 9, 2026
 
-The [post-release review](GAP_PERIOD_FOLLOWUP_REVIEW_2026_11_09.md) reproduces
-two UI issues on PR #505's deployed source: recommendation-week changes/Refresh
-lines reset the record period, and an expanded list retains its old row limit
-when the period grows. Both remain unfixed. Actual components were exercised
-with synthetic local reads; no production data or application source changed.
-Signed-in/phone acceptance and PR #507's release-evidence merge remain separate.
+The [post-release review and fix evidence](GAP_PERIOD_FOLLOWUP_REVIEW_2026_11_09.md)
+record both PR #505 follow-ups fixed locally: period/applied-range intent survives
+recommendation-week changes and Refresh lines, and expanded records include all
+rows when the period grows. The existing account and read guards remain. Both
+regressions failed before the fixes and passed after; 22 unique recommendation
+browser cases, 39 Node checks, six UI checks and build/QA passed. Actual-component
+[Dark/Light mockups](../design/gap-period-fixes-2026-11-09/index.html) use synthetic
+data. Owner review, exact CI, merge, protected deploy and real-phone acceptance
+remain separate. PR #507 still owns the prior release-evidence reconciliation.
 
 ## EPL expansion requirements confirmed — November 9, 2026
 
