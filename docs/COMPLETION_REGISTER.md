@@ -9,6 +9,22 @@ when the period grows. Both remain unfixed. Actual components were exercised
 with synthetic local reads; no production data or application source changed.
 Signed-in/phone acceptance and PR #507's release-evidence merge remain separate.
 
+## EPL expansion requirements confirmed — November 9, 2026
+
+The [requirements and delivery sequence](EPL_FEATURES_2026_11_09.md) and D-68
+addendum record Sean's answers in this conversation: optional three-way entry,
+one locked guess per match and a combined leaderboard; automatic recommendations
+ranked by current favorable gap with supporting trends; reviewed final Sleeper
+screenshot scores opening the next draft; and independent winner announcements
+with opt-in push. Source inspection identified two-way storage, coupled
+snapshot/award/rollover processing and roughly twelve-hourly result collection
+as implementation work. Status: **planned, not built or deployed**. Sean supplied
+a representative screenshot: human inspection established the four-card/eight-
+manager layout, actual-score versus projection positions and absent season-total
+tiebreak data. The requirements record now defines import/review handling; this
+is not tested OCR or a live import. Private images/scores remain outside Git.
+No runtime, database, migration, notification or frozen-v62 change.
+
 ## Gap win rate period filters checked locally — November 9, 2026
 
 Sean approved the [D-80](DECISIONS.md) dark/light period-control mockup. The
