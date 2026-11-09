@@ -223,5 +223,22 @@
     "Tracked source hashes do not establish hosted private-row hashes.",
     "Public sign-in smoke only; no signed-in production or physical-iPhone acceptance.",
     "Local multiweek slates/lines/finals are synthetic fixtures; see implementation record."
-  ]
+  ],
+  "publicationValidation": {
+    "pr": 507,
+    "initialHead": "cce3a97f0808366dd798f49bc1c0fd0add7270cb",
+    "initialDashboardRun": 42666721840,
+    "initialConclusion": "failure: Cloud browser suite 2/4 badge-scroll setup; other eleven checks passed",
+    "observedScrollPx": 72,
+    "requiredSetupScrollGreaterThanPx": 100,
+    "failedBeforeBadgeClick": true,
+    "correction": "Explicitly center Bullseye after visibility wait; preserve every existing assertion.",
+    "productSourceChanged": false,
+    "localTargetedRunsPassed": 3,
+    "localExistingFeaturesCasesPassed": 5,
+    "localExistingFeaturesCasesSkipped": 0,
+    "isolatedRunnerInitialStart": "failed before tests: nested config lacked root cwd; corrected ignored configuration only",
+    "exactCorrectedHeadCI": "See required PR #507 check receipts; original failed run retained.",
+    "redeployRequired": false
+  }
 }

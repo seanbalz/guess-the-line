@@ -17,6 +17,12 @@ Player Props guessing feature is still in design, not included in this release.
 M-41, held FEPL framing, parked work and frozen v62 remain separate. Earlier
 local/pending period-filter entries below are historical.
 
+The publication followup also corrects an existing badge-test setup: visibility
+alone need not create the required scrolled shelf. The release record preserves
+the original failed PR #507 run and the explicit-centering correction, with all
+navigation/focus/scroll assertions retained. This changes no application source
+and does not require redeployment.
+
 ## Gap win rate period filters checked locally — November 9, 2026
 
 Sean approved the [D-80](DECISIONS.md) dark/light period-control mockup. The

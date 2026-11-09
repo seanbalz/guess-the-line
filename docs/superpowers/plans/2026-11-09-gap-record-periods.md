@@ -62,10 +62,16 @@ modify `GapRecord.jsx`, `gapRecordView.js`, `gapRecord.css`,
 - [x] Merge normally, verify exact-main CI and tree, sync the owned clean integration
   checkout. Follow SHARED_DEPLOYMENT frontend-only source/readiness/deploy gates.
 - [ ] Record verified production asset/API/migration evidence in a documentation
-  followup PR, review/merge/sync. Do not redeploy for documentation-only changes.
+  followup PR, review/merge/sync. Do not redeploy for documentation/test-only changes.
 
 Release evidence preparation: PR #505 merged as `9a34f9e4` with an identical
 reviewed tree; all twelve PR/main checks passed. Frontend-only deploy 42665392227
 verified all 132 production assets at 2026-11-09T17:35:54.506Z. The final unchecked
 publication item reflects this preparation stage; its PR merge/sync receipt is
 recorded through GitHub and the final handoff, not an additional app release.
+
+PR #507's initial Cloud 2 check failed a test setup assumption before the badge
+click: visibility gave 72px scroll rather than the asserted greater than 100px.
+The followup explicitly centers the badge and preserves every existing product
+assertion. See the release record for the retained failed run and correction;
+this does not change the deployed app or require another frontend release.

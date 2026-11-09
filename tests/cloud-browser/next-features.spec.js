@@ -140,6 +140,8 @@ test('before the job has run: an empty recap with no sample, streaks at 0 and th
   // A badge's layer: the 96 tile, rarity in words, the rule, how often and when; a reload reopens it.
   const bullseye = screen.getByRole('button', { name: /^Bullseye, Uncommon, earned 3 times/ });
   await bullseye.scrollIntoViewIfNeeded();
+  // Visibility alone need not scroll a compact shelf far enough to exercise Back restoration.
+  await bullseye.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
   const shelfScroll = await page.evaluate(() => scrollY);
   expect(shelfScroll, 'the badge opens from a scrolled shelf').toBeGreaterThan(100);
   await bullseye.click();

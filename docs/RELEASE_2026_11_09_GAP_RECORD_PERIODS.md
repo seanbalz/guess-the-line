@@ -77,4 +77,27 @@ Rollback is a protected frontend-only redeploy of prior verified source
 `968d3b5d-a115-42ea-8293-ce405ef42f91`, with fresh gates and API/database unchanged.
 Player Props remains a separate design effort. M-41 apply, held FEPL top-header
 choice, parked work and frozen v62 remain outside this release. Publishing this
-documentation-only followup does not require another app deployment.
+documentation and test-setup followup does not require another app deployment.
+
+## Publication check correction
+
+The first [PR #507](https://github.com/seanbalz/guess-the-line/pull/507) check at
+`cce3a97f0808366dd798f49bc1c0fd0add7270cb` failed Cloud browser suite 2/4 in
+[run 42666721840](https://github.com/seanbalz/guess-the-line/actions/runs/42666721840).
+The other eleven checks passed. Its trace records a visible Bullseye badge with
+72px shelf scroll; the test assumed visibility established more than 100px.
+It failed before clicking the badge, so did not demonstrate a product entry or
+Back-restoration regression. Application and test source at that initial head
+equal the deployed source.
+
+The followup explicitly centers the badge after its visibility wait, retaining
+the greater-than-100px setup assertion and every existing heading-focus,
+entry-top, header-clearance, exact Back-scroll, settled-frame, accessibility and
+reopen check. No product scrolling code changes. The corrected existing case
+passed three consecutive local runs and all five existing Features cases passed
+locally. The isolated runner's first start failed before any test because its
+nested config lacked a root working directory; the corrected ignored config
+does not change shared CI. Exact-head required CI is recorded in the PR checks.
+The original failed run remains
+failed, not retried into a success. No app redeployment is indicated by this
+documentation and test-setup correction.
