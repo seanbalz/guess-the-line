@@ -1,6 +1,6 @@
 # Guess the Line Player Props — design proposal
 
-Status: confirmed product choices, awaiting written-design and mockup approval.
+Status: design and both mockup boards approved for planning and data-readiness work.
 Owner: Sean Balsiger. Date: November 9, 2026.
 This is a separate feature from the deployed D-80 period filters in PR #505.
 No Player Props guessing implementation, migration apply or deployment is claimed.
@@ -21,8 +21,17 @@ No Player Props guessing implementation, migration apply or deployment is claime
 - Use the selected Prism Glass system in both themes, including the existing
   floating bottom navigation and separate circles for team/league marks.
 
-These choices were each confirmed directly in the conversation. The two
-dark/light mockup boards have been shown, but have not yet been approved.
+These choices were each confirmed directly in the conversation. After both
+dark/light mockup boards were shown again, Sean approved them on November 9:
+"Looks good as long as it's aligned with the rest of the apps designs."
+
+That condition is mandatory: implement these layouts with the existing shared
+Prism components, tokens, system typography, selected G, circular team/league
+marks and Home's shared floating bottom navigation. The image previews do not
+authorize replacement fonts, icons, colors, header framing or navigation. Reuse
+the destination's approved frame and measured bottom clearance. Verify both
+themes against the surrounding app; a new composition still needs its own
+mockup approval before deployment.
 
 ## Supported first-release catalog
 
@@ -176,9 +185,14 @@ illustrative errors/counts: receiving misses 6/5/2/3/4 average 4.0 yards;
 reception misses 1/0.5/0.5/0/1 average 0.6 receptions; paper 5–2–1 gives 71.4%.
 These are layout fixtures, not account statistics, market lines or live odds.
 Both boards were rendered inline for phone review; raster previews are not
-production assets. Record their approved fingerprints before implementation.
+production assets. Their approved SHA-256 fingerprints are:
 
-Next gate: review this proposal together with both dark/light mockup boards.
-Approval authorizes the implementation plan and data-readiness work, not a
-migration apply or production deployment. Required source reviews, CI, live-data
-checks and separately named apply/deploy instructions remain.
+| Board | SHA-256 |
+| --- | --- |
+| Entry, Dark and Light | `7f8df26aec6f5a7669e5765290eefff9ac726f7007d02ebd2ebda1cc8a0ea5df` |
+| Accuracy/Gap, Dark and Light | `f720c31a6484d722e3d53fd1f7ac5450c57d546e57d4f693fc537de4d6bde779` |
+
+Next: write the implementation plan and perform the permitted read-only data
+audit. Design approval does not authorize a migration apply or production
+deployment. Required source reviews, CI, live-data checks and separately named
+apply/deploy instructions remain.
