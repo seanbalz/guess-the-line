@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Button,
   Icon,
@@ -11,6 +11,9 @@ import { TrendDetail } from "../charts/TrendDetail.jsx";
 import { fmtNum } from "../format.js";
 import { pickComparison } from "../ui/pickScorecard.js";
 import { gapRecordView } from "./gapRecordView.js";
+import { useGapPeriod } from "./useGapPeriod.js";
+import { GapPeriodControl } from "./GapPeriodControl.jsx";
+import { Skeleton } from "../ui/Skeleton.jsx";
 import "./gapRecord.css";
 import { GAP_WIN_UNITS } from "../../../../shared/recommended-bets.mjs";
 
@@ -62,7 +65,12 @@ function Pair({ row }) {
 }
 
 /** D-77 paper record. Existing reader, week and market controls remain authoritative. */
-export function GapRecord({ record, board, week }) {
+export function GapRecord(props) {
+  const period = useGapPeriod(props);
+  const { week } = props;
+  const record = period.record ?? { wins: 0, losses: 0, pushes: 0, netUnits: 0, roi: null,
+    favorable: { wins: 0, losses: 0, pushes: 0 }, graded: [], even: 0, notGraded: { noFinal: 0, noLine: 0 } };
+  const board = period.board ?? { games: [] };
   const [tier, setTier] = useState("all"),
     [limit, setLimit] = useState(6),
     [selected, setSelected] = useState(null);
@@ -73,6 +81,10 @@ export function GapRecord({ record, board, week }) {
   const view = gapRecordView(record, board, tier),
     s = view.summary,
     chosen = view.rows.find((row) => row.key === selected);
+  const selectionPresent = Boolean(chosen);
+  useEffect(() => {
+    if (selected && !selectionPresent) setSelected(null);
+  }, [selected, selectionPresent]);
   const waiting = record.notGraded.noFinal + record.notGraded.noLine,
     decided = s.wins + s.losses;
   const rate = decided ? `${((s.wins / decided) * 100).toFixed(1)}%` : "—";
@@ -148,7 +160,7 @@ export function GapRecord({ record, board, week }) {
           <article className="gx-card gx-gap-detail">
             <div className="gx-between gx-gap-8">
               <h3 className="gx-t-strong">
-                {chosen.market === "spread" ? "Spread" : "Total"} · Week {week}
+                {chosen.market === "spread" ? "Spread" : "Total"} · {chosen.season ?? props.season} Week {chosen.week ?? week}
               </h3>
               {about}
             </div>
@@ -200,9 +212,17 @@ export function GapRecord({ record, board, week }) {
       ) : null}
       <div className="gx-gap-overview" hidden={!!chosen}>
         <div className="gx-between gx-gap-8">
-          <h3 className="gx-t-strong">Your gaps · Week {week}</h3>
-          {about}
+          <h3 className="gx-t-strong">Your gaps · {period.title}</h3>
+          {period.status === 'ready' && about}
         </div>
+        <GapPeriodControl period={period.period} weeks={period.weeks} range={period.range}
+          onPeriod={period.setPeriod} onApply={period.applyRange}/>
+        <p className="gx-t-meta gx-c-2">{period.coverage}</p>
+        {period.status === 'loading' ? <Skeleton label="Loading every selected week…" shape="panels" count={1}/>
+          : period.status === 'error' ? <div role="alert" className="gx-vstack gx-gap-8">
+            <p className="gx-t-body">{period.error}</p><Button onClick={period.retry}>Retry gap records</Button></div>
+          : period.status === 'choose' ? <p className="gx-t-body">Choose From and To, then apply the range.</p>
+          : <>
         <details className="gx-gap-options">
           <summary>Gap size filter{tier === "large" ? " · 10%+" : ""}</summary>
           <Segmented
@@ -245,9 +265,10 @@ export function GapRecord({ record, board, week }) {
             </div>
           </div>
           <p className="gx-t-meta gx-c-2">
-            {tally(s)} W–L–P · {record.even} even guesses excluded
+            {tally(s)} W–L–P · {view.rows.length} graded gaps
           </p>
         </div>
+        <p className="gx-t-meta gx-c-2">{record.even} even guesses excluded · {waiting} not graded. Pushes are excluded from win rate.</p>
         {view.rows.length ? (
           <TrendDetail title="Paper units" line={line}>
             {(selectionState) => (
@@ -282,6 +303,7 @@ export function GapRecord({ record, board, week }) {
                         <span className="gx-t-meta">
                           Gap {i + 1} ·{" "}
                           {row.market === "spread" ? "Spread" : "Total"}
+                          {period.period !== 'week' && ` · ${row.season} Week ${row.week}`}
                         </span>
                         <span
                           className="gx-gap-outcome"
@@ -331,6 +353,7 @@ export function GapRecord({ record, board, week }) {
         ) : (
           <p className="gx-t-body">No finished games with a gap yet.</p>
         )}
+        </>}
       </div>
     </section>
   );
