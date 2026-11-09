@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Button,
   Icon,
@@ -81,6 +81,10 @@ export function GapRecord(props) {
   const view = gapRecordView(record, board, tier),
     s = view.summary,
     chosen = view.rows.find((row) => row.key === selected);
+  const selectionPresent = Boolean(chosen);
+  useEffect(() => {
+    if (selected && !selectionPresent) setSelected(null);
+  }, [selected, selectionPresent]);
   const waiting = record.notGraded.noFinal + record.notGraded.noLine,
     decided = s.wins + s.losses;
   const rate = decided ? `${((s.wins / decided) * 100).toFixed(1)}%` : "—";
