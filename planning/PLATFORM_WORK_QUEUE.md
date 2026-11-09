@@ -6,8 +6,9 @@ Sean confirmed the [EPL expansion requirements](../docs/EPL_FEATURES_2026_11_09.
 in this conversation. Deliver market choice/combined scoring, gap-ranked EPL
 recommendations, reviewed Sleeper screenshot imports/next draft opening, and
 independent verified winner announcements with opted-in push. The requirements
-record defines the sequence and preservation checks. Status: planned; screenshot
-layout evidence and implementation/verification remain. Other sessions' active
+record defines the sequence and preservation checks. Status: planned; a supplied
+screenshot's layout is inspected, while OCR and feature implementation/verification
+remain. Other sessions' active
 worktrees and the frozen v62 tracker remain with their owners.
 
 ## Pick a Team turn queues — November 3, 2026

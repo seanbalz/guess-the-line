@@ -9,9 +9,12 @@ ranked by current favorable gap with supporting trends; reviewed final Sleeper
 screenshot scores opening the next draft; and independent winner announcements
 with opt-in push. Source inspection identified two-way storage, coupled
 snapshot/award/rollover processing and roughly twelve-hourly result collection
-as implementation work. Status: **planned, not built or deployed**. A real
-screenshot example is still needed to validate the extraction design. No
-runtime, database, private data, migration, notification or frozen-v62 change.
+as implementation work. Status: **planned, not built or deployed**. Sean supplied
+a representative screenshot: human inspection established the four-card/eight-
+manager layout, actual-score versus projection positions and absent season-total
+tiebreak data. The requirements record now defines import/review handling; this
+is not tested OCR or a live import. Private images/scores remain outside Git.
+No runtime, database, migration, notification or frozen-v62 change.
 
 ## Gap win rate period filters checked locally — November 9, 2026
 

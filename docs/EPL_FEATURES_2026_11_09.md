@@ -79,10 +79,46 @@ implementation and release evidence pending. Based on freshly fetched main
    notifications and bounded final-match collection; exercise the full weekly
    cycle before claiming completion.
 
-Input still needed for extraction design: a representative final Sleeper score
-screenshot (or several screenshots covering the league). Confirm where the
-matchweek, manager identity, actual weekly score and any season-total tiebreak
-appear. Do not infer the screenshot layout or confuse projections with scores.
+## Screenshot layout inspected — November 9, 2026
+
+Sean supplied a portrait screenshot of Sleeper's FEPL League screen in response
+to the request for a final weekly score example. It was inspected directly in
+this conversation. The private image and its actual scores are not repository
+fixtures or public documentation. This is a human layout inspection, not an OCR
+test or a live import.
+
+- The Matchups section has a visible WEEK number and four vertically stacked
+  matchup cards, with two managers per card: all eight are present in one image.
+- Each side's large, upper numeric value is the weekly score to extract. The
+  smaller value immediately underneath is a projection and must not be imported
+  as the actual score. Preserve the decimal score without rounding to integers.
+- Match each side's score to its username below the team name on the same card.
+  Resolve that username against the known Sleeper manager mapping and store the
+  immutable owner ID. Mutable team titles and club avatars are presentation,
+  not reliable manager identifiers. Unknown/duplicate/ambiguous matches require
+  correction in the review table; never guess by the row's position alone.
+- Ignore win percentages, trophies, records, streaks, ranks, unrelated balances,
+  chat text and navigation. A fantasy matchup trophy is not the Pick a Team
+  result; that award still needs the drafted clubs and verified EPL finals.
+- The image shows a matchweek but no season/year. Bind the review to the app's
+  selected season and extracted week and expose both for confirmation. Refuse
+  silent changes of week or mixed-week screenshot batches.
+- Season point totals are absent. No totals are needed to order an untied week.
+  For tied weekly scores, use verified applicable Sleeper season totals; if
+  unavailable, request the tied managers' totals/standings evidence in review.
+  Do not substitute standing rank, win-loss record or projection for that total.
+- The review screen must show all eight identities and actual scores, the
+  resulting next-week order and the existing confirmation that bonuses are
+  already included. A trophy or 100% win label alone does not prove finality or
+  bonus inclusion. The user's confirmation is the manual-import attestation.
+- Repeat uploads and multiple crops must reconcile by manager/week and source
+  hash. Conflicting candidate scores stay visible for review; they do not
+  silently replace a confirmed import or alter a draft containing picks.
+
+The supplied image resolves the sample-layout question. Automated extraction,
+mobile review and the confirmed-import/opening transaction still require
+implementation and tests; no new product-rule question is needed from this
+example.
 
 ## Verification and release
 
