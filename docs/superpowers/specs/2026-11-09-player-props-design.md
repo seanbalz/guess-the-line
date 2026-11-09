@@ -217,3 +217,20 @@ hashes. This is visual authority, not implementation, apply or deployment approv
 Original approved board fingerprints above are preserved as earlier provenance.
 The opened source receipt, History and permitted shared rows reuse the existing
 approved patterns; a further new composition would still require its own mockup.
+
+## Delivery request — November 9, 2026
+
+After approval of all six sheets, Sean instructed **"Merge and deploy"**. This
+authorizes work toward delivery of the approved Player Props feature. It does
+not turn the current documentation and mockups into an implemented mode.
+Reconcile and merge the approved records through normal review and exact-head
+CI; finish the read-only hosted-data audit and executable subsystem plans before
+enabling live lock-in. The fresh Supabase connection check still requires
+reauthentication, so hosted prop availability remains unknown rather than zero.
+
+Preserve the free-only budget, scoring/reference/privacy rules, data and exact
+approved visuals. A future migration still needs its reviewed named apply
+instruction and preflight; no migration is created or applied by this record.
+The feature's API/worker/frontend release requires actual implementation,
+compatibility, exact-source CI and fresh protected release evidence. Merging
+this design record is not a Player Props deployment.

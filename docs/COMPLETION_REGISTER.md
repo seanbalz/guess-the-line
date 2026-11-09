@@ -24,6 +24,12 @@ The twelve full-content preview captures preserve the shared bottom bar and
 end-control clearance. This is mockup evidence, not product implementation,
 real-phone acceptance or a new hosted-data claim.
 
+Sean subsequently instructed **"Merge and deploy"**. The approved records are
+being reconciled with current main and the existing shared navigation-test fix;
+exact-head review/CI are required before merge. Supabase still requires
+reauthentication for the hosted prop-data audit. Feature implementation and its
+protected release remain pending; merging these records cannot enable the mode.
+
 ## EPL expansion requirements confirmed — November 9, 2026
 
 The [requirements and delivery sequence](EPL_FEATURES_2026_11_09.md) and D-68
