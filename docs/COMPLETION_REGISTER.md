@@ -16,6 +16,14 @@ connection requires reauthentication. The
 keeps those unknowns distinct from observed absence. No Player Props mode,
 migration, provider-credit request, collector activation or deployment is included.
 
+The [full Player Props visual packet](../design/player-props-review-2026-11-09/README.md)
+adds six component-rendered Dark/Light sheets after Sean explicitly chose
+Player Props-only review. Existing entry/accuracy direction remains approved;
+locked, custom-filter, recovery and empty/error compositions await review.
+The twelve full-content preview captures preserve the shared bottom bar and
+end-control clearance. This is mockup evidence, not product implementation,
+real-phone acceptance or a new hosted-data claim.
+
 ## Gap win rate period filters checked locally — November 9, 2026
 
 Sean approved the [D-80](DECISIONS.md) dark/light period-control mockup. The
