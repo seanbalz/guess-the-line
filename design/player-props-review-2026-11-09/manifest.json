@@ -1,7 +1,7 @@
 {
   "date": "2026-11-09",
   "scope": "All Player Props changes only; user confirmed scope",
-  "status": "Six visual review sheets; no product implementation, apply, collection activation or deployment",
+  "status": "All six visual sheets approved; no product implementation, apply, collection activation or deployment",
   "nativeProductSource": "9a34f9e47d5fb7dd32eecd6fdc697cef53340ed9",
   "planningSourceBeforeReview": "bec8192093d16ca2881be92ec97ba2d7e7a54ea4",
   "actualComponentsUsed": [
@@ -46,7 +46,7 @@
           "tabCount": 4
         }
       ],
-      "status": "Review-only exact sheet; prior direction approval does not approve additional states."
+      "status": "Approved exact visual sheet, November9 2026; not implementation/apply/deployment approval."
     },
     {
       "id": "locked",
@@ -76,7 +76,7 @@
           "tabCount": 4
         }
       ],
-      "status": "Review-only exact sheet; prior direction approval does not approve additional states."
+      "status": "Approved exact visual sheet, November9 2026; not implementation/apply/deployment approval."
     },
     {
       "id": "accuracy",
@@ -106,7 +106,7 @@
           "tabCount": 4
         }
       ],
-      "status": "Review-only exact sheet; prior direction approval does not approve additional states."
+      "status": "Approved exact visual sheet, November9 2026; not implementation/apply/deployment approval."
     },
     {
       "id": "record",
@@ -136,7 +136,7 @@
           "tabCount": 4
         }
       ],
-      "status": "Review-only exact sheet; prior direction approval does not approve additional states."
+      "status": "Approved exact visual sheet, November9 2026; not implementation/apply/deployment approval."
     },
     {
       "id": "recovery",
@@ -166,7 +166,7 @@
           "tabCount": 4
         }
       ],
-      "status": "Review-only exact sheet; prior direction approval does not approve additional states."
+      "status": "Approved exact visual sheet, November9 2026; not implementation/apply/deployment approval."
     },
     {
       "id": "empty",
@@ -196,7 +196,7 @@
           "tabCount": 4
         }
       ],
-      "status": "Review-only exact sheet; prior direction approval does not approve additional states."
+      "status": "Approved exact visual sheet, November9 2026; not implementation/apply/deployment approval."
     }
   ],
   "pageErrors": [],
@@ -204,8 +204,8 @@
     "Full-content visual preview; ordinary phone scrolling, enlarged text, authenticated data and physical hardware are not accepted by these images.",
     "User guesses and aggregate record figures are illustrative; no fabricated bookmaker line or source time.",
     "Sheet06 displays four mutually exclusive states together for review.",
-    "New exact compositions remain awaiting user review; original two approved board fingerprints are preserved separately.",
-    "No live prop data, API, SQL, private account, provider-credit request or product source change."
+    "No live prop data, API, SQL, private account, provider-credit request or product source change.",
+    "All six exact shown sheets are approved; image-stage awaiting-review captions remain provenance, superseded by this approval record."
   ],
   "normalViewportPreviewChecks": {
     "scope": "Preview layout checks only; no authentication, API, real data or physical-phone acceptance.",
@@ -408,5 +408,12 @@
     "Removed smaller tappable label overrides; text uses16px floor and Edit target44px.",
     "Applied44px minimum to new segmented-market controls; initial320px All target was undersized.",
     "Imported the existing Gap stylesheet for the final two-column From/To controls."
-  ]
+  ],
+  "approval": {
+    "recordedAt": "2026-11-09T19:09:41.829841+00:00",
+    "userAnswer": "Approve the visual set",
+    "question": "After reviewing the six Player Props mockups, do you approve this complete visual set, including the added locked-pick, filter, recovery and missing-data states? This confirms the design only.",
+    "scope": "The exact six image hashes in this manifest; mandatory shared-app design alignment. No unshown new composition or production apply/deploy approval.",
+    "imageBytesChangedAfterApproval": false
+  }
 }

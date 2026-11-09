@@ -210,8 +210,10 @@ Sean subsequently requested mockups confirming all changes and selected
 [six-sheet Dark/Light review packet](../../../design/player-props-review-2026-11-09/README.md)
 uses actual shared UI components for entry, locked pick/receipt access, separate
 accuracy, period/paper-record filters, draft recovery and missing/loading/error
-states. It is a review artifact, not implementation or a new approval record.
-Entry/accuracy retain the approved direction; additional exact compositions
-remain awaiting review. Original approved board fingerprints above are preserved.
+states. Sean then answered **"Approve the visual set"** to the question covering
+all six sheets, explicitly including the added states. The exact component-rendered
+packet is approved for the shown compositions; its manifest binds all six image
+hashes. This is visual authority, not implementation, apply or deployment approval.
+Original approved board fingerprints above are preserved as earlier provenance.
 The opened source receipt, History and permitted shared rows reuse the existing
 approved patterns; a further new composition would still require its own mockup.

@@ -18,8 +18,8 @@ migration, provider-credit request, collector activation or deployment is includ
 
 The [full Player Props visual packet](../design/player-props-review-2026-11-09/README.md)
 adds six component-rendered Dark/Light sheets after Sean explicitly chose
-Player Props-only review. Existing entry/accuracy direction remains approved;
-locked, custom-filter, recovery and empty/error compositions await review.
+Player Props-only review. Sean then confirmed **"Approve the visual set"** for all
+six exact sheets, including locked, custom-filter, recovery and empty/error states.
 The twelve full-content preview captures preserve the shared bottom bar and
 end-control clearance. This is mockup evidence, not product implementation,
 real-phone acceptance or a new hosted-data claim.
