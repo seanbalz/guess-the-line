@@ -1,0 +1,227 @@
+{
+  "format": "gtl-gap-periods-release-evidence-v1",
+  "source": "9a34f9e47d5fb7dd32eecd6fdc697cef53340ed9",
+  "reviewedHead": "dff97d290ce29c19b2db9ecdcf54e46564135049",
+  "tree": "695452798ac7b51bc1726abc283bcf5f9cd427b3",
+  "sourcePr": 505,
+  "authorization": "Sean directly instructed Deploy for this named frontend period-filter batch.",
+  "target": "frontend",
+  "verifiedAt": "2026-11-09T17:35:54.506Z",
+  "workflows": {
+    "checkOnly": 42660781964,
+    "readiness": 42664733908,
+    "deploy": 42665392227
+  },
+  "ci": {
+    "pr": {
+      "source": "dff97d290ce29c19b2db9ecdcf54e46564135049",
+      "event": "pull_request",
+      "passedJobs": 12,
+      "runs": [
+        {
+          "databaseId": 42653355656,
+          "workflowName": "Tests",
+          "url": "https://github.com/seanbalz/guess-the-line/actions/runs/42653355656",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "databaseId": 42653355600,
+          "workflowName": "Dashboard checks",
+          "url": "https://github.com/seanbalz/guess-the-line/actions/runs/42653355600",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "databaseId": 42653355739,
+          "workflowName": "Brand QA",
+          "url": "https://github.com/seanbalz/guess-the-line/actions/runs/42653355739",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    "main": {
+      "source": "9a34f9e47d5fb7dd32eecd6fdc697cef53340ed9",
+      "event": "push",
+      "passedJobs": 12,
+      "runs": [
+        {
+          "databaseId": 42657246779,
+          "workflowName": "Tests",
+          "url": "https://github.com/seanbalz/guess-the-line/actions/runs/42657246779",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "databaseId": 42657246816,
+          "workflowName": "Dashboard checks",
+          "url": "https://github.com/seanbalz/guess-the-line/actions/runs/42657246816",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "databaseId": 42657246784,
+          "workflowName": "Brand QA",
+          "url": "https://github.com/seanbalz/guess-the-line/actions/runs/42657246784",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    "prTests": {
+      "source": "dff97d290ce29c19b2db9ecdcf54e46564135049",
+      "run": 42653355656,
+      "event": "pull_request",
+      "shards": {
+        "Test shard (2/3)": {
+          "tests": 976,
+          "pass": 976,
+          "fail": 0,
+          "skipped": 0,
+          "vitestPassed": 287
+        },
+        "Test shard (1/3)": {
+          "tests": 1001,
+          "pass": 1001,
+          "fail": 0,
+          "skipped": 0,
+          "vitestPassed": 353
+        },
+        "Test shard (3/3)": {
+          "tests": 993,
+          "pass": 993,
+          "fail": 0,
+          "skipped": 0,
+          "vitestPassed": 290
+        }
+      },
+      "nodeTests": 2970,
+      "vitestPassed": 930,
+      "skips": 0
+    }
+  },
+  "approvals": [
+    {
+      "run": 42664733908,
+      "actor": "seanbalz",
+      "actorId": 178950349,
+      "state": "approved",
+      "environment": "production",
+      "environmentId": 24408079411
+    },
+    {
+      "run": 42665392227,
+      "actor": "seanbalz",
+      "actorId": 178950349,
+      "state": "approved",
+      "environment": "production",
+      "environmentId": 24408079411
+    }
+  ],
+  "readinessObservedAt": "2026-11-09T17:29:19.376Z",
+  "deployPreflightObservedAt": "2026-11-09T17:34:04.762Z",
+  "pages": {
+    "id": "3e81d5b5-5ad5-4f62-9014-c728f047e070",
+    "url": "https://3e81d5b5.guess-the-line.pages.dev",
+    "productionUrl": "https://guess-the-line.pages.dev",
+    "deploymentUrlAccess": "protected",
+    "checkedUrls": [
+      "https://guess-the-line.pages.dev"
+    ],
+    "checkedAssetsPerUrl": 132,
+    "frontendSha256": "bd997845651d912889019ffa4837a1e211c193967a2ef3e42f15edf3ac1e7a01"
+  },
+  "manifest": {
+    "gitHead": "9a34f9e47d5fb7dd32eecd6fdc697cef53340ed9",
+    "dirtyWorkingTree": false,
+    "node": "v22.23.4",
+    "packageLockSha256": "d1e53d30058e845cee1d8c14dc9a162dade13d903b25b5ed96376b2257f2c0d2",
+    "sourceSha256": "bf5c56765d45a7fba618ececb85c2f2412bcf690831f316e93566d08a8f46b91",
+    "frontendSha256": "bd997845651d912889019ffa4837a1e211c193967a2ef3e42f15edf3ac1e7a01"
+  },
+  "artifactCount": 133,
+  "api": {
+    "slug": "gtl-api",
+    "version": 52,
+    "status": "ACTIVE",
+    "verify_jwt": true,
+    "bundleSha256": "76893d3a32c000669a0f11601a1454616630e6ff7ca2e55742221f63f3565ce1"
+  },
+  "apiMetadataUnchanged": true,
+  "apiSourceVerified": false,
+  "migrationCount": 76,
+  "migrationHistorySha256": "d40fdad9eb144738cdbd032e3c95ba433b4cb1606f3de3ab8079f0df1b8108f1",
+  "pendingRepoMigrations": [
+    20261029151727,
+    20261029161613,
+    20261029162144
+  ],
+  "boundary": {
+    "checked": 457,
+    "denied": 438,
+    "documentedPendingProbes": 19
+  },
+  "schedule": {
+    "checkedAt": "2026-11-09T17:34:04.762Z",
+    "timeRestrictions": false,
+    "publishedWeek": {
+      "season": 2026,
+      "week": 10
+    },
+    "games": 29
+  },
+  "sourcePreservation": {
+    "head": "9a34f9e47d5fb7dd32eecd6fdc697cef53340ed9",
+    "previousDeployedSource": "a17f2082e5e07e95179726ac948c44c55a506d1f",
+    "trees": {
+      "data": "0e9cb2cbd3520ac0e272d91b82cfe0c7eab07d91",
+      "cloud": "ebf87d194f6c94c47cdf281bfbf567b34f1011ec",
+      "server": "6168afb2f2f89a572e4782095355bcf2b578896f",
+      "shared": "27e24f112b5f167c8b8f815548453f57e1e63058",
+      "supabase": "d54f6158da208bd2a34404ed41786c7eda4e80d2",
+      "design": "672dc66ad6f0d137ce5e24fe3e5ef45fa9d8be44"
+    },
+    "week5SourceSha256": "a4ee8f13c4b58777767dbd94a022dbc0a721ff6ece90522e4ddf4e25d2d9f1dd",
+    "limitation": "Tracked source preservation only; not hosted private-row hashes.",
+    "week5GitBlobSha256": "a4ee8f13c4b58777767dbd94a022dbc0a721ff6ece90522e4ddf4e25d2d9f1dd"
+  },
+  "publicSmoke": {
+    "url": "https://guess-the-line.pages.dev/#home",
+    "title": "Guess The Line",
+    "pageErrors": [],
+    "themes": [
+      {
+        "theme": "dark",
+        "width": 390,
+        "documentWidth": 390
+      },
+      {
+        "theme": "light",
+        "width": 390,
+        "documentWidth": 390
+      }
+    ],
+    "scope": "Public sign-in only, isolated browser; no production account sign-in or physical-iPhone acceptance."
+  },
+  "rollback": {
+    "id": "968d3b5d-a115-42ea-8293-ce405ef42f91",
+    "source": "a17f2082e5e07e95179726ac948c44c55a506d1f"
+  },
+  "changesExcluded": [
+    "API",
+    "SQL",
+    "workers",
+    "provider configuration",
+    "schedules",
+    "Player Props implementation",
+    "M-41 apply"
+  ],
+  "limitations": [
+    "Immutable Pages URL is Access-protected; production URL asset bytes were checked.",
+    "Remote API source bytes were not independently matched; unchanged metadata only.",
+    "Tracked source hashes do not establish hosted private-row hashes.",
+    "Public sign-in smoke only; no signed-in production or physical-iPhone acceptance.",
+    "Local multiweek slates/lines/finals are synthetic fixtures; see implementation record."
+  ]
+}

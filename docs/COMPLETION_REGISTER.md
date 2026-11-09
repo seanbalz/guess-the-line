@@ -1,5 +1,22 @@
 # Guess The Line — current completion register
 
+## Gap record period filters deployed and verified — November 9, 2026 UTC
+
+[Release evidence](RELEASE_2026_11_09_GAP_RECORD_PERIODS.md) records merged PR #505,
+source `9a34f9e47d5fb7dd32eecd6fdc697cef53340ed9`, all twelve exact PR/main checks,
+protected readiness and frontend-only deploy 42665392227. Pages
+`3e81d5b5-5ad5-4f62-9014-c728f047e070` and all 132 production assets verified at
+17:35:54 UTC. Week, This season, All time and inclusive Custom range combine
+existing D-77 records without averaging weekly percentages. Recommendation week
+and placement remain independent; failed periods do not show partial totals.
+
+API v52 metadata and 76-migration history remain unchanged. No SQL/API/worker or
+provider deployment. Local synthetic multiweek tests and public two-theme smoke
+do not establish physical-phone or signed-in production acceptance. The new
+Player Props guessing feature is still in design, not included in this release.
+M-41, held FEPL framing, parked work and frozen v62 remain separate. Earlier
+local/pending period-filter entries below are historical.
+
 ## Gap win rate period filters checked locally — November 9, 2026
 
 Sean approved the [D-80](DECISIONS.md) dark/light period-control mockup. The

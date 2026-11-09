@@ -1,10 +1,18 @@
 # Gap record periods — November 9, 2026
 
+**Deployment closeout:** the [dated release record](RELEASE_2026_11_09_GAP_RECORD_PERIODS.md)
+and [structured evidence](evidence/GAP_RECORD_PERIODS_RELEASE_2026_11_09.json)
+establish verified frontend source `9a34f9e47d5fb7dd32eecd6fdc697cef53340ed9`,
+all twelve PR/main checks and protected deploy 42665392227. All 132 production
+assets match; API v52 metadata and migration history remain unchanged. The local
+prepublication status below is historical, not the current release state.
+
 Sean requested All time and multiweek Gap win rate, accepted the recommended
 All time, This season and Custom range options, and approved the dark/light
 mockup with **“Good”**. [D-80](DECISIONS.md) and the
 [approved design](superpowers/specs/2026-11-09-gap-record-periods-design.md)
-define this change. This record establishes local implementation, not deployment.
+define this change. The sections below document local implementation; the dated
+release record above establishes deployment and its separate acceptance limits.
 
 The Record period selector retains Week as default and adds This season,
 All time and Custom range. From/To and Apply range select inclusive published

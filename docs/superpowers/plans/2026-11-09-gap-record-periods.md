@@ -57,9 +57,15 @@ modify `GapRecord.jsx`, `gapRecordView.js`, `gapRecord.css`,
   market/tier, detail/Back and end clearance; inspect captures. No new browser spec.
 - [x] Run `npm test`, `npm run typecheck`, `python scripts/check-brand-docs.py`,
   `npm run build`, and `git diff --check`; record actual counts and limitations.
-- [ ] Update completion register with evidence, create reviewed source PR, push and
+- [x] Update completion register with evidence, create reviewed source PR, push and
   run sync:check. Obtain code-review approval and exact-head required CI.
-- [ ] Merge normally, verify exact-main CI and tree, sync the owned clean integration
+- [x] Merge normally, verify exact-main CI and tree, sync the owned clean integration
   checkout. Follow SHARED_DEPLOYMENT frontend-only source/readiness/deploy gates.
 - [ ] Record verified production asset/API/migration evidence in a documentation
   followup PR, review/merge/sync. Do not redeploy for documentation-only changes.
+
+Release evidence preparation: PR #505 merged as `9a34f9e4` with an identical
+reviewed tree; all twelve PR/main checks passed. Frontend-only deploy 42665392227
+verified all 132 production assets at 2026-11-09T17:35:54.506Z. The final unchecked
+publication item reflects this preparation stage; its PR merge/sync receipt is
+recorded through GitHub and the final handoff, not an additional app release.
