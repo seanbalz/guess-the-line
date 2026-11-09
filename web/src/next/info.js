@@ -4,6 +4,7 @@
 import { TRENDS_FOOTNOTE } from '../../../shared/trends-view.mjs';
 import { footer } from '../../../shared/lines-view.mjs';
 import { NFLVERSE_SCHEDULE_URL } from '../../../shared/nfl-schedule.mjs';
+import { GAP_SCALE_NOTES } from '../../../shared/nfl-gap-scale.mjs';
 
 const credits = footer({ forecastShown: true });
 /** D-62: what a team record counts, said the same way on the team sheet's ⓘ (teams/TeamView.jsx) and in Guidance. */
@@ -100,9 +101,11 @@ export const INFO = Object.freeze({
     title: 'About your guess vs. market',
     body: [
       'Compare your locked guesses with current lines. Track a ticket placed elsewhere, or play with Virtual Units.',
-      'Differences are compared as a percentage of the line; they are not win probabilities.',
+      ...GAP_SCALE_NOTES,
       'Colors here describe the guess gap only. They do not indicate model-estimated betting value. Independent assessments are in Research recommendations.',
+      'Rows with a usable named-book quote and no saved Virtual Units pick come first; each group is ranked by historical gap size.',
     ],
+    links: TRENDS_LINKS,
   },
   virtual: {
     title: 'About Virtual Units',

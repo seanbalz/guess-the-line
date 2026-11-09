@@ -44,7 +44,9 @@ test('same matchup across seasons stays distinct; market and large-gap filters u
   assert.deepEqual(combined.games.map(g => g.season), [2025, 2026]);
   assert.equal(gapRecord(combined).graded.length, 4);
   assert.equal(gapRecord(combined, { market: 'total' }).graded.length, 2);
-  assert.equal(gapRecord(combined).favorable.riskUnits, 2);
+  assert.equal(gapRecord(combined).large.riskUnits, 0);
+  for (const game of combined.games) game.mine.spread.guess = -20;
+  assert.equal(gapRecord(combined).large.riskUnits, 2);
 });
 test('missing evidence, drafts, sit-outs and even guesses retain their existing exclusions', () => {
   const b = board(2026, 5, [10, 10, 10, 10, 10]);

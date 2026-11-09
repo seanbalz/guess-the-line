@@ -134,7 +134,7 @@ function BetsDetail() {
   </>;
   return <section className="gx-screen gx-bets gx-live-workflow" aria-labelledby="gx-bets-title">
     <header className="gx-bets-heading">
-      <div className="gx-bets-titlebar"><h1 id="gx-bets-title" className="gx-t-title gx-grow">{({ active: "Active tickets", settled: "Settled tickets", add: "Add a bet", recommended: "Your guess vs. market", virtual: "Virtual Units", everyone: "Everyone’s picks" })[destination] ?? "My bets"}</h1><InfoButton title={INFO[topic].title} body={INFO[topic].body}/></div>
+      <div className="gx-bets-titlebar"><h1 id="gx-bets-title" className="gx-t-title gx-grow">{({ active: "Active tickets", settled: "Settled tickets", add: "Add a bet", recommended: "Your guess vs. market", virtual: "Virtual Units", everyone: "Everyone’s picks" })[destination] ?? "My bets"}</h1><InfoButton {...INFO[topic]}/></div>
       {view!=='tracked'&&<p className="gx-t-body gx-c-2">{introduction[destination === 'everyone' ? 'everyone' : view]}</p>}
     </header>
     {view === 'recommended' ? <Button variant="secondary" onClick={() => choose('research')}>Research recommendations</Button> : null}
