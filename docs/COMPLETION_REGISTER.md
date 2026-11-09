@@ -22,6 +22,52 @@ NFL-wide baseline and top-quarter Large highlight. The
 source limitations and verification. This is review work, not a merge or release
 claim. No saved pick/reference, API, migration, provider or collector changes.
 
+## Player Props design approved; source audit partial — November 9, 2026
+
+Sean approved both Dark/Light boards with alignment to the rest of the app as a
+condition. [D-82](DECISIONS.md) and the
+[approved design](superpowers/specs/2026-11-09-player-props-design.md) preserve
+optional athlete/stat selection, separate native-unit average-miss accuracy,
+entry-only market hiding and the existing shared Prism components/navigation.
+
+The [readiness audit](PLAYER_PROPS_READINESS_2026_11_09.md) verifies all eleven raw
+stat fields in a checksum-matched public Week 1–9 source. Hosted prop-quote,
+roster/event, quota and final-result readiness is unverified: the Supabase
+connection requires reauthentication. The
+[read-only readiness plan](superpowers/plans/2026-11-09-player-props-readiness.md)
+keeps those unknowns distinct from observed absence. No Player Props mode,
+migration, provider-credit request, collector activation or deployment is included.
+
+The [full Player Props visual packet](../design/player-props-review-2026-11-09/README.md)
+adds six component-rendered Dark/Light sheets after Sean explicitly chose
+Player Props-only review. Sean then confirmed **"Approve the visual set"** for all
+six exact sheets, including locked, custom-filter, recovery and empty/error states.
+The twelve full-content preview captures preserve the shared bottom bar and
+end-control clearance. This is mockup evidence, not product implementation,
+real-phone acceptance or a new hosted-data claim.
+
+Sean subsequently instructed **"Merge and deploy"**. The approved records are
+being reconciled with current main and the existing shared navigation-test fix;
+exact-head review/CI are required before merge. Supabase still requires
+reauthentication for the hosted prop-data audit. Feature implementation and its
+protected release remain pending; merging these records cannot enable the mode.
+
+## EPL expansion requirements confirmed — November 9, 2026
+
+The [requirements and delivery sequence](EPL_FEATURES_2026_11_09.md) and D-68
+addendum record Sean's answers in this conversation: optional three-way entry,
+one locked guess per match and a combined leaderboard; automatic recommendations
+ranked by current favorable gap with supporting trends; reviewed final Sleeper
+screenshot scores opening the next draft; and independent winner announcements
+with opt-in push. Source inspection identified two-way storage, coupled
+snapshot/award/rollover processing and roughly twelve-hourly result collection
+as implementation work. Status: **planned, not built or deployed**. Sean supplied
+a representative screenshot: human inspection established the four-card/eight-
+manager layout, actual-score versus projection positions and absent season-total
+tiebreak data. The requirements record now defines import/review handling; this
+is not tested OCR or a live import. Private images/scores remain outside Git.
+No runtime, database, migration, notification or frozen-v62 change.
+
 ## Gap record period filters deployed and verified — November 9, 2026 UTC
 
 [Release evidence](RELEASE_2026_11_09_GAP_RECORD_PERIODS.md) records merged PR #505,
@@ -83,6 +129,7 @@ alone need not create the required scrolled shelf. The release record preserves
 the original failed PR #507 run and the explicit-centering correction, with all
 navigation/focus/scroll assertions retained. This changes no application source
 and does not require redeployment.
+
 
 ## Gap win rate period filters checked locally — November 9, 2026
 

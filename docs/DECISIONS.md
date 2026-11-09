@@ -1,5 +1,38 @@
 # Decision log
 
+## D-82 — Optional Player Props line guessing, shared Prism design (November 9, 2026)
+
+Status: design and both Dark/Light mockup boards approved for planning and
+data-readiness work; not implemented, applied or deployed. Sean's condition is
+"Looks good as long as it's aligned with the rest of the apps designs."
+
+Add Player Props beside Spread and Total. Users choose an athlete and stat from
+verified available full-game lines and guess the sportsbook line, with optional
+participation and any number of props. The eleven selected common passing,
+rushing and receiving stat types are listed in the
+[approved design](superpowers/specs/2026-11-09-player-props-design.md). Lock-in is
+final per event/player/stat, preserving drafts, audits, saved references and
+cross-group identity. Separate accuracy by stat type uses average absolute miss
+in native units, lower better; no combined prop score or fantasy-point scoring.
+The separately labelled Gap paper record needs retained pre-kickoff lines and
+verified actual-stat/finality evidence. Missing evidence is not a loss or zero.
+
+Sean explicitly chose to hide market lines only on the guess-entry screen.
+Research and other users' tracked-prop quote visibility retain their existing
+rules. Unrevealed Guess values still require their separate privacy boundary.
+Market/athlete/stat and complete-period filters organize the personal records.
+
+The mockups authorize these compositions with the existing shared Prism tokens,
+components, system typography, G, separate circular team/league marks and common
+bottom navigation. They do not authorize a new palette, icons, font, global
+header change or unshown composition. Actual implementation needs both-theme
+comparison against adjacent app screens and existing scroll/focus/access checks.
+
+The [source audit](PLAYER_PROPS_READINESS_2026_11_09.md) verifies public raw-stat
+fields, not connected prop coverage or hosted readiness. Free-only data, quota
+protections, named migration apply and scoped protected deployment gates remain.
+Do not enable the mode on the strength of its mockups or this decision alone.
+
 ## D-81 — Comparable NFL spread and total gap sizes (November 9, 2026)
 
 Sean asked to readdress Spread versus Total gaps so a large difference in either
