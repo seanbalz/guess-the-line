@@ -270,7 +270,8 @@ export default function VirtualUnits({ leagueId, accountId, onDirty, onSaved, on
       {settledCount > 0 && data.settlement?.lastSettledAt && <p className="virtual-settlement-note" role="status"><CircleCheckBig size={15}/>{settledCount} settled pick{settledCount === 1 ? '' : 's'}{data.summary.pending ? ` · ${data.summary.pending} still pending` : ''} · finals as of {date(data.settlement.lastSettledAt)} PT</p>}
       <div className="virtual-game-grid">{data.games.map(game => <GameCard key={game.id} game={game} result={data.results?.[game.id]} picks={picks} selections={selections} choose={choose} changeUnits={changeUnits} save={save} busy={busy || loading || Boolean(uncertain)} rules={data.rules}/>)}</div></>}
     {view === 'recommended' && data && !loading && <section className="recommended-bets" aria-label="Recommended bets">
-      {gaps && <GapRecordView key={`${accountId}:${gapWeek}:${market}`} record={gaps} board={gapBoard.board} week={data.week}/>}
+      {gaps && <GapRecordView key={`${accountId}:${gapWeek}`} record={gaps} board={gapBoard.board} season={data.season} week={data.week}
+        slates={weekInfo?.slates} market={market} accountId={accountId || data.playerId} onSignInAgain={onSignInAgain}/>}
       {historical ? <p className="recommended-source" role="status">Viewing {data.season} Week {data.week}{data.picks?.length ? '' : ' · No saved virtual picks this week.'}</p>
         : !personal ? <p className="loading" role="status">Loading your saved guesses…</p>
         : recommendations.status !== 'ready' ? <div className="recommended-empty" role="status"><p>Your guesses and these lines are not available for the same week.</p><button className="secondary" onClick={refresh}>Refresh recommendations</button></div>

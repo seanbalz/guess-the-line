@@ -11,3 +11,11 @@ test('paper-record view follows graded outcomes and filters without scoring gues
   assert.deepEqual(gapRecordView(record, board, 'large').rows.map(r => r.gameId), ['a']);
   assert.equal(gapRecordView(record, board, 'large').summary, record.favorable);
 });
+
+test('every combined row retains the actual season and week for drilldown', () => {
+  const board = { games: [{ id: '2025:18:a', season: 2025, week: 18 }] };
+  const record = { graded: [{ gameId: '2025:18:a', market: 'spread', outcome: 'win' }] };
+  const row = gapRecordView(record, board).rows[0];
+  assert.equal(row.season, 2025);
+  assert.equal(row.week, 18);
+});
