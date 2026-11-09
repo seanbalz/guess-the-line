@@ -74,7 +74,7 @@ export function GapRecord(props) {
     favorable: { wins: 0, losses: 0, pushes: 0 }, graded: [], even: 0, notGraded: { noFinal: 0, noLine: 0 } };
   const board = period.board ?? { games: [] };
   const [tier, setTier] = useState("all"),
-    [limit, setLimit] = useState(6),
+    [expanded, setExpanded] = useState(false),
     [selected, setSelected] = useState(null);
   const root = useRef(null),
     restore = useRef(null),
@@ -238,7 +238,7 @@ export function GapRecord(props) {
             value={tier}
             onChange={(value) => {
               setTier(value);
-              setLimit(6);
+              setExpanded(false);
             }}
           />
         </details>
@@ -297,7 +297,7 @@ export function GapRecord(props) {
                 </ol>
                 <h4 className="gx-t-strong">Each gap · kickoff order</h4>
                 <ol className="gx-gap-list">
-                  {view.rows.slice(0, limit).map((row, i) => (
+                  {(expanded ? view.rows : view.rows.slice(0, 6)).map((row, i) => (
                     <li
                       className="gx-card gx-gap-row"
                       key={row.key}
@@ -342,11 +342,9 @@ export function GapRecord(props) {
                 </ol>
                 {view.rows.length > 6 ? (
                   <Button
-                    onClick={() =>
-                      setLimit((n) => (n === 6 ? view.rows.length : 6))
-                    }
+                    onClick={() => setExpanded(value => !value)}
                   >
-                    {limit === 6
+                    {!expanded
                       ? `Show all ${view.rows.length} gaps`
                       : "Show first 6"}
                   </Button>

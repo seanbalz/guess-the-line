@@ -95,6 +95,113 @@ async function publishNextWeek(world) {
   return { season, week: week + 1 };
 }
 
+// Two explicitly synthetic historical boards exercise the real period/controller
+// lifecycle. The initial board comes through the fixture's authenticated reader;
+// its second-week copy is fixture data, not a claim about retained live history.
+async function gapPeriodFixture(page, baseURL) {
+  let at = Date.now();
+  const world = await fixture(page, baseURL, { clock: () => at });
+  const { season, week } = world.state.league;
+  for (const game of world.state.games) {
+    await world.db.query("insert into public.gtl_virtual_units_settlements(season,week,game_id,version,status,home,away,source,observed_at) values($1,$2,$3,1,'final',27,20,'Synthetic period final',now())", [season, week, game.id]);
+  }
+  at = Math.max(...world.state.games.map(game => Date.parse(game.kickoff))) + 4 * 3_600_000;
+  const old = await world.api('luke', 'lines/read', { season, week });
+  expect(old.status).toBe(200);
+  const next = await publishNextWeek(world);
+  await page.route(`${SUPABASE}/functions/v1/gtl-api/lines/read`, async route => {
+    if (route.request().headers().authorization !== `Bearer ${world.sessions[ACCOUNTS.luke.email].access_token}`) return route.fallback();
+    const scope = route.request().postDataJSON();
+    expect(scope.season).toBe(season);
+    expect([week, next.week]).toContain(scope.week);
+    await route.fulfill({ json: { ...old.body, ...scope } });
+  });
+  return { world, season, week, next };
+}
+
+test('gap record periods and applied custom bounds survive recommendation-week changes and refresh', async ({ page, baseURL }) => {
+  const { world, season, week, next } = await gapPeriodFixture(page, baseURL);
+  try {
+    const calls = requests(page);
+    await openRecommended(page);
+    const period = page.getByRole('combobox', { name: 'Record period', exact: true });
+    const recommendation = page.getByRole('combobox', { name: 'Recommendation week', exact: true });
+    const card = page.getByRole('region', { name: 'Your gaps vs. closing lines', exact: true });
+    await period.selectOption('all');
+    await expect(card).toContainText('14 graded gaps');
+    await recommendation.selectOption(`${season}:${week}`);
+    await expect(card).toContainText('14 graded gaps');
+    await expect(period).toHaveValue('all');
+    await page.getByRole('button', { name: 'Refresh lines', exact: true }).click();
+    await expect(period).toHaveValue('all');
+    await expect(card).toContainText('14 graded gaps');
+    await period.selectOption('custom');
+    await card.getByLabel('From', { exact: true }).selectOption(`${season}:${week}`);
+    await card.getByLabel('To', { exact: true }).selectOption(`${season}:${week}`);
+    await card.getByRole('button', { name: 'Apply range', exact: true }).click();
+    await expect(card).toContainText('7 graded gaps');
+    await recommendation.selectOption('current');
+    await expect(period).toHaveValue('custom');
+    await expect(card.getByLabel('From', { exact: true })).toHaveValue(`${season}:${week}`);
+    await expect(card.getByLabel('To', { exact: true })).toHaveValue(`${season}:${week}`);
+    await expect(card).toContainText('7 graded gaps');
+    await page.getByRole('button', { name: 'Refresh lines', exact: true }).click();
+    await expect(period).toHaveValue('custom');
+    await expect(card).toContainText('7 graded gaps');
+    await period.selectOption('season');
+    await recommendation.selectOption(`${season}:${week}`);
+    await expect(period).toHaveValue('season');
+    await expect(card).toContainText('14 graded gaps');
+    await period.selectOption('week');
+    await recommendation.selectOption('current');
+    await expect(period).toHaveValue('week');
+    await expect(card.getByRole('heading', { name: `Your gaps · Week ${next.week}`, exact: true })).toBeVisible();
+    expect(placements(calls)).toEqual([]);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('expanded gap records show every row when the period grows and can collapse again', async ({ page, baseURL }) => {
+  const { world } = await gapPeriodFixture(page, baseURL);
+  try {
+    await openRecommended(page);
+    const card = page.getByRole('region', { name: 'Your gaps vs. closing lines', exact: true });
+    await card.getByRole('button', { name: 'Show all 7 gaps', exact: true }).click();
+    await expect(card.locator('.gx-gap-row')).toHaveCount(7);
+    await card.getByRole('combobox', { name: 'Record period', exact: true }).selectOption('all');
+    await expect(card).toContainText('14 graded gaps');
+    await expect(card.locator('.gx-gap-row')).toHaveCount(14);
+    await card.getByRole('button', { name: 'Show first 6', exact: true }).click();
+    await expect(card.locator('.gx-gap-row')).toHaveCount(6);
+    await card.getByRole('button', { name: 'Show all 14 gaps', exact: true }).click();
+    await expect(card.locator('.gx-gap-row')).toHaveCount(14);
+    await card.getByRole('combobox', { name: 'Record period', exact: true }).selectOption('week');
+    await expect(card.locator('.gx-gap-row')).toHaveCount(7);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('gap period preference and combined records reset after a real fixture sign-out and account change', async ({ page, baseURL }) => {
+  const { world } = await gapPeriodFixture(page, baseURL);
+  try {
+    await openRecommended(page);
+    const period = page.getByRole('combobox', { name: 'Record period', exact: true });
+    const card = page.getByRole('region', { name: 'Your gaps vs. closing lines', exact: true });
+    await period.selectOption('all');
+    await expect(card).toContainText('14 graded gaps');
+    await page.getByRole('button', { name: 'Your menu', exact: true }).click();
+    await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+    await signIn(page, 'troy', { navigate: false });
+    await expect(page.getByRole('navigation', { name: 'Main', exact: true })).toBeVisible();
+    await page.goto('/#bets');
+    await page.getByRole('button', { name: 'Your guess vs. market', exact: true }).click();
+    await expect(period).toHaveValue('week');
+    await expect(card).toContainText('0 graded gaps');
+    await expect(card).not.toContainText('14 graded gaps');
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
 async function moveBrowserPastKickoff(page, game) {
   // Only the fictional browser clock moves. The kickoff timer's visibility handler
   // must close the already open card without an API read or an attempted write.

@@ -1,0 +1,44 @@
+{
+  "date": "2026-11-09",
+  "scope": "Two PR #505 period-state fixes; local synthetic browser evidence only",
+  "beforeSource": "9a34f9e47d5fb7dd32eecd6fdc697cef53340ed9",
+  "baseSource": "7762898abe27c4b11880d74adad8e8d992e7cf06",
+  "sources": {
+    "web/src/VirtualUnits.jsx": "8a389556e6281bb886ba876009b9bb14590ac3cad8dd7aa0b75b50287f1e1ed8",
+    "web/src/next/bets/GapRecord.jsx": "1a1a75535ad5e8dded614f2f2b8f2677e4935925dc4023ddedea312695f598bd",
+    "web/src/next/bets/useGapPeriod.js": "599be6bd0978c6b4c6cacbc2d848740a06842c381a6010f8e0eb75866b90b039",
+    "tests/cloud-browser/recommended-bets.spec.js": "e5374fb85adb597eab56ab8171b8a9b73071b98af336a73a27be8e4722a8c4cd"
+  },
+  "captures": {
+    "after-dark-custom.png": "5e3c3c7891bd54fe8e414a7fcac759b34f34e099ffa9707c89b3b789c317146a",
+    "after-dark-expanded.png": "c73fb479baef4e05a05f51e6d8ac4d7b50f76af91bbffb7f969319cfa5e3308a",
+    "after-dark-period.png": "7e4714f803f6bd5c3f83dc9e9c2225fca7c12841bc22be3883255896ea6abc06",
+    "after-light-custom.png": "d8c71c95b125ed9dbd95aad523f96078c443cddcf6e91722ff199fa02ade7589",
+    "after-light-expanded.png": "f8ce50a072396034c1d992d78e77270cf625115da12f91b160ac4a0a28c92f41",
+    "after-light-period.png": "7a268661f1373fb499facf1de3f3c752bf930f3c2f963d6a892767bb2f3d588c",
+    "before-dark-custom.png": "ee9c4551770b82838e6f13d161d2714f6f72d2180278e9777d4530eb6b0a059f",
+    "before-dark-expanded.png": "2bc88b84f63cf54e3575a4885223956c6522de0c5305bfda2566068dfd9b2218",
+    "before-dark-period.png": "ee9c4551770b82838e6f13d161d2714f6f72d2180278e9777d4530eb6b0a059f",
+    "before-light-custom.png": "be6efb3a222d0741ff17775753bb73adab1c7c1b510e4c202c88a66a4e27f6b2",
+    "before-light-expanded.png": "00b25ae520b2b6490a89e1128baad04261b168c481cbbacc924ead8fe969fb2b",
+    "before-light-period.png": "be6efb3a222d0741ff17775753bb73adab1c7c1b510e4c202c88a66a4e27f6b2",
+    "dark-overview.png": "ae1b1540ddbf5da592a3d7a8af6a40b78304079d33306296c4fb2f31e4935f0b",
+    "light-overview.png": "807174933d9b84c68d035171ce19784a6de096c32f2e4059ae6581559b770866"
+  },
+  "checks": {
+    "node": 39,
+    "ui": 6,
+    "browser": {
+      "fullRun": 21,
+      "finalFocusedRun": 3,
+      "uniqueCases": 22
+    },
+    "typecheck": true,
+    "brandQA": true,
+    "cloudBuild": true,
+    "bundlePrivacy": true
+  },
+  "deployment": false,
+  "physicalPhone": false,
+  "hostedSignIn": false
+}

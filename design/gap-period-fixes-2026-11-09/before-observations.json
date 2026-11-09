@@ -1,0 +1,44 @@
+[
+  {
+    "stage": "before",
+    "theme": "dark",
+    "case": "period-after-week-and-refresh",
+    "period": "week",
+    "headline": "71.4%\nGap win rate\n\n5–2–0 W–L–P · 7 graded gaps"
+  },
+  {
+    "stage": "before",
+    "theme": "dark",
+    "case": "expanded-after-period-grows",
+    "rows": 7,
+    "headline": "71.4%\nGap win rate\n\n10–4–0 W–L–P · 14 graded gaps",
+    "lastRow": "Gap 7 · Spread · 2026 Week 6\nWin\nPhiladelphia Eagles\nat\nJacksonville Jaguars\nClosing reference\nJacksonville Jaguars −3.5\nYour locked guess\nJacksonville Jaguars −7\nChart point\nGap details"
+  },
+  {
+    "stage": "before",
+    "theme": "dark",
+    "case": "custom-after-refresh",
+    "period": "week"
+  },
+  {
+    "stage": "before",
+    "theme": "light",
+    "case": "period-after-week-and-refresh",
+    "period": "week",
+    "headline": "71.4%\nGap win rate\n\n5–2–0 W–L–P · 7 graded gaps"
+  },
+  {
+    "stage": "before",
+    "theme": "light",
+    "case": "expanded-after-period-grows",
+    "rows": 7,
+    "headline": "71.4%\nGap win rate\n\n10–4–0 W–L–P · 14 graded gaps",
+    "lastRow": "Gap 7 · Spread · 2026 Week 6\nWin\nPhiladelphia Eagles\nat\nJacksonville Jaguars\nClosing reference\nJacksonville Jaguars −3.5\nYour locked guess\nJacksonville Jaguars −7\nChart point\nGap details"
+  },
+  {
+    "stage": "before",
+    "theme": "light",
+    "case": "custom-after-refresh",
+    "period": "week"
+  }
+]

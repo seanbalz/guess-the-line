@@ -1,0 +1,44 @@
+[
+  {
+    "stage": "after",
+    "theme": "dark",
+    "case": "period-after-week-and-refresh",
+    "period": "all",
+    "headline": "71.4%\nGap win rate\n\n10–4–0 W–L–P · 14 graded gaps"
+  },
+  {
+    "stage": "after",
+    "theme": "dark",
+    "case": "expanded-after-period-grows",
+    "rows": 14,
+    "headline": "71.4%\nGap win rate\n\n10–4–0 W–L–P · 14 graded gaps",
+    "lastRow": "Gap 14 · Spread · 2026 Week 6\nLoss\nLas Vegas Raiders\nat\nNew England Patriots\nClosing reference\nNew England Patriots −3.5\nYour locked guess\nNew England Patriots −3\n✓ Chart point\nGap details"
+  },
+  {
+    "stage": "after",
+    "theme": "dark",
+    "case": "custom-after-refresh",
+    "period": "custom"
+  },
+  {
+    "stage": "after",
+    "theme": "light",
+    "case": "period-after-week-and-refresh",
+    "period": "all",
+    "headline": "71.4%\nGap win rate\n\n10–4–0 W–L–P · 14 graded gaps"
+  },
+  {
+    "stage": "after",
+    "theme": "light",
+    "case": "expanded-after-period-grows",
+    "rows": 14,
+    "headline": "71.4%\nGap win rate\n\n10–4–0 W–L–P · 14 graded gaps",
+    "lastRow": "Gap 14 · Spread · 2026 Week 6\nLoss\nLas Vegas Raiders\nat\nNew England Patriots\nClosing reference\nNew England Patriots −3.5\nYour locked guess\nNew England Patriots −3\n✓ Chart point\nGap details"
+  },
+  {
+    "stage": "after",
+    "theme": "light",
+    "case": "custom-after-refresh",
+    "period": "custom"
+  }
+]

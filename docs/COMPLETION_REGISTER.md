@@ -1,5 +1,17 @@
 # Guess The Line — current completion register
 
+## Gap period follow-up fixes and mockups — November 9, 2026
+
+The [post-release review and fix evidence](GAP_PERIOD_FOLLOWUP_REVIEW_2026_11_09.md)
+record both PR #505 follow-ups fixed locally: period/applied-range intent survives
+recommendation-week changes and Refresh lines, and expanded records include all
+rows when the period grows. The existing account and read guards remain. Both
+regressions failed before the fixes and passed after; 22 unique recommendation
+browser cases, 39 Node checks, six UI checks and build/QA passed. Actual-component
+[Dark/Light mockups](../design/gap-period-fixes-2026-11-09/index.html) use synthetic
+data. Owner review, exact CI, merge, protected deploy and real-phone acceptance
+remain separate. PR #507 still owns the prior release-evidence reconciliation.
+
 ## Comparable NFL gap scale checked locally — November 9, 2026
 
 [D-81](DECISIONS.md) replaces percentage-of-line gap ranking with a shared

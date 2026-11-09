@@ -70,6 +70,12 @@ export default function VirtualUnits({ leagueId, accountId, onDirty, onSaved, on
   const [view, setView] = useState(initialView === 'recommended' ? 'recommended' : 'all');
   const [personalRead, setPersonalRead] = useState(null), [expanded, setExpanded] = useState(false);
   const [selectedWeek, setSelectedWeek] = useState(null), [weekInfo, setWeekInfo] = useState(null);
+  // Only filter intent survives record reloads. Combined-period reads remain in
+  // the keyed child with its existing cancellation and visibility checks.
+  const [gapPeriodPreference, setGapPeriodPreference] = useState({ accountId, period: 'week', range: null });
+  if (gapPeriodPreference.accountId !== accountId) {
+    setGapPeriodPreference({ accountId, period: 'week', range: null });
+  }
   const [now, setNow] = useState(Date.now);
   const currentRecommendations = accountRecommendations || view === 'recommended';
   const readRequest = useRef(null);
@@ -272,7 +278,8 @@ export default function VirtualUnits({ leagueId, accountId, onDirty, onSaved, on
       <div className="virtual-game-grid">{data.games.map(game => <GameCard key={game.id} game={game} result={data.results?.[game.id]} picks={picks} selections={selections} choose={choose} changeUnits={changeUnits} save={save} busy={busy || loading || Boolean(uncertain)} rules={data.rules}/>)}</div></>}
     {view === 'recommended' && data && !loading && <section className="recommended-bets" aria-label="Recommended bets">
       {gaps && <GapRecordView key={`${accountId}:${gapWeek}`} record={gaps} board={gapBoard.board} season={data.season} week={data.week}
-        slates={weekInfo?.slates} market={market} accountId={accountId || data.playerId} onSignInAgain={onSignInAgain}/>}
+        slates={weekInfo?.slates} market={market} accountId={accountId || data.playerId} onSignInAgain={onSignInAgain}
+        periodSelection={gapPeriodPreference} onPeriodSelectionChange={({ period, range }) => setGapPeriodPreference({ accountId, period, range })}/>}
       {historical ? <p className="recommended-source" role="status">Viewing {data.season} Week {data.week}{data.picks?.length ? '' : ' · No saved virtual picks this week.'}</p>
         : !personal ? <p className="loading" role="status">Loading your saved guesses…</p>
         : recommendations.status !== 'ready' ? <div className="recommended-empty" role="status"><p>Your guesses and these lines are not available for the same week.</p><button className="secondary" onClick={refresh}>Refresh recommendations</button></div>
