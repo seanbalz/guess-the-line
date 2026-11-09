@@ -104,3 +104,14 @@ they did not fail checks. Exact PR CI is separate from these local results.
 Merge, protected frontend deployment, hosted readback and physical-phone
 acceptance remain separate release steps. Rollback is the previous frontend;
 no data transformation or database rollback is required.
+
+The first PR #508 CI run passed Tests and Brand QA, but browser shard 2 failed
+the existing badge shelf setup: visibility produced 72px scroll while the test
+required more than 100px before clicking. PR #507 already corrects that setup
+by explicitly centering the badge without weakening the navigation assertions.
+Its existing commits and prior-release evidence are integrated here rather than
+duplicating the fix. The completion-register merge preserves both task records.
+This correction changes no product scrolling code; renewed exact-head CI is
+required. The corrected badge case passes locally with the combined source;
+Brand QA, evidence JSON and whitespace checks also pass. The original failed
+run 42670166783 remains recorded as failed.
