@@ -8,6 +8,7 @@ import { Minus, Plus, X } from 'lucide-react';
 import { SCORING_OPTIONS, formatFantasyNumber as number } from '../../../../shared/fantasy-rankings.mjs';
 import { COMPARE_PERIODS, MAX_COMPARE, USAGE_METRICS, comparePlayers, playerProfile, searchPlayers } from '../../../../shared/fantasy-tools.mjs';
 import { Button, Card, IconButton, LockLine, Segmented, Sheet } from '../ui/index.js';
+import { DefenseMatchupSection } from './DefenseMatchup.jsx';
 import './fantasyTools.css';
 
 const label = (options, value) => options.find(option => option.value === value)?.label ?? value;
@@ -80,11 +81,11 @@ function Opponent({ profile, scoringLabel }) {
   </>;
 }
 
-export function PlayerProfileSheet({ snapshot, playerId, settings, onClose, compare }) {
+export function PlayerProfileSheet({ snapshot, playerId, settings, onClose, compare, lines = null, weather = null }) {
   const profile = playerProfile(snapshot, playerId, settings);
   if (!profile) return null;
   return <Sheet title={profile.player.name} onClose={onClose} tall className="gx-fantasy-profile">
-    <PlayerProfileBody profile={profile} snapshot={snapshot} settings={settings} compare={compare}/>
+    <PlayerProfileBody profile={profile} snapshot={snapshot} settings={settings} compare={compare} lines={lines} weather={weather}/>
   </Sheet>;
 }
 
@@ -92,9 +93,11 @@ export function PlayerProfileSheet({ snapshot, playerId, settings, onClose, comp
  * The profile's content, for the sheet above and for a sheet that shows it as a sub-view (Play › Points, Board i63).
  * `estimateLocked`, a sentence, replaces GTL's pace estimate with a lock line: on the Points ballot that estimate is the
  * House (D-56), which stays hidden until the viewer locks in the player or he kicks off. The rest-of-season estimate
- * goes with it, since it is the same weekly estimate times the games left.
+ * goes with it, since it is the same weekly estimate times the games left. The defensive-matchup section (coverage,
+ * front, environment, game script, injuries, usage, alignment) follows the opponent context on Research › Fantasy only;
+ * `lines` and `weather` are the screen's gated lines reply and wind sentence.
  */
-export function PlayerProfileBody({ profile, snapshot, settings, compare, estimateLocked = null, pointsPresentation = false }) {
+export function PlayerProfileBody({ profile, snapshot, settings, compare, estimateLocked = null, pointsPresentation = false, lines = null, weather = null }) {
   const { player, weeks, summary, estimate } = profile, scoringLabel = label(SCORING_OPTIONS, settings.scoring);
   const usageCell = (row, key) => <Value value={row.usage[key]} whole/>;
   return <>
@@ -131,6 +134,7 @@ export function PlayerProfileBody({ profile, snapshot, settings, compare, estima
       <h3 className="gx-t-section" id={`${player.id}-opponent`}>Opponent context</h3>
       <Opponent profile={profile} scoringLabel={scoringLabel}/>
     </section>
+    {pointsPresentation ? null : <DefenseMatchupSection snapshot={snapshot} playerId={player.id} settings={settings} lines={lines} weather={weather}/>}
   </>;
 }
 

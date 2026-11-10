@@ -15,6 +15,7 @@ import { reportModel, reportTile } from './fantasyReport.js';
 import { Button, InfoButton, LockLine, Nest, Pill, Segmented, Switch, Skeleton, TeamMark } from '../ui/index.js';
 import { PlayerCompare, PlayerProfileBody, PlayerProfileSheet, PlayerToolButtons } from './FantasyTools.jsx';
 import { ObservedPlayers } from './ObservedPlayers.jsx';
+import { DefenseMatchupSection, DefenseRankings } from './DefenseMatchup.jsx';
 
 export const FANTASY_PAGE = 50;
 const INTRO = 'Weekly and rest-of-season player rankings from recent usage and statistics. These are GTL estimates, not expert consensus or injury-adjusted projections.';
@@ -104,14 +105,17 @@ export function FantasyNest({ navigationState, onNavigationState, view = {}, onL
   const settings = { scoring: filters.scoring, passingTds: filters.passingTds };
   // The screen's page title is its h1 on every layer; the cards below it are the layers.
   const toFantasy = { key: 'fantasy', label: 'Fantasy', onOpen: () => onLayer({ fantasyLayer: null, fantasyPlayer: null }) };
+  // The wind sentence for one player's game, whatever the ranking period (the matchup sections show it as observed context).
+  const weatherFor = id => { const p = snapshot?.players.find(item => item.id === id); return p ? describePlayerContext(p, { wind: gameContext?.wind })?.weather ?? null : null; };
   const profile = snapshot && profileId ? <PlayerProfileSheet snapshot={snapshot} playerId={profileId} settings={settings} onClose={() => onProfile(null)}
-    compare={{ compared: compareIds.includes(profileId), full: compareIds.length >= MAX_COMPARE, onCompare }}/> : null;
+    compare={{ compared: compareIds.includes(profileId), full: compareIds.length >= MAX_COMPARE, onCompare }} lines={gameContext?.lines ?? null} weather={weatherFor(profileId)}/> : null;
 
   const usage = snapshot && view.fantasyLayer === 'usage' ? playerProfile(snapshot, view.fantasyPlayer, settings) : null;
   if (usage) return <section className="gx-screen gx-fantasy" aria-label="Fantasy Football"><h1 className="gx-t-title">Fantasy Football</h1>
     <Nest key="fantasy-layer" label="Fantasy layers" layer={`usage:${usage.player.id}`} title={usage.player.name} lips={[toFantasy]} info={<InfoButton title="About observed Fantasy production" body={['Actual points and usage come from recorded completed games. Missing statistics and byes remain distinct from zero.', `Stats through Week ${snapshot.statsThroughWeek}. Source updated ${date(snapshot.asOf)}.`, 'Season and last-three-week averages use each statistic’s recorded sample. GTL estimates are labelled separately.']} links={sourceLinks(snapshot)}/>}>
       <div className="gx-fantasy-profile-mark"><TeamMark code={usage.player.team} size={48} decorative/><p className="gx-t-meta">{usage.player.position} · {usage.summary.season.games} recorded games · {scoringLabel}</p></div>
-      <PlayerProfileBody profile={usage} snapshot={snapshot} settings={settings} compare={{ compared: compareIds.includes(usage.player.id), full: compareIds.length >= MAX_COMPARE, onCompare }}/>
+      <PlayerProfileBody profile={usage} snapshot={snapshot} settings={settings} compare={{ compared: compareIds.includes(usage.player.id), full: compareIds.length >= MAX_COMPARE, onCompare }}
+        lines={gameContext?.lines ?? null} weather={weatherFor(usage.player.id)}/>
     </Nest></section>;
 
   // Fantasy › one player.
@@ -148,7 +152,16 @@ export function FantasyNest({ navigationState, onNavigationState, view = {}, onL
             : context.lock ? <LockLine>{context.lock}</LockLine> : context.linesNote ? <p className="gx-t-body">{context.linesNote}</p> : null}
         </div>
       </details> : null}
+      <DefenseMatchupSection snapshot={snapshot} playerId={player.id} settings={settings} lines={gameContext?.lines ?? null} weather={context?.weather ?? weatherFor(player.id)}/>
       {profile}
+    </Nest></section>;
+  }
+
+  // Fantasy › defense matchups: points allowed by position (season, recent, opponent-adjusted) and defense styles.
+  if (snapshot && view.fantasyLayer === 'defense') {
+    return <section className="gx-screen gx-fantasy" aria-label="Fantasy Football"><h1 className="gx-t-title">Fantasy Football</h1><Nest key="fantasy-layer" label="Fantasy layers" layer="defense" title="Defense matchups" lips={[toFantasy]}
+      info={<InfoButton title="About defense matchups" body={['Fantasy points each defense allowed per game to each position, from this snapshot’s completed games.', 'Adjusted compares each game with what that offense usually scores against its other opponents.', 'Style columns label estimates; see How to read this table.']} links={sourceLinks(snapshot)}/>}>
+      <DefenseRankings snapshot={snapshot} settings={settings} scoringLabel={scoringLabel}/>
     </Nest></section>;
   }
 
@@ -211,6 +224,9 @@ export function FantasyNest({ navigationState, onNavigationState, view = {}, onL
         {reportCard ? <li><button type="button" className="gx-nest-tile" data-fantasy="report" onClick={() => onLayer({ fantasyLayer: 'report', fantasyPlayer: null })}>
           <span className="gx-nest-tile-label">Week {state.review.week} report card</span><span className="gx-n-m gx-nest-num">{reportCard.big}</span>
           <span className="gx-t-meta">{reportCard.sub}</span></button></li> : null}
+        {snapshot.matchups ? <li><button type="button" className="gx-nest-tile" data-fantasy="defense" onClick={() => onLayer({ fantasyLayer: 'defense', fantasyPlayer: null })}>
+          <span className="gx-nest-tile-label">Defense matchups</span><span className="gx-n-m gx-nest-num">{Object.keys(snapshot.matchups).length}</span>
+          <span className="gx-t-meta">teams ranked by position</span></button></li> : null}
         <li><button type="button" className="gx-nest-tile" data-fantasy="compare" onClick={() => onLayer({ fantasyLayer: 'compare', fantasyPlayer: null })}>
           <span className="gx-nest-tile-label">Compare players</span><span className="gx-n-m gx-nest-num">{compareIds.length}</span>
           <span className="gx-t-meta">of {MAX_COMPARE} chosen</span></button></li>

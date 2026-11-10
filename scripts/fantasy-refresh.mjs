@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readFantasySources } from './fantasy-sources.mjs';
+import { attachDefenseInsights } from './fantasy-defense-sources.mjs';
 import { buildFantasySnapshot } from '../shared/fantasy-build.mjs';
 import { buildRankings } from '../shared/fantasy-rankings.mjs';
 import { buildFantasyReview, validateFantasyReview } from '../shared/fantasy-review.mjs';
@@ -59,7 +60,10 @@ const files = [];
 let snapshotEntry = null;
 
 if (plan.snapshot?.build) {
-  const snapshot = buildFantasySnapshot({ season, week: plan.snapshot.week, ...rows, sources, generatedAt });
+  const built = buildFantasySnapshot({ season, week: plan.snapshot.week, ...rows, sources, generatedAt });
+  // Defensive-matchup insights ride in the same content-addressed file; their failure never blocks the snapshot.
+  const { snapshot, note } = await attachDefenseInsights(built, { rows, season, inputDir: value('--input-dir') ?? null, root, maxBytes: MAX_FILE_BYTES });
+  console.error(note);
   const rankings = buildRankings(snapshot, {}, { now: builtAt });
   if (rankings.error || !rankings.rows.length) throw new Error('No verified rankings could be generated.');
   const bytes = Buffer.from(`${JSON.stringify(snapshot)}\n`), hash = sha(bytes), file = snapshotFileName(season, snapshot.week, hash);
