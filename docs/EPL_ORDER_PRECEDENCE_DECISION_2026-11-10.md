@@ -52,14 +52,19 @@ version 2. Hosted M-43 does not change.
   - Snapshots `after-mw08` and `after-mw9` exist; `after-mw10` does not.
   - The latest `snapshot` and `settle` runs both report `snapshot_pending`.
   - Seven EPL schedules are enabled, `results` is disabled and there is no `standings` row.
-- **There is no Tuesday recheck today (inspected).** The only two writers of the next order
-  are the automatic `settle` job and your import.
+- **There is no Tuesday recheck today (inspected).** The only two routine writers of the next
+  order are the automatic `settle` job and your import. (The hand-seeding route
+  `epl/admin/week`, used for MW9, can also create a week that does not exist yet or change a
+  seeded one.)
   - `gtl_epl_settle_week` inserts next week only if it does not exist yet
     (`on conflict do nothing`). It never replaces an order.
   - Your import opens next week, or replaces its order while the draft is untouched. Once an
     import has settled week n, `settle` has nothing left to do for it.
-  - **So today your import already wins over the automatic order.** M-35 as written would
-    change that to "last writer wins".
+  - An import confirmed before every drafted result is verified final is kept but waits
+    (`pending_results`). If `settle` opens next week first, confirming the same scores again
+    applies your order, as the import screen tells you.
+  - **So today your import already wins over the automatic order** once its opening has run.
+    M-35 as written would change that to "last writer wins".
 - **MW10 to MW11 is not affected (inspected).** M-33 and M-35 are not hosted. On the legacy
   path the `snapshot` job captures `after-mw10` once the window has ended and Sleeper is on
   week 11; `settle` then opens MW11. An import before or after that still wins while MW11 is
@@ -74,7 +79,8 @@ All five must hold for the same week n (inspected: M-33 `gtl_epl_recheck_state`,
 2. **Capture-interval evidence for week n has been admitted.** Admission is the service-only
    `gtl_epl_attest_capture_interval`, which neither the app nor the worker can call. Without
    that evidence, M-35 pauses the automatic final capture, the Tuesday recheck does not run
-   and M-35 never reorders. Your import is then the only thing that opens next week. The
+   and M-35 never reorders. Your import, or a final snapshot you post by hand
+   (`epl/admin/snapshot`) for `settle` to use, is then the only way next week opens. The
    probe below confirms that M-35 leaves the order alone with no interval (executed).
 3. The automatic `after-mw<n>` final capture exists. The recheck compares against it.
 4. Sleeper's Tuesday totals differ from that capture, so the recheck is `needs_review`.
@@ -102,13 +108,15 @@ fixture, score or manager is used.
 | Tuesday afternoon | A tries to pick and is told it is not A's turn; C gets a turn push if opted in. The stat-corrections screen no longer lists MW11, because an applied reorder leaves the list. Your import screen still shows your import with A first. | C, A, … |
 | Wednesday | You press confirm again on the same screenshot. It counts as a duplicate, but the opening step runs again and **puts A back first**. | **A, C, …** |
 
-Two variations behave the same under every rule:
+Two variations keep the same picks and order under every rule:
 
 - **A picked on Monday night.** The recheck keeps every pick and the order, and flags MW11
-  for your review (D-68 item 23).
+  for your review (D-68 item 23). Under rule 4 no recheck runs for an imported week, so
+  nothing is flagged.
 - **The only change between Monday and Tuesday is the bonus you added after the automatic
   capture.** The recheck's order then equals your import's order (`same_order`) and nothing
-  moves.
+  moves. This assumes Sleeper's displayed weekly score equals the change in the cumulative
+  season total that the recheck reads (assumed).
 
 What the walkthrough rests on:
 
@@ -278,11 +286,12 @@ the draft uses and whether you see the disagreement.
 
 - It keeps what is already true on the hosted project today: your confirmation decides the
   order of an untouched draft.
-- It is the smallest change, all of it in an unapplied file, the reader and the copy. Hosted
+- It is a small change, all of it in an unapplied file, the reader and the copy. Hosted
   M-43 is not touched, and no hosted body is replaced.
 - It keeps D-68 item 23's visible flag, and it extends that flag to the case the current code
   hides: an import overwritten by a recheck.
-- It never sends a turn push to a manager who is no longer first.
+- A Tuesday recheck never changes who picks first after you confirm, so the first-turn push
+  stays right. Only a correction import you confirm can change it.
 - The cost is one action from you when a real Sleeper correction arrives after your import.
   The flag tells you when that happens.
 
