@@ -37,6 +37,7 @@ export const NOT_HOSTED = [
   20261029151727, // M-33 gtl_epl_stat_rechecks: local source only; Gate M apply is separate.
   20261029161613, // M-34 gtl_epl_standings: private dated source persistence/usage; collection absent/disabled until separately authorized.
   20261029162144, // M-35 gtl_epl_corrected_draft_order: local source only; requires pending M-33.
+  20261110110000, // EPL stage 3 gtl_epl_score_import: reviewed Sleeper screenshot import; apply after hosted M-30 and M-40.
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
