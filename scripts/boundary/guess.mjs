@@ -6,6 +6,24 @@
 import { missingId, missingLeague } from './fixtures.mjs';
 import { tables as eplOpsTables, rpcChecks as eplOpsRpcChecks, awaitingDeploy as eplOpsAwaiting } from './epl-operations.mjs';
 
+const PROP_MIGRATION = '20261110130000 (D-82 Player Props apply / GTL_PLAYER_PROPS=on gtl-api deploy)';
+const PROP_TABLES = ['prop_capability', 'prop_offers', 'prop_references', 'prop_guesses', 'prop_guess_events', 'prop_results'];
+// D-82: every callable service-only function, with inert arguments (no real actor, selection or value).
+const PROP_RPCS = [
+  ['gtl_props_ready', {}],
+  ['gtl_props_capability', {}],
+  ['gtl_props_valid_value', { p_stat: 'player_pass_yds', p_value: 0 }],
+  ['gtl_props_record_offer', { p_offer: {} }],
+  ['gtl_props_record_reference', { p_event_id: 'boundary', p_player_id: 'boundary', p_stat: 'boundary', p_line: 0, p_books: [] }],
+  ['gtl_props_record_result', { p_result: {} }],
+  ['gtl_props_write', { p_user: missingId, p_request: missingId, p_event_id: 'boundary', p_player_id: 'boundary', p_stat: 'boundary', p_guess: 0, p_lock: false }],
+  ['gtl_props_save_draft', { p_user: missingId, p_request: missingId, p_event_id: 'boundary', p_player_id: 'boundary', p_stat: 'boundary', p_guess: 0 }],
+  ['gtl_props_lock_in', { p_user: missingId, p_request: missingId, p_event_id: 'boundary', p_player_id: 'boundary', p_stat: 'boundary', p_guess: 0 }],
+  ['gtl_props_board', { p_user: missingId, p_season: 2026, p_week: 0 }],
+  ['gtl_props_history', { p_user: missingId, p_from_season: 2026, p_from_week: 0, p_to_season: 2026, p_to_week: 0 }],
+];
+const PROP_ROUTES = [['props/read', { season: 2026, week: 5 }], ['props/draft', {}], ['props/lock', {}], ['props/history', {}]];
+
 /** Tables, without the `gtl_` prefix: each is read anonymously and must be denied. */
 export const tables = Object.freeze([
   ...eplOpsTables,
@@ -18,11 +36,14 @@ export const tables = Object.freeze([
   'epl_guesses', 'epl_guess_history',
   // M-33 is pending; absence is reported separately from a verified permission denial.
   'epl_stat_rechecks',
+  // D-82 Player Props (20261110130000, not applied): every table is service-only; absence is reported as awaiting.
+  ...PROP_TABLES,
 ]);
 
 /** [rpc, inert body]: each is called anonymously and must be denied. */
 export const rpcChecks = Object.freeze([
   ...eplOpsRpcChecks,
+  ...PROP_RPCS,
   // M-32: service-only. No real actor/event, valid guess, or clock is supplied to a writer.
   ['gtl_epl_moneyline_distance', { p_guess: -100, p_real: 100 }],
   ['gtl_epl_guess_json', { p_g: null, p_kickoff: null, p_at: null }],
@@ -134,6 +155,8 @@ export const rpcChecks = Object.freeze([
 
 /** [gtl-api route, body or undefined for GET]: each is called signed out and with an invalid session and must answer 401. */
 export const apiChecks = Object.freeze([
+  // D-82 Player Props routes: signed-out probes; a gtl-api without GTL_PLAYER_PROPS=on answers "Not found." (awaiting).
+  ...PROP_ROUTES,
   ['community/history', {}],
   // M-08 (hosted since October 19, 2026): signed-out probes prove only authentication protection.
   ['community/picks', { mode: 'guess_spread' }],
@@ -164,6 +187,7 @@ export const workerChecks = Object.freeze([
 // P-03's four functions left this list with its hosted apply (RELEASE_2026_10_26_POINTS_JOBS.md, Gate M step 8).
 export const awaitingDeploy = Object.freeze({
   ...eplOpsAwaiting,
+  ...Object.fromEntries([...PROP_TABLES.map(t => `table/${t}`), ...PROP_RPCS.map(([rpc]) => `rpc/${rpc}`), ...PROP_ROUTES.map(([route]) => `gtl-api/${route}`)].map(key => [key, PROP_MIGRATION])),
   'table/epl_stat_rechecks': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
   'rpc/gtl_epl_recheck_due_at': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
   'rpc/gtl_epl_recheck_state': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',

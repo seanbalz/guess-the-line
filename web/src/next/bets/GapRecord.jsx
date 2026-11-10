@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, useEffect, useRef, useState } from "react";
 import {
   Button,
   Icon,
@@ -18,6 +18,12 @@ import "./gapRecord.css";
 import { GAP_WIN_UNITS } from "../../../../shared/recommended-bets.mjs";
 import { TRENDS_LINKS } from "../info.js";
 import { GAP_SCALE_NOTES } from "../../../../shared/nfl-gap-scale.mjs";
+import { Deferred } from "../ui/Deferred.jsx";
+import { PROPS_GAP_MARKET, playerPropsEnabled } from "../props/flag.js";
+
+// D-82 Player Props: native-unit accuracy per stat and its own paper record, loaded only when the flag is on. The
+// spread/total record below (and its D-81 gap scale) is never applied to a prop.
+const PropRecord = lazy(() => import("../props/PropRecord.jsx"));
 
 const outcomes = {
   win: ["W", "Win"],
@@ -66,8 +72,16 @@ function Pair({ row }) {
   );
 }
 
-/** D-77 paper record. Existing reader, week and market controls remain authoritative. */
+/** Your guess vs. market: the D-77 game-line record, or, for the Player Props market while its flag is on, the prop record. */
 export function GapRecord(props) {
+  if (props.market === PROPS_GAP_MARKET && (props.propsEnabled ?? playerPropsEnabled())) {
+    return <Deferred resetKey={`props:${props.accountId}`} label="Player Props record"><PropRecord season={props.season} week={props.week} onSignInAgain={props.onSignInAgain}/></Deferred>;
+  }
+  return <GameGapRecord {...props}/>;
+}
+
+/** D-77 paper record. Existing reader, week and market controls remain authoritative. */
+function GameGapRecord(props) {
   const period = useGapPeriod(props);
   const { week } = props;
   const record = period.record ?? { wins: 0, losses: 0, pushes: 0, netUnits: 0, roi: null,

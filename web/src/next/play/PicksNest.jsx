@@ -1,11 +1,31 @@
 // D-70 Play › Your guesses as nesting cards (docs/superpowers/specs/2026-11-02-play-picks-nesting-cards-design.md).
 // The week is one tile per game: a state tag, the matchup as marks and your own guess as one big number. The line,
 // points and other players' guesses never sit on a tile; they stay on the game's card, behind your lock (D-31, D-36).
+// D-82 adds Player Props beside Spread and Total, dark unless the app flag is on (../props/flag.js): with it off the
+// market control lists only Spread and Total and no prop code loads.
+import { lazy } from 'react';
 import { show, team } from '../../communityFormat.js';
 import { Icon, TeamMark, cx, teamCode } from '../ui/index.js';
+import { Deferred } from '../ui/Deferred.jsx';
+import { PROPS_MARKET, playerPropsEnabled, withPlayerProps } from '../props/flag.js';
 import { STATE_ICONS } from './WeekProgress.jsx';
 import { number } from './scoring.js';
 import './picksNest.css';
+
+const PlayerPropsEntry = lazy(() => import('../props/PlayerPropsEntry.jsx'));
+export { PROPS_MARKET };
+
+/** Your guesses' market choices: Spread and Total, plus Player Props only when the D-82 flag is on. */
+export const playMarkets = (base, enabled = playerPropsEnabled()) => withPlayerProps(base, PROPS_MARKET, enabled);
+
+/**
+ * D-82 Player Props inside Your guesses: optional, any number of props, no weekly obligation, and separate from the
+ * week's Spread/Total tiles and their locks. Renders nothing while the flag is off.
+ */
+export function PropsNest({ season, week, onSignInAgain, enabled = playerPropsEnabled() }) {
+  if (!enabled) return null;
+  return <Deferred resetKey={`props:${season}:${week}`} label="Player Props"><PlayerPropsEntry season={season} week={week} onSignInAgain={onSignInAgain}/></Deferred>;
+}
 
 const DAY = new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: 'America/Los_Angeles' });
 const WORDS = Object.freeze({ locked: 'Locked', draft: 'Draft', kicked: 'Closed', skipped: 'Skipped', notopen: 'Not open' });
