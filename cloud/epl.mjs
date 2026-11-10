@@ -50,6 +50,7 @@ import { buildFantasyView, detailLabels, fantasySeason } from './epl-fantasy-vie
 import { readEplCorrectionReviews } from './epl-correction-reviews.mjs';
 import { settleBonus } from '../shared/epl-draft.mjs';
 import { weekResults } from './epl-jobs.mjs';
+import { pickATeamResults } from '../shared/epl-results.mjs';
 
 export const EPL_METHODS = Object.freeze({
   ...EPL_GUESS_METHODS,
@@ -302,7 +303,41 @@ const byName = (a, b) => a.name.localeCompare(b.name);
 async function readWeek(service, target) {
   const raw = await service.rpc('gtl_epl_week_state', { p_season: target.season, p_week: target.week });
   if (raw === null || raw === undefined) refuse('GTL_EPL_NO_WEEK');
-  return weekView(raw);
+  const view = weekView(raw);
+  Object.defineProperty(view, 'raw', { value: raw, enumerable: false });
+  return view;
+}
+
+/**
+ * Pick a Team results (EPL delivery stage 4, docs/EPL_FEATURES_2026_11_09.md item 6) for the latest matchweek whose draft
+ * is no longer open: the shown week itself once resolved, else the week before an open one. Built from the stored picks and
+ * fixtures alone (shared/epl-results.mjs), independent of Sleeper snapshots, settlement and the next draft: 'final' once
+ * every fixture is verified final or postponed, otherwise 'pending' with the count still unverified. Null without one.
+ */
+async function resultsFor(service, view) {
+  let raw = view.raw;
+  if (view.status === 'open') {
+    if (view.week <= 1) return null;
+    raw = await service.rpc('gtl_epl_week_state', { p_season: view.season, p_week: view.week - 1 });
+    if (!record(raw) || !record(raw.weekRow) || raw.weekRow.status === 'open') return null;
+  }
+  if (!record(raw) || !Array.isArray(raw.fixtures) || !Array.isArray(raw.picks)) return null;
+  const fixtures = raw.fixtures.filter(f => record(f) && typeof f.eventId === 'string' && isClub(f.home) && isClub(f.away)
+    && ['scheduled', 'final', 'postponed'].includes(f.status))
+    .map(f => ({ eventId: f.eventId, home: f.home, away: f.away, commenceTime: text(f.commenceTime), status: f.status,
+      homeGoals: Number.isInteger(f.homeGoals) ? f.homeGoals : null, awayGoals: Number.isInteger(f.awayGoals) ? f.awayGoals : null }));
+  if (fixtures.length !== raw.fixtures.length) return null;
+  const picks = raw.picks.filter(p => record(p) && isManager(p.ownerId) && isClub(p.club)).map(p => ({ ownerId: p.ownerId, club: p.club }));
+  const results = pickATeamResults({ season: raw.season, week: raw.week, picks, fixtures });
+  if (!results) return null;
+  return {
+    season: results.season, week: results.week, status: results.status,
+    review: raw.weekRow?.status === 'needs_review' && results.status !== 'final',
+    matches: { ...results.matches },
+    winners: results.winners.map(w => ({ ownerId: w.ownerId, name: nameOf(w.ownerId), club: w.club, clubName: clubName(w.club),
+      opponent: w.opponent, opponentName: clubName(w.opponent), home: w.home, goalsFor: w.goalsFor, goalsAgainst: w.goalsAgainst,
+      margin: w.margin, bonus: w.bonus })),
+  };
 }
 async function requireCommissioner(service, user) {
   if (await service.rpc('gtl_community_admin', { p_user: user.id }) !== true) refuse('GTL_EPL_FORBIDDEN');
@@ -345,6 +380,7 @@ async function draftRead({ body, user, service, now }) {
   // Queues are private: only a linked manager's own is read. A non-member's is empty; the commissioner keeps none.
   const myQueue = manager ? await service.readQueue(view.season, view.week, owner) : owner === 'commissioner' ? null : [];
   const claim = claimable ? { managers: [...await service.unclaimedManagers(user.id)].sort(byName).map(m => ({ ownerId: m.ownerId, name: m.name })) } : null;
+  const results = await resultsFor(service, view);
   return {
     season: view.season, week: view.week, status: view.status, deadline: view.deadline,
     // The caller's own manager id (null when unlinked): the board's "Pick <club>" turn hint. Not private.
@@ -359,6 +395,8 @@ async function draftRead({ body, user, service, now }) {
     // An unlinked caller's unclaimed managers (M-31 applied); null for a linked manager or before M-31.
     claim,
     ...(standingsSource ? { standingsSource } : {}),
+    // Pick a Team results for the latest matchweek past its draft (null before one exists).
+    results,
   };
 }
 

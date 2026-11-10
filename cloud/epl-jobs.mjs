@@ -34,6 +34,13 @@
 //             fewer than 2 fixtures ahead it skips as not_due without buying or writing a verdict.
 //   standings separate optional free collection: absent/disabled until M-34 and explicit enablement; one complete dated
 //             Wikimedia community table per UTC day before the draft deadline. Resolution only reads persisted evidence.
+//   results   EPL delivery stage 4 (docs/EPL_FEATURES_2026_11_09.md, item 6): the latest matchweek whose draft is no longer
+//             open (or the one before an open week). Once every fixture is verified final or postponed it records the
+//             announcement once (SQL recomputes the winners) and pushes opted-in league members, each claimed in the same
+//             transaction so a retry never notifies twice. Until then, a bounded final-match scores read (2 credits) at
+//             150, 200, 300 and 720 minutes after the latest pending kickoff, at most four a matchweek, inside the shared
+//             50-credit reserve (gtl_epl_reserve_final_result_read is the authority). It never waits for Sleeper snapshots,
+//             a weekly-score import, settlement or the next draft, and never takes a final from the clock or a missing row.
 // Every write goes through service RPCs. The private dnb-check run detail includes book prices as gate evidence;
 // HTTP replies and logs carry counts and fixed reasons only, never a key, URL, provider text or another manager's pick.
 import { readRunBody } from './odds-refresh.mjs';
@@ -47,22 +54,28 @@ import { MAX_DNB_PRICE } from '../shared/epl-moneyline.mjs';
 import { createEplMoneylineCollector, EPL_MONEYLINE_RPCS } from './epl-moneyline-collector.mjs';
 import { eplStandingsPositions } from '../shared/epl-standings.mjs';
 import { fetchWikimediaEplStandings } from './epl-standings.mjs';
+import { pickATeamResults, resultsPayload } from '../shared/epl-results.mjs';
+import { MANAGER_NAMES as RESULT_MANAGER_NAMES } from '../shared/epl-sleeper.mjs';
+import { EPL_CLUBS } from '../shared/epl-clubs.mjs';
 
 const headers = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' };
 const json = (value, status = 200) => new Response(JSON.stringify(value), { status, headers });
 
-export const EPL_JOBS = Object.freeze(['snapshot', 'fixtures', 'resolve', 'settle', 'nudge', 'dnb-check', 'standings', 'moneyline']);
+export const EPL_JOBS = Object.freeze(['snapshot', 'fixtures', 'resolve', 'settle', 'nudge', 'dnb-check', 'standings', 'moneyline', 'results']);
+/** The results job's admitted RPCs (supabase/migrations/20261110120000_gtl_epl_result_announcements.sql). */
+export const EPL_RESULTS_RPCS = Object.freeze(['gtl_epl_results_state', 'gtl_epl_reserve_final_result_read', 'gtl_epl_record_result_announcement']);
 /** The admitted job RPCs. No ordinary player/commissioner pick, linking or seed writer is admitted. */
 export const EPL_JOBS_RPCS = Object.freeze(['gtl_epl_claim_job', 'gtl_epl_complete_job', 'gtl_epl_jobs_state', 'gtl_epl_read_snapshots',
   'gtl_epl_reserve_credits', 'gtl_epl_record_quota', 'gtl_epl_mark_nudge', 'gtl_epl_upsert_fixtures', 'gtl_epl_upsert_prices',
   'gtl_epl_resolve_week', 'gtl_epl_settle_week', 'gtl_epl_save_snapshot', 'gtl_epl_set_week_window', 'gtl_epl_flag_week_review',
   'gtl_epl_recheck_state', 'gtl_epl_record_recheck', 'gtl_epl_apply_recheck_orders', 'gtl_epl_reserve_result_read', 'gtl_epl_capture_interval', 'gtl_epl_order_correction_state',
-  'gtl_epl_standings_state', 'gtl_epl_save_standings', 'gtl_epl_resolve_with_standings', ...EPL_MONEYLINE_RPCS]);
+  'gtl_epl_standings_state', 'gtl_epl_save_standings', 'gtl_epl_resolve_with_standings', ...EPL_MONEYLINE_RPCS, ...EPL_RESULTS_RPCS]);
 const OPTIONAL_EPL_RPCS = Object.freeze({ gtl_epl_recheck_state: 'GTL_EPL_RECHECK_OFF',
   gtl_epl_apply_recheck_orders: 'GTL_EPL_ORDER_UPDATE_OFF', gtl_epl_reserve_result_read: 'GTL_EPL_RESULT_READ_OFF',
   gtl_epl_capture_interval: 'GTL_EPL_CAPTURE_INTERVAL_OFF', gtl_epl_order_correction_state: 'GTL_EPL_ORDER_STATE_OFF',
   gtl_epl_standings_state: 'GTL_EPL_STANDINGS_OFF', gtl_epl_moneyline_due: 'GTL_EPL_MONEYLINE_OFF',
-  gtl_epl_begin_moneyline_read: 'GTL_EPL_MONEYLINE_OFF', gtl_epl_begin_moneyline_markets: 'GTL_EPL_MARKETS_OFF' });
+  gtl_epl_begin_moneyline_read: 'GTL_EPL_MONEYLINE_OFF', gtl_epl_begin_moneyline_markets: 'GTL_EPL_MARKETS_OFF',
+  gtl_epl_results_state: 'GTL_EPL_RESULTS_OFF' });
 /** Kept in step with gtl_epl_complete_job (tests/epl-jobs-sql.test.mjs checks the SQL names every one). */
 export const EPL_SKIP_REASONS = Object.freeze(['no_week', 'not_open', 'not_due', 'no_fixtures', 'already_resolved', 'not_resolved', 'nothing_due',
   'budget_guard', 'budget_unknown', 'results_pending', 'snapshot_pending', 'no_subscription', 'already_nudged', 'needs_review']);
@@ -94,6 +107,11 @@ export const ROUND_GAP_MS = 36 * 60 * 60_000;
 /** A split week ends this long after its round's last kickoff, so the after-mw<N> snapshot and the next draft come before the
  * next round (which, by ROUND_GAP_MS, starts more than 12 hours later). */
 export const ROUND_END_AFTER_MS = 24 * 60 * 60_000;
+/** The results job's bounded final-match reads: minutes after the latest pending kickoff, one read each (SQL mirrors these). */
+export const FINAL_READ_OFFSETS_MIN = Object.freeze([150, 200, 300, 720]);
+export const FINAL_READ_SPACING_MS = 30 * 60_000;
+/** An announcement's push lives a day on the push service; the lock screen copy is final either way. */
+export const RESULTS_PUSH_TTL_S = 24 * 60 * 60;
 const CODES = new Set(['GTL_SCHEDULE_AUTH', 'GTL_SCHEDULE_RUN', 'GTL_SCHEDULE_EXPIRED', 'GTL_EPL_INVALID', 'GTL_EPL_NO_WEEK', 'GTL_EPL_NOT_RESOLVED',
   'GTL_EPL_CLUB_TAKEN', 'GTL_EPL_DRAFT_CLOSED', 'GTL_EPL_STANDINGS_INVALID', 'GTL_EPL_STANDINGS_CONFLICT']);
 class EplJobsError extends Error { constructor(code) { super('Scheduled EPL jobs request failed.'); this.code = code; } }
@@ -480,30 +498,38 @@ async function refreshWeekResults(ctx, fixtures, { legacy = false } = {}) {
     const scores = list(reply?.scores), unmapped = new Set(list(reply?.unmapped));
     // An empty reply (an outage the provider answered with []) is no evidence of anything: nothing changes.
     if (!scores.length) return { reason: 'results_pending', detail: { scored: 0, ...(unmapped.size ? { unmapped: unmapped.size } : { empty: true }) } };
-    const byEvent = new Map(scores.map(s => [s.eventId, s]));
-    const start = Date.parse(week.windowStart), end = Date.parse(week.windowEnd);
-    const rows = [];
-    fixtures = fixtures.map(f => {
-      const s = byEvent.get(f.eventId);
-      // Absent from the feed (dropped, or listed under a team name we do not map): no evidence, the fixture is unchanged.
-      if (f.status !== 'scheduled' || !s || s.home !== f.home || s.away !== f.away) return f;
-      let next = null;
-      // Positive evidence: the feed lists the match with a kickoff outside the week window, so it has moved out (spec 6.4).
-      const t = Date.parse(s.commenceTime);
-      if (!Number.isFinite(t)) return f;
-      if (t >= end || t < start) next = { ...f, status: 'postponed', commenceTime: s.commenceTime };
-      else if (s.completed && Number.isInteger(s.homeGoals) && s.homeGoals >= 0 && Number.isInteger(s.awayGoals) && s.awayGoals >= 0)
-        next = { ...f, status: 'final', homeGoals: s.homeGoals, awayGoals: s.awayGoals, commenceTime: s.commenceTime };
-      if (!next) return f;
-      rows.push(fixtureRow(week, next));
-      return next;
-    });
+    let rows;
+    ({ fixtures, rows } = applyScores(week, fixtures, scores));
     if (rows.length) await write(ctx, 'gtl_epl_upsert_fixtures', { p_rows: rows });
     if (!verifiedEplResults(fixtures.filter(f => requiredIds.has(f.eventId)))) return { fixtures, reason: 'results_pending', detail: { scored: rows.length, ...(unmapped.size ? { unmapped: unmapped.size } : {}) } };
     return { fixtures, scored: rows.length };
   }
   if (week.status === 'resolved') await write(ctx, 'gtl_epl_flag_week_review', { p_season: week.season, p_week: week.week });
   return { fixtures, reason: 'needs_review', detail: { invalidResults: true } };
+}
+
+/** A scores reply applied to stored fixtures: only a scheduled match listed under the same two clubs changes, to final with
+ * whole goals (completed) or to postponed (listed with a kickoff outside the week window). Returns the rows to upsert. */
+export function applyScores(week, fixtures, scores) {
+  const byEvent = new Map(list(scores).map(s => [s.eventId, s]));
+  const start = Date.parse(week.windowStart), end = Date.parse(week.windowEnd);
+  const rows = [];
+  const next = list(fixtures).map(f => {
+    const s = byEvent.get(f.eventId);
+    // Absent from the feed (dropped, or listed under a team name we do not map): no evidence, the fixture is unchanged.
+    if (f.status !== 'scheduled' || !s || s.home !== f.home || s.away !== f.away) return f;
+    let changed = null;
+    // Positive evidence: the feed lists the match with a kickoff outside the week window, so it has moved out (spec 6.4).
+    const t = Date.parse(s.commenceTime);
+    if (!Number.isFinite(t)) return f;
+    if (t >= end || t < start) changed = { ...f, status: 'postponed', commenceTime: s.commenceTime };
+    else if (s.completed && Number.isInteger(s.homeGoals) && s.homeGoals >= 0 && Number.isInteger(s.awayGoals) && s.awayGoals >= 0)
+      changed = { ...f, status: 'final', homeGoals: s.homeGoals, awayGoals: s.awayGoals, commenceTime: s.commenceTime };
+    if (!changed) return f;
+    rows.push(fixtureRow(week, changed));
+    return changed;
+  });
+  return { fixtures: next, rows };
 }
 
 async function settleJob(ctx) {
@@ -633,7 +659,95 @@ async function moneylineJob(ctx) {
   return { refreshed, cached, unavailable };
 }
 
-const JOBS = Object.freeze({ snapshot: snapshotJob, fixtures: fixturesJob, resolve: resolveJob, settle: settleJob, nudge: nudgeJob, 'dnb-check': dnbCheckJob, standings: standingsJob, moneyline: moneylineJob });
+const RESULT_CLUB_NAMES = new Map(EPL_CLUBS.map(c => [c.code, c.name]));
+const resultNames = {
+  managerName: id => (Object.hasOwn(RESULT_MANAGER_NAMES, id) ? RESULT_MANAGER_NAMES[id] : 'A manager'),
+  clubName: code => RESULT_CLUB_NAMES.get(code) ?? code,
+};
+
+/** When the next bounded final read may run (ms), or null once all four are used or nothing is pending. */
+export function nextFinalReadAt(fixtures, reads) {
+  const pending = list(fixtures).filter(f => f.status === 'scheduled').map(f => Date.parse(f.commenceTime)).filter(Number.isFinite);
+  const used = list(reads);
+  if (!pending.length || used.length >= FINAL_READ_OFFSETS_MIN.length) return null;
+  const last = Math.max(...used.map(r => Date.parse(r.reservedAt)).filter(Number.isFinite), -Infinity);
+  return Math.max(Math.max(...pending) + FINAL_READ_OFFSETS_MIN[used.length] * 60_000, last + FINAL_READ_SPACING_MS);
+}
+
+/** The bounded final-match read for a results week whose fixtures are not all verified: `{fixtures, scored}` or a reason. */
+async function collectFinalResults(ctx, week, fixtures, reads) {
+  const pending = fixtures.filter(f => f.status === 'scheduled');
+  // A stored row that is neither scheduled, postponed nor a whole-goal final is not something a read can fix.
+  if (!pending.length) return { reason: 'needs_review', detail: { invalidResults: true } };
+  // A match the 3-day scores feed no longer covers can never be read again: it stays pending for the commissioner.
+  const outside = pending.filter(f => ctx.now - Date.parse(f.commenceTime) > SCORES_LOOKBACK_MS);
+  if (outside.length) return { reason: 'needs_review', detail: { pending: pending.length, outsideFeed: outside.length } };
+  const dueAt = nextFinalReadAt(fixtures, reads);
+  if (dueAt === null) return { reason: 'results_pending', detail: { pending: pending.length, capped: true } };
+  if (ctx.now < dueAt) return { reason: 'results_pending', detail: { pending: pending.length, nextReadAt: iso(dueAt) } };
+  const budget = ctx.state.budget ?? {};
+  if (!Number.isInteger(budget.remaining)) stop('budget_unknown');
+  if (budget.paused || budget.remaining - SCORES_COST < EPL_RESERVE_CREDITS) stop('budget_guard');
+  const reservation = await write(ctx, 'gtl_epl_reserve_final_result_read', { ...ctx.run, p_season: week.season, p_week: week.week, p_now: iso(ctx.clock()) });
+  if (reservation?.ok !== true) {
+    if (['budget_guard', 'budget_unknown'].includes(reservation?.reason)) stop(reservation.reason);
+    return { reason: 'results_pending', detail: { pending: pending.length, refused: true } };
+  }
+  let quota = null;
+  const reply = await provider(ctx, () => ctx.sources.scores({ onQuota: q => { quota = q; } }));
+  if (quota) await recordQuota(ctx, quota).catch(() => {});
+  const scores = list(reply?.scores);
+  // An empty reply is no evidence of anything: nothing changes, and the next bounded attempt follows.
+  if (!scores.length) return { reason: 'results_pending', detail: { attempt: reservation.attempt, scored: 0, empty: true } };
+  const applied = applyScores(week, fixtures, scores);
+  if (applied.rows.length) await write(ctx, 'gtl_epl_upsert_fixtures', { p_rows: applied.rows });
+  if (!verifiedEplResults(applied.fixtures)) {
+    return { reason: 'results_pending', detail: { attempt: reservation.attempt, scored: applied.rows.length, pending: applied.fixtures.filter(f => f.status === 'scheduled').length } };
+  }
+  return { fixtures: applied.fixtures, scored: applied.rows.length, attempt: reservation.attempt };
+}
+
+async function resultsJob(ctx) {
+  let state;
+  try { state = await ctx.service.rpc('gtl_epl_results_state', ctx.run); }
+  catch (error) { if (error?.code === 'GTL_EPL_RESULTS_OFF') stop('not_open'); throw error; }
+  const week = state?.week;
+  if (!week) stop('no_week');
+  if (state.announcement) stop('nothing_due');
+  let fixtures = list(state.fixtures);
+  if (!fixtures.length) stop('no_fixtures');
+  ctx.state = { ...ctx.state, budget: state.budget ?? ctx.state.budget };
+  let collected = { scored: 0 };
+  if (!verifiedEplResults(fixtures)) {
+    collected = await collectFinalResults(ctx, week, fixtures, list(state.reads));
+    if (collected.reason) return collected;
+    fixtures = collected.fixtures;
+  }
+  const preview = pickATeamResults({ season: week.season, week: week.week, picks: state.picks, fixtures });
+  if (preview?.status !== 'final') return { reason: 'results_pending', detail: { scored: collected.scored } };
+  // Push readiness first: a missing VAPID key leaves the announcement unrecorded, so the next run can still notify.
+  try { await ctx.push.ready(); } catch { stop('vapid_unavailable'); }
+  const recorded = await write(ctx, 'gtl_epl_record_result_announcement', { ...ctx.run, p_season: week.season, p_week: week.week, p_now: iso(ctx.clock()) });
+  if (recorded?.recorded !== true) {
+    if (recorded?.reason === 'announced') stop('nothing_due');
+    return { reason: 'results_pending', detail: { scored: collected.scored } };
+  }
+  const winners = list(recorded.winners);
+  const detail = { season: week.season, week: week.week, scored: collected.scored, winners: winners.length, notify: recorded.notify === true };
+  const subscriptions = list(recorded.subscriptions);
+  if (!subscriptions.length) return { ...detail, members: Number(recorded.members) || 0, sent: 0, failed: 0 };
+  const payload = resultsPayload({ season: week.season, week: week.week, winners }, resultNames);
+  let sent = 0, failed = 0;
+  for (const subscription of subscriptions) {
+    const { outcome } = await ctx.push.send({ subscription, payload, ttl: RESULTS_PUSH_TTL_S, now: ctx.now });
+    if (outcome === 'ok') sent++; else failed++;
+  }
+  const out = { ...detail, members: Number(recorded.members) || 0, sent, failed };
+  if (!sent && failed) return { reason: 'send_failed', detail: out };
+  return out;
+}
+
+const JOBS = Object.freeze({ snapshot: snapshotJob, fixtures: fixturesJob, resolve: resolveJob, settle: settleJob, nudge: nudgeJob, 'dnb-check': dnbCheckJob, standings: standingsJob, moneyline: moneylineJob, results: resultsJob });
 
 /** Runs one claimed job: `{reason, detail}`, where a null reason means the job did its work. Never throws. */
 export async function runEplJob({ job, service, sources, push, now, clock = () => now, run }) {
