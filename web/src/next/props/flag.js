@@ -8,6 +8,12 @@ export const PROPS_MARKET = 'player_props';
 /** Your guess vs. market's filter value for Player Props beside all, spread and total. */
 export const PROPS_GAP_MARKET = 'props';
 
+// "Choose an available prop" on the record (sheet 06) opens Play › Your guesses on Player Props. The request is held here,
+// in memory only, and taken once by the next Your guesses screen; nothing is stored or added to the address.
+let entryRequested = false;
+export function requestPropsEntry() { entryRequested = true; }
+export function takePropsEntryRequest() { const requested = entryRequested; entryRequested = false; return requested; }
+
 export function playerPropsEnabled(env = import.meta.env) {
   const value = env?.[PLAYER_PROPS_FLAG];
   return typeof value === 'string' && value.trim().toLowerCase() === 'on';

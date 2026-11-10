@@ -1,4 +1,4 @@
-// D-82 Player Props routes on gtl-api: POST /props/read, /props/draft, /props/lock and /props/history.
+// D-82 Player Props routes on gtl-api: POST /props/read, /props/draft, /props/lock, /props/history and /props/shared.
 // Spec: docs/superpowers/specs/2026-11-09-player-props-design.md. Storage: supabase/migrations/20261110130000_gtl_player_props.sql.
 //
 // Ships dark behind three independent switches, all off by default:
@@ -12,14 +12,17 @@
 // The GTL_FEATURE_OFF secret's `player-props` switch pauses the writers; reads keep working.
 //
 // Every reply is rebuilt field by field. Only the signed-in owner's drafts and locks are ever returned, and an unlocked
-// selection never carries a market number (the entry screen hides it). No provider is called here: the lock-in reference
+// selection never carries a market number (the entry screen hides it). /props/shared is the one reader of other members'
+// guesses: locked ones only, values and names only, and only for a selection the viewer locked in or whose event kicked
+// off (D-31/D-39 reveal rules; supabase/migrations/20261110180000_gtl_player_props_shared.sql). Until that migration is
+// applied it answers available:false, so an old schema and old clients are unaffected. No provider is called here: the lock-in reference
 // comes from already retained research quotes (cloud/player-prop-receipts.mjs).
 import { UUID_PATTERN } from './lobby.mjs';
 import { PLAYER_PROPS_FEATURE, PROP_POSITIONS, propSelection, propStat, validPropGuess, validPropLine, validSeason, validWeek,
   validEventId, validPlayerId, PROP_RESULT_STATES } from '../shared/player-props.mjs';
 
-export const PROPS_METHODS = Object.freeze({ '/props/read': ['POST'], '/props/draft': ['POST'], '/props/lock': ['POST'], '/props/history': ['POST'] });
-export const PROPS_RPCS = Object.freeze(['gtl_props_capability', 'gtl_props_board', 'gtl_props_save_draft', 'gtl_props_lock_in', 'gtl_props_history', 'gtl_props_record_reference']);
+export const PROPS_METHODS = Object.freeze({ '/props/read': ['POST'], '/props/draft': ['POST'], '/props/lock': ['POST'], '/props/history': ['POST'], '/props/shared': ['POST'] });
+export const PROPS_RPCS = Object.freeze(['gtl_props_capability', 'gtl_props_board', 'gtl_props_save_draft', 'gtl_props_lock_in', 'gtl_props_history', 'gtl_props_record_reference', 'gtl_props_shared']);
 export const PROPS_OFF = 'GTL_PROPS_OFF';
 export const PROPS_PUBLIC_CODES = Object.freeze([PROPS_OFF, 'GTL_PROPS_LOCKED', 'GTL_PROPS_CLOSED', 'GTL_PROPS_REFERENCE_UNAVAILABLE']);
 /** gtl-api's flag value: only the exact string "on" enables the routes. */
@@ -105,6 +108,29 @@ function historyView(raw) {
     return { ...view, closingLine: validPropLine(view.stat, closing) ? closing : null, result: resultView(row.result) };
   }) };
 }
+/**
+ * Other members' locked guesses (/props/shared). The second gate after the database: a selection passes only while it is
+ * open to the viewer (their own lock of that exact selection, or kickoff), a row only when it is someone else's locked,
+ * valid guess. No line, reference, draft or quote is ever part of this reply.
+ */
+export function sharedView(raw, target, viewer) {
+  if (!record(raw) || raw.season !== target.season || raw.week !== target.week || !Array.isArray(raw.selections) || raw.selections.length > 5000) throw reply();
+  const me = String(viewer).toLowerCase();
+  const selections = raw.selections.filter(record).flatMap(s => {
+    let id;
+    try { id = identityView(s); } catch { return []; }
+    const ownLocked = s.ownLocked === true, started = s.started === true;
+    if (!ownLocked && !started) return [];
+    const rows = (Array.isArray(s.rows) ? s.rows : []).filter(r => record(r) && UUID_PATTERN.test(r.userId ?? '') && r.userId.toLowerCase() !== me)
+      .flatMap(r => {
+        const guess = num(r.guess), lockedAt = iso(r.lockedAt);
+        return validPropGuess(id.stat, guess) && lockedAt ? [{ userId: r.userId.toLowerCase(), name: text(r.displayName) ?? 'Player', removed: r.removed === true, guess, lockedAt }] : [];
+      });
+    return [{ ...id, ...athleteView(s), started, ownLocked, rows }];
+  });
+  return { available: true, ...target, selections };
+}
+
 const weekTarget = body => {
   if (!validSeason(body.season) || !validWeek(body.week)) throw invalid();
   return { season: body.season, week: body.week };
@@ -174,11 +200,23 @@ async function propsHistory({ body, user, service }) {
   return { from: { ...body.from }, to: { ...body.to }, ...historyView(raw) };
 }
 
+async function propsShared({ body, user, service }) {
+  keys(body, ['season', 'week']);
+  const target = weekTarget(body);
+  const off = { available: false, ...target, selections: [] };
+  if (!service?.rpc) return off;
+  let raw;
+  try { raw = await service.rpc('gtl_props_shared', { p_user: user.id, p_season: target.season, p_week: target.week }); }
+  catch (error) { if (featureMissing(error)) return off; throw error; }
+  return sharedView(raw, target, user.id);
+}
+
 export async function handleProps({ route, body, user, service, featureOff = new Set(), uuid = () => crypto.randomUUID() }) {
   if (!UUID_PATTERN.test(user?.id ?? '') || user?.is_anonymous === true) throw new PropsError(401, 'Sign in to continue.');
   if (route === '/props/read') return propsRead({ body, user, service });
   if (route === '/props/draft') return propsDraft({ body, user, service, featureOff });
   if (route === '/props/lock') return propsLock({ body, user, service, featureOff, uuid });
   if (route === '/props/history') return propsHistory({ body, user, service });
+  if (route === '/props/shared') return propsShared({ body, user, service });
   throw new PropsError(404, 'Not found.');
 }

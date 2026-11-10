@@ -3,7 +3,9 @@
 // Late pill, "Original time not recorded", eligibility and ruling labels, points, each game's guess and line at the guess
 // (the provenance behind a tap), and, for your own weeks only, the drafts closed at kickoff and your changes in plain
 // words (/me/changes). Another member's hidden guesses stay hidden: the server sends none (D-31, D-39).
-import { useId } from 'react';
+// D-82: while the Player Props app flag is on, the market control adds Player Props, a separate view of your own locked
+// props (../props/HistoryProps.jsx, a lazy chunk); with the flag off the control is exactly Spread and Total.
+import { lazy, useId } from 'react';
 import { communityApi, meApi } from '../../api.js';
 import { Button, Card, Chip, ChipRail, Icon, List, Pill, Row, Segmented, Skeleton } from '../ui/index.js';
 import { useShell } from '../shell/context.js';
@@ -14,6 +16,10 @@ import { picksHidden } from '../copy.js';
 import { HISTORY_MARKETS, MARKET_WORD, changeLines, entryFor, gameRow, weekPointsWords, weekStatus } from './historyFormat.js';
 import { HistoryMatchup } from './HistoryMatchup.jsx';
 import { PickScorecard } from '../ui/PickScorecard.jsx';
+import { Deferred } from '../ui/Deferred.jsx';
+import { PROPS_MARKET, playerPropsEnabled, withPlayerProps } from '../props/flag.js';
+
+const HistoryProps = lazy(() => import('../props/HistoryProps.jsx'));
 
 export const GUESS_COPY = Object.freeze({
   loading: 'Loading history…',
@@ -38,7 +44,7 @@ export function useRecordsRead(app) {
   return useLeagueRead(`${app.accountId}:me-records`, signal => meApi('records', {}, signal), error => { if (error.status === 401) app.requestSignIn?.(); }, { shared: true });
 }
 
-export function HistoryGuess({ args }) {
+export function HistoryGuess({ args, propsEnabled = playerPropsEnabled() }) {
   const app = useAppData(), shell = useShell(), seasonId = useId();
   const season = Number.isInteger(args.season) ? args.season : null;
   const read = useHistoryRead(app, season), records = useRecordsRead(app);
@@ -47,6 +53,7 @@ export function HistoryGuess({ args }) {
   const data = read.data, viewer = data.viewer ?? app.accountId, members = data.members || [];
   const player = members.some(member => member.id === args.player) ? args.player : viewer;
   const mode = args.mode === 'guess_total' ? 'guess_total' : 'guess_spread';
+  const props = propsEnabled && args.mode === PROPS_MARKET;
   const set = patch => shell.setPageArgs(patch);
   const forfeits = records.data?.forfeits || [];
   const forfeitOf = week => (player === viewer ? forfeits.find(f => f.season === week.season && f.week === week.week && f.modes.includes(mode)) ?? null : null);
@@ -69,8 +76,12 @@ export function HistoryGuess({ args }) {
           </Chip>
         ))}
       </ChipRail>
-      <Segmented label="Market" options={HISTORY_MARKETS} value={mode} onChange={value => set({ mode: value })}/>
-      {week
+      <Segmented label="Market" options={withPlayerProps(HISTORY_MARKETS, PROPS_MARKET, propsEnabled)} value={props ? PROPS_MARKET : mode} onChange={value => set({ mode: value, propWeek: null })}/>
+      {props
+        ? <Deferred resetKey={`history-props:${app.accountId}:${data.season}`} label="Player Props history">
+          <HistoryProps season={data.season} own={player === viewer} week={args.propWeek} onWeek={propWeek => set({ propWeek })} onSignInAgain={app.requestSignIn}/>
+        </Deferred>
+        : week
         ? <WeekDetail week={week} data={data} player={player} mode={mode} own={player === viewer} forfeit={forfeitOf(week)} onBack={() => set({ week: null })}/>
         : <WeekList data={data} player={player} mode={mode} own={player === viewer} forfeitOf={forfeitOf} onOpen={w => set({ week: w.week, season: w.season })}/>}
     </section>

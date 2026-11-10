@@ -234,3 +234,14 @@ instruction and preflight; no migration is created or applied by this record.
 The feature's API/worker/frontend release requires actual implementation,
 compatibility, exact-source CI and fresh protected release evidence. Merging
 this design record is not a Player Props deployment.
+
+## Remaining frontend work finished — November 10, 2026
+
+The shared-picks view, History integration and saved receipt now reuse the approved
+patterns named above (`RevealPicks` rows, History game rows, `ScoreReceipt` /
+`PickScorecard`). Another member's locked prop guess is returned only by
+`gtl_props_shared` (migration `20261110180000`, not applied) and only for a selection
+the viewer locked in or whose event kicked off; drafts, references and lines of others
+are never returned. Flag-on comparison captures and the deviations fixed are recorded in
+[the production captures README](../../../design/player-props-review-2026-11-09/production/README.md).
+This is not a deployment, apply or live-lock-in enablement.

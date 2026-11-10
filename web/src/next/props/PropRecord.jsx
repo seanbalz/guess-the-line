@@ -5,12 +5,15 @@
 // unit, lower is better, never combined; the paper record grades the favored side against the last qualifying retained
 // line with verified finals (D-77, 1U at standard minus 110); current gaps are not rescored. Period, athlete and stat
 // filters narrow both; the gap-size filter narrows the paper record only. A period loads whole or shows Retry.
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useContext, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { propsApi } from '../../api.js';
 import { Button, Card, Icon, Skeleton } from '../ui/index.js';
 import { GapPeriodControl } from '../bets/GapPeriodControl.jsx';
 import { periodWeeks } from '../bets/gapPeriods.js';
 import { PROP_UNGRADED, filterPropRows, formatPropMean, propAccuracy, propPaperRecord, propStat } from '../../../../shared/player-props.mjs';
+import { ShellContext } from '../shell/context.js';
+import { requestPropsEntry } from './flag.js';
+import { PropsUnavailable } from './PlayerPropsEntry.jsx';
 import '../bets/gapRecord.css';
 import './props.css';
 
@@ -31,9 +34,10 @@ export function AccuracyCard({ entry }) {
     <h4 className="gx-t-strong">{entry.label}</h4>
     <p className="gx-props-mean"><span className="gx-n-l">{formatPropMean(entry.mean)}</span> <span className="gx-t-meta">{entry.short}</span></p>
     <p className="gx-t-meta gx-c-2">Average miss · {entry.count} {entry.count === 1 ? 'guess' : 'guesses'}</p>
-    <ol className="gx-props-bars" role="img" aria-label={`Last ${last.length} misses in ${entry.unit}: ${last.map(formatPropMean).join(', ')}`}>
-      {last.map((miss, i) => <li key={i}><span className="gx-props-bar" style={{ blockSize: `${Math.max(4, Math.round((miss / max) * 64))}px` }}/><span className="gx-t-meta">{Number.isInteger(miss) ? miss : miss.toFixed(1)}</span></li>)}
-    </ol>
+    {/* One picture with one name (role img): its bars are presentation, so they are not list items (axe listitem). */}
+    <div className="gx-props-bars" role="img" aria-label={`Last ${last.length} misses in ${entry.unit}: ${last.map(formatPropMean).join(', ')}`}>
+      {last.map((miss, i) => <span key={i} className="gx-props-bar-col"><span className="gx-props-bar" style={{ blockSize: `${Math.max(4, Math.round((miss / max) * 64))}px` }}/><span className="gx-t-meta">{Number.isInteger(miss) ? miss : miss.toFixed(1)}</span></span>)}
+    </div>
     <p className="gx-t-meta gx-c-2">Last {last.length} {last.length === 1 ? 'guess' : 'guesses'}</p>
   </Card>;
 }
@@ -50,13 +54,16 @@ export function PaperRecord({ record }) {
   const waiting = Object.values(record.ungraded).reduce((a, b) => a + b, 0);
   return <div className="gx-vstack gx-gap-16">
     <div className="gx-card gx-gap-hero gx-props-card">
-      <div className="gx-gap-rate">
-        <svg viewBox="0 0 84 84" role="img" aria-label={decided ? `${rate} paper win rate` : 'Paper win rate unavailable'}>
-          <circle cx="42" cy="42" r="35"/><circle className="gx-gap-rate-fill" cx="42" cy="42" r="35" pathLength="100" strokeDasharray={`${decided ? record.winRate * 100 : 0} 100`}/>
-        </svg>
-        <div><span>Gap win rate</span><strong>{record.wins}–{record.losses}–{record.pushes}</strong><span>Wins · losses · pushes · {rate}</span></div>
+      <div className="gx-gap-rate gx-props-rate">
+        <span className="gx-props-ring">
+          <svg viewBox="0 0 84 84" role="img" aria-label={decided ? `${rate} paper win rate` : 'Paper win rate unavailable'}>
+            <circle cx="42" cy="42" r="35"/><circle className="gx-gap-rate-fill" cx="42" cy="42" r="35" pathLength="100" strokeDasharray={`${decided ? record.winRate * 100 : 0} 100`}/>
+          </svg>
+          <b aria-hidden="true">{rate.endsWith('%') ? <>{rate.slice(0, -1)}<small>%</small></> : rate}</b>
+        </span>
+        <div><span>Gap win rate</span><strong>{record.wins}–{record.losses}–{record.pushes}</strong><span>Wins · losses · pushes</span></div>
       </div>
-      <p className="gx-between gx-hstack gx-t-strong"><span>{record.graded.length} graded</span><span>{waiting} awaiting finals</span></p>
+      <p className="gx-between gx-hstack gx-t-strong gx-props-tally"><span>{record.graded.length} graded</span><span>{waiting} awaiting finals</span></p>
       <p className="gx-t-meta gx-c-2">Paper record · 1U at −110 · pushes excluded from win rate. Not bets placed.</p>
     </div>
     {waiting ? <Card as="section" className="gx-props-card">
@@ -75,9 +82,8 @@ export function PropRecordScreen({ read, state, on, weeks }) {
   const accuracy = propAccuracy(rows), paper = propPaperRecord(rows, { tier: state.tier });
   return <section className="gx-gap-record gx-props-record" aria-label="Your Player Props accuracy and paper record">
     <GapPeriodControl period={state.period} weeks={weeks} range={state.range} onPeriod={on.period} onApply={on.range}/>
-    {read.status === 'unavailable' ? <Card as="section" className="gx-props-card gx-props-state"><span className="gx-props-state-icon" aria-hidden="true"><Icon icon="eye" size={20}/></span>
-      <div className="gx-vstack gx-gap-4"><h3 className="gx-t-strong">No verified props available yet</h3><p className="gx-t-body gx-c-2">Spread and Total records remain available.</p></div></Card>
-    : read.status === 'loading' ? <Card as="section" className="gx-props-card" aria-busy="true"><h3 className="gx-t-strong">Loading the complete period</h3>
+    {read.status === 'unavailable' ? <PropsUnavailable onRetry={on.retry}/>
+    : read.status === 'loading' ? <Card as="section" className="gx-props-card" aria-busy="true"><div className="gx-between gx-hstack gx-gap-8"><h3 className="gx-t-strong">Loading the complete period</h3><Icon icon="refresh" size={20} className="gx-c-2"/></div>
       <Skeleton label="Loading every selected week…" shape="lines" count={3}/><p className="gx-t-meta gx-c-2">A partial period won’t be shown as All time.</p></Card>
     : read.status === 'error' ? <Card as="section" className="gx-props-card" role="alert"><div className="gx-hstack gx-gap-12"><Icon icon="alert" size={20}/><h3 className="gx-t-strong">This record couldn’t load</h3></div>
       <p className="gx-t-body gx-c-2">Your saved guesses are safe. Keep your filters and try again.</p><Button icon="refresh" block onClick={on.retry}>Retry this period</Button></Card>
@@ -135,7 +141,9 @@ export default function PropRecord({ season, week, onSignInAgain }) {
     return () => controller.abort();
   }, [scope, attempt, weeks.length, state.period]);
   const patch = next => setState(current => ({ ...current, ...next }));
+  const shell = useContext(ShellContext);
   const on = { period: period => patch({ period, range: null }), range: range => patch({ range }), filters: filters => patch({ filters }),
-    tier: tier => patch({ tier }), view: view => patch({ view }), retry: () => setAttempt(n => n + 1) };
+    tier: tier => patch({ tier }), view: view => patch({ view }), retry: () => setAttempt(n => n + 1),
+    choose: shell?.go ? () => { requestPropsEntry(); shell.go('play', { section: 'picks' }); } : undefined };
   return <>{problem ? <p role="alert" className="gx-t-body">{problem}</p> : null}<PropRecordScreen read={read} state={state} on={on} weeks={weeks}/></>;
 }

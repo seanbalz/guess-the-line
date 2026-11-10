@@ -19,7 +19,7 @@ describe('route-group wrappers', () => {
   it('cover the six groups, each with disjoint read and write action lists', () => {
     expect(Object.keys(GROUP_ACTIONS)).toEqual(['lines', 'bets', 'league', 'me', 'points', 'props']);
     // D-82: Player Props draft saves and lock-ins are sent as saves (an unconfirmed reply is never retried silently).
-    expect(GROUP_ACTIONS.props).toEqual({ reads: ['read', 'history'], writes: ['draft', 'lock'] });
+    expect(GROUP_ACTIONS.props).toEqual({ reads: ['read', 'history', 'shared'], writes: ['draft', 'lock'] });
     for (const { reads, writes } of Object.values(GROUP_ACTIONS)) {
       for (const action of [...reads, ...writes]) expect(action).toMatch(/^[a-z][a-z0-9-]*(?:\/[a-z][a-z0-9-]*)*$/);
       expect(reads.filter(action => writes.includes(action))).toEqual([]);

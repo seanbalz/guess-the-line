@@ -80,3 +80,5 @@
 .gx .gx-bets .gx-tracked-row { overflow: visible; }
 .gx .gx-bets .gx-tracked-receipt { padding: 0; overflow: hidden; }
 @media (forced-colors:active) { .gx .gx-bets .gx-tracked-row { border: 0; } .gx .gx-bets .gx-tracked-receipt { border-color: CanvasText; } }
+/* D-82: with Player Props on, the recommendation market has four segments; at 320 they keep whole words on tighter padding. */
+@media (max-width: 359px) { .gx .gx-bets .gx-seg:has(> .gx-seg-btn:nth-child(4)) .gx-seg-btn { padding-inline: 4px; overflow-wrap: normal; } }

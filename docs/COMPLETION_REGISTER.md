@@ -1,5 +1,20 @@
 # Guess The Line — current completion register
 
+## Player Props shared view, History and receipt finished dark — November 10, 2026
+
+Branch `claude/player-props-finish` (PR and merge commit in the PR record) completes the
+remaining D-82 frontend work, still behind `VITE_GTL_PLAYER_PROPS`, `GTL_PLAYER_PROPS`
+and `gtl_prop_capability.live_lock_in`: other players' locked prop guesses opened only by
+your own lock-in of that exact selection or kickoff (new reader `/props/shared`), Player
+Props in Me › History (own locked props by week, per-stat accuracy, separate from
+Spread/Total), the saved receipt in the Spread/Total `ScoreReceipt` layout, and the
+visual comparison against the six approved boards with 48 local flag-on captures and
+SHA-256s in `design/player-props-review-2026-11-09/production/README.md` (14 deviations
+fixed, including the dropped `GTL_PROPS_*` client codes that hid draft recovery).
+Migration `20261110180000_gtl_player_props_shared.sql` (one service-only reader; requires
+`20261110130000`) is **written, not applied**; until it is, `/props/shared` answers
+`available:false` and nothing is drawn. Not deployed; no Supabase change.
+
 ## Monday recap built from the Prism Glass design — November 10, 2026
 
 Sean approved taking the [Monday recap design record](../design/monday-recap-2026-11-05/README.md) (#490, merged into
