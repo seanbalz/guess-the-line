@@ -1,5 +1,33 @@
 # Guess The Line — current completion register
 
+## Monday recap built from the Prism Glass design — November 10, 2026
+
+Sean approved taking the [Monday recap design record](../design/monday-recap-2026-11-05/README.md) (#490, merged into
+this branch so the record lands with the feature) to production in the new app. Built on `claude/monday-recap`:
+
+- **Home entry.** Beside the still-playing card (`shared/prior-week.mjs`, `PriorWeek.jsx`), Home shows a compact
+  "Week N recap · 1 game left · Open recap" card from the same prior-week read, so on Monday last week's recap is one tap
+  away, including its pending Monday night game.
+- **Recap layer** (`#home?layer=recap&season=…&week=…&market=…`). Separate weekly Spread and Total ranks (competition
+  ranks, ties shared, sit-outs, drafts and ineligible ballots never ranked), the gap to the leader in words, a friend
+  (Compare's default, any member by chip) and every game of the week with each player's miss against their own saved
+  line. The week is PROVISIONAL while a game is still to play; a pending game says when it kicks off.
+- **Matchup** (`&item=SEA-DEN`). The final score, your line accuracy, both guesses and saved lines, each miss on one
+  scale calculated from the labeled values, who was closer, and the game result as a separate comparison (winning
+  margin, what your guess implied, the gap). A pending game shows no score or result.
+- **Reveal and data.** Reads only the existing gated `/league/comparison` (the reply Play › Compare already reads), and
+  only while the layer is open. The database withholds another member's guess until that game and market is open (D-31:
+  own lock-in, or that game's kickoff); `compareRows` gates each game again, so a value the reply should not carry is
+  never drawn. No unrevealed pick is in any static asset. No new API route, RPC, migration, schedule or Supabase change.
+
+Evidence: unit tests for the recap model (`tests/next-monday-recap.test.mjs`: pending game, misses against each saved
+line, ties, standings, reveal gating, scale), UI tests (`tests/next-monday-recap-ui.test.jsx`), router/state tests for
+the new Home layer, and a cloud-browser spec (`tests/cloud-browser/next-monday-recap.spec.js`) on local PGlite with
+staged fictional replies: entry, layer, matchup, lips, Back and reload, and the phone rules (no sideways scroll, 44 px
+targets, no text under 12 px, nothing clipped, layout checks, axe) at 320 and 390 px in Dark and Light. Typecheck,
+`npm test` and `npm run build` pass locally. **Merged, not deployed**: the frontend needs a release; real-phone acceptance
+remains open.
+
 ## Migration apply packet prepared — November 10, 2026
 
 The [apply packet](MIGRATION_APPLY_PACKET_2026_11_10.md) covers all seven `NOT_HOSTED`
@@ -860,6 +888,37 @@ See the [release record](RELEASE_2026_11_07_APPROVED_HOME.md) for full hashes,
 pending M-33/M-34/M-35, rollback and verification limits. Signed-in and physical
 iPhone acceptance are separate from these hosted checks.
 
+## Revised Monday recap mockup · November 6, 2026
+
+The [Prism Glass recap board](../design/monday-recap-2026-11-05/monday-recap-prism-glass.png) shows one journey across three phone screens. Home keeps the Week 8 recap within reach after Week 9 opens. The weekly recap leads with the player's Spread rank, a friend comparison, a recorded final and one Monday game pending. A Porcelain matchup view separates the miss against a saved line from the game's winning margin.
+
+The visual references come from the reviewed charcoal Home, game score and Porcelain League screens at `59a1b55f225122aca9f7e9a1cd2d4a815d821e4e`. The November 5 studies and [full prompt record](../design/monday-recap-2026-11-05/prompts.json) accompany the revision. Status is a design preview using fictional examples for Sean and Connor's review.
+
+The final 1536 × 1024 image was reviewed for both guesses, each scored miss, the score, margin and pending state. Chromium loaded the image and opened its full-size link. The gallery fit 320, 390 and 1440 px without horizontal overflow. Local brand/document QA passed.
+
+## Monday recap — eight mockups, November 5, 2026
+
+Connor requested a Monday recap comparing guesses with other players and game
+results. Sean requested five to ten mockups in the new app layout. Delivered
+[eight raster studies and an interactive comparison gallery](../design/monday-recap-2026-11-05/README.md)
+on `codex/monday-recap-mockups`, based on freshly fetched `origin/main` at
+`7604cee25f4182d7c5262217c05f20d84b2994e3`. All values, people and teams are fictional
+fixtures, visibly marked SAMPLE; no account data was read. The studies follow
+the four-tab frame, D-69 nested cards and D-38/D-55 tokens, with separate Spread
+and Total ranks, saved-reference accuracy, actual game results and pending states.
+
+Evidence: eight 1024 × 1536 PNGs visually reviewed; Option 06 received one
+targeted image edit to remove an unlabeled metric. Full prompts are saved beside
+the images. The gallery passed Chromium checks at 320, 390 and 1440 px: no page
+overflow, all eight images decode, viewer opens, arrow navigation works, Escape
+closes, focus returns and no script errors. Brand/document QA passed with
+`python -X utf8 scripts/check-brand-docs.py`; whitespace checks passed. Raster
+screens do not establish app accessibility or real-phone acceptance.
+
+Status: **mockups delivered, awaiting selection**. The suggested combination is
+01 (overview), 03 (matchup) and 04 (friend comparison); 08 demonstrates Light.
+No app code, scoring rule, API, migration, schedule, deployment or frozen v62
+tracker changed. Exact production marks/components must be reused if selected.
 > **Design-exploration history (merged from PR #488).** The November 4–7 entries below come from the owner-acceptance design branch. Its approved recipes were ported natively and deployed in [the November 8 Prism rollout](RELEASE_2026_11_08_PRISM_ROLLOUT.md); entries below that say pending or not ported are historical.
 
 ## Pick-focused scorecard and deployment roadmap — November 7, 2026

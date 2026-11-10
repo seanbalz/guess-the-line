@@ -11,6 +11,7 @@ import { useShell } from '../shell/context.js';
 import { Button, Card, Pill, TeamMark } from '../ui/index.js';
 import { fmtNum, fmtSpreadPick, fmtWhen, SEP } from '../format.js';
 import { useBoardLines } from './useGameLines.js';
+import { RecapEntry, openRecap } from '../home/MondayRecap.jsx';
 import './priorWeek.css';
 
 /** While a prior-week game is live, its final is looked for again this often (one `/lines/read`, no odds collection). */
@@ -98,12 +99,16 @@ export function PriorWeekView({ view, onOpen }) {
   );
 }
 
-/** The card wherever the week's games show (Home, Play, Research › Games). Nothing when the prior week is over. */
-export function PriorWeekCard({ app, personal }) {
+/**
+ * The card wherever the week's games show (Home, Play, Research › Games). Nothing when the prior week is over. With
+ * `recap` (Home), the compact "Week N recap" entry (home/MondayRecap.jsx) comes first, from this same view: one read.
+ */
+export function PriorWeekCard({ app, personal, recap = false }) {
   const shell = useShell();
   const view = usePriorWeek({ app, personal });
   if (!view) return null;
   const onOpen = gameId => shell.go('play', { section: 'picks', market: 'spread', season: view.season, week: view.week,
     pickGame: gameId ?? undefined, scoreGame: undefined, layer: undefined, item: undefined });
-  return <PriorWeekView view={view} onOpen={onOpen}/>;
+  const card = <PriorWeekView view={view} onOpen={onOpen}/>;
+  return recap ? <><RecapEntry view={view} onOpen={() => openRecap(shell, view)}/>{card}</> : card;
 }

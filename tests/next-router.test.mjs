@@ -720,3 +720,30 @@ test('D-69 step 3: browser Back closes the game layer; the pager rewrites its en
   assert.deepEqual(researchLayerOf('games', reloaded.state.views.lines), { layer: 'game', item: 'HOU-JAX' });
   reloaded.connection.disconnect();
 });
+
+test('Monday recap: #home?layer=recap keeps its week, market and one game; Back closes the game, then the recap; other Home places keep none', () => {
+  const place = placeFromFragment('#home?layer=recap&season=2026&week=9&market=total&item=MIA-GB');
+  assert.deepEqual(place.view, { layer: 'recap', season: 2026, week: 9, market: 'total', item: 'MIA-GB' });
+  assert.deepEqual(placeFromFragment(fragmentFor('home', place.view)).view, place.view, 'the address round-trips');
+  // Only allowlisted values: a malformed game or market is dropped, never drawn.
+  assert.deepEqual(placeFromFragment('#home?layer=recap&week=9&market=moneyline&item=%3Cscript%3E').view, { layer: 'recap', week: 9 });
+  // Who's in and Home's root carry no recap keys.
+  assert.deepEqual(placeFromFragment('#home?layer=who&week=9&item=MIA-GB').view, { layer: 'who' });
+  assert.equal(placeFromFragment('#home?week=9&item=MIA-GB').view, undefined);
+  // From Home: the recap, then one game, are two steps; Back closes the game and keeps the week, then the recap.
+  const root = initialState({ tab: 'home' });
+  const recap = reduce(root, { type: 'go', tab: 'home', view: { layer: 'recap', season: 2026, week: 9, market: 'spread' } });
+  assert.equal(isDetail(recap), true);
+  const game = reduce(recap, { type: 'view', tab: 'home', patch: { layer: 'recap', season: 2026, week: 9, market: 'spread', item: 'SEA-DEN' } });
+  assert.equal(game.views.home.item, 'SEA-DEN');
+  assert.equal(game.trail.length, recap.trail.length + 1, 'opening a game is a step');
+  const market = reduce(recap, { type: 'view', tab: 'home', patch: { market: 'total' } });
+  assert.equal(market.trail.length, recap.trail.length, 'Spread | Total is a choice inside the layer, not a step');
+  const back = reduce(game, { type: 'back' });
+  assert.deepEqual([back.views.home.layer, back.views.home.week, back.views.home.item ?? null], ['recap', 9, null]);
+  const home = reduce(back, { type: 'back' });
+  assert.equal(home.views.home.layer ?? null, null);
+  // The recap never leaks into another tab, and a fresh Home destination starts at its root.
+  assert.equal(reduce(game, { type: 'go', tab: 'play', view: { section: 'score' } }).views.play.item, undefined);
+  assert.equal(reduce(reduce(game, { type: 'tab', tab: 'play' }), { type: 'tab', tab: 'home' }).views.home.item, undefined);
+});
