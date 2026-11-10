@@ -938,9 +938,9 @@ If access or any path stays unresolved, `liveLockInReady` stays **false**.
 Each phrase is its own approval, given after that migration's preflight passes. The M-42
 to M-47 ids are proposed; until Sean accepts them, say the file version too.
 
-**Status, November 10, 21:24 UTC.** Steps 1 to 9 below are done except the second half of
-step 6, "Enable results". Run 42744392202 was cancelled; the deploy that was approved is
-run 42765795305 from `1ba75282`. Sean's "Yes, apply M-41–M-47" covered steps 3, 4, 5 and 7 to 9
+**Status, November 10, 21:24 UTC.** Steps 2 to 9 below are done except the second half of
+step 6, "Enable results". Step 1 was done with a different run: 42744392202 was cancelled,
+and the deploy that was approved instead is run 42765795305 from `1ba75282`. Sean's "Yes, apply M-41–M-47" covered steps 3, 4, 5 and 7 to 9
 and the M-41 apply, and also accepted the ids M-42 to M-47. His "Yes, next" created the disabled
 `results` row. M-33, M-34 and M-35 remain open (section 5).
 
