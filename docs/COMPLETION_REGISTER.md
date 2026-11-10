@@ -102,7 +102,9 @@ in run 42765795305 from `1ba75282` (`gtl-api` v54). The routes answer 404 while
 `GTL_PLAYER_PROPS` is unset, and that secret is not to be enabled without Sean's word. The
 migration is **applied** as M-45, hosted `20261110204106`, with `live_lock_in` false
 ([apply record](RELEASE_2026_11_10_MIGRATIONS_M41_M47.md)). The jobs are written (PR #519,
-M-46 applied) but have never run. The readiness Task 2 hosted audit is still to do.
+M-46 applied) but have never run. The readiness Task 2 hosted audit ran on November 10 in
+PR #526 (open when this was written): `liveLockInReady` stays false, because no prop quote has
+ever been retained and the free allowance cannot fund a full-slate pass.
 
 ## EPL Pick a Team result announcements merged — November 10, 2026
 
@@ -195,8 +197,8 @@ exact-head review/CI are required before merge. Supabase still requires
 reauthentication for the hosted prop-data audit. Feature implementation and its
 protected release remain pending; merging these records cannot enable the mode.
 **By November 10:** the mode is built (PRs #514, #519, #522), deployed dark in run
-42765795305 and applied as M-45 to M-47. It stays off until the readiness audit and Sean's
-separate switch-on steps.
+42765795305 and applied as M-45 to M-47. It stays off: the November 10 readiness audit
+(PR #526) keeps `liveLockInReady` false, and each switch-on step is Sean's separate word.
 
 ## EPL expansion requirements confirmed — November 9, 2026
 
