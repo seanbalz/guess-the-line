@@ -33,17 +33,11 @@ export const STORAGE = "create schema storage;grant usage on schema storage to a
 export const PRELUDE = "set timezone to 'UTC';create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);grant usage on schema public,auth to service_role;" + STORAGE;
 
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
+// M-41 and M-42 to M-47 left this list with their November 10, 2026 apply record (RELEASE_2026_11_10_MIGRATIONS_M41_M47.md).
 export const NOT_HOSTED = [
-  20261108022135, // M-41 Virtual hundredths: prepared, not applied; Gate M approval is separate.
   20261029151727, // M-33 gtl_epl_stat_rechecks: local source only; Gate M apply is separate.
   20261029161613, // M-34 gtl_epl_standings: private dated source persistence/usage; collection absent/disabled until separately authorized.
   20261029162144, // M-35 gtl_epl_corrected_draft_order: local source only; requires pending M-33.
-  20261110100000, // gtl_epl_three_way_moneyline: local source only; builds on hosted M-30/M-31/M-32/M-36.
-  20261110110000, // EPL stage 3 gtl_epl_score_import: reviewed Sleeper screenshot import; apply after hosted M-30 and M-40.
-  20261110120000, // EPL stage 4 gtl_epl_result_announcements: local source only; requires hosted M-30/M-36 only.
-  20261110130000, // D-82 gtl_player_props: written, not applied; needs Sean's named apply and preflight. Ships dark (live_lock_in false).
-  20261110160000, // D-82 gtl_player_props_jobs: offer/result job audit tables; written, not applied; requires pending 20261110130000.
-  20261110180000, // D-82 gtl_player_props_shared: others' locked props under the reveal rules; written, not applied; requires pending 20261110130000.
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
@@ -69,7 +63,9 @@ export const FIX_FORWARD = [
 // M-21's and M-22's entries (both needing M-13, and M-22 needing M-21) left with their October 27, 2026 apply record
 // (RELEASE_2026_10_27_FEED_MIGRATIONS.md).
 // M-31 (20261029060000) reads M-30's EPL tables; M-30 is hosted (20261029051846), so it needs no entry here.
-export const REQUIRES = Object.freeze({ 20261029162144: [20261029151727], 20261110160000: [20261110130000], 20261110180000: [20261110130000] });
+// M-46's and M-47's entries (both needing M-45) left with their November 10, 2026 apply record
+// (RELEASE_2026_11_10_MIGRATIONS_M41_M47.md).
+export const REQUIRES = Object.freeze({ 20261029162144: [20261029151727] });
 
 export const version = file => Number(path.basename(file).slice(0, 14));
 export const FILES = fs.readdirSync(MIGRATIONS_DIR).filter(file => file.endsWith('.sql')).sort();
@@ -195,4 +191,11 @@ export const APPLIED = [
   20261103190000, // M-38 gtl_ops_alerts: hosted as 20261103184656 on November 3, 2026 (SQL editor, Gate M); see RELEASE_2026_11_03_OPS_ALERTS_M38.md.
   20261103210000, // M-39 gtl_backup_book: hosted as 20261103233404 on November 3, 2026 (SQL editor, Gate M); see PROPOSAL_2026_11_03_BACKUP_BOOK.md.
   20261103212932, // M-40 gtl_epl_turn_queue: hosted as 20261103232119 on November 3, 2026 (Supabase MCP, Gate M); see RELEASE_2026_11_03_EPL_TURN_QUEUE_M40.md.
+  20261108022135, // M-41 gtl_virtual_units_hundredths: hosted as 20261110203637 on November 10, 2026 (SQL editor, Gate M); see RELEASE_2026_11_10_MIGRATIONS_M41_M47.md.
+  20261110100000, // M-42 gtl_epl_three_way_moneyline: hosted as 20261110203759 on November 10, 2026 (SQL editor, Gate M); see RELEASE_2026_11_10_MIGRATIONS_M41_M47.md.
+  20261110110000, // M-43 gtl_epl_score_import: hosted as 20261110203856 on November 10, 2026 (SQL editor, Gate M); see RELEASE_2026_11_10_MIGRATIONS_M41_M47.md.
+  20261110120000, // M-44 gtl_epl_result_announcements: hosted as 20261110203957 on November 10, 2026 (SQL editor, Gate M); see RELEASE_2026_11_10_MIGRATIONS_M41_M47.md.
+  20261110130000, // M-45 gtl_player_props: hosted as 20261110204106 on November 10, 2026 (SQL editor, Gate M; dark); see RELEASE_2026_11_10_MIGRATIONS_M41_M47.md.
+  20261110160000, // M-46 gtl_player_props_jobs: hosted as 20261110204207 on November 10, 2026 (SQL editor, Gate M; jobs off); see RELEASE_2026_11_10_MIGRATIONS_M41_M47.md.
+  20261110180000, // M-47 gtl_player_props_shared: hosted as 20261110204307 on November 10, 2026 (SQL editor, Gate M; dark); see RELEASE_2026_11_10_MIGRATIONS_M41_M47.md.
 ];

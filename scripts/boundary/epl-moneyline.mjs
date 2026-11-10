@@ -1,4 +1,4 @@
-// M-36 applied private collection boundary, plus the pending EPL three-way moneyline pieces (20261110100000).
+// M-36 applied private collection boundary, plus the EPL three-way moneyline pieces (M-42, 20261110100000, hosted).
 // Inert fixtures only; no live run/user/lease/market is supplied.
 import { missingId } from './fixtures.mjs';
 const threeWayTables=['epl_three_way_collections'];
@@ -20,6 +20,6 @@ export const rpcChecks=Object.freeze([
   ['gtl_epl_finish_moneyline_read',{p_lease:missingId,p_token:missingId,p_event:null,p_quota:null,p_error:null,p_now:null}],
   ...threeWayRpcs,
 ]);
-export const awaitingDeploy=Object.freeze(Object.fromEntries([
-  ...threeWayTables.map(name=>`table/${name}`),...threeWayRpcs.map(([name])=>`rpc/${name}`),
-].map(key=>[key,'20261110100000 (EPL three-way moneyline apply / compatible gtl-api and gtl-epl-jobs deploy)'])));
+// M-42 (20261110100000) is hosted as 20261110203759 since November 10, 2026; gtl-api and gtl-epl-jobs were deployed from
+// 1ba75282 first (RELEASE_2026_11_10_MIGRATIONS_M41_M47.md), so the three-way pieces left this list.
+export const awaitingDeploy=Object.freeze({});

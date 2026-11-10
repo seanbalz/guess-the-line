@@ -1,5 +1,37 @@
 # Guess The Line — current completion register
 
+## Migrations M-41 to M-47 applied and verified — November 10, 2026 UTC
+
+Sean approved "Yes, apply M-41–M-47" through the SQL editor in his signed-in Chrome.
+The [apply record](RELEASE_2026_11_10_MIGRATIONS_M41_M47.md) gives each hosted version, md5 and
+verification:
+
+| Ledger | What | Hosted version |
+| --- | --- | --- |
+| M-41 | Virtual Units hundredths | `20261110203637` |
+| M-42 | EPL three-way moneyline | `20261110203759` |
+| M-43 | EPL score import | `20261110203856` |
+| M-44 | EPL result announcements | `20261110203957` |
+| M-45 | Player Props | `20261110204106` |
+| M-46 | Player Props jobs | `20261110204207` |
+| M-47 | Player Props shared reader | `20261110204307` |
+
+- **Each apply** ran in one transaction with a guard and score/preservation hash compares, then was
+  read back independently.
+- **History** went from 76 to 83. The new digest is
+  `3eb690d75c75068443d8fe7c791a779534597bb655078f14742a64c9176de022`.
+- **Scores, settled results and preserved tables** are unchanged.
+- **Signed-out boundary check:** 495 live denials. The only awaiting entries are M-33/M-34/M-35 and
+  the flag-gated Player Props routes.
+- **Now live:** custom Virtual Units stakes in hundredths, EPL three-way entry, the commissioner
+  screenshot import and the result-announcement storage.
+- **Still off:**
+  - the `results` schedule row, which is created disabled and then needs Sean's word;
+  - Player Props (readiness audit, jobs, `live_lock_in` and the `GTL_PLAYER_PROPS` flags);
+  - M-33/M-34/M-35.
+- **Still open:** signed-in route readback and phone acceptance.
+
+
 ## Player Props shared view, History and receipt finished dark — November 10, 2026
 
 Branch `claude/player-props-finish` (PR and merge commit in the PR record) completes the

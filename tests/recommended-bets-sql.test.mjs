@@ -101,9 +101,10 @@ test('recommendation writer adds a current-week virtual pick without private mem
   const before = await baseline();
   await db.query('delete from public.gtl_memberships where user_id=$1',[ACCOUNTS.luke.id]);
   await t.test('wrong week, bad side, malformed amount and fabricated quote fail before insert',async()=>{
+    // Hosted M-41 (November 10, 2026) accepts canonical cents such as 0.25; 0.001 stays malformed in every schema.
     await assert.rejects(()=>save({},ACCOUNTS.luke.id,week+1),/GTL_BETS_WEEK/);
     await assert.rejects(()=>save({},ACCOUNTS.luke.id,week,-1),/GTL_WEEKLY_CONFLICT/);
-    for(const patch of [{side:null},{market:null},{gameId:'NOT-A-GAME'},{line:'-3'},{odds:null},{units:-1},{units:0.25},{source:'Invented book'},{quotedAt:'Infinity'},{extra:'spoof'}]) await assert.rejects(()=>save(patch),/GTL_VIRTUAL_INVALID/);
+    for(const patch of [{side:null},{market:null},{gameId:'NOT-A-GAME'},{line:'-3'},{odds:null},{units:-1},{units:0.001},{source:'Invented book'},{quotedAt:'Infinity'},{extra:'spoof'}]) await assert.rejects(()=>save(patch),/GTL_VIRTUAL_INVALID/);
     for(const patch of [{line:-3.5},{odds:-115},{quotedAt:new Date(Date.parse(pick.quotedAt)-1000).toISOString()}]) await assert.rejects(()=>save(patch),/GTL_VIRTUAL_QUOTE/);
     assert.equal((await db.query('select count(*)::int n from public.gtl_virtual_units_picks where user_id=$1',[ACCOUNTS.luke.id])).rows[0].n,0);
   });

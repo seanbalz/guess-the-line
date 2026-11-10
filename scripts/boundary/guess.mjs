@@ -6,7 +6,8 @@
 import { missingId, missingLeague } from './fixtures.mjs';
 import { tables as eplOpsTables, rpcChecks as eplOpsRpcChecks, awaitingDeploy as eplOpsAwaiting } from './epl-operations.mjs';
 
-const PROP_MIGRATION = '20261110130000 (D-82 Player Props apply / GTL_PLAYER_PROPS=on gtl-api deploy)';
+// M-45 (20261110130000) is hosted since November 10, 2026; the routes answer 404 until the GTL_PLAYER_PROPS gtl-api secret is on.
+const PROP_ROUTE_FLAG = 'flag GTL_PLAYER_PROPS (D-82 Player Props routes answer 404 until the gtl-api secret is on; M-45 hosted)';
 const PROP_TABLES = ['prop_capability', 'prop_offers', 'prop_references', 'prop_guesses', 'prop_guess_events', 'prop_results'];
 // D-82: every callable service-only function, with inert arguments (no real actor, selection or value).
 const PROP_RPCS = [
@@ -22,9 +23,8 @@ const PROP_RPCS = [
   ['gtl_props_board', { p_user: missingId, p_season: 2026, p_week: 0 }],
   ['gtl_props_history', { p_user: missingId, p_from_season: 2026, p_from_week: 0, p_to_season: 2026, p_to_week: 0 }],
 ];
-// D-82 Player Props jobs (20261110160000, not applied; builds on 20261110130000): two service-only audit tables and four
+// D-82 Player Props jobs (M-46, 20261110160000, hosted; builds on 20261110130000): two service-only audit tables and four
 // service-only functions the offer and result jobs call. No route: the jobs are operator/workflow runs.
-const PROP_JOBS_MIGRATION = '20261110160000 (D-82 Player Props jobs apply, after 20261110130000)';
 const PROP_JOB_TABLES = ['prop_offer_reviews', 'prop_result_checks'];
 const PROP_JOB_RPCS = [
   ['gtl_props_jobs_capability', {}],
@@ -33,8 +33,7 @@ const PROP_JOB_RPCS = [
   ['gtl_props_jobs_state', { p_season: 2026, p_week: 0 }],
 ];
 const PROP_ROUTES = [['props/read', { season: 2026, week: 5 }], ['props/draft', {}], ['props/lock', {}], ['props/history', {}], ['props/shared', { season: 2026, week: 5 }]];
-// D-82 Player Props shared reader (20261110180000, not applied; builds on 20261110130000): one service-only function.
-const PROP_SHARED_MIGRATION = '20261110180000 (D-82 Player Props shared reader apply, after 20261110130000)';
+// D-82 Player Props shared reader (M-47, 20261110180000, hosted; builds on 20261110130000): one service-only function.
 const PROP_SHARED_RPCS = [['gtl_props_shared', { p_user: missingId, p_season: 2026, p_week: 0 }]];
 
 /** Tables, without the `gtl_` prefix: each is read anonymously and must be denied. */
@@ -49,7 +48,7 @@ export const tables = Object.freeze([
   'epl_guesses', 'epl_guess_history',
   // M-33 is pending; absence is reported separately from a verified permission denial.
   'epl_stat_rechecks',
-  // D-82 Player Props (20261110130000, not applied): every table is service-only; absence is reported as awaiting.
+  // D-82 Player Props (M-45/M-46, hosted November 10, 2026): every table is service-only.
   ...PROP_TABLES,
   ...PROP_JOB_TABLES,
 ]);
@@ -205,12 +204,11 @@ export const workerChecks = Object.freeze([
 // P-03's four functions left this list with its hosted apply (RELEASE_2026_10_26_POINTS_JOBS.md, Gate M step 8).
 export const awaitingDeploy = Object.freeze({
   ...eplOpsAwaiting,
-  ...Object.fromEntries([...PROP_TABLES.map(t => `table/${t}`), ...PROP_RPCS.map(([rpc]) => `rpc/${rpc}`), ...PROP_ROUTES.map(([route]) => `gtl-api/${route}`)].map(key => [key, PROP_MIGRATION])),
-  ...Object.fromEntries([...PROP_JOB_TABLES.map(t => `table/${t}`), ...PROP_JOB_RPCS.map(([rpc]) => `rpc/${rpc}`)].map(key => [key, PROP_JOBS_MIGRATION])),
-  ...Object.fromEntries(PROP_SHARED_RPCS.map(([rpc]) => [`rpc/${rpc}`, PROP_SHARED_MIGRATION])),
+  // M-45 to M-47's tables and RPCs left with their November 10, 2026 apply record (RELEASE_2026_11_10_MIGRATIONS_M41_M47.md);
+  // only the Player Props routes wait, for the separately approved GTL_PLAYER_PROPS switch.
+  ...Object.fromEntries(PROP_ROUTES.map(([route]) => [`gtl-api/${route}`, PROP_ROUTE_FLAG])),
   'table/epl_stat_rechecks': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
   'rpc/gtl_epl_recheck_due_at': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
   'rpc/gtl_epl_recheck_state': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
   'rpc/gtl_epl_record_recheck': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
-  'gtl-api/epl/bets/read': '20261110100000 (EPL three-way moneyline apply / compatible gtl-api deploy)',
 });

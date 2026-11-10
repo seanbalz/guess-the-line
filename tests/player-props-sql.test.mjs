@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { ALL, HOSTED, MIGRATIONS_DIR, NOT_HOSTED, PRELUDE, ROLLBACK_DIR, migrationSql, version } from './migrations.mjs';
+import { ALL, APPLIED, HOSTED, MIGRATIONS_DIR, NOT_HOSTED, PRELUDE, ROLLBACK_DIR, migrationSql, version } from './migrations.mjs';
 import { catalog, parseFunctions, readMigrations } from '../scripts/migration-functions.mjs';
 import { propAccuracy, propPaperRecord } from '../shared/player-props.mjs';
 
@@ -55,10 +55,11 @@ async function fixture(t, { ready = true } = {}) {
   return { db, as, sql, offer, books, reference, draft, lock, board, count, guessRow, now };
 }
 
-test('D-82 migration: new gtl_props_* functions and gtl_prop_* tables only, written and not hosted, no rollback file', () => {
+test('D-82 migration: new gtl_props_* functions and gtl_prop_* tables only, hosted since the November 10 apply, no rollback file', () => {
   assert.ok(ALL.includes(MIGRATION));
-  assert.ok(NOT_HOSTED.includes(version(MIGRATION)), 'listed as not hosted until Sean\'s named apply');
-  assert.ok(!HOSTED.includes(MIGRATION));
+  // M-45: hosted as 20261110204106 on November 10, 2026 after Sean's named apply (RELEASE_2026_11_10_MIGRATIONS_M41_M47.md).
+  assert.ok(APPLIED.includes(version(MIGRATION)) && !NOT_HOSTED.includes(version(MIGRATION)), 'listed as applied');
+  assert.ok(HOSTED.includes(MIGRATION));
   assert.ok(version(MIGRATION) >= 20261110130000);
   const source = fs.readFileSync(path.join(MIGRATIONS_DIR, MIGRATION), 'utf8');
   const before = catalog(readMigrations(ALL.filter(file => file < MIGRATION))).latest;

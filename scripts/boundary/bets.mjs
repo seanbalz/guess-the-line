@@ -66,7 +66,6 @@ export const workerChecks = Object.freeze([
 // (RELEASE_2026_10_27_FEED_MIGRATIONS.md).
 // M-11 (stage 41) is hosted as 20261029041843 since October 29, 2026, after /bets/place shipped in the 1998e4c gtl-api
 // release (RELEASE_2026_10_29_M11.md).
-export const awaitingDeploy = Object.freeze({
-  'rpc/gtl_virtual_unit_rules': '20261108022135 gtl_virtual_units_hundredths (M-41, prepared only)',
-  'rpc/gtl_virtual_units_supported': '20261108022135 gtl_virtual_units_hundredths (M-41, prepared only)',
-});
+// M-41 is hosted as 20261110203637 since November 10, 2026, after the compatible API/Pages release from 1ba75282
+// (RELEASE_2026_11_10_MIGRATIONS_M41_M47.md); its two capability RPCs left this list.
+export const awaitingDeploy = Object.freeze({});

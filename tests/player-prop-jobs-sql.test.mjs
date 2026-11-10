@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { ALL, HOSTED, MIGRATIONS_DIR, NOT_HOSTED, PRELUDE, REQUIRES, ROLLBACK_DIR, migrationSql, version } from './migrations.mjs';
+import { ALL, APPLIED, HOSTED, MIGRATIONS_DIR, NOT_HOSTED, PRELUDE, REQUIRES, ROLLBACK_DIR, migrationSql, version } from './migrations.mjs';
 import { catalog, parseFunctions, readMigrations } from '../scripts/migration-functions.mjs';
 import { propScheduleGames, runPropOffersJob, runPropResultsJob } from '../cloud/player-prop-jobs.mjs';
 import { CUT, QB, RB, WR, fakeSources, fetchRow, file, rosterCsv, snapsCsv, statsCsv, threeBooks } from './helpers/player-prop-job-fixtures.mjs';
@@ -59,10 +59,12 @@ async function fixture(t) {
   return { db, as, call, service, now, games, futureGame, pastGame, insertFetch, count };
 }
 
-test('D-82 jobs migration: new gtl_props_* functions and gtl_prop_* tables only, not hosted, follows the props migration, no schedule', () => {
+test('D-82 jobs migration: new gtl_props_* functions and gtl_prop_* tables only, hosted after the props migration, no schedule', () => {
   assert.ok(ALL.includes(MIGRATION)); assert.ok(ALL.indexOf(BASE) < ALL.indexOf(MIGRATION));
-  assert.ok(NOT_HOSTED.includes(version(MIGRATION))); assert.ok(!HOSTED.includes(MIGRATION));
-  assert.deepEqual(REQUIRES[version(MIGRATION)], [version(BASE)]);
+  // M-46: hosted as 20261110204207 on November 10, 2026, after M-45 (RELEASE_2026_11_10_MIGRATIONS_M41_M47.md). Its REQUIRES
+  // entry left with that apply record because the required file is hosted.
+  assert.ok(APPLIED.includes(version(MIGRATION)) && !NOT_HOSTED.includes(version(MIGRATION))); assert.ok(HOSTED.includes(MIGRATION));
+  assert.ok(APPLIED.includes(version(BASE)) && HOSTED.includes(BASE)); assert.equal(REQUIRES[version(MIGRATION)], undefined);
   assert.ok(version(MIGRATION) >= 20261110160000);
   const source = fs.readFileSync(path.join(MIGRATIONS_DIR, MIGRATION), 'utf8');
   const before = catalog(readMigrations(ALL.filter(f => f < MIGRATION))).latest;
