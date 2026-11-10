@@ -48,6 +48,9 @@ import { handlePoints, POINTS_METHODS, POINTS_PUBLIC_CODES, POINTS_RPCS, PointsE
 import { handleFeatures, FEATURES_METHODS, FEATURES_RPCS, FeaturesError, providerFeaturesError } from './features.mjs';
 // EPL Pick a Team (EPL plan 1, Task 4): its own route group over the M-30 service-only functions; 404 "coming soon" until M-30 is applied.
 import { EplGuessError, eplGuessErrorBody } from './epl-guess.mjs';
+// D-82 Player Props: its own route group; dark unless GTL_PLAYER_PROPS=on, and off until its migration and capability are on.
+import { handleProps, PROPS_METHODS, PROPS_PUBLIC_CODES, PROPS_RPCS, PropsError, playerPropsOn, providerPropsError } from './player-props.mjs';
+import { createPropReferenceSource } from './player-prop-receipts.mjs';
 import { handleEpl, EPL_BODY_LIMITS, EPL_METHODS, EPL_PUBLIC_CODES, EPL_RPCS, EplError, providerEplError, createEplService } from './epl.mjs';
 
 const MAX_BODY_BYTES = 32 * 1024;
@@ -96,6 +99,7 @@ const ROUTE_GROUPS = Object.freeze([
   Object.freeze({ service: 'points', methods: POINTS_METHODS, handle: handlePoints, Error: PointsError }),
   Object.freeze({ service: 'features', methods: FEATURES_METHODS, handle: handleFeatures, Error: FeaturesError }),
   Object.freeze({ service: 'epl', methods: EPL_METHODS, handle: handleEpl, Error: EplError }),
+  Object.freeze({ service: 'props', methods: PROPS_METHODS, handle: handleProps, Error: PropsError }),
 ]);
 const GAME_METHODS = Object.freeze({ '/state': ['GET'], '/export': ['GET'], '/ballot': ['POST'], '/bet': ['POST'] });
 /** Every module's methods map; a route belongs to exactly one (tests/route-modules.test.mjs). */
@@ -114,7 +118,7 @@ class RequestError extends Error {
  * Refusal codes a reply carries beside its sentence, so a client can act on them (build plan stage 18): GTL_BALLOT_LOCKED
  * tells both apps the picks they hold are older than the final ones, and they reload instead of offering a retry.
  */
-const PUBLIC_CODES = new Set([BALLOT_LOCKED, 'GTL_GAME_CLOSED', ...POINTS_PUBLIC_CODES, ...EPL_PUBLIC_CODES]);
+const PUBLIC_CODES = new Set([BALLOT_LOCKED, 'GTL_GAME_CLOSED', ...POINTS_PUBLIC_CODES, ...EPL_PUBLIC_CODES, ...PROPS_PUBLIC_CODES]);
 const fail = (status, message, code) => { throw new RequestError(status, message, code); };
 const json = (value, status = 200, extraHeaders = {}) => new Response(JSON.stringify(value), {
   status, headers: { ...CORS, 'Content-Type': 'application/json; charset=utf-8', ...extraHeaders },
@@ -161,13 +165,15 @@ function onlyKeys(value, allowed) {
  * weekly saves atomically validate and advance the shared user/week revision.
  * Legacy league entry JSON is never written by this handler.
  */
-export function createCloudHandler({ authenticate, storage, weekly, lobby, personal, social, community, officials, wind, results, odds, oddsProvider, virtual, push, pushPublicKey, lines, bets, nba, nbaGames, league, feed, me, trends, fantasy, points, features, epl, optionalRpc, featureOff, leagueId: defaultLeagueId = 'sean-troy-luke', siteUrl, clock = Date.now, uuid = () => crypto.randomUUID() }) {
+export function createCloudHandler({ authenticate, storage, weekly, lobby, personal, social, community, officials, wind, results, odds, oddsProvider, virtual, push, pushPublicKey, lines, bets, nba, nbaGames, league, feed, me, trends, fantasy, points, features, epl, props, playerProps, optionalRpc, featureOff, leagueId: defaultLeagueId = 'sean-troy-luke', siteUrl, clock = Date.now, uuid = () => crypto.randomUUID() }) {
   // Redesign stage 2 (push guard): reminders show only when this function holds a valid VAPID public key.
   // /community/read carries the boolean; the key itself goes out only on /push/status, as before.
   const pushConfigured = validVapidPublicKey(pushPublicKey);
   // Gate M off switches: the GTL_FEATURE_OFF secret's feature names (cloud/feature-off.mjs); a listed writer refuses.
   const featuresOff = parseFeatureOff(featureOff);
-  const groupServices = { lines, bets, league, feed, me, trends, fantasy, points, features, epl };
+  // D-82: the Player Props routes exist only when the GTL_PLAYER_PROPS secret is exactly "on" (cloud/player-props.mjs).
+  const propsOn = playerPropsOn(playerProps);
+  const groupServices = { lines, bets, league, feed, me, trends, fantasy, points, features, epl, props };
   // A route with a raised body cap (EPL_BODY_LIMITS) gets it only once the signed-in caller is the commissioner, checked
   // before the body is read; everyone else, and any failed check, keeps the 32 KB cap.
   async function bodyLimit(route, user) {
@@ -251,6 +257,8 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
       const route = url.pathname.replace(/^\/(?:functions\/v1\/)?gtl-api(?=\/)/, '');
       const methods = ROUTE_METHODS;
       if (!Object.hasOwn(methods, route)) return json({ error: 'Not found.' }, 404);
+      // Dark launch: with the flag off, a Player Props route answers exactly as a route that does not exist.
+      if (!propsOn && Object.hasOwn(PROPS_METHODS, route)) return json({ error: 'Not found.' }, 404);
       if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
       if (!methods[route].includes(request.method)) return json({ error: 'Method not allowed.' }, 405, { Allow: [...methods[route], 'OPTIONS'].join(', ') });
       const gameRoute = ['/state', '/export', '/ballot', '/bet'].includes(route);
@@ -463,7 +471,7 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
             if (providerError === providerBetsError && !['gtl_save_recommended_virtual_pick', 'gtl_read_bets'].includes(name)) throw providerError();
             throw providerError('GTL_FEATURE_OFF');
           }
-          if(providerError===providerEplError&&name==='gtl_epl_save_guess_current'&&code==='22003')throw providerError('GTL_EPL_GUESS_INVALID');
+          if(providerError===providerEplError&&['gtl_epl_save_guess_current','gtl_epl_save_market_guess_current'].includes(name)&&code==='22003')throw providerError('GTL_EPL_GUESS_INVALID');
           throw providerError(message);
         }
         return response.json();
@@ -506,6 +514,8 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
     // EPL Pick a Team and Fantasy: its functions only, plus the latest-week, own-queue, snapshot and bonus table reads
     // (cloud/epl.mjs createEplService).
     epl: createEplService({ rpc: groupRpc(providerEplError, EPL_RPCS).rpc, rest, rows: restRows, refreshForLock:eplMoneylineRefreshForLock }),
+    // D-82 Player Props: its functions only, plus the retained research quotes a lock-in reference is built from (no provider call).
+    props: { ...groupRpc(providerPropsError, PROPS_RPCS), references: createPropReferenceSource({ rows: restRows, rpc: groupRpc(providerPropsError, PROPS_RPCS).rpc, clock }) },
     // New fields on old routes (build plan, section 3.3): PostgREST's PGRST202 for a missing function reads as "feature off".
     optionalRpc: createOptionalRpc((name, body) => request(`/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(body) })),
     async authenticate(token) {

@@ -9,7 +9,7 @@ import { ACCOUNTS, communityWorld, pgliteAvailable, signIn } from './community-w
 test.setTimeout(90000);
 test.beforeEach(() => test.skip(!pgliteAvailable, 'Disposable PGlite required.'));
 const game = { eventId: 'ui-shell-fixture', home: 'ARS', away: 'CHE', commenceTime: '2099-10-31T12:30:00Z', status: 'scheduled', kickedOff: false };
-async function fixture(page, baseURL) {
+async function fixture(page, baseURL, { markets = false } = {}) {
   const world = await communityWorld(page, baseURL), calls = [], saved = new Map();
   await page.route('**/functions/v1/gtl-api/lobby', async route => {
     const request = route.request();
@@ -22,11 +22,18 @@ async function fixture(page, baseURL) {
     const ownerId = user?.id === ACCOUNTS.luke.id ? 'manager-luke' : 'manager-troy';
     calls.push({ action, body, ownerId });
     let data;
-    if (action === 'guess/read') data = { available: true, season: 2026, week: 17, ownerId, fixtures: [game], guesses: saved.has(ownerId) ? [saved.get(ownerId)] : [] };
+    if (action === 'guess/read') data = { available: true, season: 2026, week: 17, ownerId, fixtures: [game], guesses: saved.has(ownerId) ? [saved.get(ownerId)] : [],
+      ...(markets ? { markets: ['draw_no_bet', 'three_way'] } : {}) };
     else if (action === 'guess/save') {
-      data = { ...body, ownerId, status: body.lock ? 'locked' : 'draft', state: body.lock ? 'pending' : 'draft', referencePrice: null, referenceObservedAt: null, referenceSource: null, distance: null };
+      const club = body.market ? (body.outcome === 'home' ? game.home : body.outcome === 'away' ? game.away : null) : body.club;
+      data = { ...body, club, ownerId, status: body.lock ? 'locked' : 'draft', state: body.lock ? 'pending' : 'draft', referencePrice: null, referenceObservedAt: null, referenceSource: null, distance: null };
       saved.set(ownerId, data);
     } else if (action === 'guess/leaderboard') data = { season: 2026, rows: [{ ownerId: 'manager-luke', name: 'Luke', average: 12.5, guessed: 4, unscored: 1 }] };
+    else if (action === 'bets/read') data = { available: true, reason: null, season: 2026, week: 17, ownerId, asOf: '2099-10-30T12:00:00.000Z', locked: 1, unpriced: 0, withoutGap: 0,
+      items: [{ eventId: game.eventId, home: game.home, away: game.away, commenceTime: game.commenceTime, market: 'three_way', outcome: 'draw', club: null, price: 230,
+        lockedAt: '2099-10-29T12:00:00.000Z', referencePrice: 250, referenceObservedAt: '2099-10-29T12:00:00.000Z', latestPrice: 260, latestObservedAt: '2099-10-30T11:00:00.000Z',
+        books: 3, gap: 30, firstPrice: 240, firstObservedAt: '2099-10-28T12:00:00.000Z', observations: 3, source: 'Median of DraftKings, FanDuel and BetMGM',
+        trend: { from: 240, to: 260, observations: 3, change: 20, direction: 'longer' }, concerns: [] }] };
     else if (action === 'draft/read') data = { season: 2026, week: 17, status: 'open', deadline: game.commenceTime, order: [], picks: [], clubs: [], me: null };
     else return route.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ error: 'Fixture endpoint unavailable.' }) });
     return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(data) });
@@ -65,7 +72,10 @@ test('shared shell wires the EPL week and children, guards drafts once, and clea
     await page.goBack();
     await expect(page.getByLabel('Your moneyline price', { exact: true })).toHaveValue('-135');
     await page.getByRole('navigation', { name: 'Main', exact: true }).getByRole('button', { name: 'Bets', exact: true }).click();
-    await expect(page.getByText("Bets aren't available for the Premier League.", { exact: true })).toBeVisible();
+    await expect(page.getByText('30', { exact: true })).toBeVisible();
+    await expect(page.getByText('Pick: Draw · 3-way moneyline', { exact: true })).toBeVisible();
+    await expect(page.getByText(/not an estimated chance that the result happens/)).toBeVisible();
+    expect(world.calls.filter(c => c.action === 'bets/read').map(c => c.body)).toEqual([{}]);
     expect(dialogs).toHaveLength(2); page.off('dialog', unexpected);
     await page.goBack();
     await expect(page.getByLabel('Your moneyline price', { exact: true })).toHaveValue('-135');
@@ -142,4 +152,29 @@ test('Prism native moneyline recovery and leaderboard states keep entry paused a
   }
   expect(world.errors).toEqual([]);
  }finally{release?.();await world.db.close();}
+});
+
+test('three-way entry appears only with server capability and locks market, outcome and price together', async ({ page, baseURL }, testInfo) => {
+  const world = await fixture(page, baseURL, { markets: true });
+  try {
+    await page.goto('/#epl/play/guess');
+    await signIn(page, 'luke', { navigate: false });
+    const market = page.getByRole('group', { name: 'Moneyline market', exact: true });
+    await expect(market.getByRole('button', { name: 'Draw no bet', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await market.getByRole('button', { name: '3-way', exact: true }).click();
+    await expect(page.getByText('Pick one result', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Draw', exact: true }).click();
+    await page.getByLabel('Your moneyline price', { exact: true }).fill('+240');
+    for (const theme of ['dark', 'light']) {
+      await setCaptureTheme(page, theme);
+      await page.setViewportSize({ width: 320, height: 844 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
+      await page.screenshot({ path: testInfo.outputPath(`moneyline-three-way-${theme}-320.png`), fullPage: true });
+    }
+    await page.getByRole('button', { name: 'Lock in', exact: true }).click();
+    await expect(page.getByText('Guess locked. Final for this match.', { exact: true })).toBeVisible();
+    expect(world.calls.filter(c => c.action === 'guess/save').map(c => c.body)).toEqual([{ eventId: game.eventId, market: 'three_way', outcome: 'draw', price: 240, lock: true }]);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
 });

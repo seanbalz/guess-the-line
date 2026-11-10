@@ -20,6 +20,7 @@ import { DESTINATION_ICONS as ICON } from '../ui/destinations.js';
 import { useTicketSummary } from './useTicketSummary.js';
 import { draftParts, savedTicketToast } from './recommendationReview.js';
 import { recommendationMarket } from '../../../../shared/recommended-bets.mjs';
+import { PROPS_GAP_MARKET, playerPropsEnabled, withPlayerProps } from '../props/flag.js';
 import { forgetSharedReads } from '../../sharedReads.js';
 import './bets.css';
 import '../../liveBets.css';
@@ -85,7 +86,10 @@ function BetsDetail() {
   // embedded Recommended list filters by it; the new app's own segmented control is drawn here and handed to that list.
   const recommendedMarket = recommendationMarket(route.recommendedMarket);
   const chooseRecommendedMarket = useCallback(value => shell.setView('bets', { recommendedMarket: value }), [shell.setView]);
-  const marketControl = <Segmented label="Recommendation market" value={recommendedMarket} onChange={chooseRecommendedMarket} options={RECOMMENDED_MARKETS}/>;
+  // D-82: Player Props joins All / Spreads / Totals only while its flag is on; the recommendation list keeps its own
+  // normalized market ('props' reads as 'all' there), and choosing Player Props shows the prop record instead.
+  const propsOn = playerPropsEnabled(), propsSelected = propsOn && route.recommendedMarket === PROPS_GAP_MARKET;
+  const marketControl = <Segmented label="Recommendation market" value={propsSelected ? PROPS_GAP_MARKET : recommendedMarket} onChange={chooseRecommendedMarket} options={withPlayerProps(RECOMMENDED_MARKETS, PROPS_GAP_MARKET, propsOn)}/>;
   const { setDirty } = shell;
   const [ticketRequest, setTicketRequest] = useState(null);
   const drafts = useMemo(() => draftParts(setDirty), [setDirty]);
@@ -146,6 +150,9 @@ function BetsDetail() {
     </div>
     {view === 'tracked' ? <>
       <Deferred label="tracked bets"><SocialBetTracker editorIdentity={BET_EDITOR_IDENTITY} key={`${app.accountId}:${destination}:${shell.state.nav}`} player={app.accountId} initialExpandedTicket={route.selectedTicket} initialOutcome={destination === 'active' ? 'pending' : destination === 'settled' ? 'settled' : ''} initialAllHistory={destination === 'active' || destination === 'settled'} autoCreate={destination === 'add'} navigationState={trackerState} onNavigationState={rememberTracker} initialView="mybets" embedded compactTickets TicketRow={TrackedBetRow} MetricsView={NetUnits} OverviewView={TrackedOverview} initialTrackedPane={route.trackedPane??'tickets'} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred>
+    </> : view === 'recommended' && propsSelected ? <>
+      {marketControl}
+      <GapRecord market={PROPS_GAP_MARKET} accountId={app.accountId} season={app.community?.data?.week?.season} week={app.community?.data?.week?.week} onSignInAgain={app.requestSignIn}/>
     </> : view === 'recommended' ? <>
       <Deferred resetKey={`${app.accountId}:recommended`} label="recommended bets"><VirtualUnits GapRecordView={GapRecord} key={`${app.accountId}:recommended`} accountId={app.accountId} embedded initialView="recommended" accountRecommendations showViewTabs={false} recommendedMarket={recommendedMarket} onRecommendedMarket={chooseRecommendedMarket} marketControl={marketControl} onTrackTicket={trackRecommendation} onDirty={dirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred>
       {ticketRequest?.accountId === app.accountId && <Deferred resetKey={ticketRequest.id} label="bet review"><SocialBetTracker editorIdentity={BET_EDITOR_IDENTITY} key={ticketRequest.id} player={app.accountId} reviewOnly initialView="mybets" ticketRequest={ticketRequest} onReviewDone={reviewDone} onDirty={reviewDirty} onSaved={saved} onSignInAgain={app.requestSignIn}/></Deferred>}

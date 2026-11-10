@@ -71,9 +71,10 @@ describe('EPL four-tab shell', () => {
     expect(html).toMatch(/data-tab="home"[^>]*aria-current="page"/);
     expect(markupProblems(html)).toEqual([]);
   });
-  it('Bets has nothing for the Premier League', () => {
+  it('Bets mounts the account-scoped EPL recommendations, loading from stored evidence', () => {
     const html = render({ tab: 'bets' });
-    expect(text(html)).toContain("Bets aren't available for the Premier League.");
+    expect(text(html)).toContain('Loading EPL Bets'); expect(html).toContain('data-epl-section="bets"');
+    expect(text(html)).not.toContain("Bets aren't available");
     expect(markupProblems(html)).toEqual([]);
   });
   it('Play mounts Pick a Team and the separate moneyline children', () => {

@@ -16,7 +16,7 @@ import { fmtFull } from '../format.js';
 import { GuessPicker, GUESS_HELP } from './GuessPicker.jsx';
 import { ScoreReceipt } from './ScoreReceipt.jsx';
 import { WeekProgress, STATE_ICONS } from './WeekProgress.jsx';
-import { WeekTiles, nextAfter } from './PicksNest.jsx';
+import { PROPS_MARKET, PropsNest, WeekTiles, nextAfter, playMarkets } from './PicksNest.jsx';
 import { RevealFailure, RevealPicks, useWeekPicks } from './RevealPicks.jsx';
 import { CARD_STATE, confirmedLockIns, revealRows, weekLockedId, weekProgress } from './moments.js';
 import { usePopped } from '../moments/MomentsProvider.jsx';
@@ -72,6 +72,8 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', f
   const [data, setData] = useState(initialData), [draft, setDraft] = useState(() => readDraft(key, initialData, mode));
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState(''), [confirm, setConfirm] = useState(null), [confirmSitOut, setConfirmSitOut] = useState(false), [checked, setChecked] = useState(false);
   const [storageFailed, setStorageFailed] = useState(false), [elapsed, setElapsed] = useState(0);
+  // D-82: Player Props is a separate, optional market inside Your guesses (only offered while its flag is on).
+  const [propsOpen, setPropsOpen] = useState(false);
   // The lock-in moment: the games a fresh read just confirmed as locked (the stamp plays on their cards once).
   const [moment, setMoment] = useState(null);
   // D-70: opening another card ends the moment, so reopening a locked game never stamps it again.
@@ -282,13 +284,26 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', f
       <Button onClick={() => setConfirm(null)}>Keep editing</Button><Button variant="primary" haptic={false} disabled={busy} onClick={() => save(confirm)}>Confirm lock-in</Button></Dialog>
     <Dialog open={confirmSitOut} title={`Sit out Week ${data.week} ${market}?`} text={`This is final for the remaining ${market} games this week. Your locked guesses keep their points and your drafts stay visible. You cannot lock more ${market} guesses this week. Other players’ ${market} picks become available in the feed. ${mode === 'guess_spread' ? 'Total' : 'Spread'} is not affected.`} onClose={() => { if (!busy) setConfirmSitOut(false); }}><Button onClick={() => setConfirmSitOut(false)}>Keep playing</Button><Button variant="primary" disabled={busy || !canSitOut} onClick={sitOut}>Confirm sit-out</Button></Dialog>
   </>;
-  const marketControl = <Segmented label="Market" options={SCORE_MARKETS} value={mode} onChange={value => { if (!busy && !uncertain) onMode?.(value); }}/>;
+  const marketControl = <Segmented label="Market" options={playMarkets(SCORE_MARKETS)} value={propsOpen ? PROPS_MARKET : mode} onChange={value => {
+    if (value === PROPS_MARKET) { setPropsOpen(true); return; }
+    setPropsOpen(false);
+    if (value !== mode && !busy && !uncertain) onMode?.(value);
+  }}/>;
+  const propsPanel = propsOpen ? <PropsNest season={data.season} week={data.week} onSignInAgain={onSignInAgain}/> : null;
 
   if (nest) {
     // D-70: the week is one nesting card of game tiles; a game's address (`nest.game`) opens that game's card instead.
     const open = data.games.find(game => game.id === nest.game) ?? null;
     const guessOf = id => lockedAt(ballot, id) ? number(ballot.picks?.[id]) : picks[id];
     const after = open ? nextAfter(progress, open.id) : null;
+    if (propsPanel) return <section ref={section} className="gx-per-game gx-per-game--nest gx-vstack gx-gap-16" aria-label={`Week ${data.week} Player Props`}>
+      <Nest label="Your guesses" layer="props" title="Player Props" lips={nest.root ? [nest.root] : []}
+        info={<InfoButton title="About Player Props" body={['Optional · choose as many props as you want. Guess the sportsbook line for one athlete and stat; the market number stays hidden on this screen until you lock in.', 'Each prop locks on its own and is final. Spread and Total are separate.']}/>}>
+        <p className="gx-t-meta gx-c-2">Optional · choose as many props as you want</p>
+        {marketControl}
+        {propsPanel}
+      </Nest>
+    </section>;
     return <section ref={section} className="gx-per-game gx-per-game--nest gx-vstack gx-gap-16" aria-label={`Week ${data.week} picks`}>
       {status}
       {/* An unconfirmed save or sit-out: the check and the retry sit above either card, where the alert is. */}
@@ -317,6 +332,7 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', f
       {dialogs}
     </section>;
   }
+  if (propsPanel) return <section ref={section} className="gx-per-game gx-vstack gx-gap-16" aria-label={`Week ${data.week} Player Props`}>{marketControl}{propsPanel}</section>;
   return <section ref={section} className="gx-per-game gx-vstack gx-gap-16" aria-label={`Week ${data.week} picks`}>
     <p className="gx-t-body gx-c-2">Week {data.week} · {data.season}. Lock one game at a time. Spread and Total are separate; a locked guess cannot change.</p>
     {marketControl}

@@ -89,10 +89,13 @@ test('separate moneyline job tolerates preapply exact absence; due batch stops a
   const calls=[];let source=0;
   const result=await runEplJob({job:'moneyline',now:T,run,service:{rpc:async(name,args)=>{calls.push(name);
     if(name==='gtl_epl_jobs_state')return{};if(name==='gtl_epl_moneyline_due')return['e1','e2'];
+    // The worker adapter's exact-absence code for the pending three-way lease: the job falls back to M-36's lease.
+    if(name==='gtl_epl_begin_moneyline_markets')throw {code:'GTL_EPL_MARKETS_OFF'};
     if(name==='gtl_epl_begin_moneyline_read')return lease; if(name==='gtl_epl_finish_moneyline_read')return{status:'unavailable'}; throw Error(name);}},
     sources:{drawNoBet:async()=>{source++;throw {code:'EPL_SOURCE_AUTH'};}}});
   assert.equal(result.reason,null);assert.deepEqual(result.detail,{refreshed:0,cached:0,unavailable:1});assert.equal(source,1);
   assert.ok(!calls.includes('gtl_epl_reserve_credits'));assert.ok(!calls.includes('gtl_epl_upsert_prices'));
+  assert.deepEqual(calls.filter(n=>n.includes('moneyline_')),['gtl_epl_moneyline_due','gtl_epl_begin_moneyline_markets','gtl_epl_begin_moneyline_read','gtl_epl_finish_moneyline_read']);
 });
 
 

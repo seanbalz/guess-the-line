@@ -103,6 +103,11 @@
 .gx .gx-epl-margin-pts { flex: none; font: 700 16px/24px var(--gx-font-num); font-variant-numeric: tabular-nums; color: var(--gx-win); }
 .gx .gx-epl-margin-empty { display: flex; flex-direction: column; gap: var(--gx-space-1); margin-top: var(--gx-space-2); }
 
+/* Pick a Team results (EPL delivery stage 4): the heading and its FINAL / PENDING pill on one line. */
+.gx .gx-epl-results-head { display: flex; align-items: center; justify-content: space-between; gap: var(--gx-space-2); }
+.gx .gx-epl-results-head > h2 { margin: 0; min-width: 0; }
+.gx .gx-epl-results > p { margin: 0; }
+
 /* The backup ranking sheet. */
 .gx .gx-epl-queue-head { margin: var(--gx-space-4) 0 var(--gx-space-2); }
 .gx .gx-epl-queue { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
