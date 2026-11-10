@@ -1,5 +1,79 @@
 # Guess The Line — current completion register
 
+## Migration apply packet prepared — November 10, 2026
+
+The [apply packet](MIGRATION_APPLY_PACKET_2026_11_10.md) covers all seven `NOT_HOSTED`
+migrations (M-33, M-34, M-35 and the four November 10 files, proposed as M-42 to M-45
+because M-41 is reserved by open PR #497): dependencies and filename apply order,
+replaced-body md5s, read-only preflight, score and preservation hashes, apply method,
+verification, off switches, follow-up deploys/schedule rows, the Player Props readiness
+Task 2 queries and Sean's apply phrases. It records that M-40 is hosted in every repo
+record, and flags that M-34 must not be applied after M-44 as written (job constraint
+without `results`) and that M-43's RPCs have no boundary probes. Supabase was
+unavailable: no hosted value was observed and nothing was applied or deployed.
+
+## Fantasy defensive-matchup insights merged — November 10, 2026
+
+PR #517 merged as `0944bc2003780aa88b173c6aaf99b746f273cd83`: defensive-matchup views
+for fantasy-relevant QB/RB/WR/TE and defense ranking tables on Research › Fantasy, built
+by the scheduled Fantasy refresh from reuse-licensed nflverse/FTN releases (CC BY / CC
+BY-SA attribution shown). **Merged, not deployed**: the frontend needs a release, and data
+appears with the first scheduled Fantasy refresh after merge. No API, worker, migration or
+Supabase change.
+
+## EPL Sleeper screenshot score import merged — November 10, 2026
+
+PR #515 merged as `2d54ae7b250ab422c86910d53334ea2671e65e8f` (EPL delivery stage 3):
+on-device OCR (tesseract.js, assets self-hosted under `/ocr/`), commissioner review of
+all eight scores and an atomic, audited import that opens the next draft. The API and
+Pages are in deploy run 42744392202 (`api-and-frontend` at `2d54ae7b`), **pending
+approval** at the time of writing. Migration `20261110110000_gtl_epl_score_import.sql`
+(proposed M-43) is **not applied**. Real-screenshot phone acceptance, the boundary probes
+and the hosted `nudge`/`fixtures` state remain open.
+
+## Player Props mode merged dark — November 10, 2026
+
+PR #514 merged as `bf29c5d6d2c1f71d259094bd4dbeae45255308dd` (D-82): native-unit
+domain, storage, `/props/*` API and lazy frontend screens, all off by default. Included in
+deploy run 42744392202, **pending approval**; the routes answer 404 while `GTL_PLAYER_PROPS`
+is unset, and that secret is not to be enabled. Migration
+`20261110130000_gtl_player_props.sql` (proposed M-45) is **not applied**. The readiness
+Task 2 hosted audit and the offer/result ingestion jobs are still to do.
+
+## EPL Pick a Team result announcements merged — November 10, 2026
+
+PR #512 merged as `dfda1263a96c7450dee73643681bdca31b3c0e17` (EPL delivery stage 4):
+results cards on EPL Home and Pick a Team from verified finals, a deduplicated opt-in push
+and the bounded `results` job. API and Pages are in deploy run 42744392202, **pending
+approval**. Migration `20261110120000_gtl_epl_result_announcements.sql` (proposed M-44) is
+**not applied**; the `gtl-epl-jobs` deploy and `supabase/admin/epl_results_cron.sql`
+(row created disabled) follow the apply, and enabling `results` is a separate step.
+
+## EPL three-way moneyline and EPL Bets merged — November 10, 2026
+
+PR #513 merged as `ddf859099e7c6dc12f3867af7416638fbdc6f419` (EPL delivery stages 1-2):
+draw-no-bet or three-way entry with one guess per match, market-aware references and
+collection, combined leaderboard and account-scoped EPL Bets recommendations. API and
+Pages are in deploy run 42744392202, **pending approval**; they stay two-way until the
+schema reports the capability. Migration `20261110100000_gtl_epl_three_way_moneyline.sql`
+(proposed M-42) is **not applied**; a compatible `gtl-epl-jobs` deploy is also needed for
+timed three-way collection.
+
+## Points layout check measured after animation — November 10, 2026
+
+PR #516 merged as `7afeb773fa35e49c3edcc6c3685aa76680a1dcd3`: the 320 px layout check in
+`next-points.spec.js` waits for the restored card's back animation to settle. Test-only;
+no application change and no deploy needed (the commit is included in `2d54ae7b`).
+
+## Prior week's unfinished game stays visible — November 10, 2026
+
+PR #511 merged as `0f656617916d63d67c7ab4e6932233ccfd7f6548`: a "Still playing from Week
+N" card on Home, Play and Research › Games keeps a prior week's unfinished game (Monday
+night, late or postponed) with the viewer's own guesses after the next week opens. Reads
+only the existing gated `/lines/read`; locks and reveals unchanged. **Deployed**:
+frontend-only release run 42733238277 (success). No API or migration change; real-phone
+acceptance is not established by the release.
+
 ## Gap period follow-up fixes and mockups — November 9, 2026
 
 The [post-release review and fix evidence](GAP_PERIOD_FOLLOWUP_REVIEW_2026_11_09.md)
