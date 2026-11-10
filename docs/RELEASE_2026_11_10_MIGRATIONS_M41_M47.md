@@ -183,8 +183,15 @@ Nothing was deleted, truncated or rewritten (D-23).
 
 ## Still off or open
 
-- **EPL results.** Run `supabase/admin/epl_results_cron.sql`, which creates the `results` row
-  disabled. Enabling it is a separate word from Sean, followed by one real run readback (packet M-44).
+- **EPL results job.** Created switched off at 21:19 UTC on Sean's "Yes, next". The script was
+  `supabase/admin/epl_results_cron.sql` from `3ddc36d8` (SHA-256 `fd2a64a6…`), with the project ref
+  filled in, run in one guarded SQL-editor transaction.
+  - The `results` row is disabled; its endpoint is the same `gtl-epl-jobs` URL as the other seven
+    jobs.
+  - The `gtl-epl-results` cron is active at `9-59/15 * * * *`. While the row is off, each dispatch
+    returns `disabled` without a run row or HTTP call.
+  - The other seven schedules are unchanged, and there are 0 `results` runs so far.
+  - Enabling is a separate word from Sean, followed by one real run readback (packet M-44).
 - **Player Props stays dark.** Turning it on is a set of separately reviewed steps:
   - the readiness audit (packet section 8);
   - jobs: the `GTL_PROPS_*` secrets, the `GTL_PLAYER_PROPS_JOBS` variable, a dry run, then write runs;

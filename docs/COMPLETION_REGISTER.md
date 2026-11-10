@@ -26,7 +26,8 @@ verification:
 - **Now live:** custom Virtual Units stakes in hundredths, EPL three-way entry, the commissioner
   screenshot import and the result-announcement storage.
 - **Still off:**
-  - the `results` schedule row, which is created disabled and then needs Sean's word;
+  - the EPL `results` job: created disabled at 21:19 UTC with its active 15-minute cron; enabling
+    it needs Sean's word;
   - Player Props (readiness audit, jobs, `live_lock_in` and the `GTL_PLAYER_PROPS` flags);
   - M-33/M-34/M-35.
 - **Still open:** signed-in route readback and phone acceptance.
