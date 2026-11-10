@@ -1,0 +1,39 @@
+{
+  "status": "Exploration; no finish or logo color approved",
+  "baseColor": "#B8F34B",
+  "geometrySource": "design/logo-redraft-2026-10-29/logo-balanced-lime.svg",
+  "geometryPolicy": "Exact paths, fixed frontal view; shading clipped to canonical body. No new silhouette or tile.",
+  "method": "Native SVG gradients, filters and clipped reflections, not raster editing",
+  "options": [
+    {
+      "number": 1,
+      "id": "glossy-glass",
+      "name": "Glossy glass",
+      "note": "Rounded light-catching edges and a sweeping reflection."
+    },
+    {
+      "number": 2,
+      "id": "frosted-glass",
+      "name": "Frosted glass",
+      "note": "Cloudy translucency, broad highlights and diffused edges."
+    },
+    {
+      "number": 3,
+      "id": "polished-enamel",
+      "name": "Polished enamel",
+      "note": "A saturated hard shell with a crisp bevel and wet shine."
+    },
+    {
+      "number": 4,
+      "id": "brushed-metal",
+      "name": "Brushed metal",
+      "note": "Lime anodized aluminum with a fine horizontal grain."
+    },
+    {
+      "number": 5,
+      "id": "satin-ceramic",
+      "name": "Satin ceramic",
+      "note": "Soft sculpted depth with a smooth, quiet surface."
+    }
+  ]
+}

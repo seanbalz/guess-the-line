@@ -42,6 +42,7 @@ export const NOT_HOSTED = [
   20261110110000, // EPL stage 3 gtl_epl_score_import: reviewed Sleeper screenshot import; apply after hosted M-30 and M-40.
   20261110120000, // EPL stage 4 gtl_epl_result_announcements: local source only; requires hosted M-30/M-36 only.
   20261110130000, // D-82 gtl_player_props: written, not applied; needs Sean's named apply and preflight. Ships dark (live_lock_in false).
+  20261110160000, // D-82 gtl_player_props_jobs: offer/result job audit tables; written, not applied; requires pending 20261110130000.
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
@@ -67,7 +68,7 @@ export const FIX_FORWARD = [
 // M-21's and M-22's entries (both needing M-13, and M-22 needing M-21) left with their October 27, 2026 apply record
 // (RELEASE_2026_10_27_FEED_MIGRATIONS.md).
 // M-31 (20261029060000) reads M-30's EPL tables; M-30 is hosted (20261029051846), so it needs no entry here.
-export const REQUIRES = Object.freeze({ 20261029162144: [20261029151727] });
+export const REQUIRES = Object.freeze({ 20261029162144: [20261029151727], 20261110160000: [20261110130000] });
 
 export const version = file => Number(path.basename(file).slice(0, 14));
 export const FILES = fs.readdirSync(MIGRATIONS_DIR).filter(file => file.endsWith('.sql')).sort();

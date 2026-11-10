@@ -1,0 +1,1671 @@
+{
+  "version": 1,
+  "prepared": "2026-11-05",
+  "kind": "PUBLIC_HISTORICAL_SCORE_EXAMPLES",
+  "notice": "Sample guesses and calculated example scores against recorded historical closing lines. Not a saved player scoring history.",
+  "source": {
+    "definition": "https://nflverse.r-universe.dev/nflfastR/nflfastR.pdf#page=27",
+    "release": "https://github.com/seanbalz/guess-the-line/releases/tag/research-data-2026",
+    "schedule": "https://github.com/nflverse/nflverse-data/releases/tag/schedules",
+    "file": "https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv",
+    "publicationGeneratedAt": "2026-11-05T22:43:15.728Z",
+    "completedSha256": "48fbdd6f9f63ffcc0a0322dd7f5b22fa0faa0303874f21200baebff5d30831df",
+    "credit": "nflverse · Lee Sharpe · CC BY 4.0",
+    "referenceMeaning": "Recorded historical closing lines; not verified submission-time references, current quotes or three-book consensus. No observation/save timestamps or sportsbook identities are fabricated."
+  },
+  "history": {
+    "viewer": "visual-example",
+    "season": 2026,
+    "seasons": [
+      2026
+    ],
+    "weeks": [
+      {
+        "season": 2026,
+        "week": 6,
+        "games": [
+          {
+            "id": "2026_06_SEA_DEN",
+            "awayCode": "SEA",
+            "homeCode": "DEN",
+            "awayName": "Seattle Seahawks",
+            "homeName": "Denver Broncos",
+            "kickoff": "2026-10-16T00:15:00.000Z",
+            "recordedFinal": {
+              "away": 14,
+              "home": 17
+            }
+          },
+          {
+            "id": "2026_06_HOU_JAX",
+            "awayCode": "HOU",
+            "homeCode": "JAX",
+            "awayName": "Houston Texans",
+            "homeName": "Jacksonville Jaguars",
+            "kickoff": "2026-10-18T13:30:00.000Z",
+            "recordedFinal": {
+              "away": 34,
+              "home": 31
+            }
+          },
+          {
+            "id": "2026_06_BAL_CLE",
+            "awayCode": "BAL",
+            "homeCode": "CLE",
+            "awayName": "Baltimore Ravens",
+            "homeName": "Cleveland Browns",
+            "kickoff": "2026-10-18T17:00:00.000Z",
+            "recordedFinal": {
+              "away": 10,
+              "home": 13
+            }
+          },
+          {
+            "id": "2026_06_CAR_PHI",
+            "awayCode": "CAR",
+            "homeCode": "PHI",
+            "awayName": "Carolina Panthers",
+            "homeName": "Philadelphia Eagles",
+            "kickoff": "2026-10-18T17:00:00.000Z",
+            "recordedFinal": {
+              "away": 25,
+              "home": 14
+            }
+          },
+          {
+            "id": "2026_06_CHI_ATL",
+            "awayCode": "CHI",
+            "homeCode": "ATL",
+            "awayName": "Chicago Bears",
+            "homeName": "Atlanta Falcons",
+            "kickoff": "2026-10-18T17:00:00.000Z",
+            "recordedFinal": {
+              "away": 31,
+              "home": 23
+            }
+          },
+          {
+            "id": "2026_06_NO_NYG",
+            "awayCode": "NO",
+            "homeCode": "NYG",
+            "awayName": "New Orleans Saints",
+            "homeName": "New York Giants",
+            "kickoff": "2026-10-18T17:00:00.000Z",
+            "recordedFinal": {
+              "away": 34,
+              "home": 27
+            }
+          },
+          {
+            "id": "2026_06_NYJ_NE",
+            "awayCode": "NYJ",
+            "homeCode": "NE",
+            "awayName": "New York Jets",
+            "homeName": "New England Patriots",
+            "kickoff": "2026-10-18T17:00:00.000Z",
+            "recordedFinal": {
+              "away": 19,
+              "home": 26
+            }
+          },
+          {
+            "id": "2026_06_PIT_TB",
+            "awayCode": "PIT",
+            "homeCode": "TB",
+            "awayName": "Pittsburgh Steelers",
+            "homeName": "Tampa Bay Buccaneers",
+            "kickoff": "2026-10-18T17:00:00.000Z",
+            "recordedFinal": {
+              "away": 26,
+              "home": 19
+            }
+          },
+          {
+            "id": "2026_06_TEN_IND",
+            "awayCode": "TEN",
+            "homeCode": "IND",
+            "awayName": "Tennessee Titans",
+            "homeName": "Indianapolis Colts",
+            "kickoff": "2026-10-18T17:00:00.000Z",
+            "recordedFinal": {
+              "away": 26,
+              "home": 20
+            }
+          },
+          {
+            "id": "2026_06_ARI_LA",
+            "awayCode": "ARI",
+            "homeCode": "LAR",
+            "awayName": "Arizona Cardinals",
+            "homeName": "Los Angeles Rams",
+            "kickoff": "2026-10-18T20:05:00.000Z",
+            "recordedFinal": {
+              "away": 18,
+              "home": 16
+            }
+          },
+          {
+            "id": "2026_06_BUF_LV",
+            "awayCode": "BUF",
+            "homeCode": "LV",
+            "awayName": "Buffalo Bills",
+            "homeName": "Las Vegas Raiders",
+            "kickoff": "2026-10-18T20:25:00.000Z",
+            "recordedFinal": {
+              "away": 33,
+              "home": 30
+            }
+          },
+          {
+            "id": "2026_06_LAC_KC",
+            "awayCode": "LAC",
+            "homeCode": "KC",
+            "awayName": "Los Angeles Chargers",
+            "homeName": "Kansas City Chiefs",
+            "kickoff": "2026-10-18T20:25:00.000Z",
+            "recordedFinal": {
+              "away": 6,
+              "home": 22
+            }
+          },
+          {
+            "id": "2026_06_DAL_GB",
+            "awayCode": "DAL",
+            "homeCode": "GB",
+            "awayName": "Dallas Cowboys",
+            "homeName": "Green Bay Packers",
+            "kickoff": "2026-10-19T00:20:00.000Z",
+            "recordedFinal": {
+              "away": 13,
+              "home": 23
+            }
+          },
+          {
+            "id": "2026_06_WAS_SF",
+            "awayCode": "WAS",
+            "homeCode": "SF",
+            "awayName": "Washington Commanders",
+            "homeName": "San Francisco 49ers",
+            "kickoff": "2026-10-20T00:15:00.000Z",
+            "recordedFinal": {
+              "away": 17,
+              "home": 23
+            }
+          }
+        ],
+        "entries": [
+          {
+            "userId": "visual-example",
+            "mode": "guess_spread",
+            "status": "submitted",
+            "eligible": true,
+            "scoreTiming": "example",
+            "weekPoints": 95,
+            "picks": [
+              {
+                "gameId": "2026_06_SEA_DEN",
+                "guess": 3.5,
+                "lockedIn": true,
+                "points": 8,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 2.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_06_HOU_JAX",
+                "guess": -0.5,
+                "lockedIn": true,
+                "points": 6,
+                "reference": {
+                  "status": "historical_example",
+                  "value": -2.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_06_BAL_CLE",
+                "guess": 3,
+                "lockedIn": true,
+                "points": 10,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 3,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_06_CAR_PHI",
+                "guess": 2.5,
+                "lockedIn": true,
+                "points": 9,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 3,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_06_CHI_ATL",
+                "guess": 3,
+                "lockedIn": true,
+                "points": 7,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 1.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_06_NO_NYG",
+                "guess": 4.5,
+                "lockedIn": true,
+                "points": 4,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 1.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_06_NYJ_NE",
+                "guess": -9.5,
+                "lockedIn": true,
+                "points": 6,
+                "reference": {
+                  "status": "historical_example",
+                  "value": -7.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_06_PIT_TB",
+                "guess": 2.5,
+                "lockedIn": true,
+                "points": 10,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 2.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_06_TEN_IND",
+                "guess": -2.5,
+                "lockedIn": true,
+                "points": 2,
+                "reference": {
+                  "status": "historical_example",
+                  "value": -6.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_06_ARI_LA",
+                "guess": -14,
+                "lockedIn": true,
+                "points": 7,
+                "reference": {
+                  "status": "historical_example",
+                  "value": -12.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_06_BUF_LV",
+                "guess": 8,
+                "lockedIn": true,
+                "points": 5,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 5.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_06_LAC_KC",
+                "guess": -7,
+                "lockedIn": true,
+                "points": 9,
+                "reference": {
+                  "status": "historical_example",
+                  "value": -7.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_06_DAL_GB",
+                "guess": -1.5,
+                "lockedIn": true,
+                "points": 4,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 1.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_06_WAS_SF",
+                "guess": -6.5,
+                "lockedIn": true,
+                "points": 8,
+                "reference": {
+                  "status": "historical_example",
+                  "value": -7.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              }
+            ]
+          },
+          {
+            "userId": "visual-example",
+            "mode": "guess_total",
+            "status": "submitted",
+            "eligible": true,
+            "scoreTiming": "example",
+            "weekPoints": 93,
+            "picks": [
+              {
+                "gameId": "2026_06_SEA_DEN",
+                "guess": 42,
+                "lockedIn": true,
+                "points": 7,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 40.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_06_HOU_JAX",
+                "guess": 39.5,
+                "lockedIn": true,
+                "points": 4,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 42.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_06_BAL_CLE",
+                "guess": 40,
+                "lockedIn": true,
+                "points": 9,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 39.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_06_CAR_PHI",
+                "guess": 42,
+                "lockedIn": true,
+                "points": 5,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 39.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_06_CHI_ATL",
+                "guess": 50.5,
+                "lockedIn": true,
+                "points": 8,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 51.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_06_NO_NYG",
+                "guess": 50.5,
+                "lockedIn": true,
+                "points": 2,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 46.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_06_NYJ_NE",
+                "guess": 43.5,
+                "lockedIn": true,
+                "points": 10,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 43.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_06_PIT_TB",
+                "guess": 36.5,
+                "lockedIn": true,
+                "points": 6,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 38.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_06_TEN_IND",
+                "guess": 47,
+                "lockedIn": true,
+                "points": 3,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 43.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_06_ARI_LA",
+                "guess": 53,
+                "lockedIn": true,
+                "points": 7,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 51.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_06_BUF_LV",
+                "guess": 53,
+                "lockedIn": true,
+                "points": 9,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 53.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_06_LAC_KC",
+                "guess": 41.5,
+                "lockedIn": true,
+                "points": 10,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 41.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_06_DAL_GB",
+                "guess": 56,
+                "lockedIn": true,
+                "points": 5,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 53.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_06_WAS_SF",
+                "guess": 52.5,
+                "lockedIn": true,
+                "points": 8,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 51.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "season": 2026,
+        "week": 7,
+        "games": [
+          {
+            "id": "2026_07_NE_CHI",
+            "awayCode": "NE",
+            "homeCode": "CHI",
+            "awayName": "New England Patriots",
+            "homeName": "Chicago Bears",
+            "kickoff": "2026-10-23T00:15:00.000Z",
+            "recordedFinal": {
+              "away": 24,
+              "home": 30
+            }
+          },
+          {
+            "id": "2026_07_PIT_NO",
+            "awayCode": "PIT",
+            "homeCode": "NO",
+            "awayName": "Pittsburgh Steelers",
+            "homeName": "New Orleans Saints",
+            "kickoff": "2026-10-25T13:30:00.000Z",
+            "recordedFinal": {
+              "away": 16,
+              "home": 10
+            }
+          },
+          {
+            "id": "2026_07_CIN_BAL",
+            "awayCode": "CIN",
+            "homeCode": "BAL",
+            "awayName": "Cincinnati Bengals",
+            "homeName": "Baltimore Ravens",
+            "kickoff": "2026-10-25T17:00:00.000Z",
+            "recordedFinal": {
+              "away": 35,
+              "home": 13
+            }
+          },
+          {
+            "id": "2026_07_CLE_TEN",
+            "awayCode": "CLE",
+            "homeCode": "TEN",
+            "awayName": "Cleveland Browns",
+            "homeName": "Tennessee Titans",
+            "kickoff": "2026-10-25T17:00:00.000Z",
+            "recordedFinal": {
+              "away": 27,
+              "home": 24
+            }
+          },
+          {
+            "id": "2026_07_IND_MIN",
+            "awayCode": "IND",
+            "homeCode": "MIN",
+            "awayName": "Indianapolis Colts",
+            "homeName": "Minnesota Vikings",
+            "kickoff": "2026-10-25T17:00:00.000Z",
+            "recordedFinal": {
+              "away": 10,
+              "home": 16
+            }
+          },
+          {
+            "id": "2026_07_MIA_NYJ",
+            "awayCode": "MIA",
+            "homeCode": "NYJ",
+            "awayName": "Miami Dolphins",
+            "homeName": "New York Jets",
+            "kickoff": "2026-10-25T17:00:00.000Z",
+            "recordedFinal": {
+              "away": 28,
+              "home": 25
+            }
+          },
+          {
+            "id": "2026_07_NYG_HOU",
+            "awayCode": "NYG",
+            "homeCode": "HOU",
+            "awayName": "New York Giants",
+            "homeName": "Houston Texans",
+            "kickoff": "2026-10-25T17:00:00.000Z",
+            "recordedFinal": {
+              "away": 27,
+              "home": 21
+            }
+          },
+          {
+            "id": "2026_07_SF_ATL",
+            "awayCode": "SF",
+            "homeCode": "ATL",
+            "awayName": "San Francisco 49ers",
+            "homeName": "Atlanta Falcons",
+            "kickoff": "2026-10-25T17:00:00.000Z",
+            "recordedFinal": {
+              "away": 20,
+              "home": 29
+            }
+          },
+          {
+            "id": "2026_07_TB_CAR",
+            "awayCode": "TB",
+            "homeCode": "CAR",
+            "awayName": "Tampa Bay Buccaneers",
+            "homeName": "Carolina Panthers",
+            "kickoff": "2026-10-25T17:00:00.000Z",
+            "recordedFinal": {
+              "away": 43,
+              "home": 13
+            }
+          },
+          {
+            "id": "2026_07_DEN_ARI",
+            "awayCode": "DEN",
+            "homeCode": "ARI",
+            "awayName": "Denver Broncos",
+            "homeName": "Arizona Cardinals",
+            "kickoff": "2026-10-25T20:05:00.000Z",
+            "recordedFinal": {
+              "away": 30,
+              "home": 16
+            }
+          },
+          {
+            "id": "2026_07_GB_DET",
+            "awayCode": "GB",
+            "homeCode": "DET",
+            "awayName": "Green Bay Packers",
+            "homeName": "Detroit Lions",
+            "kickoff": "2026-10-25T20:25:00.000Z",
+            "recordedFinal": {
+              "away": 17,
+              "home": 20
+            }
+          },
+          {
+            "id": "2026_07_LA_LV",
+            "awayCode": "LAR",
+            "homeCode": "LV",
+            "awayName": "Los Angeles Rams",
+            "homeName": "Las Vegas Raiders",
+            "kickoff": "2026-10-25T20:25:00.000Z",
+            "recordedFinal": {
+              "away": 35,
+              "home": 21
+            }
+          },
+          {
+            "id": "2026_07_KC_SEA",
+            "awayCode": "KC",
+            "homeCode": "SEA",
+            "awayName": "Kansas City Chiefs",
+            "homeName": "Seattle Seahawks",
+            "kickoff": "2026-10-26T00:20:00.000Z",
+            "recordedFinal": {
+              "away": 3,
+              "home": 20
+            }
+          },
+          {
+            "id": "2026_07_DAL_PHI",
+            "awayCode": "DAL",
+            "homeCode": "PHI",
+            "awayName": "Dallas Cowboys",
+            "homeName": "Philadelphia Eagles",
+            "kickoff": "2026-10-27T00:15:00.000Z",
+            "recordedFinal": {
+              "away": 38,
+              "home": 21
+            }
+          }
+        ],
+        "entries": [
+          {
+            "userId": "visual-example",
+            "mode": "guess_spread",
+            "status": "submitted",
+            "eligible": true,
+            "scoreTiming": "example",
+            "weekPoints": 95,
+            "picks": [
+              {
+                "gameId": "2026_07_NE_CHI",
+                "guess": -3,
+                "lockedIn": true,
+                "points": 10,
+                "reference": {
+                  "status": "historical_example",
+                  "value": -3,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_07_PIT_NO",
+                "guess": 3.5,
+                "lockedIn": true,
+                "points": 9,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 3,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_07_CIN_BAL",
+                "guess": 2,
+                "lockedIn": true,
+                "points": 8,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 3,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_07_CLE_TEN",
+                "guess": 3.5,
+                "lockedIn": true,
+                "points": 6,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 1.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_07_IND_MIN",
+                "guess": -7,
+                "lockedIn": true,
+                "points": 9,
+                "reference": {
+                  "status": "historical_example",
+                  "value": -6.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_07_MIA_NYJ",
+                "guess": -2,
+                "lockedIn": true,
+                "points": 7,
+                "reference": {
+                  "status": "historical_example",
+                  "value": -3.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_07_NYG_HOU",
+                "guess": -12.5,
+                "lockedIn": true,
+                "points": 5,
+                "reference": {
+                  "status": "historical_example",
+                  "value": -10,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_07_SF_ATL",
+                "guess": 7.5,
+                "lockedIn": true,
+                "points": 0,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 2.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_07_TB_CAR",
+                "guess": -6,
+                "lockedIn": true,
+                "points": 4,
+                "reference": {
+                  "status": "historical_example",
+                  "value": -3,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_07_DEN_ARI",
+                "guess": 5,
+                "lockedIn": true,
+                "points": 9,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 4.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_07_GB_DET",
+                "guess": -3.5,
+                "lockedIn": true,
+                "points": 10,
+                "reference": {
+                  "status": "historical_example",
+                  "value": -3.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_07_LA_LV",
+                "guess": 4.5,
+                "lockedIn": true,
+                "points": 8,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 3.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_07_KC_SEA",
+                "guess": -4.5,
+                "lockedIn": true,
+                "points": 7,
+                "reference": {
+                  "status": "historical_example",
+                  "value": -3,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_07_DAL_PHI",
+                "guess": 8,
+                "lockedIn": true,
+                "points": 3,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 4.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              }
+            ]
+          },
+          {
+            "userId": "visual-example",
+            "mode": "guess_total",
+            "status": "submitted",
+            "eligible": true,
+            "scoreTiming": "example",
+            "weekPoints": 91,
+            "picks": [
+              {
+                "gameId": "2026_07_NE_CHI",
+                "guess": 54.5,
+                "lockedIn": true,
+                "points": 2,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 50.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_07_PIT_NO",
+                "guess": 42,
+                "lockedIn": true,
+                "points": 7,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 43.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_07_CIN_BAL",
+                "guess": 47.5,
+                "lockedIn": true,
+                "points": 8,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 46.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_07_CLE_TEN",
+                "guess": 36.5,
+                "lockedIn": true,
+                "points": 10,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 36.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_07_IND_MIN",
+                "guess": 42.5,
+                "lockedIn": true,
+                "points": 8,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 41.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_07_MIA_NYJ",
+                "guess": 36.5,
+                "lockedIn": true,
+                "points": 4,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 39.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_07_NYG_HOU",
+                "guess": 47.5,
+                "lockedIn": true,
+                "points": 0,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 42.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_07_SF_ATL",
+                "guess": 47,
+                "lockedIn": true,
+                "points": 5,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 49.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_07_TB_CAR",
+                "guess": 46.5,
+                "lockedIn": true,
+                "points": 6,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 44.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_07_DEN_ARI",
+                "guess": 44,
+                "lockedIn": true,
+                "points": 9,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 44.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_07_GB_DET",
+                "guess": 57.5,
+                "lockedIn": true,
+                "points": 6,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 55.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_07_LA_LV",
+                "guess": 48.5,
+                "lockedIn": true,
+                "points": 8,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 49.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_07_KC_SEA",
+                "guess": 44.5,
+                "lockedIn": true,
+                "points": 8,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 43.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_07_DAL_PHI",
+                "guess": 43.5,
+                "lockedIn": true,
+                "points": 10,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 43.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "season": 2026,
+        "week": 8,
+        "games": [
+          {
+            "id": "2026_08_CAR_GB",
+            "awayCode": "CAR",
+            "homeCode": "GB",
+            "awayName": "Carolina Panthers",
+            "homeName": "Green Bay Packers",
+            "kickoff": "2026-10-30T00:15:00.000Z",
+            "recordedFinal": {
+              "away": 19,
+              "home": 27
+            }
+          },
+          {
+            "id": "2026_08_ARI_DAL",
+            "awayCode": "ARI",
+            "homeCode": "DAL",
+            "awayName": "Arizona Cardinals",
+            "homeName": "Dallas Cowboys",
+            "kickoff": "2026-11-01T18:00:00.000Z",
+            "recordedFinal": {
+              "away": 33,
+              "home": 30
+            }
+          },
+          {
+            "id": "2026_08_ATL_TB",
+            "awayCode": "ATL",
+            "homeCode": "TB",
+            "awayName": "Atlanta Falcons",
+            "homeName": "Tampa Bay Buccaneers",
+            "kickoff": "2026-11-01T18:00:00.000Z",
+            "recordedFinal": {
+              "away": 0,
+              "home": 16
+            }
+          },
+          {
+            "id": "2026_08_BAL_BUF",
+            "awayCode": "BAL",
+            "homeCode": "BUF",
+            "awayName": "Baltimore Ravens",
+            "homeName": "Buffalo Bills",
+            "kickoff": "2026-11-01T18:00:00.000Z",
+            "recordedFinal": {
+              "away": 10,
+              "home": 36
+            }
+          },
+          {
+            "id": "2026_08_CLE_PIT",
+            "awayCode": "CLE",
+            "homeCode": "PIT",
+            "awayName": "Cleveland Browns",
+            "homeName": "Pittsburgh Steelers",
+            "kickoff": "2026-11-01T18:00:00.000Z",
+            "recordedFinal": {
+              "away": 6,
+              "home": 27
+            }
+          },
+          {
+            "id": "2026_08_IND_JAX",
+            "awayCode": "IND",
+            "homeCode": "JAX",
+            "awayName": "Indianapolis Colts",
+            "homeName": "Jacksonville Jaguars",
+            "kickoff": "2026-11-01T18:00:00.000Z",
+            "recordedFinal": {
+              "away": 7,
+              "home": 42
+            }
+          },
+          {
+            "id": "2026_08_LV_NYJ",
+            "awayCode": "LV",
+            "homeCode": "NYJ",
+            "awayName": "Las Vegas Raiders",
+            "homeName": "New York Jets",
+            "kickoff": "2026-11-01T18:00:00.000Z",
+            "recordedFinal": {
+              "away": 38,
+              "home": 33
+            }
+          },
+          {
+            "id": "2026_08_MIN_DET",
+            "awayCode": "MIN",
+            "homeCode": "DET",
+            "awayName": "Minnesota Vikings",
+            "homeName": "Detroit Lions",
+            "kickoff": "2026-11-01T18:00:00.000Z",
+            "recordedFinal": {
+              "away": 15,
+              "home": 19
+            }
+          },
+          {
+            "id": "2026_08_TEN_CIN",
+            "awayCode": "TEN",
+            "homeCode": "CIN",
+            "awayName": "Tennessee Titans",
+            "homeName": "Cincinnati Bengals",
+            "kickoff": "2026-11-01T18:00:00.000Z",
+            "recordedFinal": {
+              "away": 36,
+              "home": 43
+            }
+          },
+          {
+            "id": "2026_08_LAC_LA",
+            "awayCode": "LAC",
+            "homeCode": "LAR",
+            "awayName": "Los Angeles Chargers",
+            "homeName": "Los Angeles Rams",
+            "kickoff": "2026-11-01T21:05:00.000Z",
+            "recordedFinal": {
+              "away": 9,
+              "home": 24
+            }
+          },
+          {
+            "id": "2026_08_KC_DEN",
+            "awayCode": "KC",
+            "homeCode": "DEN",
+            "awayName": "Kansas City Chiefs",
+            "homeName": "Denver Broncos",
+            "kickoff": "2026-11-01T21:25:00.000Z",
+            "recordedFinal": {
+              "away": 24,
+              "home": 28
+            }
+          },
+          {
+            "id": "2026_08_NE_MIA",
+            "awayCode": "NE",
+            "homeCode": "MIA",
+            "awayName": "New England Patriots",
+            "homeName": "Miami Dolphins",
+            "kickoff": "2026-11-01T21:25:00.000Z",
+            "recordedFinal": {
+              "away": 24,
+              "home": 19
+            }
+          },
+          {
+            "id": "2026_08_PHI_WAS",
+            "awayCode": "PHI",
+            "homeCode": "WAS",
+            "awayName": "Philadelphia Eagles",
+            "homeName": "Washington Commanders",
+            "kickoff": "2026-11-02T01:20:00.000Z",
+            "recordedFinal": {
+              "away": 10,
+              "home": 27
+            }
+          },
+          {
+            "id": "2026_08_CHI_SEA",
+            "awayCode": "CHI",
+            "homeCode": "SEA",
+            "awayName": "Chicago Bears",
+            "homeName": "Seattle Seahawks",
+            "kickoff": "2026-11-03T01:15:00.000Z",
+            "recordedFinal": {
+              "away": 34,
+              "home": 17
+            }
+          }
+        ],
+        "entries": [
+          {
+            "userId": "visual-example",
+            "mode": "guess_spread",
+            "status": "submitted",
+            "eligible": true,
+            "scoreTiming": "example",
+            "weekPoints": 99,
+            "picks": [
+              {
+                "gameId": "2026_08_CAR_GB",
+                "guess": -3.5,
+                "lockedIn": true,
+                "points": 10,
+                "reference": {
+                  "status": "historical_example",
+                  "value": -3.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_08_ARI_DAL",
+                "guess": -6.5,
+                "lockedIn": true,
+                "points": 9,
+                "reference": {
+                  "status": "historical_example",
+                  "value": -7,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_08_ATL_TB",
+                "guess": -1.5,
+                "lockedIn": true,
+                "points": 8,
+                "reference": {
+                  "status": "historical_example",
+                  "value": -2.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_08_BAL_BUF",
+                "guess": -4.5,
+                "lockedIn": true,
+                "points": 7,
+                "reference": {
+                  "status": "historical_example",
+                  "value": -3,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_08_CLE_PIT",
+                "guess": 1.5,
+                "lockedIn": true,
+                "points": 0,
+                "reference": {
+                  "status": "historical_example",
+                  "value": -3.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_08_IND_JAX",
+                "guess": -8,
+                "lockedIn": true,
+                "points": 6,
+                "reference": {
+                  "status": "historical_example",
+                  "value": -10,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_08_LV_NYJ",
+                "guess": -2,
+                "lockedIn": true,
+                "points": 9,
+                "reference": {
+                  "status": "historical_example",
+                  "value": -1.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_08_MIN_DET",
+                "guess": 0,
+                "lockedIn": true,
+                "points": 4,
+                "reference": {
+                  "status": "historical_example",
+                  "value": -3,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_08_TEN_CIN",
+                "guess": -12.5,
+                "lockedIn": true,
+                "points": 8,
+                "reference": {
+                  "status": "historical_example",
+                  "value": -13.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_08_LAC_LA",
+                "guess": -8.5,
+                "lockedIn": true,
+                "points": 6,
+                "reference": {
+                  "status": "historical_example",
+                  "value": -6.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_08_KC_DEN",
+                "guess": -1.5,
+                "lockedIn": true,
+                "points": 10,
+                "reference": {
+                  "status": "historical_example",
+                  "value": -1.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_08_NE_MIA",
+                "guess": 7.5,
+                "lockedIn": true,
+                "points": 9,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 7,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_08_PHI_WAS",
+                "guess": -3.5,
+                "lockedIn": true,
+                "points": 5,
+                "reference": {
+                  "status": "historical_example",
+                  "value": -6,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_08_CHI_SEA",
+                "guess": -4,
+                "lockedIn": true,
+                "points": 8,
+                "reference": {
+                  "status": "historical_example",
+                  "value": -3,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              }
+            ]
+          },
+          {
+            "userId": "visual-example",
+            "mode": "guess_total",
+            "status": "submitted",
+            "eligible": true,
+            "scoreTiming": "example",
+            "weekPoints": 99,
+            "picks": [
+              {
+                "gameId": "2026_08_CAR_GB",
+                "guess": 47,
+                "lockedIn": true,
+                "points": 9,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 47.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_08_ARI_DAL",
+                "guess": 57,
+                "lockedIn": true,
+                "points": 5,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 54.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_08_ATL_TB",
+                "guess": 43,
+                "lockedIn": true,
+                "points": 9,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 42.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_08_BAL_BUF",
+                "guess": 54.5,
+                "lockedIn": true,
+                "points": 10,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 54.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_08_CLE_PIT",
+                "guess": 37,
+                "lockedIn": true,
+                "points": 7,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 38.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_08_IND_JAX",
+                "guess": 46.5,
+                "lockedIn": true,
+                "points": 8,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 45.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_08_LV_NYJ",
+                "guess": 49.5,
+                "lockedIn": true,
+                "points": 4,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 46.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_08_MIN_DET",
+                "guess": 46,
+                "lockedIn": true,
+                "points": 9,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 46.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_08_TEN_CIN",
+                "guess": 48,
+                "lockedIn": true,
+                "points": 5,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 45.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_08_LAC_LA",
+                "guess": 51.5,
+                "lockedIn": true,
+                "points": 0,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 46.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_08_KC_DEN",
+                "guess": 40,
+                "lockedIn": true,
+                "points": 7,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 41.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_08_NE_MIA",
+                "guess": 42.5,
+                "lockedIn": true,
+                "points": 8,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 41.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_08_PHI_WAS",
+                "guess": 41.5,
+                "lockedIn": true,
+                "points": 8,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 40.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              },
+              {
+                "gameId": "2026_08_CHI_SEA",
+                "guess": 46.5,
+                "lockedIn": true,
+                "points": 10,
+                "reference": {
+                  "status": "historical_example",
+                  "value": 46.5,
+                  "source": "nflverse recorded historical closing line",
+                  "rule": "visual_example_only"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "patterns": {
+    "6": [
+      1,
+      2,
+      0,
+      -0.5,
+      1.5,
+      3,
+      -2,
+      0,
+      4,
+      -1.5,
+      2.5,
+      0.5,
+      -3,
+      1
+    ],
+    "7": [
+      0,
+      0.5,
+      -1,
+      2,
+      -0.5,
+      1.5,
+      -2.5,
+      5,
+      -3,
+      0.5,
+      0,
+      1,
+      -1.5,
+      3.5
+    ],
+    "8": [
+      0,
+      0.5,
+      1,
+      -1.5,
+      5,
+      2,
+      -0.5,
+      3,
+      1,
+      -2,
+      0,
+      0.5,
+      2.5,
+      -1
+    ]
+  }
+}
