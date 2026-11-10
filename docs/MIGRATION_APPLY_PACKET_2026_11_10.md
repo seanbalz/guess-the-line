@@ -1,7 +1,10 @@
 # Migration apply packet — November 10, 2026
 
-Owner: Sean Balsiger · Version 1 · prepared from `main` at
-`0944bc2003780aa88b173c6aaf99b746f273cd83` (PR #517 merge).
+Owner: Sean Balsiger · Version 2 · prepared from `main` at
+`0944bc2003780aa88b173c6aaf99b746f273cd83` (PR #517 merge); version 2 (the apply-order
+fixes PR) amends unapplied M-34 so any apply order is safe, adds M-43's boundary probes and
+corrects stale records (contradictions 1, 2, 5, 6 and 7 below), and adds PR #519's
+`20261110160000_gtl_player_props_jobs.sql` as proposed M-46.
 
 Status: **preparation only.** Nothing in this packet has been run against the hosted
 project. Supabase access was unavailable when it was written, so every hosted value
@@ -12,27 +15,31 @@ authorizes no apply, deploy, schedule change, secret or provider call.
 
 ## 1. What is pending
 
-`tests/migrations.mjs` `NOT_HOSTED` lists seven repo migrations. Every other repo
+`tests/migrations.mjs` `NOT_HOSTED` lists eight repo migrations. Every other repo
 migration is in `APPLIED`.
 
 | Ledger | File (repo version) | Bytes | SHA-256 | Replaces | Rollback file | Off switch |
 | --- | --- | ---: | --- | --- | --- | --- |
 | M-33 | `20261029151727_gtl_epl_stat_rechecks.sql` | 9474 | `444394a01579d3c1cb59f5e0a774e418b225f6bc6abddbde76a6cb99c0215ea3` | nothing | none | disable the `snapshot` schedule (rechecks run inside it) |
-| M-34 | `20261029161613_gtl_epl_standings.sql` | 14716 | `8f8fdb5d7cf2a143d5e77b0b1ef3b2e04037ccdf25c8b861348a9939a05c8948` | nothing | none (FIX_FORWARD) | no `standings` row exists; keep it absent/disabled |
+| M-34 | `20261029161613_gtl_epl_standings.sql` | 15669 | `9f8479c764eb2a7fd800740542cf2785db54b53144b32be832a69ef506148b16` | nothing | none (FIX_FORWARD) | no `standings` row exists; keep it absent/disabled |
 | M-35 | `20261029162144_gtl_epl_corrected_draft_order.sql` | 15343 | `329ce872d88f76ed16e133e9d6b38a79c3400541b9c0f3ba567408ec42514baf` | nothing | none | disable `snapshot`/`settle` schedules |
 | **M-42** (proposed) | `20261110100000_gtl_epl_three_way_moneyline.sql` | 43676 | `60118d30f3671eb5386b5e74e5f60ada786fef75c78a93d07e52283dd72a09c4` | 4 bodies (section 4) | none (FIX_FORWARD) | `gtl_epl_three_way_ready()` answers `false` |
 | **M-43** (proposed) | `20261110110000_gtl_epl_score_import.sql` | 24672 | `17f9ad5ac62114d17faefc79f9386ba64b1738515f54ef7f9137ecd40f6d3bb3` | nothing | none needed | do not call the two commissioner routes |
 | **M-44** (proposed) | `20261110120000_gtl_epl_result_announcements.sql` | 15469 | `3b8dc8acb25f92d12b7cbcd310955fb099d6694f050f0af1d48a5bb03139f9f3` | nothing | none (FIX_FORWARD) | disable the `results` schedule row |
 | **M-45** (proposed) | `20261110130000_gtl_player_props.sql` | 30416 | `cde5e2bd40426d42c9118f8a4ace7fce3beaaab26963eddc1d1d75eb63008795` | nothing | none needed | ships dark: `live_lock_in=false`, `GTL_PLAYER_PROPS` unset |
+| **M-46** (proposed) | `20261110160000_gtl_player_props_jobs.sql` | 16309 | `31c1db1e78c96c17effcb967eb534bb3fd01ce1cc9d0ed52af99292426dc946e` | nothing | none needed | jobs stay off: `GTL_PLAYER_PROPS_JOBS` unset, no schedule, dry run by default |
 
-Byte counts and SHA-256 are of the files on `main` at `0944bc20`. Before an apply,
+Byte counts and SHA-256 are of the files on `main` at `0944bc20` (M-46: at `f6a5409c`, PR #519), except M-34, which version 2
+amended before any apply (it was 14716 bytes, `8f8fdb5d7cf2a143d5e77b0b1ef3b2e04037ccdf25c8b861348a9939a05c8948`;
+only its job-constraint statement changed, every function body and md5 is unchanged). Before an apply,
 recompute them from the exact merged SHA you apply from (`wc -c`, `sha256sum`).
 
 **Proposed ledger ids.** The [migration ledger](REDESIGN_BUILD_PLAN.md#6-migration-ledger)
 ends at M-40. **M-41 is already taken** by open PR #497 (custom Virtual Units stakes,
 `20261108022135_gtl_virtual_units_hundredths.sql`, not merged, not on `main`, not in
-`NOT_HOSTED`). The next free ids, in filename order, are therefore M-42 to M-45. They are
-**proposed**: none of the four authors assigned an id, and the ledger rows are not
+`NOT_HOSTED`). The next free ids, in filename order, are therefore M-42 to M-45, and M-46
+for PR #519's jobs file (added in version 2). They are
+**proposed**: none of the five authors assigned an id, and the ledger rows are not
 written yet. Use them in Sean's apply phrases only after he accepts them; until then
 name the file version as well (section 9).
 
@@ -62,16 +69,25 @@ M-43 calls `gtl_epl_advance_queues`.
    `23514`, the transaction rolls back) or silently stops accepting `results` (if no row
    exists yet), which breaks `supabase/admin/epl_results_cron.sql` and any future
    re-insert. PR #512 asked that a later file include `results`; M-34 is an *earlier*
-   file and does not. **If M-34 is deferred past M-44, do not apply M-34 as written:** it
-   needs a new migration (or an amended M-34 before merge-to-apply) whose constraint
-   includes `results`.
+   file and did not. **Resolved in version 2:** M-34 is unapplied, so it was amended in
+   place (no fix-forward file needed; it stays in `NOT_HOSTED` and `FIX_FORWARD`). Its
+   constraint statement is now an order-safe widening: the new check is M-34's own list
+   plus `results` plus every job the existing constraint already accepts, so applying it
+   before or after M-44 (or after any later file that adds a job) never narrows admission
+   and never fails over a saved row. `tests/epl-apply-order-sql.test.mjs` applies M-42..M-45
+   then M-33/M-34/M-35 (with and without a saved `results` row), filename order, a re-run of
+   M-34 and a synthetic later job, and asserts `results` is still accepted in every case.
+   M-34's function bodies and md5s are unchanged; its size and SHA-256 changed (section 1).
 2. **M-43 score import has no boundary probes.** M-43 adds four service-only tables and
    three RPCs (`gtl_epl_score_import_head`, `gtl_epl_import_weekly_scores`,
    `gtl_epl_score_import_state`) and two routes (`epl/admin/scores/read`,
    `epl/admin/scores/import`). None is in any `scripts/boundary/*.mjs` file, although
    Gate 4.1 requires every new RPC in its area's boundary file with `awaitingDeploy`.
-   The signed-out checker therefore cannot prove they are denied. Add the probes in the
-   apply-record PR (or before), as for M-38.
+   **Resolved in version 2:** `scripts/boundary/epl-score-import.mjs` (joined by
+   `league.mjs`) probes the four tables, three RPCs and both routes signed out with inert
+   fixtures, all `awaitingDeploy` until `20261110110000` is applied and a compatible
+   `gtl-api` is deployed (`tests/epl-score-import-boundary.test.mjs`). The apply record
+   removes the table/RPC entries; the route entries leave with the `gtl-api` deploy.
 3. **EPL `nudge`/`fixtures` enabled state disagrees.** PR #515 says "enabling the `nudge`
    and `fixtures` schedules" is still hosted work. The October 29 records
    (`RELEASE_2026_10_29_NBA_EPL.md`, the register's EPL row) say the five original jobs
@@ -79,15 +95,38 @@ M-43 calls `gtl_epl_advance_queues`.
    read it in P0 before claiming either.
 4. **Ledger M-33 dependency text.** The ledger says M-33 applies after M-31; the file
    header says after M-32. Both are hosted, so this does not change the order.
-5. **Ledger M-40 row is stale.** It still says "independent of pending … M-39"; M-39
-   has been hosted since November 3 (`20261103233404`).
+5. **Ledger M-40 row was stale.** It said "independent of pending … M-39"; M-39
+   has been hosted since November 3 (`20261103233404`). Corrected in version 2.
 6. **`docs/SHARED_DEPLOYMENT.md` is stale on `epl-jobs`.** It says `epl-jobs` is "covered by
    local tests only until their first runs", but `RELEASE_2026_10_29_EPL_MONEYLINE.md` records a
-   protected `epl-jobs` deploy (run 40937265809, worker v3).
-7. **M-35 and M-43 interact.** PR #515 notes that M-35's recheck reorder could later
-   rewrite an untouched next-week order that a confirmed import opened. M-35 also
-   intentionally pauses automatic finals/next-week opening without verified interval
-   evidence ([operator prerequisite](EPL_FINALIZATION_ORDER_2026_10_29.md)).
+   protected `epl-jobs` deploy (run 40937265809, worker v3). Corrected in version 2 (with
+   `fantasy-ingest`'s October 28 run 40699619045, v1, from `RELEASE_2026_10_28_D59_TRENDS.md`).
+7. **M-35 and M-43 interact at run time, not at apply time.** Checked in version 2: the
+   eight files replace no one another's function and alter no shared column (M-46 only
+   calls M-45's `gtl_props_ready`/`gtl_props_append_only` and adds triggers on its own tables); the only shared DDL is
+   the job constraint (contradiction 1, now order-safe). Every M-35/M-43 table and
+   function applies in either order (the batch-order test applies M-35 after M-43). The
+   remaining interaction is a precedence rule, the same in every apply order:
+   - Both writers set `gtl_epl_weeks.pick_order` of week *n+1* under that row's lock and
+     only while it is untouched: M-43's `gtl_epl_import_weekly_scores` while it is `open`,
+     before `first_kickoff` and without a pick; M-35's `gtl_epl_apply_recheck_orders` (run
+     by the `snapshot` job) while it is `open`, without a pick, before `first_kickoff` and
+     before the admitted capture-interval cutoff, and only for a week *n* that is
+     `settled` and has a changed-score `needs_review` M-33 recheck.
+   - So a Tuesday recheck can replace an order that a confirmed commissioner import
+     opened, and a later import (or correction import) can replace an order a recheck
+     applied: the last writer wins. Each side records it append-only
+     (`gtl_epl_order_corrections.previous_order`, `gtl_epl_score_import_openings`), so
+     nothing is lost (D-23), but the commissioner's reviewed order is not protected.
+   - No guard was added: deciding which source wins (reviewed screenshot totals or the
+     Sleeper correction recheck) is Sean's rule, and a guard would need a new M-35 outcome
+     value and a changed M-35 body. Until he rules, keep Tuesday correction rechecks
+     undispatched after an import (the packet already says not to dispatch them on M-33
+     alone), or apply M-33/M-35 only after that rule is written.
+   - M-35 also intentionally pauses automatic finals/next-week opening without verified
+     interval evidence ([operator prerequisite](EPL_FINALIZATION_ORDER_2026_10_29.md));
+     M-43's import opening does not read capture intervals, so it still opens the next
+     week while automatic opening is paused.
 
 ## 2. Apply order
 
@@ -96,12 +135,13 @@ Dependencies (file headers, ledger and the PR bodies):
 | Migration | Needs (hosted unless marked) | Must come before |
 | --- | --- | --- |
 | M-33 | M-31, M-32 | M-34 (ledger), M-35 (`REQUIRES`) |
-| M-34 | **M-33 (pending)** | **M-44** (constraint, contradiction 1) |
+| M-34 | **M-33 (pending)** | — (order-safe against M-44 since version 2) |
 | M-35 | **M-33 (pending)**; operator interval prerequisite | — |
 | M-42 | M-30, M-31, M-32, M-36 | — |
 | M-43 | M-30, M-40 | — |
 | M-44 | M-30, M-36 | — |
-| M-45 | none | — |
+| M-45 | none | M-46 (`REQUIRES`) |
+| M-46 | **M-45 (pending)** | — |
 
 A topological order that is also filename order (Gate M step 1):
 
@@ -112,15 +152,15 @@ A topological order that is also filename order (Gate M step 1):
 5. **M-43** `20261110110000`
 6. **M-44** `20261110120000`
 7. **M-45** `20261110130000`
+8. **M-46** `20261110160000`
 
-**Recommended batch when Supabase is back:** M-42, M-43, M-44, M-45 in that order.
-None of them reads M-33/M-34/M-35. M-33 to M-35 have their own unresolved operator
+**Recommended batch when Supabase is back:** M-42, M-43, M-44, M-45, M-46 in that order
+(M-46 only after M-45). None of them reads M-33/M-34/M-35. M-33 to M-35 have their own unresolved operator
 prerequisites (M-35's interval evidence, M-33 "not safe correction enablement" alone)
 and have been held since October 29. Deferring them is allowed ("a merged file Sean
-chose not to apply stays in NOT_HOSTED"), **but** deferring M-34 past M-44 makes M-34
-unappliable as written (contradiction 1). If Sean wants standings later, either apply
-M-33 then M-34 **before** M-44, or plan a replacement standings migration that keeps
-`results`.
+chose not to apply stays in NOT_HOSTED"). Since version 2, deferring M-34 past M-44 is
+safe: amended M-34 keeps `results` and every other accepted job (contradiction 1). M-35
+after M-43 still carries the run-time precedence question in contradiction 7.
 
 Each apply is its own transaction and its own "apply M-xx". After a timeout, rerun that
 migration's preflight before any retry (Gate M step 6).
@@ -218,7 +258,7 @@ from public.gtl_virtual_units_settlements s;
 rollback;
 ```
 
-None of the seven migrations reads or writes ballots, picks or settlements, so these
+None of the eight migrations reads or writes ballots, picks or settlements, so these
 must be unchanged.
 
 ### P2. Preservation hash template (read-only)
@@ -299,9 +339,9 @@ order by 1;
 ### M-34 `20261029161613_gtl_epl_standings`
 
 - **Purpose:** private append-only dated community standings and immutable per-draft
-  usage; widens the EPL job constraint to `standings` and `moneyline` (already hosted via
-  M-36's identical eight-job list).
-- **Needs:** M-33 applied first. **Must precede M-44** (contradiction 1).
+  usage; widens the EPL job constraint to `standings`, `moneyline` and `results` while
+  keeping every job the existing constraint accepts (version 2, contradiction 1).
+- **Needs:** M-33 applied first. Before or after M-44 (order-safe since version 2).
 - **Replaces:** nothing. New: `gtl_epl_standings_valid` `4fd8358341921c4e2ebc40151137a17a`,
   `gtl_epl_standings_state` `8dfadc9664f88a211f8bda1dcdb6894a`, `gtl_epl_save_standings`
   `bb520694634f6d34ca997ccc178af63f`, `gtl_epl_resolve_with_standings`
@@ -311,13 +351,13 @@ order by 1;
 - **Preflight:** tables `gtl_epl_standings`, `gtl_epl_standings_usage` absent; M-33 history
   row present; and no schedule row outside the new list:
   ```sql
-  select job from public.gtl_epl_jobs_schedule
-  where job not in ('snapshot','fixtures','resolve','settle','nudge','dnb-check','standings','moneyline');  -- 0 rows, else STOP
   select pg_get_constraintdef(oid) from pg_constraint where conname='gtl_epl_jobs_schedule_job_check';
-  -- must NOT already contain 'results' (if it does, M-44 is applied: STOP, contradiction 1)
+  -- record it: M-36's eight jobs, or nine with 'results' if M-44 is applied; either is fine
+  select job from public.gtl_epl_jobs_schedule order by job;   -- record; every row stays admitted
   ```
   P2 on `gtl_epl_jobs_schedule`, `gtl_epl_weeks`.
-- **Verify:** P3 (5 functions, 2 tables); constraint text equals the eight-job list; P2 and
+- **Verify:** P3 (5 functions, 2 tables); the constraint lists the nine jobs
+  `snapshot…moneyline`, `results` plus any other job the preflight readback listed; P2 and
   P1 unchanged; no `standings` schedule row.
 - **Off switch:** no `standings` row is created; leave it absent or disabled. Fix-forward;
   never narrow the constraint over saved rows.
@@ -471,7 +511,9 @@ order by 1;
   Commissioner tools screen. The first-turn push uses the existing `nudge` job and needs
   next-week fixtures from `fixtures`: read their state in P0 (contradiction 3) and enable
   only on Sean's word.
-- **Follow-up:** add the missing boundary probes (contradiction 2). Real-screenshot OCR
+- **Follow-up:** the boundary probes exist since version 2 (contradiction 2); the apply
+  record removes the table/RPC `awaitingDeploy` entries in `scripts/boundary/epl-score-import.mjs`
+  and the route entries leave with the compatible `gtl-api` deploy. Real-screenshot OCR
   acceptance on a phone is still open.
 
 ### M-44 (proposed) `20261110120000_gtl_epl_result_announcements`
@@ -481,7 +523,7 @@ order by 1;
   push, and the bounded `results` read job (≤ 4 × 2 credits a matchweek, shared 50-credit
   reserve).
 - **Needs:** hosted M-30 and M-36, plus hosted `gtl_push_subscriptions` and
-  `gtl_odds_budget`. **After M-34 if M-34 is ever applied as written** (contradiction 1).
+  `gtl_odds_budget`. Before or after M-34 (order-safe since version 2, contradiction 1).
 - **Replaces:** nothing. New: `gtl_epl_results_state` `be4e248a31fdc0b3c2f1ef93088d4953`,
   `gtl_epl_reserve_final_result_read` `835c96c43f96d5bdc82a8047ee2b8fdd`,
   `gtl_epl_record_result_announcement` `4cb4c7c9254f8b8c92c98ad7cb3edc2f`. Calls hosted
@@ -562,6 +604,72 @@ order by 1;
   `scripts/boundary/guess.mjs`; the four `gtl-api/props/*` route entries stay awaiting
   while the flag is off.
 
+### M-46 (proposed) `20261110160000_gtl_player_props_jobs`
+
+- **Purpose:** D-82 Player Props jobs audit trail (PR #519): two append-only, service-only
+  tables for the `offers` and `results` jobs (`cloud/player-prop-jobs.mjs`,
+  `scripts/player-props-jobs.mjs`): `gtl_prop_offer_reviews` (every offer candidate the
+  offer job evaluated from already retained research quotes, eligible or not, with
+  reasons) and `gtl_prop_result_checks` (every nflverse result observation, ungraded ones
+  and correction evidence included). Neither holds a guess, draft, member or price.
+  Additive only; creates no schedule and enables nothing.
+- **Needs:** M-45 applied and verified first (`REQUIRES` in `tests/migrations.mjs`: its
+  foreign keys name `gtl_prop_references` and `gtl_prop_offers`, its triggers use
+  `gtl_props_append_only` and its capability calls `gtl_props_ready`). Independent of every
+  EPL migration.
+- **Replaces:** nothing. New (md5 after apply, PGlite on the merged file):
+  `gtl_props_jobs_capability` `4598d0b428af93c14a584614eee11bef`, `gtl_props_record_review`
+  `971547e9d89990e33b950c625a27b599`, `gtl_props_record_check`
+  `f0dcb5bf4f090d83219e5a1929f67e43`, `gtl_props_jobs_state`
+  `d80325082b2dbea7b512776a5fb2ec24`. Calls M-45's `gtl_props_ready`
+  `cb7f6499d304e26c4728306c461bce2e` and `gtl_props_append_only`
+  `f5e872cf2f7e4545a6eb44557c8ae3cf`.
+- **Preflight:**
+  ```sql
+  begin transaction read only;
+  select to_regclass('public.gtl_prop_offer_reviews'), to_regclass('public.gtl_prop_result_checks');  -- both null
+  select to_regprocedure('public.gtl_props_jobs_capability()'), to_regprocedure('public.gtl_props_jobs_state(integer,integer)');  -- both null
+  select proname, md5(prosrc) from pg_proc where pronamespace='public'::regnamespace
+   and proname in ('gtl_props_ready','gtl_props_append_only') order by 1;   -- 2 rows, M-45's md5s above
+  select to_regclass('public.gtl_prop_offers'), to_regclass('public.gtl_prop_references'),
+         to_regclass('public.gtl_prop_results');                                 -- all present (M-45 applied)
+  select live_lock_in from public.gtl_prop_capability;                           -- one row, false
+  rollback;
+  ```
+  P1 only (no existing table is touched); also record the M-45 table counts
+  (`select count(*)` on the six `gtl_prop%` tables) before and after.
+- **Apply:** as section 3 (Supabase MCP `apply_migration` name `gtl_player_props_jobs`, or
+  the SQL editor), the exact merged file once, its own transaction and its own "apply M-46".
+- **Verify:** P3 (4 functions, service-only execute; 2 tables, RLS on, service
+  select/insert only, no update/delete); triggers present:
+  `select tgname from pg_trigger where tgrelid::regclass::text like 'gtl_prop%' and not tgisinternal order by 1`
+  (7 rows: M-45's five plus `gtl_prop_offer_reviews_append_only`,
+  `gtl_prop_result_checks_append_only`); zero rows in both new tables; the six M-45 table
+  counts unchanged; `gtl_prop_capability.live_lock_in` still exactly one `false`; P1
+  identical. `select public.gtl_props_jobs_capability()` as service answers
+  `{"jobs": true, "ready": false}`.
+- **Off switch:** it is off. Nothing writes these tables until an operator runs the manual
+  workflow with `write`. The workflow has no schedule and does nothing unless the
+  repository variable `GTL_PLAYER_PROPS_JOBS` is `on`; without the schema the jobs are a
+  no-op (`schema_unavailable`). To stop after enabling: unset `GTL_PLAYER_PROPS_JOBS`
+  (the variable) and, if needed, remove the two secrets. Rows stay (D-23).
+- **Deploys:** none. No Edge Function or Pages deploy; no route.
+- **Enabling (each a separate word from Sean, after the apply, in this order):**
+  1. The apply leaves the repository secrets `GTL_PROPS_SUPABASE_URL` and
+     `GTL_PROPS_SERVICE_ROLE_KEY` **unset** and the repository variable
+     `GTL_PLAYER_PROPS_JOBS` **unset**. Adding the two secrets and setting the variable to
+     `on` is its own approval.
+  2. Research intake must already retain prop quotes for the week under its existing
+     authorization; these jobs never call an odds provider or reserve credits.
+  3. A **dry run** of each job (`write` false, the default): `offers` then `results` for one
+     season/week, with the summary artifact (counts and reason names only) reviewed.
+  4. Only then write runs, with `record_while_dark` while `live_lock_in` is false, until the
+     readiness audit passes and a reviewed SQL change sets `live_lock_in`. A cron schedule
+     is a separate reviewed change. See
+     [the readiness record](PLAYER_PROPS_READINESS_2026_11_09.md#offer-and-result-jobs--november-10-2026).
+- **Follow-up:** the apply record removes the two table and four RPC `awaitingDeploy`
+  entries (`PROP_JOBS_MIGRATION`) in `scripts/boundary/guess.mjs`; none is a route.
+
 ## 5. Deploy state of the code these migrations go with
 
 | Item | State at time of writing |
@@ -570,7 +678,8 @@ order by 1;
 | PRs #512–#515 (+ test-only #516) | In api-and-frontend run 42744392202 from `2d54ae7b`, **waiting for approval**. |
 | PR #517 (fantasy defense) | Merged `0944bc20`; frontend not deployed; data arrives with the next scheduled Fantasy refresh. |
 | `gtl-epl-jobs` | Last recorded v3 (October 29, `epl-jobs` deploy run 40937265809 from `d891291c`). M-42's timed three-way collection and M-44's `results` job need a new `epl-jobs` deploy. |
-| Migrations M-33…M-35, M-42…M-45 | **Not applied.** |
+| PR #519 (Player Props jobs) | Merged `f6a5409c`. No Edge Function or Pages deploy is needed; the manual `player-props-jobs.yml` workflow runs only from `main` with `GTL_PLAYER_PROPS_JOBS=on` (unset). |
+| Migrations M-33…M-35, M-42…M-46 | **Not applied.** |
 
 Gate D order for these: compatible `gtl-api`/Pages first (run 42744392202), worker
 (`epl-jobs`), then the SQL applies, then admin schedule rows. All new API code detects an
@@ -578,10 +687,14 @@ absent schema (PGRST202) and stays on the legacy path.
 
 ## 6. Things not to do
 
-- Do not apply M-34 after M-44 as written (contradiction 1).
+- Do not apply the version 1 text of M-34 (`8f8fdb5d…`) after M-44; apply only the amended
+  file from a merged SHA at or after version 2 (contradiction 1).
 - Do not enable `results`, `nudge`, `fixtures`, `standings` or Tuesday rechecks as part of
   an apply; each is its own word from Sean.
 - Do not set `GTL_PLAYER_PROPS`, `VITE_GTL_PLAYER_PROPS` or `live_lock_in`.
+- Do not add the `GTL_PROPS_SUPABASE_URL`/`GTL_PROPS_SERVICE_ROLE_KEY` secrets, set
+  `GTL_PLAYER_PROPS_JOBS`, add a schedule to `player-props-jobs.yml` or run it with `write`
+  as part of the M-46 apply.
 - Do not submit real picks, guesses or imports to manufacture acceptance.
 - Do not `db push`, drop, delete or truncate anything (D-23).
 
@@ -704,12 +817,16 @@ Recommended batch (section 2):
    "Enable results".
 7. "apply M-45" (`20261110130000`, Player Props, stays dark). Not followed by any
    `GTL_PLAYER_PROPS` or `live_lock_in` change.
+8. "apply M-46" (`20261110160000`, Player Props jobs audit tables), only after M-45's
+   verification. Not followed by any secret, variable, schedule or write run; those are
+   the separate enabling words in M-46's section.
 
-Only if Sean also wants the October 29 EPL corrections/standings, **before step 5**:
+Only if Sean also wants the October 29 EPL corrections/standings (any time after the batch
+or before it; see contradiction 7 for M-35 after an import):
 
 - "apply M-33" (`20261029151727`)
-- "apply M-34" (`20261029161613`), only before M-44
+- "apply M-34" (`20261029161613`), the amended file, before or after M-44
 - "apply M-35" (`20261029162144`), only after the operator interval prerequisite is reviewed
 
 Full filename order if everything goes: apply M-33, apply M-34, apply M-35, apply M-42,
-apply M-43, apply M-44, apply M-45.
+apply M-43, apply M-44, apply M-45, apply M-46.
