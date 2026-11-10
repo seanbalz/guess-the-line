@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { createHash, randomUUID } from 'node:crypto';
-import { HOSTED } from './migrations.mjs';
+import { HOSTED, without } from './migrations.mjs';
 import { ACCOUNTS, createCommunityWorld, pgliteAvailable, storeBookLines } from './cloud-browser/community-world.mjs';
 import { sendBallot, serviceSql } from './helpers/guess-week.mjs';
 import { readVirtualUnitRules } from '../cloud/virtual-unit-rules.mjs';
@@ -28,7 +28,9 @@ test('M-41 capabilities fail closed; only the explicit known version enables cus
 });
 
 async function fixture(t) {
-  const world = await createCommunityWorld({ migrations: HOSTED, games: 2, troyBallots: false, groupScreens: true, virtualUnits: true, optionalRpc: true });
+  // The upgrade and rollback contract starts from the schema just before M-41. M-41 is hosted since November 10, 2026
+  // (RELEASE_2026_11_10_MIGRATIONS_M41_M47.md), so it is left out here and each test applies it itself.
+  const world = await createCommunityWorld({ migrations: without(HOSTED, '20261108022135_gtl_virtual_units_hundredths.sql'), games: 2, troyBallots: false, groupScreens: true, virtualUnits: true, optionalRpc: true });
   t.after(() => world.db.close());
   const { db, state } = world, { season, week } = state.league, [g0, g1] = state.games.map(g => g.id);
   const lines = { spread: { [g0]: -3.5, [g1]: 6.5 }, total: { [g0]: 44.5, [g1]: 51.5 } };

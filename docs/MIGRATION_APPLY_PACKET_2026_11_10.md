@@ -7,7 +7,9 @@ corrects stale records (contradictions 1, 2, 5, 6 and 7 below), and adds PR #519
 `20261110160000_gtl_player_props_jobs.sql` as proposed M-46. Version 3 adds PR #522's
 `20261110180000_gtl_player_props_shared.sql` (merge `1ba75282`) as proposed M-47.
 
-Status: **preparation only.** Nothing in this packet has been run against the hosted
+Status, November 10, 20:43 UTC: **M-41 to M-47 applied and verified** (hosted `20261110203637` to `20261110204307`; [apply record](RELEASE_2026_11_10_MIGRATIONS_M41_M47.md)). M-33, M-34 and M-35 remain unapplied. The rest of this packet is the preparation as written.
+
+Original status: **preparation only.** Nothing in this packet has been run against the hosted
 project. Supabase access was unavailable when it was written, so every hosted value
 below is the **last recorded** value, not a fresh observation. Each apply still needs
 Sean's named "apply M-xx", a fresh read-only preflight and the full

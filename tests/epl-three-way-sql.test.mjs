@@ -61,8 +61,9 @@ async function setup(t, { before } = {}) {
   return { db, call, legacy, save, board, legacyBoard, row, collection, dnbCollection, gate, enable, remaining, kickoff };
 }
 
-test('pending source-only migration: builds only on hosted EPL moneyline files and is fix-forward', () => {
-  assert.ok(NOT_HOSTED.includes(VERSION)); assert.ok(!APPLIED.includes(VERSION)); assert.ok(FIX_FORWARD.includes(VERSION));
+test('M-42 migration: hosted since the November 10 apply, builds only on hosted EPL moneyline files and is fix-forward', () => {
+  // Hosted as 20261110203759 on November 10, 2026 (RELEASE_2026_11_10_MIGRATIONS_M41_M47.md).
+  assert.ok(!NOT_HOSTED.includes(VERSION)); assert.ok(APPLIED.includes(VERSION)); assert.ok(FIX_FORWARD.includes(VERSION));
   assert.equal(REQUIRES[VERSION], undefined);
   for (const hosted of [20261028190000, 20261029060000, 20261029150000, 20261029165947]) assert.ok(APPLIED.includes(hosted));
   const sql = fs.readFileSync(FILE, 'utf8');

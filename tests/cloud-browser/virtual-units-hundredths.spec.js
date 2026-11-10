@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import fs from 'node:fs';
-import { ALL, HOSTED } from '../migrations.mjs';
+import { ALL, HOSTED, without } from '../migrations.mjs';
 import { communityWorld, pgliteAvailable, signIn, sendBallot, storeBookLines, SUPABASE } from './community-world.mjs';
 import { layoutProblems } from '../helpers/phone-layout.mjs';
 import { setNativeActionTheme } from '../helpers/native-action-theme.mjs';
@@ -21,8 +21,12 @@ async function open(page, baseURL, migrations) {
   return { world, slip:page.getByRole('dialog',{name:'Your slip'}) };
 }
 
+// The schema just before M-41. M-41 is hosted since November 10, 2026 (RELEASE_2026_11_10_MIGRATIONS_M41_M47.md), so the
+// old-schema case leaves it out; a rolled-back or pre-apply project must still show only half-unit controls.
+const BEFORE_M41 = without(HOSTED, '20261108022135_gtl_virtual_units_hundredths.sql');
+
 test('old schema exposes only supported half-unit controls', async ({page,baseURL}) => {
-  const {world,slip} = await open(page,baseURL,HOSTED);
+  const {world,slip} = await open(page,baseURL,BEFORE_M41);
   try {
     await expect(slip.getByRole('spinbutton')).toHaveCount(0);
     await slip.getByRole('button',{name:'0.5 units',exact:true}).click();
