@@ -2,7 +2,7 @@
 import './epl.css';
 import { useCallback } from 'react';
 import { useShell } from '../shell/context.js';
-import { Icon, Segmented } from '../ui/index.js';
+import { Segmented } from '../ui/index.js';
 import { eplApi } from './api.js';
 import { EPL_SECTIONS } from './route.js';
 import { EplHome } from './EplHome.jsx';
@@ -10,6 +10,7 @@ import { PickATeam } from './PickATeam.jsx';
 import { EplFantasy } from './fantasy/EplFantasy.jsx';
 import EplGuess from './guess/EplGuess.jsx';
 import EplGuessLeaderboard from './guess/EplGuessLeaderboard.jsx';
+import EplBetsRecommendations from './bets/EplBets.jsx';
 import './prism-epl.css';
 
 export const EPL_COPY = Object.freeze({
@@ -17,7 +18,6 @@ export const EPL_COPY = Object.freeze({
   skip: 'Skip to main content',
   tabs: { home: 'Home', play: 'Play', bets: 'Bets', research: 'Research' },
   sections: { pick: 'Pick a Team', guess: 'Guess the Line', leaderboard: 'Leaderboard', fantasy: 'Fantasy' },
-  noBets: "Bets aren't available for the Premier League.",
 });
 
 export function EplScreen() {
@@ -30,7 +30,7 @@ export function EplScreen() {
 /** Sport content only; header, profile, menus, offline state and tab bar are all Shell's. */
 export function EplView({ route, onRoute, api = eplApi, accountId, onDirtyChange }) {
   return route.tab === 'play' ? <EplPlay route={route} onRoute={onRoute} api={api} accountId={accountId} onDirtyChange={onDirtyChange}/>
-    : route.tab === 'bets' ? <EplBets/>
+    : route.tab === 'bets' ? <EplBets api={api} accountId={accountId}/>
     : route.tab === 'research' ? <EplResearch api={api}/>
     : <EplHome key={accountId} accountId={accountId} api={api} onOpenPick={() => onRoute({ tab: 'play', section: 'pick' })}
       onOpenGuess={() => onRoute({ tab: 'play', section: 'guess' })}/>;
@@ -55,9 +55,9 @@ function EplResearch({ api }) {
   </div>;
 }
 
-function EplBets() {
-  return <div className="gx-screen">
+function EplBets({ api, accountId }) {
+  return <div className="gx-screen" data-epl-section="bets">
     <h1 className="gx-t-title">{EPL_COPY.tabs.bets}</h1>
-    <section className="gx-empty gx-epl-shell-notice"><Icon icon="ticket" size={32} aria-hidden="true"/><p className="gx-t-body">{EPL_COPY.noBets}</p></section>
+    <EplBetsRecommendations key={accountId} api={api} accountId={accountId}/>
   </div>;
 }

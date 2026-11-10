@@ -2,7 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } fro
 import { Button, Card, Skeleton } from '../../ui/index.js';
 import { useSportGuard } from '../../../sportNavigation.js';
 import { eplApi } from '../api.js';
-import { createGuessController, guessProblem, isClosed, ownGuess } from './guessModel.js';
+import { boardMarkets, createGuessController, guessMarket, guessProblem, isClosed, ownGuess } from './guessModel.js';
 import GuessCard from './GuessCard.jsx';
 import './guess.css';
 import { Crest } from '../DraftBoard.jsx';
@@ -24,9 +24,9 @@ export function GuessList({ state, now, selected, onSelect, onEdit, onSave, onRe
     {state.status === 'stale' ? <p className="gx-t-body" role="status">Saved data could not be refreshed. Entry is paused until saved guesses load.</p> : null}
     {state.notice ? <p className="gx-t-body" role="status">{state.notice}</p> : null}
     <Button variant="secondary" disabled={state.busy} onClick={onReload}>{state.busy ? 'Loading saved guesses…' : state.uncertain ? 'Check saved guesses' : 'Refresh saved guesses'}</Button>
-    <Card><p className="gx-t-strong">{locked} of {ordered.length} locked</p><div className="gx-epl-guess-progress" role="img" aria-label={`${locked} of ${ordered.length} matches locked`}>{ordered.map(f => <i key={f.eventId} className={ownGuess(data, f.eventId)?.status === 'locked' ? 'gx-epl-guess-dot--locked' : undefined}/>)}</div><p className="gx-t-body">2-way moneyline · draw = push</p></Card>
+    <Card><p className="gx-t-strong">{locked} of {ordered.length} locked</p><div className="gx-epl-guess-progress" role="img" aria-label={`${locked} of ${ordered.length} matches locked`}>{ordered.map(f => <i key={f.eventId} className={ownGuess(data, f.eventId)?.status === 'locked' ? 'gx-epl-guess-dot--locked' : undefined}/>)}</div><p className="gx-t-body">{boardMarkets(data).includes('three_way') ? 'Draw no bet (draw = push) or 3-way (home, draw, away) · one guess per match' : '2-way moneyline · draw = push'}</p></Card>
     {hero && data.available && data.ownerId ? <GuessCard key={hero.eventId} id={`${id}-hero`} hero fixture={hero} data={data} saved={ownGuess(data, hero.eventId)} now={now}
-      draft={{ club: ownGuess(data, hero.eventId)?.club ?? '', price: String(ownGuess(data, hero.eventId)?.price ?? '+100'), ...state.drafts[hero.eventId] }}
+      draft={{ market: guessMarket(ownGuess(data, hero.eventId)), club: ownGuess(data, hero.eventId)?.club ?? '', outcome: ownGuess(data, hero.eventId)?.outcome ?? '', price: String(ownGuess(data, hero.eventId)?.price ?? '+100'), ...state.drafts[hero.eventId] }}
       busy={state.busy || state.uncertain || state.status !== 'ready'} pending={state.busy} onEdit={patch => onEdit(hero.eventId, patch)} onSave={lock => onSave(hero.eventId, lock)}/> : null}
     {open.length > 1 && data.available && data.ownerId ? <Card><h3 className="gx-t-section">Other matches</h3><ul className="gx-epl-guess-later">{open.filter(f => f !== hero).map(f => <li key={f.eventId}><Button block disabled={state.busy || state.uncertain} onClick={() => onSelect(f.eventId)}><span className="gx-epl-next-match"><Crest code={f.away}/><span>{clubName(f.away)}<small>at {clubName(f.home)}</small></span><Crest code={f.home}/></span>{state.drafts[f.eventId] ? ' · unsaved draft' : ownGuess(data, f.eventId) ? ' · draft saved' : ''}</Button></li>)}</ul></Card> : null}
     {ordered.filter(f => f !== hero || !data.available || !data.ownerId).filter(f => !data.ownerId || !data.available || ownGuess(data, f.eventId)?.status === 'locked' || isClosed(f, now)).map((f, index) => <GuessCard key={f.eventId} id={`${id}-result-${index}`} fixture={f} data={data} now={now} saved={ownGuess(data, f.eventId)} draft={{ ...state.drafts[f.eventId], local: Boolean(state.drafts[f.eventId]) }}/>) }

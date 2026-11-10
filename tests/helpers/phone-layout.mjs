@@ -79,3 +79,12 @@ export function layoutProblems() {
   }
   return [...new Set(out)];
 }
+
+// Resolves once every finite animation and transition in the page has finished, for `page.evaluate(animationsSettled)`
+// before `layoutProblems`: the checks above judge the resting layout, and a layer's entrance moves its card a few px
+// for a moment (D-66/D-69 4.3: a restored parent settles from 4 px up, briefly under its lip). Endless animations are
+// left running. The same wait as tests/cloud-browser/next-features.spec.js and next-research-layers.spec.js.
+export function animationsSettled() {
+  return Promise.all(document.getAnimations().filter(a => a.playState === 'running' && Number.isFinite(a.effect?.getComputedTiming().endTime))
+    .map(a => a.finished.catch(() => {}))).then(() => undefined);
+}

@@ -90,8 +90,8 @@ test('real adapter narrowly maps save numeric overflow and injects lock hook; ot
  await assert.rejects(adapter.epl.rpc('gtl_epl_guess_board',{}),e=>!e.code);
 });
 test('service reads only fixed week/fixture metadata and canonical exact-week boolean gate',async()=>{
- const requests=[];const service=createEplService({rpc:async(name,args)=>{requests.push([name,args]);return true;},rest:async(table,q)=>{requests.push([table,q]);return {event_id:'e1',season:2026,week:9};},rows:async(table,q,max)=>{requests.push([table,q,max]);return [{season:2026,week:9}];}});
- assert.deepEqual(await service.guessWeeks(),[{season:2026,week:9}]);assert.equal(await service.guessReady(),true);assert.equal(await service.guessGate(2026,9),true);assert.deepEqual(await service.guessFixture('e1'),{season:2026,week:9});
+ const requests=[];const service=createEplService({rpc:async(name,args)=>{requests.push([name,args]);return true;},rest:async(table,q)=>{requests.push([table,q]);return {event_id:'e1',season:2026,week:9,home:'ARS',away:'CHE'};},rows:async(table,q,max)=>{requests.push([table,q,max]);return [{season:2026,week:9}];}});
+ assert.deepEqual(await service.guessWeeks(),[{season:2026,week:9}]);assert.equal(await service.guessReady(),true);assert.equal(await service.guessGate(2026,9),true);assert.deepEqual(await service.guessFixture('e1'),{season:2026,week:9,home:'ARS',away:'CHE'});
  assert.deepEqual(requests.find(r=>r[0]==='gtl_epl_moneyline_gate'),['gtl_epl_moneyline_gate',{p_season:2026,p_week:9}]);assert.ok(!JSON.stringify(requests).includes('gtl_epl_prices'));assert.ok(!JSON.stringify(requests).includes('gtl_epl_job_runs'));
 });
 
