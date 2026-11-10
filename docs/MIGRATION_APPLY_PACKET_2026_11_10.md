@@ -1,10 +1,11 @@
 # Migration apply packet — November 10, 2026
 
-Owner: Sean Balsiger · Version 2 · prepared from `main` at
+Owner: Sean Balsiger · Version 3 · prepared from `main` at
 `0944bc2003780aa88b173c6aaf99b746f273cd83` (PR #517 merge); version 2 (the apply-order
 fixes PR) amends unapplied M-34 so any apply order is safe, adds M-43's boundary probes and
 corrects stale records (contradictions 1, 2, 5, 6 and 7 below), and adds PR #519's
-`20261110160000_gtl_player_props_jobs.sql` as proposed M-46.
+`20261110160000_gtl_player_props_jobs.sql` as proposed M-46. Version 3 adds PR #522's
+`20261110180000_gtl_player_props_shared.sql` (merge `1ba75282`) as proposed M-47.
 
 Status: **preparation only.** Nothing in this packet has been run against the hosted
 project. Supabase access was unavailable when it was written, so every hosted value
@@ -15,8 +16,9 @@ authorizes no apply, deploy, schedule change, secret or provider call.
 
 ## 1. What is pending
 
-This packet covers nine repo migrations, all in `tests/migrations.mjs` `NOT_HOSTED`: the
-eight listed by version 2 plus M-41, added when PR #497 was reconciled with this packet.
+This packet covers ten repo migrations, all in `tests/migrations.mjs` `NOT_HOSTED`: the
+eight listed by version 2, M-41 (added when PR #497 was reconciled with this packet) and
+M-47 (added in version 3).
 Every other repo
 migration is in `APPLIED`.
 
@@ -31,9 +33,10 @@ migration is in `APPLIED`.
 | **M-44** (proposed) | `20261110120000_gtl_epl_result_announcements.sql` | 15469 | `3b8dc8acb25f92d12b7cbcd310955fb099d6694f050f0af1d48a5bb03139f9f3` | nothing | none (FIX_FORWARD) | disable the `results` schedule row |
 | **M-45** (proposed) | `20261110130000_gtl_player_props.sql` | 30416 | `cde5e2bd40426d42c9118f8a4ace7fce3beaaab26963eddc1d1d75eb63008795` | nothing | none needed | ships dark: `live_lock_in=false`, `GTL_PLAYER_PROPS` unset |
 | **M-46** (proposed) | `20261110160000_gtl_player_props_jobs.sql` | 16309 | `31c1db1e78c96c17effcb967eb534bb3fd01ce1cc9d0ed52af99292426dc946e` | nothing | none needed | jobs stay off: `GTL_PLAYER_PROPS_JOBS` unset, no schedule, dry run by default |
+| **M-47** (proposed) | `20261110180000_gtl_player_props_shared.sql` | 4073 | `e495adb74be4e624527766d20597f105d4aaae5cfb6b5cc204fc2a71ae3defae` | nothing | none needed | ships dark: `/props/shared` stays behind `GTL_PLAYER_PROPS` (unset) and the reader adds no write |
 
 Byte counts and SHA-256 are of the files on `main` at `0944bc20` (M-46: at `f6a5409c`, PR #519;
-M-41: of PR #497's files, unchanged by its reconciliation merges), except M-34, which version 2
+M-47: at `1ba75282`, PR #522; M-41: of PR #497's files, unchanged by its reconciliation merges), except M-34, which version 2
 amended before any apply (it was 14716 bytes, `8f8fdb5d7cf2a143d5e77b0b1ef3b2e04037ccdf25c8b861348a9939a05c8948`;
 only its job-constraint statement changed, every function body and md5 is unchanged). Before an apply,
 recompute them from the exact merged SHA you apply from (`wc -c`, `sha256sum`).
@@ -43,8 +46,9 @@ ends at M-40, plus the M-41 row written by PR #497 (custom Virtual Units stakes,
 `20261108022135_gtl_virtual_units_hundredths.sql`). When this packet was first written
 M-41 was not on `main`; PR #497's reconciliation merge adds the file, its rollback, its
 `NOT_HOSTED` line and its section below. The next free ids, in filename order, are therefore
-M-42 to M-45, and M-46 for PR #519's jobs file (added in version 2). They are
-**proposed**: none of the five authors assigned an id, and the ledger rows are not
+M-42 to M-45, M-46 for PR #519's jobs file (added in version 2) and M-47 for PR #522's
+shared reader (added in version 3). They are
+**proposed**: none of the six authors assigned an id, and the ledger rows are not
 written yet. Use them in Sean's apply phrases only after he accepts them; until then
 name the file version as well (section 9).
 
@@ -108,7 +112,8 @@ M-43 calls `gtl_epl_advance_queues`.
    `fantasy-ingest`'s October 28 run 40699619045, v1, from `RELEASE_2026_10_28_D59_TRENDS.md`).
 7. **M-35 and M-43 interact at run time, not at apply time.** Checked in version 2: the
    eight files replace no one another's function and alter no shared column (M-46 only
-   calls M-45's `gtl_props_ready`/`gtl_props_append_only` and adds triggers on its own tables); the only shared DDL is
+   calls M-45's `gtl_props_ready`/`gtl_props_append_only` and adds triggers on its own tables;
+   M-47, checked in version 3, only adds one new reader over M-45's tables and replaces nothing); the only shared DDL is
    the job constraint (contradiction 1, now order-safe). Every M-35/M-43 table and
    function applies in either order (the batch-order test applies M-35 after M-43). The
    remaining interaction is a precedence rule, the same in every apply order:
@@ -146,8 +151,9 @@ Dependencies (file headers, ledger and the PR bodies):
 | M-42 | M-30, M-31, M-32, M-36 | — |
 | M-43 | M-30, M-40 | — |
 | M-44 | M-30, M-36 | — |
-| M-45 | none | M-46 (`REQUIRES`) |
+| M-45 | none | M-46, M-47 (`REQUIRES`) |
 | M-46 | **M-45 (pending)** | — |
+| M-47 | **M-45 (pending)**; hosted `gtl_community_member` (`20261009120000_gtl_community_feed`) | — (independent of M-46) |
 
 A topological order that is also filename order (Gate M step 1):
 
@@ -160,9 +166,10 @@ A topological order that is also filename order (Gate M step 1):
 7. **M-44** `20261110120000`
 8. **M-45** `20261110130000`
 9. **M-46** `20261110160000`
+10. **M-47** `20261110180000`
 
-**Recommended batch when Supabase is back:** M-42, M-43, M-44, M-45, M-46 in that order
-(M-46 only after M-45). None of them reads M-33/M-34/M-35. M-41 is independent of all of
+**Recommended batch when Supabase is back:** M-42, M-43, M-44, M-45, M-46, M-47 in that order
+(M-46 and M-47 only after M-45; they do not depend on each other). None of them reads M-33/M-34/M-35. M-41 is independent of all of
 them (it touches only the three Virtual Units writers) and may go before or after that
 batch; it needs its own compatible `gtl-api`/Pages deploy first. M-33 to M-35 have their own unresolved operator
 prerequisites (M-35's interval evidence, M-33 "not safe correction enablement" alone)
@@ -726,6 +733,64 @@ order by 1;
 - **Follow-up:** the apply record removes the two table and four RPC `awaitingDeploy`
   entries (`PROP_JOBS_MIGRATION`) in `scripts/boundary/guess.mjs`; none is a route.
 
+### M-47 (proposed) `20261110180000_gtl_player_props_shared`
+
+- **Purpose:** D-82 Player Props shared view (PR #522): one service-only reader,
+  `gtl_props_shared(p_user, p_season, p_week)`, that returns other members' **locked** prop
+  guesses under the existing reveal rules (D-31 as amended by D-39): a selection opens only
+  when the viewer locked in that exact selection (event, stable player ID, canonical stat) or
+  the event has kicked off. Only guess value, lock-in time, display name and the removed-member
+  label (D-23) are returned; never a draft, saved reference, line, quote or audit row.
+  Additive only: no table, row, grant on an existing object or existing function changes.
+- **Needs:** M-45 applied and verified first (`REQUIRES` in `tests/migrations.mjs`: it reads
+  `gtl_prop_offers` and `gtl_prop_guesses`). Also reads hosted `gtl_profiles` and
+  `gtl_community_removals` and calls hosted `gtl_community_member`. Independent of M-46 and
+  of every EPL migration.
+- **Replaces:** nothing. New (md5 after apply, `parseFunctions` in
+  `scripts/migration-functions.mjs` on the merged file): `gtl_props_shared`
+  `2f2f4dcb43899626cacd547ac96b5473` (`language plpgsql stable security invoker`,
+  `search_path=''`). Calls hosted `gtl_community_member` `7f482474d44c9ba376b19cfc7d05353d`.
+- **Preflight:**
+  ```sql
+  begin transaction read only;
+  select to_regprocedure('public.gtl_props_shared(uuid,integer,integer)');          -- null
+  select md5(prosrc) from pg_proc where pronamespace='public'::regnamespace
+   and proname='gtl_community_member';                                              -- 7f482474…
+  select to_regclass('public.gtl_prop_offers'), to_regclass('public.gtl_prop_guesses'),
+         to_regclass('public.gtl_profiles'), to_regclass('public.gtl_community_removals');  -- all present (M-45 applied)
+  select t, has_table_privilege('service_role', t, 'select')
+    from unnest(array['public.gtl_prop_offers','public.gtl_prop_guesses','public.gtl_profiles',
+                      'public.gtl_community_removals']) t;                         -- all true (security invoker)
+  select live_lock_in from public.gtl_prop_capability;                              -- one row, false
+  rollback;
+  ```
+  P1 only (no existing table is touched); also record the six M-45 `gtl_prop%` table counts
+  before and after.
+- **Apply:** as section 3 (Supabase MCP `apply_migration` name `gtl_player_props_shared`, or
+  the SQL editor), the exact merged file once, its own transaction and its own "apply M-47".
+- **Verify:** P3 (1 function, md5 above; `prosecdef` false, `provolatile` `s`,
+  `proconfig` `{search_path=""}`; execute for `service_role` only, none for `public`, `anon`
+  or `authenticated`):
+  ```sql
+  select r, has_function_privilege(r, 'public.gtl_props_shared(uuid,integer,integer)', 'execute')
+    from unnest(array['anon','authenticated','service_role']) r;                    -- false, false, true
+  ```
+  No new table or trigger (`gtl_prop%` trigger count unchanged); the six M-45 table counts
+  unchanged; `gtl_prop_capability.live_lock_in` still exactly one `false`; P1 identical.
+  Do not call the reader with a real member id to "test" it; the signed-out boundary probe
+  is the run-time check.
+- **Off switch:** it is off. The reader is reachable only through `gtl-api` `/props/shared`,
+  which answers 404 while the `GTL_PLAYER_PROPS` secret is unset, and the Pages screen stays
+  behind `VITE_GTL_PLAYER_PROPS`. `GTL_FEATURE_OFF=player-props` does not apply (no writer).
+  If it must stop after the flag is on, unset `GTL_PLAYER_PROPS` (every Player Props route
+  answers 404). No rollback file: the apply changes no data.
+- **Deploys:** none required. `/props/shared` is merged in the `gtl-api` code (PR #522,
+  `1ba75282`, `cloud/player-props.mjs`); before the apply it answers
+  `{ available: false, selections: [] }` on PGRST202, and the Pages view draws nothing.
+- **Follow-up:** the apply record removes the one RPC `awaitingDeploy` entry
+  (`PROP_SHARED_MIGRATION`, `rpc/gtl_props_shared`) in `scripts/boundary/guess.mjs`; the
+  `gtl-api/props/shared` route entry stays awaiting while `GTL_PLAYER_PROPS` is off.
+
 ## 5. Deploy state of the code these migrations go with
 
 | Item | State at time of writing |
@@ -735,8 +800,9 @@ order by 1;
 | PR #517 (fantasy defense) | Merged `0944bc20`; frontend not deployed; data arrives with the next scheduled Fantasy refresh. |
 | `gtl-epl-jobs` | Last recorded v3 (October 29, `epl-jobs` deploy run 40937265809 from `d891291c`). M-42's timed three-way collection and M-44's `results` job need a new `epl-jobs` deploy. |
 | PR #519 (Player Props jobs) | Merged `f6a5409c`. No Edge Function or Pages deploy is needed; the manual `player-props-jobs.yml` workflow runs only from `main` with `GTL_PLAYER_PROPS_JOBS=on` (unset). |
+| PR #522 (Player Props shared view, History, receipt) | Merged `1ba75282`, not deployed. `/props/shared` shipped in the `gtl-api` code with an `available:false` fallback while `gtl_props_shared` is absent (PGRST202); all Player Props routes stay 404 while `GTL_PLAYER_PROPS` is unset. Needs no deploy before the M-47 apply. |
 | PR #497 (M-41 custom Virtual Units) | Merged code not deployed; needs `gtl-api` + Pages before the M-41 apply. |
-| Migrations M-33…M-35, M-41, M-42…M-46 | **Not applied.** |
+| Migrations M-33…M-35, M-41, M-42…M-47 | **Not applied.** |
 
 Gate D order for these: compatible `gtl-api`/Pages first (run 42744392202), worker
 (`epl-jobs`), then the SQL applies, then admin schedule rows. All new API code detects an
@@ -752,6 +818,8 @@ absent schema (PGRST202) and stays on the legacy path.
 - Do not add the `GTL_PROPS_SUPABASE_URL`/`GTL_PROPS_SERVICE_ROLE_KEY` secrets, set
   `GTL_PLAYER_PROPS_JOBS`, add a schedule to `player-props-jobs.yml` or run it with `write`
   as part of the M-46 apply.
+- Do not set `GTL_PLAYER_PROPS` or call `/props/shared` with a real member as part of the
+  M-47 apply.
 - Do not submit real picks, guesses or imports to manufacture acceptance.
 - Do not `db push`, drop, delete or truncate anything (D-23).
 
@@ -861,7 +929,7 @@ If access or any path stays unresolved, `liveLockInReady` stays **false**.
 ## 9. Sean says — checklist
 
 Each phrase is its own approval, given after that migration's preflight passes. The M-42
-to M-45 ids are proposed; until Sean accepts them, say the file version too.
+to M-47 ids are proposed; until Sean accepts them, say the file version too.
 
 Recommended batch (section 2):
 
@@ -877,6 +945,9 @@ Recommended batch (section 2):
 8. "apply M-46" (`20261110160000`, Player Props jobs audit tables), only after M-45's
    verification. Not followed by any secret, variable, schedule or write run; those are
    the separate enabling words in M-46's section.
+9. "apply M-47" (`20261110180000`, Player Props shared reader, stays dark), only after
+   M-45's verification (before or after M-46). Not followed by any `GTL_PLAYER_PROPS`,
+   `VITE_GTL_PLAYER_PROPS` or `live_lock_in` change.
 
 Only if Sean also wants the October 29 EPL corrections/standings (any time after the batch
 or before it; see contradiction 7 for M-35 after an import):
@@ -889,4 +960,4 @@ Independently, for custom Virtual Units stakes (PR #497): "Deploy api-and-fronte
 merged PR #497 SHA, then "apply M-41" (`20261108022135`).
 
 Full filename order if everything goes: apply M-33, apply M-34, apply M-35, apply M-41, apply M-42,
-apply M-43, apply M-44, apply M-45, apply M-46.
+apply M-43, apply M-44, apply M-45, apply M-46, apply M-47.
