@@ -1,20 +1,12 @@
 import fs from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { OCR_ASSETS, ocrSource } from './scripts/ocr-assets.mjs';
 
 // EPL stage 3: the commissioner's in-browser screenshot OCR. tesseract.js (Apache-2.0) runs its worker, engine and English
 // model from this site's own /ocr/ folder (never a third-party CDN), copied from the pinned npm packages at build time and
 // served from node_modules in development. Only the commissioner's import screen ever requests them. web/public/_headers gives
 // /ocr/* alone a policy that lets the worker compile WebAssembly ('wasm-unsafe-eval'); every page keeps script-src 'self'.
-export const OCR_ASSETS = Object.freeze({
-  'worker.min.js': 'tesseract.js/dist/worker.min.js',
-  'tesseract-core-lstm.wasm.js': 'tesseract.js-core/tesseract-core-lstm.wasm.js',
-  'tesseract-core-simd-lstm.wasm.js': 'tesseract.js-core/tesseract-core-simd-lstm.wasm.js',
-  'tesseract-core-relaxedsimd-lstm.wasm.js': 'tesseract.js-core/tesseract-core-relaxedsimd-lstm.wasm.js',
-  'eng.traineddata.gz': '@tesseract.js-data/eng/4.0.0_best_int/eng.traineddata.gz',
-});
-const ocrSource = name => fileURLToPath(new URL(`./node_modules/${OCR_ASSETS[name]}`, import.meta.url));
 function localOcrAssets() {
   return {
     name: 'gtl-local-ocr-assets',
