@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createCloudHandler, createSupabaseAdapter } from '../cloud/handler.mjs';
 import { handleBets, providerBetsError } from '../cloud/bets.mjs';
 import { parseFeatureOff } from '../cloud/feature-off.mjs';
+import { FEATURE_OFF } from '../cloud/optional-rpc.mjs';
 
 const USER = { id: '11111111-1111-4111-8111-111111111111', email: 'fixture@example.test', emailConfirmed: true };
 const AT = '2099-10-08T15:00:00.000Z', KICKOFF = '2099-10-08T20:00:00.000Z', NOW = Date.parse('2099-10-08T18:00:00.000Z');
@@ -12,7 +13,7 @@ const PERSONAL = { season: 2099, week: 6, slates: [{ season: 2099, week: 6 }, { 
 const quotes = (market, value) => ['draftkings', 'fanduel', 'betmgm'].map(book => ({ provider: 'the-odds-api', book, market, value, providerObservedAt: AT, collectedAt: AT,
   outcomes: market === 'spread' ? { home: { line: value, odds: -110 }, away: { line: -value, odds: -110 } } : { over: { line: value, odds: -110 }, under: { line: value, odds: -110 } } }));
 const SNAPSHOT = { id: 'snapshot', createdAt: AT, payload: { games: [{ gameId: GAME.id, home: GAME.home, away: GAME.away, kickoff: KICKOFF, markets: { spread: { quotes: quotes('spread', -3.5) }, total: { quotes: quotes('total', 61.5) } } }] } };
-function fixture({ member = true, gate = { [GAME.id]: { spread: true, total: false } }, snapshot = SNAPSHOT, picks = [], failure = null } = {}) {
+function fixture({ member = true, gate = { [GAME.id]: { spread: true, total: false } }, snapshot = SNAPSHOT, picks = [], failure = null, optionalRpc } = {}) {
   const calls = [], raw = structuredClone(PERSONAL), stored = { snapshot: structuredClone(snapshot), picks: structuredClone(picks), settlements: [] };
   const service = {
     rpc: async (name, body) => {
@@ -31,6 +32,10 @@ function fixture({ member = true, gate = { [GAME.id]: { spread: true, total: fal
     recommendationState: async body => { calls.push(['recommendationState', body]); return stored; },
   };
   const handler = createCloudHandler({ authenticate: async token => token === 'fixture' ? USER : null, bets: service, clock: () => NOW,
+    optionalRpc: optionalRpc && (async (name, body) => {
+      calls.push([name, body]);
+      return name === 'gtl_virtual_unit_rules' ? optionalRpc(name, body) : FEATURE_OFF;
+    }),
     storage: { membership: async () => assert.fail('Current recommendations must not ask for private-group membership.') },
     oddsProvider: { collect: async () => assert.fail('Never collect on recommendation read.') },
   });
@@ -154,12 +159,58 @@ test('place refuses week/revision changes, hidden lines, quote changes and exist
 });
 
 test('invalid place data and rollout switch never reach the database', async () => {
-  for (const change of [{ userId: USER.id }, { units: 0 }, { units: 0.1 }, { odds: -99 }, { side: 'over' }, { revision: -1 }, { line: 3.25 }, { quotedAt: null }]) {
-    const f = fixture(); assert.equal((await f.request(placement(change), 'bets/recommendations/place')).status, 400); assert.equal(f.calls.length, 0);
+  for (const optionalRpc of [undefined, async () => ({ version: 1, hundredths: true })]) {
+    for (const change of [{ userId: USER.id }, ...[0, -1, '0.1', 0.001, 0.010000000001, 0.999999999999, 100.01].map(units => ({ units })),
+      { odds: -99 }, { side: 'over' }, { revision: -1 }, { line: 3.25 }, { quotedAt: null }]) {
+      const f = fixture({ optionalRpc }), response = await f.request(placement(change), 'bets/recommendations/place');
+      assert.equal(response.status, 400, JSON.stringify(change));
+      assert.equal(f.calls.length, 0, 'malformed input never reads capabilities or privileged storage');
+      assert.deepEqual(f.stored.picks, []);
+    }
   }
   const f = fixture();
   await assert.rejects(handleBets({ route: '/bets/recommendations', user: USER, service: f.service, featureOff: parseFeatureOff('recommendations') }), error => error.status === 503);
   assert.equal(f.calls.length, 0);
+});
+
+test('valid cent recommendation amounts require an explicit supported capability before writing', async () => {
+  for (const optionalRpc of [undefined, async () => FEATURE_OFF, async () => ({ version: 1, hundredths: false }),
+    async () => ({ version: 2, hundredths: true }), async () => { throw new Error('capability outage'); }]) {
+    for (const units of [0.01, 0.1, 0.29, 99.99]) {
+      const f = fixture({ optionalRpc }), response = await f.request(placement({ units }), 'bets/recommendations/place');
+      assert.equal(response.status, 409, String(units));
+      assert.equal((await response.json()).error, providerBetsError('GTL_VIRTUAL_UNITS_UNAVAILABLE').message);
+      assert.equal(f.calls.some(([name]) => name === 'gtl_save_recommended_virtual_pick'), false);
+      assert.deepEqual(f.stored.picks, []);
+      assert.equal(f.raw.weeklyRevision, 0);
+    }
+  }
+});
+
+test('supported cent recommendation amounts reach the writer with exact authenticated terms', async () => {
+  for (const units of [0.01, 0.1, 0.29, 99.99, 100]) {
+    const f = fixture({ optionalRpc: async () => ({ version: 1, hundredths: true }) });
+    const response = await f.request(placement({ units }), 'bets/recommendations/place');
+    assert.equal(response.status, 200, await response.clone().text());
+    const writes = f.calls.filter(([name]) => name === 'gtl_save_recommended_virtual_pick');
+    assert.deepEqual(writes.map(([, args]) => args), [{ p_user: USER.id, p_season: 2099, p_week: 6, p_revision: 0,
+      p_body: { gameId: GAME.id, market: 'spread', side: 'home', line: -3.5, odds: -110, units, source: 'BetMGM', quotedAt: AT } }]);
+    const result = await response.json();
+    assert.equal(result.virtual.unitRules.hundredths, true);
+    assert.equal(result.virtual.revision, 1);
+    assert.equal(result.virtual.picks[0].selection.units, units);
+  }
+});
+
+test('legacy half-unit recommendation amounts remain writable in both capability modes', async () => {
+  for (const optionalRpc of [undefined, async () => ({ version: 1, hundredths: true })]) {
+    for (const units of [0.5, 1, 100.5]) {
+      const f = fixture({ optionalRpc }), response = await f.request(placement({ units }), 'bets/recommendations/place');
+      assert.equal(response.status, 200, await response.clone().text());
+      assert.equal(f.calls.filter(([name]) => name === 'gtl_save_recommended_virtual_pick').length, 1);
+      assert.equal((await response.json()).virtual.picks[0].selection.units, units);
+    }
+  }
 });
 
 test('provider maps safe recommendation refusal codes and does not expose unknown database errors', () => {

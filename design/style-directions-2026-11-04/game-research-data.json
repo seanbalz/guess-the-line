@@ -1,0 +1,17 @@
+{
+  "date": "2026-11-05",
+  "scope": "Historical team comparison in a sample matchup; no current-season or odds claim",
+  "lineHistory": {"spread": null, "total": null, "status": "No verified history attached to the sample matchup"},
+  "performance": {
+    "metric": "Total touchdowns",
+    "season": 2025,
+    "seasonType": "Regular season",
+    "sourceTitle": "NFL.com 2025 team scoring statistics",
+    "sourceUrl": "https://www.nfl.com/stats/team-stats/offense/scoring/2025/reg/all",
+    "checkedOn": "2026-11-05",
+    "teams": [
+      {"name": "Seahawks", "asset": "visual-assets/sea.png", "value": 51},
+      {"name": "Broncos", "asset": "visual-assets/den.png", "value": 45}
+    ]
+  }
+}

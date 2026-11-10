@@ -10,6 +10,7 @@
 import { DASH, MINUS, fmtAmt, fmtOdds, fmtRecord, fmtU } from '../format.js';
 import { pickText, sideText } from './everyone.js';
 import { QUALIFY_PICKS, QUALIFY_UNITS, weekFromPicks } from '../../../../shared/bets-qual.mjs';
+import { halfUnits, hundredthUnits, customUnitsEnabled } from '../../../../shared/virtual-unit-amount.mjs';
 
 const MARKETS = ['spread', 'total'];
 const SIDES = Object.freeze({ spread: ['away', 'home'], total: ['over', 'under'] });
@@ -17,7 +18,7 @@ const MARKET_NAME = Object.freeze({ spread: 'Spread', total: 'Total' });
 const record = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const finite = value => typeof value === 'number' && Number.isFinite(value);
 
-/** Stage 44: quick stakes from 0.5 to 3 units; the stepper goes past 3 in half units. */
+/** Quick stakes remain 0.5–3U. Custom/0.1U taps require the M-41 capability. */
 export const UNIT_CHIPS = Object.freeze([0.5, 1, 1.5, 2, 2.5, 3]);
 export const MAX_UNITS = 100;
 
@@ -88,7 +89,8 @@ export function placeBoard(data, viewer) {
       });
       return { id: game.id, awayCode: game.awayCode, homeCode: game.homeCode, kickoff: game.kickoff, started, faces, markets };
     });
-  return { published: true, season: reply.season, week: reply.week, now: reply.now, closed, games };
+  return { published: true, season: reply.season, week: reply.week, now: reply.now, closed, games,
+    customUnits: customUnitsEnabled(reply.unitRules) };
 }
 
 export const slipKey = (gameId, market) => `${gameId}:${market}`;
@@ -100,22 +102,32 @@ export function slipEntries(board, slip) {
     const market = game?.markets.find(item => item.market === entry.market);
     const side = market?.sides.find(item => item.side === entry.side);
     if (!game || game.started || !market?.visible || !side?.offer) return [];
-    return [{ key, game, market, side, units: entry.units, edit: Boolean(market.mine) }];
+    return [{ key, game, market, side, units: Number(entry.units), unitValue: entry.units, customEntry: entry.customEntry === true,
+      validUnits: validEntryUnits(entry.units, board.customUnits), edit: Boolean(market.mine) }];
   });
 }
 
 /** The POST /bets/place body. A new bet sends `expected: null`; an edit sends your saved terms as you read them. */
 export function placeRequest(board, entries, requestId) {
+  if (entries.some(entry => !validEntryUnits(entry.units, board.customUnits))) throw new Error('Choose valid Virtual Units before saving.');
   return { season: board.season, week: board.week, requestId, bets: entries.map(({ game, market, side, units }) => ({
     gameId: game.id, market: market.market, side: side.side, line: side.offer.line, odds: side.offer.odds, units,
     source: side.offer.source, quotedAt: side.offer.observedAt, expected: market.mine ? terms(market.mine.selection) : null,
   })) };
 }
 
-/** Half units only, from 0.5 up to MAX_UNITS. */
-export function stepUnits(units, direction) {
+/** Legacy halves, or approved 0.1U taps with a 0.5U ordinary / 0.01U Custom floor. */
+export function stepUnits(units, direction, custom = false, customEntry = false) {
+  if (custom) return Math.max(customEntry ? 0.01 : 0.5, Math.min(MAX_UNITS, Math.round(((finite(Number(units)) ? Number(units) : 1) + direction * 0.1) * 100) / 100));
   const next = Math.round(((finite(units) ? units : 1) + direction * 0.5) * 2) / 2;
   return Math.min(MAX_UNITS, Math.max(0.5, next));
+}
+
+/** Preserve blank/invalid custom drafts. Never round typed amounts into a valid bet. */
+export function validEntryUnits(value, custom = false) {
+  if (value === null || value === undefined || String(value).trim() === '') return false;
+  const units = Number(value);
+  return custom ? hundredthUnits(units) : halfUnits(units) && units <= MAX_UNITS;
 }
 
 /** Units a pending bet wins at its saved American odds (stake not included). */

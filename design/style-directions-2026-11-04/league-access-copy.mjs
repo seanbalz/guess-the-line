@@ -1,0 +1,25 @@
+// Native switcher copy isolated without its authenticated controller.
+import {plural} from '../../web/src/next/format.js';
+export const SWITCHER_COPY=Object.freeze({
+  title: 'Your leagues',
+  invitations: 'Invitations',
+  savedTitle: 'You have an invite link',
+  savedMeta: 'Join with the account the invite was sent to.',
+  invited: (from, league) => `${from} invited you to ${league}`,
+  expires: when => `Expires ${when}`,
+  join: 'Join',
+  joining: 'Joining…',
+  joinSaved: 'Join with your invite link',
+  joinLeague: league => `Join ${league}`,
+  dismiss: 'Dismiss',
+  dismissSaved: 'Dismiss your invite link',
+  leagues: 'Leagues',
+  players: n => plural(n, 'player'),
+  host: 'You host',
+  everyLeague: 'Picks and bets count in every league you’re in.',
+  showing: name => `Showing ${name}`,
+  joined: name => (name ? `You’re in ${name}` : 'You joined.'),
+  uncertain: 'We couldn’t confirm you joined. Your leagues below were checked again; if it isn’t there, try Join again.',
+  signIn: 'Sign in again to join.',
+  offline: 'You didn’t join. Check your connection and try again.',
+});

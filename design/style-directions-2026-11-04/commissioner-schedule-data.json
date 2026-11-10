@@ -1,0 +1,167 @@
+{
+  "version": 1,
+  "season": 2026,
+  "week": 9,
+  "deadline": "2026-11-06T01:15:00.000Z",
+  "generatedAt": "2026-11-05T22:43:15.728Z",
+  "notice": "Archived public schedule · November 5 snapshot · visual example, not a live publication",
+  "source": {
+    "release": "https://github.com/seanbalz/guess-the-line/releases/tag/research-data-2026",
+    "index": "https://github.com/seanbalz/guess-the-line/releases/download/research-data-2026/index.json",
+    "asset": "season-579f59616c4e51b678fe3f180fea3730995cc2aac73a76c59cf7ad2a8f3dda41.json.gz",
+    "sha256": "579f59616c4e51b678fe3f180fea3730995cc2aac73a76c59cf7ad2a8f3dda41",
+    "credit": "nflverse · Lee Sharpe · CC BY 4.0"
+  },
+  "games": [
+    {
+      "id": "2026_09_JAX_BAL",
+      "awayCode": "JAX",
+      "homeCode": "BAL",
+      "away": "Jacksonville Jaguars",
+      "home": "Baltimore Ravens",
+      "matchup": "Jacksonville Jaguars @ Baltimore Ravens",
+      "kickoff": "2026-11-06T01:15:00.000Z",
+      "neutral": false
+    },
+    {
+      "id": "2026_09_CIN_ATL",
+      "awayCode": "CIN",
+      "homeCode": "ATL",
+      "away": "Cincinnati Bengals",
+      "home": "Atlanta Falcons",
+      "matchup": "Cincinnati Bengals @ Atlanta Falcons",
+      "kickoff": "2026-11-08T14:30:00.000Z",
+      "neutral": true
+    },
+    {
+      "id": "2026_09_CLE_NO",
+      "awayCode": "CLE",
+      "homeCode": "NO",
+      "away": "Cleveland Browns",
+      "home": "New Orleans Saints",
+      "matchup": "Cleveland Browns @ New Orleans Saints",
+      "kickoff": "2026-11-08T18:00:00.000Z",
+      "neutral": false
+    },
+    {
+      "id": "2026_09_DAL_IND",
+      "awayCode": "DAL",
+      "homeCode": "IND",
+      "away": "Dallas Cowboys",
+      "home": "Indianapolis Colts",
+      "matchup": "Dallas Cowboys @ Indianapolis Colts",
+      "kickoff": "2026-11-08T18:00:00.000Z",
+      "neutral": false
+    },
+    {
+      "id": "2026_09_DEN_CAR",
+      "awayCode": "DEN",
+      "homeCode": "CAR",
+      "away": "Denver Broncos",
+      "home": "Carolina Panthers",
+      "matchup": "Denver Broncos @ Carolina Panthers",
+      "kickoff": "2026-11-08T18:00:00.000Z",
+      "neutral": false
+    },
+    {
+      "id": "2026_09_DET_MIA",
+      "awayCode": "DET",
+      "homeCode": "MIA",
+      "away": "Detroit Lions",
+      "home": "Miami Dolphins",
+      "matchup": "Detroit Lions @ Miami Dolphins",
+      "kickoff": "2026-11-08T18:00:00.000Z",
+      "neutral": false
+    },
+    {
+      "id": "2026_09_LA_WAS",
+      "awayCode": "LAR",
+      "homeCode": "WAS",
+      "away": "Los Angeles Rams",
+      "home": "Washington Commanders",
+      "matchup": "Los Angeles Rams @ Washington Commanders",
+      "kickoff": "2026-11-08T18:00:00.000Z",
+      "neutral": false
+    },
+    {
+      "id": "2026_09_NYG_PHI",
+      "awayCode": "NYG",
+      "homeCode": "PHI",
+      "away": "New York Giants",
+      "home": "Philadelphia Eagles",
+      "matchup": "New York Giants @ Philadelphia Eagles",
+      "kickoff": "2026-11-08T18:00:00.000Z",
+      "neutral": false
+    },
+    {
+      "id": "2026_09_NYJ_KC",
+      "awayCode": "NYJ",
+      "homeCode": "KC",
+      "away": "New York Jets",
+      "home": "Kansas City Chiefs",
+      "matchup": "New York Jets @ Kansas City Chiefs",
+      "kickoff": "2026-11-08T18:00:00.000Z",
+      "neutral": false
+    },
+    {
+      "id": "2026_09_HOU_LAC",
+      "awayCode": "HOU",
+      "homeCode": "LAC",
+      "away": "Houston Texans",
+      "home": "Los Angeles Chargers",
+      "matchup": "Houston Texans @ Los Angeles Chargers",
+      "kickoff": "2026-11-08T21:05:00.000Z",
+      "neutral": false
+    },
+    {
+      "id": "2026_09_LV_SF",
+      "awayCode": "LV",
+      "homeCode": "SF",
+      "away": "Las Vegas Raiders",
+      "home": "San Francisco 49ers",
+      "matchup": "Las Vegas Raiders @ San Francisco 49ers",
+      "kickoff": "2026-11-08T21:05:00.000Z",
+      "neutral": false
+    },
+    {
+      "id": "2026_09_ARI_SEA",
+      "awayCode": "ARI",
+      "homeCode": "SEA",
+      "away": "Arizona Cardinals",
+      "home": "Seattle Seahawks",
+      "matchup": "Arizona Cardinals @ Seattle Seahawks",
+      "kickoff": "2026-11-08T21:25:00.000Z",
+      "neutral": false
+    },
+    {
+      "id": "2026_09_GB_NE",
+      "awayCode": "GB",
+      "homeCode": "NE",
+      "away": "Green Bay Packers",
+      "home": "New England Patriots",
+      "matchup": "Green Bay Packers @ New England Patriots",
+      "kickoff": "2026-11-08T21:25:00.000Z",
+      "neutral": false
+    },
+    {
+      "id": "2026_09_TB_CHI",
+      "awayCode": "TB",
+      "homeCode": "CHI",
+      "away": "Tampa Bay Buccaneers",
+      "home": "Chicago Bears",
+      "matchup": "Tampa Bay Buccaneers @ Chicago Bears",
+      "kickoff": "2026-11-09T01:20:00.000Z",
+      "neutral": false
+    },
+    {
+      "id": "2026_09_BUF_MIN",
+      "awayCode": "BUF",
+      "homeCode": "MIN",
+      "away": "Buffalo Bills",
+      "home": "Minnesota Vikings",
+      "matchup": "Buffalo Bills @ Minnesota Vikings",
+      "kickoff": "2026-11-10T01:15:00.000Z",
+      "neutral": false
+    }
+  ]
+}

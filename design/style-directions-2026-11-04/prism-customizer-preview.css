@@ -1,0 +1,11 @@
+.phone.prism[data-customizer]{background:var(--studio-background)!important;--r:var(--studio-radius)}
+.phone.prism[data-customizer] .panel,.phone.prism[data-customizer] .quick,.phone.prism[data-customizer] .pick-card,.phone.prism[data-customizer] .app-nav{background:var(--studio-card-background)!important;backdrop-filter:blur(var(--studio-blur)) saturate(140%)!important;-webkit-backdrop-filter:blur(var(--studio-blur)) saturate(140%)!important;box-shadow:var(--studio-shadow)!important}
+.phone.prism[data-customizer] .panel,.phone.prism[data-customizer] .hero{border-radius:var(--studio-radius)!important}
+.phone.prism[data-customizer] .quick,.phone.prism[data-customizer] .pick-card{border-radius:calc(var(--studio-radius)*.87)!important}
+.phone.prism[data-customizer] .home-score .metric,.phone.prism[data-customizer] .about-grid div{border-radius:calc(var(--studio-radius)*.65)!important}
+.phone.prism[data-customizer] .field{border-radius:calc(var(--studio-radius)*.7)!important}
+.phone.prism[data-customizer] .panel::before,.phone.prism[data-customizer] .quick::before,.phone.prism[data-customizer] .pick-card::before,.phone.prism[data-customizer] .app-nav::before{opacity:var(--studio-gloss)}
+.phone.prism[data-customizer] .primary{box-shadow:var(--studio-button-shadow)!important}
+.phone.prism[data-customizer] .home-layout,.phone.prism[data-customizer] .stack{gap:var(--studio-gap)!important}
+.phone.prism[data-customizer] .secondary,.phone.prism[data-customizer] .chips button,.phone.prism[data-customizer] .profile-dot{backdrop-filter:blur(var(--studio-blur));-webkit-backdrop-filter:blur(var(--studio-blur))}
+.embed .phone.prism[data-customizer] .screen{height:var(--studio-preview-height)!important;min-height:var(--studio-preview-height)!important}

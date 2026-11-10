@@ -1,0 +1,64 @@
+/* Monday recap (MondayRecap.jsx): Home's compact entry and the recap layer. Composes the kit (Nest, Pill, Segmented,
+   Chip, Button) and Home's Prism Glass recipe (--gx-home-* tokens); everything here is gx-recap-. Tokens only. */
+
+/* ----- Home's entry: "Week 9 recap · 1 game left · Open recap" ----- */
+.gx .gx-recap-entry { flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--gx-space-3); }
+.gx .gx-recap-entry-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.gx .gx-recap-entry h2 { font: 600 20px/26px var(--gx-font-home); letter-spacing: -0.03em; overflow-wrap: anywhere; }
+.gx .gx-recap-entry-sub { color: var(--gx-home-muted); font: 500 15px/20px var(--gx-font-home); }
+.gx .gx-recap-open { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 var(--gx-space-4); border: 1px solid var(--gx-home-ink); border-radius: var(--gx-radius-pill); background: transparent; color: var(--gx-home-ink); font: 600 15px/20px var(--gx-font-home); }
+.gx .gx-recap-open:focus-visible { outline: 2px solid var(--gx-home-accent); outline-offset: 2px; }
+
+/* ----- the layer ----- */
+.gx .gx-recap .gx-nest-card { gap: var(--gx-space-3); }
+.gx .gx-recap-panel { display: flex; flex-direction: column; gap: var(--gx-space-2); min-width: 0; padding: var(--gx-space-3) var(--gx-space-4); border: 1px solid var(--gx-home-edge); border-radius: var(--gx-radius-md); background: var(--gx-home-face); box-shadow: var(--gx-home-soft-depth); }
+.gx .gx-recap-big { color: var(--gx-home-ink); font: 600 22px/28px var(--gx-font-home); letter-spacing: -0.03em; overflow-wrap: anywhere; }
+/* The standing: the people glyph, then "2nd in Spread." and the gap, on Home's action tint. */
+.gx .gx-recap-lead { flex-direction: row; align-items: center; gap: var(--gx-space-3); background: var(--gx-home-action-face); border-color: var(--gx-home-accent); }
+.gx .gx-recap-lead > .gx-ic { flex: none; color: var(--gx-home-ink); }
+.gx .gx-recap-lead > div { min-width: 0; }
+.gx .gx-recap-lead .gx-recap-big { color: var(--gx-home-accent); }
+/* Separate Spread and Total ranks: two tiles, the shown market outlined. */
+.gx .gx-recap-ranks { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 128px), 1fr)); gap: var(--gx-space-2); }
+.gx .gx-recap-rank { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: var(--gx-space-3); border: 1px solid var(--gx-home-edge); border-radius: var(--gx-radius-md); background: var(--gx-home-face); }
+.gx .gx-recap-rank--on { border-color: var(--gx-home-accent); }
+.gx .gx-recap-rank-big { color: var(--gx-home-accent); font: 600 28px/34px var(--gx-font-home); letter-spacing: -0.03em; }
+.gx .gx-recap-rank-big small { color: var(--gx-home-muted); font: 500 15px/20px var(--gx-font-home); }
+.gx .gx-recap-rank > span { overflow-wrap: anywhere; }
+
+/* The week's games. */
+.gx .gx-recap-games { display: flex; flex-direction: column; gap: var(--gx-space-2); margin: 0; padding: 0; list-style: none; }
+.gx .gx-recap-game { display: flex; flex-direction: column; align-items: flex-start; gap: var(--gx-space-1); min-width: 0; padding: var(--gx-space-3) var(--gx-space-4); border: 1px solid var(--gx-home-edge); border-radius: var(--gx-radius-md); background: var(--gx-home-face); }
+.gx .gx-recap-game > p { overflow-wrap: anywhere; max-width: 100%; }
+.gx .gx-recap-game > .gx-btn { margin-top: var(--gx-space-1); }
+.gx .gx-recap-game-top { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gx-space-2); width: 100%; min-width: 0; }
+.gx .gx-recap-game-top .gx-grow { min-width: 0; overflow-wrap: anywhere; }
+.gx .gx-recap-marks { display: inline-flex; gap: 2px; flex: none; }
+.gx .gx-recap-game .gx-pill, .gx .gx-recap-score .gx-pill { max-width: 100%; height: auto; min-height: 24px; white-space: normal; }
+
+/* One game's score: its state on top, then away | home, so a long team name keeps its width at 320 px. */
+.gx .gx-recap-score { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: var(--gx-space-2); padding: var(--gx-space-3); border: 1px solid var(--gx-home-edge); border-radius: var(--gx-radius-md); background: var(--gx-home-face); box-shadow: var(--gx-home-soft-depth); }
+.gx .gx-recap-side { grid-row: 2; display: flex; flex-direction: column; align-items: center; gap: var(--gx-space-1); min-width: 0; text-align: center; }
+.gx .gx-recap-side > .gx-t-strong { max-width: 100%; overflow-wrap: anywhere; }
+.gx .gx-recap-pts { color: var(--gx-home-ink); font: 600 28px/32px var(--gx-font-home); letter-spacing: -0.03em; }
+.gx .gx-recap-mid { grid-column: 1 / -1; grid-row: 1; justify-self: center; color: var(--gx-home-muted); font: 500 13px/18px var(--gx-font-home); text-align: center; }
+
+/* Compare guesses: misses on one labeled scale. */
+.gx .gx-recap-chart { display: flex; flex-direction: column; gap: var(--gx-space-2); }
+.gx .gx-recap-bar, .gx .gx-recap-axis { display: grid; grid-template-columns: minmax(0, 1fr) 64px; align-items: center; column-gap: var(--gx-space-2); row-gap: 2px; }
+/* The player and their guess above the bar, so the bar keeps the card's width at 320 px. */
+.gx .gx-recap-bar-who { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-recap-bar-who > span { overflow-wrap: anywhere; }
+.gx .gx-recap-track { display: block; height: 10px; overflow: hidden; border-radius: var(--gx-radius-pill); background: var(--gx-home-track); }
+.gx .gx-recap-fill { display: block; height: 100%; border-radius: var(--gx-radius-pill); background: var(--gx-home-muted); }
+.gx .gx-recap-fill--me { background: var(--gx-home-accent); }
+.gx .gx-recap-bar-num { text-align: right; white-space: nowrap; }
+.gx .gx-recap-ticks { position: relative; display: block; height: 20px; border-top: 1px solid var(--gx-home-track); }
+.gx .gx-recap-ticks > span { position: absolute; top: 2px; translate: -50% 0; color: var(--gx-home-muted); font: 500 13px/16px var(--gx-font-home); }
+.gx .gx-recap-ticks > span:first-child { translate: none; }
+.gx .gx-recap-ticks > span:last-child { translate: -100% 0; }
+@media (forced-colors: active) {
+  .gx .gx-recap-track { border: 1px solid CanvasText; }
+  .gx .gx-recap-fill { background: CanvasText; }
+  .gx .gx-recap-open { border-color: ButtonText; }
+}

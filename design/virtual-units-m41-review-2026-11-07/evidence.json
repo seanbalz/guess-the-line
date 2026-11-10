@@ -1,0 +1,100 @@
+{
+  "owner": "Sean Balsiger",
+  "date": "2026-11-07",
+  "status": "Prepared locally; unpublished; M-41 enablement held, not applied or deployed",
+  "base": "46fe11f996ee228c49c0b008d5cba885e329e216",
+  "branch": "codex/m41-retry-precision-20261107",
+  "browserPort": 5284,
+  "data": "Local fixture accounts, quotes and SQL only",
+  "scenarios": [
+    "Old schema half-unit controls",
+    "Custom cent draft/steps/invalid/busy/uncertain behavior",
+    "Committed response loss then capability outage and refreshed fallback board",
+    "Committed response loss then SQL rollback and refreshed fallback board"
+  ],
+  "typography": [
+    {
+      "theme": "dark",
+      "viewportWidth": 320,
+      "labelSize": 16,
+      "inputSize": 16,
+      "inputWidth": 123,
+      "inputHeight": 50
+    },
+    {
+      "theme": "light",
+      "viewportWidth": 390,
+      "labelSize": 16,
+      "inputSize": 16,
+      "inputWidth": 123,
+      "inputHeight": 50
+    },
+    {
+      "theme": "forced",
+      "viewportWidth": 390,
+      "labelSize": 16,
+      "inputSize": 16,
+      "inputWidth": 123,
+      "inputHeight": 50
+    }
+  ],
+  "captures": [
+    {
+      "path": "custom-dark-320.png",
+      "sha256": "d23fed66cc7eae7dbb42b13abfa41e6708bab384ca5a0d84298f62a6bfca6260"
+    },
+    {
+      "path": "custom-light-390.png",
+      "sha256": "aa8ef24c1342052cb9791c72e3501765dc8dcd3f7f9d8f7145e0cb1437b3099e"
+    },
+    {
+      "path": "custom-forced.png",
+      "sha256": "e14f0dbf4728a40b5cd836109a024ae35e91e282833ef0d8c0560894eb663443"
+    }
+  ],
+  "sources": [
+    {
+      "path": "cloud/bets.mjs",
+      "sha256": "46b776e427e3ee5561015381b3b74ddf00364c87ff831f8d846cba55ebb0274a"
+    },
+    {
+      "path": "shared/virtual-unit-amount.mjs",
+      "sha256": "a8382e70dbf91285aa0e0fcc9a5e5f73dc8d105c347bbccc2cf41ecfdc100b76"
+    },
+    {
+      "path": "web/src/next/bets/PlaceBets.jsx",
+      "sha256": "67ea369e8a79c4527a243c0a6103969d2fc14fdc02a72f22d88c1357e0240349"
+    },
+    {
+      "path": "web/src/next/bets/place.css",
+      "sha256": "16fe4aa4a8ce1fe1d5fb1d3e097180fce458990150acf7da3b04d9fb147cd6fc"
+    },
+    {
+      "path": "tests/cloud-browser/virtual-units-hundredths.spec.js",
+      "sha256": "d441bb4a873b1c630409750a71ab526884927d36f4cbd872c31de31357807154"
+    },
+    {
+      "path": "tests/virtual-units-hundredths.test.mjs",
+      "sha256": "25552dc68b7cf8dfec72585598c95e2e74711f3d0e193b580daa8b498fb1e9b7"
+    },
+    {
+      "path": "tests/next-bets-place.test.jsx",
+      "sha256": "1e7fd96bf91c982071b0f95ba0caeda38a465e749b5bc721c5a2607436551e54"
+    },
+    {
+      "path": "supabase/migrations/20261108022135_gtl_virtual_units_hundredths.sql",
+      "sha256": "20e4711ecc9a5134baef333825555eb9a63823905012375da6299ba775e7a876"
+    },
+    {
+      "path": "supabase/rollback/20261108022135_gtl_virtual_units_hundredths.sql",
+      "sha256": "068fbc95f30bb087e833f2b68dc6c752cb9e916fdac737ee696dcef520ea6bdf"
+    }
+  ],
+  "visualReview": "Inspected dark 320, light 390 and forced-color 390 captures; label and amount remain readable, controls and focus outline visible. Layout and Axe checks pass in dark/light.",
+  "limits": [
+    "No hosted verification, apply, push, PR, merge or deployment",
+    "No actual-phone acceptance",
+    "No accounting policy decision; ROI enablement hold unchanged",
+    "SQL migration and rollback unchanged from prepared base"
+  ]
+}
