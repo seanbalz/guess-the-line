@@ -4,6 +4,13 @@ Owner: Sean Balsiger. Observed November 9, 2026.
 Status: design approved with shared-app consistency required; source audit partial.
 No Player Props implementation, SQL apply, collection activation or deployment.
 
+> **Status, November 10, 2026:** the mode is built (PRs #514, #519, #522) and deployed **dark** in
+> `api-and-frontend` run 42765795305 (`gtl-api` v54). M-45, M-46 and M-47 are applied as hosted
+> `20261110204106`, `20261110204207` and `20261110204307`, with `live_lock_in` false
+> ([apply record](RELEASE_2026_11_10_MIGRATIONS_M41_M47.md)). The hosted Task 2 audit in this
+> document is still not done, and `player-props-jobs.yml` has never run. Turning anything on is
+> Sean's separate word, step by step.
+
 The audit source baseline is `9a34f9e47d5fb7dd32eecd6fdc697cef53340ed9`.
 Separate [PR #508](https://github.com/seanbalz/guess-the-line/pull/508) reserves
 D-81 for NFL spread/total gap magnitudes. Player Props uses D-82; do not borrow

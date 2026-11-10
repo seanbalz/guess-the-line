@@ -3,6 +3,12 @@
 Prepared October 26, 2026 on Sean's instruction: "Build P-03 here: the Points open, actuals and finalize jobs on
 main's P-01, as a PR. No deploy or migration apply without my word." Each step below needs Sean's own words.
 
+> **Status, November 10, 2026, 21:24 UTC (read-only check):** steps 5 and 6 have happened in production. The
+> `nfl-points` schedule row is **enabled**, and `gtl-points-jobs` is v2 (D-61, October 27). There are 60 runs from the
+> October 27 14:00 UTC slot on: 13 succeeded, 47 skipped with nothing due, 0 failed. Runs published the Week 9 and
+> Week 10 slates, saved actuals (Week 9: 369 rows, not partial) and finalized once. No repo record names when or by
+> whose word the row was enabled. The October 27 status below is history.
+
 > **Status, October 27, 2026** ([release record](RELEASE_2026_10_26_POINTS_JOBS.md)): steps 1–4 and 7 are done.
 > P-03 is hosted as `20261026213106`; `gtl-points-jobs` v1 and `gtl-push-reminders` v5 were deployed through the release
 > workflow's worker targets (not the Mac mini) on October 26; the cron jobs are registered and the schedule row is

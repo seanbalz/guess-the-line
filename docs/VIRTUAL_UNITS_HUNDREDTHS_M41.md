@@ -1,5 +1,11 @@
 # Virtual Units Custom entry — M-41 preparation, November 7, 2026
 
+> **Status, November 10, 2026:** PR #497 merged as `6d3de943` and was deployed in
+> `api-and-frontend` run 42765795305 from `1ba75282` (`gtl-api` v54). M-41 is **applied and
+> verified** as hosted `20261110203637` on Sean's "Yes, apply M-41–M-47"
+> ([apply record](RELEASE_2026_11_10_MIGRATIONS_M41_M47.md)). A signed-in cent-stake readback
+> and phone acceptance remain open. The preparation text below is history.
+
 **Prepared and published in PR #497; not applied, merged to main or deployed.
 D-78 answers ROI policy; enablement remains held for Gate M and Sean's separate
 named migration approval.** This document
