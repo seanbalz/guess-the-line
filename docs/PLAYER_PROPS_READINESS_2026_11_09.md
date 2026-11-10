@@ -2,8 +2,9 @@
 
 Owner: Sean Balsiger. Observed November 9, 2026.
 Status: design approved with shared-app consistency required; source audit partial.
-Hosted Task 2 ran November 10: [results](PLAYER_PROPS_READINESS_TASK2_2026-11-10.md).
 No Player Props implementation, SQL apply, collection activation or deployment.
+Since then (November 10): M-45 to M-47 were applied dark and hosted Task 2 ran:
+[results](PLAYER_PROPS_READINESS_TASK2_2026-11-10.md). The lines above are the November 9 state.
 
 The audit source baseline is `9a34f9e47d5fb7dd32eecd6fdc697cef53340ed9`.
 Separate [PR #508](https://github.com/seanbalz/guess-the-line/pull/508) reserves

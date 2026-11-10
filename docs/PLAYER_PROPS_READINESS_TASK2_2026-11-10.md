@@ -66,6 +66,10 @@ A prop request costs one credit per returned market at one region, because the t
 are passed as `bookmakers` (inspected: `cloud/research-provider.mjs`). The intake allows at most
 eight markets per request and four requests per job, so an eleven-stat game needs two requests.
 
+Headroom here is the row's conservative remaining count above the 50-credit reserve. That is
+the value every reservation checks (`gtl_begin_research_quotes`, `gtl_epl_reserve_credits` and
+the core collector). The provider-reported remaining count is higher (executed).
+
 | Scope per pass | Credits per pass | Status against current headroom above the reserve | Tag |
 | --- | ---: | --- | --- |
 | Full slate, Week 10 (14 games × 11 stats) | 154 | **Not enough** for one pass | executed (headroom) and arithmetic |
@@ -90,7 +94,7 @@ typical case.
 | --- | --- | --- |
 | App game to provider event mapping | The newest Week 10 core market snapshot (18:15 UTC today) has 14 games. All 14 carry a `providerEventId`. Only presence was read, not the IDs. | executed |
 | App game to nflverse event | The offers job maps `games.csv` `game_id` (`2026_10_AWAY_HOME`) to the app's `AWAY-HOME` game ID and checks the kickoff. | inspected |
-| Player identity | Offers require a GSIS ID (`00-` and seven digits) and exactly one current weekly roster row (`ACT`, QB/RB/WR/TE, one of the two teams). | inspected |
+| Player identity | Offers require a GSIS ID (`00-` and seven digits) and one consistent roster entry for that week (repeated rows must agree; `ACT`, QB/RB/WR/TE, one of the two teams). | inspected |
 | Roster receipt for collection | Research intake matches a provider player name to exactly one row of a roster receipt that the operator supplies in the input file. **No script builds that receipt, or the `quoteRequests` list, from verified sources.** | inspected |
 | nflverse sources the jobs read | All four assets are listed with a published SHA-256 digest, each under the job's size cap. Updated today: `stats_player_week_2026.csv` 17:04:17 UTC, `snap_counts_2026.csv` 12:27:37 UTC, `roster_weekly_2026.csv` 15:34:26 UTC, `games.csv` 21:16:31 UTC. The jobs refuse any asset without a digest, so this gate passes. | executed (GitHub release metadata, 21:24:48 UTC) |
 | Row-level coverage of those files | Not measured: the files were not downloaded. Examples: Week 10 roster rows, Week 9 stat and snap rows. The offers and results dry runs measure this themselves. | unknown |

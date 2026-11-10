@@ -142,6 +142,21 @@
     "currentRosterEventMapping": null,
     "actualStatFinalityPath": null
   },
+  "hostedAuditNovember10": {
+    "record": "docs/PLAYER_PROPS_READINESS_TASK2_2026-11-10.md",
+    "observedAt": "2026-11-10T21:23:00Z/2026-11-10T21:27:00Z",
+    "status": "executed read-only after the M-45 to M-47 applies",
+    "migrationHistoryRows": 83,
+    "propsFunctionsMatchingPacket": 21,
+    "propsTablesNonCapabilityRows": 0,
+    "liveLockIn": false,
+    "researchQuoteFetchesAllTime": 0,
+    "quoteCount": 0,
+    "eligibleBookCoverage": "none: no retained quotes",
+    "quotaCapacity": "full slate does not fit above the 50-credit reserve; a 2-game, 3-stat pilot fits",
+    "currentRosterEventMapping": "provider event IDs present for all 14 Week 10 games; no builder for intake quoteRequests or the GSIS-keyed roster receipt",
+    "actualStatFinalityPath": "not run: 0 offers; nflverse file row coverage not measured"
+  },
   "liveLockInReady": false,
   "implementationStarted": false,
   "migrationApplied": false,
