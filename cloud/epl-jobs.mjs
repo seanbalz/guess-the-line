@@ -62,7 +62,7 @@ const OPTIONAL_EPL_RPCS = Object.freeze({ gtl_epl_recheck_state: 'GTL_EPL_RECHEC
   gtl_epl_apply_recheck_orders: 'GTL_EPL_ORDER_UPDATE_OFF', gtl_epl_reserve_result_read: 'GTL_EPL_RESULT_READ_OFF',
   gtl_epl_capture_interval: 'GTL_EPL_CAPTURE_INTERVAL_OFF', gtl_epl_order_correction_state: 'GTL_EPL_ORDER_STATE_OFF',
   gtl_epl_standings_state: 'GTL_EPL_STANDINGS_OFF', gtl_epl_moneyline_due: 'GTL_EPL_MONEYLINE_OFF',
-  gtl_epl_begin_moneyline_read: 'GTL_EPL_MONEYLINE_OFF' });
+  gtl_epl_begin_moneyline_read: 'GTL_EPL_MONEYLINE_OFF', gtl_epl_begin_moneyline_markets: 'GTL_EPL_MARKETS_OFF' });
 /** Kept in step with gtl_epl_complete_job (tests/epl-jobs-sql.test.mjs checks the SQL names every one). */
 export const EPL_SKIP_REASONS = Object.freeze(['no_week', 'not_open', 'not_due', 'no_fixtures', 'already_resolved', 'not_resolved', 'nothing_due',
   'budget_guard', 'budget_unknown', 'results_pending', 'snapshot_pending', 'no_subscription', 'already_nudged', 'needs_review']);
@@ -133,7 +133,7 @@ export function createEplSources({ apiKey, fetchImpl = fetch, clock = Date.now }
     sleeper: ({ label, statsWeek, projectionsWeek }) => fetchSleeperSnapshot({ fetchImpl, label, statsWeek, projectionsWeek, clock, enrichDirectory: /^daily-\d{4}-\d{2}-\d{2}$/.test(label) }),
     odds: () => fetchEplOdds({ apiKey, fetchImpl }),
     scores: ({ onQuota } = {}) => fetchEplScores({ apiKey, fetchImpl, daysFrom: 3, onQuota }),
-    drawNoBet: ({ eventIds, observations = false }) => fetchEplDrawNoBet({ apiKey, fetchImpl, eventIds, observations, clock }),
+    drawNoBet: ({ eventIds, observations = false, threeWay = false }) => fetchEplDrawNoBet({ apiKey, fetchImpl, eventIds, observations, clock, threeWay }),
     standings: ({ season, completedRound }) => fetchWikimediaEplStandings({ season, completedRound, fetchImpl, clock }),
   };
 }
@@ -623,7 +623,7 @@ async function moneylineJob(ctx) {
   if (!Array.isArray(due) || due.length > 10 || new Set(due).size !== due.length
     || !due.every(id => typeof id === 'string' && /^[A-Za-z0-9_-]{1,100}$/.test(id))) stop('job_failed');
   if (due.length === 0) stop('nothing_due');
-  const collector = createEplMoneylineCollector({ rpc: ctx.service.rpc.bind(ctx.service), drawNoBet: ctx.sources.drawNoBet, clock: ctx.clock });
+  const collector = createEplMoneylineCollector({ rpc: ctx.service.rpc.bind(ctx.service), drawNoBet: ctx.sources.drawNoBet, clock: ctx.clock, markets: true });
   let refreshed = 0, cached = 0, unavailable = 0;
   for (const eventId of due.slice(0, 10)) {
     const result = await collector.collectForJob({ eventId, run: ctx.run });
