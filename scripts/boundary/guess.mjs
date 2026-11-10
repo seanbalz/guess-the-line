@@ -22,6 +22,16 @@ const PROP_RPCS = [
   ['gtl_props_board', { p_user: missingId, p_season: 2026, p_week: 0 }],
   ['gtl_props_history', { p_user: missingId, p_from_season: 2026, p_from_week: 0, p_to_season: 2026, p_to_week: 0 }],
 ];
+// D-82 Player Props jobs (20261110160000, not applied; builds on 20261110130000): two service-only audit tables and four
+// service-only functions the offer and result jobs call. No route: the jobs are operator/workflow runs.
+const PROP_JOBS_MIGRATION = '20261110160000 (D-82 Player Props jobs apply, after 20261110130000)';
+const PROP_JOB_TABLES = ['prop_offer_reviews', 'prop_result_checks'];
+const PROP_JOB_RPCS = [
+  ['gtl_props_jobs_capability', {}],
+  ['gtl_props_record_review', { p_review: {} }],
+  ['gtl_props_record_check', { p_check: {} }],
+  ['gtl_props_jobs_state', { p_season: 2026, p_week: 0 }],
+];
 const PROP_ROUTES = [['props/read', { season: 2026, week: 5 }], ['props/draft', {}], ['props/lock', {}], ['props/history', {}]];
 
 /** Tables, without the `gtl_` prefix: each is read anonymously and must be denied. */
@@ -38,12 +48,14 @@ export const tables = Object.freeze([
   'epl_stat_rechecks',
   // D-82 Player Props (20261110130000, not applied): every table is service-only; absence is reported as awaiting.
   ...PROP_TABLES,
+  ...PROP_JOB_TABLES,
 ]);
 
 /** [rpc, inert body]: each is called anonymously and must be denied. */
 export const rpcChecks = Object.freeze([
   ...eplOpsRpcChecks,
   ...PROP_RPCS,
+  ...PROP_JOB_RPCS,
   // M-32: service-only. No real actor/event, valid guess, or clock is supplied to a writer.
   ['gtl_epl_moneyline_distance', { p_guess: -100, p_real: 100 }],
   ['gtl_epl_guess_json', { p_g: null, p_kickoff: null, p_at: null }],
@@ -190,6 +202,7 @@ export const workerChecks = Object.freeze([
 export const awaitingDeploy = Object.freeze({
   ...eplOpsAwaiting,
   ...Object.fromEntries([...PROP_TABLES.map(t => `table/${t}`), ...PROP_RPCS.map(([rpc]) => `rpc/${rpc}`), ...PROP_ROUTES.map(([route]) => `gtl-api/${route}`)].map(key => [key, PROP_MIGRATION])),
+  ...Object.fromEntries([...PROP_JOB_TABLES.map(t => `table/${t}`), ...PROP_JOB_RPCS.map(([rpc]) => `rpc/${rpc}`)].map(key => [key, PROP_JOBS_MIGRATION])),
   'table/epl_stat_rechecks': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
   'rpc/gtl_epl_recheck_due_at': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
   'rpc/gtl_epl_recheck_state': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
