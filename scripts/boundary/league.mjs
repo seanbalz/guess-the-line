@@ -2,11 +2,13 @@
 // community feed. Joined by scripts/check-cloud-boundary.mjs (see guess.mjs).
 import * as moneyline from './epl-moneyline.mjs';
 import * as eplResults from './epl-results.mjs';
+import * as eplScoreImport from './epl-score-import.mjs';
 import { actor, fixtureEmail, missingId, missingLeague } from './fixtures.mjs';
 
 export const tables = Object.freeze([
   ...moneyline.tables,
   ...eplResults.tables,
+  ...eplScoreImport.tables,
   'leagues', 'memberships', 'profiles', 'schedule_templates', 'invites', 'access_audit', 'feed_posts', 'feed_likes', 'feed_comments', 'community_removals',
   // M-21 (hosted since October 27, 2026, RELEASE_2026_10_27_FEED_MIGRATIONS.md): the append-only reaction events.
   'feed_reaction_events',
@@ -23,6 +25,7 @@ export const rpcChecks = Object.freeze([
   ['gtl_epl_advance_queues', { p_season: 0, p_week: 0, p_now: null }],
   ...moneyline.rpcChecks,
   ...eplResults.rpcChecks,
+  ...eplScoreImport.rpcChecks,
   // M-34: inert claim IDs/null source only; no real run, snapshot or pick can be written.
   ['gtl_epl_standings_valid', { p_record: null, p_season: 2026, p_round: 8, p_now: null }],
   ['gtl_epl_standings_state', { p_run: missingId, p_claim: missingId, p_season: 2026, p_week: 9, p_now: null }],
@@ -103,6 +106,8 @@ export const apiChecks = Object.freeze([
   // M-25 routes (redesign stage 69): signed-out probes prove only authentication protection.
   ['league/features', {}],
   ['league/features/run', {}],
+  // EPL stage 3 commissioner score import (20261110110000, pending): see epl-score-import.mjs.
+  ...eplScoreImport.apiChecks,
 ]);
 
 export const workerChecks = Object.freeze([
@@ -120,6 +125,7 @@ export const workerChecks = Object.freeze([
 export const awaitingDeploy = Object.freeze({
   ...moneyline.awaitingDeploy,
   ...eplResults.awaitingDeploy,
+  ...eplScoreImport.awaitingDeploy,
   'table/epl_standings': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
   'table/epl_standings_usage': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
   'rpc/gtl_epl_standings_valid': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
