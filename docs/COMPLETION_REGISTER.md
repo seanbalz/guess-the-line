@@ -342,7 +342,7 @@ No SQL or workers were deployed. All six public Research assets were downloaded
 and hash-verified with season rows and compact series in each sample.
 
 Earlier local-only/not-deployed entries below are historical. FEPL's separate
-frame choice remains queued after the pending ROI answer; M-41 remains separate
+frame choice remains queued separately; D-78 answers ROI policy; M-41 remains separate
 PR #497 and unapplied. No new phone acceptance, private-board sync, avatar,
 award, NBA or parked Signal work is claimed. Frozen v62 remains unchanged.
 
@@ -535,6 +535,36 @@ Two controller browsers, 29 focused Node checks, typecheck and the affected
 28 component tests pass. Full run was 912/913 before the stale assertion fix;
 fresh whole-branch validation remains required. This is local integration,
 not deployment or complete acceptance of held/shared/hosted/phone work.
+## Virtual Custom hundredths — prepared, enablement held — November 7, 2026
+
+[M-41 preparation and compatibility inventory](VIRTUAL_UNITS_HUNDREDTHS_M41.md)
+adds service-only gated support for 0.01–100U Custom entry, preserves existing
+half-unit stakes, and maps the selected native slip field with 0.1U taps and
+the amended 0.5U ordinary floor. Old schema/API reads keep half-unit controls.
+No accounting, scoring or historic result is changed. Local SQL tests cover
+three save paths, CAS/replay, grants and apply/rollback preservation; native
+browser checks cover invalid drafts, busy/uncertain retry and phone-width layouts.
+M-41 is not applied, merged or deployed. Enablement remains held for the explicit
+Gate M queue/precheck, exact-source review/CI and Sean's separate `apply M-41`.
+D-78 answers the ROI policy choice; PR #500 is merged at
+`1c5a9da0deb479c15abf390a905acd47084cb338`, with its release pending.
+The frozen v62 tracker is unchanged.
+
+The [M-41 review corrections](VIRTUAL_UNITS_HUNDREDTHS_M41.md#review-corrections--november-7-2026)
+resolve committed cent-request replay after capability loss/SQL rollback,
+freeze exact browser retry bodies through a board refresh, reject excess
+numeric precision consistently with SQL, and restore the Custom label's 16px
+native floor. Prepared SQL/rollback and accounting remain unchanged. Local
+verification passed 76 focused Node/SQL/import/token/parser tests, 19 component
+tests and four browser scenarios; scoped captures include computed typography.
+PR #497 carries the corrected artifact. Its November 8 reconciliation preserves
+current main and D-78 saved-four-place accounting, all three reviewed writer
+bodies and the four original M-41 design artifacts. Fresh local verification
+and remaining release holds are recorded in the M-41 preparation document.
+M-41 remains unapplied and held for queue/precheck, independent review,
+exact-source CI and named apply approval. Supabase reauthentication is still
+required for fresh hosted preservation hashes/grants; FEPL remains a separate
+unanswered frame choice.
 
 ## Native Account integration and whole-page spacing repair — November 7, 2026
 

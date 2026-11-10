@@ -8,9 +8,11 @@ import { parseMarketsVisible } from './line-lock.mjs';
 import { readLiveRules } from './live-rules.mjs';
 import { bestOffer, newestPerBook } from '../shared/best-offer.mjs';
 import { normalizeWeek, rankBoard, rankLabel, seasonBoard } from '../shared/bets-qual.mjs';
+import { halfUnits, validVirtualUnits } from '../shared/virtual-unit-amount.mjs';
+import { readVirtualUnitRules } from './virtual-unit-rules.mjs';
 
 export class BetsError extends Error {
-  constructor(status, message) { super(message); this.name = 'BetsError'; this.status = status; }
+  constructor(status, message, code) { super(message); this.name = 'BetsError'; this.status = status; this.code = code; }
 }
 /** Route → allowed methods. Group routes take POST JSON bodies; the handler allows them no query parameters. */
 export const BETS_METHODS = Object.freeze({ '/bets/recommendations': ['POST'], '/bets/recommendations/place': ['POST'], '/bets/read': ['POST'],
@@ -27,6 +29,7 @@ const ERRORS = Object.freeze({
   GTL_FEATURE_OFF: [503, 'Recommendations are not available right now.'],
   GTL_BETS_WEEK: [409, 'The published week changed. Refresh recommendations before saving.'],
   GTL_VIRTUAL_INVALID: [400, 'Choose a valid side, unit amount and saved named-book quote.'],
+  GTL_VIRTUAL_UNITS_UNAVAILABLE: [409, 'Custom Virtual Units are not available yet. Your saved picks are safe. Refresh before saving.'],
   GTL_VIRTUAL_CLOSED: [409, 'This matchup has started. Virtual picks are closed.'],
   GTL_VIRTUAL_QUOTE: [409, 'That saved quote changed. Refresh recommendations and review its terms.'],
   GTL_WEEKLY_CONFLICT: [409, 'Your picks changed on another device. Refresh before saving.'],
@@ -36,7 +39,7 @@ const ERRORS = Object.freeze({
   GTL_BET_CHANGED: [409, 'This bet changed. Review its saved terms before placing it again.'],
   GTL_BETS_REPLAY: [409, 'This request was already used for different bets. Review your slip and place it again.'],
 });
-export const providerBetsError = message => (Object.hasOwn(ERRORS, message) ? new BetsError(...ERRORS[message]) : new Error('Bets are unavailable.'));
+export const providerBetsError = message => (Object.hasOwn(ERRORS, message) ? new BetsError(...ERRORS[message], message) : new Error('Bets are unavailable.'));
 const record = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const finite = value => typeof value === 'number' && Number.isFinite(value);
 const time = value => typeof value === 'string' && Number.isFinite(Date.parse(value)) ? value : null;
@@ -213,6 +216,7 @@ export async function readRecommendations({ user, service, clock = Date.now, opt
   virtual.games = virtual.games.map(game => ({ ...game, offers: Object.fromEntries(Object.entries(game.offers).map(([market, sides]) => [market,
     Object.fromEntries(Object.entries(sides).map(([side, offer]) => [side, offerView(offer)])),
   ])) }));
+  virtual.unitRules = await readVirtualUnitRules(optionalRpc);
   return { personal, virtual, slates, publishedWeek, current };
 }
 
@@ -222,7 +226,7 @@ function validatePlace(body) {
     || typeof body.gameId !== 'string' || !/^[A-Z]{2,3}-[A-Z]{2,3}$/.test(body.gameId) || !SIDES[body.market]?.includes(body.side)
     || !finite(body.line) || !Number.isInteger(body.line * 2) || (body.market === 'total' ? body.line < 0 || body.line > 200 : Math.abs(body.line) > 100)
     || !Number.isInteger(body.odds) || Math.abs(body.odds) < 100 || Math.abs(body.odds) > 10000
-    || !finite(body.units) || body.units <= 0 || !Number.isInteger(body.units * 2) || typeof body.source !== 'string' || !time(body.quotedAt)) fail('GTL_VIRTUAL_INVALID');
+    || !validVirtualUnits(body.units) || typeof body.source !== 'string' || !time(body.quotedAt)) fail('GTL_VIRTUAL_INVALID');
 }
 
 // M-11: a slip of up to 64 bets. Each names the exact offer it was read with and, for an edit, the
@@ -234,7 +238,7 @@ function validTerms(market, terms) {
   return SIDES[market]?.includes(terms.side) && finite(terms.line) && Number.isInteger(terms.line * 2)
     && (market === 'total' ? terms.line >= 0 && terms.line <= 200 : Math.abs(terms.line) <= 100)
     && Number.isInteger(terms.odds) && Math.abs(terms.odds) >= 100 && Math.abs(terms.odds) <= 10000
-    && finite(terms.units) && terms.units > 0 && Number.isInteger(terms.units * 2) && SOURCES.has(terms.source) && Boolean(time(terms.quotedAt));
+    && validVirtualUnits(terms.units) && SOURCES.has(terms.source) && Boolean(time(terms.quotedAt));
 }
 function validateBetsPlace(body) {
   const keys = Object.keys(body);
@@ -274,8 +278,9 @@ export async function handleBets({ route, body = {}, user, service, clock = Date
       || (body.season !== undefined && !scope(body))
       || (body.leagueId !== undefined && (typeof body.leagueId !== 'string' || body.leagueId.length < 1 || body.leagueId.length > 100)))
       fail('GTL_BETS_INVALID');
-    return projectBets(await service.rpc('gtl_read_bets', { p_user: user.id, p_season: body.season ?? null,
+    const data = projectBets(await service.rpc('gtl_read_bets', { p_user: user.id, p_season: body.season ?? null,
       p_week: body.week ?? null, p_league: body.leagueId ?? null, p_now: new Date(clock()).toISOString() }), user.id);
+    return { ...data, unitRules: await readVirtualUnitRules(optionalRpc) };
   }
   if (route === '/bets/board') {
     if (Object.keys(body).some(key => !['season','week','leagueId'].includes(key))
@@ -293,10 +298,21 @@ export async function handleBets({ route, body = {}, user, service, clock = Date
   }
   if (route === '/bets/place') {
     const request = validateBetsPlace(body);
-    const placed = await service.rpc('gtl_place_bets', { p_user: user.id, p_season: body.season, p_week: body.week,
-      p_request: body.requestId, p_bets: request });
-    return { placed: placedView(placed), bets: projectBets(await service.rpc('gtl_read_bets', { p_user: user.id, p_season: body.season,
-      p_week: body.week, p_league: null, p_now: new Date(clock()).toISOString() }), user.id) };
+    const unitRules = await readVirtualUnitRules(optionalRpc);
+    // Capability is a UI hint, not a veto on a committed receipt. Both old and
+    // new SQL authenticate membership and resolve scoped, exact replays before
+    // applying their amount rule to a genuinely new write.
+    let placed;
+    try {
+      placed = await service.rpc('gtl_place_bets', { p_user: user.id, p_season: body.season, p_week: body.week,
+        p_request: body.requestId, p_bets: request });
+    } catch (error) {
+      if (!unitRules.hundredths && request.some(bet => !halfUnits(bet.units)) && error?.code === 'GTL_VIRTUAL_INVALID')
+        fail('GTL_VIRTUAL_UNITS_UNAVAILABLE');
+      throw error;
+    }
+    return { placed: placedView(placed), bets: { ...projectBets(await service.rpc('gtl_read_bets', { p_user: user.id, p_season: body.season,
+      p_week: body.week, p_league: null, p_now: new Date(clock()).toISOString() }), user.id), unitRules } };
   }
   if (typeof service.recommendationState !== 'function') throw new Error('Bets are not configured.');
   if (route === '/bets/recommendations') {
@@ -306,6 +322,7 @@ export async function handleBets({ route, body = {}, user, service, clock = Date
   }
   validatePlace(body);
   const current = await readRecommendations({ user, service, clock, optionalRpc });
+  if (!current.virtual.unitRules.hundredths && !halfUnits(body.units)) fail('GTL_VIRTUAL_UNITS_UNAVAILABLE');
   if (!sameWeek(body, current.virtual)) fail('GTL_BETS_WEEK');
   if (body.revision !== current.virtual.revision) fail('GTL_WEEKLY_CONFLICT');
   const game = current.virtual.games.find(game => game.id === body.gameId);

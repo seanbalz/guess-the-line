@@ -10,8 +10,9 @@ function is applied to the hosted project, its rollback sits here and has passed
 - **Previous bodies only.** The file holds `create or replace function` statements that put back the bodies the
   migration replaces, byte for byte as the newest earlier migration wrote them (the test compares md5s), plus
   `grant` or `revoke` lines when the migration changed a grant. Nothing else: never a `drop`, `delete`, `truncate`,
-  `alter`, `insert` or `update`. The sole compatibility exception is M-01's newly added `gtl_live_rules`: its
-  rollback keeps that service-only RPC readable and returns the exact legacy rules restored by the rollback.
+  `alter`, `insert` or `update`. Two narrowly checked compatibility exceptions keep newly added service-only
+  readers available: M-01's `gtl_live_rules` returns its exact legacy rules; M-41's `gtl_virtual_unit_rules`
+  returns exactly `version: 1, hundredths: false`. Their rollback tests reject any more permissive reply.
 - **New things stay.** Tables and functions the migration added are not removed. The code's off switch
   (`GTL_FEATURE_OFF`) stops their use, and every row a player wrote stays (D-23). A new function that a deployed
   route already reads must not signal its state through permission failures. In M-01's rollback, `gtl_live_rules`

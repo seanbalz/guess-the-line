@@ -15,7 +15,9 @@ authorizes no apply, deploy, schedule change, secret or provider call.
 
 ## 1. What is pending
 
-`tests/migrations.mjs` `NOT_HOSTED` lists eight repo migrations. Every other repo
+This packet covers nine repo migrations, all in `tests/migrations.mjs` `NOT_HOSTED`: the
+eight listed by version 2 plus M-41, added when PR #497 was reconciled with this packet.
+Every other repo
 migration is in `APPLIED`.
 
 | Ledger | File (repo version) | Bytes | SHA-256 | Replaces | Rollback file | Off switch |
@@ -23,22 +25,25 @@ migration is in `APPLIED`.
 | M-33 | `20261029151727_gtl_epl_stat_rechecks.sql` | 9474 | `444394a01579d3c1cb59f5e0a774e418b225f6bc6abddbde76a6cb99c0215ea3` | nothing | none | disable the `snapshot` schedule (rechecks run inside it) |
 | M-34 | `20261029161613_gtl_epl_standings.sql` | 15669 | `9f8479c764eb2a7fd800740542cf2785db54b53144b32be832a69ef506148b16` | nothing | none (FIX_FORWARD) | no `standings` row exists; keep it absent/disabled |
 | M-35 | `20261029162144_gtl_epl_corrected_draft_order.sql` | 15343 | `329ce872d88f76ed16e133e9d6b38a79c3400541b9c0f3ba567408ec42514baf` | nothing | none | disable `snapshot`/`settle` schedules |
+| M-41 | `20261108022135_gtl_virtual_units_hundredths.sql` | 22535 | `20e4711ecc9a5134baef333825555eb9a63823905012375da6299ba775e7a876` | 3 writer bodies (section 4) | `supabase/rollback/20261108022135_gtl_virtual_units_hundredths.sql` (21637 bytes, SHA-256 `068fbc95f30bb087e833f2b68dc6c752cb9e916fdac737ee696dcef520ea6bdf`) | rollback file; capability then answers `hundredths:false` |
 | **M-42** (proposed) | `20261110100000_gtl_epl_three_way_moneyline.sql` | 43676 | `60118d30f3671eb5386b5e74e5f60ada786fef75c78a93d07e52283dd72a09c4` | 4 bodies (section 4) | none (FIX_FORWARD) | `gtl_epl_three_way_ready()` answers `false` |
 | **M-43** (proposed) | `20261110110000_gtl_epl_score_import.sql` | 24672 | `17f9ad5ac62114d17faefc79f9386ba64b1738515f54ef7f9137ecd40f6d3bb3` | nothing | none needed | do not call the two commissioner routes |
 | **M-44** (proposed) | `20261110120000_gtl_epl_result_announcements.sql` | 15469 | `3b8dc8acb25f92d12b7cbcd310955fb099d6694f050f0af1d48a5bb03139f9f3` | nothing | none (FIX_FORWARD) | disable the `results` schedule row |
 | **M-45** (proposed) | `20261110130000_gtl_player_props.sql` | 30416 | `cde5e2bd40426d42c9118f8a4ace7fce3beaaab26963eddc1d1d75eb63008795` | nothing | none needed | ships dark: `live_lock_in=false`, `GTL_PLAYER_PROPS` unset |
 | **M-46** (proposed) | `20261110160000_gtl_player_props_jobs.sql` | 16309 | `31c1db1e78c96c17effcb967eb534bb3fd01ce1cc9d0ed52af99292426dc946e` | nothing | none needed | jobs stay off: `GTL_PLAYER_PROPS_JOBS` unset, no schedule, dry run by default |
 
-Byte counts and SHA-256 are of the files on `main` at `0944bc20` (M-46: at `f6a5409c`, PR #519), except M-34, which version 2
+Byte counts and SHA-256 are of the files on `main` at `0944bc20` (M-46: at `f6a5409c`, PR #519;
+M-41: of PR #497's files, unchanged by its reconciliation merges), except M-34, which version 2
 amended before any apply (it was 14716 bytes, `8f8fdb5d7cf2a143d5e77b0b1ef3b2e04037ccdf25c8b861348a9939a05c8948`;
 only its job-constraint statement changed, every function body and md5 is unchanged). Before an apply,
 recompute them from the exact merged SHA you apply from (`wc -c`, `sha256sum`).
 
 **Proposed ledger ids.** The [migration ledger](REDESIGN_BUILD_PLAN.md#6-migration-ledger)
-ends at M-40. **M-41 is already taken** by open PR #497 (custom Virtual Units stakes,
-`20261108022135_gtl_virtual_units_hundredths.sql`, not merged, not on `main`, not in
-`NOT_HOSTED`). The next free ids, in filename order, are therefore M-42 to M-45, and M-46
-for PR #519's jobs file (added in version 2). They are
+ends at M-40, plus the M-41 row written by PR #497 (custom Virtual Units stakes,
+`20261108022135_gtl_virtual_units_hundredths.sql`). When this packet was first written
+M-41 was not on `main`; PR #497's reconciliation merge adds the file, its rollback, its
+`NOT_HOSTED` line and its section below. The next free ids, in filename order, are therefore
+M-42 to M-45, and M-46 for PR #519's jobs file (added in version 2). They are
 **proposed**: none of the five authors assigned an id, and the ledger rows are not
 written yet. Use them in Sean's apply phrases only after he accepts them; until then
 name the file version as well (section 9).
@@ -137,6 +142,7 @@ Dependencies (file headers, ledger and the PR bodies):
 | M-33 | M-31, M-32 | M-34 (ledger), M-35 (`REQUIRES`) |
 | M-34 | **M-33 (pending)** | — (order-safe against M-44 since version 2) |
 | M-35 | **M-33 (pending)**; operator interval prerequisite | — |
+| M-41 | M-11 and the existing Virtual/Recommended writers; compatible `gtl-api`/Pages | — |
 | M-42 | M-30, M-31, M-32, M-36 | — |
 | M-43 | M-30, M-40 | — |
 | M-44 | M-30, M-36 | — |
@@ -148,14 +154,17 @@ A topological order that is also filename order (Gate M step 1):
 1. **M-33** `20261029151727`
 2. **M-34** `20261029161613`
 3. **M-35** `20261029162144`
-4. **M-42** `20261110100000`
-5. **M-43** `20261110110000`
-6. **M-44** `20261110120000`
-7. **M-45** `20261110130000`
-8. **M-46** `20261110160000`
+4. **M-41** `20261108022135`
+5. **M-42** `20261110100000`
+6. **M-43** `20261110110000`
+7. **M-44** `20261110120000`
+8. **M-45** `20261110130000`
+9. **M-46** `20261110160000`
 
 **Recommended batch when Supabase is back:** M-42, M-43, M-44, M-45, M-46 in that order
-(M-46 only after M-45). None of them reads M-33/M-34/M-35. M-33 to M-35 have their own unresolved operator
+(M-46 only after M-45). None of them reads M-33/M-34/M-35. M-41 is independent of all of
+them (it touches only the three Virtual Units writers) and may go before or after that
+batch; it needs its own compatible `gtl-api`/Pages deploy first. M-33 to M-35 have their own unresolved operator
 prerequisites (M-35's interval evidence, M-33 "not safe correction enablement" alone)
 and have been held since October 29. Deferring them is allowed ("a merged file Sean
 chose not to apply stays in NOT_HOSTED"). Since version 2, deferring M-34 past M-44 is
@@ -258,8 +267,8 @@ from public.gtl_virtual_units_settlements s;
 rollback;
 ```
 
-None of the eight migrations reads or writes ballots, picks or settlements, so these
-must be unchanged.
+None of the nine migrations in this packet writes ballots, picks or settlements during the
+apply (M-41 replaces the Virtual Units writers but rewrites no row), so these must be unchanged.
 
 ### P2. Preservation hash template (read-only)
 
@@ -387,6 +396,53 @@ order by 1;
 - **Off switch:** disable `snapshot`/`settle`. Records kept.
 - **Follow-up:** `scripts/boundary/epl-operations.mjs` M-35 entries; worker/API identity
   check per the finalization record.
+
+### M-41 `20261108022135_gtl_virtual_units_hundredths`
+
+- **Purpose:** PR #497 custom Virtual Units stakes: Custom accepts 0.01 to 100U in
+  hundredths; existing positive half-unit stakes keep their domain. Adds the service-only
+  capability `gtl_virtual_unit_rules()` so pre-apply or rolled-back clients stay on half
+  units. Settlement, eligibility, rounding, terms/CAS, idempotency and grants unchanged.
+  Full record: [VIRTUAL_UNITS_HUNDREDTHS_M41.md](VIRTUAL_UNITS_HUNDREDTHS_M41.md).
+- **Needs:** hosted M-11 and the existing Virtual/Recommended writers. Independent of
+  M-33/M-34/M-35 and M-42 to M-45 (no shared function or table). Sean's D-78 ROI release
+  is already shipped (API v52, Pages `b3bd6187`).
+- **Replaces** (verify each hosted body before apply; argument lists do not change):
+
+  | Function | Hosted md5 that must match (header) | md5 after apply | md5 after rollback |
+  | --- | --- | --- | --- |
+  | `gtl_save_virtual_units_pick(uuid,text,bigint,jsonb)` | `616fcc330a7e055e183ba2ceda14099e` | `8c73ea152e5442f34b601ce1482ecba8` | `616fcc330a7e055e183ba2ceda14099e` |
+  | `gtl_save_recommended_virtual_pick(uuid,integer,integer,bigint,jsonb)` | `da5c1747a0c095b4ff37a4b56053802a` | `49a4dc46b8170e1023cd160665ff245c` | `da5c1747a0c095b4ff37a4b56053802a` |
+  | `gtl_place_bets(uuid,integer,integer,uuid,jsonb)` | `b8ea906c82f8fd4105c9700220e4a389` | `0bdb1aa207c2cd6ce299d5acda436e8b` | `b8ea906c82f8fd4105c9700220e4a389` |
+
+  New functions (md5 after apply): `gtl_virtual_units_supported(numeric)`
+  `a9e15697e71498d77a558fbc1aced2b8`, `gtl_virtual_unit_rules()`
+  `9c8f4d5dc900aef38f595ee9da252e84` (returns `{version:1,hundredths:true}`; after
+  rollback it stays, service-only, returning `{version:1,hundredths:false}`).
+- **Preflight:**
+  ```sql
+  begin transaction read only;
+  set local statement_timeout = '15s';
+  select p.oid::regprocedure::text, md5(p.prosrc) from pg_proc p where p.pronamespace='public'::regnamespace
+   and p.proname in ('gtl_save_virtual_units_pick','gtl_save_recommended_virtual_pick','gtl_place_bets')
+   order by 1;   -- exactly 3 rows (no overloads), md5s = the "must match" column
+  select to_regprocedure('public.gtl_virtual_units_supported(numeric)') as supported,   -- null
+         to_regprocedure('public.gtl_virtual_unit_rules()') as rules;                   -- null
+  rollback;
+  ```
+  P1 (Virtual Units settled results and settlements) and P2 on `gtl_virtual_units_picks`,
+  `gtl_bet_versions`, `gtl_bet_receipts`, `gtl_weekly_versions`.
+- **Verify:** P3 for the five functions (md5s above; service-only execute on the two new
+  ones, writer grants unchanged); P2 and P1 identical; half- and cent-unit boundary probes,
+  gates/CAS/replay as listed in the M-41 record. No row is rewritten by the apply.
+- **Off switch:** the rollback file restores the three prior writer bodies byte for byte
+  (md5 column above) and makes the capability answer `hundredths:false`; saved cent
+  stakes, audits, receipts and settled results stay (D-23). The existing `bets-place`/`bets`
+  feature switches remain available.
+- **Deploys:** compatible `gtl-api` and Pages from the merged PR #497 SHA **before** the
+  apply (they read the capability and stay on half units while it is absent).
+- **Follow-up:** remove M-41's two `awaitingDeploy` entries in `scripts/boundary/bets.mjs`
+  after the permission checks pass; move `20261108022135` to `APPLIED`.
 
 ### M-42 (proposed) `20261110100000_gtl_epl_three_way_moneyline`
 
@@ -679,7 +735,8 @@ order by 1;
 | PR #517 (fantasy defense) | Merged `0944bc20`; frontend not deployed; data arrives with the next scheduled Fantasy refresh. |
 | `gtl-epl-jobs` | Last recorded v3 (October 29, `epl-jobs` deploy run 40937265809 from `d891291c`). M-42's timed three-way collection and M-44's `results` job need a new `epl-jobs` deploy. |
 | PR #519 (Player Props jobs) | Merged `f6a5409c`. No Edge Function or Pages deploy is needed; the manual `player-props-jobs.yml` workflow runs only from `main` with `GTL_PLAYER_PROPS_JOBS=on` (unset). |
-| Migrations M-33…M-35, M-42…M-46 | **Not applied.** |
+| PR #497 (M-41 custom Virtual Units) | Merged code not deployed; needs `gtl-api` + Pages before the M-41 apply. |
+| Migrations M-33…M-35, M-41, M-42…M-46 | **Not applied.** |
 
 Gate D order for these: compatible `gtl-api`/Pages first (run 42744392202), worker
 (`epl-jobs`), then the SQL applies, then admin schedule rows. All new API code detects an
@@ -828,5 +885,8 @@ or before it; see contradiction 7 for M-35 after an import):
 - "apply M-34" (`20261029161613`), the amended file, before or after M-44
 - "apply M-35" (`20261029162144`), only after the operator interval prerequisite is reviewed
 
-Full filename order if everything goes: apply M-33, apply M-34, apply M-35, apply M-42,
+Independently, for custom Virtual Units stakes (PR #497): "Deploy api-and-frontend" from the
+merged PR #497 SHA, then "apply M-41" (`20261108022135`).
+
+Full filename order if everything goes: apply M-33, apply M-34, apply M-35, apply M-41, apply M-42,
 apply M-43, apply M-44, apply M-45, apply M-46.
