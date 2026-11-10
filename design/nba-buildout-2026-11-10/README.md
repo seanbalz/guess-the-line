@@ -98,6 +98,15 @@ there (question 4). An early draft let the date chips scroll at 320 px and
 showed a header row clipped inside a bordered demo; both were fixed before
 these captures.
 
+Independent review corrections (executed; mockups 04 and 10 re-captured at both
+widths and themes with the same checks, all passing): the Yesterday / Today /
+Tomorrow date chips now select with Prism's outline, tint and check instead of
+a solid lime fill, matching the approved glass controls in
+`web/src/next/play/prismPlay.css`; and the Tonight preview now shows 1 locked,
+3 drafts and 1 open with "Lock in all 3", so the lock-all button and dialog
+count only unlocked drafts instead of offering to lock all 5 games when 2 were
+already locked.
+
 Physical-iPhone acceptance, real data, hosted behavior and Sean's approval are
 not claimed.
 
@@ -117,10 +126,10 @@ not claimed.
 | 03 | NBA Home | 390 | Dark | [03-home-390-dark.png](03-home-390-dark.png) | `e98a9b0e414bf818918ff3ea1ad0ba4678f4d17915527848c7bddd7e02294555` |
 | 03 | NBA Home | 320 | Light | [03-home-320-light.png](03-home-320-light.png) | `9db89989f52b8a4d57836e0c7348b698cf0e4ef70bfd383ea5315bdbf52f4680` |
 | 03 | NBA Home | 390 | Light | [03-home-390-light.png](03-home-390-light.png) | `d0ccf9a843bab47542e8bde70215cfe4c884c83f56fd252c187d6ee659adc245` |
-| 04 | Research › Games | 320 | Dark | [04-research-games-320-dark.png](04-research-games-320-dark.png) | `3f5497d408293792f4d49d43c7aa9f8fa834f220e28c444c68c1f26e38d0742f` |
-| 04 | Research › Games | 390 | Dark | [04-research-games-390-dark.png](04-research-games-390-dark.png) | `9cf2f9edb8b62480060e4782d5af8399f652aba4f60d33da86c2cf1904498b4f` |
-| 04 | Research › Games | 320 | Light | [04-research-games-320-light.png](04-research-games-320-light.png) | `de44e9c51a67c4c53b50405cd2d2d99d2586dadbb93b50fdc764d624870778ac` |
-| 04 | Research › Games | 390 | Light | [04-research-games-390-light.png](04-research-games-390-light.png) | `e16c37bd05948224c43fa5e6ed93dc9e2b00b17bcc22053c8c49155935df59ba` |
+| 04 | Research › Games | 320 | Dark | [04-research-games-320-dark.png](04-research-games-320-dark.png) | `e1a8987119fb09e0b0f7e467b00af83fcbfc73b6d50a36aef2b84b9c6f81d9f2` |
+| 04 | Research › Games | 390 | Dark | [04-research-games-390-dark.png](04-research-games-390-dark.png) | `e972c0282519d63737315406f54c76308acaeb3e15edf0ba67341d9d638decbf` |
+| 04 | Research › Games | 320 | Light | [04-research-games-320-light.png](04-research-games-320-light.png) | `f883b0e40fdca37ebfdda2af9ddc2cf6d5a26dcf47ad1b9d8c88f40cdaf07f95` |
+| 04 | Research › Games | 390 | Light | [04-research-games-390-light.png](04-research-games-390-light.png) | `25567d0cbafa23016d91bdb8d8285fa5fbf2caaeb92370cdcf5808ae76dffc83` |
 | 05 | Bets › Open | 320 | Dark | [05-bets-open-320-dark.png](05-bets-open-320-dark.png) | `630b5af004fd1a74d056a5f61c8ab14682270245fe8d41ecc44c06fbce821aa6` |
 | 05 | Bets › Open | 390 | Dark | [05-bets-open-390-dark.png](05-bets-open-390-dark.png) | `94a2b5476ea63d3e26201cfc4464d01ee028744129f9dcb953991fdd62fe7b68` |
 | 05 | Bets › Open | 320 | Light | [05-bets-open-320-light.png](05-bets-open-320-light.png) | `cbfcc2b94ff269b529e7d6343e70fa6e477cbb58610f435412aa12f2e7cc0018` |
@@ -141,10 +150,10 @@ not claimed.
 | 09 | Play held card and legacy links | 390 | Dark | [09-play-held-390-dark.png](09-play-held-390-dark.png) | `195118e4f3b2668a7a11ff0b26fb5313e03bd46640cb08dbe2fa395ca27e514f` |
 | 09 | Play held card and legacy links | 320 | Light | [09-play-held-320-light.png](09-play-held-320-light.png) | `86290e02a48c597d9f1ee9e3e5125b29b35e586f814b29cfb5694291c3a708fd` |
 | 09 | Play held card and legacy links | 390 | Light | [09-play-held-390-light.png](09-play-held-390-light.png) | `ead47268c3cd48bf0694751bf5550b4ecf79e03e19713749f0cb664e9b0d19b0` |
-| 10 | Preview · Play › Tonight | 320 | Dark | [10-n3-tonight-320-dark.png](10-n3-tonight-320-dark.png) | `3786983db9877f2b776fb149fbdcaa45a048b0febcc21cb219a5ea5a0c71b33c` |
-| 10 | Preview · Play › Tonight | 390 | Dark | [10-n3-tonight-390-dark.png](10-n3-tonight-390-dark.png) | `3a71a391202a7805d761903235be422f33217e4abfb359268f7a8571824a44a7` |
-| 10 | Preview · Play › Tonight | 320 | Light | [10-n3-tonight-320-light.png](10-n3-tonight-320-light.png) | `50aa52f87f212220ddd070c9ca9de777a8b55358c9cdb9026957da91b8befa7e` |
-| 10 | Preview · Play › Tonight | 390 | Light | [10-n3-tonight-390-light.png](10-n3-tonight-390-light.png) | `63b467913035af780a2f426daaaa33eac23a4d82976bd03769fb6bf04195d502` |
+| 10 | Preview · Play › Tonight | 320 | Dark | [10-n3-tonight-320-dark.png](10-n3-tonight-320-dark.png) | `fd73149ff2797c5e80373001226893d16fa70c46860b61da7f4a276509ab5c06` |
+| 10 | Preview · Play › Tonight | 390 | Dark | [10-n3-tonight-390-dark.png](10-n3-tonight-390-dark.png) | `fc343883105bdc9c9bf169e2c5bfad27a060b4768745b90d8367adb79b940394` |
+| 10 | Preview · Play › Tonight | 320 | Light | [10-n3-tonight-320-light.png](10-n3-tonight-320-light.png) | `6ddb7a19b7923ad4315410f627e9e09880bd67ac37f7f2ae7ae43375f86e2b46` |
+| 10 | Preview · Play › Tonight | 390 | Light | [10-n3-tonight-390-light.png](10-n3-tonight-390-light.png) | `325f3b6af2629ddba4dc76e8e1c279b304d4f5a16cb63d7ac9d3b7c271e32c57` |
 | 11 | Preview · Play › Standings | 320 | Dark | [11-n3-standings-320-dark.png](11-n3-standings-320-dark.png) | `f67e6b7b651955c99a3afcd842171707ba17a0c864b4a321ceab1d9752a4ffdc` |
 | 11 | Preview · Play › Standings | 390 | Dark | [11-n3-standings-390-dark.png](11-n3-standings-390-dark.png) | `63ccb4a387313364ac2e66f2beb8a90fd6e862eae4144639a10c9fbb5240c1c8` |
 | 11 | Preview · Play › Standings | 320 | Light | [11-n3-standings-320-light.png](11-n3-standings-320-light.png) | `bf032e1e58cface77961a76f2c2f4b61b08ca623f6e6567df58021197bb462ac` |
