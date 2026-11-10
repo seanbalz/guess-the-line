@@ -1,5 +1,33 @@
 # Guess The Line — current completion register
 
+## Monday recap built from the Prism Glass design — November 10, 2026
+
+Sean approved taking the [Monday recap design record](../design/monday-recap-2026-11-05/README.md) (#490, merged into
+this branch so the record lands with the feature) to production in the new app. Built on `claude/monday-recap`:
+
+- **Home entry.** Beside the still-playing card (`shared/prior-week.mjs`, `PriorWeek.jsx`), Home shows a compact
+  "Week N recap · 1 game left · Open recap" card from the same prior-week read, so on Monday last week's recap is one tap
+  away, including its pending Monday night game.
+- **Recap layer** (`#home?layer=recap&season=…&week=…&market=…`). Separate weekly Spread and Total ranks (competition
+  ranks, ties shared, sit-outs, drafts and ineligible ballots never ranked), the gap to the leader in words, a friend
+  (Compare's default, any member by chip) and every game of the week with each player's miss against their own saved
+  line. The week is PROVISIONAL while a game is still to play; a pending game says when it kicks off.
+- **Matchup** (`&item=SEA-DEN`). The final score, your line accuracy, both guesses and saved lines, each miss on one
+  scale calculated from the labeled values, who was closer, and the game result as a separate comparison (winning
+  margin, what your guess implied, the gap). A pending game shows no score or result.
+- **Reveal and data.** Reads only the existing gated `/league/comparison` (the reply Play › Compare already reads), and
+  only while the layer is open. The database withholds another member's guess until that game and market is open (D-31:
+  own lock-in, or that game's kickoff); `compareRows` gates each game again, so a value the reply should not carry is
+  never drawn. No unrevealed pick is in any static asset. No new API route, RPC, migration, schedule or Supabase change.
+
+Evidence: unit tests for the recap model (`tests/next-monday-recap.test.mjs`: pending game, misses against each saved
+line, ties, standings, reveal gating, scale), UI tests (`tests/next-monday-recap-ui.test.jsx`), router/state tests for
+the new Home layer, and a cloud-browser spec (`tests/cloud-browser/next-monday-recap.spec.js`) on local PGlite with
+staged fictional replies: entry, layer, matchup, lips, Back and reload, and the phone rules (no sideways scroll, 44 px
+targets, no text under 12 px, nothing clipped, layout checks, axe) at 320 and 390 px in Dark and Light. Typecheck,
+`npm test` and `npm run build` pass locally. **Merged, not deployed**: the frontend needs a release; real-phone acceptance
+remains open.
+
 ## Migration apply packet prepared — November 10, 2026
 
 The [apply packet](MIGRATION_APPLY_PACKET_2026_11_10.md) covers all seven `NOT_HOSTED`

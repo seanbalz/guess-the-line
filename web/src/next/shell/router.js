@@ -13,8 +13,16 @@ export function safeView(tab, view = {}) {
     const value = view[key];
     if ((typeof value === 'string' && value.length <= 100 && /^[\w .:@/+\-]*$/.test(value)) || (typeof value === 'number' && Number.isFinite(value)) || value === null) result[key] = value;
   }
-  // Home's one layer is Who's in (D-69 step 2): any other `layer` is dropped, so the address draws Home's root.
+  // Home's layers are Who's in (D-69 step 2) and the Monday recap: any other `layer` is dropped, so the address draws
+  // Home's root. Only the recap keeps a week, market and one game (`item`); Who's in and the root keep none.
   if (tab === 'home' && !HOME_LAYER_IDS.includes(result.layer)) delete result.layer;
+  if (tab === 'home') {
+    if (result.layer !== 'recap') for (const key of ['item', 'market', 'season', 'week']) delete result[key];
+    else {
+      if (!['spread', 'total'].includes(result.market)) delete result.market;
+      if (typeof result.item !== 'string' || !/^[A-Z]{2,4}-[A-Z]{2,4}$/.test(result.item)) delete result.item;
+    }
+  }
   // D-69 step 3: Research's layers (one game, one team) by allowlist; any other layer or item draws the section's list.
   if (tab === 'research' && !researchLayerOf(result.section, result)) { delete result.layer; delete result.item; }
   if (tab === 'bets' && result.view === 'research' && typeof view.assessment === 'string' && /^[a-zA-Z0-9_.:-]{1,100}$/.test(view.assessment)) result.assessment = view.assessment;

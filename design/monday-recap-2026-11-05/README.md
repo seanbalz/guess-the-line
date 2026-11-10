@@ -2,6 +2,10 @@
 
 Owner: Sean Balsiger · Version 2 · November 6, 2026
 
+## Built · November 10
+
+Sean approved this revision for production. The new app builds it from the existing gated reads and Prism components: Home's recap entry, the recap layer and one game's matchup (`web/src/next/home/MondayRecap.jsx`, `recapModel.js`). The completion register records the evidence.
+
 ## Prism Glass revision · November 6
 
 [View the revised Monday recap mockup at full size](monday-recap-prism-glass.png).

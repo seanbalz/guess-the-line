@@ -22,6 +22,7 @@ import './home.css';
 import { ApprovedHome } from './ApprovedHome.jsx';
 import { teamName } from '../ui/Matchup.jsx';
 import { PriorWeekCard } from '../lines/PriorWeek.jsx';
+import { RecapLayer } from './MondayRecap.jsx';
 
 const WHO = Object.freeze({ in: { word: 'In', tone: 'win' }, satOut: { word: 'Sat out', tone: 'neutral' }, out: { word: 'Not yet', tone: 'pending' } });
 
@@ -158,6 +159,7 @@ export function Home() {
   // The tab bar names this screen; the title stays for screen readers and the page outline.
   const head = <h1 className="gx-t-title gx-sr-only">{HOME_COPY.title}</h1>;
   // The layer replaces the landing: the next-move card is unmounted, so Home's moment scope is closed behind it.
+  if (shell.state?.views?.home?.layer === HOME_LAYERS.recap) return <RecapLayer head={head} app={app}/>;
   if (shell.state?.views?.home?.layer === HOME_LAYERS.who) return <WhosInLayer head={head} app={app} shell={shell} community={community} hero={hero} tiles={tiles}/>;
   if (!hero) {
     // A read that failed with no copy to show; a refusal (403) or a 401 is covered by the app gate before Home draws.
@@ -181,5 +183,5 @@ export function Home() {
   const week = { season: data.week?.season ?? null, week: data.week?.week ?? null };
   const toPicks = () => shell.go('play', { section: 'picks', market: nextGuess(data), ...week });
   const toLines = () => shell.go('research', { section: 'games', season: null, week: null });
-  return <ApprovedHome app={app} shell={shell} community={data} hero={hero} headline={headline} toPicks={toPicks} toLines={toLines} weekContent={<><PriorWeekCard app={app} personal={personal}/><ThisWeek app={app} shell={shell} personal={personal} community={data}/></>}/>;
+  return <ApprovedHome app={app} shell={shell} community={data} hero={hero} headline={headline} toPicks={toPicks} toLines={toLines} weekContent={<><PriorWeekCard app={app} personal={personal} recap/><ThisWeek app={app} shell={shell} personal={personal} community={data}/></>}/>;
 }
