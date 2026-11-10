@@ -21,6 +21,13 @@
 //   /epl/fantasy/read    any signed-in account: Research -> Fantasy (plan 2026-10-28-epl-fantasy.md, Task 2), built from
 //                        stored Sleeper snapshots and the season's bonus rows (cloud/epl-fantasy-view.mjs), never from a
 //                        live Sleeper call; a non-member's view has no viewer, so no matchup of its own
+//   /epl/admin/scores/read    the commissioner's weekly-score review (EPL stage 3): the known manager mapping, the season's
+//                        matchweeks and, for a week, its confirmed import, the next week and any saved after-mw<week> Sleeper
+//                        season totals (gtl_epl_score_import_state); { available: false } until the migration is applied
+//   /epl/admin/scores/import  the commissioner confirms the reviewed Sleeper screenshot scores (only image hashes and the eight
+//                        scores; the screenshots stay in the browser). gtl-api computes the drafted week's bonus awards from its
+//                        stored verified finals (settleBonus, as the settle job does) or sends none while any is pending, and
+//                        gtl_epl_import_weekly_scores reconciles, settles and opens or preserves the next draft atomically
 //   /epl/claim           any signed-in account claims an unclaimed manager, { ownerId } (gtl_epl_claim_manager: the first
 //                        claim wins; GTL_EPL_CLAIMED and GTL_EPL_ALREADY_LINKED are 409, and a manager the
 //                        commissioner unlinked this account from is GTL_EPL_FORBIDDEN, 403)
@@ -41,6 +48,8 @@ import { MANAGER_NAMES } from '../shared/epl-sleeper.mjs';
 import { EPL_CLUBS } from '../shared/epl-clubs.mjs';
 import { buildFantasyView, detailLabels, fantasySeason } from './epl-fantasy-view.mjs';
 import { readEplCorrectionReviews } from './epl-correction-reviews.mjs';
+import { settleBonus } from '../shared/epl-draft.mjs';
+import { weekResults } from './epl-jobs.mjs';
 import { pickATeamResults } from '../shared/epl-results.mjs';
 
 export const EPL_METHODS = Object.freeze({
@@ -48,13 +57,14 @@ export const EPL_METHODS = Object.freeze({
   ...EPL_BETS_METHODS,
   '/epl/draft/read': ['POST'], '/epl/draft/pick': ['POST'], '/epl/queue/save': ['POST'],
   '/epl/admin/link': ['POST'], '/epl/admin/week': ['POST'], '/epl/admin/snapshot': ['POST'], '/epl/admin/fixture': ['POST'],
-  '/epl/admin/corrections/read': ['POST'],
+  '/epl/admin/corrections/read': ['POST'], '/epl/admin/scores/read': ['POST'], '/epl/admin/scores/import': ['POST'],
   '/epl/fantasy/read': ['POST'], '/epl/claim': ['POST'],
 });
 /** The service-only functions these routes may call; the adapter refuses any other name. */
 export const EPL_RPCS = Object.freeze([...EPL_GUESS_RPCS, ...EPL_BETS_RPCS, 'gtl_epl_member', 'gtl_epl_week_state', 'gtl_epl_save_pick', 'gtl_epl_save_queue',
   'gtl_epl_link_manager', 'gtl_epl_seed_week', 'gtl_epl_set_week_window', 'gtl_epl_save_snapshot', 'gtl_epl_set_fixture_status', 'gtl_epl_set_fixture_result', 'gtl_community_admin',
-  'gtl_epl_auto_link', 'gtl_epl_claim_manager', 'gtl_epl_recheck_due_at', 'gtl_epl_order_correction_state', 'gtl_epl_standings_provenance']);
+  'gtl_epl_auto_link', 'gtl_epl_claim_manager', 'gtl_epl_recheck_due_at', 'gtl_epl_order_correction_state', 'gtl_epl_standings_provenance',
+  'gtl_epl_score_import_state', 'gtl_epl_import_weekly_scores']);
 /**
  * The request body cap for /epl/admin/snapshot (cloud/handler.mjs readJson). scripts/epl-import-snapshots.mjs posts a
  * trimmed snapshot (users, rosters, state, scoring settings and rostered players' stats and projections: about 110 KB for
@@ -91,6 +101,15 @@ const ERRORS = Object.freeze({
   GTL_EPL_SEED_REFUSED: [409, 'This matchweek already has in-app picks, so its order and picks are fixed.'],
   GTL_EPL_NOT_RESOLVED: [409, 'This matchweek has not been resolved yet.'],
   GTL_EPL_FIXTURE_LOCKED: [409, 'That match has a result or its matchweek is settled, so it cannot change.'],
+  // EPL stage 3: the reviewed weekly-score import. Nothing is written on any of these refusals.
+  GTL_EPL_IMPORT_INVALID: [400, 'Check the matchweek, managers and scores (two decimals at most) and try again.'],
+  GTL_EPL_IMPORT_INCOMPLETE: [400, 'Every manager needs a score before the import. A missing score is never zero.'],
+  GTL_EPL_IMPORT_ATTESTATION: [400, 'Confirm that the Sleeper totals already include the Pick a Team bonuses.'],
+  GTL_EPL_IMPORT_WEEK_MISMATCH: [409, 'The matchweek differs from the one read on the screenshots. Confirm the change first.'],
+  GTL_EPL_IMPORT_WEEK_OPEN: [409, 'That matchweek\'s draft is still open, so its scores cannot be imported yet.'],
+  GTL_EPL_IMPORT_TIE_TOTALS: [409, 'Tied scores need the tied managers\' Sleeper season totals.'],
+  GTL_EPL_IMPORT_ORDER_CHANGED: [409, 'The draft order changed from the one reviewed. Review it again.'],
+  GTL_EPL_IMPORT_CONFLICT: [409, 'These scores differ from the confirmed import. Review the differences and record a correction.'],
   // M-30 not on the database (not applied, or rolled back): the coming-soon answer.
   GTL_FEATURE_OFF: [404, 'Pick a Team is coming soon.', 'GTL_EPL_OFF'],
 });
@@ -515,10 +534,105 @@ async function fantasyRead({ body, user, service }) {
   return view ?? refuse('GTL_EPL_NO_FANTASY');
 }
 
+// EPL stage 3: the commissioner's reviewed Sleeper weekly-score import. Screenshots never reach the server: the body carries
+// the images' SHA-256 hashes and the eight reviewed scores only. Every reply is rebuilt field by field.
+const HEX64 = /^[0-9a-f]{64}$/;
+const isCents = value => typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= 100000 && Math.round(value * 100) / 100 === value;
+const isOff = error => error instanceof EplError && error.status === 404 && error.code === 'GTL_EPL_OFF';
+const OPENINGS = new Set(['opened', 'order_applied', 'same_order', 'preserved_picks', 'preserved_closed', 'pending_results', 'season_end']);
+const managerList = order => (Array.isArray(order) ? order.filter(isManager) : []);
+function importView(raw) {
+  if (!record(raw)) return null;
+  const rows = (Array.isArray(raw.rows) ? raw.rows : []).filter(r => record(r) && isManager(r.ownerId))
+    .map(r => ({ ownerId: r.ownerId, name: nameOf(r.ownerId), score: Number(r.score), seasonTotal: r.seasonTotal === null || r.seasonTotal === undefined ? null : Number(r.seasonTotal), edited: r.edited === true }))
+    .filter(r => isCents(r.score) && (r.seasonTotal === null || isCents(r.seasonTotal)));
+  const opening = record(raw.opening) && OPENINGS.has(raw.opening.outcome) ? { outcome: raw.opening.outcome, week: isWeek(raw.opening.week) ? raw.opening.week : null, recordedAt: iso(raw.opening.recordedAt) } : null;
+  return { confirmedAt: iso(raw.confirmedAt), extractedWeek: isWeek(raw.extractedWeek) ? raw.extractedWeek : null, weekCorrected: raw.weekCorrected === true,
+    order: managerList(raw.order), corrections: Number.isInteger(raw.corrections) && raw.corrections >= 0 ? raw.corrections : 0,
+    images: (Array.isArray(raw.images) ? raw.images : []).filter(h => typeof h === 'string' && HEX64.test(h)).slice(0, 64), rows, opening };
+}
+
+async function scoresRead({ body, user, service }) {
+  keys(body, ['season', 'week']);
+  await requireCommissioner(service, user);
+  if ((given(body.season) && !isSeason(body.season)) || (given(body.week) && !isWeek(body.week))) refuse('GTL_EPL_INVALID');
+  let raw;
+  try { raw = await service.rpc('gtl_epl_score_import_state', { p_by: user.id, p_season: body.season ?? null, p_week: body.week ?? null }); }
+  catch (error) { if (isOff(error)) return { available: false }; throw error; }
+  if (!record(raw)) throw reply();
+  const totals = record(raw.snapshotTotals) ? Object.fromEntries(Object.entries(raw.snapshotTotals).filter(([id, v]) => isManager(id) && isCents(Number(v))).map(([id, v]) => [id, Number(v)])) : null;
+  const next = record(raw.next) && isWeek(raw.next.week) ? { week: raw.next.week, status: text(raw.next.status), order: managerList(raw.next.pickOrder),
+    picks: Number.isInteger(raw.next.picks) ? raw.next.picks : 0, fixtures: Number.isInteger(raw.next.fixtures) ? raw.next.fixtures : 0 } : null;
+  return {
+    available: true,
+    season: isSeason(raw.season) ? raw.season : null,
+    // The known Sleeper manager mapping: immutable owner id, first name and current Sleeper username (presentation is mutable).
+    managers: (Array.isArray(raw.managers) ? raw.managers : []).filter(m => record(m) && isManager(m.ownerId))
+      .map(m => ({ ownerId: m.ownerId, name: nameOf(m.ownerId), sleeperName: typeof m.sleeperName === 'string' ? m.sleeperName.slice(0, 64) : null })),
+    weeks: (Array.isArray(raw.weeks) ? raw.weeks : []).filter(w => record(w) && isWeek(w.week)).map(w => ({ week: w.week, status: text(w.status), order: managerList(w.pickOrder) })),
+    week: isWeek(raw.week) ? raw.week : null,
+    import: importView(raw.import),
+    next,
+    snapshotTotals: totals && Object.keys(totals).length ? totals : null,
+  };
+}
+
+async function scoresImport({ body, user, service }) {
+  await requireCommissioner(service, user);
+  keys(body, ['season', 'week', 'extractedWeek', 'weekCorrected', 'sources', 'scores', 'expectedOrder', 'bonusIncluded', 'correction'], 'GTL_EPL_IMPORT_INVALID');
+  if (body.bonusIncluded !== true) refuse('GTL_EPL_IMPORT_ATTESTATION');
+  if (!isSeason(body.season) || !isWeek(body.week) || (given(body.extractedWeek) && !isWeek(body.extractedWeek))
+    || (given(body.weekCorrected) && typeof body.weekCorrected !== 'boolean') || (given(body.correction) && typeof body.correction !== 'boolean')
+    || !Array.isArray(body.sources) || !body.sources.length || body.sources.length > 12 || !body.sources.every(h => typeof h === 'string' && HEX64.test(h))
+    || !Array.isArray(body.expectedOrder) || body.expectedOrder.length > 8 || !body.expectedOrder.every(isManager)
+    || !Array.isArray(body.scores) || body.scores.length > 8) refuse('GTL_EPL_IMPORT_INVALID');
+  const scores = body.scores.map(row => {
+    keys(row, ['ownerId', 'score', 'seasonTotal', 'extractedScore'], 'GTL_EPL_IMPORT_INVALID');
+    if (!isManager(row.ownerId)) refuse('GTL_EPL_IMPORT_INVALID');
+    // A missing score is incomplete; it is never sent on as zero.
+    if (typeof row.score !== 'number') refuse('GTL_EPL_IMPORT_INCOMPLETE');
+    if (!isCents(row.score) || (given(row.seasonTotal) && !isCents(row.seasonTotal)) || (given(row.extractedScore) && !isCents(row.extractedScore))) refuse('GTL_EPL_IMPORT_INVALID');
+    return { owner_id: row.ownerId, score: row.score, season_total: given(row.seasonTotal) ? row.seasonTotal : null, extracted_score: given(row.extractedScore) ? row.extractedScore : null };
+  });
+  // Bonus awards for a resolved week come from its stored verified finals only (the settle job's rule); any pending drafted
+  // match sends none, and the import then waits to open.
+  const raw = await service.rpc('gtl_epl_week_state', { p_season: body.season, p_week: body.week });
+  if (raw === null || raw === undefined) refuse('GTL_EPL_NO_WEEK');
+  if (!record(raw) || !record(raw.weekRow) || !Array.isArray(raw.picks) || !Array.isArray(raw.fixtures)) throw reply();
+  let awards = null;
+  if (['resolved', 'needs_review'].includes(raw.weekRow.status)) {
+    const drafted = raw.picks.filter(p => record(p) && isManager(p.ownerId) && isClub(p.club)).map(p => ({ managerId: p.ownerId, club: p.club }));
+    const bonus = settleBonus(drafted, weekResults(raw.fixtures));
+    if (bonus.ready) {
+      const clubOf = new Map(drafted.map(p => [p.managerId, p.club]));
+      awards = bonus.winners.map(id => ({ owner_id: id, margin: bonus.awards[id] / 5, club: clubOf.get(id) }));
+    }
+  }
+  const saved = await service.rpc('gtl_epl_import_weekly_scores', { p_by: user.id, p_season: body.season, p_week: body.week,
+    p_extracted_week: given(body.extractedWeek) ? body.extractedWeek : null, p_week_corrected: body.weekCorrected === true,
+    p_sources: [...body.sources], p_scores: scores, p_expected_order: [...body.expectedOrder], p_bonus_included: true,
+    p_correction: body.correction === true, p_awards: awards });
+  if (!record(saved) || !record(saved.opening) || !OPENINGS.has(saved.opening.outcome)) throw reply();
+  const order = managerList(saved.opening.order);
+  return {
+    season: body.season, week: body.week,
+    reconciliation: ['new', 'duplicate', 'reconciled', 'correction'].includes(saved.reconciliation) ? saved.reconciliation : null,
+    order: managerList(saved.order).map(ownerId => ({ ownerId, name: nameOf(ownerId) })),
+    awarded: Number.isInteger(saved.awarded) ? saved.awarded : 0,
+    opening: {
+      outcome: saved.opening.outcome, week: isWeek(saved.opening.week) ? saved.opening.week : null,
+      order: order.map(ownerId => ({ ownerId, name: nameOf(ownerId) })),
+      firstPicker: order.length ? { ownerId: order[0], name: nameOf(order[0]) } : null,
+      fixtures: Number.isInteger(saved.opening.fixtures) ? saved.opening.fixtures : 0,
+      firstKickoff: iso(saved.opening.firstKickoff),
+    },
+  };
+}
+
 const HANDLERS = Object.freeze({
   '/epl/draft/read': draftRead, '/epl/draft/pick': draftPick, '/epl/queue/save': queueSave,
   '/epl/admin/link': adminLink, '/epl/admin/week': adminWeek, '/epl/admin/snapshot': adminSnapshot, '/epl/admin/fixture': adminFixture,
-  '/epl/admin/corrections/read': correctionReviews,
+  '/epl/admin/corrections/read': correctionReviews, '/epl/admin/scores/read': scoresRead, '/epl/admin/scores/import': scoresImport,
   '/epl/fantasy/read': fantasyRead, '/epl/claim': claim,
 });
 

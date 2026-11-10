@@ -38,6 +38,7 @@ export const NOT_HOSTED = [
   20261029161613, // M-34 gtl_epl_standings: private dated source persistence/usage; collection absent/disabled until separately authorized.
   20261029162144, // M-35 gtl_epl_corrected_draft_order: local source only; requires pending M-33.
   20261110100000, // gtl_epl_three_way_moneyline: local source only; builds on hosted M-30/M-31/M-32/M-36.
+  20261110110000, // EPL stage 3 gtl_epl_score_import: reviewed Sleeper screenshot import; apply after hosted M-30 and M-40.
   20261110120000, // EPL stage 4 gtl_epl_result_announcements: local source only; requires hosted M-30/M-36 only.
   20261110130000, // D-82 gtl_player_props: written, not applied; needs Sean's named apply and preflight. Ships dark (live_lock_in false).
 ];
