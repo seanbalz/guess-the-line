@@ -2,6 +2,7 @@
 
 Owner: Sean Balsiger. Observed November 9, 2026.
 Status: design approved with shared-app consistency required; source audit partial.
+Hosted Task 2 ran November 10: [results](PLAYER_PROPS_READINESS_TASK2_2026-11-10.md).
 No Player Props implementation, SQL apply, collection activation or deployment.
 
 The audit source baseline is `9a34f9e47d5fb7dd32eecd6fdc697cef53340ed9`.
@@ -94,6 +95,14 @@ Accuracy against a saved sportsbook line does not require a final player stat;
 the separate paper win/loss record does.
 
 ## Unverified dependencies and activation decision
+
+**Update, November 10, 2026:** the hosted queries below have now run, after
+the M-45 to M-47 applies. See the
+[Task 2 hosted results](PLAYER_PROPS_READINESS_TASK2_2026-11-10.md). In short:
+the schema is present and matches the packet, research intake has retained 0
+quotes ever (observed absence), the free allowance cannot fund a full-slate
+prop pass, and `liveLockInReady` stays false. The paragraph and table below
+record the November 9 state.
 
 The connected Supabase project inventory returned `UNAUTHORIZED`, requiring
 reauthentication. No hosted query was executed, so this audit cannot claim a

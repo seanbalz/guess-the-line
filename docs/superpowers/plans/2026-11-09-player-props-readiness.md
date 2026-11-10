@@ -48,8 +48,8 @@ is inferred. No code or tests are needed for this documentation/read-only phase.
 
 **Interfaces:** Consumes authenticated database read access and the existing schema; produces aggregate observations or an explicit access error. It never returns private guesses or raw quote records to a public artifact.
 
-- [ ] Restore the connected Supabase authentication. The current inventory call returned `UNAUTHORIZED`; do not request or copy passwords/service keys, bypass RLS or invoke mutating RPCs as a substitute. Confirm the intended project from the existing release configuration before querying.
-- [ ] In a read-only transaction, verify schema presence and the actual budget row using these bounded SELECTs. Keep quota amounts and project metadata ignored; the public report needs only capacity status and observation time.
+- [x] Restore the connected Supabase authentication. The current inventory call returned `UNAUTHORIZED`; do not request or copy passwords/service keys, bypass RLS or invoke mutating RPCs as a substitute. Confirm the intended project from the existing release configuration before querying.
+- [x] In a read-only transaction, verify schema presence and the actual budget row using these bounded SELECTs. Keep quota amounts and project metadata ignored; the public report needs only capacity status and observation time.
 
 ```sql
 begin transaction read only;
@@ -68,7 +68,7 @@ Expected: one verified project context, present existing tables and one budget
 row; absent/unauthorized is not ready. These reads do not reserve credits, refresh
 the provider, acquire a lease or reset budget state.
 
-- [ ] Measure retained quote coverage without selecting names, guesses, prices, lines, request IDs or raw JSON. The following query uses table timestamps and aggregate counts only. It deliberately does not label three recorded books an eligible scoring reference.
+- [x] Measure retained quote coverage without selecting names, guesses, prices, lines, request IDs or raw JSON. The following query uses table timestamps and aggregate counts only. It deliberately does not label three recorded books an eligible scoring reference.
 
 ```sql
 begin transaction read only;
@@ -124,7 +124,7 @@ quote-time provenance under the approved Guess-reference policy before a prop
 could be offered. Research offer age/availability is a different contract. Do
 not publish row-level validation evidence; retain it privately.
 
-- [ ] Check current free capacity against the actual intended event/market cadence. Use `requested events × returned unique markets × effective regions/bookmaker groups` per pass, add existing collection obligations, and preserve the 50-credit reserve/lease and existing core limits. Eleven markets across sixteen games would be 176 credits per complete one-region pass if all are returned; that is a planning example, not measured usage or an approved sweep. If the current allowance cannot cover collection and retained pre-kickoff evidence, record the limitation; do not upgrade or activate a collector.
+- [x] Check current free capacity against the actual intended event/market cadence. Use `requested events × returned unique markets × effective regions/bookmaker groups` per pass, add existing collection obligations, and preserve the 50-credit reserve/lease and existing core limits. Eleven markets across sixteen games would be 176 credits per complete one-region pass if all are returned; that is a planning example, not measured usage or an approved sweep. If the current allowance cannot cover collection and retained pre-kickoff evidence, record the limitation; do not upgrade or activate a collector.
 - [ ] Verify a stable current roster/event mapping and a raw result/participation/final/correction path. A numeric public stat, old team roster or absence of a row cannot establish those gates. Record precise ungraded reasons instead of inventing zeros.
 
 Reviewable result: a timestamped capability matrix distinguishes recorded
@@ -163,8 +163,11 @@ Record any external CI outage explicitly rather than bypassing required checks.
 
 ## Progress and scope
 
-Task 1 is checked against an actual verified public source. Task 2 is blocked on
-connected Supabase reauthentication and therefore the live-readiness decision is
-incomplete. This plan is preparatory; no product source is changed. The accepted
+Task 1 is checked against an actual verified public source. Task 2 ran on
+November 10, 2026, after the M-45 to M-47 applies:
+[hosted results](../../PLAYER_PROPS_READINESS_TASK2_2026-11-10.md). Research
+intake has retained 0 quotes ever and a full-slate pass does not fit the free
+allowance, so `liveLockInReady` stays false. Row-level roster and result coverage
+is left to the jobs' dry runs. This plan is preparatory; no product source is changed. The accepted
 Player Props design, units, optional participation and entry-only quote hiding
 remain as recorded, including the mandatory shared-app visual alignment.
