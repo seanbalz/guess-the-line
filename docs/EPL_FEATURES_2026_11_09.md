@@ -4,6 +4,13 @@ Owner: Sean Balsiger. Status: requirements confirmed in this conversation;
 implementation and release evidence pending. Based on freshly fetched main
 `9a34f9e47d5fb7dd32eecd6fdc697cef53340ed9`.
 
+> **Status, November 10, 2026:** stages 1–4 are built (PRs #513, #515, #512), deployed in
+> `api-and-frontend` run 42765795305 from `1ba75282` (`gtl-api` v54) and `gtl-epl-jobs` v4
+> (run 42834904659), and applied as M-42, M-43 and M-44
+> ([apply record](RELEASE_2026_11_10_MIGRATIONS_M41_M47.md)). Three-way entry is offered.
+> The `results` job row exists **disabled**; enabling it is Sean's separate word. Signed-in
+> readback, a real screenshot import and phone acceptance remain open.
+
 ## Confirmed behavior
 
 1. Each match offers two-way draw-no-bet or three-way home/draw/away American

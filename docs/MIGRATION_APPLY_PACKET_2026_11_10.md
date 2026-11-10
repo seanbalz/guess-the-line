@@ -795,20 +795,27 @@ order by 1;
 
 ## 5. Deploy state of the code these migrations go with
 
-| Item | State at time of writing |
-| --- | --- |
-| PR #511 (prior-week card) | Deployed: frontend, run 42733238277 from `0f656617` (success). |
-| PRs #512–#515 (+ test-only #516) | In api-and-frontend run 42744392202 from `2d54ae7b`, **waiting for approval**. |
-| PR #517 (fantasy defense) | Merged `0944bc20`; frontend not deployed; data arrives with the next scheduled Fantasy refresh. |
-| `gtl-epl-jobs` | Last recorded v3 (October 29, `epl-jobs` deploy run 40937265809 from `d891291c`). M-42's timed three-way collection and M-44's `results` job need a new `epl-jobs` deploy. |
-| PR #519 (Player Props jobs) | Merged `f6a5409c`. No Edge Function or Pages deploy is needed; the manual `player-props-jobs.yml` workflow runs only from `main` with `GTL_PLAYER_PROPS_JOBS=on` (unset). |
-| PR #522 (Player Props shared view, History, receipt) | Merged `1ba75282`, not deployed. `/props/shared` shipped in the `gtl-api` code with an `available:false` fallback while `gtl_props_shared` is absent (PGRST202); all Player Props routes stay 404 while `GTL_PLAYER_PROPS` is unset. Needs no deploy before the M-47 apply. |
-| PR #497 (M-41 custom Virtual Units) | Merged code not deployed; needs `gtl-api` + Pages before the M-41 apply. |
-| Migrations M-33…M-35, M-41, M-42…M-47 | **Not applied.** |
+State checked on November 10, 2026 at 21:24 UTC: the release runs through `gh run view`, the
+Edge Function versions, the migration history and the EPL schedule rows through the read-only
+Supabase connector. When this packet was written, PRs #512–#515 were in run 42744392202 waiting
+for approval, and #517, #497 and #522 were merged but not deployed. That run was cancelled
+(03:10 UTC) and replaced by run 42765795305 from `1ba75282`, which contains every PR below.
 
-Gate D order for these: compatible `gtl-api`/Pages first (run 42744392202), worker
-(`epl-jobs`), then the SQL applies, then admin schedule rows. All new API code detects an
-absent schema (PGRST202) and stays on the legacy path.
+| Item | State on November 10, 21:24 UTC |
+| --- | --- |
+| PR #511 (prior-week card) | **Deployed:** frontend run 42733238277 from `0f656617`. Also in run 42765795305. |
+| PRs #512–#515 (+ test-only #516), #517, #497, #519, #521, #522 | **Deployed:** `api-and-frontend` run [42765795305](https://github.com/seanbalz/guess-the-line/actions/runs/42765795305) from `1ba752821bddacedb725c0ebef2f9929827481d2`, success at 14:28:07 UTC; `gtl-api` **v54** ([final batch record](RELEASE_2026_11_10_FINAL_BATCH.md)). Run 42744392202 (`2d54ae7b`) was **cancelled**, not approved. |
+| `gtl-epl-jobs` | **v4:** `epl-jobs` run [42834904659](https://github.com/seanbalz/guess-the-line/actions/runs/42834904659) from the same source, success at 14:35:40 UTC. |
+| PR #517 (fantasy defense) | Frontend in run 42765795305. The Fantasy refresh workflow ran from `3ddc36d8` (which contains #517) at 17:19, 17:54 and 18:24 UTC, all successful. The published defense data was not read back. |
+| PR #519 (Player Props jobs) | No deploy needed. `player-props-jobs.yml` has **no runs**. `GTL_PLAYER_PROPS_JOBS` and the `GTL_PROPS_*` secrets were not checked here; the apply record says no secret or variable changed. |
+| PR #522 (`/props/shared`) | In `gtl-api` v54. All Player Props routes still answer 404 while `GTL_PLAYER_PROPS` is unset. |
+| M-41 to M-47 | **Applied and verified** as hosted `20261110203637` to `20261110204307` ([apply record](RELEASE_2026_11_10_MIGRATIONS_M41_M47.md)). History has **83** rows; the newest is `20261110204307`. |
+| M-33, M-34, M-35 | **Not applied.** 0 history rows match their names. |
+| EPL `results` job | Row created **disabled** at 21:19 UTC; the other seven EPL rows (`dnb-check`, `fixtures`, `moneyline`, `nudge`, `resolve`, `settle`, `snapshot`) are enabled. |
+
+The Gate D order was followed: compatible `gtl-api`/Pages (run 42765795305), then the worker
+(`epl-jobs`), then the SQL applies, then the disabled `results` row. All new API code detects an
+absent schema (PGRST202) and stays on the legacy path, which still covers M-33 to M-35.
 
 ## 6. Things not to do
 
@@ -932,6 +939,12 @@ If access or any path stays unresolved, `liveLockInReady` stays **false**.
 
 Each phrase is its own approval, given after that migration's preflight passes. The M-42
 to M-47 ids are proposed; until Sean accepts them, say the file version too.
+
+**Status, November 10, 21:24 UTC.** Steps 2 to 9 below are done except the second half of
+step 6, "Enable results". Step 1 was done with a different run: 42744392202 was cancelled,
+and the deploy that was approved instead is run 42765795305 from `1ba75282`. Sean's "Yes, apply M-41–M-47" covered steps 3, 4, 5 and 7 to 9
+and the M-41 apply, and also accepted the ids M-42 to M-47. His "Yes, next" created the disabled
+`results` row. M-33, M-34 and M-35 remain open (section 5).
 
 Recommended batch (section 2):
 

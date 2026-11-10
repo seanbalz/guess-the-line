@@ -6,6 +6,14 @@ No Player Props implementation, SQL apply, collection activation or deployment.
 Since then (November 10): M-45 to M-47 were applied dark and hosted Task 2 ran:
 [results](PLAYER_PROPS_READINESS_TASK2_2026-11-10.md). The lines above are the November 9 state.
 
+> **Status, November 10, 2026:** the mode is built (PRs #514, #519, #522) and deployed **dark** in
+> `api-and-frontend` run 42765795305 (`gtl-api` v54). M-45, M-46 and M-47 are applied as hosted
+> `20261110204106`, `20261110204207` and `20261110204307`, with `live_lock_in` false
+> ([apply record](RELEASE_2026_11_10_MIGRATIONS_M41_M47.md)). The hosted Task 2 audit ran on
+> November 10 in PR #526, which was still open when this note was written: `liveLockInReady` stays
+> false. `player-props-jobs.yml` has never run. Turning anything on is Sean's separate word, step
+> by step.
+
 The audit source baseline is `9a34f9e47d5fb7dd32eecd6fdc697cef53340ed9`.
 Separate [PR #508](https://github.com/seanbalz/guess-the-line/pull/508) reserves
 D-81 for NFL spread/total gap magnitudes. Player Props uses D-82; do not borrow
