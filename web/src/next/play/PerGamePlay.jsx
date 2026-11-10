@@ -16,7 +16,8 @@ import { fmtFull } from '../format.js';
 import { GuessPicker, GUESS_HELP } from './GuessPicker.jsx';
 import { ScoreReceipt } from './ScoreReceipt.jsx';
 import { WeekProgress, STATE_ICONS } from './WeekProgress.jsx';
-import { PROPS_MARKET, PropsNest, WeekTiles, nextAfter, playMarkets } from './PicksNest.jsx';
+import { PROPS_ENTRY_LINE, PROPS_MARKET, PropsNest, WeekTiles, nextAfter, playMarkets } from './PicksNest.jsx';
+import { playerPropsEnabled, takePropsEntryRequest } from '../props/flag.js';
 import { RevealFailure, RevealPicks, useWeekPicks } from './RevealPicks.jsx';
 import { CARD_STATE, confirmedLockIns, revealRows, weekLockedId, weekProgress } from './moments.js';
 import { usePopped } from '../moments/MomentsProvider.jsx';
@@ -73,7 +74,7 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', f
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState(''), [confirm, setConfirm] = useState(null), [confirmSitOut, setConfirmSitOut] = useState(false), [checked, setChecked] = useState(false);
   const [storageFailed, setStorageFailed] = useState(false), [elapsed, setElapsed] = useState(0);
   // D-82: Player Props is a separate, optional market inside Your guesses (only offered while its flag is on).
-  const [propsOpen, setPropsOpen] = useState(false);
+  const [propsOpen, setPropsOpen] = useState(() => playerPropsEnabled() && takePropsEntryRequest()), [propsLine, setPropsLine] = useState(PROPS_ENTRY_LINE);
   // The lock-in moment: the games a fresh read just confirmed as locked (the stamp plays on their cards once).
   const [moment, setMoment] = useState(null);
   // D-70: opening another card ends the moment, so reopening a locked game never stamps it again.
@@ -289,7 +290,7 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', f
     setPropsOpen(false);
     if (value !== mode && !busy && !uncertain) onMode?.(value);
   }}/>;
-  const propsPanel = propsOpen ? <PropsNest season={data.season} week={data.week} onSignInAgain={onSignInAgain}/> : null;
+  const propsPanel = propsOpen ? <PropsNest season={data.season} week={data.week} onSignInAgain={onSignInAgain} onStatus={setPropsLine}/> : null;
 
   if (nest) {
     // D-70: the week is one nesting card of game tiles; a game's address (`nest.game`) opens that game's card instead.
@@ -299,7 +300,7 @@ export function PerGameEditor({ accountId, initialData, mode = 'guess_spread', f
     if (propsPanel) return <section ref={section} className="gx-per-game gx-per-game--nest gx-vstack gx-gap-16" aria-label={`Week ${data.week} Player Props`}>
       <Nest label="Your guesses" layer="props" title="Player Props" lips={nest.root ? [nest.root] : []}
         info={<InfoButton title="About Player Props" body={['Optional · choose as many props as you want. Guess the sportsbook line for one athlete and stat; the market number stays hidden on this screen until you lock in.', 'Each prop locks on its own and is final. Spread and Total are separate.']}/>}>
-        <p className="gx-t-meta gx-c-2">Optional · choose as many props as you want</p>
+        <p className="gx-t-meta gx-c-2" data-props-line="">{propsLine}</p>
         {marketControl}
         {propsPanel}
       </Nest>

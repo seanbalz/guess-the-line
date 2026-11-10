@@ -123,8 +123,10 @@ describe('accuracy (sheet 03) and paper record (sheet 04)', () => {
     expect(text).not.toMatch(/\/ ?100|%|overall/i);
   });
   it('the paper record grades verified finals only; waiting evidence is ungraded, never a loss', () => {
-    const { text } = record({ status: 'ready', rows: ROWS }, { view: 'paper' });
-    for (const words of ['Your Gap paper record', 'Gap size', '5–0–0', '100.0%', '5 graded', '4 awaiting finals', 'Paper record · 1U at −110',
+    const { text, html } = record({ status: 'ready', rows: ROWS }, { view: 'paper' });
+    // The rate sits inside its ring (sheet 04); the ring's own name carries it for assistive technology.
+    expect(html).toContain('aria-label="100.0% paper win rate"'); expect(html).toMatch(/<b aria-hidden="true">100\.0<small>%<\/small><\/b>/);
+    for (const words of ['Your Gap paper record', 'Gap size', '5–0–0', '5 graded', '4 awaiting finals', 'Paper record · 1U at −110',
       'Waiting for verified finals', 'Pending evidence stays ungraded, never a loss.', 'Gap size narrows the paper record only.']) expect(text).toContain(words);
   });
   it('no guesses is no score (not zero); loading and failure never show a partial period', () => {
@@ -140,5 +142,45 @@ describe('accuracy (sheet 03) and paper record (sheet 04)', () => {
     expect(propWeeks(2026, 3)).toEqual([1, 2, 3].map(week => ({ season: 2026, week })));
     expect(propWeeks(2025, 3)).toEqual([]);
     expect(propWeeks(2027, 1).at(-1)).toEqual({ season: 2027, week: 1 });
+  });
+});
+
+const { PropReceipt } = await import('../web/src/next/props/PropReceipt.jsx');
+const { PropReveal } = await import('../web/src/next/props/PropReveal.jsx');
+const { HistoryPropsScreen, propWeeksOf, propPaperWords } = await import('../web/src/next/props/HistoryProps.jsx');
+describe('saved receipt, other players’ guesses and History (the remaining D-82 frontend)', () => {
+  const GUESS = { ...OFFERS[0], season: 2026, week: 10, guess: 72.5, status: 'locked', lockedAt: '2026-11-12T20:00:00Z', reference: { ...REFERENCE, recordedAt: '2026-11-12T19:56:00Z' } };
+  it('the receipt reuses the Spread/Total receipt and scorecard pattern with the prop identity, unit and source time', () => {
+    const { html, text } = render(<PropReceipt athlete={GUESS} guess={GUESS}/>);
+    expect(html).toContain('gx-lock-receipt'); expect(html).toContain('gx-pick-scorecard'); expect(html).toContain('data-prop-scorecard');
+    for (const words of ['Receiving yards', 'Locked in', 'Fixture Receiver', 'Your saved guess', '72.5', 'Saved reference', '66.5', 'Three-book median', 'Miss', '6',
+      'yards from saved reference', 'Saved line observed', '3 books', 'Missed by 6 yd']) expect(text).toContain(words);
+    expect(text).not.toMatch(/points|\/ ?10|%/i);
+  });
+  it('other players’ guesses render only for an opened selection, values and names only', () => {
+    const rows = [{ userId: '00000000-0000-4000-8000-000000000002', name: 'Troy Fixture', removed: false, guess: 70.5 }, { userId: '00000000-0000-4000-8000-000000000003', name: 'Sean Fixture', removed: true, guess: 64 }];
+    expect(renderToStaticMarkup(<PropReveal selection={{ ...OFFERS[0], ownLocked: false, started: false, rows }}/>)).toBe('');
+    const { text } = render(<PropReveal selection={{ ...OFFERS[0], ownLocked: true, started: false, rows }} own={72.5}/>);
+    for (const words of ['Everyone’s guesses', 'Open', 'Troy Fixture', '70.5 yd', 'Sean Fixture', 'Former member', '64 yd', 'Your guess · 72.5 yd']) expect(text).toContain(words);
+    expect(render(<PropReveal selection={{ ...OFFERS[0], ownLocked: true, started: false, rows: [] }}/>).text).toContain('No one else has locked in this prop.');
+  });
+  it('History lists your own locked props by week with per-stat accuracy; another member sees no prop rows', () => {
+    const rows = [{ ...GUESS, week: 9, closingLine: 66.5, result: { status: 'final', participated: true, actual: 80 } }, { ...GUESS, stat: 'player_receptions', guess: 5, week: 10, reference: { ...REFERENCE, line: 4.5 }, closingLine: null, result: null }];
+    expect(propWeeksOf(rows).map(w => w.week)).toEqual([10, 9]);
+    expect(propPaperWords(rows[0]).word).toBe('Win'); expect(propPaperWords(rows[1]).word).toBe('Not graded');
+    const list = render(<HistoryPropsScreen read={{ status: 'ready', rows }} own week={null} onWeek={() => {}} onRetry={() => {}}/>).text;
+    for (const words of ['Your prop accuracy', 'Receiving yards', 'Receptions', 'Week 10', 'Week 9', 'Spread and Total points stay separate.']) expect(list).toContain(words);
+    const week = render(<HistoryPropsScreen read={{ status: 'ready', rows }} own week={9} onWeek={() => {}} onRetry={() => {}}/>).text;
+    for (const words of ['Week 9 · Player Props', 'Fixture Receiver · Receiving yards', 'Missed by 6 yd', 'Paper · Win']) expect(week).toContain(words);
+    expect(render(<HistoryPropsScreen read={{ status: 'loading', rows: [] }} own={false}/>).text).toContain('Player Props history lists your own locked props.');
+    expect(render(<HistoryPropsScreen read={{ status: 'ready', rows: [] }} own/>).text).toContain('No guesses means no accuracy score—not zero.');
+  });
+  it('History offers Player Props only behind the flag, as a lazy chunk', async () => {
+    const fs = await import('node:fs');
+    const source = fs.readFileSync('web/src/next/me/HistoryGuess.jsx', 'utf8');
+    expect(source).toMatch(/withPlayerProps\(HISTORY_MARKETS, PROPS_MARKET, propsEnabled\)/);
+    expect(source).toMatch(/const props = propsEnabled && args\.mode === PROPS_MARKET/);
+    expect(source).toMatch(/lazy\(\(\) => import\('\.\.\/props\/HistoryProps\.jsx'\)\)/);
+    expect(source).not.toMatch(/^import .*props\/HistoryProps/m);
   });
 });

@@ -77,9 +77,10 @@ export const GROUP_ACTIONS = Object.freeze({
   // Guess the Points (D-56, cloud/points.mjs): the gated week read, and draft saves, lock-ins and the commissioner's slate.
   // Until P-01 is applied every route answers 404 (code GTL_POINTS_OFF, or gtl-api's own "Not found."): "coming soon".
   points: Object.freeze({ reads: Object.freeze(['read']), writes: Object.freeze(['draft', 'lock', 'slate']) }),
-  // D-82 Player Props (cloud/player-props.mjs): the owner's week board and history, draft saves and per-prop lock-ins.
+  // D-82 Player Props (cloud/player-props.mjs): the owner's week board and history, draft saves and per-prop lock-ins,
+  // and 'shared', other members' locked props opened under the reveal rules (available:false until its migration).
   // Called only when the app flag is on (web/src/next/props/flag.js); a dark gtl-api answers 404 "Not found.".
-  props: Object.freeze({ reads: Object.freeze(['read', 'history']), writes: Object.freeze(['draft', 'lock']) }),
+  props: Object.freeze({ reads: Object.freeze(['read', 'history', 'shared']), writes: Object.freeze(['draft', 'lock']) }),
 });
 const GROUP_LABELS = Object.freeze({ lines: 'lines', bets: 'bets', league: 'league', me: 'Me', points: 'Points', props: 'Player Props' });
 async function groupApi(group, action, body, signal) {

@@ -32,7 +32,10 @@ const PROP_JOB_RPCS = [
   ['gtl_props_record_check', { p_check: {} }],
   ['gtl_props_jobs_state', { p_season: 2026, p_week: 0 }],
 ];
-const PROP_ROUTES = [['props/read', { season: 2026, week: 5 }], ['props/draft', {}], ['props/lock', {}], ['props/history', {}]];
+const PROP_ROUTES = [['props/read', { season: 2026, week: 5 }], ['props/draft', {}], ['props/lock', {}], ['props/history', {}], ['props/shared', { season: 2026, week: 5 }]];
+// D-82 Player Props shared reader (20261110180000, not applied; builds on 20261110130000): one service-only function.
+const PROP_SHARED_MIGRATION = '20261110180000 (D-82 Player Props shared reader apply, after 20261110130000)';
+const PROP_SHARED_RPCS = [['gtl_props_shared', { p_user: missingId, p_season: 2026, p_week: 0 }]];
 
 /** Tables, without the `gtl_` prefix: each is read anonymously and must be denied. */
 export const tables = Object.freeze([
@@ -56,6 +59,7 @@ export const rpcChecks = Object.freeze([
   ...eplOpsRpcChecks,
   ...PROP_RPCS,
   ...PROP_JOB_RPCS,
+  ...PROP_SHARED_RPCS,
   // M-32: service-only. No real actor/event, valid guess, or clock is supplied to a writer.
   ['gtl_epl_moneyline_distance', { p_guess: -100, p_real: 100 }],
   ['gtl_epl_guess_json', { p_g: null, p_kickoff: null, p_at: null }],
@@ -203,6 +207,7 @@ export const awaitingDeploy = Object.freeze({
   ...eplOpsAwaiting,
   ...Object.fromEntries([...PROP_TABLES.map(t => `table/${t}`), ...PROP_RPCS.map(([rpc]) => `rpc/${rpc}`), ...PROP_ROUTES.map(([route]) => `gtl-api/${route}`)].map(key => [key, PROP_MIGRATION])),
   ...Object.fromEntries([...PROP_JOB_TABLES.map(t => `table/${t}`), ...PROP_JOB_RPCS.map(([rpc]) => `rpc/${rpc}`)].map(key => [key, PROP_JOBS_MIGRATION])),
+  ...Object.fromEntries(PROP_SHARED_RPCS.map(([rpc]) => [`rpc/${rpc}`, PROP_SHARED_MIGRATION])),
   'table/epl_stat_rechecks': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
   'rpc/gtl_epl_recheck_due_at': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
   'rpc/gtl_epl_recheck_state': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',

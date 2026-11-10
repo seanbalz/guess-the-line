@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { ALL, PRELUDE, migrationSql } from './migrations.mjs';
 import { createCloudHandler, createSupabaseAdapter, ROUTE_METHODS } from '../cloud/handler.mjs';
-import { handleProps, playerPropsOn, propGuessView, PROPS_METHODS } from '../cloud/player-props.mjs';
+import { handleProps, playerPropsOn, propGuessView, PROPS_METHODS, sharedView } from '../cloud/player-props.mjs';
 
 let PGlite;
 try { ({ PGlite } = await import('../.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js')); } catch { /* Explicit skip below. */ }
@@ -16,7 +16,8 @@ const EVENT = '2026_10_DAL_PHI', PLAYER = '00-0036358';
 const iso = ms => new Date(ms).toISOString();
 const MIGRATION = '20261110130000_gtl_player_props.sql';
 // The jobs migration builds on MIGRATION (tests/migrations.mjs REQUIRES), so an unapplied MIGRATION leaves it out too.
-const DEPENDENTS = ['20261110160000_gtl_player_props_jobs.sql'];
+const DEPENDENTS = ['20261110160000_gtl_player_props_jobs.sql', '20261110180000_gtl_player_props_shared.sql'];
+const SHARED = '20261110180000_gtl_player_props_shared.sql';
 
 /** Normalized research quotes, as cloud/research-provider.mjs retains them, for one prop at three books. */
 function retainedQuotes(lines, observedAt, kickoff) {
@@ -25,10 +26,10 @@ function retainedQuotes(lines, observedAt, kickoff) {
     provider: 'the-odds-api', providerEventId: 'evt-fixture', book, source: book, odds: -110, observedAt, capturedAt: observedAt })));
 }
 
-async function setup(t, { flag = 'on', ready = true, schema = true, quotes = true } = {}) {
+async function setup(t, { flag = 'on', ready = true, schema = true, quotes = true, shared = true } = {}) {
   const db = new PGlite(); t.after(() => db.close());
   await db.exec(PRELUDE);
-  for (const file of ALL) if (schema || (file !== MIGRATION && !DEPENDENTS.includes(file))) await db.exec(migrationSql(file));
+  for (const file of ALL) if ((schema || (file !== MIGRATION && !DEPENDENTS.includes(file))) && (shared || file !== SHARED)) await db.exec(migrationSql(file));
   for (const n of [1, 2, 3]) await db.query('insert into auth.users values($1)', [id(n)]);
   await db.query("insert into public.gtl_profiles(user_id,display_name) values($1,'Troy Fixture'),($2,'Luke Fixture')", [id(1), id(2)]);
   const now = Date.now(), kickoff = iso(now + 86_400_000);
@@ -81,8 +82,8 @@ test('flag off (default): every /props route answers exactly like a missing rout
   assert.equal(playerPropsOn(' ON '), true);
   for (const flag of [null, '', 'true', 'off', '1', 'yes']) {
     const f = await setup(t, { flag });
-    for (const action of ['read', 'draft', 'lock', 'history']) {
-      const r = await f.call(action, action === 'read' ? { season: 2026, week: 10 } : save(72.5));
+    for (const action of ['read', 'draft', 'lock', 'history', 'shared']) {
+      const r = await f.call(action, ['read', 'shared'].includes(action) ? { season: 2026, week: 10 } : save(72.5));
       assert.equal(r.status, 404); assert.deepEqual(r.body, { error: 'Not found.' });
     }
     assert.equal(f.authenticated(), 0); assert.deepEqual(f.calls, []); assert.deepEqual(await f.stored(), []);
@@ -107,6 +108,8 @@ test('unapplied schema: reads fall back to schema_unavailable, writers say off; 
   assert.equal(read.status, 200); assert.equal(read.body.available, false); assert.equal(read.body.reason, 'schema_unavailable');
   const write = await f.call('draft', save(72.5));
   assert.equal(write.status, 404); assert.equal(write.body.code, 'GTL_PROPS_OFF');
+  const shared = await f.call('shared', { season: 2026, week: 10 });
+  assert.equal(shared.status, 200); assert.deepEqual(shared.body, { available: false, season: 2026, week: 10, selections: [] });
   const handler = createCloudHandler({ authenticate: async () => null });
   for (const route of ['/state', '/community/read', '/personal/read']) assert.equal((await handler(new Request(`https://fixture.test${route}`, { method: route === '/state' ? 'GET' : 'POST' }))).status, 401, `${route} unchanged`);
 });
@@ -158,4 +161,49 @@ test('reply views drop a broadened payload: a draft never carries a reference or
   const view = propGuessView({ eventId: EVENT, playerId: PLAYER, stat: 'player_reception_yds', guess: 70, status: 'draft', savedAt: new Date().toISOString(), lockedAt: null,
     reference: { line: 66.5 }, latest: { line: 66.5, observedTo: new Date().toISOString() }, otherUsers: [{ guess: 1 }] });
   assert.equal(view.reference, null); assert.equal(view.latest, null); assert.ok(!('otherUsers' in view));
+});
+
+test('shared: another member’s locked guess opens only on your own lock of that exact selection or at kickoff; never a draft or line', { skip }, async t => {
+  const f = await setup(t);
+  const week = { season: 2026, week: 10 };
+  assert.equal((await f.call('lock', save(72.5))).status, 200);
+  assert.equal((await f.call('draft', save(70), 2)).status, 200);
+  assert.equal((await f.call('draft', save(4.5, { stat: 'player_receptions' }), 2)).status, 200);
+  // Luke has only drafts: Troy's lock stays closed to him, and Troy sees his own selection with no one else in.
+  assert.deepEqual((await f.call('shared', week, 2)).body.selections, []);
+  const own = (await f.call('shared', week, 1)).body;
+  assert.equal(own.available, true); assert.equal(own.selections.length, 1);
+  assert.equal(own.selections[0].ownLocked, true); assert.deepEqual(own.selections[0].rows, [], 'a draft is never shown nor counted');
+  // Luke locks the same exact selection: Troy's guess opens to him, as a value and a name only.
+  assert.equal((await f.call('lock', save(66, {}), 2)).status, 200);
+  const opened = (await f.call('shared', week, 2)).body.selections;
+  assert.deepEqual(opened.map(s => [s.stat, s.ownLocked, s.rows.map(r => [r.name, r.guess])]), [['player_reception_yds', true, [['Troy Fixture', 72.5]]]]);
+  const json = JSON.stringify(opened);
+  for (const word of ['line', 'reference', 'books', 'latest', 'savedAt', 'draft']) assert.ok(!json.includes(`"${word}`), `${word} never leaves the server`);
+  // A different stat for the same athlete is a different selection: Luke's receptions draft opens nothing.
+  assert.ok(!opened.some(s => s.stat === 'player_receptions'));
+  // At kickoff the event opens for every member, still locked guesses only.
+  await f.db.exec("update public.gtl_prop_offers set kickoff=now()-interval '1 minute'");
+  const kicked = (await f.call('shared', week, 1)).body.selections;
+  assert.deepEqual(kicked.map(s => [s.stat, s.started, s.rows.map(r => r.guess)]), [['player_reception_yds', true, [66]]]);
+  assert.equal((await f.call('shared', { season: 2026, week: 11 }, 1)).body.selections.length, 0);
+  assert.equal((await f.call('shared', { season: 2026 }, 1)).status, 400);
+});
+
+test('shared: an unapplied shared reader answers available:false; everything else keeps working', { skip }, async t => {
+  const f = await setup(t, { shared: false });
+  assert.equal((await f.call('lock', save(72.5))).status, 200);
+  const shared = await f.call('shared', { season: 2026, week: 10 });
+  assert.equal(shared.status, 200); assert.deepEqual(shared.body, { available: false, season: 2026, week: 10, selections: [] });
+});
+
+test('shared view is a second gate: closed selections, own rows, drafts and invalid values never pass', () => {
+  const base = { eventId: EVENT, playerId: PLAYER, stat: 'player_reception_yds', playerName: 'Fixture Receiver', team: 'DAL', position: 'WR', away: 'DAL', home: 'PHI', kickoff: new Date().toISOString() };
+  const row = (n, guess) => ({ userId: id(n), displayName: `P${n}`, guess, lockedAt: new Date().toISOString(), line: 66.5 });
+  const view = sharedView({ season: 2026, week: 10, selections: [
+    { ...base, ownLocked: false, started: false, rows: [row(2, 70)] },
+    { ...base, stat: 'player_receptions', ownLocked: true, started: false, rows: [row(1, 5), row(2, 4.25), row(3, 4.5)] },
+  ] }, { season: 2026, week: 10 }, id(1));
+  assert.deepEqual(view.selections.map(s => [s.stat, s.rows.map(r => [r.name, r.guess])]), [['player_receptions', [['P3', 4.5]]]]);
+  assert.ok(!('line' in view.selections[0].rows[0]));
 });
