@@ -1,5 +1,108 @@
 # Decision log
 
+## D-82 — Optional Player Props line guessing, shared Prism design (November 9, 2026)
+
+Status: design and both Dark/Light mockup boards approved for planning and
+data-readiness work; not implemented, applied or deployed. Sean's condition is
+"Looks good as long as it's aligned with the rest of the apps designs."
+
+Add Player Props beside Spread and Total. Users choose an athlete and stat from
+verified available full-game lines and guess the sportsbook line, with optional
+participation and any number of props. The eleven selected common passing,
+rushing and receiving stat types are listed in the
+[approved design](superpowers/specs/2026-11-09-player-props-design.md). Lock-in is
+final per event/player/stat, preserving drafts, audits, saved references and
+cross-group identity. Separate accuracy by stat type uses average absolute miss
+in native units, lower better; no combined prop score or fantasy-point scoring.
+The separately labelled Gap paper record needs retained pre-kickoff lines and
+verified actual-stat/finality evidence. Missing evidence is not a loss or zero.
+
+Sean explicitly chose to hide market lines only on the guess-entry screen.
+Research and other users' tracked-prop quote visibility retain their existing
+rules. Unrevealed Guess values still require their separate privacy boundary.
+Market/athlete/stat and complete-period filters organize the personal records.
+
+The mockups authorize these compositions with the existing shared Prism tokens,
+components, system typography, G, separate circular team/league marks and common
+bottom navigation. They do not authorize a new palette, icons, font, global
+header change or unshown composition. Actual implementation needs both-theme
+comparison against adjacent app screens and existing scroll/focus/access checks.
+
+The [source audit](PLAYER_PROPS_READINESS_2026_11_09.md) verifies public raw-stat
+fields, not connected prop coverage or hosted readiness. Free-only data, quota
+protections, named migration apply and scoped protected deployment gates remain.
+Do not enable the mode on the strength of its mockups or this decision alone.
+
+## D-81 — Comparable NFL spread and total gap sizes (November 9, 2026)
+
+Sean asked to readdress Spread versus Total gaps so a large difference in either
+market receives comparable prominence. He confirmed a shared scale, then chose
+**A — NFL-wide baseline**: compare gaps with historical final-result versus
+market-line errors, separately for winning margin and combined score. Asked
+about the highlight boundary, he chose **“Top quarter: highlight unusually large
+gaps (Recommended)”**.
+
+Replace D-54's percentage-of-line calculation and three-point spread denominator
+with a fixed empirical historical gap-size score from 0 to 100. Implementation
+uses the retained 2016–2025 regular-season NFL sample, 2,639 finals per market.
+A positive gap's score is the share of that market's historical absolute errors
+no larger than the gap; zero means no difference. Large starts at score 75
+(14 spread points / 14.5 total points in this sample). Keep raw points visible.
+This describes magnitude, not win probability, model confidence or betting EV.
+
+Use the same scale for ranking, side colors and the historical **Large gaps**
+filter, replacing D-77/D-80's 10%+ filter. D-77's actionable-first order remains.
+The full paper record still grades the same permitted guesses against their
+closing lines; only its large-gap subset changes. Historical classification
+uses this fixed baseline retrospectively, not a point-in-time strategy backtest.
+Own saved scoring references, game points, all picks, results, audits, deadlines,
+quote selection and reveal permissions remain unchanged.
+
+The [implementation and evidence](NFL_GAP_SCALE_2026_11_09.md) record the exact
+source, method, source limitations and checks. This decision authorizes the
+reviewable implementation; it does not itself establish merge or deployment.
+
+## D-80 — Gap win rate historical periods (November 9, 2026)
+
+Sean asked to view Gap win rate across all time or multiple weeks, said **“Add
+reccomendations”** to the proposed All time / This season / Custom range choices,
+then approved their dark/light control mockup with **“Good”**. Retain Week and add
+these three periods. Custom is a continuous inclusive range of published weeks,
+including across seasons. This season means the latest published season; All
+time means all retained published weeks advertised by the authenticated reader.
+
+Keep recommendation Week independent. Combine permitted game records and run the
+existing D-77 grading: wins divided by wins plus losses, never an average of weekly
+rates. Pushes stay in W–L–P/paper ROI, outside the win-rate denominator. Market and
+10%+ filters apply across the selected period. Show actual season/week provenance,
+missing evidence and loading/error states; never present a partial read as All time.
+
+Use the approved Prism controls and existing authenticated weekly readers, bounded
+and cancelled on scope changes. This selects no new scoring, provider, permission,
+writer or migration behavior. [Implementation evidence](GAP_RECORD_PERIODS_2026_11_09.md)
+separates local checks from exact CI, merge, protected release and phone acceptance.
+
+## D-79 — Home’s floating bottom navigation across the app (November 8, 2026)
+
+Sean requested a comprehensive UX, formatting and scrolling sweep and matching
+menu bars on every tab. Asked whether that meant the bottom Home / Play / Bets /
+Research navigation or both it and the top header, he chose **“Bottom navigation
+only (Recommended)”** with Home’s approved floating glass bar as the reference.
+
+Use the same bottom bar geometry, material, icons, typography and selected state
+across existing authenticated National Football League and Premier League tabs,
+including previously native Research, FEPL, Bets and account/history contexts.
+Keep actual active tabs, counters, access rules and fullscreen-layer behavior.
+Context-specific top headers and existing approved body layouts remain. This
+supersedes earlier per-context bottom-bar exceptions; it does not choose the held
+FEPL top-header layout or authorize a new page composition.
+
+Maintain reachable end content, focus, action docks and toasts as the viewport,
+safe area or text size changes. Correct confirmed clipping, overlap and wording
+within the approved design. The [sweep record](UI_UX_SWEEP_2026_11_08.md) separates
+local browser evidence from deployment and physical-phone acceptance. M-41,
+backend/data changes and parked feature work remain outside this correction.
+
 ## D-78 — Virtual Units ROI uses saved four-place results (November 8, 2026)
 
 Sean confirmed **“Move forward with rec”** after reviewing the discrepancy
@@ -412,6 +515,22 @@ not asked before the build, so it took the spec's defaults; each is reversible:
 - **200% text:** the picture row wraps the Spread under the name.
 
 ## D-68 — Premier League: Sleeper FEPL, Pick a Team and EPL moneyline (October 28, 2026)
+
+**Expansion ruling — November 9, 2026.** Sean confirmed the
+[EPL feature requirements](EPL_FEATURES_2026_11_09.md), one question at a time:
+choose one two-way or three-way outcome/price per match, final once locked;
+combine both markets on the existing average-distance leaderboard. Automatic
+recommended bets rank by favorable gap from the latest available odds, with
+trends/analysis as context only and no manual picks. Competition references
+stay fixed. Commissioner-reviewed screenshots contain final Sleeper weekly
+scores with bonuses already included; confirmation calculates next week's
+order, opens the draft and notifies the first picker while preserving existing
+picks. Show verified end-of-week Pick a Team winners on Home and Pick a Team
+without waiting for the fantasy upload, and push to opted-in league members.
+Existing bonus/tie rules remain. This supersedes the original two-way-only and
+empty EPL Bets scope below. These are confirmed requirements, not implemented
+or deployed behavior; extraction examples, source checks and release gates
+remain part of delivery.
 
 **Bonus accounting ruling — November 2, 2026.** Sean: "I add bonuses to sleeper,
 unless I shouldn’t." Keep that workflow. Final weekly scores, season standings

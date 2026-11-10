@@ -1,4 +1,9 @@
 /* Native historical paper-gap record; no quotes, grading rules or reader changes. */
+.gx .gx-gap-period,.gx .gx-gap-custom { display:grid; gap:var(--gx-space-4); min-width:0; }
+.gx .gx-gap-period-field { display:grid; gap:var(--gx-space-2); min-width:0; font-size:16px; line-height:24px; }
+.gx .gx-gap-period select { width:100%; min-width:0; min-height:48px; padding:var(--gx-space-3); border:1px solid var(--gx-border); border-radius:var(--gx-radius-sm); background:var(--gx-card-face); color:var(--gx-text-1); font:inherit; }
+.gx .gx-gap-range-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--gx-space-3); }
+.gx .gx-gap-custom>.gx-btn { width:100%; }
 .gx .gx-gap-record,.gx .gx-gap-overview:not([hidden]) { display:grid; gap:var(--gx-space-5); min-width:0; }
 .gx .gx-gap-record :is(.gx-gap-hero,.gx-gap-detail,.gx-gap-row) { display:grid; gap:var(--gx-space-4); min-width:0; background:var(--gx-card-face); border:1px solid var(--gx-glass-line); box-shadow:var(--gx-glass-shadow); border-radius:var(--gx-radius-md); padding:var(--gx-space-5) var(--gx-space-4); }
 .gx .gx-gap-options { padding:0 var(--gx-space-4); border:1px solid var(--gx-border); border-radius:var(--gx-radius-sm); background:var(--gx-card-face); }

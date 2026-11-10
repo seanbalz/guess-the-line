@@ -156,9 +156,9 @@ describe('pinFixedBars', () => {
 
 describe('the bars use the correction', () => {
   const css = file => readFileSync(new URL(`../web/src/next/${file}`, import.meta.url), 'utf8');
-  it('moves the tab bar, the dock and toasts by --gx-viewport-gap, and nothing else about them', () => {
-    expect(css('shell/shell.css')).toMatch(/\.gx-tabbar \{[^}]*bottom: var\(--gx-viewport-gap, 0px\);[^}]*height: calc\(var\(--gx-size-tabbar\) \+ env\(safe-area-inset-bottom, 0px\)\);/);
-    expect(css('shell/shell.css')).toMatch(/\.gx-dock \{[^}]*bottom: calc\(var\(--gx-size-tabbar\) \+ env\(safe-area-inset-bottom, 0px\) \+ 8px \+ var\(--gx-viewport-gap, 0px\)\);/);
+  it('moves the shared floating tab bar, dock and toasts together by --gx-viewport-gap', () => {
+    expect(css('shell/shell.css')).toMatch(/\.gx-tabbar \{[^}]*bottom: calc\(var\(--gx-size-tabbar-gap\) \+ env\(safe-area-inset-bottom, 0px\) \+ var\(--gx-viewport-gap, 0px\)\);[^}]*min-height: var\(--gx-size-tabbar\);/);
+    expect(css('shell/shell.css')).toMatch(/\.gx-dock \{[^}]*bottom: calc\(var\(--gx-tabbar-height, var\(--gx-size-tabbar\)\) \+ var\(--gx-size-tabbar-gap\) \+ env\(safe-area-inset-bottom, 0px\) \+ 8px \+ var\(--gx-viewport-gap, 0px\)\);/);
     expect(css('styles/components.css')).toMatch(/\.gx-toast \{[^}]*bottom: calc\([^;]*var\(--gx-dock-space\) \+ var\(--gx-viewport-gap, 0px\)\);/);
   });
   it('the shell mounts the pin', () => {

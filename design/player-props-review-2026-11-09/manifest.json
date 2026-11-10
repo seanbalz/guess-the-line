@@ -1,0 +1,419 @@
+{
+  "date": "2026-11-09",
+  "scope": "All Player Props changes only; user confirmed scope",
+  "status": "All six visual sheets approved; no product implementation, apply, collection activation or deployment",
+  "nativeProductSource": "9a34f9e47d5fb7dd32eecd6fdc697cef53340ed9",
+  "planningSourceBeforeReview": "bec8192093d16ca2881be92ec97ba2d7e7a54ea4",
+  "actualComponentsUsed": [
+    "Card",
+    "Button",
+    "Chip",
+    "Segmented",
+    "Icon",
+    "TeamMark",
+    "Skeleton",
+    "TopBar",
+    "TabBar",
+    "DetailBack",
+    "GapPeriodControl"
+  ],
+  "sheets": [
+    {
+      "id": "entry",
+      "file": "01-entry.png",
+      "bytes": 506409,
+      "sha256": "5e53602eb93aff05178ce3bc6d430e45b60fb62fe6af60d573459b4887ac1861",
+      "phoneFullContentHeight": 1111,
+      "checks": [
+        {
+          "theme": "dark",
+          "documentWidth": 388,
+          "viewportWidth": 388,
+          "viewportHeight": 1109,
+          "lastControlBottom": 947,
+          "barTop": 1025,
+          "endControlClear": true,
+          "tabCount": 4
+        },
+        {
+          "theme": "light",
+          "documentWidth": 388,
+          "viewportWidth": 388,
+          "viewportHeight": 1109,
+          "lastControlBottom": 947,
+          "barTop": 1025,
+          "endControlClear": true,
+          "tabCount": 4
+        }
+      ],
+      "status": "Approved exact visual sheet, November9 2026; not implementation/apply/deployment approval."
+    },
+    {
+      "id": "locked",
+      "file": "02-locked.png",
+      "bytes": 506847,
+      "sha256": "91b8593b86d9a7310958f20283535d190ecdc956eda2ca76e0f2e564190c89f0",
+      "phoneFullContentHeight": 1173,
+      "checks": [
+        {
+          "theme": "dark",
+          "documentWidth": 388,
+          "viewportWidth": 388,
+          "viewportHeight": 1171,
+          "lastControlBottom": 1041,
+          "barTop": 1087,
+          "endControlClear": true,
+          "tabCount": 4
+        },
+        {
+          "theme": "light",
+          "documentWidth": 388,
+          "viewportWidth": 388,
+          "viewportHeight": 1171,
+          "lastControlBottom": 1041,
+          "barTop": 1087,
+          "endControlClear": true,
+          "tabCount": 4
+        }
+      ],
+      "status": "Approved exact visual sheet, November9 2026; not implementation/apply/deployment approval."
+    },
+    {
+      "id": "accuracy",
+      "file": "03-accuracy.png",
+      "bytes": 512749,
+      "sha256": "32e626de04b04057fb3f92a3b646344a43cae3d3cbc4569a57f8491898a3338d",
+      "phoneFullContentHeight": 1081,
+      "checks": [
+        {
+          "theme": "dark",
+          "documentWidth": 388,
+          "viewportWidth": 388,
+          "viewportHeight": 1079,
+          "lastControlBottom": 949,
+          "barTop": 995,
+          "endControlClear": true,
+          "tabCount": 4
+        },
+        {
+          "theme": "light",
+          "documentWidth": 388,
+          "viewportWidth": 388,
+          "viewportHeight": 1079,
+          "lastControlBottom": 949,
+          "barTop": 995,
+          "endControlClear": true,
+          "tabCount": 4
+        }
+      ],
+      "status": "Approved exact visual sheet, November9 2026; not implementation/apply/deployment approval."
+    },
+    {
+      "id": "record",
+      "file": "04-record.png",
+      "bytes": 554105,
+      "sha256": "7f2067ab9537a4c48b90fb80351490bb9d124485ec0c021fca64d53938fc3924",
+      "phoneFullContentHeight": 1198,
+      "checks": [
+        {
+          "theme": "dark",
+          "documentWidth": 388,
+          "viewportWidth": 388,
+          "viewportHeight": 1196,
+          "lastControlBottom": 633,
+          "barTop": 1112,
+          "endControlClear": true,
+          "tabCount": 4
+        },
+        {
+          "theme": "light",
+          "documentWidth": 388,
+          "viewportWidth": 388,
+          "viewportHeight": 1196,
+          "lastControlBottom": 633,
+          "barTop": 1112,
+          "endControlClear": true,
+          "tabCount": 4
+        }
+      ],
+      "status": "Approved exact visual sheet, November9 2026; not implementation/apply/deployment approval."
+    },
+    {
+      "id": "recovery",
+      "file": "05-recovery.png",
+      "bytes": 518799,
+      "sha256": "86204e2ef2195a481f8743b73be7a0e8e1ac3cd406dd265a8582d6e53a16e64b",
+      "phoneFullContentHeight": 1057,
+      "checks": [
+        {
+          "theme": "dark",
+          "documentWidth": 388,
+          "viewportWidth": 388,
+          "viewportHeight": 1055,
+          "lastControlBottom": 925,
+          "barTop": 971,
+          "endControlClear": true,
+          "tabCount": 4
+        },
+        {
+          "theme": "light",
+          "documentWidth": 388,
+          "viewportWidth": 388,
+          "viewportHeight": 1055,
+          "lastControlBottom": 925,
+          "barTop": 971,
+          "endControlClear": true,
+          "tabCount": 4
+        }
+      ],
+      "status": "Approved exact visual sheet, November9 2026; not implementation/apply/deployment approval."
+    },
+    {
+      "id": "empty",
+      "file": "06-empty.png",
+      "bytes": 557827,
+      "sha256": "73ec6ab42ec68670db1269584e15fd6aa0b4e848140139e067074ce039a41cc5",
+      "phoneFullContentHeight": 1117,
+      "checks": [
+        {
+          "theme": "dark",
+          "documentWidth": 388,
+          "viewportWidth": 388,
+          "viewportHeight": 1115,
+          "lastControlBottom": 968,
+          "barTop": 1031,
+          "endControlClear": true,
+          "tabCount": 4
+        },
+        {
+          "theme": "light",
+          "documentWidth": 388,
+          "viewportWidth": 388,
+          "viewportHeight": 1115,
+          "lastControlBottom": 968,
+          "barTop": 1031,
+          "endControlClear": true,
+          "tabCount": 4
+        }
+      ],
+      "status": "Approved exact visual sheet, November9 2026; not implementation/apply/deployment approval."
+    }
+  ],
+  "pageErrors": [],
+  "limitations": [
+    "Full-content visual preview; ordinary phone scrolling, enlarged text, authenticated data and physical hardware are not accepted by these images.",
+    "User guesses and aggregate record figures are illustrative; no fabricated bookmaker line or source time.",
+    "Sheet06 displays four mutually exclusive states together for review.",
+    "No live prop data, API, SQL, private account, provider-credit request or product source change.",
+    "All six exact shown sheets are approved; image-stage awaiting-review captions remain provenance, superseded by this approval record."
+  ],
+  "normalViewportPreviewChecks": {
+    "scope": "Preview layout checks only; no authentication, API, real data or physical-phone acceptance.",
+    "results": [
+      {
+        "board": "entry",
+        "theme": "dark",
+        "width": 320,
+        "height": 844,
+        "layout": [],
+        "endControlClear": true
+      },
+      {
+        "board": "entry",
+        "theme": "dark",
+        "width": 390,
+        "height": 844,
+        "layout": [],
+        "endControlClear": true
+      },
+      {
+        "board": "entry",
+        "theme": "light",
+        "width": 320,
+        "height": 844,
+        "layout": [],
+        "endControlClear": true
+      },
+      {
+        "board": "entry",
+        "theme": "light",
+        "width": 390,
+        "height": 844,
+        "layout": [],
+        "endControlClear": true
+      },
+      {
+        "board": "locked",
+        "theme": "dark",
+        "width": 320,
+        "height": 844,
+        "layout": [],
+        "endControlClear": true
+      },
+      {
+        "board": "locked",
+        "theme": "dark",
+        "width": 390,
+        "height": 844,
+        "layout": [],
+        "endControlClear": true
+      },
+      {
+        "board": "locked",
+        "theme": "light",
+        "width": 320,
+        "height": 844,
+        "layout": [],
+        "endControlClear": true
+      },
+      {
+        "board": "locked",
+        "theme": "light",
+        "width": 390,
+        "height": 844,
+        "layout": [],
+        "endControlClear": true
+      },
+      {
+        "board": "accuracy",
+        "theme": "dark",
+        "width": 320,
+        "height": 844,
+        "layout": [],
+        "endControlClear": true
+      },
+      {
+        "board": "accuracy",
+        "theme": "dark",
+        "width": 390,
+        "height": 844,
+        "layout": [],
+        "endControlClear": true
+      },
+      {
+        "board": "accuracy",
+        "theme": "light",
+        "width": 320,
+        "height": 844,
+        "layout": [],
+        "endControlClear": true
+      },
+      {
+        "board": "accuracy",
+        "theme": "light",
+        "width": 390,
+        "height": 844,
+        "layout": [],
+        "endControlClear": true
+      },
+      {
+        "board": "record",
+        "theme": "dark",
+        "width": 320,
+        "height": 844,
+        "layout": [],
+        "endControlClear": true
+      },
+      {
+        "board": "record",
+        "theme": "dark",
+        "width": 390,
+        "height": 844,
+        "layout": [],
+        "endControlClear": true
+      },
+      {
+        "board": "record",
+        "theme": "light",
+        "width": 320,
+        "height": 844,
+        "layout": [],
+        "endControlClear": true
+      },
+      {
+        "board": "record",
+        "theme": "light",
+        "width": 390,
+        "height": 844,
+        "layout": [],
+        "endControlClear": true
+      },
+      {
+        "board": "recovery",
+        "theme": "dark",
+        "width": 320,
+        "height": 844,
+        "layout": [],
+        "endControlClear": true
+      },
+      {
+        "board": "recovery",
+        "theme": "dark",
+        "width": 390,
+        "height": 844,
+        "layout": [],
+        "endControlClear": true
+      },
+      {
+        "board": "recovery",
+        "theme": "light",
+        "width": 320,
+        "height": 844,
+        "layout": [],
+        "endControlClear": true
+      },
+      {
+        "board": "recovery",
+        "theme": "light",
+        "width": 390,
+        "height": 844,
+        "layout": [],
+        "endControlClear": true
+      },
+      {
+        "board": "empty",
+        "theme": "dark",
+        "width": 320,
+        "height": 844,
+        "layout": [],
+        "endControlClear": true
+      },
+      {
+        "board": "empty",
+        "theme": "dark",
+        "width": 390,
+        "height": 844,
+        "layout": [],
+        "endControlClear": true
+      },
+      {
+        "board": "empty",
+        "theme": "light",
+        "width": 320,
+        "height": 844,
+        "layout": [],
+        "endControlClear": true
+      },
+      {
+        "board": "empty",
+        "theme": "light",
+        "width": 390,
+        "height": 844,
+        "layout": [],
+        "endControlClear": true
+      }
+    ]
+  },
+  "previewCorrections": [
+    "Removed smaller tappable label overrides; text uses16px floor and Edit target44px.",
+    "Applied44px minimum to new segmented-market controls; initial320px All target was undersized.",
+    "Imported the existing Gap stylesheet for the final two-column From/To controls."
+  ],
+  "approval": {
+    "recordedAt": "2026-11-09T19:09:41.829841+00:00",
+    "userAnswer": "Approve the visual set",
+    "question": "After reviewing the six Player Props mockups, do you approve this complete visual set, including the added locked-pick, filter, recovery and missing-data states? This confirms the design only.",
+    "scope": "The exact six image hashes in this manifest; mandatory shared-app design alignment. No unshown new composition or production apply/deploy approval.",
+    "imageBytesChangedAfterApproval": false
+  }
+}

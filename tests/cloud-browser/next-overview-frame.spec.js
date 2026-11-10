@@ -64,7 +64,10 @@ async function native(page) {
   await expect(page.locator('.gx-topbar')).toHaveCSS('position','sticky');
   await expect(page.locator('.gx-sport-controls')).toBeVisible();
   await expect(page.locator('.gx-league-btn')).toBeVisible();
-  await expect(nav(page)).toHaveCSS('left','0px');await expect(nav(page)).toHaveCSS('border-radius','0px');
+  const bar=await nav(page).boundingBox();
+  const {width,height}=page.viewportSize(),barWidth=Math.min(width-32,488);
+  expect(bar).toEqual({x:(width-barWidth)/2,y:height-84,width:barWidth,height:72});
+  await expect(nav(page)).toHaveCSS('border-radius','28px');
 }
 for(const name of ['home','play','bets']) for(const theme of ['dark','light']) test(`direct ${name} ${theme}: approved frame, full-root scroll and keyboard`,async({page,baseURL},info)=>{
   const world=await communityWorld(page,baseURL,{migrations:ALL,optionalRpc:true});
@@ -129,7 +132,7 @@ test('EPL approved Play frame and a pending NFL guess still guard the header spo
     page.once('dialog',dialog=>{asks++;return dialog.accept();});
     await page.getByRole('button',{name:'Premier League',exact:true}).click();
     await expect(page.getByRole('button',{name:'Premier League',exact:true})).toHaveAttribute('aria-pressed','true');expect(asks).toBe(2);
-    await compact(page,'play','dark',390);await tab(page,'Bets').click();await native(page);await expect(page.getByText("Bets aren't available for the Premier League.",{exact:true})).toBeVisible();
+    await compact(page,'play','dark',390);await tab(page,'Bets').click();await native(page);await expect(page.getByText('EPL Bets recommendations aren’t available right now.',{exact:true})).toBeVisible();
     await page.getByRole('button',{name:'National Football League',exact:true}).click();
     await expect(root(page)).toHaveClass(/gx-overview-frame/);
     expect(world.errors).toEqual([]);
@@ -210,7 +213,9 @@ for(const theme of ['dark','light']) test(`approved receipt-opening routes ${the
     }
     await page.getByRole('button',{name:'Your menu',exact:true}).click();
     await page.getByRole('dialog',{name:'Menu',exact:true}).getByRole('button',{name:'Sign out',exact:true}).click();
-    await expect(page.locator('form.auth-form')).toBeVisible();await signIn(page,'troy',{navigate:false});
+    await expect(page.locator('form.auth-form')).toBeVisible();
+    expect(await page.evaluate(()=>['--gx-frame-dock-space','--gx-frame-tabbar-height'].map(name=>document.documentElement.style.getPropertyValue(name)))).toEqual(['','']);
+    await signIn(page,'troy',{navigate:false});
     await expect(page.locator('[data-landing=bets]')).toBeVisible();await expect(page.locator('.gx-ticket-previews')).toHaveCount(0);await expect(page.locator('.gx-tracked-row')).toHaveCount(0);
     await expect(page.locator('main')).not.toContainText('Open receipt fixture');await expect(page.locator('main')).not.toContainText('Settled receipt fixture');
     expect(world.errors).toEqual([]);

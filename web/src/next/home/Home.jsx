@@ -21,6 +21,7 @@ import '../ui/focusLanding.css';
 import './home.css';
 import { ApprovedHome } from './ApprovedHome.jsx';
 import { teamName } from '../ui/Matchup.jsx';
+import { PriorWeekCard } from '../lines/PriorWeek.jsx';
 
 const WHO = Object.freeze({ in: { word: 'In', tone: 'win' }, satOut: { word: 'Sat out', tone: 'neutral' }, out: { word: 'Not yet', tone: 'pending' } });
 
@@ -180,5 +181,5 @@ export function Home() {
   const week = { season: data.week?.season ?? null, week: data.week?.week ?? null };
   const toPicks = () => shell.go('play', { section: 'picks', market: nextGuess(data), ...week });
   const toLines = () => shell.go('research', { section: 'games', season: null, week: null });
-  return <ApprovedHome app={app} shell={shell} community={data} hero={hero} headline={headline} toPicks={toPicks} toLines={toLines} weekContent={<ThisWeek app={app} shell={shell} personal={personal} community={data}/>}/>;
+  return <ApprovedHome app={app} shell={shell} community={data} hero={hero} headline={headline} toPicks={toPicks} toLines={toLines} weekContent={<><PriorWeekCard app={app} personal={personal}/><ThisWeek app={app} shell={shell} personal={personal} community={data}/></>}/>;
 }

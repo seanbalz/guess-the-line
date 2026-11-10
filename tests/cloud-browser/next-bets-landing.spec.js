@@ -79,6 +79,19 @@ test('native correction keeps full before and after history with the approved nu
  }finally{await world.db.close();}
 });
 
+test('active ticket header uses the singular only for one matching ticket',async({page,baseURL})=>{
+ const world=await communityWorld(page,baseURL);
+ try{
+  await login(page);
+  async function active(){await tab(page,'Bets').click();await page.getByText('All ticket views',{exact:true}).click();await page.getByRole('button',{name:'Active tickets',exact:true}).click();}
+  const count=page.locator('.gx-ticket-tracker > .social-heading .social-help');
+  await active();await expect(count).toHaveText('0 bets');await expect(page.locator('.gx-tracked-row')).toHaveCount(0);
+  await seed(world,'First open fixture');await active();await expect(page.locator('.gx-tracked-row')).toHaveCount(1);await expect(count).toHaveText('1 bet');
+  await seed(world,'Second open fixture');await active();await expect(page.locator('.gx-tracked-row')).toHaveCount(2);await expect(count).toHaveText('2 bets');
+  expect(world.errors).toEqual([]);
+ }finally{await world.db.close();}
+});
+
 
 test('populated assessment teaser uses retained permitted research and opens its real controller',async({page,baseURL})=>{
  const world=await communityWorld(page,baseURL,{games:2,migrations:[...new Set([...HOSTED,'20261030204548_gtl_research_assessments.sql'])]});

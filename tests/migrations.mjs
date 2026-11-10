@@ -38,18 +38,24 @@ export const NOT_HOSTED = [
   20261029151727, // M-33 gtl_epl_stat_rechecks: local source only; Gate M apply is separate.
   20261029161613, // M-34 gtl_epl_standings: private dated source persistence/usage; collection absent/disabled until separately authorized.
   20261029162144, // M-35 gtl_epl_corrected_draft_order: local source only; requires pending M-33.
+  20261110100000, // gtl_epl_three_way_moneyline: local source only; builds on hosted M-30/M-31/M-32/M-36.
+  20261110110000, // EPL stage 3 gtl_epl_score_import: reviewed Sleeper screenshot import; apply after hosted M-30 and M-40.
+  20261110120000, // EPL stage 4 gtl_epl_result_announcements: local source only; requires hosted M-30/M-36 only.
+  20261110130000, // D-82 gtl_player_props: written, not applied; needs Sean's named apply and preflight. Ships dark (live_lock_in false).
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
  * they are fix-forward only (Gate M step 9: M-13, M-21 and M-23 add themselves here). By version.
  */
 export const FIX_FORWARD = [
+  20261110100000, // EPL three-way moneyline: added columns/evidence; off switch is gtl_epl_three_way_ready() answering false.
   20261029165947, // M-36 moneyline collector: widened schedule and durable attempt/evidence rows; disable collection, preserve data.
   20261026130000, // M-13 gtl_feed_kinds: a constraint swap and a column (an `alter`, which a rollback file never holds)
   20261026131000, // M-21 gtl_feed_reactions: append-only reactions; the old like keeps reading from its own table
   20261026133000, // M-23 gtl_kickoff_posts: writes rows (kickoff posts and a backfill), kept by D-23; a trigger, no replaced body
   20261029150000, // M-32 gtl_epl_moneyline: widens the EPL job constraint; keep dnb-check disabled rather than narrow over saved evidence.
   20261029161613, // M-34 gtl_epl_standings: widens the job constraint; disable standings, preserving source and usage evidence.
+  20261110120000, // EPL stage 4 result announcements: widens the job constraint; disable 'results', preserving announcements and deliveries.
 ];
 /**
  * Repo migrations that a migration must follow and that the hosted project does not have yet, by version: the build plan

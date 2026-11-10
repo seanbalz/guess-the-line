@@ -9,7 +9,7 @@ test('release fingerprint changes with gateway/deployment config while compiled 
   const root = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'gtl-manifest-'));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   for (const directory of ['cloud', 'server', 'shared', 'config', 'design', 'web/src', 'web/public', 'supabase/functions', 'supabase/migrations', 'scripts', '.local/cloud-dist']) fs.mkdirSync(path.join(root, directory), { recursive: true });
-  for (const name of ['release-manifest.mjs', 'check-cloud-boundary.mjs']) fs.copyFileSync(new URL(`../scripts/${name}`, import.meta.url), path.join(root, 'scripts', name));
+  for (const name of ['release-manifest.mjs', 'check-cloud-boundary.mjs', 'ocr-assets.mjs']) fs.copyFileSync(new URL(`../scripts/${name}`, import.meta.url), path.join(root, 'scripts', name));
   // check-cloud-boundary.mjs joins the per-area probe lists in scripts/boundary/ (redesign build plan, stage 4).
   fs.cpSync(new URL('../scripts/boundary', import.meta.url), path.join(root, 'scripts', 'boundary'), { recursive: true });
   for (const name of ['package.json', 'package-lock.json', 'vite.config.js', 'web/index.html']) fs.writeFileSync(path.join(root, name), '{}');

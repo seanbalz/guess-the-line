@@ -20,6 +20,7 @@ import { TeamForm } from '../teams/TeamForm.jsx';
 import { MatchupTeamPerformanceSlot } from '../research/MatchupTeamPerformanceSlot.jsx';
 import { useTeamSeason } from '../teams/teamsData.js';
 import { boardRow } from './boardRows.js';
+import { PriorWeekCard } from './PriorWeek.jsx';
 import { rememberBoard } from './boardContext.js';
 import { RESEARCH_NAMES, gameRowId, openGame } from '../research/researchNav.js';
 
@@ -155,6 +156,8 @@ export function LinesBoard() {
         : markets.status === 'error' ? <p className="gx-t-body" role="status">Market lines and results are unavailable. Your saved guesses are kept.</p> : null}
       {/* A5: no fine print here; the forfeit dialog behind See picks now already says it is final and what is kept. */}
       <GateBanner gate={gate} onCta={enterPlay} onSkip={() => shell.openDialog('dlg.forfeit', revealScope)}/>
+      {/* The board is the newest week; a prior week's game not yet done (Monday night, postponed) shows above it. */}
+      <PriorWeekCard app={app} personal={personal}/>
       <div className="gx-game-days" role="group" aria-label="Game day">{days.map(label => <Button key={label} variant="secondary" aria-pressed={selectedDay === label} onClick={() => setDay(label)}>{label}<span>{cards.filter(card => label === 'All' || dayOf(card) === label).length}</span></Button>)}</div>
       <p className="gx-t-meta gx-c-2" role="status">{visibleGroups.reduce((sum, group) => sum + group.cards.length, 0)} games shown{teams.data?.season === shown?.season && throughText(teams.data) ? ` · Records ${throughText(teams.data).toLowerCase()}` : ''}</p>
       {visibleGroups.map((group, i) => <Group key={group.key ?? group.label} label={group.key ? group.label : `${group.label} · ${group.cards.length} ${group.cards.length === 1 ? 'game' : 'games'}`} time={group.time} cards={group.cards} season={season} scale={scale} lines={lines} onOpen={open} enter={i === 0 ? enter : undefined}/>)}

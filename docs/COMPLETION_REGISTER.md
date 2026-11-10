@@ -1,5 +1,279 @@
 # Guess The Line — current completion register
 
+## Migration apply packet prepared — November 10, 2026
+
+The [apply packet](MIGRATION_APPLY_PACKET_2026_11_10.md) covers all seven `NOT_HOSTED`
+migrations (M-33, M-34, M-35 and the four November 10 files, proposed as M-42 to M-45
+because M-41 is reserved by open PR #497): dependencies and filename apply order,
+replaced-body md5s, read-only preflight, score and preservation hashes, apply method,
+verification, off switches, follow-up deploys/schedule rows, the Player Props readiness
+Task 2 queries and Sean's apply phrases. It records that M-40 is hosted in every repo
+record, and flags that M-34 must not be applied after M-44 as written (job constraint
+without `results`) and that M-43's RPCs have no boundary probes. Supabase was
+unavailable: no hosted value was observed and nothing was applied or deployed.
+
+## Fantasy defensive-matchup insights merged — November 10, 2026
+
+PR #517 merged as `0944bc2003780aa88b173c6aaf99b746f273cd83`: defensive-matchup views
+for fantasy-relevant QB/RB/WR/TE and defense ranking tables on Research › Fantasy, built
+by the scheduled Fantasy refresh from reuse-licensed nflverse/FTN releases (CC BY / CC
+BY-SA attribution shown). **Merged, not deployed**: the frontend needs a release, and data
+appears with the first scheduled Fantasy refresh after merge. No API, worker, migration or
+Supabase change.
+
+## EPL Sleeper screenshot score import merged — November 10, 2026
+
+PR #515 merged as `2d54ae7b250ab422c86910d53334ea2671e65e8f` (EPL delivery stage 3):
+on-device OCR (tesseract.js, assets self-hosted under `/ocr/`), commissioner review of
+all eight scores and an atomic, audited import that opens the next draft. The API and
+Pages are in deploy run 42744392202 (`api-and-frontend` at `2d54ae7b`), **pending
+approval** at the time of writing. Migration `20261110110000_gtl_epl_score_import.sql`
+(proposed M-43) is **not applied**. Real-screenshot phone acceptance, the boundary probes
+and the hosted `nudge`/`fixtures` state remain open.
+
+## Player Props mode merged dark — November 10, 2026
+
+PR #514 merged as `bf29c5d6d2c1f71d259094bd4dbeae45255308dd` (D-82): native-unit
+domain, storage, `/props/*` API and lazy frontend screens, all off by default. Included in
+deploy run 42744392202, **pending approval**; the routes answer 404 while `GTL_PLAYER_PROPS`
+is unset, and that secret is not to be enabled. Migration
+`20261110130000_gtl_player_props.sql` (proposed M-45) is **not applied**. The readiness
+Task 2 hosted audit and the offer/result ingestion jobs are still to do.
+
+## EPL Pick a Team result announcements merged — November 10, 2026
+
+PR #512 merged as `dfda1263a96c7450dee73643681bdca31b3c0e17` (EPL delivery stage 4):
+results cards on EPL Home and Pick a Team from verified finals, a deduplicated opt-in push
+and the bounded `results` job. API and Pages are in deploy run 42744392202, **pending
+approval**. Migration `20261110120000_gtl_epl_result_announcements.sql` (proposed M-44) is
+**not applied**; the `gtl-epl-jobs` deploy and `supabase/admin/epl_results_cron.sql`
+(row created disabled) follow the apply, and enabling `results` is a separate step.
+
+## EPL three-way moneyline and EPL Bets merged — November 10, 2026
+
+PR #513 merged as `ddf859099e7c6dc12f3867af7416638fbdc6f419` (EPL delivery stages 1-2):
+draw-no-bet or three-way entry with one guess per match, market-aware references and
+collection, combined leaderboard and account-scoped EPL Bets recommendations. API and
+Pages are in deploy run 42744392202, **pending approval**; they stay two-way until the
+schema reports the capability. Migration `20261110100000_gtl_epl_three_way_moneyline.sql`
+(proposed M-42) is **not applied**; a compatible `gtl-epl-jobs` deploy is also needed for
+timed three-way collection.
+
+## Points layout check measured after animation — November 10, 2026
+
+PR #516 merged as `7afeb773fa35e49c3edcc6c3685aa76680a1dcd3`: the 320 px layout check in
+`next-points.spec.js` waits for the restored card's back animation to settle. Test-only;
+no application change and no deploy needed (the commit is included in `2d54ae7b`).
+
+## Prior week's unfinished game stays visible — November 10, 2026
+
+PR #511 merged as `0f656617916d63d67c7ab4e6932233ccfd7f6548`: a "Still playing from Week
+N" card on Home, Play and Research › Games keeps a prior week's unfinished game (Monday
+night, late or postponed) with the viewer's own guesses after the next week opens. Reads
+only the existing gated `/lines/read`; locks and reveals unchanged. **Deployed**:
+frontend-only release run 42733238277 (success). No API or migration change; real-phone
+acceptance is not established by the release.
+
+## Gap period follow-up fixes and mockups — November 9, 2026
+
+The [post-release review and fix evidence](GAP_PERIOD_FOLLOWUP_REVIEW_2026_11_09.md)
+record both PR #505 follow-ups fixed locally: period/applied-range intent survives
+recommendation-week changes and Refresh lines, and expanded records include all
+rows when the period grows. The existing account and read guards remain. Both
+regressions failed before the fixes and passed after; 22 unique recommendation
+browser cases, 39 Node checks, six UI checks and build/QA passed. Actual-component
+[Dark/Light mockups](../design/gap-period-fixes-2026-11-09/index.html) use synthetic
+data. Owner review, exact CI, merge, protected deploy and real-phone acceptance
+remain separate. PR #507 still owns the prior release-evidence reconciliation.
+
+## Comparable NFL gap scale checked locally — November 9, 2026
+
+[D-81](DECISIONS.md) replaces percentage-of-line gap ranking with a shared
+historical scale calibrated separately for Spread and Total. Sean chose the
+NFL-wide baseline and top-quarter Large highlight. The
+[implementation evidence](NFL_GAP_SCALE_2026_11_09.md) records the frozen
+2016–2025 sample, reproducible aggregate, shared ranking/colors/history filter,
+source limitations and verification. This is review work, not a merge or release
+claim. No saved pick/reference, API, migration, provider or collector changes.
+
+## Player Props design approved; source audit partial — November 9, 2026
+
+Sean approved both Dark/Light boards with alignment to the rest of the app as a
+condition. [D-82](DECISIONS.md) and the
+[approved design](superpowers/specs/2026-11-09-player-props-design.md) preserve
+optional athlete/stat selection, separate native-unit average-miss accuracy,
+entry-only market hiding and the existing shared Prism components/navigation.
+
+The [readiness audit](PLAYER_PROPS_READINESS_2026_11_09.md) verifies all eleven raw
+stat fields in a checksum-matched public Week 1–9 source. Hosted prop-quote,
+roster/event, quota and final-result readiness is unverified: the Supabase
+connection requires reauthentication. The
+[read-only readiness plan](superpowers/plans/2026-11-09-player-props-readiness.md)
+keeps those unknowns distinct from observed absence. No Player Props mode,
+migration, provider-credit request, collector activation or deployment is included.
+
+The [full Player Props visual packet](../design/player-props-review-2026-11-09/README.md)
+adds six component-rendered Dark/Light sheets after Sean explicitly chose
+Player Props-only review. Sean then confirmed **"Approve the visual set"** for all
+six exact sheets, including locked, custom-filter, recovery and empty/error states.
+The twelve full-content preview captures preserve the shared bottom bar and
+end-control clearance. This is mockup evidence, not product implementation,
+real-phone acceptance or a new hosted-data claim.
+
+Sean subsequently instructed **"Merge and deploy"**. The approved records are
+being reconciled with current main and the existing shared navigation-test fix;
+exact-head review/CI are required before merge. Supabase still requires
+reauthentication for the hosted prop-data audit. Feature implementation and its
+protected release remain pending; merging these records cannot enable the mode.
+
+## EPL expansion requirements confirmed — November 9, 2026
+
+The [requirements and delivery sequence](EPL_FEATURES_2026_11_09.md) and D-68
+addendum record Sean's answers in this conversation: optional three-way entry,
+one locked guess per match and a combined leaderboard; automatic recommendations
+ranked by current favorable gap with supporting trends; reviewed final Sleeper
+screenshot scores opening the next draft; and independent winner announcements
+with opt-in push. Source inspection identified two-way storage, coupled
+snapshot/award/rollover processing and roughly twelve-hourly result collection
+as implementation work. Status: **planned, not built or deployed**. Sean supplied
+a representative screenshot: human inspection established the four-card/eight-
+manager layout, actual-score versus projection positions and absent season-total
+tiebreak data. The requirements record now defines import/review handling; this
+is not tested OCR or a live import. Private images/scores remain outside Git.
+No runtime, database, migration, notification or frozen-v62 change.
+
+## Gap record period filters deployed and verified — November 9, 2026 UTC
+
+[Release evidence](RELEASE_2026_11_09_GAP_RECORD_PERIODS.md) records merged PR #505,
+source `9a34f9e47d5fb7dd32eecd6fdc697cef53340ed9`, all twelve exact PR/main checks,
+protected readiness and frontend-only deploy 42665392227. Pages
+`3e81d5b5-5ad5-4f62-9014-c728f047e070` and all 132 production assets verified at
+17:35:54 UTC. Week, This season, All time and inclusive Custom range combine
+existing D-77 records without averaging weekly percentages. Recommendation week
+and placement remain independent; failed periods do not show partial totals.
+
+API v52 metadata and 76-migration history remain unchanged. No SQL/API/worker or
+provider deployment. Local synthetic multiweek tests and public two-theme smoke
+do not establish physical-phone or signed-in production acceptance. The new
+Player Props guessing feature is still in design, not included in this release.
+M-41, held FEPL framing, parked work and frozen v62 remain separate. Earlier
+local/pending period-filter entries below are historical.
+
+The publication followup also corrects an existing badge-test setup: visibility
+alone need not create the required scrolled shelf. The release record preserves
+the original failed PR #507 run and the explicit-centering correction, with all
+navigation/focus/scroll assertions retained. This changes no application source
+and does not require redeployment.
+
+## EPL expansion requirements confirmed — November 9, 2026
+
+The [requirements and delivery sequence](EPL_FEATURES_2026_11_09.md) and D-68
+addendum record Sean's answers in this conversation: optional three-way entry,
+one locked guess per match and a combined leaderboard; automatic recommendations
+ranked by current favorable gap with supporting trends; reviewed final Sleeper
+screenshot scores opening the next draft; and independent winner announcements
+with opt-in push. Source inspection identified two-way storage, coupled
+snapshot/award/rollover processing and roughly twelve-hourly result collection
+as implementation work. Status: **planned, not built or deployed**. Sean supplied
+a representative screenshot: human inspection established the four-card/eight-
+manager layout, actual-score versus projection positions and absent season-total
+tiebreak data. The requirements record now defines import/review handling; this
+is not tested OCR or a live import. Private images/scores remain outside Git.
+No runtime, database, migration, notification or frozen-v62 change.
+
+## Gap record period filters deployed and verified — November 9, 2026 UTC
+
+[Release evidence](RELEASE_2026_11_09_GAP_RECORD_PERIODS.md) records merged PR #505,
+source `9a34f9e47d5fb7dd32eecd6fdc697cef53340ed9`, all twelve exact PR/main checks,
+protected readiness and frontend-only deploy 42665392227. Pages
+`3e81d5b5-5ad5-4f62-9014-c728f047e070` and all 132 production assets verified at
+17:35:54 UTC. Week, This season, All time and inclusive Custom range combine
+existing D-77 records without averaging weekly percentages. Recommendation week
+and placement remain independent; failed periods do not show partial totals.
+
+API v52 metadata and 76-migration history remain unchanged. No SQL/API/worker or
+provider deployment. Local synthetic multiweek tests and public two-theme smoke
+do not establish physical-phone or signed-in production acceptance. The new
+Player Props guessing feature is still in design, not included in this release.
+M-41, held FEPL framing, parked work and frozen v62 remain separate. Earlier
+local/pending period-filter entries below are historical.
+
+The publication followup also corrects an existing badge-test setup: visibility
+alone need not create the required scrolled shelf. The release record preserves
+the original failed PR #507 run and the explicit-centering correction, with all
+navigation/focus/scroll assertions retained. This changes no application source
+and does not require redeployment.
+
+
+## Gap win rate period filters checked locally — November 9, 2026
+
+Sean approved the [D-80](DECISIONS.md) dark/light period-control mockup. The
+[implementation evidence](GAP_RECORD_PERIODS_2026_11_09.md) records Week,
+This season, All time and inclusive Custom range, complete-period loading,
+count-weighted rate, actual row provenance and unchanged D-77 grading. Existing
+authenticated weekly reads are reused; recommendation selection/writes remain
+independent. Both browser engines/themes and independent review passed locally.
+Exact source/CI, merge and protected frontend release remain separate gates;
+this entry is not a deployment claim. No SQL/API/provider change, M-41 apply,
+parked feature work or new physical-phone acceptance is included.
+
+## Whole-app UI/UX sweep deployed and verified — November 8, 2026 UTC
+
+[Release evidence](RELEASE_2026_11_08_UI_UX_SWEEP.md) records exact source
+`a17f2082e5e07e95179726ac948c44c55a506d1f`, merged PR #502, all twelve corrected
+PR checks and all twelve main-push checks. Protected frontend release 42514212232
+verified Pages `968d3b5d-a115-42ea-8293-ce405ef42f91` and all 132 production assets
+at 19:21:34 UTC. Home’s selected floating bottom bar matches across existing
+NFL/EPL tabs; headers/body layouts remain contextual. Guidance rows, singular
+ticket counts and fresh detail entry/Back scrolling are corrected.
+
+The [audit](UI_UX_SWEEP_2026_11_08.md) preserves both-theme/browser/viewport
+coverage, controller/fixture limits, the initial CI failure and causal fix,
+source reviews and warning noise. API v52/metadata, 76-migration history and
+tracked data/backend source hashes are unchanged. No SQL, worker or API deploy.
+Actual-phone and signed-in production acceptance are not newly inferred. M-41,
+FEPL top-header choice, parked features and frozen v62 remain held/unchanged.
+Earlier local/pending entries below are historical.
+
+## Whole-app UI/UX sweep checked locally — November 8, 2026
+
+[D-79](DECISIONS.md) confirms Home’s floating glass bottom navigation across all
+existing NFL/EPL tabs while preserving contextual top headers and approved body
+layouts. The [sweep record](UI_UX_SWEEP_2026_11_08.md) documents fresh screen,
+formatting, chart, overlay and scrolling coverage in both themes, narrow/wide and
+short/landscape viewports, plus Chromium and mobile WebKit emulation.
+
+Local corrections share the bottom recipe/actual-height clearance, restore the
+Guidance sheet’s intrinsically sized topic rows, and fix singular tracked-ticket
+copy. Task reviews approve both initial source changes with no Critical/Important
+findings; inherited validation warnings remain recorded. Initial PR CI exposed a
+fourth issue: a short detail retained opener scroll. Nest’s entry reset is checked
+locally at `219e546699368925a913b08e6cf34745349d2fd2`, preserving exact Back position
+and focus; renewed delta review and CI are required. Source commits are
+`4ce541942c12751862672d8cb89209d819fd452e` and
+`3175462f6839e01fece3d4d43c8171b07983ff1e`. Final branch review, exact CI, publication,
+merge and protected frontend release remain pending; this is not a deployment
+claim. The separate held FEPL top-header choice, M-41, API/database/worker state,
+parked features and frozen v62 remain unchanged. Actual-phone acceptance is not
+newly inferred from emulation or Sean’s navigation assumption.
+
+## Saved-precision Virtual Units ROI deployed — November 8, 2026 UTC
+
+[Release evidence](RELEASE_2026_11_08_VIRTUAL_ROI.md) records exact source
+`1c5a9da0deb479c15abf390a905acd47084cb338`, merged PR #500, all twelve exact-main
+checks and protected deployment 42496125746. API v52 is ACTIVE/JWT-verified and
+Pages `b3bd6187-adbf-4097-98e2-28417cac7d09` passed all 132 production asset
+comparisons at 15:47:16 UTC. Week/season ROI and ranking now retain saved
+four-place amounts under D-78; saved selections/results and settlement are not
+rewritten. Exact ties remain shared; precision can split previously rounded ties.
+
+Fresh history stays at 76 versions with the reviewed digest; pending M-33/M-34/
+M-35 are unchanged. No SQL or worker deployment. Remote API source bytes,
+hosted affected-rank/row-hash counts and new phone acceptance are not claimed.
+Earlier local-only ROI entries below are historical. M-41 remains separate
+unapplied draft PR #497 with its own Gate M checks and named approval; the FEPL
+frame question is open. Parked work and frozen v62 remain unchanged.
+
 ## Saved-precision Virtual Units ROI checked locally — November 8, 2026
 
 Sean approved the recommended saved-four-place accounting correction (D-78).

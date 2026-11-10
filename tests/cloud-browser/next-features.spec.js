@@ -138,14 +138,35 @@ test('before the job has run: an empty recap with no sample, streaks at 0 and th
   await expect(page).toHaveURL(/#play\/features$/);
 
   // A badge's layer: the 96 tile, rarity in words, the rule, how often and when; a reload reopens it.
-  await screen.getByRole('button', { name: /^Bullseye, Uncommon, earned 3 times/ }).click();
+  const bullseye = screen.getByRole('button', { name: /^Bullseye, Uncommon, earned 3 times/ });
+  await bullseye.scrollIntoViewIfNeeded();
+  // Visibility alone need not scroll a compact shelf far enough to exercise Back restoration.
+  await bullseye.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+  const shelfScroll = await page.evaluate(() => scrollY);
+  expect(shelfScroll, 'the badge opens from a scrolled shelf').toBeGreaterThan(100);
+  await bullseye.click();
   await expect(page).toHaveURL(/#play\/features\?layer=badge&item=bullseye$/);
   await expect(screen.getByRole('heading', { name: 'Bullseye', level: 2 })).toBeFocused();
+  await expect.poll(() => page.evaluate(() => scrollY), 'a new layer opens at the top, preserving its heading focus').toBe(0);
+  const header = await page.getByRole('banner').boundingBox();
+  const sport = await page.getByRole('button', { name: 'National Football League', exact: true }).boundingBox();
+  expect(sport.y, 'the sport control is fully below the native header on entry').toBeGreaterThanOrEqual(header.y + header.height);
   await expect(screen).toContainText('Guess a line exactly (10 points).');
   await expect(screen).toContainText('Earned 3 times');
   // D-62: the game is drawn as marks (read as one sentence); the codes beside the marks sit between in textContent.
   await expect(screen).toContainText(/Week 4 · Seattle Seahawks at Denver Broncos[A-Z@]* · Spread DEN −8\.5 exact/);
   await phoneChecks(page, info, 'features-badge');
+  // Native/browser Back still belongs to Shell: the layer's top reset must not discard the shelf's saved position.
+  await page.goBack();
+  await expect(page).toHaveURL(/#play\/features$/);
+  await expect(bullseye).toBeFocused();
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(shelfScroll);
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  await expect(bullseye).toBeFocused();
+  expect(await page.evaluate(() => scrollY), 'shelf restoration survives settled browser traversal frames').toBe(shelfScroll);
+  await bullseye.click();
+  await expect(screen.getByRole('heading', { name: 'Bullseye', level: 2 })).toBeFocused();
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
   await page.reload();
   await expect(screen.getByRole('heading', { name: 'Bullseye', level: 2 })).toBeVisible();
   await screen.getByRole('button', { name: 'Back to Badges and awards' }).click();

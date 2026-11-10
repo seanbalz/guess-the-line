@@ -49,6 +49,9 @@ export function Nest({ label, lips = [], layer, title, info, children, className
   useLayoutEffect(() => {
     if (shown.current === layer) return;
     shown.current = layer;
+    // This layer owns its heading handoff, so Shell preserves it instead of applying the usual forward top reset.
+    // Start the new card at the top too; Shell still restores the saved list position on Back.
+    window.scrollTo(0, 0);
     heading.current?.focus({ preventScroll: true });
   }, [layer]);
   return (

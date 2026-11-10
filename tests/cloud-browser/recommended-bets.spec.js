@@ -23,7 +23,7 @@ const cards = page => page.locator('.recommended-bet-card');
 const marketFilter = page => page.getByRole('group', { name: 'Recommendation market', exact: true });
 const market = (page, name) => marketFilter(page).getByRole('button', { name, exact: true });
 const cardMarkets = page => cards(page).evaluateAll(list => list.map(card => card.dataset.market));
-const percents = page => cards(page).locator('.recommended-percent').allTextContents();
+const gapSizes = page => cards(page).locator('.recommended-percent').allTextContents();
 const region = page => page.getByRole('region', { name: 'Recommended bets', exact: true });
 async function openTotal(page, gameId) {
   const card = page.locator(`.recommended-bet-card[data-game-id="${gameId}"][data-market="total"]`);
@@ -94,6 +94,113 @@ async function publishNextWeek(world) {
       new Date(next.deadline * 1000).toISOString(), 'Synthetic recommendation history schedule fixture']);
   return { season, week: week + 1 };
 }
+
+// Two explicitly synthetic historical boards exercise the real period/controller
+// lifecycle. The initial board comes through the fixture's authenticated reader;
+// its second-week copy is fixture data, not a claim about retained live history.
+async function gapPeriodFixture(page, baseURL) {
+  let at = Date.now();
+  const world = await fixture(page, baseURL, { clock: () => at });
+  const { season, week } = world.state.league;
+  for (const game of world.state.games) {
+    await world.db.query("insert into public.gtl_virtual_units_settlements(season,week,game_id,version,status,home,away,source,observed_at) values($1,$2,$3,1,'final',27,20,'Synthetic period final',now())", [season, week, game.id]);
+  }
+  at = Math.max(...world.state.games.map(game => Date.parse(game.kickoff))) + 4 * 3_600_000;
+  const old = await world.api('luke', 'lines/read', { season, week });
+  expect(old.status).toBe(200);
+  const next = await publishNextWeek(world);
+  await page.route(`${SUPABASE}/functions/v1/gtl-api/lines/read`, async route => {
+    if (route.request().headers().authorization !== `Bearer ${world.sessions[ACCOUNTS.luke.email].access_token}`) return route.fallback();
+    const scope = route.request().postDataJSON();
+    expect(scope.season).toBe(season);
+    expect([week, next.week]).toContain(scope.week);
+    await route.fulfill({ json: { ...old.body, ...scope } });
+  });
+  return { world, season, week, next };
+}
+
+test('gap record periods and applied custom bounds survive recommendation-week changes and refresh', async ({ page, baseURL }) => {
+  const { world, season, week, next } = await gapPeriodFixture(page, baseURL);
+  try {
+    const calls = requests(page);
+    await openRecommended(page);
+    const period = page.getByRole('combobox', { name: 'Record period', exact: true });
+    const recommendation = page.getByRole('combobox', { name: 'Recommendation week', exact: true });
+    const card = page.getByRole('region', { name: 'Your gaps vs. closing lines', exact: true });
+    await period.selectOption('all');
+    await expect(card).toContainText('14 graded gaps');
+    await recommendation.selectOption(`${season}:${week}`);
+    await expect(card).toContainText('14 graded gaps');
+    await expect(period).toHaveValue('all');
+    await page.getByRole('button', { name: 'Refresh lines', exact: true }).click();
+    await expect(period).toHaveValue('all');
+    await expect(card).toContainText('14 graded gaps');
+    await period.selectOption('custom');
+    await card.getByLabel('From', { exact: true }).selectOption(`${season}:${week}`);
+    await card.getByLabel('To', { exact: true }).selectOption(`${season}:${week}`);
+    await card.getByRole('button', { name: 'Apply range', exact: true }).click();
+    await expect(card).toContainText('7 graded gaps');
+    await recommendation.selectOption('current');
+    await expect(period).toHaveValue('custom');
+    await expect(card.getByLabel('From', { exact: true })).toHaveValue(`${season}:${week}`);
+    await expect(card.getByLabel('To', { exact: true })).toHaveValue(`${season}:${week}`);
+    await expect(card).toContainText('7 graded gaps');
+    await page.getByRole('button', { name: 'Refresh lines', exact: true }).click();
+    await expect(period).toHaveValue('custom');
+    await expect(card).toContainText('7 graded gaps');
+    await period.selectOption('season');
+    await recommendation.selectOption(`${season}:${week}`);
+    await expect(period).toHaveValue('season');
+    await expect(card).toContainText('14 graded gaps');
+    await period.selectOption('week');
+    await recommendation.selectOption('current');
+    await expect(period).toHaveValue('week');
+    await expect(card.getByRole('heading', { name: `Your gaps · Week ${next.week}`, exact: true })).toBeVisible();
+    expect(placements(calls)).toEqual([]);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('expanded gap records show every row when the period grows and can collapse again', async ({ page, baseURL }) => {
+  const { world } = await gapPeriodFixture(page, baseURL);
+  try {
+    await openRecommended(page);
+    const card = page.getByRole('region', { name: 'Your gaps vs. closing lines', exact: true });
+    await card.getByRole('button', { name: 'Show all 7 gaps', exact: true }).click();
+    await expect(card.locator('.gx-gap-row')).toHaveCount(7);
+    await card.getByRole('combobox', { name: 'Record period', exact: true }).selectOption('all');
+    await expect(card).toContainText('14 graded gaps');
+    await expect(card.locator('.gx-gap-row')).toHaveCount(14);
+    await card.getByRole('button', { name: 'Show first 6', exact: true }).click();
+    await expect(card.locator('.gx-gap-row')).toHaveCount(6);
+    await card.getByRole('button', { name: 'Show all 14 gaps', exact: true }).click();
+    await expect(card.locator('.gx-gap-row')).toHaveCount(14);
+    await card.getByRole('combobox', { name: 'Record period', exact: true }).selectOption('week');
+    await expect(card.locator('.gx-gap-row')).toHaveCount(7);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('gap period preference and combined records reset after a real fixture sign-out and account change', async ({ page, baseURL }) => {
+  const { world } = await gapPeriodFixture(page, baseURL);
+  try {
+    await openRecommended(page);
+    const period = page.getByRole('combobox', { name: 'Record period', exact: true });
+    const card = page.getByRole('region', { name: 'Your gaps vs. closing lines', exact: true });
+    await period.selectOption('all');
+    await expect(card).toContainText('14 graded gaps');
+    await page.getByRole('button', { name: 'Your menu', exact: true }).click();
+    await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+    await signIn(page, 'troy', { navigate: false });
+    await expect(page.getByRole('navigation', { name: 'Main', exact: true })).toBeVisible();
+    await page.goto('/#bets');
+    await page.getByRole('button', { name: 'Your guess vs. market', exact: true }).click();
+    await expect(period).toHaveValue('week');
+    await expect(card).toContainText('0 graded gaps');
+    await expect(card).not.toContainText('14 graded gaps');
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
 
 async function moveBrowserPastKickoff(page, game) {
   // Only the fictional browser clock moves. The kickoff timer's visibility handler
@@ -252,13 +359,13 @@ test('saved guesses rank the top three; expanding retains small gaps and both si
     const calls = requests(page);
     await openRecommended(page);
     await expect(cards(page)).toHaveCount(3);
-    await expect(cards(page).nth(0).locator('summary')).toContainText('185.7% gap');
-    await expect(cards(page).nth(0).locator('summary')).toContainText('6.5 pt gap');
-    await expect(cards(page).nth(1).locator('summary')).toContainText('100.0% gap');
-    await expect(cards(page).nth(2).locator('summary')).toContainText('42.9% gap');
+    await expect(cards(page).nth(0).locator('summary')).toContainText('Size 59.2/100');
+    await expect(cards(page).nth(0).locator('summary')).toContainText('10.5 pt gap');
+    await expect(cards(page).nth(1).locator('summary')).toContainText('Size 44.6/100');
+    await expect(cards(page).nth(2).locator('summary')).toContainText('Size 29.2/100');
     await cards(page).first().locator('summary').click();
-    await expect(cards(page).first().locator('[data-side="home"][data-value-color="green"]')).toContainText('Favorable');
-    await expect(cards(page).first().locator('[data-side="away"][data-value-color="red"]')).toContainText('Against your guess');
+    await expect(cards(page).first().locator('[data-side="over"][data-value-color="yellow"]')).toContainText('Moderate gap');
+    await expect(cards(page).first().locator('[data-side="under"][data-value-color="yellow"]')).toContainText('Moderate gap');
     expect(placements(calls)).toEqual([]);
     expect(await picksCount(world)).toBe(0);
     await page.screenshot({ path: '.local/previews/recommended-bets-top3-dark-390.png', fullPage: true });
@@ -267,7 +374,7 @@ test('saved guesses rank the top three; expanding retains small gaps and both si
     await expect(cards(page)).toHaveCount(7);
     await expect(cards(page).last().locator('[data-value-color="yellow"]')).toHaveCount(2);
     await expect(cards(page).last()).toContainText('Small gap');
-    await expect(cards(page).last().locator('summary')).toContainText('1.5 pt gap');
+    await expect(cards(page).last().locator('summary')).toContainText('0.5 pt gap');
     expect(calls.filter(call => call.path === 'bets/recommendations').at(-1)?.body).toEqual({});
     expect(calls.some(call => call.path.startsWith('odds/') || call.path === 'virtual-units' || call.path === 'virtual-pick')).toBe(false);
 
@@ -283,6 +390,21 @@ test('saved guesses rank the top three; expanding retains small gaps and both si
     }
     await page.getByRole('button', { name: /Show top 3/i }).click();
     await expect(cards(page)).toHaveCount(3);
+    // A refreshed synthetic spread makes a 14-point gap: the historical top
+    // quarter is the same boundary used by the record, with explicit direction.
+    await storeBookLines(world, { ...world.lines, spread: Object.fromEntries(world.state.games.map(game => [game.id, 4])) }, { capturedAt: Date.now() - 5000 });
+    await page.getByRole('button', { name: 'Refresh lines', exact: true }).click();
+    const large = cards(page).first();
+    await expect(large.locator('summary')).toContainText('14 pt gap');
+    await expect(large.locator('summary')).toContainText('Large gap');
+    await large.locator('summary').click();
+    await expect(large.locator('[data-side="home"][data-value-color="green"]')).toContainText('Large gap in your direction');
+    await expect(large.locator('[data-side="away"][data-value-color="red"]')).toContainText('Large gap against your guess');
+    await page.getByRole('button', { name: 'About your guess vs. market', exact: true }).click();
+    const info = page.getByRole('dialog', { name: 'About your guess vs. market' });
+    await expect(info).toContainText('2,639 NFL regular-season games');
+    await expect(info).toContainText('not a win probability');
+    await expect(info.getByRole('link').first()).toBeVisible();
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
@@ -308,7 +430,12 @@ test('Add to card only prepares the retained quote; explicit placement saves one
       source: 'betmgm', quotedAt: world.observedAt,
     } });
     await expect.poll(() => picksCount(world)).toBe(1);
+    // Once saved this row follows actionable rows and leaves the top-three
+    // preview; the saved card remains, and Show all exposes the saved row.
+    await expect(page.locator('.recommended-saved-card')).toContainText('44.5');
+    await page.getByRole('button', { name: /Show all/i }).click();
     await expect(page.locator(`.recommended-bet-card[data-game-id="${firstGame.id}"][data-market="total"]`)).toContainText(/Virtual pick saved|On your card|Already saved/);
+    await page.locator(`.recommended-bet-card[data-game-id="${firstGame.id}"][data-market="total"] summary`).click();
     await expect(page.locator(`.recommended-bet-card[data-game-id="${firstGame.id}"][data-market="total"]`).getByRole('button', { name: 'Virtual pick saved', exact: true })).toBeDisabled();
     await page.getByRole('button', { name: 'Refresh lines', exact: true }).click();
     await expect(cards(page)).toHaveCount(7);
@@ -539,10 +666,10 @@ test('All, Spreads and Totals filter the full ranked list before the top three, 
     await expect(market(page, 'All')).toHaveAttribute('aria-pressed', 'true');
     await expect(market(page, 'Spreads')).toHaveAttribute('aria-pressed', 'false');
     await expect(market(page, 'Totals')).toHaveAttribute('aria-pressed', 'false');
-    // All keeps the mixed D-54 ranking, whose three largest percentage gaps are all spreads here.
+    // D-81 gives totals comparable prominence: the largest three are total, spread, total.
     await expect(cards(page)).toHaveCount(3);
-    expect(await percents(page)).toEqual(['185.7% gap', '100.0% gap', '42.9% gap']);
-    expect(await cardMarkets(page)).toEqual(['spread', 'spread', 'spread']);
+    expect(await gapSizes(page)).toEqual(['Size 59.2/100', 'Size 44.6/100', 'Size 29.2/100']);
+    expect(await cardMarkets(page)).toEqual(['total', 'spread', 'total']);
     await expect(region(page)).toContainText('7 gaps');
     const reads = calls.filter(call => call.path === 'bets/recommendations').length;
 
@@ -552,7 +679,7 @@ test('All, Spreads and Totals filter the full ranked list before the top three, 
     await expect(market(page, 'All')).toHaveAttribute('aria-pressed', 'false');
     await expect(cards(page)).toHaveCount(3);
     expect(await cardMarkets(page)).toEqual(['total', 'total', 'total']);
-    expect(await percents(page)).toEqual(['23.6% gap', '10.1% gap', '3.4% gap']);
+    expect(await gapSizes(page)).toEqual(['Size 59.2/100', 'Size 29.2/100', 'Size 10.3/100']);
     await expect(region(page)).toContainText('3 gaps');
     await expect(page.getByRole('button', { name: /Show all/i })).toHaveCount(0);
 
@@ -567,13 +694,13 @@ test('All, Spreads and Totals filter the full ranked list before the top three, 
     await expect(region(page)).toContainText('4 gaps');
     await page.getByRole('button', { name: /Show all 4 differences/ }).click();
     await expect(cards(page)).toHaveCount(4);
-    expect(await percents(page)).toEqual(['185.7% gap', '100.0% gap', '42.9% gap', '14.3% gap']);
+    expect(await gapSizes(page)).toEqual(['Size 44.6/100', 'Size 26.4/100', 'Size 14.2/100', 'Size 7.3/100']);
     await page.getByRole('button', { name: /Show top 3/ }).click();
     await market(page, 'All').focus();
     await page.keyboard.press('Space');
     await expect(market(page, 'All')).toHaveAttribute('aria-pressed', 'true');
     await expect(cards(page)).toHaveCount(3);
-    expect(await percents(page)).toEqual(['185.7% gap', '100.0% gap', '42.9% gap']);
+    expect(await gapSizes(page)).toEqual(['Size 59.2/100', 'Size 44.6/100', 'Size 29.2/100']);
 
     // Every filter change is display-only: no new read and no write of any kind.
     expect(calls.filter(call => call.path === 'bets/recommendations')).toHaveLength(reads);
@@ -671,8 +798,8 @@ test('a prepared card selection survives filter changes and places exactly its r
     await expect(review).toContainText('Over +44.5 (−110) · 2U');
     await expect(review.getByRole('button', { name: 'Place virtual pick', exact: true })).toBeVisible();
     await market(page, 'All').click();
-    await expect(review).toHaveCount(1);
-    await expect(review).toContainText('Over +44.5 (−110) · 2U');
+    await expect(review).toHaveCount(0);
+    await expect(total).toContainText('Over +44.5 (−110) · 2U');
     await market(page, 'Totals').click();
     await expect(review).toHaveCount(0);
     if (!(await total.evaluate(card => card.open))) await total.locator('summary').click();
@@ -739,7 +866,7 @@ async function assertGapOutcomeStyles(dots, forced = false) {
 
 // D-77 (Sean, November 3, 2026: "Your gaps' paper record"). The fixture's guesses (spread -10, -7, -5, -3; total 55, 49, 43,
 // 44.5) against closing lines of -3.5 and 44.5, with finals 27-20, 20-24, 17-13 and 21-21: spreads W L W W, totals W L W and
-// one even guess. 5 of 7 decided gaps is 71.4%; 5 x 10/11 - 2 = +2.55U; the 10%+ gaps are 4-2.
+// one even guess. 5 of 7 decided gaps is 71.4%; 5 x 10/11 - 2 = +2.55U; none of these gaps reaches the D-81 top quarter.
 test('D-77: your gaps vs. closing lines grade finished games on the side your guess favored, follow the market filter and fit phones', async ({ page, baseURL }, testInfo) => {
   let at = Date.now();
   const world = await fixture(page, baseURL, { clock: () => at });
@@ -769,8 +896,8 @@ test('D-77: your gaps vs. closing lines grade finished games on the side your gu
     await expect(page.getByRole('dialog', { name: 'About your gaps' })).toContainText('a paper record, not bets placed');
     await page.getByRole('dialog', { name: 'About your gaps' }).getByRole('button', { name: 'Close', exact: true }).click();
     await card.locator('.gx-gap-options summary').click();
-    await card.getByRole('button', { name: '10%+ gaps', exact: true }).click();
-    await expect(card).toContainText('4–2–0 W–L–P');
+    await card.getByRole('button', { name: 'Large gaps', exact: true }).click();
+    await expect(card).toContainText('No finished games with a large gap yet.');
     await card.getByRole('button', { name: 'All gaps', exact: true }).click();
     await expect(card).not.toContainText('a paper record, not bets placed');
     await market(page, 'Spreads').click();

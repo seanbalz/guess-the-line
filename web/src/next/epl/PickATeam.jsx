@@ -10,6 +10,7 @@ import { Crest, CrestGrid, DraftBoard } from './DraftBoard.jsx';
 import { MarginChart } from './MarginChart.jsx';
 import { QueueSheet } from './QueueSheet.jsx';
 import { ClaimCard } from './ClaimCard.jsx';
+import { ResultsCard } from './ResultsCard.jsx';
 import { PICK_COPY, boardModel, deadlineLine, readProblem, runPick } from './draftModel.js';
 import { eplApi } from './api.js';
 import { useEplDraft } from './useEplDraft.js';
@@ -74,10 +75,10 @@ export function PickATeamView({ model, state, selected, busy, notice, onSelect, 
       {model.canPick || model.me === null ? null : <p className="gx-t-body gx-c-2">{PICK_COPY.notYourTurn}</p>}
     </Card> : null}
     {model.queue !== null ? <Button variant="secondary" block disabled={model.locked || busy} onClick={onQueue}>{PICK_COPY.queue}</Button> : null}
-    <Card as="section" className="gx-epl-bonus" aria-labelledby={bonusId}>
+    {model.results ? <ResultsCard results={model.results} clubName={model.clubName}/> : <Card as="section" className="gx-epl-bonus" aria-labelledby={bonusId}>
       <h2 className="gx-t-micro gx-c-2" id={bonusId}>{PICK_COPY.bonusTitle}</h2>
       <MarginChart bonus={model.bonus} review={model.review} clubName={model.clubName}/>
-    </Card>
+    </Card>}
   </div>;
 }
 

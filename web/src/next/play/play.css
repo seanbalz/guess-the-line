@@ -28,5 +28,5 @@
 }
 .gx .gx-live-play :is(button, summary, input) {
   scroll-margin-top: calc(var(--gx-size-topbar) + var(--gx-space-4));
-  scroll-margin-bottom: calc(var(--gx-play-dock-height) + var(--gx-size-tabbar) + var(--gx-space-6));
+  scroll-margin-bottom: calc(var(--gx-play-dock-height) + var(--gx-tabbar-height, var(--gx-size-tabbar)) + var(--gx-size-tabbar-gap) + var(--gx-space-6));
 }

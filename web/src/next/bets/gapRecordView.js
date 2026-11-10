@@ -2,12 +2,12 @@ import { GAP_WIN_UNITS } from "../../../../shared/recommended-bets.mjs";
 /** Presentation of the already graded, permitted record. No guess scoring or source substitution. */
 export function gapRecordView(record, board, tier = "all") {
   const rows = record.graded
-    .filter((row) => tier !== "large" || row.favorable)
-    .map((row) => ({
-      ...row,
-      key: `${row.gameId}:${row.market}`,
-      game: board.games.find((game) => game.id === row.gameId),
-    }));
+    .filter((row) => tier !== "large" || row.large)
+    .map((row) => {
+      const game = board.games.find((game) => game.id === row.gameId);
+      return { ...row, key: `${row.gameId}:${row.market}`, game,
+        season: game?.season ?? board.season, week: game?.week ?? board.week };
+    });
   let units = 0;
   const points = rows.map(
     (row) =>
@@ -21,6 +21,6 @@ export function gapRecordView(record, board, tier = "all") {
   return {
     rows,
     points,
-    summary: tier === "large" ? record.favorable : record,
+    summary: tier === "large" ? record.large : record,
   };
 }

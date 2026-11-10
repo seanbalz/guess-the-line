@@ -126,6 +126,48 @@ test('Account native primary labels and prose keep 16px on narrow phones',async 
   } finally {await world.db.close();}
 });
 
+test('Guidance closed summaries occupy their cards and expanded final content remains reachable on short phones',async ({page,baseURL},testInfo)=>{
+  const world=await communityWorld(page,baseURL,{migrations:HOSTED});
+  try {
+    await signIn(page,'luke');await menu(page);
+    await sheet(page,'Menu').getByRole('button',{name:'Guidance and sources',exact:true}).click();
+    const guidance=sheet(page,'Guidance and sources'), topics=guidance.locator('details'), body=guidance.locator('.gx-sheet-body');
+    await expect(topics).toHaveCount(GUIDANCE_ORDER.length);
+    for(const theme of ['dark','light']) for(const width of [320,390]) for(const enlarged of [false,true]) {
+      await setCaptureTheme(page,theme);await page.setViewportSize({width,height:568});
+      // Simulate enlarged browser text without changing the selected production type sizes.
+      await page.evaluate(enlarged=>{
+        document.getElementById('guidance-enlarged-text')?.remove();
+        if(enlarged){const style=document.createElement('style');style.id='guidance-enlarged-text';style.textContent='.gx-guidance summary,.gx-guidance-body p,.gx-guidance-body a {font-size:24px!important} .gx-guidance summary small {font-size:20px!important}';document.head.append(style);}
+      },enlarged);
+      await body.evaluate(el=>el.scrollTop=0);
+      const bounds=await topics.evaluateAll(nodes=>nodes.map(el=>{
+        const card=el.getBoundingClientRect(), summary=el.querySelector('summary').getBoundingClientRect(),next=el.nextElementSibling?.getBoundingClientRect();
+        return {label:el.querySelector('summary').textContent,containsSummary:summary.top>=card.top&&summary.bottom<=card.bottom,clearNext:!next||summary.bottom<=next.top};
+      }));
+      expect(bounds.filter(row=>!row.containsSummary||!row.clearNext),`${theme} ${width} enlarged=${enlarged}: closed summary bounds`).toEqual([]);
+      const last=topics.last(),summary=last.locator('summary');
+      await summary.focus();await page.keyboard.press('Enter');await expect(last).toHaveAttribute('open','');
+      const end=last.locator('.gx-guidance-body').locator('p,a').last();
+      await end.scrollIntoViewIfNeeded();
+      expect(await end.evaluate(el=>{const r=el.getBoundingClientRect(),b=el.closest('.gx-sheet-body').getBoundingClientRect();return r.top>=b.top-1&&r.bottom<=b.bottom+1;}),'last expanded paragraph/link fits the inner scrollport').toBe(true);
+      expect(await last.evaluate(el=>{const r=el.getBoundingClientRect(),end=el.lastElementChild.getBoundingClientRect();return end.bottom<=r.bottom;}),'expanded body is inside its card').toBe(true);
+      await expect(guidance.getByRole('button',{name:'Close',exact:true})).toBeInViewport();
+      await summary.focus();await page.keyboard.press('Space');await expect(last).not.toHaveAttribute('open','');
+      await body.evaluate(el=>el.scrollTop=el.scrollHeight);
+      await expect(summary).toBeInViewport({ratio:1});
+      expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+      await page.screenshot({path:testInfo.outputPath(`guidance-${theme}-${width}-${enlarged?'enlarged':'normal'}-end.png`)});
+      await guidance.getByRole('button',{name:'Menu',exact:true}).click();
+      await sheet(page,'Menu').getByRole('button',{name:'Guidance and sources',exact:true}).click();
+    }
+    await page.evaluate(()=>document.getElementById('guidance-enlarged-text')?.remove());
+    await guidance.getByRole('button',{name:'Close',exact:true}).click();
+    await expect(page.getByRole('button',{name:'Your menu',exact:true})).toBeFocused();
+    expect(world.errors).toEqual([]);
+  } finally {await world.db.close();}
+});
+
 test('Account forced colors keep off/on thumbs and selected themes in the system palette',async ({page,baseURL})=>{
   const world=await communityWorld(page,baseURL,{migrations:HOSTED});
   try {

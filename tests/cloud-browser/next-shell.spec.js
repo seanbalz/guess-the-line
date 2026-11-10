@@ -211,35 +211,43 @@ test.describe('the real app', () => {
     } finally { await world.db.close(); }
   });
 
-  test('the active tab\'s marker takes the 1px accent-ink edge in Light and keeps its glow in Dark, and the counter sits clear of it (audit A11)', async ({ page, baseURL }) => {
-    test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  test('the selected floating tab and counter use Home material in both top-header contexts', async ({ page, baseURL }) => {
+    expect(pgliteAvailable, 'Disposable local PGlite required').toBe(true);
     const { world } = await openNewApp(page, baseURL);
     try {
       for (const theme of ['dark', 'light']) {
         await page.evaluate(value => localStorage.setItem('gtl.theme', value), theme);
-        await load(page, '#play');
-        await expect(title(page, 'Play')).toBeVisible();
+        await load(page, '#home');
+        await expect(title(page, 'Home')).toBeVisible();
         await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
-        await expect(tabBar(page).locator('.gx-counter')).toHaveCount(1);
-        const m = await page.evaluate(() => {
-          const probe = document.createElement('span');
-          document.querySelector('.gx').append(probe);
-          probe.style.boxShadow = 'var(--gx-lime-edge)';
-          const edge = getComputedStyle(probe).boxShadow;
-          probe.style.boxShadow = 'var(--gx-glow-accent)';
-          const glow = getComputedStyle(probe).boxShadow;
-          probe.remove();
-          const tab = document.querySelector('.gx-tab--on'), marker = getComputedStyle(tab, '::before');
-          const counter = tab.querySelector('.gx-counter');
-          // The counter's own 1px ring is part of what you see, so its top edge is the box minus that ring.
-          const ring = parseFloat(getComputedStyle(counter).boxShadow.match(/(-?[\d.]+)px$/)?.[1] ?? '0');
-          return { marker: marker.boxShadow, edge, glow, height: marker.height,
-            gap: Math.round((counter.getBoundingClientRect().top - ring - (tab.getBoundingClientRect().top + parseFloat(marker.height))) * 10) / 10 };
+        const recipe = () => page.evaluate(() => {
+          const bar = document.querySelector('.gx-tabbar'), selected = bar.querySelector('[aria-current=page]');
+          const sample = (el, props) => Object.fromEntries(props.map(prop => [prop, getComputedStyle(el)[prop]]));
+          return {
+            box: sample(bar, ['height','width','left','right','bottom','padding','border','borderRadius','background','boxShadow','backdropFilter']),
+            label: sample(selected.querySelector('.gx-tab-label'), ['color','font']),
+            icon: sample(selected.querySelector('.gx-tab-icon'), ['height','width','border','borderRadius','background','boxShadow']),
+            ink: sample(selected.querySelector('.gx-ic'), ['color','strokeWidth']),
+            selected: sample(selected, ['background','borderRadius']),
+          };
         });
-        expect(m.height).toBe('3px');
-        expect(m.marker, theme).toBe(theme === 'light' ? m.edge : m.glow);
-        // The Play counter, ring included, starts below the marker's bar instead of running into it (top: -7px did).
-        expect(m.gap, `${theme}: gap between the marker and the counter`).toBeGreaterThan(0);
+        const home = await recipe();
+        for (const hash of ['#play', '#research', '#play/picks']) {
+          await load(page, hash);
+          await expect(tabBar(page)).toBeVisible();
+          await expect.poll(recipe).toEqual(home);
+          if (hash === '#research') {
+            await expect(page.locator('.gx-topbar')).toHaveCSS('position', 'sticky');
+            await expect(page.locator('.gx-league-btn')).toBeVisible();
+          }
+          await expect(tabBar(page).locator('.gx-counter')).toHaveCount(1);
+          const counters = await tabBar(page).locator('.gx-counter').evaluateAll(nodes => nodes.map(el => {
+            const r = el.getBoundingClientRect(), tab = el.closest('button').getBoundingClientRect();
+            const ring = parseFloat(getComputedStyle(el).boxShadow.match(/(-?[\d.]+)px$/)?.[1] ?? '0');
+            return r.top - ring >= tab.top && r.bottom + ring <= tab.bottom && r.left - ring >= tab.left && r.right + ring <= tab.right;
+          }));
+          expect(counters.every(Boolean)).toBe(true);
+        }
       }
       expect(world.errors).toEqual([]);
     } finally { await world.db.close(); }
@@ -511,7 +519,7 @@ test.describe('the shell harness', () => {
       await expect(page.locator('.gx')).not.toHaveClass(/gx-overview-frame|gx-home-design/);
       await expect(page.locator('.gx-sport-controls')).toBeVisible();
       await expect(page.locator('.gx-league-btn')).toBeVisible();
-      await expect(tabBar(page)).toHaveCSS('left', '0px');
+      await expect(tabBar(page)).toHaveCSS('left', '16px');
     }
     expect(errors).toEqual([]);
   });
@@ -557,6 +565,17 @@ test.describe('the shell harness', () => {
       }));
       expect(labels.every(label => label.left >= 0 && label.right >= 0)).toBe(true);
     }
+    await tab(page, 'Home').click();
+    await page.getByRole('button', { name: 'Show the dock', exact: true }).click();
+    await page.getByRole('button', { name: 'Show a toast', exact: true }).click();
+    // The bar grows for enlarged text; dock, toast and root focus padding follow the real height.
+    await expect.poll(() => page.evaluate(() => {
+      const bar = document.querySelector('.gx-tabbar').getBoundingClientRect();
+      const dock = document.querySelector('.gx-dock').getBoundingClientRect();
+      const toast = document.querySelector('.gx-toast').getBoundingClientRect();
+      return { grew: bar.height > 72, dockGap: bar.top - dock.bottom, toastGap: dock.top - toast.bottom,
+        paddingFollowsDock: Math.abs(parseFloat(getComputedStyle(document.documentElement).scrollPaddingBottom) - (innerHeight - dock.top + 8)) < 1 };
+    })).toEqual({ grew: true, dockGap: 8, toastGap: 8, paddingFollowsDock: true });
   });
 
   // iOS (viewportPin.js): after the keyboard closes the tab bar must sit on the bottom of what is visible, not a
@@ -573,7 +592,7 @@ test.describe('the shell harness', () => {
       return { bar: Math.round(bar.bottom), barTop: Math.round(bar.top), dock: Math.round(dock.bottom), visible: Math.round(vv.height + vv.offsetTop), gap: document.documentElement.style.getPropertyValue('--gx-viewport-gap') };
     });
     const pinned = async height => {
-      await expect.poll(bars).toEqual(expect.objectContaining({ bar: height, visible: height, gap: '' }));
+      await expect.poll(bars).toEqual(expect.objectContaining({ bar: height - 12, visible: height, gap: '' }));
       const now = await bars();
       expect(now.dock).toBe(now.barTop - 8);
     };
@@ -620,7 +639,7 @@ test.describe('the shell harness', () => {
     await expect(title(page, 'Shell harness')).toBeFocused();
     await page.setViewportSize({ width: 320, height: 700 });
     const labels = await tabBar(page).locator('.gx-tab-label').evaluateAll(nodes => nodes.map(n => getComputedStyle(n).fontSize));
-    expect(labels).toEqual(['16px','16px','16px','16px']);
+    expect(labels).toEqual(['13px','13px','13px','13px']);
     await phoneChecks(page);
   });
 

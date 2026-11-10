@@ -206,11 +206,23 @@ function dnbBook(b, homeName, awayName, home, away) {
   return h === null || a === null ? null : { [home]: h, [away]: a };
 }
 
+/** One book's three-way (h2h) market: exactly the home club, the away club and "Draw", each a valid American price, keyed
+ * {home, draw, away}; null for anything else (a two-way market, a missing or extra outcome, more than one such market). */
+function threeWayBook(b, homeName, awayName) {
+  const markets = (Array.isArray(b.markets) ? b.markets : []).filter(m => record(m) && m.key === 'h2h');
+  if (markets.length !== 1 || !Array.isArray(markets[0].outcomes) || markets[0].outcomes.length !== 3) return null;
+  const price = name => { const found = markets[0].outcomes.filter(x => record(x) && x.name === name); return found.length === 1 && american(found[0].price) ? found[0].price : null; };
+  const home = price(homeName), draw = price('Draw'), away = price(awayName);
+  return home === null || draw === null || away === null ? null : { home, draw, away };
+}
+
 /** EPL draw-no-bet odds for named events (event-level market, 1 credit per event), from DraftKings, FanDuel and BetMGM:
  * `{events: [{eventId, available, home, away, commenceTime, books: {book: {club: price}}, rejected}], quota}`. An event the
  * provider cannot price (not found, unavailable, an invalid reply or one for another event) is `{eventId, available: false}`;
  * `rejected` counts the books whose market was not a valid 2-way price. `quota` is the newest the provider reported. */
-export async function fetchEplDrawNoBet({ apiKey, fetchImpl = fetch, eventIds, observations = false, clock = Date.now } = {}) {
+// With threeWay, the same single request also asks for the event's h2h market (2 credits: the caller reserved both)
+// and each event carries threeWayBooks {book: {home, draw, away}} and threeWayBookObservedAt, complete markets only.
+export async function fetchEplDrawNoBet({ apiKey, fetchImpl = fetch, eventIds, observations = false, clock = Date.now, threeWay = false } = {}) {
   const key = oddsKey(apiKey);
   if (!Array.isArray(eventIds) || !eventIds.length || eventIds.length > DNB_MAX_EVENTS || new Set(eventIds).size !== eventIds.length
     || !eventIds.every(id => typeof id === 'string' && EVENT_ID.test(id))) fail('EPL_SOURCE_CONFIG');
@@ -218,7 +230,7 @@ export async function fetchEplDrawNoBet({ apiKey, fetchImpl = fetch, eventIds, o
   let quota = null;
   for (const eventId of eventIds) {
     const url = new URL(`/v4/sports/soccer_epl/events/${eventId}/odds`, ODDS_API_ORIGIN);
-    url.search = new URLSearchParams({ regions: 'us', markets: 'draw_no_bet', bookmakers: ODDS_BOOKS.join(','), oddsFormat: 'american', apiKey: key });
+    url.search = new URLSearchParams({ regions: 'us', markets: threeWay === true ? 'draw_no_bet,h2h' : 'draw_no_bet', bookmakers: ODDS_BOOKS.join(','), oddsFormat: 'american', apiKey: key });
     const none = { eventId, available: false, books: {}, rejected: 0 };
     let data;
     try {
@@ -233,7 +245,8 @@ export async function fetchEplDrawNoBet({ apiKey, fetchImpl = fetch, eventIds, o
     const commence = record(data) ? isoTime(data.commence_time) : NaN;
     const home = record(data) ? clubFromOddsName(data.home_team) : null, away = record(data) ? clubFromOddsName(data.away_team) : null;
     if (!record(data) || data.id !== eventId || !Number.isFinite(commence) || !home || !away || home === away) { events.push(none); continue; }
-    const books = {}, bookObservedAt = {}; let rejected = 0;
+    const books = {}, bookObservedAt = {}, threeWayBooks = {}, threeWayBookObservedAt = {}; let rejected = 0;
+    const seen = new Set();
     for (const b of (Array.isArray(data.bookmakers) ? data.bookmakers : []).filter(x => record(x) && ODDS_BOOKS.includes(x.key))) {
       const prices = Object.hasOwn(books, b.key) ? null : dnbBook(b, data.home_team, data.away_team, home, away);
       if (prices) {
@@ -242,8 +255,18 @@ export async function fetchEplDrawNoBet({ apiKey, fetchImpl = fetch, eventIds, o
         const observed = isoTime(m.last_update ?? b.last_update);
         if (Number.isFinite(observed)) bookObservedAt[b.key] = new Date(observed).toISOString();
       } else rejected++;
+      if (threeWay === true && !seen.has(b.key)) {
+        const three = threeWayBook(b, data.home_team, data.away_team);
+        if (three) {
+          threeWayBooks[b.key] = three;
+          const observed = isoTime(b.markets.find(x => record(x) && x.key === 'h2h').last_update ?? b.last_update);
+          if (Number.isFinite(observed)) threeWayBookObservedAt[b.key] = new Date(observed).toISOString();
+        }
+      }
+      seen.add(b.key);
     }
-    events.push({ eventId, available: true, home, away, commenceTime: new Date(commence).toISOString(), books, rejected, ...(observations ? { ...none.observation, bookObservedAt } : {}) });
+    events.push({ eventId, available: true, home, away, commenceTime: new Date(commence).toISOString(), books, rejected, ...(observations ? { ...none.observation, bookObservedAt } : {}),
+      ...(threeWay === true ? { threeWayBooks, ...(observations ? { threeWayBookObservedAt } : {}) } : {}) });
   }
   return { events, quota };
 }

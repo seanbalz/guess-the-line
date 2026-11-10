@@ -9,6 +9,8 @@
 //   (OddsConnection.jsx, stage 78). Both are shown only to the original Triple Threat commissioner, as before
 //   (`/results/review`, `/odds/preflight`, `/odds/collect`).
 // - Premier League stat corrections: read-only original/corrected totals and preserved draft context; loaded only when opened.
+// - Premier League weekly scores (EPL stage 3): Sleeper screenshots read on this device, all eight scores reviewed, then the
+//   confirmed import opens the next Pick a Team draft (EplScoreImport.jsx; it and its OCR engine load only when opened).
 // The code loads only when the commissioner opens the tools.
 import { CalendarDays, ClipboardList, Coins, Plug, ShieldCheck } from 'lucide-react';
 import { lazy, Suspense, useCallback, useEffect, useId, useRef, useState } from 'react';
@@ -25,6 +27,7 @@ import { OddsConnection } from './OddsConnection.jsx';
 import { ToolHeading, ToolMatchup } from './ToolPresentation.jsx';
 import './commissioner.css';
 const EplCorrectionReviews = lazy(() => import('./EplCorrectionReviews.jsx'));
+const EplScoreImport = lazy(() => import('./EplScoreImport.jsx'));
 
 export const TRIPLE_THREAT = 'sean-troy-luke';
 export const COMMISSIONER_COPY = Object.freeze({
@@ -37,6 +40,7 @@ export const COMMISSIONER_COPY = Object.freeze({
     { id: 'results', icon: ICON.finalScores, label: 'Final scores' },
     { id: 'odds', icon: ICON.odds, label: 'Odds connection' },
     { id: 'epl-corrections', icon: ICON.eplCorrections, label: 'Premier League stat corrections' },
+    { id: 'epl-scores', icon: ICON.eplScores, label: 'Premier League weekly scores' },
   ]),
   originalOnly: 'Only the original Triple Threat commissioner can use this tool.',
 });
@@ -285,5 +289,6 @@ export function CommissionerTools({ tool = null }) {
   if (shown === 'weeks') return renderTool(<WeekOpening key={week ? `${week.season}:${week.week}` : 'none'} app={app} week={week} notice={weekNotice} onNotice={setWeekNotice}/>);
   if (shown === 'referees') return <Referees key={week ? `${week.season}:${week.week}` : 'none'} app={app} week={week} renderTool={renderTool}/>;
   if (shown === 'epl-corrections') return <Suspense fallback={renderTool(<Skeleton label="Loading Premier League correction reviews…" shape="panels" count={2}/>)}><EplCorrectionReviews renderTool={renderTool}/></Suspense>;
+  if (shown === 'epl-scores') return <Suspense fallback={renderTool(<Skeleton label="Loading weekly score import…" shape="panels" count={2}/>)}><EplScoreImport renderTool={renderTool}/></Suspense>;
   return <TripleThreatTool key={shown} app={app} tool={shown} renderTool={renderTool}/>;
 }

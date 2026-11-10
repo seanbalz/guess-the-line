@@ -36,4 +36,5 @@ export const DESTINATION_ICONS = Object.freeze({
   finalScores: 'trophy',
   odds: 'plug',
   eplCorrections: 'chart',
+  eplScores: 'clipboardCheck', // Premier League weekly scores (Sleeper screenshot import)
 });
