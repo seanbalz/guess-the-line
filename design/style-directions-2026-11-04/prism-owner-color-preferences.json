@@ -1,0 +1,145 @@
+{
+  "darkPreference": {
+    "id": "obsidian",
+    "originalNumber": 12,
+    "scope": "Earlier full-palette anchor; current selectedDarkDirection supersedes its accent/text interpretation"
+  },
+  "lightPreference": {
+    "id": "arctic",
+    "originalNumber": 1,
+    "scope": "Earlier palette-board interest; current light-mode shortlist is recorded separately"
+  },
+  "additionalInterest": {
+    "id": "forest",
+    "originalNumber": 11
+  },
+  "requestedMeaningOfSeparateColors": "unique, different, new",
+  "optionalExperiment": "Different colors per card authorized for visual comparison",
+  "status": "Dark logo/background/text/card/emphasis and light Porcelain background selected; cross-screen review and production integration pending",
+  "additionalPaletteRound": {
+    "likedOnly": [
+      {
+        "id": "midnight-lime",
+        "originalNumber": 18
+      },
+      {
+        "id": "porcelain-evergreen",
+        "originalNumber": 24
+      }
+    ],
+    "darkFinalChoice": "Resolved as charcoal gradient plus warm ivory text in selectedDarkDirection"
+  },
+  "selectedDarkBackground": {
+    "backgroundBoardNumber": 1,
+    "id": "obsidian",
+    "hex": "#202126",
+    "scope": "Dark base; exact selected gradient and text are in selectedDarkDirection"
+  },
+  "shortlistedDepthTextStudies": [
+    2,
+    4
+  ],
+  "combinedGradientIvoryStatus": "Selected by Sean",
+  "selectedDarkDirection": {
+    "number": null,
+    "id": "combined-02-04",
+    "name": "Combined / Gradient + Warm ivory",
+    "treatment": "gradient",
+    "background": "#202126",
+    "wash": "linear-gradient(150deg,#2A2D37 0%,#202126 50%,#17181D 100%)",
+    "text": "#F3E9D7",
+    "muted": "#C4B9A6",
+    "logo": "logo-hybrid/lime.svg",
+    "logoBaseColor": "#B8F34B",
+    "confirmed": "2026-11-04",
+    "production": "Not integrated or deployed"
+  },
+  "selectedCardFinish": {
+    "number": 5,
+    "id": "floating",
+    "name": "Floating clear glass",
+    "source": "glass-card-options.json",
+    "overrides": {
+      "fill": "linear-gradient(135deg,#FFFFFF14,#FFFFFF06)",
+      "border": "#FFFFFF38",
+      "blur": "18px",
+      "shadow": "inset 0 1px 0 #FFFFFF80,0 4px 6px #00000070,0 18px 28px #000000A6",
+      "gloss": ".65",
+      "radius": "28px"
+    },
+    "confirmed": "2026-11-04",
+    "production": "Not integrated or deployed"
+  },
+  "buttonRefinement": {
+    "family": 5,
+    "id": "frosted",
+    "requestedChange": "Transparent face with bolder current-lime outline",
+    "previewRecipe": "button-transparent-lime.json",
+    "outlineWidth": "3px",
+    "status": "Transparent 3px lime-outline primary retained in the selected lime-priority preview"
+  },
+  "darkCharacterPreference": {
+    "id": "selective",
+    "originalNumber": 5,
+    "accent": "#B8F34B",
+    "accentReference": "Bright lime in the logo, not forest green",
+    "confirmedEmphasis": "Action cards plus key stats like rank and accuracy",
+    "preview": "lime-priority-preview.json",
+    "status": "Selected as refined in lime-priority-preview.json",
+    "confirmed": "2026-11-04"
+  },
+  "selectedLimeEmphasis": {
+    "source": "lime-priority-preview.json",
+    "accent": "#B8F34B",
+    "actionFill": "linear-gradient(135deg,#B8F34B26 0%,#B8F34B0D 58%,#B8F34B12 100%)",
+    "actionBorder": "#B8F34BA6",
+    "statFill": "linear-gradient(135deg,#B8F34B14,#B8F34B09)",
+    "statBorder": "#B8F34B70",
+    "actionPolicy": [
+      "Home next-action hero",
+      "Draft/pick tiles in Play",
+      "Track-a-bet action panel",
+      "EPL pick-a-team action panel"
+    ],
+    "statsPolicy": [
+      "Home community rank tile",
+      "Home accuracy points tile",
+      "Play accuracy score panel"
+    ],
+    "supportingCards": "Neutral floating clear glass",
+    "confirmed": "2026-11-04"
+  },
+  "lightModeShortlist": {
+    "source": "light-mode-options.json",
+    "options": [
+      {
+        "number": 2,
+        "id": "porcelain",
+        "name": "Porcelain glass"
+      },
+      {
+        "number": 4,
+        "id": "sage",
+        "name": "Pale sage"
+      },
+      {
+        "number": 5,
+        "id": "silver",
+        "name": "Silver mist"
+      }
+    ],
+    "comparison": "light-research-comparison.html",
+    "status": "Resolved: 02 / Porcelain selected"
+  },
+  "selectedLightBackground": {
+    "number": 2,
+    "id": "porcelain",
+    "name": "Porcelain glass",
+    "background": "#E9ECE8",
+    "wash": "linear-gradient(150deg,#FAFBF6,#E9ECE8 55%,#E0E7DE)",
+    "source": "light-mode-options.json",
+    "confirmed": "2026-11-04",
+    "scope": "Light-mode background; shared light adaptations retained for cross-screen review",
+    "production": "Not integrated or deployed"
+  }
+}

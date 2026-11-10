@@ -128,3 +128,66 @@ The [structured projection](evidence/PLAYER_PROPS_READINESS_2026_11_09.json)
 contains only source metadata and aggregate checks. Raw downloads, hashes,
 inspection logs and the connector error remain ignored locally. No private
 player guesses, roster memberships, provider key or service credential is published.
+
+## Offer and result jobs — November 10, 2026
+
+The two service jobs PR #514 left unbuilt are written, dark and unscheduled.
+Code: `cloud/player-prop-jobs.mjs`, `scripts/player-props-jobs.mjs` and
+`scripts/player-props-sources.mjs`. Audit storage:
+`supabase/migrations/20261110160000_gtl_player_props_jobs.sql`, which is
+**not applied** and must follow `20261110130000_gtl_player_props.sql`.
+
+| Job | Reads | Writes (only with `--write`) |
+| --- | --- | --- |
+| `offers` | The newest finished research fetch per game and market from the last six hours, as `gtl_read_research_quotes` would show it. Also the verified nflverse `games.csv` and `roster_weekly_<season>.csv`. | `gtl_props_record_offer` and `gtl_props_record_reference` for eligible candidates. `gtl_props_record_review` for every candidate, with reasons for the ineligible ones. |
+| `results` | The week's recorded offers whose kickoff has passed. Also the verified `stats_player_week_<season>.csv`, `snap_counts_<season>.csv`, weekly roster and schedule. | `gtl_props_record_result` versions. `gtl_props_record_check` for every observation, ungraded ones included. |
+
+- Neither job calls an odds provider, reserves credits, starts a collector or
+  serves a route. A page view cannot reach them.
+- An offer is eligible only when all of these hold:
+  - the exact nflverse event exists for that week, with the same kickoff;
+  - the player has a stable GSIS ID and one current weekly roster row;
+  - he is `ACT` for one of the two teams, as a QB, RB, WR or TE;
+  - the stat is one of the eleven catalog stats;
+  - `propReferenceFromQuotes` builds the qualifying three-book median from
+    that player's own retained quotes.
+- The name stored with an offer comes from the roster, never from the
+  provider. Every other candidate is recorded as ineligible with its reasons.
+- Each source file must match the release metadata's byte length and SHA-256
+  digest. A missing digest is refused.
+- Final results require all of these:
+  - a final score in the schedule;
+  - a stats release updated at least three hours after kickoff;
+  - a stats file that covers the game.
+- A stats row counts as participation. A zero with no row counts only when
+  there are snaps in that covered game.
+- `INA`, reserve or zero snaps record `dnp`. A game moved to another week
+  records `cancelled`. A row in another game records `identity_unverified`.
+- Each of these stays an explicit ungraded check and is never a zero or a
+  loss: missing participation, a missing or duplicate row, an unfinished game
+  or a missing event.
+- A changed value after a recorded result writes `correction_pending`, which
+  is ungraded. It grades again only when a later, different verified file
+  shows the same value.
+- Dark launch: with no schema the jobs are a no-op (`schema_unavailable`).
+  Runs default to a dry run.
+- While `live_lock_in` is false, writing also needs `--record-while-dark`.
+  The tables are service-only and the board offers nothing while dark, so
+  recording then exposes nothing.
+- Schedule: `.github/workflows/player-props-jobs.yml` is manual only. It runs
+  only when the repository variable `GTL_PLAYER_PROPS_JOBS` is `on`, and that
+  variable is unset. Adding a cron trigger is a separate reviewed change.
+
+Enabling requires these steps, in order, each under its normal gate:
+
+1. Sean's named apply of `20261110130000`, then of `20261110160000`, each with a
+   fresh hosted preflight.
+2. The repository secrets `GTL_PROPS_SUPABASE_URL` and
+   `GTL_PROPS_SERVICE_ROLE_KEY`, and the variable `GTL_PLAYER_PROPS_JOBS=on`.
+3. Research intake must already retain prop quotes for the week, under its
+   existing authorization. These jobs never collect them.
+4. A dry run of each job, reviewed.
+5. Write runs, with `--record-while-dark` until the readiness audit passes and a
+   reviewed SQL change sets `live_lock_in`.
+
+No Edge Function or Pages deploy is needed for the jobs themselves.

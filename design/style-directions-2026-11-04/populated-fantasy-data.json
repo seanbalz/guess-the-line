@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checkedOn": "2026-11-05",
+  "source": {
+    "index": "https://github.com/seanbalz/guess-the-line/releases/download/fantasy-data-2026/index.json",
+    "release": "https://github.com/seanbalz/guess-the-line/releases/tag/fantasy-data-2026",
+    "file": "https://github.com/seanbalz/guess-the-line/releases/download/fantasy-data-2026/2026-week-09.ef4d5052.json",
+    "indexSha256": "12d240f2ce66727822ba8ba147619138ddfc56fe1c81d9dbf7c1a14be754eb8a",
+    "sha256": "ef4d505200eb2e09ecb6b8635e288a8a6c7449f0c67d23357e3916477eae3339",
+    "bytes": 1223180,
+    "generatedAt": "2026-11-05T18:25:57.010Z",
+    "asOf": "2026-11-05T17:23:45Z",
+    "credit": "nflverse · CC BY 4.0"
+  },
+  "snapshotAsset": "fantasy-snapshot.json",
+  "featuredIds": [
+    "00-0036900",
+    "00-0036358",
+    "00-0036322",
+    "00-0034857",
+    "00-0038542",
+    "00-0039338"
+  ],
+  "initialCompare": [
+    "00-0036900",
+    "00-0036358"
+  ],
+  "selection": "Fixed named examples across WR, QB, RB and TE; observed-production browse order, not a performance ranking",
+  "reviewSource": {
+    "asset": "fantasy-review.json",
+    "file": "https://github.com/seanbalz/guess-the-line/releases/download/fantasy-data-2026/2026-review-week-08.69d98025.json",
+    "sha256": "69d9802563d3a131ead39484368f78cd970a18670e6bf4a43a69880d8db00b9d",
+    "bytes": 293986,
+    "week": 8,
+    "status": "PROVISIONAL",
+    "generatedAt": "2026-11-05T18:25:57.010Z",
+    "estimate": {
+      "file": "2026-week-08.93d26154.json",
+      "sha256": "93d26154d680c60095876027c07cfe3da7186137e519bb3bd1983708f93f52af",
+      "generatedAt": "2026-11-01T16:58:25.995Z",
+      "publishedBeforeFreeze": true,
+      "url": "https://github.com/seanbalz/guess-the-line/releases/download/fantasy-data-2026/2026-week-08.93d26154.json"
+    }
+  }
+}

@@ -15,6 +15,8 @@ const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const EVENT = '2026_10_DAL_PHI', PLAYER = '00-0036358';
 const iso = ms => new Date(ms).toISOString();
 const MIGRATION = '20261110130000_gtl_player_props.sql';
+// The jobs migration builds on MIGRATION (tests/migrations.mjs REQUIRES), so an unapplied MIGRATION leaves it out too.
+const DEPENDENTS = ['20261110160000_gtl_player_props_jobs.sql'];
 
 /** Normalized research quotes, as cloud/research-provider.mjs retains them, for one prop at three books. */
 function retainedQuotes(lines, observedAt, kickoff) {
@@ -26,7 +28,7 @@ function retainedQuotes(lines, observedAt, kickoff) {
 async function setup(t, { flag = 'on', ready = true, schema = true, quotes = true } = {}) {
   const db = new PGlite(); t.after(() => db.close());
   await db.exec(PRELUDE);
-  for (const file of ALL) if (schema || file !== MIGRATION) await db.exec(migrationSql(file));
+  for (const file of ALL) if (schema || (file !== MIGRATION && !DEPENDENTS.includes(file))) await db.exec(migrationSql(file));
   for (const n of [1, 2, 3]) await db.query('insert into auth.users values($1)', [id(n)]);
   await db.query("insert into public.gtl_profiles(user_id,display_name) values($1,'Troy Fixture'),($2,'Luke Fixture')", [id(1), id(2)]);
   const now = Date.now(), kickoff = iso(now + 86_400_000);

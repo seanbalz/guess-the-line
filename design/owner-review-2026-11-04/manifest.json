@@ -1,0 +1,554 @@
+{
+  "version": 1,
+  "date": "2026-11-04",
+  "sourceCommit": "7604cee25f4182d7c5262217c05f20d84b2994e3",
+  "privacy": "Documented fictional fixtures and concepts only; no hosted account captures.",
+  "images": [
+    {
+      "file": "images/home-home-dark.png",
+      "source": "D-69 step 2 fixture captures, November 4/390-dark-home.png",
+      "sha256": "526872da9f8b09b63eb0b3bd128f3a81b9ad75b7cc4af557bfd728d3720a0b94",
+      "width": 390,
+      "height": 1500
+    },
+    {
+      "file": "images/home-home-light.png",
+      "source": "D-69 step 2 fixture captures, November 4/390-light-home.png",
+      "sha256": "b9bfb0c52a817a1511b63d68cbe5560b36027d28fb4a51aa9291eb97ef95ec7f",
+      "width": 390,
+      "height": 1500
+    },
+    {
+      "file": "images/home-who-dark.png",
+      "source": "D-69 step 2 fixture captures, November 4/390-dark-who.png",
+      "sha256": "c8750344d35003af56d25ad96e0a3777582ef9119d04d22b67e187f61b59ba9a",
+      "width": 390,
+      "height": 1500
+    },
+    {
+      "file": "images/home-who-light.png",
+      "source": "D-69 step 2 fixture captures, November 4/390-light-who.png",
+      "sha256": "5ae946a4292e1486d4c54586a1f54ad172dbd574d01d725be02b4bba1b98ab1c",
+      "width": 390,
+      "height": 1500
+    },
+    {
+      "file": "images/play-01-play-dark.png",
+      "source": "D-69 step 1 fixture captures, November 3\u20134/dark-01-play.png",
+      "sha256": "67edcd907757d383f3a5c1165969a07f3861084d5cfb705ae6a48e25051a94e3",
+      "width": 390,
+      "height": 951
+    },
+    {
+      "file": "images/play-01-play-light.png",
+      "source": "D-69 step 1 fixture captures, November 3\u20134/light-01-play.png",
+      "sha256": "354d60a306662a801709f2d153864bb0d1f3f18637f119237ade324295e9882e",
+      "width": 390,
+      "height": 951
+    },
+    {
+      "file": "images/play-02-picks-dark.png",
+      "source": "D-69 step 1 fixture captures, November 3\u20134/dark-02-picks.png",
+      "sha256": "0b04cf040bc6bafbd1328712d2acc70e95c331dff90a41c5048fd9ffb1e93f80",
+      "width": 390,
+      "height": 943
+    },
+    {
+      "file": "images/play-02-picks-light.png",
+      "source": "D-69 step 1 fixture captures, November 3\u20134/light-02-picks.png",
+      "sha256": "adcb5a072564a67b4edbe60de36ef9b3c17ada8b2fca773d6b8923992c6f7e4a",
+      "width": 390,
+      "height": 943
+    },
+    {
+      "file": "images/play-02b-pick-game-dark.png",
+      "source": "D-69 step 1 fixture captures, November 3\u20134/dark-02b-pick-game.png",
+      "sha256": "269f942bd1318ee495416594eae0c6e2262b11af32fc2aff836692432266a5d1",
+      "width": 390,
+      "height": 913
+    },
+    {
+      "file": "images/play-02b-pick-game-light.png",
+      "source": "D-69 step 1 fixture captures, November 3\u20134/light-02b-pick-game.png",
+      "sha256": "ea096ab0e1c0c3e4283306f02293a0e8180ba1df232a266f3fe2a3b0eb4ea30a",
+      "width": 390,
+      "height": 913
+    },
+    {
+      "file": "images/play-03-score-dark.png",
+      "source": "D-69 step 1 fixture captures, November 3\u20134/dark-03-score.png",
+      "sha256": "90eb8a247db2c1fe4fd85ff6a755cfc40e9add5b65c5bdacab117cdf2e9642ec",
+      "width": 390,
+      "height": 1195
+    },
+    {
+      "file": "images/play-03-score-light.png",
+      "source": "D-69 step 1 fixture captures, November 3\u20134/light-03-score.png",
+      "sha256": "bf8d8b8cbcb941af9f4c5b373e031e77b835c40223ea47ea8a88c10eef82fbbc",
+      "width": 390,
+      "height": 1195
+    },
+    {
+      "file": "images/play-04-score-game-dark.png",
+      "source": "D-69 step 1 fixture captures, November 3\u20134/dark-04-score-game.png",
+      "sha256": "a10527614de27e275572cba6986de01f60654e95516ff9ea74092fd0af61f70d",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/play-04-score-game-light.png",
+      "source": "D-69 step 1 fixture captures, November 3\u20134/light-04-score-game.png",
+      "sha256": "ebedf08305cad19462b613daeb41196404c575a9c60941c913323a4ff71f09d8",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/play-05-compare-dark.png",
+      "source": "D-69 step 1 fixture captures, November 3\u20134/dark-05-compare.png",
+      "sha256": "2ecdde511250861b6f591813ab77b2d426e511a4a34e50bbc345bed833c32192",
+      "width": 390,
+      "height": 1151
+    },
+    {
+      "file": "images/play-05-compare-light.png",
+      "source": "D-69 step 1 fixture captures, November 3\u20134/light-05-compare.png",
+      "sha256": "9da37d5ca87e3580c78a82e83e86d7e370cf43e47857c96cb52a3364afdf1841",
+      "width": 390,
+      "height": 1151
+    },
+    {
+      "file": "images/play-06-points-dark.png",
+      "source": "D-69 step 1 fixture captures, November 3\u20134/dark-06-points.png",
+      "sha256": "21aca0ae9b4d46564b3914644e36ae6b1a9be33e0d0820d648abaab196c2651d",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/play-06-points-light.png",
+      "source": "D-69 step 1 fixture captures, November 3\u20134/light-06-points.png",
+      "sha256": "af8651032943ce67ad325c26029c41776cc8c8893095104a67b984e903bd4e09",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/play-07-badges-dark.png",
+      "source": "D-69 step 1 fixture captures, November 3\u20134/dark-07-badges.png",
+      "sha256": "cf743947106d4a880cf377637773f50db1b91cfe235cd7a9e3422cbe829eec38",
+      "width": 390,
+      "height": 1199
+    },
+    {
+      "file": "images/play-07-badges-light.png",
+      "source": "D-69 step 1 fixture captures, November 3\u20134/light-07-badges.png",
+      "sha256": "c5ab8f8fd0f46ac255c8873d4bde9d248c4ffc5166d05b01d6aeb2699b2db0ac",
+      "width": 390,
+      "height": 1199
+    },
+    {
+      "file": "images/play-08-badge-dark.png",
+      "source": "D-69 step 1 fixture captures, November 3\u20134/dark-08-badge.png",
+      "sha256": "95936686fe511b339e646e6b2941bf0c6672e25ea172fa43bfeccdb09f468f8f",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/play-08-badge-light.png",
+      "source": "D-69 step 1 fixture captures, November 3\u20134/light-08-badge.png",
+      "sha256": "e3340907006661dfffd328db5a5849f501d5f1ea2c41626af756f8c52647886b",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/play-09-awards-dark.png",
+      "source": "D-69 step 1 fixture captures, November 3\u20134/dark-09-awards.png",
+      "sha256": "2a733ae909c1214b62e73e2ed6a122d2672c6d5032ae41e26b9a3800ad0dbde0",
+      "width": 390,
+      "height": 999
+    },
+    {
+      "file": "images/play-09-awards-light.png",
+      "source": "D-69 step 1 fixture captures, November 3\u20134/light-09-awards.png",
+      "sha256": "b9f143e533dcd5ca31f0638c0bef2285c0b5ed5776d8b333847a95bf5e5764d4",
+      "width": 390,
+      "height": 999
+    },
+    {
+      "file": "images/play-10-league-dark.png",
+      "source": "D-69 step 1 fixture captures, November 3\u20134/dark-10-league.png",
+      "sha256": "f08f7b6b774c5b4d8077f69bba6cb3c82b1a6b6a147497ef78d84dab866901c8",
+      "width": 390,
+      "height": 2125
+    },
+    {
+      "file": "images/play-10-league-light.png",
+      "source": "D-69 step 1 fixture captures, November 3\u20134/light-10-league.png",
+      "sha256": "e880c467173c99cb376f262fd2d6b0159333e0064db83c57557b2df080148e00",
+      "width": 390,
+      "height": 2125
+    },
+    {
+      "file": "images/play-11-feed-dark.png",
+      "source": "D-69 step 1 fixture captures, November 3\u20134/dark-11-feed.png",
+      "sha256": "ff6b0c25d21e6a26cad392ebb3633cf4bb7c0933ceb10e4c22eeb9715b7bd873",
+      "width": 390,
+      "height": 3167
+    },
+    {
+      "file": "images/play-11-feed-light.png",
+      "source": "D-69 step 1 fixture captures, November 3\u20134/light-11-feed.png",
+      "sha256": "1121f539645216a2c5a3be9dd00a5679391e84d671b2d0bfaa0d509bde87f9f0",
+      "width": 390,
+      "height": 3167
+    },
+    {
+      "file": "images/play-12-history-dark.png",
+      "source": "D-69 step 1 fixture captures, November 3\u20134/dark-12-history.png",
+      "sha256": "0bea55d4961c5b5d1cea1d9f52b2e8974d3a9a905cd7015900b7a0591183c7b9",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/play-12-history-light.png",
+      "source": "D-69 step 1 fixture captures, November 3\u20134/light-12-history.png",
+      "sha256": "88578b83d8e3c06e81b67087e589f297a18c352b83ef74654daa43c28448290f",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/research-landing-dark.png",
+      "source": "D-69 step 3 fixture captures, November 4/390-dark-landing.png",
+      "sha256": "77da25f0e0a6a16360e7cfd635737722d2316ecb47d78a2a39a587e8cca9d1a2",
+      "width": 390,
+      "height": 1500
+    },
+    {
+      "file": "images/research-landing-light.png",
+      "source": "D-69 step 3 fixture captures, November 4/390-light-landing.png",
+      "sha256": "79d4c38f67ff38d74663508494ff7f66f6a0a217b8172c1211b22c62f0817a7d",
+      "width": 390,
+      "height": 1500
+    },
+    {
+      "file": "images/research-games-dark.png",
+      "source": "D-69 step 3 fixture captures, November 4/390-dark-games.png",
+      "sha256": "b42a31593f8797ac0c9319ff4d341918eebc18eba36f6861eb8548d58665323b",
+      "width": 390,
+      "height": 1500
+    },
+    {
+      "file": "images/research-games-light.png",
+      "source": "D-69 step 3 fixture captures, November 4/390-light-games.png",
+      "sha256": "63a5d79f3a90d2ca18d270281451158057365d01ed49e2450a9252562bc789c4",
+      "width": 390,
+      "height": 1500
+    },
+    {
+      "file": "images/research-game-dark.png",
+      "source": "D-69 step 3 fixture captures, November 4/390-dark-game.png",
+      "sha256": "40df0a829f0d72134e58dd3f349d049681eb72330c389278794347a0ba957ade",
+      "width": 390,
+      "height": 2450
+    },
+    {
+      "file": "images/research-game-light.png",
+      "source": "D-69 step 3 fixture captures, November 4/390-light-game.png",
+      "sha256": "aa85f5a53716b2e89f21fbe4d0041815d7f14477db7185db82c8ac4ea907fcfb",
+      "width": 390,
+      "height": 2450
+    },
+    {
+      "file": "images/research-teams-dark.png",
+      "source": "D-69 step 3 fixture captures, November 4/390-dark-teams.png",
+      "sha256": "7bc9674eb0ce2d1f177db72f0a7ff9e9a88eeae07771fadcce687ccafa7f5d64",
+      "width": 390,
+      "height": 2653
+    },
+    {
+      "file": "images/research-teams-light.png",
+      "source": "D-69 step 3 fixture captures, November 4/390-light-teams.png",
+      "sha256": "d20e23eaaf8cb5f4e34bc86386d767b4457ec5336a879329e88ee0b839872dcf",
+      "width": 390,
+      "height": 2653
+    },
+    {
+      "file": "images/research-team-dark.png",
+      "source": "D-69 step 3 fixture captures, November 4/390-dark-team.png",
+      "sha256": "273203c0871116b093032f48ac7233dd061de465d74264a6ec15dcc622d66fd8",
+      "width": 390,
+      "height": 1500
+    },
+    {
+      "file": "images/research-team-light.png",
+      "source": "D-69 step 3 fixture captures, November 4/390-light-team.png",
+      "sha256": "031e2b8bb94e61aeb1a8e3904df72f175ae738e00eec540c19fa3be35e8a40ad",
+      "width": 390,
+      "height": 1500
+    },
+    {
+      "file": "images/research-trends-dark.png",
+      "source": "D-69 step 3 fixture captures, November 4/390-dark-trends.png",
+      "sha256": "78e0e79e4d1191deeeef5533d012c42603d5e22cc8716089bd0270afb76b1858",
+      "width": 390,
+      "height": 1500
+    },
+    {
+      "file": "images/research-trends-light.png",
+      "source": "D-69 step 3 fixture captures, November 4/390-light-trends.png",
+      "sha256": "d3e52673d4826295876e0d0cf70742d237f596428e80f5151112f1f401b15677",
+      "width": 390,
+      "height": 1500
+    },
+    {
+      "file": "images/research-trend-dark.png",
+      "source": "D-69 step 3 fixture captures, November 4/390-dark-trend.png",
+      "sha256": "e83d4e3bf34be8d96cd763e3bd220e1599e481c6fd28bb1f3951dc1f6fd895cc",
+      "width": 390,
+      "height": 1500
+    },
+    {
+      "file": "images/research-trend-light.png",
+      "source": "D-69 step 3 fixture captures, November 4/390-light-trend.png",
+      "sha256": "bf642c6879fd7a5eec37e89d19f9ad955524c7e24067a4aa2bc0309250ab48f4",
+      "width": 390,
+      "height": 1500
+    },
+    {
+      "file": "images/bets-my-bets-dark.png",
+      "source": "design\\qa\\quick-wins-bets-2026-11-04/a13-my-bets-390-dark-after.png",
+      "sha256": "f01427ac9b938dfbf43543c33038369072c3909f88468d22584b1bf9b0b4f334",
+      "width": 390,
+      "height": 843
+    },
+    {
+      "file": "images/bets-my-bets-light.png",
+      "source": "design\\qa\\quick-wins-bets-2026-11-04/a13-my-bets-390-light-after.png",
+      "sha256": "0c1bd01e93ba30947ed2a017e062bf056c0cfc1a3e04ecbf3d84de3a36791481",
+      "width": 390,
+      "height": 843
+    },
+    {
+      "file": "images/bets-overview-dark.png",
+      "source": "design\\qa\\quick-wins-bets-2026-11-04/a13-a16-my-bets-overview-390-dark-after.png",
+      "sha256": "8e81e0e468b88a91e2b690800192c2504a0e334609274c350267aafaaa8c7acd",
+      "width": 390,
+      "height": 1678
+    },
+    {
+      "file": "images/bets-overview-light.png",
+      "source": "design\\qa\\quick-wins-bets-2026-11-04/a13-a16-my-bets-overview-390-light-after.png",
+      "sha256": "98410b154ec85e68a71eba0a9449a6571637823b48cff9f1e4aa2c3aaece3abc",
+      "width": 390,
+      "height": 1678
+    },
+    {
+      "file": "images/bets-your-picks-dark.png",
+      "source": "design\\qa\\quick-wins-bets-2026-11-04/a2-a14-a15-your-picks-390-dark-after.png",
+      "sha256": "825e372d209484b9b512039bc8872be17bcd7557cede3b3c5fa5e3a3e17cfcff",
+      "width": 390,
+      "height": 723
+    },
+    {
+      "file": "images/bets-your-picks-light.png",
+      "source": "design\\qa\\quick-wins-bets-2026-11-04/a2-a14-a15-your-picks-390-light-after.png",
+      "sha256": "db3edba53875f98426632d5b5e8c207e4f14c635487ede23e47377b421c3e567",
+      "width": 390,
+      "height": 723
+    },
+    {
+      "file": "images/bets-everyone-dark.png",
+      "source": "design\\qa\\quick-wins-bets-2026-11-04/a12-a14-everyone-390-dark-after.png",
+      "sha256": "eaac4d3a15ed82052c13005b7c4273496c0be1fb8d798e9c7db5c5ab6939c40b",
+      "width": 390,
+      "height": 560
+    },
+    {
+      "file": "images/bets-everyone-light.png",
+      "source": "design\\qa\\quick-wins-bets-2026-11-04/a12-a14-everyone-390-light-after.png",
+      "sha256": "ae124d95e9a396dc5ff81f0adbf32f0e849f268269556f5bf91c3167b2d8f916",
+      "width": 390,
+      "height": 560
+    },
+    {
+      "file": "images/bets-gap-record-dark.png",
+      "source": "design\\recommended-gap-record-2026-11-03/gap-record-dark-390.png",
+      "sha256": "13b65e66fcafd3ca0ed8606c4f15ecbca23b07c925d437fbf1b76cf13e240baa",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/bets-gap-record-light.png",
+      "source": "design\\recommended-gap-record-2026-11-03/gap-record-light-390.png",
+      "sha256": "5a6ea1234abc2d9fe35b37066dd8953d2f3df8dddd5f2b40d0ed67ef1935bb45",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/bets-ticket-dark.png",
+      "source": "design\\my-bets-previews-2026-11-01/preview-to-full-dark.png",
+      "sha256": "0d7e5d88fe7d8d64d8d21235fe89040c193494514e3af9e6b3f656f7aabd397b",
+      "width": 1663,
+      "height": 1750
+    },
+    {
+      "file": "images/bets-ticket-light.png",
+      "source": "design\\my-bets-previews-2026-11-01/preview-to-full-light.png",
+      "sha256": "caef42c5dd36c2ca7a3982e1fa1521384f4ed4fdc95dee92517ca2eaf89c7acb",
+      "width": 1663,
+      "height": 1750
+    },
+    {
+      "file": "images/bets-backup-book-dark.png",
+      "source": "design\\backup-book-2026-11-03/backup-book-lines-390-dark.png",
+      "sha256": "f9f9932cce96140097ca138de73ed5a2186c88e7b13ee38e1e3d85b29abed9f1",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/bets-backup-book-light.png",
+      "source": "design\\backup-book-2026-11-03/backup-book-lines-390-light.png",
+      "sha256": "e44483a5ca99bf2e33fa2959065ed9a57c39692a4bf64957886cadf2e5ec3fd0",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/fantasy-method-dark.png",
+      "source": "design\\qa\\fantasy-usage-2026-11-03/fantasy-method-390-dark.png",
+      "sha256": "de7392c39bcc135c8315f33d32ec65fdef0c4a5e0f106d6dfdc1e75a875f5862",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/fantasy-method-light.png",
+      "source": "design\\qa\\fantasy-usage-2026-11-03/fantasy-method-390-light.png",
+      "sha256": "4bb691d25d6c04e4c356867e0f485ea7d1ab43945b32762b2345629df4b4cf05",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/fantasy-player-dark.png",
+      "source": "design\\qa\\fantasy-usage-2026-11-03/fantasy-player-390-dark.png",
+      "sha256": "8d51419a4ec8e128590075098ca5631c7a5ec5d89f917c92dc826d801cc3ea33",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/fantasy-player-light.png",
+      "source": "design\\qa\\fantasy-usage-2026-11-03/fantasy-player-390-light.png",
+      "sha256": "0a249fa0164080b328e9793d230667745dca55e3726978623c103adbf245d9f6",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/fantasy-tools-profile-dark.png",
+      "source": "design\\qa\\fantasy-usage-2026-11-03/fantasy-tools-profile-390-dark.png",
+      "sha256": "02a640c81596409abe6d0de7e3b5b9ff42286b79e6bcc2b2bea412164d95210b",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/fantasy-tools-profile-light.png",
+      "source": "design\\qa\\fantasy-usage-2026-11-03/fantasy-tools-profile-390-light.png",
+      "sha256": "2940784f4b5ddbdc20284ec75ad523cc00911305dbfe89677584d4224023b6e2",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/fantasy-tools-dark.png",
+      "source": "design\\qa\\fantasy-usage-2026-11-03/fantasy-tools-390-dark.png",
+      "sha256": "8efe7f5b1e4792420014a08e3d914d4d8dda52c1bb9aa1fa9fa904691fea44bd",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/fantasy-tools-light.png",
+      "source": "design\\qa\\fantasy-usage-2026-11-03/fantasy-tools-390-light.png",
+      "sha256": "2e5aaf1ae2a5c27ff5c974746788fcba7427453d5bed279a34083d0272327b42",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/account-a1-a9-menu-dark.png",
+      "source": "design\\qa\\quick-wins-research-2026-11-04/a1-a9-menu-390-dark-after.png",
+      "sha256": "eaee1033ffdd658ae4c79902f0be6d02de63b1abab766ed4f770d4f74ed808a4",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/account-a1-a9-menu-light.png",
+      "source": "design\\qa\\quick-wins-research-2026-11-04/a1-a9-menu-390-light-after.png",
+      "sha256": "6f95453322b3599beeabf8b8da3c0372e42473f5c05c58d96e916b66b4b3304b",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/account-a23-appearance-dark.png",
+      "source": "design\\qa\\quick-wins-research-2026-11-04/a23-appearance-390-dark-after.png",
+      "sha256": "562983bbc5aaf4f296d749145a7f68edbbf618958fcac2034d79db1b9a8b3513",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/account-a23-appearance-light.png",
+      "source": "design\\qa\\quick-wins-research-2026-11-04/a23-appearance-390-light-after.png",
+      "sha256": "827640165f6efb922ccf79f9aeeb95a97fbc3c89c287c2ad0036422419cfa328",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/account-a9-a23-commissioner-tools-dark.png",
+      "source": "design\\qa\\quick-wins-research-2026-11-04/a9-a23-commissioner-tools-390-dark-after.png",
+      "sha256": "c566ac5e54e684867515442c616613516cf93c949083bb860be52c068d2fc497",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/account-a9-a23-commissioner-tools-light.png",
+      "source": "design\\qa\\quick-wins-research-2026-11-04/a9-a23-commissioner-tools-390-light-after.png",
+      "sha256": "54fafe1b36493c12279207021d5fd621f705aadcefb8032380c378f509245ebd",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/epl-table-dark.png",
+      "source": "design\\qa\\quick-wins-research-2026-11-04/a24-epl-table-390-dark-after.png",
+      "sha256": "347449010c9ac46fb16a1e28f54a440347303383635d2df0b172b7cc0ce87e2d",
+      "width": 390,
+      "height": 937
+    },
+    {
+      "file": "images/epl-table-light.png",
+      "source": "design\\qa\\quick-wins-research-2026-11-04/a24-epl-table-390-light-after.png",
+      "sha256": "db77ab67828cf78cb11adaa21a22e4a8bcfac225859eb66db4d6e8008ee08ba8",
+      "width": 390,
+      "height": 937
+    },
+    {
+      "file": "images/reminders-nfl-dark.png",
+      "source": "design\\qa\\reminder-followups-2026-11-02/nfl-menu-390-dark.png",
+      "sha256": "002546b334c6a5792f9e8affea39feed376a42aee822d01db16b647f533fcb05",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/reminders-nfl-light.png",
+      "source": "design\\qa\\reminder-followups-2026-11-02/nfl-menu-390-light.png",
+      "sha256": "47a3a24d9253a9968b59db8bcb12f791a1fd835a59328568471218afafb63a30",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/reminders-epl-dark.png",
+      "source": "design\\qa\\reminder-followups-2026-11-02/epl-menu-390-dark.png",
+      "sha256": "b43c1b9ee0a8cde1fd65d83b32152b195ca756984a154d0ba518949648efe508",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "images/reminders-epl-light.png",
+      "source": "design\\qa\\reminder-followups-2026-11-02/epl-menu-390-light.png",
+      "sha256": "daa3cb6612631133bf8f24310315541295fa6222dd7da6c24cbb3238f693f47c",
+      "width": 390,
+      "height": 844
+    }
+  ]
+}

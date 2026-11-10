@@ -1,0 +1,13 @@
+import fs from 'node:fs';
+import {EPL_CLUBS} from '../../shared/epl-clubs.mjs';
+import {pickOrder,settleBonus} from '../../shared/epl-draft.mjs';
+const names=['Jordan Taylor','Casey Reed','Alex Lane','Morgan Park','Riley Stone','Sam Rivera','Cameron Wells','Avery Cole'];
+const managers=names.map((name,i)=>({id:`demo-epl-${i}`,name,weekScore:[40,45,50,50,60,65,70,75][i],weekBonus:0,seasonTotal:400+i*25}));
+const order=pickOrder(managers).map(id=>({ownerId:id,name:managers.find(m=>m.id===id).name}));
+const prior=[{managerId:managers[0].id,club:'ARS'},{managerId:managers[1].id,club:'CHE'},{managerId:managers[2].id,club:'LIV'},{managerId:managers[3].id,club:'MNC'}];
+const results={ARS:{status:'final',goalsFor:3,goalsAgainst:0},CHE:{status:'final',goalsFor:3,goalsAgainst:0},LIV:{status:'final',goalsFor:2,goalsAgainst:1},MNC:{status:'final',goalsFor:1,goalsAgainst:1}};
+const bonus=settleBonus(prior,results),bonusLastWeek=prior.filter(p=>bonus.winners.includes(p.managerId)).map(p=>({ownerId:p.managerId,name:managers.find(m=>m.id===p.managerId).name,club:p.club,margin:3,points:bonus.awards[p.managerId]}));
+const read={season:2026,week:10,status:'open',deadline:'2000-01-02T00:00:00Z',me:managers[2].id,onTheClock:managers[2].id,order,clubs:EPL_CLUBS.map(c=>({code:c.code,name:c.name})),picks:[{ownerId:managers[0].id,club:'ARS',final:true},{ownerId:managers[1].id,club:'CHE',final:false}],myQueue:['CHE','LIV','MNC'],queueOnTurn:true,bonusLastWeek};
+const model={kind:'FICTIONAL_EPL_DRAFT_VISUAL_PREVIEW',prepared:'2026-11-06',notice:'All managers, order, results, bonuses, picks, rankings and draft state are fictional. The configured club catalog and registered crests are reused. This is not a live draft, actual fixture list or account data.',now:'2000-01-01T00:00:00Z',clockMeaning:'Fixed year-2000 test clock only for native eligibility checks; no match kickoff or recording time is asserted or displayed.',read,managers,prior,results};
+fs.writeFileSync('design/style-directions-2026-11-04/epl-preview-data.json',JSON.stringify(model,null,2)+'\n');
+console.log(JSON.stringify({fictionalManagers:managers.length,configuredClubs:read.clubs.length,sampleBonusWinners:bonus.winners.length,liveReaders:0}));
