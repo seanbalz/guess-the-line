@@ -8,7 +8,10 @@
 .gx .gx-epl-guess-match { display: flex; align-items: center; justify-content: space-between; gap: var(--gx-space-2); }
 .gx .gx-epl-guess-match > span { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gx-space-2); min-width: 0; overflow-wrap: anywhere; }
 .gx .gx-epl-favorite { border: 0; padding: 0; margin: 0; min-width: 0; }
-.gx .gx-epl-favorite > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-2); margin-top: var(--gx-space-2); }
+.gx .gx-epl-favorite { display: flex; flex-direction: column; gap: var(--gx-space-2); }
+.gx .gx-epl-guess-outcomes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-2); }
+.gx .gx-epl-guess-outcomes--three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.gx .gx-epl-guess-outcomes .gx-epl-guess-club { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--gx-space-1); padding-inline: var(--gx-space-2); overflow-wrap: anywhere; }
 .gx .gx-epl-guess-club { min-height: 44px; font: 700 16px/24px var(--gx-font-body); background: var(--gx-glass); box-shadow: var(--gx-glass-shadow); color: var(--gx-text-1); border: 1px solid var(--gx-border-strong); border-radius: var(--gx-radius-sm); }
 .gx .gx-epl-guess-club--selected { background: var(--gx-accent-tint); border-color: var(--gx-accent-ink); box-shadow: var(--gx-glow-accent); }
 .gx .gx-epl-price { display: flex; flex-direction: column; gap: var(--gx-space-2); }

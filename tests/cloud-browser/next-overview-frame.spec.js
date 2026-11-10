@@ -132,7 +132,7 @@ test('EPL approved Play frame and a pending NFL guess still guard the header spo
     page.once('dialog',dialog=>{asks++;return dialog.accept();});
     await page.getByRole('button',{name:'Premier League',exact:true}).click();
     await expect(page.getByRole('button',{name:'Premier League',exact:true})).toHaveAttribute('aria-pressed','true');expect(asks).toBe(2);
-    await compact(page,'play','dark',390);await tab(page,'Bets').click();await native(page);await expect(page.getByText("Bets aren't available for the Premier League.",{exact:true})).toBeVisible();
+    await compact(page,'play','dark',390);await tab(page,'Bets').click();await native(page);await expect(page.getByText('EPL Bets recommendations aren’t available right now.',{exact:true})).toBeVisible();
     await page.getByRole('button',{name:'National Football League',exact:true}).click();
     await expect(root(page)).toHaveClass(/gx-overview-frame/);
     expect(world.errors).toEqual([]);

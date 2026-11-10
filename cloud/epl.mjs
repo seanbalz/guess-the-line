@@ -35,6 +35,7 @@
 // 404 "Pick a Team is coming soon." with code GTL_EPL_OFF. Every reply is rebuilt field by field.
 import { UUID_PATTERN } from './lobby.mjs';
 import { EPL_GUESS_METHODS, EPL_GUESS_RPCS, EPL_GUESS_PUBLIC_CODES, createEplGuessService, handleEplGuess } from './epl-guess.mjs';
+import { EPL_BETS_METHODS, EPL_BETS_RPCS, EPL_BETS_PUBLIC_CODES, EplBetsError, handleEplBets } from './epl-bets.mjs';
 import { canPick, onTheClock, earnedEplBonusPoints } from '../shared/epl-draft.mjs';
 import { MANAGER_NAMES } from '../shared/epl-sleeper.mjs';
 import { EPL_CLUBS } from '../shared/epl-clubs.mjs';
@@ -43,13 +44,14 @@ import { readEplCorrectionReviews } from './epl-correction-reviews.mjs';
 
 export const EPL_METHODS = Object.freeze({
   ...EPL_GUESS_METHODS,
+  ...EPL_BETS_METHODS,
   '/epl/draft/read': ['POST'], '/epl/draft/pick': ['POST'], '/epl/queue/save': ['POST'],
   '/epl/admin/link': ['POST'], '/epl/admin/week': ['POST'], '/epl/admin/snapshot': ['POST'], '/epl/admin/fixture': ['POST'],
   '/epl/admin/corrections/read': ['POST'],
   '/epl/fantasy/read': ['POST'], '/epl/claim': ['POST'],
 });
 /** The service-only functions these routes may call; the adapter refuses any other name. */
-export const EPL_RPCS = Object.freeze([...EPL_GUESS_RPCS, 'gtl_epl_member', 'gtl_epl_week_state', 'gtl_epl_save_pick', 'gtl_epl_save_queue',
+export const EPL_RPCS = Object.freeze([...EPL_GUESS_RPCS, ...EPL_BETS_RPCS, 'gtl_epl_member', 'gtl_epl_week_state', 'gtl_epl_save_pick', 'gtl_epl_save_queue',
   'gtl_epl_link_manager', 'gtl_epl_seed_week', 'gtl_epl_set_week_window', 'gtl_epl_save_snapshot', 'gtl_epl_set_fixture_status', 'gtl_epl_set_fixture_result', 'gtl_community_admin',
   'gtl_epl_auto_link', 'gtl_epl_claim_manager', 'gtl_epl_recheck_due_at', 'gtl_epl_order_correction_state', 'gtl_epl_standings_provenance']);
 /**
@@ -92,7 +94,7 @@ const ERRORS = Object.freeze({
   GTL_FEATURE_OFF: [404, 'Pick a Team is coming soon.', 'GTL_EPL_OFF'],
 });
 /** Refusal codes a reply carries beside its sentence (cloud/handler.mjs PUBLIC_CODES). */
-export const EPL_PUBLIC_CODES = Object.freeze([...EPL_GUESS_PUBLIC_CODES, ...new Set(Object.entries(ERRORS).map(([code, [, , publicCode = code]]) => publicCode))]);
+export const EPL_PUBLIC_CODES = Object.freeze([...EPL_GUESS_PUBLIC_CODES, ...EPL_BETS_PUBLIC_CODES, ...new Set(Object.entries(ERRORS).map(([code, [, , publicCode = code]]) => publicCode))]);
 export function providerEplError(code) {
   if (!Object.hasOwn(ERRORS, code)) return new Error('Pick a Team is unavailable.');
   const [status, message, publicCode = code] = ERRORS[code];
@@ -487,5 +489,9 @@ export async function handleEpl({ route, body, user, service, clock = Date.now }
   if (!Object.hasOwn(EPL_METHODS, route)) throw new EplError(404, 'Not found.');
   if (!service?.rpc) throw providerEplError('GTL_FEATURE_OFF');
   if(Object.hasOwn(EPL_GUESS_METHODS,route))return handleEplGuess({route,body:body??{},user,service,clock});
+  if (Object.hasOwn(EPL_BETS_METHODS, route)) {
+    try { return await handleEplBets({ body: body ?? {}, user, service, clock }); }
+    catch (error) { if (error instanceof EplBetsError) throw new EplError(error.status, error.message, error.code); throw error; }
+  }
   return HANDLERS[route]({ body: body ?? {}, user, service, now: clock() });
 }
