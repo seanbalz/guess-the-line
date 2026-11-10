@@ -23,6 +23,7 @@ import { ScoreTile } from './ScoreTile.jsx';
 import { CompareTile } from './CompareTile.jsx';
 import { PlayTile } from './PlayTile.jsx';
 import { PlayOverviewPicks } from './PlayOverviewPicks.jsx';
+import { PriorWeekCard } from '../lines/PriorWeek.jsx';
 import { CLOSED_LAYER, PLAY_ROOT, openPlay } from './PlayLayer.jsx';
 import { ballotTile, otherMarket, playHero } from './landing.js';
 import { weekLockedId } from './moments.js';
@@ -91,6 +92,8 @@ function PlayLanding() {
       <li data-play-tile="points"><PointsTile ref={pointsTile} onOpen={() => openPlay(shell, 'points')}/></li>
     </ul> : null}
     </Card>
+    {/* A prior week's late game (Monday night, postponed) stays shown beside the newest week's picks until it is done. */}
+    <PriorWeekCard app={app} personal={personal}/>
     <div data-play-tile="score"><ScoreTile expanded onOpen={patch => openPlay(shell, 'score', patch)}/></div>
     <ul className="gx-tiles gx-play-support-tiles" aria-label="More Play sections">
       <li data-play-tile="league"><LeagueTile graphical onOpen={() => openPlay(shell, 'league')}/></li>
