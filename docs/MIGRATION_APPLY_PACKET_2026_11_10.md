@@ -12,8 +12,10 @@ authorizes no apply, deploy, schedule change, secret or provider call.
 
 ## 1. What is pending
 
-`tests/migrations.mjs` `NOT_HOSTED` lists eight repo migrations (seven from `main` at
-`0944bc20` plus M-41, added when PR #497 was reconciled with this packet). Every other repo
+This packet covers eight repo migrations in `tests/migrations.mjs` `NOT_HOSTED`: the
+seven from `main` at `0944bc20` plus M-41, added when PR #497 was reconciled with this
+packet. `20261110160000_gtl_player_props_jobs` (PR #519, requires M-45) merged after
+this packet was written and is also in `NOT_HOSTED`, but has no section here yet. Every other repo
 migration is in `APPLIED`.
 
 | Ledger | File (repo version) | Bytes | SHA-256 | Replaces | Rollback file | Off switch |
@@ -226,7 +228,7 @@ from public.gtl_virtual_units_settlements s;
 rollback;
 ```
 
-None of the eight migrations writes ballots, picks or settlements during the apply
+None of the eight migrations in this packet writes ballots, picks or settlements during the apply
 (M-41 replaces the Virtual Units writers but rewrites no row), so these must be unchanged.
 
 ### P2. Preservation hash template (read-only)
