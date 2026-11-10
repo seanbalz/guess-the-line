@@ -17,7 +17,9 @@ apply order is safe (`tests/epl-apply-order-sql.test.mjs`; new M-34 SHA-256
 `9f8479c764eb2a7fd800740542cf2785db54b53144b32be832a69ef506148b16`, 15669 bytes, function
 md5s unchanged), and `scripts/boundary/epl-score-import.mjs` probes M-43's four tables,
 three RPCs and two routes as awaiting deploy. The M-35/M-43 next-week order precedence is
-documented as a run-time rule for Sean (packet contradiction 7). Still nothing applied.
+documented as a run-time rule for Sean (packet contradiction 7). PR #519's
+`20261110160000_gtl_player_props_jobs.sql` joins the packet as proposed M-46 (after M-45;
+jobs secrets and `GTL_PLAYER_PROPS_JOBS` stay unset, then dry runs). Still nothing applied.
 
 ## Fantasy defensive-matchup insights merged — November 10, 2026
 
