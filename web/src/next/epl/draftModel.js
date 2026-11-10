@@ -5,6 +5,7 @@
 // locks the buttons once the first kickoff has passed.
 import { resolveClubCrest } from '../../teamLogoRegistry.js';
 import { fmtWhen } from '../format.js';
+import { resultsModel } from './resultsModel.js';
 
 export const PICK_COPY = Object.freeze({
   draftLabel: week => `MW${week} draft · order from MW${week - 1} Sleeper score`,
@@ -92,6 +93,8 @@ export function boardModel(read, now) {
       : null,
     clubs,
     bonus: Array.isArray(read.bonusLastWeek) ? read.bonusLastWeek : [],
+    // Pick a Team results for the latest matchweek past its draft (EPL delivery stage 4), or null.
+    results: resultsModel(read.results),
     standingsSource: read.standingsSource?.kind === 'wikimedia-community' && read.standingsSource.official === false
       && /^\d{4}-\d{2}-\d{2}$/.test(read.standingsSource.dataAsOf ?? '')
       && ms(`${read.standingsSource.dataAsOf}T12:00:00Z`) !== null

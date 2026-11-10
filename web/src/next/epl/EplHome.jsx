@@ -14,6 +14,7 @@ import { boardModel, PICK_COPY } from './draftModel.js';
 import { eplApi } from './api.js';
 import { useEplDraft } from './useEplDraft.js';
 import { ClaimCard } from './ClaimCard.jsx';
+import { ResultsCard } from './ResultsCard.jsx';
 import { clubName } from './clubName.js';
 import { HomeMoneylineProgress, useHomeMoneylineProgress } from './guess/HomeMoneylineProgress.jsx';
 
@@ -60,8 +61,9 @@ export function EplHomeView({ model, state, now, onOpenPick, onOpenGuess, moneyl
       {first ? <p data-epl-text="metadata" className="gx-t-meta gx-epl-hero-meta">{fmtWhen(first.kickoff)} · {clubName(first.away)} @ {clubName(first.home)}</p> : null}
       <Button variant={model.onClockMe ? 'primary' : 'secondary'} block onClick={onOpenPick}>{model.onClockMe ? HOME_COPY.pickNow : HOME_COPY.open}</Button>
     </Card>
-    {model.review || model.standingsSource ? <Card as="section" className="gx-epl-bonus" aria-label="Draft review and source">
-      {model.review ? <MarginChart bonus={model.bonus} review clubName={model.clubName}/> : null}
+    <ResultsCard results={model.results} clubName={model.clubName}/>
+    {(model.review && !model.results) || model.standingsSource ? <Card as="section" className="gx-epl-bonus" aria-label="Draft review and source">
+      {model.review && !model.results ? <MarginChart bonus={model.bonus} review clubName={model.clubName}/> : null}
       <StandingsSource source={model.standingsSource}/>
     </Card> : null}
     <HomeMoneylineProgress state={moneyline} onOpenGuess={onOpenGuess}/>

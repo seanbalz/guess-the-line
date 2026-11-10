@@ -38,6 +38,7 @@ export const NOT_HOSTED = [
   20261029161613, // M-34 gtl_epl_standings: private dated source persistence/usage; collection absent/disabled until separately authorized.
   20261029162144, // M-35 gtl_epl_corrected_draft_order: local source only; requires pending M-33.
   20261110100000, // gtl_epl_three_way_moneyline: local source only; builds on hosted M-30/M-31/M-32/M-36.
+  20261110120000, // EPL stage 4 gtl_epl_result_announcements: local source only; requires hosted M-30/M-36 only.
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
@@ -51,6 +52,7 @@ export const FIX_FORWARD = [
   20261026133000, // M-23 gtl_kickoff_posts: writes rows (kickoff posts and a backfill), kept by D-23; a trigger, no replaced body
   20261029150000, // M-32 gtl_epl_moneyline: widens the EPL job constraint; keep dnb-check disabled rather than narrow over saved evidence.
   20261029161613, // M-34 gtl_epl_standings: widens the job constraint; disable standings, preserving source and usage evidence.
+  20261110120000, // EPL stage 4 result announcements: widens the job constraint; disable 'results', preserving announcements and deliveries.
 ];
 /**
  * Repo migrations that a migration must follow and that the hosted project does not have yet, by version: the build plan
