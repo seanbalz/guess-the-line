@@ -1,0 +1,22 @@
+/* Fantasy defensive matchups (DefenseMatchup.jsx): labelled metric lists, matchup notes and the defense tables.
+   Phone-first from 320px, gx tokens only, so both themes follow the existing palette. */
+.gx .gx-fdm { min-width: 0; }
+.gx .gx-fdm :where(p, ul, dl, dd) { margin: 0; }
+.gx .gx-fdm-legend, .gx .gx-fdm-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gx-space-2); }
+.gx .gx-fdm-notes, .gx .gx-fdm-effects, .gx .gx-fdm-sources { display: grid; gap: var(--gx-space-3); list-style: none; padding: 0; }
+.gx .gx-fdm-notes > li { display: grid; gap: var(--gx-space-2); padding: var(--gx-space-3); border: 1px solid var(--gx-glass-line); border-left: 4px solid var(--gx-border-strong); border-radius: 14px; background: var(--gx-surface-2); }
+.gx .gx-fdm-notes > li[data-tone='favorable'] { border-left-color: var(--gx-win); }
+.gx .gx-fdm-notes > li[data-tone='unfavorable'] { border-left-color: var(--gx-loss); }
+.gx .gx-fdm-tone { font: 600 13px/18px var(--gx-font-body); text-transform: uppercase; letter-spacing: 0.04em; color: var(--gx-text-2); }
+.gx .gx-fdm-notes > li[data-tone='favorable'] .gx-fdm-tone { color: var(--gx-win); }
+.gx .gx-fdm-notes > li[data-tone='unfavorable'] .gx-fdm-tone { color: var(--gx-loss); }
+.gx .gx-fdm-list { display: grid; gap: var(--gx-space-2); }
+.gx .gx-fdm-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--gx-space-1) var(--gx-space-3); padding: var(--gx-space-3); border: 1px solid var(--gx-glass-line); border-radius: 14px; background: var(--gx-surface-2); }
+.gx .gx-fdm-item dt { color: var(--gx-text-2); font: 500 14px/20px var(--gx-font-body); overflow-wrap: anywhere; }
+.gx .gx-fdm-value { font: 600 16px/22px var(--gx-font-num); font-variant-numeric: tabular-nums; text-align: right; color: var(--gx-data); overflow-wrap: anywhere; }
+.gx .gx-fdm-item[data-kind='unavailable'] .gx-fdm-value { color: var(--gx-text-3); font-family: var(--gx-font-body); }
+.gx .gx-fdm-meta, .gx .gx-fdm-basis { grid-column: 1 / -1; }
+.gx .gx-fdm-small { color: var(--gx-pending); font: 600 13px/18px var(--gx-font-body); }
+.gx .gx-fdm-sources a { display: inline-flex; align-items: center; min-height: var(--gx-size-touch); color: var(--gx-accent-ink); text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
+.gx .gx-fdm-table td[data-kind='estimate'] { color: var(--gx-text-2); }
+@media (max-width: 359px) { .gx .gx-fdm-item { grid-template-columns: minmax(0, 1fr); } .gx .gx-fdm-value { text-align: left; } }

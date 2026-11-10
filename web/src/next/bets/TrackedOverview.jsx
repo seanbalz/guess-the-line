@@ -11,7 +11,7 @@ function Breakdown({title,rows,onChoose}) {
   const maximum=Math.max(1,...rows.map(row=>row.count));
   const shown=all?rows:rows.slice(0,6),total=rows.reduce((sum,row)=>sum+row.count,0);
   // One row is one stat line: a lone full-width bar compares nothing (design audit A16).
-  return <section className="gx-overview-card" aria-label={title}>
+  return <section className="gx-overview-card gx-card" aria-label={title}>
     <h2 className="gx-t-section">{title}</h2>
     {total?<ul className="gx-overview-bars">{shown.map(row=><li key={row.value||row.label}>
       {onChoose?<button type="button" className="gx-overview-bar-row" aria-label={`Show ${row.label}: ${row.count} ${row.count===1?'bet':'bets'}`} onClick={()=>onChoose(row)}><span>{row.label}</span><strong>{row.count}</strong></button>:<div className="gx-overview-bar-row"><span>{row.label}</span><strong>{row.count}</strong></div>}
@@ -37,12 +37,12 @@ export function TrackedOverview({model,actorId,unitCash,amounts,onAmounts,onFilt
       'Cash uses your chosen value of one unit for display. Set that value in Filters & options; saved unit stakes never change.',
     ]}/></div>
     <NetUnits summary={summary} points={chart} player={actorId} amounts={cash?'cash':'units'} unitCash={unitCash}/>
-    <section className="gx-overview-card" aria-label="Bet activity"><StatTiles tiles={[
+    <section className="gx-overview-card gx-card" aria-label="Bet activity"><StatTiles tiles={[
       {label:'Tracked bets',value:summary.bets,sub:'Included in records'},
       {label:'Open bets',value:summary.pending,sub:'Awaiting results'},
       {label:'Open risk',value:openRisk,sub:unknownPendingStakes?`${unknownPendingStakes} unknown stakes`:'Known stakes'},
     ]}/></section>
-    <section className="gx-overview-card" aria-label="Bet results"><h2 className="gx-t-section">Results</h2>
+    <section className="gx-overview-card gx-card" aria-label="Bet results"><h2 className="gx-t-section">Results</h2>
       {summary.bets>0?<><div className="gx-overview-results" role="img" aria-label={outcomes.map(row=>`${row.count} ${row.label.toLowerCase()}`).join(', ')}>{outcomes.filter(row=>row.count>0).map(row=><span key={row.outcome} className={`gx-overview-result gx-overview-result--${row.outcome}`} style={{flex:row.count}}/>)}</div>
       <div className="gx-overview-result-key">{outcomes.map(row=><button type="button" key={row.outcome} onClick={()=>onFilter('outcome',row.outcome)} aria-label={`Show ${row.label}: ${row.count} bets`}><span className={`gx-overview-dot gx-overview-result--${row.outcome}`}/>{row.label}<strong>{row.count}</strong></button>)}</div></>:<p className="gx-t-body gx-c-2">Your results appear here when included tickets match.</p>}
     </section>

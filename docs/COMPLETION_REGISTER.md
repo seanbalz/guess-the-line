@@ -1,5 +1,858 @@
 # Guess The Line — current completion register
 
+## Migration apply packet prepared — November 10, 2026
+
+The [apply packet](MIGRATION_APPLY_PACKET_2026_11_10.md) covers all seven `NOT_HOSTED`
+migrations (M-33, M-34, M-35 and the four November 10 files, proposed as M-42 to M-45
+because M-41 is reserved by open PR #497): dependencies and filename apply order,
+replaced-body md5s, read-only preflight, score and preservation hashes, apply method,
+verification, off switches, follow-up deploys/schedule rows, the Player Props readiness
+Task 2 queries and Sean's apply phrases. It records that M-40 is hosted in every repo
+record, and flags that M-34 must not be applied after M-44 as written (job constraint
+without `results`) and that M-43's RPCs have no boundary probes. Supabase was
+unavailable: no hosted value was observed and nothing was applied or deployed.
+
+## Fantasy defensive-matchup insights merged — November 10, 2026
+
+PR #517 merged as `0944bc2003780aa88b173c6aaf99b746f273cd83`: defensive-matchup views
+for fantasy-relevant QB/RB/WR/TE and defense ranking tables on Research › Fantasy, built
+by the scheduled Fantasy refresh from reuse-licensed nflverse/FTN releases (CC BY / CC
+BY-SA attribution shown). **Merged, not deployed**: the frontend needs a release, and data
+appears with the first scheduled Fantasy refresh after merge. No API, worker, migration or
+Supabase change.
+
+## EPL Sleeper screenshot score import merged — November 10, 2026
+
+PR #515 merged as `2d54ae7b250ab422c86910d53334ea2671e65e8f` (EPL delivery stage 3):
+on-device OCR (tesseract.js, assets self-hosted under `/ocr/`), commissioner review of
+all eight scores and an atomic, audited import that opens the next draft. The API and
+Pages are in deploy run 42744392202 (`api-and-frontend` at `2d54ae7b`), **pending
+approval** at the time of writing. Migration `20261110110000_gtl_epl_score_import.sql`
+(proposed M-43) is **not applied**. Real-screenshot phone acceptance, the boundary probes
+and the hosted `nudge`/`fixtures` state remain open.
+
+## Player Props mode merged dark — November 10, 2026
+
+PR #514 merged as `bf29c5d6d2c1f71d259094bd4dbeae45255308dd` (D-82): native-unit
+domain, storage, `/props/*` API and lazy frontend screens, all off by default. Included in
+deploy run 42744392202, **pending approval**; the routes answer 404 while `GTL_PLAYER_PROPS`
+is unset, and that secret is not to be enabled. Migration
+`20261110130000_gtl_player_props.sql` (proposed M-45) is **not applied**. The readiness
+Task 2 hosted audit and the offer/result ingestion jobs are still to do.
+
+## EPL Pick a Team result announcements merged — November 10, 2026
+
+PR #512 merged as `dfda1263a96c7450dee73643681bdca31b3c0e17` (EPL delivery stage 4):
+results cards on EPL Home and Pick a Team from verified finals, a deduplicated opt-in push
+and the bounded `results` job. API and Pages are in deploy run 42744392202, **pending
+approval**. Migration `20261110120000_gtl_epl_result_announcements.sql` (proposed M-44) is
+**not applied**; the `gtl-epl-jobs` deploy and `supabase/admin/epl_results_cron.sql`
+(row created disabled) follow the apply, and enabling `results` is a separate step.
+
+## EPL three-way moneyline and EPL Bets merged — November 10, 2026
+
+PR #513 merged as `ddf859099e7c6dc12f3867af7416638fbdc6f419` (EPL delivery stages 1-2):
+draw-no-bet or three-way entry with one guess per match, market-aware references and
+collection, combined leaderboard and account-scoped EPL Bets recommendations. API and
+Pages are in deploy run 42744392202, **pending approval**; they stay two-way until the
+schema reports the capability. Migration `20261110100000_gtl_epl_three_way_moneyline.sql`
+(proposed M-42) is **not applied**; a compatible `gtl-epl-jobs` deploy is also needed for
+timed three-way collection.
+
+## Points layout check measured after animation — November 10, 2026
+
+PR #516 merged as `7afeb773fa35e49c3edcc6c3685aa76680a1dcd3`: the 320 px layout check in
+`next-points.spec.js` waits for the restored card's back animation to settle. Test-only;
+no application change and no deploy needed (the commit is included in `2d54ae7b`).
+
+## Prior week's unfinished game stays visible — November 10, 2026
+
+PR #511 merged as `0f656617916d63d67c7ab4e6932233ccfd7f6548`: a "Still playing from Week
+N" card on Home, Play and Research › Games keeps a prior week's unfinished game (Monday
+night, late or postponed) with the viewer's own guesses after the next week opens. Reads
+only the existing gated `/lines/read`; locks and reveals unchanged. **Deployed**:
+frontend-only release run 42733238277 (success). No API or migration change; real-phone
+acceptance is not established by the release.
+
+## Gap period follow-up fixes and mockups — November 9, 2026
+
+The [post-release review and fix evidence](GAP_PERIOD_FOLLOWUP_REVIEW_2026_11_09.md)
+record both PR #505 follow-ups fixed locally: period/applied-range intent survives
+recommendation-week changes and Refresh lines, and expanded records include all
+rows when the period grows. The existing account and read guards remain. Both
+regressions failed before the fixes and passed after; 22 unique recommendation
+browser cases, 39 Node checks, six UI checks and build/QA passed. Actual-component
+[Dark/Light mockups](../design/gap-period-fixes-2026-11-09/index.html) use synthetic
+data. Owner review, exact CI, merge, protected deploy and real-phone acceptance
+remain separate. PR #507 still owns the prior release-evidence reconciliation.
+
+## Comparable NFL gap scale checked locally — November 9, 2026
+
+[D-81](DECISIONS.md) replaces percentage-of-line gap ranking with a shared
+historical scale calibrated separately for Spread and Total. Sean chose the
+NFL-wide baseline and top-quarter Large highlight. The
+[implementation evidence](NFL_GAP_SCALE_2026_11_09.md) records the frozen
+2016–2025 sample, reproducible aggregate, shared ranking/colors/history filter,
+source limitations and verification. This is review work, not a merge or release
+claim. No saved pick/reference, API, migration, provider or collector changes.
+
+## Player Props design approved; source audit partial — November 9, 2026
+
+Sean approved both Dark/Light boards with alignment to the rest of the app as a
+condition. [D-82](DECISIONS.md) and the
+[approved design](superpowers/specs/2026-11-09-player-props-design.md) preserve
+optional athlete/stat selection, separate native-unit average-miss accuracy,
+entry-only market hiding and the existing shared Prism components/navigation.
+
+The [readiness audit](PLAYER_PROPS_READINESS_2026_11_09.md) verifies all eleven raw
+stat fields in a checksum-matched public Week 1–9 source. Hosted prop-quote,
+roster/event, quota and final-result readiness is unverified: the Supabase
+connection requires reauthentication. The
+[read-only readiness plan](superpowers/plans/2026-11-09-player-props-readiness.md)
+keeps those unknowns distinct from observed absence. No Player Props mode,
+migration, provider-credit request, collector activation or deployment is included.
+
+The [full Player Props visual packet](../design/player-props-review-2026-11-09/README.md)
+adds six component-rendered Dark/Light sheets after Sean explicitly chose
+Player Props-only review. Sean then confirmed **"Approve the visual set"** for all
+six exact sheets, including locked, custom-filter, recovery and empty/error states.
+The twelve full-content preview captures preserve the shared bottom bar and
+end-control clearance. This is mockup evidence, not product implementation,
+real-phone acceptance or a new hosted-data claim.
+
+Sean subsequently instructed **"Merge and deploy"**. The approved records are
+being reconciled with current main and the existing shared navigation-test fix;
+exact-head review/CI are required before merge. Supabase still requires
+reauthentication for the hosted prop-data audit. Feature implementation and its
+protected release remain pending; merging these records cannot enable the mode.
+
+## EPL expansion requirements confirmed — November 9, 2026
+
+The [requirements and delivery sequence](EPL_FEATURES_2026_11_09.md) and D-68
+addendum record Sean's answers in this conversation: optional three-way entry,
+one locked guess per match and a combined leaderboard; automatic recommendations
+ranked by current favorable gap with supporting trends; reviewed final Sleeper
+screenshot scores opening the next draft; and independent winner announcements
+with opt-in push. Source inspection identified two-way storage, coupled
+snapshot/award/rollover processing and roughly twelve-hourly result collection
+as implementation work. Status: **planned, not built or deployed**. Sean supplied
+a representative screenshot: human inspection established the four-card/eight-
+manager layout, actual-score versus projection positions and absent season-total
+tiebreak data. The requirements record now defines import/review handling; this
+is not tested OCR or a live import. Private images/scores remain outside Git.
+No runtime, database, migration, notification or frozen-v62 change.
+
+## Gap record period filters deployed and verified — November 9, 2026 UTC
+
+[Release evidence](RELEASE_2026_11_09_GAP_RECORD_PERIODS.md) records merged PR #505,
+source `9a34f9e47d5fb7dd32eecd6fdc697cef53340ed9`, all twelve exact PR/main checks,
+protected readiness and frontend-only deploy 42665392227. Pages
+`3e81d5b5-5ad5-4f62-9014-c728f047e070` and all 132 production assets verified at
+17:35:54 UTC. Week, This season, All time and inclusive Custom range combine
+existing D-77 records without averaging weekly percentages. Recommendation week
+and placement remain independent; failed periods do not show partial totals.
+
+API v52 metadata and 76-migration history remain unchanged. No SQL/API/worker or
+provider deployment. Local synthetic multiweek tests and public two-theme smoke
+do not establish physical-phone or signed-in production acceptance. The new
+Player Props guessing feature is still in design, not included in this release.
+M-41, held FEPL framing, parked work and frozen v62 remain separate. Earlier
+local/pending period-filter entries below are historical.
+
+The publication followup also corrects an existing badge-test setup: visibility
+alone need not create the required scrolled shelf. The release record preserves
+the original failed PR #507 run and the explicit-centering correction, with all
+navigation/focus/scroll assertions retained. This changes no application source
+and does not require redeployment.
+
+## EPL expansion requirements confirmed — November 9, 2026
+
+The [requirements and delivery sequence](EPL_FEATURES_2026_11_09.md) and D-68
+addendum record Sean's answers in this conversation: optional three-way entry,
+one locked guess per match and a combined leaderboard; automatic recommendations
+ranked by current favorable gap with supporting trends; reviewed final Sleeper
+screenshot scores opening the next draft; and independent winner announcements
+with opt-in push. Source inspection identified two-way storage, coupled
+snapshot/award/rollover processing and roughly twelve-hourly result collection
+as implementation work. Status: **planned, not built or deployed**. Sean supplied
+a representative screenshot: human inspection established the four-card/eight-
+manager layout, actual-score versus projection positions and absent season-total
+tiebreak data. The requirements record now defines import/review handling; this
+is not tested OCR or a live import. Private images/scores remain outside Git.
+No runtime, database, migration, notification or frozen-v62 change.
+
+## Gap record period filters deployed and verified — November 9, 2026 UTC
+
+[Release evidence](RELEASE_2026_11_09_GAP_RECORD_PERIODS.md) records merged PR #505,
+source `9a34f9e47d5fb7dd32eecd6fdc697cef53340ed9`, all twelve exact PR/main checks,
+protected readiness and frontend-only deploy 42665392227. Pages
+`3e81d5b5-5ad5-4f62-9014-c728f047e070` and all 132 production assets verified at
+17:35:54 UTC. Week, This season, All time and inclusive Custom range combine
+existing D-77 records without averaging weekly percentages. Recommendation week
+and placement remain independent; failed periods do not show partial totals.
+
+API v52 metadata and 76-migration history remain unchanged. No SQL/API/worker or
+provider deployment. Local synthetic multiweek tests and public two-theme smoke
+do not establish physical-phone or signed-in production acceptance. The new
+Player Props guessing feature is still in design, not included in this release.
+M-41, held FEPL framing, parked work and frozen v62 remain separate. Earlier
+local/pending period-filter entries below are historical.
+
+The publication followup also corrects an existing badge-test setup: visibility
+alone need not create the required scrolled shelf. The release record preserves
+the original failed PR #507 run and the explicit-centering correction, with all
+navigation/focus/scroll assertions retained. This changes no application source
+and does not require redeployment.
+
+
+## Gap win rate period filters checked locally — November 9, 2026
+
+Sean approved the [D-80](DECISIONS.md) dark/light period-control mockup. The
+[implementation evidence](GAP_RECORD_PERIODS_2026_11_09.md) records Week,
+This season, All time and inclusive Custom range, complete-period loading,
+count-weighted rate, actual row provenance and unchanged D-77 grading. Existing
+authenticated weekly reads are reused; recommendation selection/writes remain
+independent. Both browser engines/themes and independent review passed locally.
+Exact source/CI, merge and protected frontend release remain separate gates;
+this entry is not a deployment claim. No SQL/API/provider change, M-41 apply,
+parked feature work or new physical-phone acceptance is included.
+
+## Whole-app UI/UX sweep deployed and verified — November 8, 2026 UTC
+
+[Release evidence](RELEASE_2026_11_08_UI_UX_SWEEP.md) records exact source
+`a17f2082e5e07e95179726ac948c44c55a506d1f`, merged PR #502, all twelve corrected
+PR checks and all twelve main-push checks. Protected frontend release 42514212232
+verified Pages `968d3b5d-a115-42ea-8293-ce405ef42f91` and all 132 production assets
+at 19:21:34 UTC. Home’s selected floating bottom bar matches across existing
+NFL/EPL tabs; headers/body layouts remain contextual. Guidance rows, singular
+ticket counts and fresh detail entry/Back scrolling are corrected.
+
+The [audit](UI_UX_SWEEP_2026_11_08.md) preserves both-theme/browser/viewport
+coverage, controller/fixture limits, the initial CI failure and causal fix,
+source reviews and warning noise. API v52/metadata, 76-migration history and
+tracked data/backend source hashes are unchanged. No SQL, worker or API deploy.
+Actual-phone and signed-in production acceptance are not newly inferred. M-41,
+FEPL top-header choice, parked features and frozen v62 remain held/unchanged.
+Earlier local/pending entries below are historical.
+
+## Whole-app UI/UX sweep checked locally — November 8, 2026
+
+[D-79](DECISIONS.md) confirms Home’s floating glass bottom navigation across all
+existing NFL/EPL tabs while preserving contextual top headers and approved body
+layouts. The [sweep record](UI_UX_SWEEP_2026_11_08.md) documents fresh screen,
+formatting, chart, overlay and scrolling coverage in both themes, narrow/wide and
+short/landscape viewports, plus Chromium and mobile WebKit emulation.
+
+Local corrections share the bottom recipe/actual-height clearance, restore the
+Guidance sheet’s intrinsically sized topic rows, and fix singular tracked-ticket
+copy. Task reviews approve both initial source changes with no Critical/Important
+findings; inherited validation warnings remain recorded. Initial PR CI exposed a
+fourth issue: a short detail retained opener scroll. Nest’s entry reset is checked
+locally at `219e546699368925a913b08e6cf34745349d2fd2`, preserving exact Back position
+and focus; renewed delta review and CI are required. Source commits are
+`4ce541942c12751862672d8cb89209d819fd452e` and
+`3175462f6839e01fece3d4d43c8171b07983ff1e`. Final branch review, exact CI, publication,
+merge and protected frontend release remain pending; this is not a deployment
+claim. The separate held FEPL top-header choice, M-41, API/database/worker state,
+parked features and frozen v62 remain unchanged. Actual-phone acceptance is not
+newly inferred from emulation or Sean’s navigation assumption.
+
+## Saved-precision Virtual Units ROI deployed — November 8, 2026 UTC
+
+[Release evidence](RELEASE_2026_11_08_VIRTUAL_ROI.md) records exact source
+`1c5a9da0deb479c15abf390a905acd47084cb338`, merged PR #500, all twelve exact-main
+checks and protected deployment 42496125746. API v52 is ACTIVE/JWT-verified and
+Pages `b3bd6187-adbf-4097-98e2-28417cac7d09` passed all 132 production asset
+comparisons at 15:47:16 UTC. Week/season ROI and ranking now retain saved
+four-place amounts under D-78; saved selections/results and settlement are not
+rewritten. Exact ties remain shared; precision can split previously rounded ties.
+
+Fresh history stays at 76 versions with the reviewed digest; pending M-33/M-34/
+M-35 are unchanged. No SQL or worker deployment. Remote API source bytes,
+hosted affected-rank/row-hash counts and new phone acceptance are not claimed.
+Earlier local-only ROI entries below are historical. M-41 remains separate
+unapplied draft PR #497 with its own Gate M checks and named approval; the FEPL
+frame question is open. Parked work and frozen v62 remain unchanged.
+
+## Saved-precision Virtual Units ROI checked locally — November 8, 2026
+
+Sean approved the recommended saved-four-place accounting correction (D-78).
+The [implementation record](VIRTUAL_ROI_SAVED_PRECISION_2026_11_08.md) documents
+the shared week/season model correction, synthetic half-unit tie impact,
+red/green arithmetic and SQL/API/native parity evidence. Existing percentage
+and amount display styles, qualification, privacy and ranking order remain.
+All saved selections/results/audits/timestamps are preserved in local read tests;
+no migration or writer changed. Hosted affected-rank counts were unavailable
+because the read connector requires reauthentication. Local verification does
+not establish deployed source or actual-phone acceptance. Independent review,
+exact-source CI and compatible API/frontend release remain open. Custom entry
+PR #497 / M-41 remains separate and unapplied; FEPL framing is still queued.
+
+## Confirmed Prism rollout deployed and verified — November 8, 2026 UTC
+
+[Release evidence](RELEASE_2026_11_08_PRISM_ROLLOUT.md) records source
+`e3f078b9e831dda46412487251b191ebdd5637c4`, merged PR #495, all twelve exact-main
+CI checks, separate protected frontend-then-API runs and the actual public
+Research publication. Pages `31417a19-3cea-47fc-bc0a-9b776df4724b` passed all 132
+production asset checks at 07:52:55 UTC. API v51 is ACTIVE with JWT verification
+true, verified at 08:04:54 UTC; remote API bytes were not independently matched.
+The release record states that source-acceptance limit explicitly.
+
+The approved unambiguous body/frame ports, spacing, readable EPL labels and
+Back-scroll correction are shipped in both themes. Fresh history remains 76
+versions with the reviewed digest; only existing M-33/M-34/M-35 are pending.
+No SQL or workers were deployed. All six public Research assets were downloaded
+and hash-verified with season rows and compact series in each sample.
+
+Earlier local-only/not-deployed entries below are historical. FEPL's separate
+frame choice remains queued after the pending ROI answer; M-41 remains separate
+PR #497 and unapplied. No new phone acceptance, private-board sync, avatar,
+award, NBA or parked Signal work is claimed. Frozen v62 remains unchanged.
+
+## Expanded CI corrections reviewed and combined — November 7, 2026
+
+[The scoped closeout](PRISM_EXPANDED_CI_CLOSEOUT_2026_11_07.md) records all 22
+previous browser CI failures, their reviewed corrections and the separately
+exposed Back-scroll race. Source through `04daf0b6` has task approval: retained
+league access, EPL label fitting, identical G assets served externally, precise
+compact-header checks, capture output opt-ins and
+[history scroll ownership](BACK_SCROLL_RESTORATION_2026_11_07.md).
+Privacy scanners, API/SQL/scoring, saved references and frame-approval boundaries
+remain intact. FEPL stays native pending its separate owner choice.
+
+Fresh combined checks pass 923 component tests, 89 Node contracts and 11 browser
+flows, plus typecheck, Brand QA, build, bundle privacy and whitespace. All 1,759
+design-file hashes match the baseline. The final whole-branch addendum, exact-
+source CI and protected frontend-then-API release remain open. Only Home is live.
+M-41 remains separate and unapplied; frozen v62 and parked scope are unchanged.
+
+## Browser Back-scroll ownership fixed locally — November 7, 2026
+
+The [restoration record](BACK_SCROLL_RESTORATION_2026_11_07.md) documents a
+deterministic native-history reproduction of the Research board returning to
+zero after Shell restored its saved position. The history connection now owns
+manual restoration for its lifetime and restores the prior mode on cleanup.
+Controlled and original flows pass 6/6; eight focused browser cases and 58
+router/state tests pass without skips. Typecheck and Brand QA pass; all 1759
+tracked design files retain their hashes. No route, data, layout or frozen
+artifact changes. Local fix only; independent review, aggregate addendum,
+combined CI and release evidence remain open.
+
+## EPL compact Play labels fitted — November 7, 2026
+
+The [scoped fitting record](PRISM_EPL_COMPACT_LABELS_2026_11_07.md) addresses the
+actual Linux CI Leaderboard overflow with an intrinsic minimum for the existing
+last grid column. Full labels, 16px type, 44px targets and wide equal tracks
+remain. A deterministic fallback-metric red/green regression plus the original
+EPL expanded-frame case pass 5/5; Brand QA passes 15/15 and scoped EPL components
+45/45. All 128 expanded PNGs, 30 receipts and 80 historical files retain their
+SHA-256 values. Local verification only; independent review, combined CI and
+release remain open. No API, data, scoring, migration or FEPL frame change.
+
+## Expanded confirmed frames integrated; final combined verification — November 7, 2026
+
+Independently approved expanded source `d3c1b01b` / `9047ba20` / `272e2b05`
+is integrated as `d37de276` / `99a72f7c` / `f5a224c3`. The
+[context record](PRISM_EXPANDED_FRAME_CONTEXTS_2026_11_07.md) closes every
+unambiguous compact-frame row in the authority matrix, including actual editable
+drafts, populated Points profiles, named Research sections, History, Bets tools,
+Premier League Home/Play and named access covers. Actual NFL Research root,
+FEPL Research and explicit EPL Bets/History remain native. FEPL's same-route
+approval overlap remains queued after the pending ROI-policy question.
+
+Fresh root reconciliation verified fourteen source, one ledger, 46 reference,
+thirty receipt, 128 new PNG/dimension and eighty frozen historical hashes.
+The corrected native Research specimens use the actual root; old Games-host
+specimens retain their original provenance. Known continuity failures retain
+their actual host; no global error-frame rule is introduced.
+
+The [reviewed test-only CI corrections](PRISM_FRAME_CI_CONTRACTS_2026_11_07.md)
+are integrated as `c5d7f10e`. They retain geometry, access/privacy, counts, replay,
+focus and real-theme checks while replacing obsolete pinned/flush/root-opener
+assumptions. At product/test head `c5d7f10e`, 923 component tests in 92 files,
+31 strict Node contracts, typecheck, Brand QA and whitespace checks pass.
+Fresh final whole-branch source review approves the integrated changes with
+no Critical or Important findings. Combined browser verification is in progress;
+exact-head CI and release remain open. Only the separate Home spacing release
+is live. No SQL/M-41 apply, ROI decision, frozen v62 or parked-scope change.
+
+## Confirmed frame scope reconciled; expanded implementation active — November 7, 2026
+
+[Authority/context mapping](PRISM_FRAME_AUTHORITY_RECONCILIATION_2026_11_07.md)
+replaces the earlier overbroad global-header hold with actual scoped approvals.
+Reviewed landings/selected-receipt source is integrated through `250294f1`;
+additional confirmed contexts remain in progress. FEPL Research has a genuine
+same-route frame overlap, queued after the one pending Virtual ROI-policy question.
+No unanswered question is inferred as approval. Four exact native Research cases
+are reviewed/integrated (historical42paired component scenarios, zero unverified,
+one held Virtual minimum). Fresh final-source native-root mapping is still open
+as named Games moves to its confirmed compact frame. That also does not resolve
+FEPL's separate content-frame choice.
+The sole final-CI read-count race has a reviewed correction integrated `8d2b8112`;
+root natural/delayed cases pass. Current combined 923 component / 27 strict Node /
+typecheck and four integration browsers pass. Final expanded review/CI and release
+remain open. No remaining rollout deployed; no SQL, M-41 enablement, frozen v62 or
+parked-scope changes.
+
+## Final Prism CI read observation correction — November 7, 2026
+
+[Scoped reproduction and verification](PRISM_FINAL_CI_READ_FIX_2026_11_07.md)
+proves that the team opener can paint before the lazy game readers mount,
+causing CI's two-return counter to include an initial read. The browser test now
+observes initial reads explicitly, keeps the <=2 return allowance, checks <=1
+per actual return and zero reads during team loading/recovery/appearance phases,
+and retains all no-write, cached-team, lazy-asset, phone/axe and focus gates.
+The original and permanent delayed-mount regression passed with four nearby
+cases; the final aggregate-accounting refinement passed both changed cases
+again. Product source and all committed captures/manifests are unchanged.
+Independent review, parent integration and fresh exact-source CI remain open;
+no push, PR, deployment, SQL apply or hosted acceptance is claimed. Frozen v62
+tracker unchanged.
+
+## Whole-branch Prism source review passed — November 7, 2026
+
+[Final review record](PRISM_FINAL_REVIEW_2026_11_07.md): no Critical or Important
+findings for `7aa93a6f..48ad4b40`; reviewed documentation now follows frontend
+then API release order. Final local 923 component / 27 strict Node / five native
+browser checks, typecheck, Brand/build/privacy pass. Existing test-key/build-size
+advisories remain disclosed. Exact-source CI and protected release remain open;
+source review does not resolve the held frame positions or separate M-41 work.
+Only the earlier Home release is live. The frozen v62 tracker is unchanged.
+
+## Reviewed identity integration — November 7, 2026
+
+The final identity/Menu/scope source and wording boundary repairs are integrated
+through `966f8db3`; independent re-review closed both Important findings. The
+[rollout ledger](CONFIRMED_VISUAL_ROLLOUT_2026_11_07.md) records the 38 paired,
+zero unverified and five held core action scenarios, with exact evidence limits.
+Fresh combined validation passed 92 files / 923 component tests, typecheck and
+27 strict import/token/loading contracts. The global header/dock question is
+still unanswered. Custom Virtual Units remains separate draft PR #497 and is
+not integrated or enabled. Whole-branch review, exact-source CI and protected
+release remain open. Only the previously recorded Home spacing release is live.
+Frozen v62 tracker remains unchanged.
+
+## Reviewed Commissioner integration and separate M-41 preparation — November 7, 2026
+
+All six Commissioner source/evidence commits are integrated through `c8893d13`.
+Final independent review at `212d43e6` closed every scoped Important/Minor issue;
+[the final record](PRISM_COMMISSIONER_CAPTURE_PAINT_FIX_2026_11_07.md) distinguishes
+89 refreshed and 143 retained captures. Root checks passed 915 component tests,
+typecheck, 27 strict contracts and two actual-controller final/odds browser flows.
+Whole-branch review, exact-source CI and release remain; no remaining rollout
+deployment is claimed.
+
+Separately, reviewed Custom Virtual Units preparation is published in draft
+[PR #497](https://github.com/seanbalz/guess-the-line/pull/497) at
+`a3bd900b7b65f7469a5d9400815e44be9fbb7580`, branch
+`codex/m41-retry-precision-20261107`, synchronized 0/0 on November 8 at 03:02 UTC.
+It remains outside the visual branch, with the documented ROI/accounting decision
+and explicit named migration apply still held. No SQL, hosted write or release.
+
+## Reviewed EPL integration and final browser layout repairs — November 7, 2026
+
+Premier League/FEPL source `4ffd4572` / `64e7bfd5` is integrated as `8e528825` /
+`726e8526` after independent re-review closed reading/glyph findings. The parent
+History adapter `a0eb47bb` is also independently approved. Combined local source
+passes 90 files / 914 component tests, typecheck and 29 focused Node contracts;
+native moneyline recovery/leaderboard browser passed. [The rollout ledger](CONFIRMED_VISUAL_ROLLOUT_2026_11_07.md)
+records source/capture provenance and the actual retained/refreshed split.
+Earlier CI's two remaining layout defects reproduced locally and both original
+cases now pass after scoped loader-height and saved-pick row-width repairs.
+Their independent review/fresh CI and Commissioner/identity/unit compatibility/
+owner frame decision/release work remain open. No remaining rollout deployment.
+## Identity wording boundary corrections — November 7, 2026
+
+[The scoped correction record](PRISM_IDENTITY_WORDING_BOUNDARIES_2026_11_07.md)
+fixes two Important display misses: registered composite-ID trend titles and
+computed Research historical/Why condition descriptions. Exact ID/title matching
+and the source-reported exemption preserve custom/source literals and raw chart
+keys. New real-registry/component and native computed Research evidence is
+separate from the unchanged 114 prior captures. The 38 paired / zero unverified /
+five held cumulative state remains. Local checks are recorded in its manifest;
+independent re-review/integration remain pending. No push, PR, merge, API/SQL,
+migration, deployment, hosted acceptance or frozen v62 tracker change.
+
+## Shared identity, native Menu and saved-scope evidence — November 7, 2026
+
+[The scoped local record](PRISM_IDENTITY_SCOPE_NATIVE_2026_11_07.md) adds all four
+real Menu variants and saved-scope pairs, raising the 43-state action reconciliation
+to 38 paired, zero unverified and five held. Actual account transitions purge the
+open layers without a sit-out write; separately labeled component proofs cover
+defensive account mismatch. Games labels/action names and league descriptions
+follow approved full names; sit-out operational prose is restored to 16px.
+Native marks/fallbacks, raw IDs, source attribution, controllers and held frame
+positions are preserved. Final local type, 919 component tests, 41 Node contracts,
+Brand/build/privacy and native browser/capture evidence are linked there.
+Independent review/integration remain pending; no push, PR, merge, hosted change,
+migration or deployment is part of this task. Frozen v62 tracker is unchanged.
+
+## Integrated reviewed History and paper-gap scorecards — November 7, 2026
+
+Source `c8a4f8ef` / `7426e705` / `115af6b6` is integrated as `df487a79` /
+`78bf5040` / `b52e86b0`; independent re-review closed both color/icon findings.
+[The parent adapter record](PRISM_HISTORY_SCORECARD_NATIVE_2026_11_07.md#parent-integration-adapter--november-7-2026)
+records the retained-workflow view injection, restored local fallback and exact
+full-name receipt assertion. The original strict import test is unchanged.
+Two controller browsers, 29 focused Node checks, typecheck and the affected
+28 component tests pass. Full run was 912/913 before the stale assertion fix;
+fresh whole-branch validation remains required. This is local integration,
+not deployment or complete acceptance of held/shared/hosted/phone work.
+
+## Native Account integration and whole-page spacing repair — November 7, 2026
+
+Reviewed Account source and both correction commits are integrated as `f2af6c90`,
+`43fa91a8` and `52b900b5`. Independent review closed both final Important type/
+forced-color findings and verified 254 native/134 reference/ten source hashes.
+The [integration spacing record](PRISM_INTEGRATION_SPACING_2026_11_07.md) adds
+scoped Games padding/team gaps and keyboard note clearance, retains all original
+behavior checks, and records 18 unique browser passes across focused runs plus
+913 component tests/type/27 strict Node contracts/Brand/build/privacy. Independent review approved parent repair
+`596596f5852d74f703915620584fbd7c4a1fdc2e` without Critical/Important findings.
+Exact-source CI and remaining full-scope ports/release gates remain required. No remaining rollout deployment is claimed.
+## Commissioner capture and busy-action correction — November 7, 2026
+
+Unpublished branch `fix/commissioner-capture-paint-20261107`, implementation
+`1509910334291ab0b096dbe8019fe4314231196d`, refreshes the stale Light referee
+bottom captures and stretches final-dialog busy actions to their approved full
+width. Unchanged-source reproduction and actual pixel inspection found the
+referee cards painted with the final helper; no referee product fix was needed.
+[Evidence and limits](PRISM_COMMISSIONER_CAPTURE_PAINT_FIX_2026_11_07.md) record
+four targeted browser flows, 13 components, 69 Node/PGlite checks, typecheck,
+strict imports/tokens, Brand QA, build/privacy and 232 hashed images (89 refreshed,
+143 retained). Prior footer/form/primary fixes remain. No push, PR, merge,
+deployment or hosted writes; parent review remains pending.
+
+## Commissioner tool fidelity correction — November 7, 2026
+
+Unpublished branch `codex/commissioner-fidelity-fix`, source
+`055e5840fa133e89b23a5bf2e155ce0da7e5e206`, pins each tool's footer, corrects retained
+final-review primary and error typography, and adds five-game compact/full draft
+coverage. [Evidence and limits](PRISM_COMMISSIONER_FIDELITY_FIXES_2026_11_07.md)
+record 11 affected browser flows, 13 components, 69 Node/PGlite tests, typecheck,
+Brand QA, final build/privacy and 227 hashed captures (205 refreshed, 22 retained).
+No API/SQL/provider/controller-save rule changed. No push, PR, merge, migration
+apply or deployment; independent review and integration remain pending.
+
+## Integrated Research data and League/action review closeout — November 7, 2026
+
+Branch `codex/confirmed-prism-shared-2026-11-07`, draft [PR #495](https://github.com/seanbalz/guess-the-line/pull/495),
+now integrates independently reviewed canonical Research chart data and League/
+National Football League action fixes. Source and scenario limits are recorded in
+[the rollout ledger](CONFIRMED_VISUAL_ROLLOUT_2026_11_07.md). Research API changes
+are additive; the hourly workflow can publish new fields after merge before API
+release and old readers tolerate them. No SQL/migration or provider change.
+League actions retain 33 paired, five unverified and five held core scenarios;
+the distinct forfeit account-change branch also lacks its own capture. These
+local integrations do not establish whole-app coverage, merge, hosted API/data
+publication or deployment. Account, EPL, History and Commissioner work continues. Integrated validation
+passed 911 component tests, typecheck, 51 focused data/token Node checks, four
+controller browsers, Brand QA, cloud build and bundle privacy. Earlier PR CI
+found remaining stale-path/keyboard-clearance/wide-font issues; repair and fresh
+exact-source checks remain required before release.
+## History and pick-focused Prism scorecards — November 7, 2026
+
+Exclusive unpublished branch `codex/prism-history-scorecard-2026-11-07` ports the
+confirmed historical-gap, Guess History, Bets/Older History and paired saved
+Guess scorecard directions. Existing readers, owner/reveal boundaries, saved
+references, authoritative points, paper grading and record-only controls remain.
+[Scope, approval provenance and exact verification](PRISM_HISTORY_SCORECARD_NATIVE_2026_11_07.md)
+link 64 native capture hashes and implementation source hashes. 59 Node / 12
+component checks and 10 scoped handler/PGlite browser checks passed; final
+three-test capture and two-test narrow-layout runs passed, with true saved
+Dark/Light preference, 320/390, representative 768/1440 and forced colors.
+Typecheck, Brand QA, cloud build and bundle privacy passed. Independent parent
+review, held shell placement, actual-account/phone/hosted and release gates
+remain open. No push, PR, merge, deployment or migration apply.
+
+Independent review visual fixes are on isolated unpublished branch
+`codex/history-visual-fidelity-fix`, based on `7426e705`. Gap W/L buttons now retain
+semantic ink/borders over the neutral base rule; Older leading icons restore the
+approved glass tile while chevrons stay muted. Three scoped browser checks and
+15 token checks pass, with computed Dark/Light 320/390/768/1440 and forced-color
+coverage. All 64 captures and 21 source hashes were refreshed (30 PNG hashes
+changed); the nine reference hashes remain. Typecheck, Brand QA, cloud build,
+bundle privacy and whitespace checks pass. The linked scope record details the
+neutral-P style probe and limits. Parent re-review and the existing release gates
+remain open; no push, PR, merge, deployment or migration apply.
+
+## League/action list-surface correction — November 7, 2026
+
+Exclusive unpublished branch `codex/fix-reactor-list-surfaces-2026-11-07` applies
+the final focused feed-list review: Picks and Reactors inherit no list backplate
+or extra row gap, and the Reactors separator ends at the actual last list item.
+The selected parent glass card remains visible behind its rows. Existing global
+List defaults, handlers, privacy/reveal rules and storage are unchanged. The
+native browser checks pass at 320/390 in Dark/Light, including hidden-pick
+redaction, two populated reactor rows, separator widths, 44px controls, keyboard,
+overflow, axe and a focused forced-colors separator check. [Capture/source hashes,
+visual review and exact checks](../design/prism-league-actions-native-2026-11-07/evidence.json)
+preserve the 200 unaffected pre-existing images, update the six affected 390px
+images and add six 320px counterparts plus one forced-colors image. No push, PR,
+merge, deployment or hosted acceptance.
+## Account native type and forced colors correction — November 7, 2026
+
+Exclusive unpublished branch `codex/account-type-switch-floors`, based on
+reviewed source `952ad5fca663d8413df05383cebb3f3d55f9ee9c`, fixes the remaining
+primary Account action/reading-size overrides and scoped forced-color
+switch/selected-theme cascade. **11 local browser cases passed, zero skipped**,
+with 254 regenerated native captures across 38 states, including all wide
+representatives. [Exact scope, checks and evidence](PRISM_ACCOUNT_NATIVE_2026_11_07.md#final-review-correction-primary-type-and-forced-colors--november-7-2026)
+retain the prior reviewed fixes and metadata floors. Typecheck, unchanged token
+and auth-bridge contracts, Brand QA, cloud build and bundle privacy pass. Parent
+independent review, CI and release gates remain open; no push, PR or deployment.
+## EPL reading fidelity review fixes — November 7, 2026
+
+Exclusive unpublished branch `codex/prism-epl-reading-fix-20261107` corrects the
+reviewed Moneyline instruction floor and expanded-reveal minus glyph, then audits
+Home/Fantasy and action/recovery prose plus nested tappable labels. Primary
+reading, labels and inputs compute at least 16px; targets retain 44px. Genuine
+source/time/status metadata remains small. **24/24** native browser checks,
+**91/91** focused UI/controller and **68/68** model/Brand checks pass, together
+with typecheck, cloud build, bundle privacy and whitespace checks.
+[Scope, red-to-green proof and limits](PRISM_EPL_NATIVE_2026_11_07.md#reading-fidelity-review-correction--november-7-2026)
+and the [updated manifest](../design/prism-epl-native-2026-11-07/evidence.json)
+record 640 images / 70 states: 410 regenerated affected captures, 230 original
+captures preserved, and all 600 originals additionally archived locally. There
+are 72 versioned representatives. Controllers/scoring/source/privacy and shared
+shell positions are retained. Independent parent re-review is required; no push,
+PR, merge, hosted apply or deployment is claimed.
+
+
+## Premier League and FEPL native Prism — November 7, 2026
+
+Exclusive unpublished branch `codex/prism-epl-visuals-20261107` carries the
+approved area 35–40 native layouts: manager linking, Home/recovery, draft and
+ordered backups, Moneyline, FEPL Fantasy and existing shell notices. Full names,
+individual circular crests, 16px primary reading, 44px targets and actual-theme
+capture guards are implemented without changing controllers/scoring/provider
+logic. [Exact scope, authority and check runs](PRISM_EPL_NATIVE_2026_11_07.md) and
+[600-image state/reference/hash mapping](../design/prism-epl-native-2026-11-07/evidence.json)
+record local evidence; 56 representative images are versioned. Parent independent
+review, shared global-frame clarification, physical-device/hosted acceptance and
+release gates remain open. No push, PR, merge, migration or deployment.
+
+## Research Light capture evidence correction — November 7, 2026
+
+Exclusive unpublished branch `fix/research-light-evidence-20261107` fixes the
+ThemeProvider preference/media race in the affected test matrices and replaces
+the two 390px normal Light captures that review found identical to Dark. Product
+source/layout is unchanged. **3 focused actual-handler/PGlite browser tests
+passed, zero skipped**, including opposite-system/reload theme stability; the
+cloud-test build, Brand QA, all 30 image hashes/dimensions and diff checks passed.
+The other 28 captures remain unchanged. [Exact provenance, checks and hashes](PRISM_RESEARCH_NATIVE_2026_11_07.md#light-capture-correction--november-7-2026)
+preserve the prior verification separately. Independent parent re-review,
+canonical By-season/non-shortlist data, shared frame and hosted/phone/release
+gates remain open. No push, PR, merge or deployment.
+
+## Canonical Research season charts and row curves — November 7, 2026
+
+Unpublished implementation `0bec834d6d21f6dc2ec88d0610b9fdc0b2f1b00b`
+adds exact selected-record NFL season summaries, bounded real previews for all
+permitted rows, and native By-season/detail selection with one lazy read for an
+opened non-shortlist row. [Source, native captures, public-data reproduction and
+release compatibility](RESEARCH_CHART_PAYLOADS_2026_11_07.md) record the scope.
+39 Node / 46 component / eight focused native browser checks, typecheck, Brand
+QA, cloud build and bundle privacy passed. Six actual free public-data assets
+reproduced byte for byte within existing size limits. This resolves the earlier
+canonical prepared-data dependency locally; API/frontend integration and the
+existing hourly public refresh from merged source are still required. No
+push/PR/merge, hosted publication, deployment or phone acceptance is claimed.
+
+## Reviewed Research / Fantasy layout fixes — November 7, 2026
+
+Exclusive unpublished branch `codex/research-visual-fidelity-2026-11-07`
+implements the three independently identified composition gaps: actual observed
+Players browse and addressable usage, full-width historical trend curves with a
+separated sample footer, and compact game overview → actions → Research panels.
+Native source/missing/bye, reveal, paging, comparison, Back/focus and scroll
+controllers remain. [Area scope and evidence](PRISM_RESEARCH_NATIVE_2026_11_07.md#reviewed-layout-fixes--november-7-2026)
+record the exact approval sources and local browser captures. Canonical candidate
+By-season and non-shortlist curves remain backend dependencies; shared frame
+placement remains the parent's owner question. This is local review work, not
+whole-area approval, hosted acceptance, publication or deployment.
+## League/action independent-review fixes — November 7, 2026
+
+Exclusive unpublished branch `codex/league-action-fidelity-fixes-2026-11-07`
+corrects private weekly-versus-season labels, the in-app uncertain sit-out close
+warning, comments canvas rows, contextual League/feed hierarchy and game-bet
+row alignment. Expanded actual-controller capture coverage also exposed and
+fixed keyboard access to the busy Virtual slip's scroll body using its existing
+optional Sheet property. Native source/reference hashes and the full 43-state
+mapping are in [the fidelity fix record](PRISM_LEAGUE_ACTIONS_FIDELITY_FIXES_2026_11_07.md).
+Saved-scope/Menu pairs, the distinct forfeit account-change branch, held shared
+frame placement and finer Virtual stake compatibility remain explicit gaps.
+No push, PR, merge, migration, hosted release or physical-phone acceptance.
+
+## Reviewed Play/Points/Score visual closeout — November 7, 2026
+
+The four reviewed gaps are implemented on exclusive unpublished branch
+`codex/prism-play-score-closeout-2026-11-07`: Points usage-profile card hierarchy,
+glass draft/score controls, score hero/row/game ordering, and the Points opponent
+strip/usage action. The approved League supporting podium now uses the existing
+rank read; native earned-badge counts and moment behavior remain intact.
+[Approval mapping, verification and native capture hashes](PRISM_PLAY_SCORE_NATIVE_2026_11_07.md#native-closeout-of-reviewed-visual-gaps--november-7-2026)
+record the actual scope. All figures use existing permitted source data and
+missing/House states. Header/dock structure remains the separate pending owner
+question; no hosted release or physical-phone acceptance is claimed.
+
+## Confirmed Bets four-item closeout — November 7, 2026
+
+Exclusive branch `codex/prism-bets-closeout-2026-11-07`, over integration
+`3a57e4886ca90e293d89520f255bde128252e652`, closes the four remaining Bets
+composition gaps: actual individual ticket previews/Open/View, permitted retained
+research matchup teaser, full-name team choices with marks, and separate
+receipt → owner actions → numbered history. The [closeout record](PRISM_BETS_CLOSEOUT_2026_11_07.md)
+links sixteen capture hashes and the inspected approval sources. Final-source
+verification: typecheck; 900 Vitest tests; focused accounting/privacy/cache/token
+checks; 25 actual-controller browser checks including account isolation and both
+phone themes/forced colors; cloud build and bundle-only privacy scan. This is
+unpublished local work; no push/PR/merge/deploy, hosted denial probe or physical
+phone acceptance is claimed. Virtual Units precision and the unresolved broader
+frame placement remain as documented.
+
+## Confirmed Bets landing and saved history — November 7, 2026
+
+The missing approved Bets landing hierarchy is now native on exclusive branch
+`codex/confirmed-prism-bets-landing-2026-11-07`: actual owner-only performance,
+Tickets summary and Recommended cards, retaining detailed analytics and every
+existing ticket/recommendation/Virtual controller. Numbered saved history adds
+the omitted before/after source, note and quote/placement fields. Verification
+and both-theme phone capture hashes are recorded with the
+[approval mapping and explicit remaining composition differences](PRISM_BETS_LANDING_2026_11_07.md).
+This is an unpublished local handoff over the first Bets integration slice;
+no hosted release, whole-view parity or physical-phone acceptance is claimed.
+
+## Remaining confirmed Prism visuals — implementation started November 7, 2026
+
+Sean approved the Home spacing mockups and instructed deployment, then asked to
+deploy the remaining confirmed visual updates. The
+[rollout checklist](CONFIRMED_VISUAL_ROLLOUT_2026_11_07.md) records 43 areas and
+268 registered review routes, preserving the held avatar/award/NBA/Signal work.
+Shared theme/material/type/identity source is checked locally at `1e104fdf`:
+32 Node, 58 component, 53 browser and 13 final focused checks passed, with
+typecheck, Brand QA, cloud build and bundle privacy scanning. Independent review
+found no important regressions. Per-area Play/Points/Score and Bets ports are in
+separate owned task checkouts; remaining layouts are not claimed implemented.
+A concrete conflict between approved Home and native-frame navigation layouts
+has one owner question pending; structural changes are held without removing
+existing league switching. Virtual finer-unit entry has a documented API/SQL
+compatibility dependency. **Remaining rollout not merged or deployed.**
+
+## Selected Prism Bets native slice — November 7, 2026
+
+Locally checked on `codex/confirmed-prism-bets-2026-11-07`, over fresh main and
+the shared native foundation. Reviewed receipts, detailed analytics and manual entry/result/
+correction presentation use real controllers; exact terms, cash/units, missing
+sources/times, complete-leg validation and save recovery remain. Custom 0.01U
+tracked saves are compatible; Virtual half-unit writers remain unchanged with
+their concrete dependency recorded in [scope and verification](PRISM_BETS_NATIVE_2026_11_07.md).
+Unpublished area handoff only; no migration, PR, merge, hosted release or full
+redesign/actual-phone acceptance is claimed. Independent review found no blocking
+regression in this slice, but the approved Bets landing summary/chart, Tickets
+and Recommended card composition still needs its native port. Full overview,
+open/parlay, selection and correction/audit visual closeout remains separate.
+
+## Approved Prism native Play, Points and Score — November 7, 2026
+
+Locally implemented in the owned `codex/confirmed-prism-play-score-2026-11-07`
+worktree from fresh main `42a5ad9930a5712c6b357564701fbb5628b12b43`, with the
+shared Prism foundation for QA. [Scope, approval mapping and evidence](PRISM_PLAY_SCORE_NATIVE_2026_11_07.md)
+cover the confirmed overview, draft/confirmation, Points lineup/context and
+score/history arrangements against actual native readers/controllers. Markets,
+final per-game locks, drafts, missing data and reveal/source gates remain native.
+28 existing isolated Play/Points/Score browser regressions passed; focused
+zero/missing/privacy/responsive checks and native fixture captures are recorded.
+Local handoff only: no push/PR, merge, deployment, SQL/API or collector change.
+Held shell positions, whole-app release and physical-phone acceptance are separate.
+Parent review found no new writer/privacy/scoring defect, but selected outlined
+controls, the Points usage profile/opponent strip and score metadata/chart order
+still need their confirmed presentations. This area is not marked complete.
+
+## Prism Research / Games / Trends / Teams / Fantasy — November 7, 2026
+
+Locally checked on `codex/confirmed-prism-research-2026-11-07`; not published,
+merged or deployed. [Scope, native captures and verification](PRISM_RESEARCH_NATIVE_2026_11_07.md)
+map rollout areas 08–13 to real controllers and data, including native graphical
+Games/comparison, searchable Teams, six-period historical rows and Fantasy
+rankings/usage/comparison/accuracy. The canonical candidate By-season array and
+non-shortlist summary curves remain explicit data-projection follow-ups; older
+weekly season charts remain functional. Header/dock placement is unchanged.
+The frozen tracker and other worktrees are preserved.
+
+## Selected Prism shared native foundation — November 7, 2026
+
+Locally checked on `codex/confirmed-prism-shared-2026-11-07`, based on fresh main
+`42a5ad9930a5712c6b357564701fbb5628b12b43`. Shared palette/type, floating cards,
+gloss/outlined primary, native hybrid G and circular team/league identity are
+adapted from the selected review recipes; Home files/tokens are retained.
+[Scope and verification](PRISM_SHARED_NATIVE_2026_11_07.md) records 32 token/brand,
+58 component, 53 shell/UI browser and 13 final focused browser checks, with
+native phone captures. Native-frame and prototype header/dock placements differ;
+structural placement remains held for the parent’s pointed owner question.
+Unpublished local handoff only: no PR, merge, deployment or data/API/SQL change.
+Remaining per-screen compositions and real-phone acceptance are separate work.
+
+## Home spacing review — November 7, 2026
+
+Sean requested better format and spacing after the Home release. A
+[Dark/Light mockup review](../design/home-spacing-review-2026-11-07/README.md)
+initially used unchanged main app source with browser-only layout overrides.
+Sean approved the exact review at `5faead67b9a66091c595168d89bfe21556dec01f`,
+saying **“That looks better. Continue to deploy.”** The balanced layout removes
+compounded gaps, aligns progress/stat/shortcut graphics with text and compacts
+matchup rows. At 390px the same
+fictional fixture is 1,279px tall instead of 1,561px (18.1% shorter).
+Thirty layout cases passed across both themes, native/wider fonts and simulated
+phone insets; 24 keyboard-focus observations cleared the bottom bar. Axe found
+zero violations in either theme, with translucent contrast evaluation incomplete;
+the existing token suite passed 15/15. These are local browser checks, not
+physical-phone acceptance. **Released** from `70c2b85ea7466ca308c8e69006b4ec09888267a7`
+as Pages `6a847959` through protected frontend run
+[42426632652](https://github.com/seanbalz/guess-the-line/actions/runs/42426632652),
+with all 127 production assets verified at 23:47:36 UTC. All 12 exact-main jobs
+passed; the API, workers and migration history stayed unchanged. The first CI's
+loading-height issue was repaired and all 17 Home/layers/scrolling cases passed.
+See the [release record](RELEASE_2026_11_07_HOME_SPACING.md) for hashes and limits.
+The original Home CSS declarations now carry the approved layout, preserving
+Home tokens/fonts, 80px charts, 15px SVG labels, 44px targets, ring animation and
+safe-area/focus behavior. Source data, controllers, privacy and API/database
+behavior are unchanged. Local token/Home model checks passed 54/54 and seven
+Home component suites passed 53/53. Existing Home and scroll/navigation browser
+specs passed 7/7 without skips after a successful cloud-test build, including
+both-theme narrow-screen layout/axe, no-write/privacy, navigation restoration
+and cross-page scrolling/focus checks. No migration was applied for this update.
+
+## Approved Prism Glass Home — November 7, 2026
+
+Sean approved the exact Dark/Light Home mockups and instructed “Good deploy.”
+The implementation is limited to Home, with his separately approved Spread /
+Total selector for season rank and accuracy points. It uses the selected hybrid
+G, floating glass cards, green outlined primary, graphic shortcuts, two game rows,
+individual circular team/league marks and safe generic Community activity.
+Existing picks, locks, reveal/privacy gates and league access remain shared.
+Other pages retain their existing layouts; PR #491 is not part of this release.
+
+Built from fresh main `7604cee25f4182d7c5262217c05f20d84b2994e3` on
+`codex/approved-home-release-2026-11-07`. The [release plan and approval
+record](APPROVED_HOME_RELEASE_2026_11_07.md) names the immutable mockups and hashes.
+Local evidence so far: full Vitest 85 files / 886 tests passed; typecheck passed;
+focused Node contracts passed, including historical-data and image provenance.
+Browser checks cover both themes, 320/390 widths, wider fonts, keyboard focus,
+screen-reader labels, no hidden-pick leaks and restoration of other pages.
+Source review found and fixed Total-market navigation, expired-game counts,
+stale score filters and silently consumed streak moments. All 12 exact-main checks
+passed. **Released** from `4c6e91bba6f95cb20197c39185e91a58ce2b9b66` through
+protected frontend run
+[42400945688](https://github.com/seanbalz/guess-the-line/actions/runs/42400945688):
+Pages `f31193e9`, 127 production asset URLs matched at 18:25:28 UTC. API v50,
+all worker metadata and migration history are unchanged; no SQL was applied.
+See the [release record](RELEASE_2026_11_07_APPROVED_HOME.md) for full hashes,
+pending M-33/M-34/M-35, rollback and verification limits. Signed-in and physical
+iPhone acceptance are separate from these hosted checks.
+
+> **Design-exploration history (merged from PR #488).** The November 4–7 entries below come from the owner-acceptance design branch. Its approved recipes were ported natively and deployed in [the November 8 Prism rollout](RELEASE_2026_11_08_PRISM_ROLLOUT.md); entries below that say pending or not ported are historical.
+
 ## Pick-focused scorecard and deployment roadmap — November 7, 2026
 
 Sean rejected both previous full-pill placements as too empty and explicitly
@@ -4690,3 +5543,79 @@ distinguishes the screenshot-observed Fantasy full-width/gutter defect from Tren
 The UI workflow owns [PR #389](https://github.com/seanbalz/guess-the-line/pull/389), whose source has merged;
 Redraft owns its separate frontend release and physical-phone verification. This moneyline batch includes no formatting fix
 and does not close that acceptance. Shared-shell navigation/phone checks also do not close it.
+
+
+## League and National Football League action composition port — November 7, 2026
+
+Owned unpublished branch `codex/prism-league-actions-20261107` ports the selected
+League standing/board/feed/result/comment hierarchy and scoped native action
+spacing, with real readers/writers and privacy/accounting unchanged. The
+[implementation and limits](PRISM_LEAGUE_ACTIONS_NATIVE_2026_11_07.md) link native
+capture hashes, full-page and scrolled-sheet checks, long names, keyboard
+scrolling, both phone widths/themes and forced colors. The optional read-only
+Sheet-body tab stop fixes keyboard access exposed by the long-thread check.
+The complete 106-action visual matrix, finer Virtual Units compatibility, shared
+header/dock decision, independent review, integration and hosted/phone acceptance
+remain separate work; this entry does not close them or claim deployment.
+## Native Account, access and recovery Prism port — November 7, 2026
+
+Areas 19–28 are implemented locally on the exclusive unpublished branch
+`codex/prism-account-recovery-20261107`, based on integration
+`35ae5fc6c7dfa9d87ff22a3797b11c369a409590` after a fresh `origin/main` fetch.
+The [area record](PRISM_ACCOUNT_NATIVE_2026_11_07.md) maps the approved selected
+review at `3ac2eb50513ba73447ef890e4a47863cde7bdd76` to native cards, graphics,
+forms, sheets and controllers. [Evidence](../design/prism-account-native-2026-11-07/evidence.json)
+contains 190 native capture hashes for 38 states and exact approval-reference
+hashes. Local verification passed 903 Vitest tests, 63 Node/PGlite contracts,
+the strict auth visual-bridge contract, 8 new native browser matrices, 23
+existing controller/provider browser checks and 11 targeted recovery/access/
+keyboard/continuity checks; typecheck, Brand QA, cloud build and bundle-only
+privacy scan passed. The separately known baseline Bets boundary/loading failures
+remain assigned to the integration owner; this entry does not claim full CI.
+
+Actual Profile/settings/version checks, device reminder permission/subscription,
+owner-only export, provider/recovery/name handling, and private league create/
+join/invite/access/retention gates remain operational. The selected generic
+public app invitation now uses explicit native sharing/copy and manual fallback
+without account, recipient or league payload fields. The auth entry imports only
+the three documented selected visual assets/styles; the boundary remains strict
+for all other imports. Shared header/dock structure is held, Community/FEPL access
+remains, and History/scorecard, new avatars/awards, NBA/Signal, API/SQL/provider and
+hosted data are outside this work. No push, PR, merge, migration, deployment or
+physical-phone acceptance is claimed; the task worktree is preserved for review.
+
+
+## Account Prism review correction — November 7, 2026
+
+Local fix on exclusive `fix/prism-account-visual-fidelity`, from integration
+`b5dea82d89029f644f504e436b610b215f7ea939` plus Account dependency
+`8cc6f349afa88cce4777446f2e347d67bddd3182`; parent independent review remains open.
+The [area correction](PRISM_ACCOUNT_NATIVE_2026_11_07.md#review-correction-actual-themes-and-scoped-cascade--november-7-2026)
+explains why direct dataset captures left preference/legacy variables stale.
+The [corrected evidence](../design/prism-account-native-2026-11-07/evidence.json)
+supersedes the original 190 captures and adds 64 category-wide captures: 254
+images, 38 states, actual themes, 320/390px phone checks and 768/1440px
+representatives. Scoped Account/Switcher backplates and auth cascade collisions
+are corrected; Guidance now uses approved topic icons and actual-source hints.
+All original guidance copy/links and auth/provider/profile/export/push/invite
+controllers remain. Native type floors are retained: 13px sentence-case meta,
+16px explicit reading/actions/inputs; gx-auth aliases and explicit font weights
+satisfy all 15 unchanged native-token checks and the strict auth bridge. Fresh nine-matrix browser, 68-component and 51-Node checks,
+typecheck and Brand QA passed. The existing Google/Profile suite passed 14
+cases (23 unique browser cases overall), followed by successful cloud build
+and bundle-only privacy verification; evidence is in the manifest. No hosted, phone, full-app or release acceptance, push, PR,
+merge or deploy. Shared-frame placement and the held exploration areas remain
+separate. Prior dependency checks above are historical, not rerun totals.
+
+
+## Commissioner native Prism layouts — November 7, 2026
+
+Local branch `codex/prism-commissioner-2026-11-07` ports rollout areas 29–34:
+member access decisions, weekly operations, referee drafts, final-score review,
+count-only odds controls and read-only Premier League correction comparisons.
+[Scope, safeguards, checks and limitations](PRISM_COMMISSIONER_NATIVE_2026_11_07.md)
+link the source/capture hashes and native controller-state evidence. Existing
+authorization, concurrency/readback, free-quota, schedule/source and grading
+gates remain; the busy final dialog also retains keyboard scrolling while its
+actions are disabled. Independent review/integration and physical-phone/hosted
+acceptance remain separate. No push, PR, merge, deployment or migration apply.

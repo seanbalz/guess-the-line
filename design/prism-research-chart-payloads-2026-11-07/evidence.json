@@ -1,0 +1,336 @@
+{
+  "implementationCommit": "0bec834d6d21f6dc2ec88d0610b9fdc0b2f1b00b",
+  "base": "2ef9ca46b462f2217c3fcb4b35b447b7ab7346c9",
+  "branch": "codex/research-chart-payloads-20261107",
+  "authority": "3ac2eb50513ba73447ef890e4a47863cde7bdd76 selected-system-review/populated-trends; rollout items 08/10",
+  "state": "Local source and controlled native browser verification only; unpublished; no hosted data publication, deployment or actual-phone acceptance",
+  "checks": {
+    "nodeTests": 39,
+    "componentTests": 46,
+    "nativeBrowserTests": 8,
+    "typecheck": "passed",
+    "brandQa": "passed",
+    "cloudBuild": "passed",
+    "cloudBundlePrivacy": "passed",
+    "whitespace": "passed"
+  },
+  "browserSource": {
+    "publicHistorySha256": "d41ad4312a9c5598628db2308acc04ca8f78d1d74547669cd47e2284fbfe7424",
+    "controlledCsvSha256": "a9fa55eef05274ef08c72ef626a0e9d5e5edcf2ffaf49534659571604c20bb98",
+    "publicRows": 1424,
+    "fixtureTargets": 2,
+    "generatedAt": "2026-11-08T01:13:15.884Z",
+    "candidateId": "research-2026-10-21-v1:total|any:t_body_early:A",
+    "rows": [
+      {
+        "season": 2021,
+        "sample": 24,
+        "wins": 10,
+        "losses": 14,
+        "pushes": 0,
+        "illustrativeUnits": -4.9091,
+        "actualUnits": -4.7577,
+        "priceCoverage": {
+          "priced": 24,
+          "total": 24,
+          "complete": true
+        }
+      },
+      {
+        "season": 2022,
+        "sample": 17,
+        "wins": 9,
+        "losses": 8,
+        "pushes": 0,
+        "illustrativeUnits": 0.1818,
+        "actualUnits": 0.6981,
+        "priceCoverage": {
+          "priced": 17,
+          "total": 17,
+          "complete": true
+        }
+      },
+      {
+        "season": 2023,
+        "sample": 28,
+        "wins": 9,
+        "losses": 18,
+        "pushes": 1,
+        "illustrativeUnits": -9.8182,
+        "actualUnits": -9.8902,
+        "priceCoverage": {
+          "priced": 28,
+          "total": 28,
+          "complete": true
+        }
+      },
+      {
+        "season": 2024,
+        "sample": 25,
+        "wins": 12,
+        "losses": 12,
+        "pushes": 1,
+        "illustrativeUnits": -1.0909,
+        "actualUnits": -1.1611,
+        "priceCoverage": {
+          "priced": 25,
+          "total": 25,
+          "complete": true
+        }
+      },
+      {
+        "season": 2025,
+        "sample": 32,
+        "wins": 16,
+        "losses": 16,
+        "pushes": 0,
+        "illustrativeUnits": -1.4545,
+        "actualUnits": -1.4122,
+        "priceCoverage": {
+          "priced": 32,
+          "total": 32,
+          "complete": true
+        }
+      }
+    ],
+    "fullBins": 42,
+    "rowBins": 11,
+    "detailReads": 1,
+    "publicHistory": "Unmodified committed nflverse 2021–2025 completed rows, CC BY 4.0",
+    "fixtures": "Only the future slate, accounts and current reference are fixtures; historical chart records and returns are actual public rows",
+    "themeVerification": "gtl.theme preference + storage event, resolved html theme and computed --gx-text-1 asserted for each capture",
+    "captureNotes": "320/390px full-page collapsed lists show all 12 rows; fixed bars appear at the capture viewport position. Open charts/tables are native 390px viewport captures. No physical-phone claim."
+  },
+  "captures": [
+    {
+      "file": "public-line-dark.png",
+      "bytes": 121960,
+      "sha256": "88819450b6bbd1d50b1bbe188f8dd7f48fa8fad549b3572ff178aeebf62dbe64"
+    },
+    {
+      "file": "public-line-light.png",
+      "bytes": 113657,
+      "sha256": "7cdb00554a69d6a144cce5478ed88750ca424f5455dab65389e1c7d77b30e701"
+    },
+    {
+      "file": "public-rows-320-dark.png",
+      "bytes": 531066,
+      "sha256": "788372200df6719e037751a2672aff004adef5cee8688e1932a8c5f3524d3ed9"
+    },
+    {
+      "file": "public-rows-320-light.png",
+      "bytes": 584759,
+      "sha256": "0fd68acbcc7ac207d1e3fe5bc5b6071e100bbc36440ad17bc49897e7a95aec94"
+    },
+    {
+      "file": "public-rows-390-dark.png",
+      "bytes": 547220,
+      "sha256": "dbbf6388f55e865ce810a2c91e17676497c1937eb1a479b5616218c5d2369478"
+    },
+    {
+      "file": "public-rows-390-light.png",
+      "bytes": 601613,
+      "sha256": "99992588863a37bf7fe06bca55556d26dd74fa20cb8e5d1404caa5529169ee8c"
+    },
+    {
+      "file": "public-season-table-dark.png",
+      "bytes": 112641,
+      "sha256": "7e3c64fa6e1c7629eb3787efa0cc9b4805cca52e0394e6d930d3d06d2dbf1243"
+    },
+    {
+      "file": "public-season-table-light.png",
+      "bytes": 110103,
+      "sha256": "3529f7663d36c676359b9e5ef34972f35d40c79405e4fb4abba915a22f16bf13"
+    },
+    {
+      "file": "public-seasons-dark.png",
+      "bytes": 107003,
+      "sha256": "d4c6043f48b1ba24585e7106a647c082f4b96bb87c867cd9882c1719b9db018d"
+    },
+    {
+      "file": "public-seasons-light.png",
+      "bytes": 109991,
+      "sha256": "6de85e9c901ce6503c31e954283f1da2b0a4db72f1f97346ed1ba59ab78fcaa6"
+    }
+  ],
+  "offlinePublicData": {
+    "now": "2026-11-07T20:00:00.000Z",
+    "source": {
+      "sha256": "b7e2fb72f522f31f0b2b624a14fd03e2941927975373a5f3790d6947058d5122",
+      "completedSha256": "b0049b9428c3bfc8d59cdd1b3a608740c34853f00477e3c62e65a75dfec2fb18",
+      "scheduleSha256": "98dc3a367da7d0e93b13ca5a7b05469edda9cd1421ab6012778066d07a8d0c84",
+      "rowCount": 7548,
+      "latestCompleted": "2026-11-05",
+      "finalAvailability": "Noon UTC following the schedule date; exact final observation times are unavailable."
+    },
+    "candidates": 750,
+    "moduleBytes": 2939726,
+    "sizes": [
+      {
+        "period": "recent30",
+        "packed": 555714,
+        "decoded": 9653700,
+        "sha256": "40e0f249b1a06a3f2fe5c9159ad1ebdd6c9d3aee88a83cf48b1e2599dcafd3f6"
+      },
+      {
+        "period": "recent25",
+        "packed": 502330,
+        "decoded": 9031347,
+        "sha256": "90214d62b7143a1eb3144e532daf40ef85638fc87c837a8c896bf8dd72d056d6"
+      },
+      {
+        "period": "season",
+        "packed": 421904,
+        "decoded": 7955019,
+        "sha256": "d72cb267ae154a7ce4661a27b6370c0dcdbde5f372f98dbe40fc3cf52bcb54af"
+      },
+      {
+        "period": "previousSeason",
+        "packed": 565788,
+        "decoded": 9240243,
+        "sha256": "b621c2a84f50f97406513a3e0273e51ee91001b46cbcfaafe7186f171b1d69fb"
+      },
+      {
+        "period": "rolling12",
+        "packed": 567414,
+        "decoded": 9276588,
+        "sha256": "413758d47965ba74b9368f92c95ed9a9a2c12b46d00304fef9e986be1eb25b16"
+      },
+      {
+        "period": "all",
+        "packed": 1018022,
+        "decoded": 14126823,
+        "sha256": "bc36495e0b3e3e6fc7fd3bce8d3b9dfda308a841edd4cae705d503d6195b4c65"
+      }
+    ],
+    "moduleSha256": "4ef1c0a6bde975e8bc7711a6810afa53a4f6be47e18627a42ddc8b9328b76c00",
+    "moduleReproduced": true,
+    "indexSha256": "a7294472b8a1f5edd83674f1cb242f092e506b4b3d5cfd4bd8ddea1503e01b09",
+    "indexReproduced": true,
+    "release": {
+      "season": 2026,
+      "generatedAt": "2026-11-07T20:00:00.000Z",
+      "latestCompleted": "2026-11-05",
+      "completedGames": 122,
+      "candidates": 750,
+      "qualifyingTrends": 6,
+      "statisticMatchups": 272,
+      "pbpGames": 122,
+      "sourceSha256": "b7e2fb72f522f31f0b2b624a14fd03e2941927975373a5f3790d6947058d5122",
+      "pbpSha256": "c42cd6d6a86c4be337aaa1185176e8904cba8407eacbdbf21afab341a82b77e5"
+    },
+    "assets": [
+      {
+        "period": "recent30",
+        "file": "recent30-939db1e2b55d60da44fbf15c8bbbe08c170bf48c128f988f203282f7e6f4b58a.json.gz",
+        "bytes": 588452,
+        "sha256": "939db1e2b55d60da44fbf15c8bbbe08c170bf48c128f988f203282f7e6f4b58a",
+        "decodedBytes": 10511608,
+        "exactReproduction": true
+      },
+      {
+        "period": "recent25",
+        "file": "recent25-d57279a00bb10274addda95e6047d60e5a64711b7aee9c8f5e0b5e437a74847b.json.gz",
+        "bytes": 534658,
+        "sha256": "d57279a00bb10274addda95e6047d60e5a64711b7aee9c8f5e0b5e437a74847b",
+        "decodedBytes": 9889255,
+        "exactReproduction": true
+      },
+      {
+        "period": "season",
+        "file": "season-2a7d002cd74fff7a12af4573a8353a00d97a2ad96df2599f292217d97ff8e60a.json.gz",
+        "bytes": 454776,
+        "sha256": "2a7d002cd74fff7a12af4573a8353a00d97a2ad96df2599f292217d97ff8e60a",
+        "decodedBytes": 8812927,
+        "exactReproduction": true
+      },
+      {
+        "period": "previousSeason",
+        "file": "previousSeason-2f44156a979d036ddf9d578959f3681506cfa51b7dd02a2ed08588f89c0cc53c.json.gz",
+        "bytes": 598734,
+        "sha256": "2f44156a979d036ddf9d578959f3681506cfa51b7dd02a2ed08588f89c0cc53c",
+        "decodedBytes": 10098151,
+        "exactReproduction": true
+      },
+      {
+        "period": "rolling12",
+        "file": "rolling12-cbeacba2a746712f0c4e3784a5146b69daaf4c0af47ddfd82bc5f6828e053a22.json.gz",
+        "bytes": 600348,
+        "sha256": "cbeacba2a746712f0c4e3784a5146b69daaf4c0af47ddfd82bc5f6828e053a22",
+        "decodedBytes": 10134496,
+        "exactReproduction": true
+      },
+      {
+        "period": "all",
+        "file": "all-2a95407badc7b1ce88221b3ef2be567043c29d889b0f985c48dfabd6c860c616.json.gz",
+        "bytes": 1050801,
+        "sha256": "2a95407badc7b1ce88221b3ef2be567043c29d889b0f985c48dfabd6c860c616",
+        "decodedBytes": 14984731,
+        "exactReproduction": true
+      }
+    ]
+  },
+  "projectionBudget": {
+    "week": 9,
+    "games": 14,
+    "quoteValues": "Unavailable; no fabricated current quotes",
+    "rows": [
+      {
+        "period": "recent30",
+        "candidates": 320,
+        "rowCurves": 320,
+        "fullSeries": 1,
+        "bytes": 1193151,
+        "milliseconds": 162.52
+      },
+      {
+        "period": "recent25",
+        "candidates": 320,
+        "rowCurves": 320,
+        "fullSeries": 1,
+        "bytes": 1138730,
+        "milliseconds": 49.13
+      },
+      {
+        "period": "season",
+        "candidates": 320,
+        "rowCurves": 320,
+        "fullSeries": 1,
+        "bytes": 1142474,
+        "milliseconds": 37.71
+      },
+      {
+        "period": "previousSeason",
+        "candidates": 320,
+        "rowCurves": 320,
+        "fullSeries": 1,
+        "bytes": 1219258,
+        "milliseconds": 41.38
+      },
+      {
+        "period": "rolling12",
+        "candidates": 320,
+        "rowCurves": 320,
+        "fullSeries": 1,
+        "bytes": 1217355,
+        "milliseconds": 37.59
+      },
+      {
+        "period": "all",
+        "candidates": 320,
+        "rowCurves": 320,
+        "fullSeries": 1,
+        "bytes": 1311865,
+        "milliseconds": 40.42
+      }
+    ]
+  },
+  "limits": {
+    "packedBytes": 3500000,
+    "decodedBytes": 24000000,
+    "rowBins": 12,
+    "fullBins": 48,
+    "seasonRows": 100
+  },
+  "releaseOrder": "Compatible API first, frontend second; existing hourly public research refresh must run from merged source to add exact season arrays. Old/new API, reader and asset combinations stay readable with explicit missing season state. No migration, version or provider-budget change."
+}

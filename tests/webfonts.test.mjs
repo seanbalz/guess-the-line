@@ -42,7 +42,7 @@ test('the font tokens keep the brand guide system fallbacks behind each webfont'
   assert.match(fonts.mono, /^IBM Plex Mono, ui-monospace, SFMono-Regular, monospace$/);
 });
 
-test('the new app (D-38) loads Figtree, Big Shoulders Display and Barlow Condensed from Google Fonts with display=swap', () => {
+test('the Prism app loads only its Inter fallback from the existing Google Fonts origin with display=swap', () => {
   const tokens = JSON.parse(read('design/tokens-next.json'));
   assert.equal(NEXT_FONT_STYLESHEET, tokens.webfonts.stylesheet, 'fonts.js and tokens-next.json name the same stylesheet');
   assert.equal(NEXT_FONT_ORIGIN, tokens.webfonts.preconnect);
@@ -54,7 +54,7 @@ test('the new app (D-38) loads Figtree, Big Shoulders Display and Barlow Condens
     assert.match(axes, /^wght@\d{3}(;\d{3})*$/, `${family} asks for static weights only`);
     return [family, axes.slice('wght@'.length).split(';').map(Number)];
   }));
-  assert.deepEqual(Object.keys(weights).sort(), ['Barlow Condensed', 'Big Shoulders Display', 'Figtree']);
+  assert.deepEqual(Object.keys(weights).sort(), ['Inter']);
   assert.deepEqual(weights, tokens.webfonts.weights);
   assert.equal(url.searchParams.get('display'), 'swap');
   assert.equal(NEXT_FONT_ORIGIN, 'https://fonts.gstatic.com');

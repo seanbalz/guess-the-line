@@ -62,10 +62,21 @@ describe('the report card as tiles and rows', () => {
     const html = render({ fantasyLayer: 'report' });
     const report = nodes(html).find(n => n.attrs?.['aria-label'] === `Week ${review.week} accuracy`);
     const headings = [...walk(report)].filter(n => /^h[1-6]$/.test(n.tag ?? '')).map(n => `${n.tag} ${textOf(n)}`);
-    expect(headings).toEqual(['h3 Off by, by position', 'h3 Estimated too high', 'h3 Estimated too low']);
+    expect(headings).toEqual(['h3 Off by, by position', 'h3 Estimated too high', 'h3 Estimated too low', 'h3 GTL vs season average']);
     const outline = nodes(html).filter(n => /^h[1-6]$/.test(n.tag ?? '')).map(n => Number(n.tag[1]));
     outline.forEach((level, i) => { if (i) expect(level - outline[i - 1], `heading ${i} skips a level`).toBeLessThanOrEqual(1); });
     expect(nodes(html).filter(n => n.tag === 'summary').flatMap(n => [...walk(n)]).filter(n => /^h[1-6]$/.test(n.tag ?? ''))).toEqual([]);
+  });
+  it('paired error bars compare the same sourced players on a shared zero-based scale and omit missing baselines', () => {
+    state.value = ready(USAGE);
+    const html = render({ fantasyLayer: 'report' });
+    const model = reportModel(review, DEFAULT_FILTERS, 'Full PPR');
+    const paired = summarizeReview(review, DEFAULT_FILTERS).byPosition.filter(p => Number.isFinite(p.pairedMae) && Number.isFinite(p.baselineMae));
+    expect(model.positions.filter(p => Number.isFinite(p.pairedMae) && Number.isFinite(p.baselineMae)).map(p => [p.position, p.pairedMae, p.baselineMae])).toEqual(paired.map(p => [p.position, p.pairedMae, p.baselineMae]));
+    expect(nodes(html).filter(n => n.attrs?.['data-error-position']).map(n => n.attrs['data-error-position'])).toEqual(paired.map(p => p.position));
+    expect(nodes(html).filter(n => n.attrs?.['data-method'] === 'GTL')).toHaveLength(paired.length);
+    expect(nodes(html).filter(n => n.attrs?.['data-method'] === 'Season average')).toHaveLength(paired.length);
+    expect(html).toContain('Same players with a baseline');
   });
   it('the rankings card’s report tile shows the miss in points; with nothing graded, the status', () => {
     state.value = ready(USAGE);

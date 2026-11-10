@@ -1,3 +1,4 @@
+import { captureEpl } from './epl-prism-capture.mjs';
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { createEplService } from '../../cloud/epl.mjs';
@@ -162,7 +163,12 @@ test('moneyline screen steps across even odds and recovers a committed lock with
     await expect(price).toBeVisible();
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
-    await page.getByRole('button', { name: 'ARS', exact: true }).click();
+    await page.getByRole('button', { name: 'Arsenal', exact: true }).click();
+    await price.fill('-105');
+    await captureEpl(page,'moneyline-entry','epl-moneyline-entry',{representative:true,forced:true});
+    await price.fill('99');
+    await expect(page.getByText(/Enter a whole American price of at least/)).toBeVisible();
+    await captureEpl(page,'moneyline-price-help','epl-moneyline-entry validation guidance',{forced:true});
     await price.fill('-105');
     await page.getByRole('button', { name: 'Increase price by 5', exact: true }).click();
     await expect(price).toHaveValue('100');
@@ -170,12 +176,14 @@ test('moneyline screen steps across even odds and recovers a committed lock with
     await expect(price).toHaveValue('105');
     await page.getByRole('button', { name: 'Save draft', exact: true }).click();
     await expect.poll(async () => (await world.db.query("select price from public.gtl_epl_guesses where event_id='flow-ars-che'")).rows[0]?.price).toBe(105);
+    await captureEpl(page,'moneyline-saved-draft','epl-moneyline-saved-draft');
     world.controls.dropNextSaveReply = true;
     world.controls.blockGuessReads = true;
     await page.getByRole('button', { name: 'Lock in', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Check saved guesses', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Entry paused', exact: true })).toBeDisabled();
     expect(world.calls.filter(c => c.path === 'epl/guess/save' && c.body.lock)).toHaveLength(1);
+    await captureEpl(page,'moneyline-uncertain','epl-moneyline-uncertain');
     world.controls.blockGuessReads = false;
     await page.getByRole('button', { name: 'Check saved guesses', exact: true }).click();
     await expect(page.getByRole('img', { name: '1 of 3 matches locked', exact: true })).toBeVisible();
@@ -184,6 +192,7 @@ test('moneyline screen steps across even odds and recovers a committed lock with
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({ path: '.local/epl-moneyline-flow-390-dark.png', fullPage: true });
+    await captureEpl(page,'moneyline-results','epl-moneyline-results',{forced:true});
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });
@@ -200,7 +209,7 @@ test('switching from a linked manager to an unlinked account clears saved moneyl
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
     await expect(page.getByLabel('Your moneyline price', { exact: true })).toBeVisible();
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
-    await page.getByRole('button', { name: 'ARS', exact: true }).click();
+    await page.getByRole('button', { name: 'Arsenal', exact: true }).click();
     await page.getByLabel('Your moneyline price', { exact: true }).fill('-133');
     await page.getByRole('button', { name: 'Save draft', exact: true }).click();
     await expect(page.getByText('Draft saved.', { exact: true })).toBeVisible();
@@ -211,6 +220,7 @@ test('switching from a linked manager to an unlinked account clears saved moneyl
     await expect(page.getByText('You’re viewing read-only. Link an FEPL manager in Pick a Team to enter guesses.', { exact: true })).toBeVisible();
     await expect(page.getByLabel('Your moneyline price', { exact: true })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Lock in', exact: true })).toHaveCount(0);
+    await captureEpl(page,'moneyline-read-only','epl-moneyline-read-only');
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
@@ -229,12 +239,13 @@ test('kickoff between opening the card and submitting retains the unsaved browse
   try {
     await page.goto('/#epl/play/guess');
     await signIn(page, 'troy', { navigate: false });
-    await page.getByRole('button', { name: 'ARS', exact: true }).click();
+    await page.getByRole('button', { name: 'Arsenal', exact: true }).click();
     await page.getByLabel('Your moneyline price', { exact: true }).fill('-137');
     await world.db.exec("update public.gtl_epl_fixtures set commence_time=now()-interval '1 minute' where event_id='flow-ars-che'");
     await page.getByRole('button', { name: 'Lock in', exact: true }).click();
     await expect(page.getByText("This match has kicked off. Your draft wasn't locked.", { exact: true })).toBeVisible();
-    await expect(page.getByText(/Your unsaved draft: ARS.*137/)).toBeVisible();
+    await expect(page.getByText(/Your unsaved draft: Arsenal.*137/)).toBeVisible();
+    await captureEpl(page,'moneyline-closed','epl-moneyline-closed');
     expect((await world.db.query("select count(*)::int n from public.gtl_epl_guesses where event_id='flow-ars-che'")).rows[0].n).toBe(0);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
@@ -283,6 +294,7 @@ test('EPL Home links to moneyline entry with only the signed-in manager’s lock
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     await page.screenshot({ path: '.local/epl-moneyline-home-390-dark.png', fullPage: true });
+    await captureEpl(page,'home-moneyline-progress','epl-home-turn',{representative:true});
     await page.evaluate(() => localStorage.setItem('gtl.theme', 'light'));
     await page.setViewportSize({ width: 320, height: 844 });
     await page.reload();
@@ -298,6 +310,49 @@ test('EPL Home links to moneyline entry with only the signed-in manager’s lock
     await shortcut.click();
     await expect(page).toHaveURL(/#epl\/play\/guess$/);
     await expect(page.getByText('1 of 3 locked', { exact: true })).toBeVisible();
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('Prism native moneyline results distinguish scored, pending and unscored and expand permitted guesses',async({page,baseURL})=>{
+ test.skip(!pgliteAvailable,'Disposable PGlite required.');test.setTimeout(90000);
+ const world=await fixture(page,baseURL);
+ try{
+  expect((await world.api('troy','guess/save',{eventId:'flow-ars-che',club:'ARS',price:-125,lock:true})).status).toBe(200);
+  expect((await world.api('sean','guess/save',{eventId:'flow-ars-che',club:'CHE',price:120,lock:true})).status).toBe(200);
+  await world.db.exec("update public.gtl_odds_budget set conservative_remaining=50 where provider='the-odds-api'");
+  for(const [eventId,club] of [['flow-liv-eve','LIV'],['flow-tot-ful','TOT']])expect((await world.api('troy','guess/save',{eventId,club,price:-120,lock:true})).body.state).toBe('pending');
+  await world.db.exec("update public.gtl_epl_fixtures set commence_time=now()-interval '1 minute' where event_id='flow-tot-ful'");
+  await page.goto('/#epl/play/guess');await signIn(page,'troy',{navigate:false});
+  await expect(page.getByText('No line before kickoff · unscored, excluded from average',{exact:true})).toBeVisible();
+  await expect(page.getByText('Reference pending · first qualifying price before kickoff will count',{exact:true})).toBeVisible();
+  await captureEpl(page,'moneyline-results-all-statuses','epl-moneyline-results');
+  await page.getByText('Revealed guesses · 1',{exact:true}).click();
+  await expect(page.locator('.gx-epl-guess-card details[open] > summary')).toHaveCount(1);
+  await expect(page.locator('.gx-epl-revealed')).toBeVisible();
+  await expect(page.locator('.gx-epl-revealed')).toContainText('Chelsea');
+  await captureEpl(page,'moneyline-results-revealed','epl-moneyline-results-revealed',{forced:true});
+  expect(world.errors).toEqual([]);
+ }finally{await world.db.close();}
+});
+
+test('EPL Home keeps moneyline recovery explanations readable while Pick a Team remains available', async ({ page, baseURL }) => {
+  test.skip(!pgliteAvailable, 'Disposable PGlite required.'); test.setTimeout(90000);
+  const world = await fixture(page, baseURL);
+  let mode = 'failed';
+  const read = (await world.api('troy', 'guess/read')).body;
+  await page.route('**/functions/v1/gtl-api/epl/guess/read', route => route.fulfill({
+    status: mode === 'failed' ? 503 : 200, contentType: 'application/json',
+    body: JSON.stringify(mode === 'failed' ? { error: 'Synthetic progress failure' } : { ...read, available: false, reason: 'prices_not_verified' }),
+  }));
+  try {
+    await page.goto('/#epl/home'); await signIn(page, 'troy', { navigate: false });
+    await expect(page.getByText('Moneyline progress is unavailable. Pick a Team is still available above.', { exact: true })).toBeVisible();
+    await captureEpl(page, 'home-moneyline-failed', 'epl-home-turn moneyline recovery', { representative: true, forced: true });
+    mode = 'unavailable'; await page.reload();
+    await expect(page.getByText('Moneyline guessing isn’t available this week.', { exact: true })).toBeVisible();
+    await captureEpl(page, 'home-moneyline-unavailable', 'epl-home-turn moneyline unavailable', { forced: true });
+    await expect(page.getByRole('button', { name: /^(Open Pick a Team|Make your pick)$/ })).toBeEnabled();
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
 });

@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { markupProblems, matchups, nameFrom, parseMarkup, walk } from './helpers/ui-markup.mjs';
 import { teamMarks } from '../web/src/teamLogoRegistry.js';
 vi.mock('../web/src/api.js', () => ({ linesApi: vi.fn() }));
-const { ResearchCards, ResearchLeans, ResearchSources, ResearchStatus, researchLine } = await import('../web/src/next/research/ResearchCards.jsx');
+const { ResearchCards, ResearchLeans, ResearchSources, ResearchStatus, researchLine, researchSeasons } = await import('../web/src/next/research/ResearchCards.jsx');
 const { default: ResearchChart } = await import('../web/src/next/research/ResearchChart.jsx');
 const { researchExpiry, researchRefreshDue, withoutExpiredLeans } = await import('../web/src/next/research/useResearch.js');
 const record = { wins: 20, losses: 9, pushes: 1, sample: 30, coverage: { from: '2025-01-01', to: '2026-10-20' } };
@@ -12,6 +12,22 @@ const now = '2026-10-21T12:00:00Z';
 const game = { id: 'SEA-DEN', kickoff: '2026-10-22T12:00:00Z', spread: { visible: true, ownGuess: -4, savedReference: { value: -3, source: 'Synthetic', observedAt: now }, currentReference: { value: -2, source: 'Synthetic', observedAt: now }, guessGap: { value: 2, label: 'Difference from your expected market line' }, lean: { state: 'lean', direction: 'home', reasons: [], groups: [{ id: 'g1', role: 'supporting', memberIds: ['a'] },{ id: 'g4', role: 'alternative', memberIds: ['fourth'] }] } }, total: { visible: false } };
 const data = { now, shortlist: ['a','b','c'], candidates, games: [game] };
 const render = el => renderToStaticMarkup(<div className="gx">{el}</div>);
+
+it('uses exact prepared season rows and keeps row previews out of selectable full-detail evidence', () => {
+  const c = { ...candidates[0], period: 'recent30', record: { ...record, illustrativeUnits: 9.18 },
+    perSeason: [{ season: 2024, sample: 4, wins: 2, losses: 1, pushes: 1, illustrativeUnits: 0.8182, actualUnits: null, priceCoverage: { priced: 0, total: 4, complete: false } },
+      { season: 2025, sample: 26, wins: 18, losses: 8, pushes: 0, illustrativeUnits: 8.3636, actualUnits: null, priceCoverage: { priced: 0, total: 26, complete: false } }] };
+  expect(researchSeasons(c).rows).toEqual([{ season: 2024, w: 2, l: 1, p: 1, units: 0.8182 }, { season: 2025, w: 18, l: 8, p: 0, units: 8.3636 }]);
+  expect(researchSeasons(c).caption).toContain('Illustrative units at -110');
+  const html = render(<ResearchCards data={{ ...data, candidates: [c] }} ids={[c.id]}/>);
+  expect(html).toContain('By season'); expect(html).not.toContain('Season summaries unavailable');
+  expect(researchSeasons(candidates[0])).toBeNull();
+  expect(researchSeasons({ ...c, perSeason: [] })).toBeNull();
+  const summaryOnly = { ...c, series: undefined, rowSeries: c.series };
+  expect(researchLine(summaryOnly)).toBeNull();
+  const collapsed = render(<ResearchCards data={{ ...data, candidates: [summaryOnly] }} ids={[c.id]} openFirst={false}/>);
+  expect(collapsed).toContain('gx-tc-mini'); expect(collapsed).not.toContain('type="range"');
+});
 describe('shared research presentation', () => {
   it('caps the shared shortlist and labels canonical consistency separately', () => {
     const html = render(<ResearchCards data={data} ids={['a','b','c','fourth']} limit={3}/>);

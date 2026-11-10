@@ -31,6 +31,7 @@ export const FEATURES = Object.freeze({
   reactions: 'POST /league/react: emoji reactions on feed posts (M-21, redesign stage 61); the old heart (/community/like) keeps working',
   feed: 'POST /league/feed, /league/comments, /league/reactors and /league/share-result: the league feed reader and result sharing (M-22, redesign stage 62); the new app then shows /community/read',
   features: 'POST /league/features/run: the commissioner’s run of the badges, awards and streaks job (M-25, redesign stage 69); POST /league/features keeps reading',
+  'player-props': 'POST /props/draft and /props/lock: D-82 Player Props draft saves and lock-ins; /props/read and /props/history keep working',
 });
 
 /** The set of known feature names the secret turns off (empty when it is unset or names nothing known). */

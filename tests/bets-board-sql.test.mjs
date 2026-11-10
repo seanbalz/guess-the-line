@@ -72,7 +72,7 @@ test('board and season: parity, order, roster filter, who, refusals, no terms, s
       const picks = (await db.query('select status,selection,result from public.gtl_virtual_units_picks where user_id=$1 and season=$2 and week=$3', [row.userId, season, w])).rows;
       const { roi, qualified, ...sums } = weekFromPicks(picks);
       const { userId, ...fromSql } = row;
-      assert.deepEqual(Object.fromEntries(Object.entries(fromSql).map(([k, v]) => [k, Math.round(Number(v) * 100) / 100])), sums, `week ${w} ${userId}`);
+      assert.deepEqual(Object.fromEntries(Object.entries(fromSql).map(([k, v]) => [k, Number(v)])), sums, `week ${w} ${userId}`);
     }
   }
 
@@ -110,6 +110,54 @@ test('board and season: parity, order, roster filter, who, refusals, no terms, s
 
   for (const [route, body] of [['bets/board', { season }], ['bets/board', { extra: 1 }], ['bets/season', { season: 1999 }], ['bets/season', { who: 'not-a-uuid' }], ['bets/season', { week }]])
     assert.equal((await world.api('luke', route, body)).status, 400, `${route} ${JSON.stringify(body)}`);
+});
+
+test('saved fractional results survive SQL, API week/season reads and private roster projection without changing stored rows', { skip }, async t => {
+  const world = await createCommunityWorld({ migrations: ALL, games: 2, troyBallots: false });
+  t.after(() => world.db.close());
+  const { db } = world, sql = serviceSql(db), { season, week } = await seed(world);
+  // Local reader fixtures, not new writer permissions: the current entry controls still use half units.
+  await db.query("update public.gtl_virtual_units_picks set selection=jsonb_set(selection,'{units}','0.5'), result='{\"netUnits\":0.4545}' where user_id=$1 and week=$2 and status='win'", [USER('troy'), week]);
+  await db.query("update public.gtl_virtual_units_picks set status='void' where user_id=$1 and week=$2 and status='loss'", [USER('troy'), week]);
+  await db.query("update public.gtl_virtual_units_picks set selection=jsonb_set(selection,'{units}','0.01'), result='{\"netUnits\":0.0091}' where user_id=$1 and week=$2 and status='win'", [USER('luke'), week]);
+  await db.query("update public.gtl_virtual_units_picks set selection=jsonb_set(selection,'{units}','0.5'), result='{\"netUnits\":0.4505}' where user_id=$1 and week=$2 and status='win'", [USER('luke'), week - 1]);
+  await db.query("update public.gtl_virtual_units_picks set selection=jsonb_set(selection,'{units}','100.5') where user_id=$1", [USER('sean')]);
+  const stored = async () => (await db.query('select * from public.gtl_virtual_units_picks order by user_id,season,week,game_id,market')).rows;
+  const original = await stored();
+  const users = Object.values(ACCOUNTS).map(a => a.id);
+  for (const w of [week - 1, week]) {
+    const totals = await sql('gtl_bets_week_rows', { p_season: season, p_week: w, p_users: users });
+    for (const { userId, ...totalsRow } of totals) {
+      const picks = (await db.query('select status,selection,result from public.gtl_virtual_units_picks where user_id=$1 and season=$2 and week=$3', [userId, season, w])).rows;
+      const { roi, qualified, ...shared } = weekFromPicks(picks);
+      assert.deepEqual(totalsRow, shared, `exact numeric parity for ${w} ${userId}`);
+    }
+  }
+  const board = await world.api('luke', 'bets/board', {});
+  assert.equal(board.status, 200, JSON.stringify(board.body));
+  noTerms(board.body, 'fractional /bets/board');
+  assert.deepEqual(board.body.board.map(row => [row.userId, row.netUnits, row.riskUnits, row.roi]),
+    [[USER('troy'), 0.4545, 0.5, 90.9], [USER('sean'), 0, 0, null]]);
+  assert.equal(board.body.board[1].units, 100.5, 'legacy >100U rows remain readable');
+  assert.deepEqual(board.body.unranked.map(row => [row.userId, row.netUnits, row.roi]), [[USER('luke'), 0.0091, 91]]);
+  const seasonReply = await world.api('luke', 'bets/season', {});
+  assert.equal(seasonReply.status, 200, JSON.stringify(seasonReply.body));
+  noTerms(seasonReply.body, 'fractional /bets/season');
+  assert.deepEqual(seasonReply.body.board.map(row => [row.userId, row.netUnits, row.riskUnits, row.roi, row.qualifiedWeeks]),
+    [[USER('luke'), 0.4596, 1.51, 30.44, 1], [USER('troy'), -1.5455, 2.5, -61.82, 1], [USER('sean'), 0, 0, null, 1]]);
+  assert.equal(seasonReply.body.weeks.find(w => w.week === week).rows.find(row => row.userId === USER('luke')).roi, 91);
+  const other = structuredClone(world.state); other.league.id = 'fractional-private';
+  await db.query('insert into public.gtl_leagues(id,state,created_by) values($1,$2,$3)', ['fractional-private', other, USER('sean')]);
+  for (const [who, role] of [['sean', 'commissioner'], ['luke', 'player']])
+    await db.query("insert into public.gtl_memberships(user_id,league_id,player_id,role) values($1,'fractional-private',$2,$3)", [USER(who), `u_${USER(who).replaceAll('-', '')}`, role]);
+  for (const route of ['bets/board', 'bets/season']) {
+    const reply = await world.api('luke', route, { leagueId: 'fractional-private' });
+    assert.equal(reply.status, 200);
+    noTerms(reply.body, route);
+    assert.ok(!JSON.stringify(reply.body).includes(USER('troy')), 'outside-roster totals must not be projected');
+    assert.equal((await world.api('troy', route, { leagueId: 'fractional-private' })).status, 400);
+  }
+  assert.deepEqual(await stored(), original, 'selection, results, audits and timestamps are untouched by all readers');
 });
 
 test('without M-12 (the hosted schema before its October 27 apply): /bets/read keeps working and the new routes answer the generic 503', { skip }, async t => {

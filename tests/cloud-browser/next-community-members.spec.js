@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
+import { captureCommissioner } from './commissioner-capture.mjs';
 import { randomUUID } from 'node:crypto';
 import { ACCOUNTS, communityWorld, pgliteAvailable, signIn, SUPABASE } from './community-world.mjs';
 
@@ -45,13 +45,7 @@ test('commissioner reviews, cancels, removes and restores without changing playe
     await page.getByRole('button', { name: 'Cancel', exact: true }).click();
     expect((await world.db.query('select * from public.gtl_community_removals')).rows).toEqual([]);
     await reviewTroy(page);
-    for (const theme of ['dark', 'light']) {
-      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
-      await page.setViewportSize({ width: 320, height: 740 });
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-      expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze()).violations).toEqual([]);
-      await page.screenshot({ path: testInfo.outputPath(`members-review-${theme}.png`) });
-    }
+    await captureCommissioner(page, testInfo, 'members-remove');
     await page.getByRole('button', { name: 'Remove access', exact: true }).click();
     await expect(row(page, 'Troy Fixture')).toContainText('Community access removed · records kept');
     expect(await preserved(world.db)).toEqual(before);
@@ -59,12 +53,9 @@ test('commissioner reviews, cancels, removes and restores without changing playe
     const feed = (await world.api('luke', 'community/read', {})).body;
     expect(feed.members.find(m => m.id === ACCOUNTS.troy.id).removed).toBe(true);
     expect(feed.standings.filter(s => s.userId === ACCOUNTS.troy.id)).toHaveLength(2);
-    for (const theme of ['dark', 'light']) {
-      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
-      expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze()).violations).toEqual([]);
-      await page.screenshot({ path: testInfo.outputPath(`members-list-${theme}.png`) });
-    }
+    await captureCommissioner(page, testInfo, 'members-list');
     await row(page, 'Troy Fixture').getByRole('button').click();
+    await captureCommissioner(page, testInfo, 'members-restore', { compact: true });
     await page.getByRole('button', { name: 'Restore access', exact: true }).click();
     await expect(row(page, 'Troy Fixture')).toContainText('Community access active');
     expect(await preserved(world.db)).toEqual(before);
@@ -86,7 +77,7 @@ test('private-league hosts cannot manage Community members or remove themselves'
   } finally { await world.db.close(); }
 });
 
-test('a lost write reply and failed read survive reload without repeating the mutation', async ({ page, baseURL }) => {
+test('a lost write reply and failed read survive reload without repeating the mutation', async ({ page, baseURL }, testInfo) => {
   const world = await communityWorld(page, baseURL);
   try {
     await open(page); await members(page); await reviewTroy(page);
@@ -101,6 +92,7 @@ test('a lost write reply and failed read survive reload without repeating the mu
     await page.getByRole('button', { name: 'Remove access', exact: true }).click();
     await expect(page.getByText('An access change needs checking', { exact: true })).toBeVisible();
     await expect(page.getByText(/Community access could not be checked/)).toBeVisible();
+    await captureCommissioner(page, testInfo, 'members-pending', { compact: true });
     await page.getByRole('button', { name: 'Check saved access', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Check saved access', exact: true })).toBeEnabled();
     expect(writes).toBe(1);
@@ -159,7 +151,7 @@ test('pending changes cannot be double-sent or closed, and an unsaved change req
   } finally { release(); await world.db.close(); }
 });
 
-test('a fresh read without commissioner permission blocks an already-open review', async ({ page, baseURL }) => {
+test('a fresh read without commissioner permission blocks an already-open review', async ({ page, baseURL }, testInfo) => {
   const world = await communityWorld(page, baseURL);
   try {
     await open(page); await members(page); await reviewTroy(page);
@@ -174,6 +166,7 @@ test('a fresh read without commissioner permission blocks an already-open review
     await page.getByRole('button', { name: 'Remove access', exact: true }).click();
     await expect(page.getByText('Only the Community commissioner can manage members.', { exact: true })).toBeVisible();
     await expect(page.getByRole('region', { name: 'Members', exact: true })).toHaveCount(0);
+    await captureCommissioner(page, testInfo, 'members-restricted', { compact: true });
     expect(writes).toBe(0);
     expect((await world.db.query('select * from public.gtl_community_removals')).rows).toEqual([]);
   } finally { await world.db.close(); }

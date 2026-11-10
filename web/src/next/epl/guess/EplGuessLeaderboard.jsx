@@ -6,11 +6,11 @@ import './guess.css';
 
 export function GuessLeaderboard({ data }) {
   const max = Math.max(1, ...data.rows.map(r => Number.isFinite(r.average) ? r.average : 0));
-  return <Card as="section"><h2 className="gx-t-section"><span className="gx-t-n-m">{data.season}</span> moneyline leaderboard</h2><p className="gx-t-meta">Lowest average distance wins · ties favor more matches guessed. Only locked matches past kickoff count. Unscored matches are excluded.</p>
+  return <Card as="section"><h2 className="gx-t-section"><span className="gx-t-n-m">{data.season}</span> moneyline leaderboard</h2><p className="gx-t-body">Lowest average distance wins · ties favor more matches guessed. Only locked matches past kickoff count. Unscored matches are excluded.</p>
     {data.rows.length ? <ol className="gx-epl-moneyline-ranks">{data.rows.map((row, index) => <li key={row.ownerId}>
       <div className="gx-epl-moneyline-rank"><strong>{Number.isFinite(row.average) ? `${index + 1}.` : '—'} {row.name || row.ownerId}</strong><strong className="gx-t-n-m">{Number.isFinite(row.average) ? row.average.toFixed(1) : '—'}</strong></div>
       <meter min="0" max={max} value={Number.isFinite(row.average) ? row.average : 0} aria-label={`${row.name || row.ownerId} average distance`} hidden={!Number.isFinite(row.average)}/>
-      <p className="gx-t-meta">{row.guessed} guessed · {row.unscored} unscored{!Number.isFinite(row.average) ? ' · not ranked' : ' · points off per match'}</p>
+      <p data-epl-text="metadata" className="gx-t-meta">{row.guessed} guessed · {row.unscored} unscored{!Number.isFinite(row.average) ? ' · not ranked' : ' · points off per match'}</p>
     </li>)}</ol> : <p>No scored guesses yet.</p>}
   </Card>;
 }

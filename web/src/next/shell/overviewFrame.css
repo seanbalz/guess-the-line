@@ -1,0 +1,25 @@
+/* Confirmed context frame. Loaded with Shell, independently of lazy body modules. Home bodies stay Home-only. */
+.gx.gx-overview-frame { background: var(--gx-home-background); color: var(--gx-home-ink); font: 500 16px/24px var(--gx-font-home); }
+:root:has(.gx-overview-frame .gx-app) { scroll-padding-top: 8px; }
+.gx-overview-frame .gx-topbar { position: relative; border: 0; background: transparent; padding-top: calc(var(--gx-space-3) + env(safe-area-inset-top, 0px)); }
+.gx-overview-frame .gx-topbar-inner { height: 64px; padding-inline: 16px; gap: 12px; }
+.gx-overview-frame .gx-top-btn { color: var(--gx-home-ink); }
+.gx-overview-frame .gx-top-btn .gx-av { background: var(--gx-home-face); color: var(--gx-home-ink); border: 1px solid var(--gx-home-edge); box-shadow: var(--gx-home-soft-depth); }
+.gx-overview-frame .gx-top-btn:has(.gx-home-brand) { width: 64px; height: 54px; flex: none; }
+.gx-overview-frame .gx-home-brand { display: grid; place-items: center; width: 64px; height: 54px; }
+.gx-overview-frame .gx-home-brand img { width: 64px; height: 54px; max-width: none; grid-area: 1 / 1; }
+.gx-overview-frame .gx-home-brand-light { visibility: hidden; }
+:root[data-theme="light"] .gx-overview-frame .gx-home-brand-dark { visibility: hidden; }
+:root[data-theme="light"] .gx-overview-frame .gx-home-brand-light { visibility: visible; }
+.gx-overview-frame .gx-home-sports { display: flex; align-items: center; gap: 8px; padding: 4px; }
+.gx-overview-frame .gx-home-sport { display: grid; place-items: center; width: 52px; height: 52px; border: 1px solid var(--gx-home-edge); border-radius: 50%; background: var(--gx-home-face); box-shadow: var(--gx-home-depth); }
+.gx-overview-frame .gx-home-sport[aria-pressed="true"] { border: 2px solid var(--gx-home-accent); box-shadow: inset 0 1px 0 var(--gx-home-gloss), 0 0 0 3px var(--gx-home-tint), var(--gx-home-depth); }
+.gx-overview-frame .gx-home-sport img { width: 30px; height: 32px; object-fit: contain; grid-area: 1 / 1; }
+.gx-overview-frame .gx-home-pl-light { visibility: hidden; }
+:root[data-theme="light"] .gx-overview-frame .gx-home-pl-dark { visibility: hidden; }
+:root[data-theme="light"] .gx-overview-frame .gx-home-pl-light { visibility: visible; }
+.gx-overview-frame .gx-counter { background: var(--gx-home-solid); color: var(--gx-home-accent); }
+.gx-overview-frame :focus-visible { outline-color: var(--gx-home-accent); }
+@media(forced-colors:active) {
+ .gx-overview-frame .gx-home-sport { border: 1px solid CanvasText; }
+}

@@ -1,3 +1,4 @@
+import { setCaptureTheme } from './theme-capture.mjs';
 import { randomUUID } from 'node:crypto';
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
@@ -15,10 +16,10 @@ const rows = async (world, account = 'luke') => (await world.api(account, 'perso
 const put = (world, text, revision, account = 'luke') => world.api(account, 'personal/note', { ...target(world), note: text, revision, requestId: randomUUID() });
 // D-69 step 3: a board row opens the game as a layer (it was the game sheet); its lip, "Back to Games", closes it, and
 // the leave guard asks there as it asked on the sheet's Close.
-const closeGame = page => page.locator('[data-research="game"]').getByRole('button', { name: 'Back to Games', exact: true }).click();
+const closeGame = page => page.getByRole('button', { name: 'Back', exact: true }).click();
 async function openSheet(page, { reloaded = false } = {}) {
   // A reload keeps the game layer open (its address names the game); a row opens it otherwise.
-  if (!reloaded) await page.locator('.gx-prow[data-game]').first().click();
+  if (!reloaded) await page.locator('button[data-game]').first().click();
   await expect(textbox(page)).toBeVisible();
   await expect(note(page)).toHaveAttribute('aria-busy', 'false');
 }
@@ -68,7 +69,7 @@ test('private notes preserve 2,000 UTF-16 characters, never create Favorites, cl
     expect((await rows(world))[0]).toMatchObject({ note: '', saved: false });
     expect((await world.db.query("select count(*)::int as n from public.gtl_personal_events where user_id=$1 and action='personal/note'", [ACCOUNTS.luke.id])).rows[0].n).toBe(2);
     for (const theme of ['dark', 'light']) {
-      await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
+      await setCaptureTheme(page, theme);
       for (const width of [390, 320]) {
         await page.setViewportSize({ width, height: 844 });
         await textbox(page).scrollIntoViewIfNeeded();

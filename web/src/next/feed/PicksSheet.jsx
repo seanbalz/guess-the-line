@@ -1,3 +1,4 @@
+import '../nfl-actions.css';
 // `sh.picks`: one player's Spread or Total picks for a week (redesign build plan stage 64; prototype sh.picks), read from
 // /community/picks (M-08). The server withholds another player's guess until that game and market is open to you (your
 // lock-in, a sit-out or kickoff; D-31 as amended by D-39); a withheld game is a lock row with a sentence. Your own scored
@@ -43,7 +44,7 @@ export function PicksSheet({ args }) {
   }
 
   const games = state.data?.games ?? [];
-  return <Sheet title={own ? `Your ${market} picks` : `${name}’s ${market} picks`} onClose={shell.closeSheet}>
+  return <Sheet className="gx-nfl-action" bodyTabIndex={0} title={own ? `Your ${market} picks` : `${name}’s ${market} picks`} onClose={shell.closeSheet}>
     {state.data?.week ? <p className="gx-t-meta gx-c-2">Week {state.data.week}</p> : null}
     {state.loading ? <Skeleton label="Loading picks…" shape="rows" count={3}/> : null}
     {state.error ? <p className="gx-t-body gx-c-loss" role="alert">{state.error.status ? state.error.message : 'No connection. Reconnect and try again.'}</p> : null}

@@ -27,21 +27,20 @@ const textOf = n => (n.text ?? (n.children ?? []).map(textOf).join(''));
 const byAttr = (html, name, value) => nodes(html).filter(n => n.attrs?.[name] === value);
 
 describe('the Research landing', () => {
-  it('one next-move card: its eyebrow names it, the week meter, one meta line, the one lime button; then four tiles', () => {
+  it('the approved notebook uses the next real matchup, one meta line and action, four destinations and a sourced historical chart', () => {
     const html = render(ready);
     expect(markupProblems(html)).toEqual([]);
     const [hero] = byAttr(html, 'data-research', 'hero');
     const eyebrow = nodes(html).find(n => n.attrs?.id === hero.attrs['aria-labelledby']);
-    expect(textOf(eyebrow)).toBe('Week 9 · This week’s lines');
+    expect(textOf(eyebrow)).toBe('Matchup notebook · Week 9');
     const title = [...walk(hero)].find(n => n.tag === 'h2');
-    expect(textOf(title)).toBe('3 games');
+    expect(textOf(title)).toBe('Know the matchup.');
     expect(title.attrs.class).toBe('gx-t-title');
-    expect([...walk(hero)].filter(n => (n.attrs?.class ?? '').includes('gx-meter3-seg')).length).toBe(3);
-    expect([...walk(hero)].filter(n => (n.attrs?.class ?? '').includes('gx-meter3-seg--on')).length).toBe(2);
-    expect(textOf(byAttr(html, 'data-research', 'hero-line')[0])).toBe('2 of 3 kicked off');
+    expect(textOf(hero)).toContain('KCChiefsatBUFBills');
+    expect(textOf(byAttr(html, 'data-research', 'hero-line')[0])).toBe('Sun 1:25 PM PT · 2 of 3 kicked off');
     expect((html.match(/gx-btn--primary/g) || [])).toHaveLength(1);
     const primary = nodes(html).filter(n => n.tag === 'button' && (n.attrs.class ?? '').includes('gx-btn--primary'));
-    expect(primary.map(textOf)).toEqual(['Open games']);
+    expect(primary.map(textOf)).toEqual(['Open game']);
     expect(primary[0].attrs.id, 'a stable id for Back’s focus').toBe('gx-r-hero-action');
     const tiles = nodes(html).filter(n => n.tag === 'button' && (n.attrs.class ?? '').includes('gx-tile'));
     expect(tiles.map(t => t.attrs.id)).toEqual(['gx-r-tile-games', 'gx-r-tile-trends', 'gx-r-tile-fantasy', 'gx-r-tile-teams']);

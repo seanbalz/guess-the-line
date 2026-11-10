@@ -29,10 +29,38 @@ export function matchupTable(snapshot, position, settings = {}, recentGames = 4)
     });
     return out;
   };
-  const seasonRanks = rank('season'), recentRanks = rank('recent');
+  const adjustedRows = adjustedAllowed(snapshot, position, settings);
+  for (const row of rows) Object.assign(row, adjustedRows.get(row.team) ?? { adjusted: null, adjustedGames: 0 });
+  const seasonRanks = rank('season'), recentRanks = rank('recent'), adjustedRanks = rank('adjusted');
   return { position, teams: rows.length, recentGames, rows: new Map(rows.map(row => [row.team, {
-    ...row, seasonRank: seasonRanks.get(row.team) ?? null, recentRank: recentRanks.get(row.team) ?? null,
+    ...row, seasonRank: seasonRanks.get(row.team) ?? null, recentRank: recentRanks.get(row.team) ?? null, adjustedRank: adjustedRanks.get(row.team) ?? null,
   }])) };
+}
+
+/**
+ * Opponent-strength adjustment: in each game, the points a defense allowed to the position minus what that same offense's
+ * position scored per game against its other opponents (this game left out). The mean of those differences is points
+ * allowed above (+) or below (−) expectation. A game counts only when the offense has at least two other scored games;
+ * at least two counted games are needed for a value. Rank 1 = most allowed above expectation (the softest matchup).
+ */
+export function adjustedAllowed(snapshot, position, settings = {}) {
+  const out = new Map();
+  if (!snapshot?.matchups || !MATCHUP_POSITIONS.includes(position)) return out;
+  const scored = new Map(); // offense → [{ defense, week, points }]
+  const games = Object.entries(snapshot.matchups).flatMap(([defense, list]) => list.map(game => ({ defense, week: game.week, offense: game.opponent,
+    points: scoreStats(game.allowed?.[position], { ...settings, position }) })));
+  for (const game of games) if (game.points !== null) { if (!scored.has(game.offense)) scored.set(game.offense, []); scored.get(game.offense).push(game); }
+  const byDefense = new Map();
+  for (const game of games) {
+    if (game.points === null) continue;
+    const others = (scored.get(game.offense) ?? []).filter(other => !(other.defense === game.defense && other.week === game.week));
+    if (others.length < 2) continue;
+    const expected = mean(others.map(other => other.points));
+    if (!byDefense.has(game.defense)) byDefense.set(game.defense, []);
+    byDefense.get(game.defense).push(game.points - expected);
+  }
+  for (const [defense, diffs] of byDefense) out.set(defense, { adjusted: diffs.length >= 2 ? mean(diffs) : null, adjustedGames: diffs.length });
+  return out;
 }
 
 const ET = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short', hour: 'numeric', hourCycle: 'h23' });

@@ -49,5 +49,5 @@ export function useThemePreference() { return useContext(ThemeContext); }
 export default function ThemeSelector() {
   const { preference, choose, saved } = useContext(ThemeContext), id = useId();
   const Icon = preference === 'light' ? Sun : preference === 'system' ? Monitor : Moon;
-  return <section className="theme-selector" aria-label="Appearance"><div><Icon size={20}/><label htmlFor={id}>Appearance</label></div><select id={id} aria-label="Color theme" value={preference} onChange={event => choose(event.target.value)}><option value="dark">Dark</option><option value="light">Light</option><option value="system">System</option></select><p>{saved ? 'Saved on this device, not your account.' : 'Browser storage is unavailable. Applied for this tab.'}</p></section>;
+  return <section className="theme-selector gx-auth-theme-selector" aria-label="Appearance"><div><Icon size={20}/><label htmlFor={id}>Appearance</label></div><select id={id} aria-label="Color theme" value={preference} onChange={event => choose(event.target.value)}><option value="dark">Dark</option><option value="light">Light</option><option value="system">System</option></select><p>{saved ? 'Saved on this device, not your account.' : 'Browser storage is unavailable. Applied for this tab.'}</p></section>;
 }

@@ -8,6 +8,7 @@ import { PlayersNest } from './PlayersNest.jsx';
 import { useTrendsHistory } from './useTrendsHistory.js';
 import { TeamsNest } from './TeamsNest.jsx';
 import { WeekNest } from './WeekNest.jsx';
+import { HistoricalTrends } from './HistoricalTrends.jsx';
 import '../lines/lines.css';
 import { TrendBuilder } from './TrendBuilder.jsx';
 import './trends.css';
@@ -27,7 +28,7 @@ export function TrendsScreen() {
     if (filtersAccount && filtersAccount !== app.accountId) shell.setView('trends', PLAYER_FILTERS);
     filtersAccount = app.accountId;
   }, [app.accountId]); // The shell's actions are stable for its lifetime.
-  const section = sections.some(s => s.value === view.trendSection) ? view.trendSection : 'week', market = view.market === 'total' ? 'total' : 'spread';
+  const section = sections.some(s => s.value === view.trendSection) ? view.trendSection : 'week', market = view.market === 'total' ? 'total' : view.market === 'spread' || section !== 'week' ? 'spread' : 'all';
   const onChange = patch => shell.setView('trends', patch);
   const history = useTrendsHistory(app, shown, view.window || 'season', section === 'players' && Boolean(shown));
   const views = personal.data ? gamesOf(personal.data).map(g => gameSheet({ personal: personal.data, community, trends: trendsWeek, trendsStatus: trends.status, gameId: g.id })).filter(Boolean) : [];
@@ -36,12 +37,12 @@ export function TrendsScreen() {
     <h1 className="gx-t-title">Trends</h1>
     <MetaLine parts={[shown ? 'Published week: ' + shown.season + ' Week ' + shown.week : 'Waiting for a published week.', app.league?.name || 'Community']}/>
     <Segmented label="Trends section" className="gx-tr-sections" value={section} options={sections} onChange={section => onChange({ trendSection: section })}/>
-    <Segmented label="Trends market" value={market} options={markets} onChange={market => onChange({ market })}/>
+    <Segmented label="Trends market" value={market} options={section === 'week' ? [{ value: 'all', label: 'All' }, ...markets] : markets} onChange={market => onChange({ market })}/>
     {section === 'build' ? <TrendBuilder lines={data} market={market} onMarket={market => onChange({ market })}/> : section === 'players' ? <>{history.loading ? <Skeleton label="Loading scoped player history…" shape="panels" count={2}/> : history.error ? <LeagueFailure error={history.error} onRetry={history.retry}/> : history.data && shown ? <PlayersNest history={history.data} published={shown} view={view} onChange={onChange} scopeName={app.league?.name || 'Community'}/> : <p className="gx-t-body">No published player history yet.</p>}<Button onClick={history.retry}>Refresh player history</Button></> : section === 'teams' ? <>
       {evidence ?? <TeamsNest week={trendsWeek} views={views} market={market} view={view} onChange={onChange} account={app.accountId}/>}
     </> : <>
-      {evidence ?? <WeekNest week={trendsWeek} views={views} market={market} view={view} onChange={onChange} lines={data} onBuild={() => onChange({ trendSection: 'build' })}/>}
-      <Button variant="secondary" onClick={trends.retry}>Refresh trends</Button>
+      {view.weekGame || view.weekList ? <>{evidence ?? <WeekNest week={trendsWeek} views={views} market={market === 'all' ? 'spread' : market} view={view} onChange={onChange} lines={data} onBuild={() => onChange({ trendSection: 'build' })}/>}<Button variant="secondary" onClick={trends.retry}>Refresh trends</Button></>
+        : <HistoricalTrends lines={data} market={market} view={view} onChange={onChange} onBuild={() => onChange({ trendSection: 'build' })}/>}
     </>}
   </div>;
 }

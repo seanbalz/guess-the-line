@@ -1,0 +1,47 @@
+{
+  "kind": "historical-league-scoring",
+  "season": 2026,
+  "weeks": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "values": [
+    49.44,
+    40.44,
+    47.25,
+    47.75,
+    48.4,
+    43.57
+  ],
+  "games": [
+    16,
+    16,
+    16,
+    16,
+    15,
+    14
+  ],
+  "sourceFile": "shared/trends/builder-history.json",
+  "sourceSha256": "ca8b2edc57be5dc168eb9ece6524ba5b22551a8e895a026796d788069ca56ee0",
+  "source": {
+    "url": "https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "credit": "Data: nflverse; schedules maintained by Lee Sharpe (CC BY 4.0), modified",
+    "modified": "Played games since 2002 with both closing lines; corrections from shared/trends-corrections.json; conditions computed by GTL.",
+    "lineSource": "nflverse schedule file: last recorded line (book not documented)",
+    "history": {
+      "file": "shared/trends/history-1999-2025.csv",
+      "sha256": "d41ad4312a9c5598628db2308acc04ca8f78d1d74547669cd47e2284fbfe7424"
+    },
+    "season": {
+      "file": "shared/trends/season-2026-week-07.csv",
+      "sha256": "fecbbb5443b933043550e9c03bab0539cc933c03263a41ea98ae27e9b1798c65"
+    }
+  },
+  "meaning": "Average combined points per completed game; historical scoring, not a forecast or sportsbook total."
+}

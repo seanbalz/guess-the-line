@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-07",
+  "base": "52b900b5563d154898abc80aa41591bc9d4872e2",
+  "scope": "Game note keyboard clearance and selected Games card spacing; existing source/controllers, local fictional accounts only. No hosted or physical-phone acceptance.",
+  "artifacts": [
+    {
+      "path": "design/prism-integration-spacing-2026-11-07/note-clearance-390.png",
+      "sha256": "4261776f894b6862a40d215f50976f7e1871b22d7e84be183234a572d0e275ba",
+      "bytes": 85540
+    },
+    {
+      "path": "design/prism-integration-spacing-2026-11-07/note-clearance-320.png",
+      "sha256": "d7cead726d489e774c9b94b5a847b698e98f61e59b2b022b5c03e281ad4068e4",
+      "bytes": 56187
+    },
+    {
+      "path": "web/src/next/lines/GameNote.jsx",
+      "sha256": "caae4d96493b5bdea3bb3673a20fd455e4efb0e5fb068af05bc02ab0a9342534",
+      "bytes": 9639
+    },
+    {
+      "path": "web/src/next/lines/lines.css",
+      "sha256": "c7a18bfaf244a691e067b300a67f2a42cba4eb7ee2be197ad0098cec47321a88",
+      "bytes": 10567
+    }
+  ],
+  "checks": {
+    "componentTests": 913,
+    "focusedTokenImportLoadingNodeTests": 27,
+    "browserUniquePassedAcrossFocusedRuns": 18,
+    "initialAffectedBrowserBatch": "12 passed / 2 failed; press target positioning and focus-paint timing then repaired and respective original cases passed",
+    "newNoteRegression": "2 passed, zero skipped; real saved Dark390 / Light320; field bottom has8px clearance above tab bar"
+  },
+  "remaining": "Independent review of these integration repairs and exact-source CI/release; EPL/Commissioner/History work and shared-frame/Virtual dependencies remain."
+}

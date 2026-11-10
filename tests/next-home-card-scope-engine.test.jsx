@@ -69,24 +69,25 @@ function draw(read, reply = null, layer = undefined, account = YOU) {
 describe('Home’s card holds Home’s moments, with the real engine', () => {
   beforeEach(() => { rig.engine = null; rig.small = []; rig.big = []; });
 
-  it('a waiting Whole week locked and Pick streak are not spent while Home loads or fails, and pop once the card draws', () => {
+  it('Whole week locked waits for Home; a streak stays pending until its visible Features card opens', () => {
     draw({ status: 'loading', data: null, error: null }); // the provider makes the engine; the Community read has not landed
     readAll(); // this device's first read of each source seeds it silently
     readAll({ locked: 14, streak: 5, award: true, rank: 1 }); // a later read: the week locks, the streak grows, an award and a rank move arrive
-    expect(rig.engine.newCount(SCOPES.home), 'Whole week locked and the streak wait for Home’s card').toBe(2);
+    expect(rig.engine.newCount(SCOPES.home), 'Only Whole week locked waits for the Home card').toBe(1);
 
     const loading = draw({ status: 'loading', data: null, error: null }); // Home mounted, its read still loading
     expect(loading).toContain('data-skeleton="landing"');
     const failed = draw({ status: 'error', data: null, error: { status: 503 } }, features(5, true)); // the read failed with nothing to show
     expect(failed).not.toContain('data-home="hero"');
     expect([rig.small, rig.big], 'nothing is spent on a placeholder or a failed read').toEqual([[], []]);
-    expect(rig.engine.newCount(SCOPES.home)).toBe(2);
+    expect(rig.engine.newCount(SCOPES.home)).toBe(1);
 
     const html = draw({ status: 'ready', data: community(14), error: null }, features(5, true)); // the read lands: the card draws
     expect(html).toContain('data-home="hero"');
-    expect(html).toContain('data-market="guess_spread"'); // the meter column that pops
-    expect(html).toContain('data-home="streak"'); // the streak pill that pops
-    expect(rig.small.toSorted(), 'both small moments play in place on the card').toEqual([STREAK, WEEK].toSorted());
+    expect(html).toContain('gx-home-progress'); // the compact ring is the visible lock moment target
+    expect(html).not.toContain('data-home="streak"');
+    expect(rig.small, 'only the displayed lock moment plays on Home').toEqual([WEEK]);
+    expect(rig.engine.newMoments(SCOPES.features).filter(m => m.kind === 'streak').map(m => m.id)).toEqual([STREAK]);
     expect(rig.big, 'nothing big plays on Home').toEqual([]);
     expect(rig.engine.newCount(SCOPES.home)).toBe(0);
     expect(rig.engine.newMoments(SCOPES.features).filter(m => m.kind === 'award').map(m => m.id), 'the award still waits for Badges and awards').toEqual([AWARD_ID]);
@@ -96,17 +97,18 @@ describe('Home’s card holds Home’s moments, with the real engine', () => {
     draw({ status: 'loading', data: null, error: null }, null, undefined, 'u-other');
     readAll();
     readAll({ locked: 14, streak: 5 });
-    expect(rig.engine.newCount(SCOPES.home)).toBe(2);
+    expect(rig.engine.newCount(SCOPES.home)).toBe(1);
 
     const layer = draw({ status: 'ready', data: community(14), error: null }, features(5, false), 'who', 'u-other');
     expect(layer).toContain('data-home="who-layer"');
     expect(layer).not.toContain('data-home="hero"');
     expect([rig.small, rig.big], 'no Home moment plays or is spent behind the layer').toEqual([[], []]);
-    expect(rig.engine.newCount(SCOPES.home)).toBe(2);
+    expect(rig.engine.newCount(SCOPES.home)).toBe(1);
 
     const landing = draw({ status: 'ready', data: community(14), error: null }, features(5, false), undefined, 'u-other'); // the lip closes the layer
     expect(landing).toContain('data-home="hero"');
-    expect(rig.small.toSorted()).toEqual([STREAK, WEEK].toSorted());
+    expect(rig.small).toEqual([WEEK]);
+    expect(rig.engine.newMoments(SCOPES.features).map(m => m.id)).toContain(STREAK);
     expect(rig.engine.newCount(SCOPES.home)).toBe(0);
   });
 });

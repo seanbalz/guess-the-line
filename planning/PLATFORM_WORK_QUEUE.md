@@ -1,5 +1,18 @@
 # Guess The Line — sequential platform work
 
+## EPL expansion discovery — November 9, 2026
+
+Sean confirmed the [EPL expansion requirements](../docs/EPL_FEATURES_2026_11_09.md)
+in this conversation. Deliver market choice/combined scoring, gap-ranked EPL
+recommendations, reviewed Sleeper screenshot imports/next draft opening, and
+independent verified winner announcements with opted-in push. The requirements
+record defines the sequence and preservation checks. Status: planned; a supplied
+screenshot's layout is inspected, while OCR and feature implementation/verification
+remain. Other sessions' active
+worktrees and the frozen v62 tracker remain with their owners.
+
+> The November 4 owner-acceptance direction below is merged from PR #488; newer release evidence above supersedes its dated statements.
+
 ## Owner acceptance direction — November 4, 2026
 
 Use the [current acceptance record](../docs/OWNER_ACCEPTANCE_2026_11_04.md)

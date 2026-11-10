@@ -7,13 +7,15 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { DEFAULT_FILTERS, POSITION_OPTIONS, SCOPE_OPTIONS, SCORING_OPTIONS, buildRankings, formatFantasyNumber as number, scoringRules } from '../../../../shared/fantasy-rankings.mjs';
 import { MATCHUP_POSITIONS, describePlayerContext, matchupTable } from '../../../../shared/fantasy-context.mjs';
-import { MAX_COMPARE } from '../../../../shared/fantasy-tools.mjs';
+import { MAX_COMPARE, playerProfile } from '../../../../shared/fantasy-tools.mjs';
 import { FANTASY_AVAILABLE, FANTASY_INITIAL, useFantasySnapshot } from '../../fantasyData.js';
 import { useFantasyGameContext } from '../../fantasyContext.js';
 import { FantasyReport } from './FantasyReport.jsx';
 import { reportModel, reportTile } from './fantasyReport.js';
-import { Button, InfoButton, LockLine, Nest, Pill, Segmented, Switch, Skeleton } from '../ui/index.js';
-import { PlayerCompare, PlayerProfileSheet, PlayerToolButtons } from './FantasyTools.jsx';
+import { Button, InfoButton, LockLine, Nest, Pill, Segmented, Switch, Skeleton, TeamMark } from '../ui/index.js';
+import { PlayerCompare, PlayerProfileBody, PlayerProfileSheet, PlayerToolButtons } from './FantasyTools.jsx';
+import { ObservedPlayers } from './ObservedPlayers.jsx';
+import { DefenseMatchupSection, DefenseRankings } from './DefenseMatchup.jsx';
 
 export const FANTASY_PAGE = 50;
 const INTRO = 'Weekly and rest-of-season player rankings from recent usage and statistics. These are GTL estimates, not expert consensus or injury-adjusted projections.';
@@ -41,9 +43,9 @@ function PlayerRow({ player, scope, position, context, onOpen }) {
   const matchup = player.weekly?.status === 'bye' ? 'Bye this week'
     : context?.pill ?? (player.weekly?.opponent ? `${player.weekly.opponent} · ${date(player.weekly.kickoff)}` : 'Matchup unavailable');
   return <li className="gx-fantasy-player-item">
-    <button type="button" className="gx-nest-tile gx-fantasy-row" data-player={player.id} onClick={onOpen}>
+    <button type="button" className="gx-card gx-nest-tile gx-fantasy-row" data-player={player.id} onClick={onOpen}>
       <span className="gx-fantasy-row-top">
-        <span className="gx-fantasy-player-rank" aria-label={`${position === 'ALL' ? 'Overall' : position} rank ${player.rank}`}>#{player.rank}</span>
+        <span className="gx-fantasy-rank-picture"><TeamMark code={player.team} size={32} decorative/><span className="gx-fantasy-player-rank" aria-label={`${position === 'ALL' ? 'Overall' : position} rank ${player.rank}`}>#{player.rank}</span></span>
         <span className="gx-fantasy-player-main"><strong>{player.name}</strong>
           <span className="gx-t-meta">{player.team || 'Team unknown'} · {player.position}{player.positionRank ? ` ${player.positionRank}` : ''} · Overall {player.overallRank ?? '—'}</span></span>
         <span className="gx-fantasy-player-points"><strong>{number(player.points)}</strong><span className="gx-t-meta">est. pts</span></span>
@@ -80,9 +82,11 @@ export function FantasyNest({ navigationState, onNavigationState, view = {}, onL
   const [selection, setSelection] = useState(navigationState?.selection ?? null);
   const [filters, setFilters] = useState(navigationState?.filters ?? { ...DEFAULT_FILTERS });
   const [limit, setLimit] = useState(navigationState?.limit ?? FANTASY_PAGE);
+  const [browse, setBrowse] = useState(navigationState?.browse ?? 'rankings');
+  const [observedLimit, setObservedLimit] = useState(navigationState?.observedLimit ?? 6);
   const changed = useRef(onNavigationState);
   changed.current = onNavigationState;
-  useEffect(() => { changed.current?.({ selection, filters, limit }); }, [selection, filters, limit]);
+  useEffect(() => { changed.current?.({ selection, filters, limit, browse, observedLimit }); }, [selection, filters, limit, browse, observedLimit]);
   const state = useFantasySnapshot(selection);
   const snapshot = state?.status === 'ready' ? state.snapshot : null;
   const gameContext = useFantasyGameContext(snapshot?.season, snapshot?.week);
@@ -96,24 +100,34 @@ export function FantasyNest({ navigationState, onNavigationState, view = {}, onL
   const entries = state?.weeks?.length ? state.weeks : FANTASY_AVAILABLE;
   const chosen = selection ?? state?.selection ?? FANTASY_INITIAL;
   const [selectedSeason, selectedWeek] = chosen.split('-').map(Number);
-  const choose = key => { setSelection(key); setLimit(FANTASY_PAGE); };
+  const choose = key => { setSelection(key); setLimit(FANTASY_PAGE); setObservedLimit(6); };
   const rows = rankings?.rows || [];
   const settings = { scoring: filters.scoring, passingTds: filters.passingTds };
   // The screen's page title is its h1 on every layer; the cards below it are the layers.
   const toFantasy = { key: 'fantasy', label: 'Fantasy', onOpen: () => onLayer({ fantasyLayer: null, fantasyPlayer: null }) };
+  // The wind sentence for one player's game, whatever the ranking period (the matchup sections show it as observed context).
+  const weatherFor = id => { const p = snapshot?.players.find(item => item.id === id); return p ? describePlayerContext(p, { wind: gameContext?.wind })?.weather ?? null : null; };
   const profile = snapshot && profileId ? <PlayerProfileSheet snapshot={snapshot} playerId={profileId} settings={settings} onClose={() => onProfile(null)}
-    compare={{ compared: compareIds.includes(profileId), full: compareIds.length >= MAX_COMPARE, onCompare }}/> : null;
+    compare={{ compared: compareIds.includes(profileId), full: compareIds.length >= MAX_COMPARE, onCompare }} lines={gameContext?.lines ?? null} weather={weatherFor(profileId)}/> : null;
+
+  const usage = snapshot && view.fantasyLayer === 'usage' ? playerProfile(snapshot, view.fantasyPlayer, settings) : null;
+  if (usage) return <section className="gx-screen gx-fantasy" aria-label="Fantasy Football"><h1 className="gx-t-title">Fantasy Football</h1>
+    <Nest key="fantasy-layer" label="Fantasy layers" layer={`usage:${usage.player.id}`} title={usage.player.name} lips={[toFantasy]} info={<InfoButton title="About observed Fantasy production" body={['Actual points and usage come from recorded completed games. Missing statistics and byes remain distinct from zero.', `Stats through Week ${snapshot.statsThroughWeek}. Source updated ${date(snapshot.asOf)}.`, 'Season and last-three-week averages use each statistic’s recorded sample. GTL estimates are labelled separately.']} links={sourceLinks(snapshot)}/>}>
+      <div className="gx-fantasy-profile-mark"><TeamMark code={usage.player.team} size={48} decorative/><p className="gx-t-meta">{usage.player.position} · {usage.summary.season.games} recorded games · {scoringLabel}</p></div>
+      <PlayerProfileBody profile={usage} snapshot={snapshot} settings={settings} compare={{ compared: compareIds.includes(usage.player.id), full: compareIds.length >= MAX_COMPARE, onCompare }}
+        lines={gameContext?.lines ?? null} weather={weatherFor(usage.player.id)}/>
+    </Nest></section>;
 
   // Fantasy › one player.
   const player = snapshot && view.fantasyLayer === 'player' ? rows.find(p => p.id === view.fantasyPlayer) ?? null : null;
   if (player) {
     const context = contextFor(player), trends = player.trendHighlights || [];
-    return <section className="gx-screen gx-fantasy" aria-label="Fantasy Football"><h1 className="gx-t-title">Fantasy Football</h1><Nest label="Fantasy layers" layer={'player:' + player.id} title={player.name} lips={[toFantasy]}
+    return <section className="gx-screen gx-fantasy" aria-label="Fantasy Football"><h1 className="gx-t-title">Fantasy Football</h1><Nest key="fantasy-layer" label="Fantasy layers" layer={'player:' + player.id} title={player.name} lips={[toFantasy]}
       info={<InfoButton title={`About ${player.name}’s estimate`} body={[
         `${player.sampleGames ?? '—'} recorded games in the estimate. Player availability is not injury-adjusted.`,
         ...trends.map(t => `${t.direction === 'up' ? 'Rising' : 'Falling'} · ${t.label}: ${t.detail}`),
         'Matchup and kickoff context are observed nflverse data, not predictions.']} links={sourceLinks(snapshot)}/>}>
-      <p className="gx-t-meta">{player.team || 'Team unknown'} · {player.position}{player.positionRank ? ` ${player.positionRank}` : ''} · Overall {player.overallRank ?? '—'}</p>
+      <div className="gx-fantasy-profile-mark"><TeamMark code={player.team} size={48} decorative/><p className="gx-t-meta">{player.team || 'Team unknown'} · {player.position}{player.positionRank ? ` ${player.positionRank}` : ''} · Overall {player.overallRank ?? '—'}</p></div>
       <p className="gx-nest-big"><span className="gx-n-xl">{number(player.points)}</span><span className="gx-t-meta">est. pts · {scoringLabel}</span></p>
       <div className="gx-nest-tags">
         <Pill>{player.weekly?.status === 'bye' ? 'Bye this week' : context?.pill ?? (player.weekly?.opponent ? `${player.weekly.opponent} · ${date(player.weekly.kickoff)}` : 'Matchup unavailable')}</Pill>
@@ -138,14 +152,23 @@ export function FantasyNest({ navigationState, onNavigationState, view = {}, onL
             : context.lock ? <LockLine>{context.lock}</LockLine> : context.linesNote ? <p className="gx-t-body">{context.linesNote}</p> : null}
         </div>
       </details> : null}
+      <DefenseMatchupSection snapshot={snapshot} playerId={player.id} settings={settings} lines={gameContext?.lines ?? null} weather={context?.weather ?? weatherFor(player.id)}/>
       {profile}
+    </Nest></section>;
+  }
+
+  // Fantasy › defense matchups: points allowed by position (season, recent, opponent-adjusted) and defense styles.
+  if (snapshot && view.fantasyLayer === 'defense') {
+    return <section className="gx-screen gx-fantasy" aria-label="Fantasy Football"><h1 className="gx-t-title">Fantasy Football</h1><Nest key="fantasy-layer" label="Fantasy layers" layer="defense" title="Defense matchups" lips={[toFantasy]}
+      info={<InfoButton title="About defense matchups" body={['Fantasy points each defense allowed per game to each position, from this snapshot’s completed games.', 'Adjusted compares each game with what that offense usually scores against its other opponents.', 'Style columns label estimates; see How to read this table.']} links={sourceLinks(snapshot)}/>}>
+      <DefenseRankings snapshot={snapshot} settings={settings} scoringLabel={scoringLabel}/>
     </Nest></section>;
   }
 
   // Fantasy › the week's report card (D-69 step 3: tiles and rows; the fine print behind ⓘ).
   if (snapshot && view.fantasyLayer === 'report' && filters.scope === 'weekly' && state.review) {
     const report = reportModel(state.review, filters, scoringLabel);
-    return <section className="gx-screen gx-fantasy" aria-label="Fantasy Football"><h1 className="gx-t-title">Fantasy Football</h1><Nest label="Fantasy layers" layer="report" title={`Week ${state.review.week} report card`} lips={[toFantasy]}
+    return <section className="gx-screen gx-fantasy" aria-label="Fantasy Football"><h1 className="gx-t-title">Fantasy Football</h1><Nest key="fantasy-layer" label="Fantasy layers" layer="report" title={`Week ${state.review.week} report card`} lips={[toFantasy]}
       info={<InfoButton title="About the report card" body={report.fine} links={sourceLinks(snapshot)}/>}>
       <FantasyReport report={report}/>
     </Nest></section>;
@@ -153,7 +176,7 @@ export function FantasyNest({ navigationState, onNavigationState, view = {}, onL
 
   // Fantasy › compare.
   if (snapshot && view.fantasyLayer === 'compare') {
-    return <section className="gx-screen gx-fantasy" aria-label="Fantasy Football"><h1 className="gx-t-title">Fantasy Football</h1><Nest label="Fantasy layers" layer="compare" title="Compare players" lips={[toFantasy]}>
+    return <section className="gx-screen gx-fantasy" aria-label="Fantasy Football"><h1 className="gx-t-title">Fantasy Football</h1><Nest key="fantasy-layer" label="Fantasy layers" layer="compare" title="Compare players" lips={[toFantasy]}>
       <PlayerCompare key={`${snapshot.season}-${snapshot.week}-${filters.scoring}`} snapshot={snapshot} ids={compareIds} onChange={onCompareChange} settings={settings} onProfile={onProfile}/>
       {profile}
     </Nest></section>;
@@ -165,46 +188,51 @@ export function FantasyNest({ navigationState, onNavigationState, view = {}, onL
     : state?.origin === 'hosted' && snapshot ? `Updated ${date(snapshot.generatedAt)}${state.indexStale ? ' · refresh check delayed' : ''}` : null;
   const seasons = [...new Set(entries.map(entry => entry.season))];
   const reportCard = snapshot && filters.scope === 'weekly' && state.review ? reportTile(state.review, filters) : null;
-  return <section className="gx-screen gx-fantasy" aria-label="Fantasy Football"><h1 className="gx-t-title">Fantasy Football</h1><Nest label="Fantasy layers" layer="fantasy" title="Rankings"
-    info={snapshot ? <InfoButton title="About Fantasy rankings" body={methodBody(snapshot, filters, scoringLabel)} links={sourceLinks(snapshot)}/> : <InfoButton title="About Fantasy rankings" body={[INTRO]}/>}>
-    {snapshot ? <p className="gx-t-meta">Week {snapshot.week} · {filters.scope === 'ros' ? 'Rest of season' : 'Weekly'} · {scoringLabel} · Stats through Week {snapshot.statsThroughWeek ?? '—'}</p> : null}
+  return <section className="gx-screen gx-fantasy" aria-label="Fantasy Football"><h1 className="gx-t-title">Fantasy Football</h1>
+    <Segmented label="Fantasy browse" value={browse} options={[{ value: 'players', label: 'Players' }, { value: 'rankings', label: 'Rankings' }, ...(snapshot ? [{ value: 'compare', label: `Compare (${compareIds.length})` }] : [])]} onChange={value => value === 'compare' ? onLayer({ fantasyLayer: 'compare', fantasyPlayer: null }) : setBrowse(value)}/>
+    <Nest key="fantasy-layer" className={browse === 'players' ? 'gx-fantasy-browse' : undefined} label="Fantasy layers" layer="fantasy" title={browse === 'players' ? 'Players' : 'Rankings'}
+    info={snapshot ? <InfoButton title={browse === 'players' ? 'About observed Fantasy production' : 'About Fantasy rankings'} body={browse === 'players' ? ['Recorded fantasy points and per-game averages from this snapshot. Players are alphabetical, without a rank. Sparks show known recorded-game points only; byes and missing weeks remain named in the chart description and usage profile.', 'Season and last three calendar weeks use only recorded points, with their own sample counts.', `Stats through Week ${snapshot.statsThroughWeek ?? 'unknown'}. Source updated ${date(snapshot.asOf)}.`, 'GTL estimates remain separate in Rankings and the usage profile.'] : methodBody(snapshot, filters, scoringLabel)} links={sourceLinks(snapshot)}/> : <InfoButton title="About Fantasy rankings" body={[INTRO]}/>}>
+    {snapshot ? <p className="gx-t-meta">Week {snapshot.week} · {browse === 'players' ? 'Observed production' : filters.scope === 'ros' ? 'Rest of season' : 'Weekly'} · {scoringLabel} · Stats through Week {snapshot.statsThroughWeek ?? '—'}</p> : null}
     {origin ? <p className="gx-t-meta" role="status">{origin}</p> : null}
     {stale ? <p className="gx-fantasy-warning" role="status">Stale snapshot: the source is more than 7 days old.</p> : null}
     {snapshot && !Number.isFinite(Date.parse(snapshot.asOf)) ? <p className="gx-fantasy-warning">Source freshness is unavailable.</p> : null}
     <div className="gx-fantasy-filters" aria-label="Fantasy rankings filters" role="group">
-      <Segmented label="Ranking period" options={SCOPE_OPTIONS} value={filters.scope} onChange={value => update('scope', value)}/>
+      {browse === 'rankings' ? <Segmented label="Ranking period" options={SCOPE_OPTIONS} value={filters.scope} onChange={value => update('scope', value)}/> : null}
       <div className="gx-fantasy-filter-grid">
         <Field name="Season" value={selectedSeason} onChange={season => choose(entries.find(entry => entry.season === Number(season))?.key)} options={seasons.map(s => ({ value: s, label: s }))}/>
         <Field name="Week" value={chosen} onChange={choose} options={entries.filter(e => e.season === selectedSeason).map(e => ({ value: e.key, label: `Week ${e.week}` }))}/>
         <Field name="Scoring" value={filters.scoring} onChange={value => update('scoring', value)} options={SCORING_OPTIONS}/>
-        <Field name="Position" value={filters.position} onChange={value => update('position', value)} options={POSITION_OPTIONS}/>
+        {browse === 'rankings' ? <Field name="Position" value={filters.position} onChange={value => update('position', value)} options={POSITION_OPTIONS}/> : <Field name="Passing touchdowns" value={filters.passingTds} onChange={value => update('passingTds', Number(value))} options={[{ value: 4, label: '4 points' }, { value: 6, label: '6 points' }]}/>}
       </div>
+      {browse === 'rankings' ? <><FindPlayer value={filters.search} onChange={value => update('search', value)}/>
       <details className="gx-tr-details" data-fantasy="more-filters"><summary className="gx-t-strong">More filters</summary>
         <div className="gx-fantasy-filters">
           <div className="gx-fantasy-more-grid">
             <Field name="Passing touchdowns" value={filters.passingTds} onChange={value => update('passingTds', Number(value))} options={[{ value: 4, label: '4 points' }, { value: 6, label: '6 points' }]}/>
             <Field name="Team" value={filters.team} onChange={value => update('team', value)} options={[{ value: 'ALL', label: 'All teams' }, ...(rankings?.teams || []).map(team => ({ value: team, label: team }))]}/>
           </div>
-          <FindPlayer value={filters.search} onChange={value => update('search', value)}/>
           <Switch label="Strong trends only" sub={`Usage or scoring changes entering Week ${selectedWeek}.`} checked={filters.trendsOnly} onChange={value => update('trendsOnly', value)}/>
           <Button variant="secondary" onClick={reset}>Reset filters</Button>
         </div>
-      </details>
+      </details></> : null}
     </div>
     {state?.status === 'loading' && <Skeleton label={`Loading Week ${selectedWeek} rankings…`} shape="rows" count={4}/>}
     {state?.status === 'missing' && <div className="gx-vstack gx-gap-8"><p className="gx-t-body">No fantasy snapshot is available for {selectedSeason} Week {selectedWeek}.</p><Button variant="secondary" onClick={state.retry}>Check again</Button></div>}
     {state?.status === 'error' && <div className="gx-vstack gx-gap-8"><p className="gx-t-body" role="alert">Week {selectedWeek} rankings could not be loaded.</p><Button variant="secondary" onClick={state.retry}>Try again</Button></div>}
     {snapshot && <>
-      <ul className="gx-nest-grid" aria-label="Fantasy tools">
+      {browse === 'rankings' ? <ul className="gx-nest-grid" aria-label="Fantasy tools">
         {reportCard ? <li><button type="button" className="gx-nest-tile" data-fantasy="report" onClick={() => onLayer({ fantasyLayer: 'report', fantasyPlayer: null })}>
           <span className="gx-nest-tile-label">Week {state.review.week} report card</span><span className="gx-n-m gx-nest-num">{reportCard.big}</span>
           <span className="gx-t-meta">{reportCard.sub}</span></button></li> : null}
+        {snapshot.matchups ? <li><button type="button" className="gx-nest-tile" data-fantasy="defense" onClick={() => onLayer({ fantasyLayer: 'defense', fantasyPlayer: null })}>
+          <span className="gx-nest-tile-label">Defense matchups</span><span className="gx-n-m gx-nest-num">{Object.keys(snapshot.matchups).length}</span>
+          <span className="gx-t-meta">teams ranked by position</span></button></li> : null}
         <li><button type="button" className="gx-nest-tile" data-fantasy="compare" onClick={() => onLayer({ fantasyLayer: 'compare', fantasyPlayer: null })}>
           <span className="gx-nest-tile-label">Compare players</span><span className="gx-n-m gx-nest-num">{compareIds.length}</span>
           <span className="gx-t-meta">of {MAX_COMPARE} chosen</span></button></li>
-      </ul>
-      {filters.scope === 'weekly' && state?.origin === 'hosted' && !state.review && snapshot.week > 2 ? <p className="gx-t-meta">Not graded: no estimate was published for Week {snapshot.week - 1}.</p> : null}
-      <section className="gx-fantasy-results" aria-label="Player rankings">
+      </ul> : null}
+      {browse === 'rankings' && filters.scope === 'weekly' && state?.origin === 'hosted' && !state.review && snapshot.week > 2 ? <p className="gx-t-meta">Not graded: no estimate was published for Week {snapshot.week - 1}.</p> : null}
+      {browse === 'players' ? <ObservedPlayers key={`${snapshot.season}-${snapshot.week}`} snapshot={snapshot} settings={settings} filters={filters} onFilter={update} compareIds={compareIds} onProfile={id => onLayer({ fantasyLayer: 'usage', fantasyPlayer: id })} onCompare={onCompare} limit={observedLimit} onLimit={setObservedLimit}/> : <section className="gx-fantasy-results" aria-label="Player rankings">
         <div className="gx-fantasy-results-heading"><h3 className="gx-t-label gx-c-2">Player rankings</h3><span className="gx-t-meta" role="status" aria-live="polite">{rankings.error ? 'Unavailable' : `${rows.length} players`}</span></div>
         {rankings.error ? <div className="gx-vstack gx-gap-8"><p className="gx-t-body" role="alert">{rankings.error}</p><Button variant="secondary" onClick={state.retry}>Try again</Button></div>
           : rows.length ? <><ol className="gx-nest-list gx-fantasy-players" aria-label="Ranked players">{rows.slice(0, limit).map(p => <PlayerRow key={p.id} player={p} scope={filters.scope} position={filters.position} context={contextFor(p)}
@@ -212,7 +240,7 @@ export function FantasyNest({ navigationState, onNavigationState, view = {}, onL
             {rows.length > limit ? <Button variant="secondary" onClick={() => setLimit(n => n + FANTASY_PAGE)}>Show more players ({rows.length - limit} left)</Button> : null}</>
           : <div className="gx-vstack gx-gap-8"><p className="gx-t-body">{filters.position === 'DST' ? 'Defense and special teams rankings are unavailable: this source does not include a verified scoring model for D/ST.' : snapshot.players.length === 0 ? 'This snapshot has no eligible player statistics yet.' : 'No players match these filters.'}</p><Button variant="secondary" onClick={reset}>Reset filters</Button></div>}
         {!rankings.error ? <p className="gx-t-meta">All positions · {rankings.summary.ranked} ranked · {rankings.summary.byes} bye · {rankings.summary.unavailable} unestimated</p> : null}
-      </section>
+      </section>}
     </>}
     {profile}
   </Nest></section>;

@@ -63,3 +63,74 @@ test('totals from the SQL shape normalize the same way (strings, missing fields,
     { wins: 2, losses: 1, pushes: 0, pending: 0, voids: 0, picks: 3, units: 3.5, riskUnits: 3, netUnits: -0.18, roi: -6, qualified: true });
   assert.equal(normalizeWeek({ wins: -1 }).wins, 0, 'a negative count is not a count');
 });
+
+test('saved four-place wins retain their stake and net precision before the ROI percentage is rounded', () => {
+  for (const [units, netUnits, roi] of [[0.01, 0.0091, 91], [0.5, 0.4545, 90.9]]) {
+    const rows = [pick('win', units, netUnits)];
+    const original = structuredClone(rows);
+    const week = weekFromPicks(rows);
+    assert.equal(week.units, units);
+    assert.equal(week.riskUnits, units);
+    assert.equal(week.netUnits, netUnits);
+    assert.equal(week.roi, roi);
+    assert.deepEqual(normalizeWeek({ wins: '1', picks: '1', units: String(units), riskUnits: String(units), netUnits: String(netUnits) }), week);
+    assert.deepEqual(rows, original, 'reading a result must not rewrite its saved precision');
+  }
+});
+
+test('season totals retain every week’s saved fractions and calculate one ROI over the summed settled risk', () => {
+  const rows = [[0.5, 0.4545], [0.5, 0.4505], [0.01, 0.0091]]
+    .map(([units, netUnits]) => weekFromPicks([pick('win', units, netUnits)]));
+  const original = structuredClone(rows);
+  const total = addWeeks(rows);
+  assert.deepEqual([total.units, total.riskUnits, total.netUnits, total.roi], [1.01, 1.01, 0.9141, 90.5]);
+  const season = seasonBoard(rows.map((row, i) => ({ week: i + 1, rows: [{ userId: 'a', ...row, picks: i === 0 ? 3 : 1 }] })));
+  assert.deepEqual(season.board.map(row => [row.netUnits, row.roi, row.qualifiedWeeks]), [[0.9141, 90.5, 1]]);
+  assert.deepEqual(rows, original, 'season aggregation is read only');
+});
+
+test('saved fractions do not promote a below-3U week or erase a tiny settled loss', () => {
+  const below = weekFromPicks([pick('pending', 2), pick('void', 0.9999, 100)]);
+  assert.equal(below.units, 2.9999);
+  assert.equal(below.qualified, false);
+  assert.equal(below.roi, null);
+  const loss = weekFromPicks([pick('loss', 0.0001), pick('push', 0.0001), pick('void', 1, 100), pick('pending', 1, 100)]);
+  assert.deepEqual([loss.wins, loss.losses, loss.pushes, loss.voids, loss.pending], [0, 1, 1, 1, 1]);
+  assert.deepEqual([loss.riskUnits, loss.netUnits, loss.roi, loss.qualified], [0.0002, -0.0001, -50, true]);
+  assert.equal(pickNet(pick('push', 0.0001)), 0);
+});
+
+test('four-place sums stay stable across floating additions, cancellation and week order', () => {
+  const weeks = Array.from({ length: 10 }, () => weekFromPicks([pick('win', 0.1, 0.0091)]));
+  const total = addWeeks(weeks);
+  assert.deepEqual([total.units, total.riskUnits, total.netUnits, total.roi], [1, 1, 0.091, 9.1]);
+  assert.deepEqual(addWeeks([...weeks].reverse()), total);
+  const cancelled = weekFromPicks([pick('win', 0.1, 0.1), pick('win', 0.2, 0.2), pick('loss', 0.3)]);
+  assert.equal(cancelled.netUnits, 0);
+  assert.equal(cancelled.roi, 0);
+});
+
+test('otherwise qualified half-unit winners at −110 and −111 split the old cent-rounded tie', () => {
+  const rows = [0.4545, 0.4505].map((net, i) => ({ userId: String(i), ...weekFromPicks([
+    pick('win', 0.5, net), pick('pending', 0.5), pick('void', 0.5),
+  ]) }));
+  const { board } = rankBoard(rows);
+  assert.deepEqual(board.map(row => [row.userId, row.netUnits, row.roi, rankLabel(row)]),
+    [['0', 0.4545, 90.9, '1'], ['1', 0.4505, 90.1, '2']]);
+  const old = rankBoard(rows.map(row => ({ ...row, netUnits: Math.round(row.netUnits * 100) / 100 })));
+  assert.deepEqual(old.board.map(rankLabel), ['T-1', 'T-1'], 'representative impact of the previous cent normalization');
+});
+
+test('equal two-place ROI uses four-place net, then wins; exact equality still shares ranks', () => {
+  const rows = [
+    { userId: 'lower', netUnits: 0.4505, wins: 9 },
+    { userId: 'fewer', netUnits: 0.4545, wins: 1 },
+    { userId: 'a', netUnits: 0.4545, wins: 2 },
+    { userId: 'b', netUnits: 0.4545, wins: 2 },
+  ].map(row => ({ picks: 10, units: 100.5, riskUnits: 100, ...row }));
+  const original = structuredClone(rows);
+  const { board } = rankBoard(rows);
+  assert.deepEqual(board.map(row => [row.userId, row.roi, rankLabel(row)]),
+    [['a', 0.45, 'T-1'], ['b', 0.45, 'T-1'], ['fewer', 0.45, '3'], ['lower', 0.45, '4']]);
+  assert.deepEqual(rows, original);
+});

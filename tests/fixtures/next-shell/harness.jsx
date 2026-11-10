@@ -169,6 +169,7 @@ async function onSignOut() {
 
 createRoot(document.getElementById('root')).render(
   <ThemeProvider>
-    <Shell session={session} onSignOut={onSignOut} screens={screens} layers={layers}/>
+    <Shell session={session} onSignOut={onSignOut} screens={new URLSearchParams(location.search).has('actual-cover') ? SCREENS : screens} layers={layers}
+      cover={new URLSearchParams(location.search).has('actual-cover') ? <h1>Access pending fixture</h1> : null}/>
   </ThemeProvider>,
 );

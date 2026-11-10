@@ -10,7 +10,7 @@ import { createResearchSnapshot, finalAvailableAt, RESEARCH_PERIODS } from '../s
 import { TRENDS_SOURCE, parseCsvRows, rowPlayed } from '../shared/trends.mjs';
 import { observedPlayStatistics } from '../shared/research-play-statistics.mjs';
 import { appCode, easternToUtc } from '../shared/nfl-schedule.mjs';
-import { validatePublicResearchSnapshot, validateResearchIndex, MAX_RESEARCH_DECODED_BYTES } from '../shared/research-data.mjs';
+import { validatePublicResearchSnapshot, validateResearchIndex, MAX_RESEARCH_DECODED_BYTES, MAX_RESEARCH_FILE_BYTES } from '../shared/research-data.mjs';
 import { snapshotModule } from './prepare-trends-research.mjs';
 import { parseFantasyCsv } from '../shared/fantasy-build.mjs';
 
@@ -50,6 +50,7 @@ export async function buildResearchRelease({ csv, plays, pbpHash, season, now, r
     const json = JSON.stringify(data);
     if (Buffer.byteLength(json) > MAX_RESEARCH_DECODED_BYTES) throw new Error('Research payload exceeds the decoded limit.');
     const bytes = gzipSync(json, { level: 9 }), sha256 = sha(bytes), file = `${period}-${sha256}.json.gz`;
+    if (bytes.length > MAX_RESEARCH_FILE_BYTES) throw new Error('Research payload exceeds the packed limit.');
     index.files.push({ period, file, bytes: bytes.length, sha256 }); files.set(file, bytes);
   }
   validateResearchIndex(index, season, Date.parse(now));

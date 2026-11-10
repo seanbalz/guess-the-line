@@ -33,9 +33,11 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "2.117.3",
+    "@tesseract.js-data/eng": "1.0.0",
     "lucide-react": "^0.468.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "tesseract.js": "7.0.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
@@ -50,6 +52,7 @@
     "wrangler": "4.148.0"
   },
   "overrides": {
-    "sharp": "0.35.5"
+    "sharp": "0.35.5",
+    "wasm-feature-detect": "1.8.0"
   }
 }

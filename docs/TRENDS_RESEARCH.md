@@ -34,6 +34,11 @@ remain unchanged; newly registered candidates cannot acquire those tiers.
 
 ## Prepared historical data
 
+The November 7 additive [canonical chart-data follow-up](RESEARCH_CHART_PAYLOADS_2026_11_07.md)
+adds exact NFL-season summaries for each selected period and bounded real row
+curves. It records local verification and release compatibility; publication
+and hosted rollout remain separate.
+
 The free source is the [nflverse schedules release](https://github.com/nflverse/nflverse-data/releases/tag/schedules),
 used under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 `shared/trends-research-candidates.mjs` wraps the frozen registry and engine.

@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { build } from 'vite';
 import react from '@vitejs/plugin-react';
 import { ALL } from '../migrations.mjs';
+import { holdAnimationFrames } from '../helpers/animation-frame-gate.mjs';
 import { SUPABASE, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 
 // Redesign build plan, stage 10: the shell frame, at 390 x 844 (section 4.1).
@@ -83,7 +84,9 @@ function apiCalls(page) {
  */
 const writes = calls => calls.filter(call => !['POST /functions/v1/gtl-api/trends/week', 'GET /functions/v1/gtl-api/lobby', 'POST /functions/v1/gtl-api/community/read', 'POST /functions/v1/gtl-api/me/preferences', 'POST /functions/v1/gtl-api/community/history', 'GET /functions/v1/gtl-api/personal', 'POST /functions/v1/gtl-api/personal/read', 'POST /functions/v1/gtl-api/wind/read', 'POST /functions/v1/gtl-api/social/read', 'POST /functions/v1/gtl-api/fantasy/week', 'POST /functions/v1/gtl-api/lines/read', 'POST /functions/v1/gtl-api/lines/teams', 'POST /functions/v1/gtl-api/points/read', 'POST /functions/v1/gtl-api/league/features',
   // The league feed reader (redesign stage 64): a read; until M-22 is applied it answers 503 and the old feed shows.
-  'POST /functions/v1/gtl-api/league/feed'].includes(call));
+  'POST /functions/v1/gtl-api/league/feed',
+  // Bets' teaser reads retained assessments/quotes; this route never collects or saves.
+  'POST /functions/v1/gtl-api/lines/assessments'].includes(call));
 
 /** Loads the page at `fragment` as a new document (a fragment change alone stays in the page that is open). */
 async function load(page, fragment = '') {
@@ -110,7 +113,7 @@ test.describe('the real app', () => {
       await expect(title(page, 'Home')).toBeVisible();
       await expect(tabBar(page).locator('.gx-tab-label')).toHaveText(TABS);
       await expect(tab(page, 'Home')).toHaveAttribute('aria-current', 'page');
-      await expect(page.getByRole('button', { name: 'League: Community. Switch league' })).toContainText('Community');
+      await expect(page.getByRole('button', { name: 'National Football League', exact: true })).toHaveAttribute('aria-pressed', 'true');
       await expect(page.getByRole('button', { name: 'Your menu' })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Guess The Line, home' })).toBeVisible();
       // Home shows already, so it comes last: tapping the tab showing adds no history entry.
@@ -131,10 +134,11 @@ test.describe('the real app', () => {
       }
       // The tab bar and top bar stay put while the page scrolls under them.
       const bar = await tabBar(page).boundingBox();
-      expect(Math.round(bar.y + bar.height)).toBe(844);
+      expect(Math.round(bar.y + bar.height)).toBe(832); // Approved Home floats 12px above the viewport edge.
       await tab(page, 'Research').click();
       await page.reload();
       await expect(title(page, 'Research')).toBeVisible();
+      await expect(page.getByRole('button', { name: 'League: Community. Switch league' })).toContainText('Community');
       await expect(tab(page, 'Research')).toHaveAttribute('aria-current', 'page');
       // Entries: Play, Bets, Research, Home, Research (reloaded).
       await page.goBack();
@@ -207,35 +211,43 @@ test.describe('the real app', () => {
     } finally { await world.db.close(); }
   });
 
-  test('the active tab\'s marker takes the 1px accent-ink edge in Light and keeps its glow in Dark, and the counter sits clear of it (audit A11)', async ({ page, baseURL }) => {
-    test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+  test('the selected floating tab and counter use Home material in both top-header contexts', async ({ page, baseURL }) => {
+    expect(pgliteAvailable, 'Disposable local PGlite required').toBe(true);
     const { world } = await openNewApp(page, baseURL);
     try {
       for (const theme of ['dark', 'light']) {
         await page.evaluate(value => localStorage.setItem('gtl.theme', value), theme);
-        await load(page, '#play');
-        await expect(title(page, 'Play')).toBeVisible();
+        await load(page, '#home');
+        await expect(title(page, 'Home')).toBeVisible();
         await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
-        await expect(tabBar(page).locator('.gx-counter')).toHaveCount(1);
-        const m = await page.evaluate(() => {
-          const probe = document.createElement('span');
-          document.querySelector('.gx').append(probe);
-          probe.style.boxShadow = 'var(--gx-lime-edge)';
-          const edge = getComputedStyle(probe).boxShadow;
-          probe.style.boxShadow = 'var(--gx-glow-accent)';
-          const glow = getComputedStyle(probe).boxShadow;
-          probe.remove();
-          const tab = document.querySelector('.gx-tab--on'), marker = getComputedStyle(tab, '::before');
-          const counter = tab.querySelector('.gx-counter');
-          // The counter's own 1px ring is part of what you see, so its top edge is the box minus that ring.
-          const ring = parseFloat(getComputedStyle(counter).boxShadow.match(/(-?[\d.]+)px$/)?.[1] ?? '0');
-          return { marker: marker.boxShadow, edge, glow, height: marker.height,
-            gap: Math.round((counter.getBoundingClientRect().top - ring - (tab.getBoundingClientRect().top + parseFloat(marker.height))) * 10) / 10 };
+        const recipe = () => page.evaluate(() => {
+          const bar = document.querySelector('.gx-tabbar'), selected = bar.querySelector('[aria-current=page]');
+          const sample = (el, props) => Object.fromEntries(props.map(prop => [prop, getComputedStyle(el)[prop]]));
+          return {
+            box: sample(bar, ['height','width','left','right','bottom','padding','border','borderRadius','background','boxShadow','backdropFilter']),
+            label: sample(selected.querySelector('.gx-tab-label'), ['color','font']),
+            icon: sample(selected.querySelector('.gx-tab-icon'), ['height','width','border','borderRadius','background','boxShadow']),
+            ink: sample(selected.querySelector('.gx-ic'), ['color','strokeWidth']),
+            selected: sample(selected, ['background','borderRadius']),
+          };
         });
-        expect(m.height).toBe('3px');
-        expect(m.marker, theme).toBe(theme === 'light' ? m.edge : m.glow);
-        // The Play counter, ring included, starts below the marker's bar instead of running into it (top: -7px did).
-        expect(m.gap, `${theme}: gap between the marker and the counter`).toBeGreaterThan(0);
+        const home = await recipe();
+        for (const hash of ['#play', '#research', '#play/picks']) {
+          await load(page, hash);
+          await expect(tabBar(page)).toBeVisible();
+          await expect.poll(recipe).toEqual(home);
+          if (hash === '#research') {
+            await expect(page.locator('.gx-topbar')).toHaveCSS('position', 'sticky');
+            await expect(page.locator('.gx-league-btn')).toBeVisible();
+          }
+          await expect(tabBar(page).locator('.gx-counter')).toHaveCount(1);
+          const counters = await tabBar(page).locator('.gx-counter').evaluateAll(nodes => nodes.map(el => {
+            const r = el.getBoundingClientRect(), tab = el.closest('button').getBoundingClientRect();
+            const ring = parseFloat(getComputedStyle(el).boxShadow.match(/(-?[\d.]+)px$/)?.[1] ?? '0');
+            return r.top - ring >= tab.top && r.bottom + ring <= tab.bottom && r.left - ring >= tab.left && r.right + ring <= tab.right;
+          }));
+          expect(counters.every(Boolean)).toBe(true);
+        }
       }
       expect(world.errors).toEqual([]);
     } finally { await world.db.close(); }
@@ -266,7 +278,7 @@ test.describe('the real app', () => {
           await expect(page.getByRole('button', { name: 'Back', exact: true })).toBeVisible();
         }
         // D-69 step 3: the legacy #lines lands on Research › Games, titled Games, its rows picture rows.
-        if (name === 'Games') { await expect(page.locator('.gx-l-group').first()).toBeVisible(); await expect(page.locator('.gx-prow[data-game]').first()).toBeVisible(); }
+        if (name === 'Games') { await expect(page.locator('.gx-l-group').first()).toBeVisible(); await expect(page.locator('button[data-game]').first()).toBeVisible(); }
       }
       const switcher = sheet(page, 'Your leagues');
       for (const fresh of [false, true]) {
@@ -274,7 +286,7 @@ test.describe('the real app', () => {
         else await page.goto('/#groups');
         await expect(switcher).toBeVisible();
         await expect(switcher).toBeFocused();
-        await expect(page.locator('.gx-app h1')).toHaveText('Home');
+        await expect(page.locator('.gx-app h1')).toHaveAccessibleName('Home');
         await phoneChecks(page);
         await page.goBack();
         await expect(switcher).toHaveCount(0);
@@ -304,7 +316,7 @@ test.describe('the real app', () => {
       await expect(avatar).toBeFocused();
       await expect(title(page, 'Home')).toBeVisible();
 
-      // Keyboard: the menu wraps in both directions, then Profile, History (stage 73), Export my data (stage 75), Settings and Guidance precede Appearance.
+      // Keyboard: the menu wraps in both directions, then Invite friends, Profile, History (stage 73), Export my data (stage 75), Settings and Guidance precede Appearance.
       // Appearance changes the view in place and focus stays in the sheet.
       await avatar.focus();
       await page.keyboard.press('Enter');
@@ -315,6 +327,8 @@ test.describe('the real app', () => {
       await expect(menu.getByRole('button', { name: 'Sign out', exact: true })).toBeFocused();
       await page.keyboard.press('Tab');
       await expect(menu.getByRole('button', { name: 'Close' })).toBeFocused();
+      await page.keyboard.press('Tab');
+      await expect(menu.getByRole('button', { name: 'Invite friends', exact: true })).toBeFocused();
       await page.keyboard.press('Tab');
       await expect(menu.getByRole('button', { name: 'Profile', exact: true })).toBeFocused();
       await page.keyboard.press('Tab');
@@ -380,13 +394,22 @@ test.describe('the real app', () => {
         await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
         // D-44: the top bar's logo is the G alone in the theme's accent-ink, with no tile, edge or shadow behind it or
         // on its svg.
-        for (const part of ['.gx-mono', '.gx-mono-svg']) {
+        for (const part of ['.gx-home-brand', '.gx-home-brand img:visible']) {
           const mark = page.locator(`.gx-topbar ${part}`);
           await expect(mark).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
           await expect(mark).toHaveCSS('background-image', 'none');
           await expect(mark).toHaveCSS('box-shadow', 'none');
-          await expect(mark).toHaveCSS('color', theme === 'dark' ? 'rgb(184, 243, 75)' : 'rgb(59, 99, 9)');
         }
+        await expect(page.locator('.gx-home-brand img:visible')).toHaveJSProperty('complete', true);
+        expect(await page.locator('.gx-home-brand img:visible').evaluate(img => img.naturalWidth)).toBeGreaterThan(0);
+        const sports = page.getByRole('navigation', { name: 'Sports' });
+        await expect(sports.getByRole('button', { name: 'National Football League', exact: true })).toHaveAttribute('aria-pressed', 'true');
+        await expect(sports.getByRole('button', { name: 'NBA', exact: true })).toHaveCount(0);
+        const circle = await sports.locator('.gx-home-sport').first().evaluate(el => {
+          const box = el.getBoundingClientRect(), image = el.querySelector('img');
+          return { width: box.width, height: box.height, radius: getComputedStyle(el).borderRadius, fit: getComputedStyle(image).objectFit, loaded: image.complete && image.naturalWidth > 0 };
+        });
+        expect(circle).toEqual({ width: 52, height: 52, radius: '50%', fit: 'contain', loaded: true });
         for (const width of [390, 320]) {
           await page.setViewportSize({ width, height: 844 });
           await phoneChecks(page);
@@ -403,11 +426,13 @@ test.describe('the real app', () => {
           found[`appearance ${theme} ${width}`] = await axe(page);
           if (width === 390) await page.screenshot({ path: testInfo.outputPath(`next-shell-appearance-390-${theme}.png`) });
           await page.keyboard.press('Escape');
+          await tab(page, 'Research').click();
           await page.getByRole('button', { name: 'League: Community. Switch league' }).click();
           await expect(sheet(page, 'Your leagues')).toBeVisible();
           found[`switcher ${theme} ${width}`] = await axe(page);
           if (width === 390) await page.screenshot({ path: testInfo.outputPath(`next-shell-switcher-390-${theme}.png`) });
           await page.keyboard.press('Escape');
+          await tab(page, 'Play').click();
         }
         await page.setViewportSize({ width: 390, height: 844 });
       }
@@ -445,13 +470,13 @@ async function harnessBundle() {
   const css = files.filter(f => f.type === 'asset' && f.fileName.endsWith('.css'));
   expect(js.map(f => f.fileName)).toEqual(['harness.js']);
   expect(css).toHaveLength(1);
-  bundle = { js: js[0].code, css: String(css[0].source), cssName: css[0].fileName };
+  bundle = { js: js[0].code, css: String(css[0].source), cssName: css[0].fileName, assets: new Map(files.filter(f => f.type === 'asset' && /\.(svg|png)$/.test(f.fileName)).map(f => ['/' + f.fileName, f.source])) };
   return bundle;
 }
 
 /** Serves the harness at `fragment`; every other origin is refused and recorded. */
 async function harness(page, fragment = '') {
-  const { js, css, cssName } = await harnessBundle();
+  const { js, css, cssName, assets } = await harnessBundle();
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Shell</title><link rel="icon" href="data:,"><link rel="stylesheet" href="/${cssName}"></head><body><div id="root"></div><script type="module" src="/harness.js"></script></body></html>`;
   const seen = { other: [] };
   await page.route('**/*', route => {
@@ -460,6 +485,7 @@ async function harness(page, fragment = '') {
     if (url.pathname === '/') return route.fulfill({ status: 200, contentType: 'text/html', body: html });
     if (url.pathname === '/harness.js') return route.fulfill({ status: 200, contentType: 'text/javascript', body: js });
     if (url.pathname === `/${cssName}`) return route.fulfill({ status: 200, contentType: 'text/css', body: css });
+    if (assets.has(url.pathname)) return route.fulfill({ status: 200, contentType: url.pathname.endsWith('.svg') ? 'image/svg+xml' : 'image/png', body: assets.get(url.pathname) });
     return route.fulfill({ status: 404, body: '' });
   });
   const errors = [];
@@ -473,6 +499,57 @@ const events = page => page.evaluate(() => window.__events.slice());
 
 test.describe('the shell harness', () => {
   test.beforeAll(async () => { test.setTimeout(120000); await harnessBundle(); });
+
+  test('access covers retain native controls with the actual overview registry', async ({ page }) => {
+    const { errors } = await harness(page, '?actual-cover#play');
+    for (const name of ['Play', 'Bets', 'Home']) {
+      await tab(page, name).click();
+      await expect(page.getByRole('heading', {name:'Access pending fixture'})).toBeVisible();
+      await expect(page.locator('.gx')).not.toHaveClass(/gx-overview-frame|gx-home-design/);
+      await expect(page.locator('.gx-sport-controls')).toBeVisible();
+      await expect(page.locator('.gx-league-btn')).toBeVisible();
+    }
+    expect(errors).toEqual([]);
+  });
+
+  test('custom screen registries retain native framing on every tab', async ({ page }) => {
+    const { errors } = await harness(page);
+    for (const name of ['Home', 'Play', 'Bets', 'Research']) {
+      await tab(page, name).click();
+      await expect(page.locator('.gx')).not.toHaveClass(/gx-overview-frame|gx-home-design/);
+      await expect(page.locator('.gx-sport-controls')).toBeVisible();
+      await expect(page.locator('.gx-league-btn')).toBeVisible();
+      await expect(tabBar(page)).toHaveCSS('left', '16px');
+    }
+    expect(errors).toEqual([]);
+  });
+
+  test('a pending forward frame still focuses the title from a tab, but yields to new destination focus', async ({ page }) => {
+    const { errors } = await harness(page);
+    await tab(page, 'Play').focus();
+    let frames = await holdAnimationFrames(page);
+    await page.keyboard.press('Enter');
+    await expect(title(page, 'Play')).toBeVisible();
+    // The initiating tab is outside main: it must not suppress the normal title handoff.
+    await expect(tab(page, 'Play')).toBeFocused();
+    expect(await frames.flush()).toBeGreaterThan(0);
+    await expect(title(page, 'Play')).toBeFocused();
+
+    await tab(page, 'Home').click();
+    await expect(page.getByRole('heading', { name: 'Shell harness' })).toBeFocused();
+    await tab(page, 'Play').focus();
+    frames = await holdAnimationFrames(page);
+    await page.keyboard.press('Enter');
+    const input = page.getByRole('textbox', { name: 'Unsaved test pick' });
+    await expect(input).toBeVisible();
+    expect(await frames.pendingCount()).toBeGreaterThan(0);
+    await input.focus();
+    await frames.flush();
+    await expect(input).toBeFocused();
+    await page.keyboard.type('21');
+    await expect(input).toHaveValue('21');
+    expect(errors).toEqual([]);
+  });
 
   test('four tab labels stay inside 320px with wider text metrics', async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 700 });
@@ -488,6 +565,17 @@ test.describe('the shell harness', () => {
       }));
       expect(labels.every(label => label.left >= 0 && label.right >= 0)).toBe(true);
     }
+    await tab(page, 'Home').click();
+    await page.getByRole('button', { name: 'Show the dock', exact: true }).click();
+    await page.getByRole('button', { name: 'Show a toast', exact: true }).click();
+    // The bar grows for enlarged text; dock, toast and root focus padding follow the real height.
+    await expect.poll(() => page.evaluate(() => {
+      const bar = document.querySelector('.gx-tabbar').getBoundingClientRect();
+      const dock = document.querySelector('.gx-dock').getBoundingClientRect();
+      const toast = document.querySelector('.gx-toast').getBoundingClientRect();
+      return { grew: bar.height > 72, dockGap: bar.top - dock.bottom, toastGap: dock.top - toast.bottom,
+        paddingFollowsDock: Math.abs(parseFloat(getComputedStyle(document.documentElement).scrollPaddingBottom) - (innerHeight - dock.top + 8)) < 1 };
+    })).toEqual({ grew: true, dockGap: 8, toastGap: 8, paddingFollowsDock: true });
   });
 
   // iOS (viewportPin.js): after the keyboard closes the tab bar must sit on the bottom of what is visible, not a
@@ -504,7 +592,7 @@ test.describe('the shell harness', () => {
       return { bar: Math.round(bar.bottom), barTop: Math.round(bar.top), dock: Math.round(dock.bottom), visible: Math.round(vv.height + vv.offsetTop), gap: document.documentElement.style.getPropertyValue('--gx-viewport-gap') };
     });
     const pinned = async height => {
-      await expect.poll(bars).toEqual(expect.objectContaining({ bar: height, visible: height, gap: '' }));
+      await expect.poll(bars).toEqual(expect.objectContaining({ bar: height - 12, visible: height, gap: '' }));
       const now = await bars();
       expect(now.dock).toBe(now.barTop - 8);
     };
@@ -551,7 +639,7 @@ test.describe('the shell harness', () => {
     await expect(title(page, 'Shell harness')).toBeFocused();
     await page.setViewportSize({ width: 320, height: 700 });
     const labels = await tabBar(page).locator('.gx-tab-label').evaluateAll(nodes => nodes.map(n => getComputedStyle(n).fontSize));
-    expect(labels).toEqual(['16px','16px','16px','16px']);
+    expect(labels).toEqual(['13px','13px','13px','13px']);
     await phoneChecks(page);
   });
 
@@ -561,7 +649,7 @@ test.describe('the shell harness', () => {
     await opener.scrollIntoViewIfNeeded();
     const original = await page.evaluate(() => scrollY);
     expect(original).toBeGreaterThan(1000);
-    await page.evaluate(() => { history.scrollRestoration = 'manual'; document.documentElement.style.overflowAnchor = 'none'; window.__delayHome = true; });
+    await page.evaluate(() => { document.documentElement.style.overflowAnchor = 'none'; window.__delayHome = true; });
     await opener.click();
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await expect(title(page, 'Shell harness')).toBeVisible();

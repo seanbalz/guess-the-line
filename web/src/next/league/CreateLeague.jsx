@@ -1,3 +1,4 @@
+import { AccountSheet } from '../me/AccountSheet.jsx';
 // Stage 59 / Q17-B. The service serializes the owner's creation request and returns
 // the same league for the same request id. Retries are explicit and retain that id.
 import { useEffect, useId, useRef, useState } from 'react';
@@ -6,7 +7,7 @@ import { readNextDraft, removeNextDraft, writeNextDraft } from '../../nextDrafts
 import { useAppData } from '../data/AppData.jsx';
 import { groupLeagues } from '../data/league.js';
 import { useShell } from '../shell/context.js';
-import { Button, Segmented, Sheet } from '../ui/index.js';
+import { Button, Icon, Segmented } from '../ui/index.js';
 import './invitations.css';
 
 const DRAFT = 'create-league';
@@ -80,7 +81,8 @@ export function CreateLeague() {
     } finally { if (lifetime.current === scope) { request.current = false; setBusy(false); } }
   }
   function leave(next) { if (!request.current && shell.confirmLeave()) next(); }
-  return <Sheet title="Create a league" back={{ label: 'Your leagues', onBack: () => leave(() => shell.setSheetArgs({ createLeague: false })) }} onClose={() => leave(shell.closeSheet)}>
+  return <AccountSheet className="gx-account-prism gx-create-prism" title="Create a league" back={{ label: 'Your leagues', onBack: () => leave(() => shell.setSheetArgs({ createLeague: false })) }} onClose={() => leave(shell.closeSheet)}>
+    <div className="gx-account-heading"><span className="gx-account-icon"><Icon icon="people"/></span><h3>A private league for friends</h3></div>
     <p className="gx-t-body">Play with friends in a private league. Your weekly picks count across your leagues; each league keeps its own players and standings.</p>
     <form className="gx-invite-stack" onSubmit={create}>
       <label className="gx-field" htmlFor={fieldId}><span className="gx-t-strong">League name</span>
@@ -88,7 +90,7 @@ export function CreateLeague() {
       <fieldset className="gx-league-format gx-invite-stack" disabled={busy || !!draft.requestId} aria-describedby={helpId}>
         <legend className="gx-t-strong">Who’s playing?</legend>
         <Segmented label="League format" value={draft.format} onChange={value => change('format', value)} options={[{ value: 'duel', label: 'Duel' }, { value: 'group', label: 'Group' }]}/>
-        <p className="gx-t-meta" id={helpId}>{draft.format === 'duel' ? 'You and one friend.' : 'You and up to 19 friends.'}</p>
+        <div className="gx-league-capacity"><Icon icon="people" size={32}/><strong>{draft.format === 'duel' ? 2 : 20}<small>players maximum</small></strong><p className="gx-t-meta" id={helpId}>{draft.format === 'duel' ? 'You and one friend.' : 'You and up to 19 friends.'}</p></div>
       </fieldset>
       <p className="gx-t-meta">Games use the available slate. Games that have already started stay closed. No money or wagers are involved.</p>
       {(draft.name || draft.requestId) && <p className="gx-t-meta">{kept ? 'Draft kept in this tab. It is cleared when you sign out.' : 'This browser cannot keep your draft. Keep this screen open until creation is confirmed.'}</p>}
@@ -96,5 +98,5 @@ export function CreateLeague() {
       <div role="alert">{problem && <p className="gx-t-body gx-invite-problem">{problem}</p>}</div>
       <Button type="submit" block variant="primary" disabled={busy || !draft.name.trim()}>{busy ? 'Working…' : draft.leagueId ? 'Show created league' : draft.requestId ? 'Retry same creation' : 'Create league'}</Button>
     </form>
-  </Sheet>;
+  </AccountSheet>;
 }

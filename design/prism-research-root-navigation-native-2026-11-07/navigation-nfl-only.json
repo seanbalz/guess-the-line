@@ -1,0 +1,395 @@
+{
+  "scenario": {
+    "name": "navigation-nfl-only",
+    "access": false,
+    "epl": false
+  },
+  "captures": [
+    {
+      "file": "navigation-nfl-only-dark-390.png",
+      "sha256": "ef2e0080f16df50e0de5cec7ce86a0779200ad47bb45ac9292984bafaa0bdfe6",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "route": "#research",
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 57,
+        "right": 390,
+        "bottom": 57
+      },
+      "sports": {
+        "x": 0,
+        "y": 57,
+        "width": 390,
+        "height": 68,
+        "right": 390,
+        "bottom": 125
+      },
+      "tabs": {
+        "x": 0,
+        "y": 780,
+        "width": 390,
+        "height": 64,
+        "right": 390,
+        "bottom": 844
+      },
+      "toast": null,
+      "targets": [
+        {
+          "name": "Guess The Line, home",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "name": "League: Community. Switch league",
+          "width": 139.828125,
+          "height": 44
+        },
+        {
+          "name": "Your menu",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "name": "National Football League",
+          "width": 52,
+          "height": 52
+        },
+        {
+          "name": "Home",
+          "width": 97.5,
+          "height": 63
+        },
+        {
+          "name": "Play, 2 ballots due",
+          "width": 97.5,
+          "height": 63
+        },
+        {
+          "name": "Bets",
+          "width": 97.5,
+          "height": 63
+        },
+        {
+          "name": "Research",
+          "width": 97.5,
+          "height": 63
+        }
+      ],
+      "circles": [
+        {
+          "width": 52,
+          "height": 52,
+          "radius": "999px",
+          "images": [
+            {
+              "contain": "contain",
+              "decoded": true
+            }
+          ]
+        }
+      ],
+      "computedTheme": {
+        "stored": "dark",
+        "preference": "dark",
+        "resolved": "dark",
+        "canvas": "linear-gradient(150deg, rgb(42, 45, 55) 0%, rgb(32, 33, 38) 50%, rgb(23, 24, 29) 100%)",
+        "ink": "rgb(243, 233, 215)"
+      },
+      "overflow": false
+    },
+    {
+      "file": "navigation-nfl-only-dark-320.png",
+      "sha256": "d39de54ce130b73da63e75cbe34490d74351b1c2d574df51f8da0a7c419c393d",
+      "theme": "dark",
+      "width": 320,
+      "height": 844,
+      "route": "#research",
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 57,
+        "right": 320,
+        "bottom": 57
+      },
+      "sports": {
+        "x": 0,
+        "y": 57,
+        "width": 320,
+        "height": 68,
+        "right": 320,
+        "bottom": 125
+      },
+      "tabs": {
+        "x": 0,
+        "y": 780,
+        "width": 320,
+        "height": 64,
+        "right": 320,
+        "bottom": 844
+      },
+      "toast": null,
+      "targets": [
+        {
+          "name": "Guess The Line, home",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "name": "League: Community. Switch league",
+          "width": 139.828125,
+          "height": 44
+        },
+        {
+          "name": "Your menu",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "name": "National Football League",
+          "width": 52,
+          "height": 52
+        },
+        {
+          "name": "Home",
+          "width": 80,
+          "height": 63
+        },
+        {
+          "name": "Play, 2 ballots due",
+          "width": 80,
+          "height": 63
+        },
+        {
+          "name": "Bets",
+          "width": 80,
+          "height": 63
+        },
+        {
+          "name": "Research",
+          "width": 80,
+          "height": 63
+        }
+      ],
+      "circles": [
+        {
+          "width": 52,
+          "height": 52,
+          "radius": "999px",
+          "images": [
+            {
+              "contain": "contain",
+              "decoded": true
+            }
+          ]
+        }
+      ],
+      "computedTheme": {
+        "stored": "dark",
+        "preference": "dark",
+        "resolved": "dark",
+        "canvas": "linear-gradient(150deg, rgb(42, 45, 55) 0%, rgb(32, 33, 38) 50%, rgb(23, 24, 29) 100%)",
+        "ink": "rgb(243, 233, 215)"
+      },
+      "overflow": false
+    },
+    {
+      "file": "navigation-nfl-only-light-390.png",
+      "sha256": "0def64d0a9853fdb512ee130da4756d29aede178a04ff18c332b16d994ed853b",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "route": "#research",
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 57,
+        "right": 390,
+        "bottom": 57
+      },
+      "sports": {
+        "x": 0,
+        "y": 57,
+        "width": 390,
+        "height": 68,
+        "right": 390,
+        "bottom": 125
+      },
+      "tabs": {
+        "x": 0,
+        "y": 780,
+        "width": 390,
+        "height": 64,
+        "right": 390,
+        "bottom": 844
+      },
+      "toast": null,
+      "targets": [
+        {
+          "name": "Guess The Line, home",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "name": "League: Community. Switch league",
+          "width": 139.828125,
+          "height": 44
+        },
+        {
+          "name": "Your menu",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "name": "National Football League",
+          "width": 52,
+          "height": 52
+        },
+        {
+          "name": "Home",
+          "width": 97.5,
+          "height": 63
+        },
+        {
+          "name": "Play, 2 ballots due",
+          "width": 97.5,
+          "height": 63
+        },
+        {
+          "name": "Bets",
+          "width": 97.5,
+          "height": 63
+        },
+        {
+          "name": "Research",
+          "width": 97.5,
+          "height": 63
+        }
+      ],
+      "circles": [
+        {
+          "width": 52,
+          "height": 52,
+          "radius": "999px",
+          "images": [
+            {
+              "contain": "contain",
+              "decoded": true
+            }
+          ]
+        }
+      ],
+      "computedTheme": {
+        "stored": "light",
+        "preference": "light",
+        "resolved": "light",
+        "canvas": "linear-gradient(150deg, rgb(250, 251, 246), rgb(233, 236, 232) 55%, rgb(224, 231, 222))",
+        "ink": "rgb(36, 49, 40)"
+      },
+      "overflow": false
+    },
+    {
+      "file": "navigation-nfl-only-light-320.png",
+      "sha256": "a8ef68fe71d7155672e42286df31a824c2aafe4649e159dd68c78b6ebbcfd9bd",
+      "theme": "light",
+      "width": 320,
+      "height": 844,
+      "route": "#research",
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 57,
+        "right": 320,
+        "bottom": 57
+      },
+      "sports": {
+        "x": 0,
+        "y": 57,
+        "width": 320,
+        "height": 68,
+        "right": 320,
+        "bottom": 125
+      },
+      "tabs": {
+        "x": 0,
+        "y": 780,
+        "width": 320,
+        "height": 64,
+        "right": 320,
+        "bottom": 844
+      },
+      "toast": null,
+      "targets": [
+        {
+          "name": "Guess The Line, home",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "name": "League: Community. Switch league",
+          "width": 139.828125,
+          "height": 44
+        },
+        {
+          "name": "Your menu",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "name": "National Football League",
+          "width": 52,
+          "height": 52
+        },
+        {
+          "name": "Home",
+          "width": 80,
+          "height": 63
+        },
+        {
+          "name": "Play, 2 ballots due",
+          "width": 80,
+          "height": 63
+        },
+        {
+          "name": "Bets",
+          "width": 80,
+          "height": 63
+        },
+        {
+          "name": "Research",
+          "width": 80,
+          "height": 63
+        }
+      ],
+      "circles": [
+        {
+          "width": 52,
+          "height": 52,
+          "radius": "999px",
+          "images": [
+            {
+              "contain": "contain",
+              "decoded": true
+            }
+          ]
+        }
+      ],
+      "computedTheme": {
+        "stored": "light",
+        "preference": "light",
+        "resolved": "light",
+        "canvas": "linear-gradient(150deg, rgb(250, 251, 246), rgb(233, 236, 232) 55%, rgb(224, 231, 222))",
+        "ink": "rgb(36, 49, 40)"
+      },
+      "overflow": false
+    }
+  ],
+  "blocked": [],
+  "expectedPageErrors": []
+}

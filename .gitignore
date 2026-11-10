@@ -18,3 +18,7 @@ supabase/.temp/
 
 # Brainstorming visual companion scratch
 .superpowers/
+
+# Isolated browser audit sessions and captures
+.playwright-cli/
+output/playwright/

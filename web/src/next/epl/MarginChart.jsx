@@ -10,7 +10,7 @@ import { PICK_COPY } from './draftModel.js';
 export function MarginChart({ bonus, review = false, clubName = code => code }) {
   if (review) return <div className="gx-epl-margin-empty">
     <p className="gx-t-body">{PICK_COPY.review}</p>
-    <p className="gx-t-meta gx-c-2">{PICK_COPY.reviewBody}</p>
+    <p className="gx-t-body gx-c-2">{PICK_COPY.reviewBody}</p>
   </div>;
   const rows = (bonus ?? []).filter(row => Number.isInteger(row.points) && row.points > 0);
   if (!rows.length) return <p className="gx-t-body gx-c-2">{PICK_COPY.noBonus}</p>;

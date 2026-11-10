@@ -10,13 +10,14 @@ import { PickATeam } from './PickATeam.jsx';
 import { EplFantasy } from './fantasy/EplFantasy.jsx';
 import EplGuess from './guess/EplGuess.jsx';
 import EplGuessLeaderboard from './guess/EplGuessLeaderboard.jsx';
+import EplBetsRecommendations from './bets/EplBets.jsx';
+import './prism-epl.css';
 
 export const EPL_COPY = Object.freeze({
   nav: 'EPL',
   skip: 'Skip to main content',
   tabs: { home: 'Home', play: 'Play', bets: 'Bets', research: 'Research' },
   sections: { pick: 'Pick a Team', guess: 'Guess the Line', leaderboard: 'Leaderboard', fantasy: 'Fantasy' },
-  noBets: "Bets aren't available for the Premier League.",
 });
 
 export function EplScreen() {
@@ -29,7 +30,7 @@ export function EplScreen() {
 /** Sport content only; header, profile, menus, offline state and tab bar are all Shell's. */
 export function EplView({ route, onRoute, api = eplApi, accountId, onDirtyChange }) {
   return route.tab === 'play' ? <EplPlay route={route} onRoute={onRoute} api={api} accountId={accountId} onDirtyChange={onDirtyChange}/>
-    : route.tab === 'bets' ? <EplBets/>
+    : route.tab === 'bets' ? <EplBets api={api} accountId={accountId}/>
     : route.tab === 'research' ? <EplResearch api={api}/>
     : <EplHome key={accountId} accountId={accountId} api={api} onOpenPick={() => onRoute({ tab: 'play', section: 'pick' })}
       onOpenGuess={() => onRoute({ tab: 'play', section: 'guess' })}/>;
@@ -39,7 +40,7 @@ export function EplPlay({ route, onRoute, api, accountId, onDirtyChange }) {
   const section = route.section;
   const options = ['guess', 'pick', 'leaderboard'].map(value => ({ value, label: EPL_COPY.sections[value] }));
   return <div className="gx-screen" data-epl-section={section}>
-    <h1 className="gx-t-title">{EPL_COPY.tabs.play}</h1>
+    <h1 className="gx-t-title">{section === 'leaderboard' ? 'Moneyline leaderboard' : EPL_COPY.sections[section] ?? EPL_COPY.tabs.play}</h1>
     <Segmented className="gx-epl-play-tabs" label={EPL_COPY.tabs.play} value={section} options={options} onChange={value => onRoute({ tab: 'play', section: value })}/>
     {section === 'pick' ? <PickATeam api={api}/> : section === 'leaderboard'
       ? <EplGuessLeaderboard api={api} accountId={accountId}/>
@@ -49,14 +50,14 @@ export function EplPlay({ route, onRoute, api, accountId, onDirtyChange }) {
 
 function EplResearch({ api }) {
   return <div className="gx-screen" data-epl-section="fantasy">
-    <h1 className="gx-t-title">{EPL_COPY.tabs.research}</h1>
+    <h1 className="gx-t-title">FEPL Fantasy</h1>
     <EplFantasy api={api}/>
   </div>;
 }
 
-function EplBets() {
-  return <div className="gx-screen">
+function EplBets({ api, accountId }) {
+  return <div className="gx-screen" data-epl-section="bets">
     <h1 className="gx-t-title">{EPL_COPY.tabs.bets}</h1>
-    <section className="gx-empty"><p className="gx-t-body">{EPL_COPY.noBets}</p></section>
+    <EplBetsRecommendations key={accountId} api={api} accountId={accountId}/>
   </div>;
 }

@@ -28,9 +28,10 @@ self.addEventListener('push', event => {
 
 // A click opens one of this app's own screens, picked only by the notification's fixed tag prefix: the Points reminder
 // (tag gtl-points-<season>-<week>, cloud/push-reminders.mjs) opens Play › Points; an ops alert opens Home (#home, the
-// router's Home tab); every other tag, or none, opens Picks.
+// router's Home tab); a Pick a Team result announcement (tag gtl-epl-results-<season>-<week>, cloud/epl-jobs.mjs) opens
+// EPL Play › Pick a Team; every other tag, or none, opens Picks.
 // The payload cannot choose a URL: nothing reads a url or data field, and a tag can only pick from this fixed list.
-const CLICK_TARGETS = [['gtl-points-', '/#play/points'], [OPS_PREFIX, '/#home']];
+const CLICK_TARGETS = [['gtl-points-', '/#play/points'], [OPS_PREFIX, '/#home'], ['gtl-epl-results-', '/#epl/play/pick']];
 const DEFAULT_TARGET = '/#picks';
 function clickTarget(tag) {
   const match = typeof tag === 'string' ? CLICK_TARGETS.find(([prefix]) => tag.startsWith(prefix)) : null;

@@ -1,3 +1,4 @@
+import '../nfl-actions.css';
 // Bets › Everyone (M-10, redesign stage 40; D-36): everyone's Virtual Units picks for the published week, from
 // POST /bets/read for the league showing (the Community, or a private league's roster). Read only: placing stays in
 // Your picks. everyone.js decides nothing the server has not: a friend's line, price and book show only where the
@@ -28,7 +29,7 @@ export function EveryoneBoard({ data, viewer, scopeName, onLockIn, onOpenPlay, o
   if (!board.published) return <div className="gx-vstack gx-gap-12" data-bets="unpublished">
     <p className="gx-t-body" role="status">{EVERYONE_COPY.unpublished}</p>{onOpenPlay ? <Button onClick={onOpenPlay}>Open Play</Button> : null}
   </div>;
-  return <div className="gx-ev gx-vstack gx-gap-24" data-bets="everyone">
+  return <div className="gx-nfl-action-content gx-ev gx-vstack gx-gap-24" data-bets="everyone">
     <p className="gx-t-meta gx-c-2">{scopeName} · Week {board.week}</p>
     {board.closed.length ? <GateBanner gate={{ locked: true, sentence: EVERYONE_COPY.banner, ctaLabel: 'Lock in a guess' }} onCta={onLockIn}/> : null}
     {board.empty ? <Card className="gx-vstack gx-gap-12">

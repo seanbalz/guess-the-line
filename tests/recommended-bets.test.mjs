@@ -50,55 +50,54 @@ test('totals select Over above the median and Under below, never the saved scori
   assert.equal(under.evaluations.over.advantage, -3);
 });
 
-test('both-side traffic lights use ten percent of the market line', () => {
-  for (const [gap, positive, negative] of [[0.25, 'yellow', 'yellow'], [0.5, 'yellow', 'yellow'], [1, 'green', 'red'], [3, 'green', 'red']]) {
-    const result = row(fixture({ guess: -7, spreadLine: -7 + gap }));
+test('both-side traffic lights use the historical top quarter with distinct spread and total boundaries', () => {
+  for (const [gap, positive, negative] of [[0.5, 'yellow', 'yellow'], [3, 'yellow', 'yellow'], [13.5, 'yellow', 'yellow'], [14, 'green', 'red']]) {
+    const result = row(fixture({ guess: -gap, spreadLine: 0 }));
     assert.equal(result.evaluations.home.color, positive);
     assert.equal(result.evaluations.away.color, negative);
-    assert.equal(result.evaluations.home.label, positive === 'green' ? 'Favorable' : 'Small gap');
-    assert.equal(result.evaluations.away.label, negative === 'red' ? 'Against your guess' : 'Small gap');
+    assert.equal(result.evaluations.home.label, positive === 'green' ? 'Large gap in your direction' : gap >= 8 ? 'Moderate gap' : 'Small gap');
+    assert.equal(result.evaluations.away.label, negative === 'red' ? 'Large gap against your guess' : gap >= 8 ? 'Moderate gap' : 'Small gap');
   }
+  assert.equal(row(fixture({ total: 64, totalLine: 50 }), 'total').evaluations.over.color, 'yellow');
+  assert.equal(row(fixture({ total: 64.5, totalLine: 50 }), 'total').evaluations.over.color, 'green');
 });
 
-test('equal relative spread and total gaps have equal rank strength and guidance', () => {
+test('the old equal-percentage example now ranks a five-point total gap above a one-point spread gap', () => {
   const input = fixture({ guess: -11, spreadLine: -10, total: 55, totalLine: 50 });
   const result = buildRecommendations(input);
   assert.equal(result.rows.length, 2);
-  for (const item of result.rows) {
-    assert.equal(item.gapPercent, 10);
-    assert.equal(item.evaluations[item.side].color, 'green');
-  }
-  assert.equal(row(input, 'spread').denominator, 10);
-  assert.equal(row(input, 'total').denominator, 50);
+  assert.deepEqual(result.rows.map(item => item.market), ['total', 'spread']);
+  assert.ok(row(input, 'total').gapScore > row(input, 'spread').gapScore);
+  for (const item of result.rows) assert.equal(item.evaluations[item.side].color, 'yellow');
 });
 
-test('percentage sorts cross-market differences ahead of larger raw-point gaps', () => {
+test('historical market scales replace percentages without an arbitrary total multiplier', () => {
   const input = fixture({ guess: -12, spreadLine: -10, total: 55, totalLine: 50 });
-  assert.deepEqual(buildRecommendations(input).rows.map(item => item.market), ['spread', 'total']);
-  assert.equal(row(input, 'spread').gapPercent, 20);
-  assert.equal(row(input, 'total').gapPercent, 10);
+  assert.deepEqual(buildRecommendations(input).rows.map(item => item.market), ['total', 'spread']);
+  assert.ok(row(input, 'total').gapScore > row(input, 'spread').gapScore);
+  assert.equal(row(input, 'spread').gapPercent, undefined);
 });
 
-test('pick’em and short spreads use the approved three-point denominator', () => {
-  for (const spreadLine of [0, -0.5, 0.5, -2.5]) {
+test('pick’em, short spreads and large spreads give the same gap the same size', () => {
+  const expected = row(fixture({ guess: 0.5, spreadLine: 0 })).gapScore;
+  for (const spreadLine of [0, -0.5, 0.5, -2.5, 10, -20]) {
     const input = fixture({ guess: spreadLine + 0.5, spreadLine });
     const result = row(input);
-    assert.equal(result.denominator, 3);
-    assert.equal(result.gapPercent, 100 / 6);
-    assert.equal(result.evaluations[result.side].color, 'green');
+    assert.equal(result.gapScore, expected);
+    assert.equal(result.evaluations[result.side].color, 'yellow');
   }
   const input = fixture({ totalLine: 0, total: 5 });
   assert.equal(row(input, 'total'), undefined);
 });
 
-test('spread and total sort together by relative gap with deterministic ties and no top-three truncation', () => {
+test('spread and total sort together by historical size with no top-three truncation', () => {
   const input = fixture();
   const other = { ...input.virtual.games[0], id: 'KC-DEN', homeCode: 'DEN', awayCode: 'KC', home: 'Denver Broncos', away: 'Kansas City Chiefs' };
   input.virtual.games.push(other);
   input.personal.games.push(other);
   input.personal.ballots.guess_spread.picks[other.id] = -10;
   input.personal.ballots.guess_total.picks[other.id] = 47.5;
-  assert.deepEqual(buildRecommendations(input).rows.map(item => [item.key, item.gap]), [['KC-DEN:spread', 6.5], ['NYJ-BUF:spread', 3], ['NYJ-BUF:total', 3.5], ['KC-DEN:total', 3]]);
+  assert.deepEqual(buildRecommendations(input).rows.map(item => [item.key, item.gap]), [['KC-DEN:spread', 6.5], ['NYJ-BUF:total', 3.5], ['NYJ-BUF:spread', 3], ['KC-DEN:total', 3]]);
 });
 
 test('only own submitted or per-game locked-in guesses count; drafts and other markets stay closed', () => {
@@ -112,6 +111,18 @@ test('only own submitted or per-game locked-in guesses count; drafts and other m
   assert.equal(result.rows.length, 1);
   assert.equal(result.rows[0].market, 'total');
   assert.equal(result.counts.locked, 1);
+});
+
+test('equal historical scores keep deterministic kickoff/key order regardless of input order', () => {
+  const input = fixture(), other = { ...input.virtual.games[0], id: 'KC-DEN', homeCode: 'DEN', awayCode: 'KC', home: 'DEN', away: 'KC' };
+  input.virtual.games.push(other);
+  input.personal.games.push(other);
+  input.personal.ballots.guess_spread.picks[other.id] = -6.5;
+  input.personal.ballots.guess_total.picks[other.id] = 48;
+  const expected = ['KC-DEN:total', 'NYJ-BUF:total', 'KC-DEN:spread', 'NYJ-BUF:spread'];
+  assert.deepEqual(buildRecommendations(input).rows.map(row => row.key), expected);
+  input.virtual.games.reverse(); input.personal.games.reverse();
+  assert.deepEqual(buildRecommendations(input).rows.map(row => row.key), expected);
 });
 
 test('missing, invalid or future guesses, lock times and references cannot form recommendations', () => {
@@ -202,11 +213,12 @@ test('building recommendations does not mutate authenticated replies', () => {
   assert.deepEqual(input, original);
 });
 
-// BETS-NEXT-01: three games whose mixed percentage ranking puts every spread ahead of every total, so a market filter
+// BETS-NEXT-01: three games whose historical-size ranking puts every spread ahead of every total, so a market filter
 // that ran after the top-three limit would leave Totals empty.
 function mixedSlate() {
   const input = fixture();
-  for (const [id, awayCode, homeCode, spread, total] of [['KC-DEN', 'KC', 'DEN', -10, 47.5], ['SF-SEA', 'SF', 'SEA', -5, 52]]) {
+  input.personal.ballots.guess_spread.picks[base.id] = -25;
+  for (const [id, awayCode, homeCode, spread, total] of [['KC-DEN', 'KC', 'DEN', -30, 47.5], ['SF-SEA', 'SF', 'SEA', -20, 52]]) {
     const game = { ...input.virtual.games[0], id, awayCode, homeCode, away: awayCode, home: homeCode };
     input.virtual.games.push(game);
     input.personal.games.push(game);
@@ -217,7 +229,7 @@ function mixedSlate() {
 }
 const keys = rows => rows.map(item => item.key);
 
-test('All keeps the mixed percentage ranking; Spreads and Totals keep that order within one market', () => {
+test('All keeps the mixed historical-size ranking; Spreads and Totals keep that order within one market', () => {
   const rows = mixedSlate();
   assert.deepEqual(keys(rows), ['KC-DEN:spread', 'NYJ-BUF:spread', 'SF-SEA:spread', 'SF-SEA:total', 'NYJ-BUF:total', 'KC-DEN:total']);
   assert.deepEqual(RECOMMENDATION_MARKETS, ['all', 'spread', 'total']);
@@ -264,17 +276,17 @@ test('the market filter is display-only and changes no row, offer or saved pick'
   assert.deepEqual(rows, before);
 });
 
-// D-77 (Sean, November 3, 2026, "Recommendation card"): rows you can still act on come first, D-54's order inside each group.
-test('actionable rows (a usable favorable quote, no saved pick) rank ahead of bigger gaps you cannot act on; D-54 order holds inside each group', () => {
+// D-77 actionable-first ordering survives the D-81 magnitude correction.
+test('actionable rows rank ahead of bigger unavailable gaps; historical-size order holds inside each group', () => {
   const input = fixture({ guess: -12, spreadLine: -10, total: 52, totalLine: 50 });
   const other = { ...input.virtual.games[0], id: 'KC-DEN', homeCode: 'DEN', awayCode: 'KC', home: 'Denver Broncos', away: 'Kansas City Chiefs' };
   input.virtual.games.push(other);
   input.personal.games.push({ ...other, home: 'DEN', away: 'KC' });
   input.personal.ballots.guess_spread.picks[other.id] = -10.5;
   input.personal.ballots.guess_total.picks[other.id] = 50.5;
-  // All four can be acted on: D-54 alone (20%, 5%, 4%, 1%).
+  // All four can be acted on: compare each gap on its own market's historical scale.
   assert.deepEqual(buildRecommendations(input).rows.map(item => [item.key, item.actionable]),
-    [['NYJ-BUF:spread', true], ['KC-DEN:spread', true], ['NYJ-BUF:total', true], ['KC-DEN:total', true]]);
+    [['NYJ-BUF:spread', true], ['NYJ-BUF:total', true], ['KC-DEN:spread', true], ['KC-DEN:total', true]]);
   // The biggest gap's favorable side has no quote, and the next one already has a saved Virtual Units pick.
   input.virtual.games[0].offers.spread.home = null;
   input.virtual.picks = [{ season: 2099, week: 5, gameId: 'KC-DEN', market: 'spread', selection: { side: 'home' } }];
@@ -291,6 +303,21 @@ const played = ({ id = 'NYJ-BUF', home = 24, away = 20, status = 'final', starte
   id, started, final: status ? { status, home, away } : null,
   spread: spread === null ? { visible: false } : { visible: true, value: spread }, total: total === null ? { visible: false } : { visible: true, value: total },
   mine: Object.fromEntries(['spread', 'total'].map(market => [market, { guess: guesses[market] ?? null, lockedIn: guesses[market] != null, satOut: false, late: null, ...mine[market] }])),
+});
+
+test('recommendation colors and the historical Large filter agree on both sides of each market cutoff', () => {
+  for (const [market, line, gap] of [['spread', 0, 13.5], ['spread', -3.5, 14], ['total', 44.5, 14], ['total', 44.5, 14.5]]) {
+    for (const direction of [-1, 1]) {
+      const guess = line + gap * direction;
+      const input = fixture(market === 'spread' ? { guess, spreadLine: line } : { total: guess, totalLine: line });
+      const recommendation = row(input, market);
+      const record = gapRecord(board([played({ [market]: line, guesses: { [market]: guess } })]));
+      assert.equal(record.graded[0].gapScore, recommendation.gapScore);
+      assert.equal(record.graded[0].large, recommendation.evaluations[recommendation.side].color === 'green');
+      assert.equal(record.large.riskUnits, record.graded[0].large ? 1 : 0);
+    }
+  }
+  assert.equal(gapRecord(board([played({ total: 0, guesses: { total: 5 } })])).notGraded.noLine, 1);
 });
 
 test('the gap record grades the side your locked guess favored against the closing line and the final', () => {
@@ -310,19 +337,19 @@ test('the gap record grades the side your locked guess favored against the closi
   assert.deepEqual(gapRecord(board([played({ home: 17, away: 21, spread: 2.5, guesses: { spread: 5 } })])).graded.map(g => [g.side, g.outcome]), [['away', 'win']]);
 });
 
-test('the gap record counts 1 unit a gap at -110, ROI over every graded unit, and a separate 10%+ favorable record', () => {
+test('the gap record retains all grading and paper ROI, with a separate historical top-quarter record', () => {
   const record = gapRecord(board([
-    played({ id: 'A-B', guesses: { spread: -7, total: 40 } }), // spread win (100% gap), total win (10.1% gap)
-    played({ id: 'C-D', guesses: { spread: -1, total: 45 } }), // spread loss (71% gap), total loss (1.1% gap, not favorable)
-    played({ id: 'E-F', spread: -4, guesses: { spread: -4.5 } }), // push (12.5% gap)
+    played({ id: 'A-B', guesses: { spread: -20, total: 25 } }), // large spread win and total win
+    played({ id: 'C-D', guesses: { spread: 15, total: 45 } }), // large spread loss, small total loss
+    played({ id: 'E-F', spread: -4, guesses: { spread: -18 } }), // large spread push
   ]));
   assert.deepEqual([record.wins, record.losses, record.pushes, record.riskUnits], [2, 2, 1, 5]);
   assert.equal(record.netUnits, Math.round((2 * GAP_WIN_UNITS - 2) * 100) / 100);
   assert.equal(record.netUnits, -0.18);
   assert.equal(record.roi, -3.64, 'ROI from the unrounded net: -0.1818 over 5 units');
-  assert.deepEqual([record.favorable.wins, record.favorable.losses, record.favorable.pushes], [2, 1, 1]);
-  assert.equal(record.favorable.netUnits, 0.82);
-  assert.equal(record.favorable.roi, 20.45);
+  assert.deepEqual([record.large.wins, record.large.losses, record.large.pushes], [2, 1, 1]);
+  assert.equal(record.large.netUnits, 0.82);
+  assert.equal(record.large.roi, 20.45);
   // Recommended's Spreads / Totals choice narrows the record the same way it narrows the list.
   const games = [played({ id: 'A-B', guesses: { spread: -7, total: 48 } })];
   assert.deepEqual([gapRecord(board(games), { market: 'spread' }).graded.map(g => g.market), gapRecord(board(games), { market: 'total' }).graded.map(g => g.market),

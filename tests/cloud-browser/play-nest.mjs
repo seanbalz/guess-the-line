@@ -4,6 +4,12 @@ import { expect } from '@playwright/test';
 
 export const gameCard = (page, id) => page.locator(`.gx-per-game [data-game="${id}"]`);
 
+/** Enter through the approved overview's Spread destination, or the retained loading/legacy action. */
+export async function openPicksWeek(page) {
+  await page.getByRole('group', { name: 'Guess market', exact: true }).getByRole('button', { name: 'Spread', exact: true })
+    .or(page.getByRole('button', { name: 'Make picks', exact: true })).first().click();
+}
+
 /** Back to the week's tiles when a game's card is open. */
 export async function openWeek(page) {
   const lip = page.locator('.gx-per-game .gx-nest-lip', { hasText: 'Week' });

@@ -7,8 +7,10 @@
 // ran out never loses it; it goes once the name is saved, or when another account signs in (AuthGate).
 import { useEffect, useId, useRef, useState } from 'react';
 import { readNextDraft, removeNextDraft, writeNextDraft } from '../../nextDrafts.js';
+import { PrismBrand } from '../ui/PrismBrand.jsx';
+import './accessPrism.css';
 import { useAppData } from '../data/AppData.jsx';
-import { Avatar, Button } from '../ui/index.js';
+import { Avatar, Button, Icon } from '../ui/index.js';
 
 export const NAME_DRAFT = 'name-step';
 export const NAME_MAX = 60;
@@ -79,12 +81,13 @@ export function NameStep({ onSaved, onSignOut }) {
   }
 
   return (
-    <main className="gx-solo" id="main">
-      <div className="gx-solo-brand">
+    <main className="gx-solo gx-name-prism" id="main">
+      <div className="gx-access-brand"><PrismBrand/><strong>Guess the Line</strong></div>
+      <section className="gx-name-panel"><div className="gx-solo-brand">
         <Avatar id={app.accountId} name={clean} size={80}/>
         <h1 className="gx-t-title" ref={heading} tabIndex={-1}>{NAME_STEP_COPY.title}</h1>
       </div>
-      {app.savedInvite ? <p className="gx-t-body gx-c-2">{NAME_STEP_COPY.invite}</p> : null}
+      {app.savedInvite ? <p className="gx-name-invite"><Icon icon="shieldCheck" size={20}/>{NAME_STEP_COPY.invite}</p> : null}
       <form className="gx-solo-form" onSubmit={submit} noValidate>
         <label className="gx-field" htmlFor={inputId}>
           <span className="gx-t-label">{NAME_STEP_COPY.label}</span>
@@ -109,6 +112,7 @@ export function NameStep({ onSaved, onSignOut }) {
       </form>
       {/* Not this account? Signing out clears what was typed here (AuthGate). */}
       {onSignOut ? <Button variant="ghost-2" className="gx-solo-end" onClick={onSignOut}>{NAME_STEP_COPY.signOut}</Button> : null}
+      </section>
     </main>
   );
 }

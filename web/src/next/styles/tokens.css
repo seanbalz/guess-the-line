@@ -1,14 +1,11 @@
-/* Guess The Line, D-38 design tokens for the new app (web/src/next).
-   Mirrors design/tokens-next.json value for value; tests/next-tokens.test.mjs fails when the two differ.
-   Dark is the default. Light applies when <html data-theme="light"> (Theme.jsx) or the .gx root
-   carries data-theme="light"; data-theme="dark" on the .gx root keeps it dark either way.
-   Every custom property starts with --gx- so nothing here collides with the old app's :root tokens. */
-
-/* Shared by both themes */
+/* Prism Glass production tokens, November 7, 2026. Mirrors design/tokens-next.json.
+   Native .gx components share these values; preview adapters are not production code.
+   Dark is default; Theme.jsx resolves Light/Dark/System through data-theme. */
 .gx {
-  --gx-font-display: "Big Shoulders Display", Impact, "Arial Narrow", sans-serif;
-  --gx-font-num: "Barlow Condensed", "Arial Narrow", sans-serif;
-  --gx-font-body: Figtree, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --gx-font-home: -apple-system, BlinkMacSystemFont, Inter, "Segoe UI", sans-serif;
+  --gx-font-display: -apple-system, BlinkMacSystemFont, Inter, "Segoe UI", sans-serif;
+  --gx-font-num: -apple-system, BlinkMacSystemFont, Inter, "Segoe UI", sans-serif;
+  --gx-font-body: -apple-system, BlinkMacSystemFont, Inter, "Segoe UI", sans-serif;
   --gx-space-1: 4px;
   --gx-space-2: 8px;
   --gx-space-3: 12px;
@@ -20,9 +17,9 @@
   --gx-space-9: 48px;
   --gx-space-10: 64px;
   --gx-radius-xs: 6px;
-  --gx-radius-sm: 10px;
-  --gx-radius-md: 16px;
-  --gx-radius-lg: 24px;
+  --gx-radius-sm: 20px;
+  --gx-radius-md: 28px;
+  --gx-radius-lg: 28px;
   --gx-radius-pill: 999px;
   --gx-dur-tap: 100ms;
   --gx-dur-quick: 160ms;
@@ -46,7 +43,8 @@
   --gx-size-touch: 44px;
   --gx-size-primary: 52px;
   --gx-size-topbar: 56px;
-  --gx-size-tabbar: 64px;
+  --gx-size-tabbar: 72px;
+  --gx-size-tabbar-gap: 12px;
   --gx-size-dock: 56px;
   --gx-size-gutter: 16px;
   --gx-size-content: 520px;
@@ -59,24 +57,20 @@
   --gx-av-rose: #FFA3BE;
   --gx-av-lilac: #DDB3FF;
   --gx-av-sand: #DCCDAE;
-}
-
-/* Dark (default) */
-.gx {
   color-scheme: dark;
-  --gx-canvas: #070B16;
-  --gx-surface-1: #111A2D;
-  --gx-surface-2: #1B253B;
-  --gx-surface-3: #26314B;
-  --gx-border: #303D57;
-  --gx-border-strong: #7A89A6;
-  --gx-text-1: #F5F7FB;
-  --gx-text-2: #BAC6D8;
-  --gx-text-3: #95A2BB;
+  --gx-canvas: #202126;
+  --gx-surface-1: #292B30;
+  --gx-surface-2: #2E3035;
+  --gx-surface-3: #33353A;
+  --gx-border: #FFFFFF38;
+  --gx-border-strong: #969B94;
+  --gx-text-1: #F3E9D7;
+  --gx-text-2: #C4B9A6;
+  --gx-text-3: #C4B9A6;
   --gx-accent: #B8F34B;
   --gx-accent-text: #101B0A;
   --gx-accent-ink: #B8F34B;
-  --gx-accent-tint: #283831;
+  --gx-accent-tint: #2B3521;
   --gx-data: #38BDF8;
   --gx-data-tint: #17344D;
   --gx-win: #34D399;
@@ -87,23 +81,46 @@
   --gx-pending-tint: #32312C;
   --gx-live: #D08CFF;
   --gx-live-tint: #332F53;
-  --gx-on-state: #070B16;
+  --gx-on-state: #202126;
   --gx-focus: #38BDF8;
-  --gx-overlay: #070B16CC;
-  --gx-toast-bg: #26314B;
-  --gx-seg-on: #26314B;
-  --gx-glass: #FFFFFF1A;
-  --gx-glass-line: #FFFFFF33;
+  --gx-overlay: #17181DCC;
+  --gx-toast-bg: #292B30;
+  --gx-seg-on: #33353A;
+  --gx-glass: #FFFFFF14;
+  --gx-glass-line: #FFFFFF38;
   --gx-track: #FFFFFF29;
-  --gx-hero-base: #0C2540;
-  --gx-hero-text-2: #C9DCEB;
-  --gx-chart-line: #F5F7FB;
+  --gx-hero-base: #292B30;
+  --gx-hero-text-2: #C4B9A6;
+  --gx-chart-line: #F3E9D7;
   --gx-glow-1: #7DD3FC;
   --gx-glow-2: #34D399;
   --gx-glow-3: #B8F34B;
   --gx-bar-1: #7DD3FC;
   --gx-bar-2: #34D399;
-  --gx-e1: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 1px 2px rgba(0, 0, 0, 0.35);
+  --gx-primary-ink: #F3E9D7;
+  --gx-mask-solid: #FFFFFF;
+  --gx-card-gloss: 0.65;
+  --gx-card-edge: linear-gradient(130deg,#FFFFFFD9,#FFFFFF14 38%,#FFFFFF1A 66%,#FFFFFF70);
+  --gx-card-filter: blur(18px) saturate(140%);
+  --gx-icon-edge: #FFFFFF60;
+  --gx-icon-face: linear-gradient(145deg,#FFFFFF38,#FFFFFF05 48%,#B8F34B12);
+  --gx-icon-depth: inset 0 1px 1px #FFFFFFA0, inset 0 -2px 4px #00000030, 0 6px 10px #00000035;
+  --gx-icon-shine: linear-gradient(#FFFFFF50,#FFFFFF00);
+  --gx-home-canvas: #202126;
+  --gx-home-ink: #F3E9D7;
+  --gx-home-muted: #C4B9A6;
+  --gx-home-accent: #B8F34B;
+  --gx-home-edge: #FFFFFF38;
+  --gx-home-gloss: #FFFFFF80;
+  --gx-home-track: #C4B9A630;
+  --gx-home-tint: #B8F34B16;
+  --gx-home-solid: #292B30;
+  --gx-home-background: linear-gradient(150deg,#2A2D37 0%,#202126 50%,#17181D 100%);
+  --gx-home-face: linear-gradient(135deg,#FFFFFF14,#FFFFFF06);
+  --gx-home-depth: inset 0 1px 0 #FFFFFF80, 0 4px 6px #00000070, 0 18px 28px #000000A6;
+  --gx-home-soft-depth: inset 0 1px 0 #FFFFFF80, 0 4px 8px #00000030;
+  --gx-home-action-face: linear-gradient(135deg,#B8F34B16,#FFFFFF06);
+  --gx-e1: inset 0 1px 0 #FFFFFF80, 0 4px 6px #00000070, 0 18px 28px #000000A6;
   --gx-e2: 0 8px 24px rgba(0, 0, 0, 0.45);
   --gx-e3: 0 -16px 48px rgba(0, 0, 0, 0.6);
   --gx-glow-accent: 0 0 0 1px rgba(184, 243, 75, 0.6), 0 0 20px rgba(184, 243, 75, 0.3);
@@ -112,29 +129,31 @@
   --gx-lime-edge: 0 0 0 0 transparent;
   --gx-av-ring: 0 0 0 0 transparent;
   --gx-float-ring: 0 0 0 0 transparent;
-  --gx-hero-shadow: var(--gx-e1);
-  --gx-wash: radial-gradient(120% 40% at 50% 0%, rgba(30, 99, 144, 0.35), transparent 60%);
-  --gx-yardlines: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 24px);
-  --gx-hero-card: radial-gradient(110% 60% at 90% 25%, #1E6390 0%, rgba(30, 99, 144, 0) 62%), linear-gradient(170deg, #154870 0%, #0C2540 55%, #0A1730 100%);
-  --gx-hero-ring: 0 0 0 1px rgba(125, 211, 252, 0.3), 0 18px 48px rgba(0, 0, 0, 0.45);
-  --gx-glass-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 6px 18px rgba(0, 0, 0, 0.25);
-  --gx-glass-blur: blur(14px);
+  --gx-hero-shadow: inset 0 1px 0 #FFFFFF80, 0 4px 6px #00000070, 0 18px 28px #000000A6;
+  --gx-wash: none;
+  --gx-yardlines: none;
+  --gx-hero-card: linear-gradient(135deg,#FFFFFF14,#FFFFFF06);
+  --gx-hero-ring: inset 0 1px 0 #FFFFFF80, 0 4px 6px #00000070, 0 18px 28px #000000A6;
+  --gx-glass-shadow: inset 0 1px 0 #FFFFFF80, 0 4px 8px #00000030;
+  --gx-glass-blur: blur(18px);
   --gx-chart-glow: 0.6;
+  --gx-canvas-gradient: linear-gradient(150deg,#2A2D37 0%,#202126 50%,#17181D 100%);
+  --gx-card-face: linear-gradient(135deg,#FFFFFF14,#FFFFFF06);
+  --gx-primary-shadow: inset 0 1px 0 #FFFFFF26, 0 8px 16px #00000080;
+  --gx-secondary-shadow: inset 0 1px 0 #FFFFFF40, 0 4px 8px #00000040;
 }
-
-/* Light */
 :root[data-theme="light"] .gx:not([data-theme="dark"]),
 .gx[data-theme="light"] {
   color-scheme: light;
-  --gx-canvas: #EEF1F6;
-  --gx-surface-1: #FFFFFF;
-  --gx-surface-2: #F3F5F9;
-  --gx-surface-3: #E3E8F0;
-  --gx-border: #D3DAE5;
-  --gx-border-strong: #6E7D96;
-  --gx-text-1: #0B1020;
-  --gx-text-2: #3C4A63;
-  --gx-text-3: #526078;
+  --gx-canvas: #E9ECE8;
+  --gx-surface-1: #F6F8F3;
+  --gx-surface-2: #EFF2EC;
+  --gx-surface-3: #E5EAE2;
+  --gx-border: #FFFFFFD9;
+  --gx-border-strong: #687462;
+  --gx-text-1: #243128;
+  --gx-text-2: #536252;
+  --gx-text-3: #536252;
   --gx-accent: #B8F34B;
   --gx-accent-text: #101B0A;
   --gx-accent-ink: #3B6309;
@@ -151,21 +170,44 @@
   --gx-live-tint: #F5E8FF;
   --gx-on-state: #FFFFFF;
   --gx-focus: #03658A;
-  --gx-overlay: #0B102099;
-  --gx-toast-bg: #FFFFFF;
-  --gx-seg-on: #FFFFFF;
-  --gx-glass: #FFFFFF;
-  --gx-glass-line: #E3E8F0;
+  --gx-overlay: #24312899;
+  --gx-toast-bg: #F6F8F3;
+  --gx-seg-on: #F6F8F3;
+  --gx-glass: #FFFFFFC7;
+  --gx-glass-line: #FFFFFFD9;
   --gx-track: #E3E8F0;
-  --gx-hero-base: #FFFFFF;
-  --gx-hero-text-2: #3C4A63;
+  --gx-hero-base: #F6F8F3;
+  --gx-hero-text-2: #536252;
   --gx-chart-line: #03658A;
   --gx-glow-1: #7DD3FC;
   --gx-glow-2: #6EE7B7;
   --gx-glow-3: #D9F99D;
   --gx-bar-1: #0284C7;
   --gx-bar-2: #059669;
-  --gx-e1: 0 0 0 1px #E3E8F0, 0 8px 24px rgba(11, 16, 32, 0.07);
+  --gx-primary-ink: #2C4617;
+  --gx-mask-solid: #FFFFFF;
+  --gx-card-gloss: 0.65;
+  --gx-card-edge: linear-gradient(130deg,#FFFFFFD9,#FFFFFF14 38%,#FFFFFF1A 66%,#FFFFFF70);
+  --gx-card-filter: blur(18px) saturate(140%);
+  --gx-icon-edge: #FFFFFFD9;
+  --gx-icon-face: linear-gradient(145deg,#FFFFFFC7,#FFFFFF66 48%,#B8F34B12);
+  --gx-icon-depth: inset 0 1px 1px #FFFFFF, inset 0 -2px 4px #20302412, 0 6px 10px #20302424;
+  --gx-icon-shine: linear-gradient(#FFFFFF50,#FFFFFF00);
+  --gx-home-canvas: #E9ECE8;
+  --gx-home-ink: #243128;
+  --gx-home-muted: #536252;
+  --gx-home-accent: #3B6309;
+  --gx-home-edge: #FFFFFFD9;
+  --gx-home-gloss: #FFFFFF;
+  --gx-home-track: #53625230;
+  --gx-home-tint: #B8F34B1C;
+  --gx-home-solid: #F6F8F3;
+  --gx-home-background: linear-gradient(150deg,#FAFBF6,#E9ECE8 55%,#E0E7DE);
+  --gx-home-face: linear-gradient(135deg,#FFFFFFC7,#FFFFFF66);
+  --gx-home-depth: inset 0 1px 0 #FFFFFF, 0 4px 6px #20302412, 0 18px 28px #20302424;
+  --gx-home-soft-depth: inset 0 1px 0 #FFFFFF, 0 4px 8px #20302420;
+  --gx-home-action-face: linear-gradient(135deg,#B8F34B1C,#FFFFFF66);
+  --gx-e1: inset 0 1px 0 #FFFFFF, 0 4px 6px #20302412, 0 18px 28px #20302424;
   --gx-e2: 0 8px 24px rgba(11, 16, 32, 0.12);
   --gx-e3: 0 -12px 40px rgba(11, 16, 32, 0.16);
   --gx-glow-accent: 0 0 0 2px #3B6309;
@@ -174,12 +216,16 @@
   --gx-lime-edge: inset 0 0 0 1px #3B6309;
   --gx-av-ring: 0 0 0 1px #D3DAE5;
   --gx-float-ring: 0 0 0 1px #6E7D96;
-  --gx-hero-shadow: var(--gx-e2);
+  --gx-hero-shadow: inset 0 1px 0 #FFFFFF, 0 4px 6px #20302412, 0 18px 28px #20302424;
   --gx-wash: none;
   --gx-yardlines: none;
-  --gx-hero-card: linear-gradient(170deg, #FFFFFF 0%, #F4F9FD 100%);
-  --gx-hero-ring: 0 0 0 1px #E3E8F0, 0 10px 30px rgba(11, 16, 32, 0.08);
-  --gx-glass-shadow: 0 0 0 1px #E3E8F0, 0 6px 18px rgba(11, 16, 32, 0.07);
-  --gx-glass-blur: none;
+  --gx-hero-card: linear-gradient(135deg,#FFFFFFC7,#FFFFFF66);
+  --gx-hero-ring: inset 0 1px 0 #FFFFFF, 0 4px 6px #20302412, 0 18px 28px #20302424;
+  --gx-glass-shadow: inset 0 1px 0 #FFFFFF, 0 4px 8px #20302420;
+  --gx-glass-blur: blur(18px);
   --gx-chart-glow: 0;
+  --gx-canvas-gradient: linear-gradient(150deg,#FAFBF6,#E9ECE8 55%,#E0E7DE);
+  --gx-card-face: linear-gradient(135deg,#FFFFFFC7,#FFFFFF66);
+  --gx-primary-shadow: inset 0 1px 0 #FFFFFFCC, 0 8px 16px #24332318;
+  --gx-secondary-shadow: inset 0 1px 0 #FFFFFFCC, 0 4px 8px #24332312;
 }

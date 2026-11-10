@@ -143,6 +143,9 @@ test('set_week_window corrects an automatic week with real picks, keeps order an
 
 test('resolve_week refuses before the first kickoff, a missing club and a club not playing (pre-T8 fix wave)', async t => {
   const { call, db, kickoffPassed } = await setup(t);
+  // This assertion exercises the database clock, not the injected save timestamp.
+  // The historical Nov 7 fixture eventually expires; explicitly establish the before-kickoff state.
+  await db.exec("update public.gtl_epl_weeks set first_kickoff=clock_timestamp()+interval '1 day' where season=2026 and week=9");
   const resolve = rows => call('select public.gtl_epl_resolve_week(2026,9,$1::jsonb) r', [JSON.stringify(rows)]);
   await assert.rejects(resolve([]), /GTL_EPL_NOT_DUE/, 'the database clock is before the first kickoff');
   await kickoffPassed();

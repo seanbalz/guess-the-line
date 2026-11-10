@@ -108,7 +108,7 @@ describe('Play › Points, the week card (P4A)', () => {
     };
     for (const [name, [word, value, label]] of Object.entries(expected)) {
       const node = tile(html, name);
-      expect(text(node).replace(/\s+/g, ' ').trim()).toBe(`${name} ${word} Fixture ${name} Player ${value}`);
+      expect(text(node).replace(/\s+/g, ' ').trim()).toBe(`${name} ${word} PIT Fixture ${name} Player ${value}`);
       expect(node.attrs['aria-label']).toBe(label);
       expect(dataNumbers(node), name).toBeLessThanOrEqual(6);
       // D-31: the number line and the House stay in the slot's layer, behind the viewer's own lock or kickoff.
@@ -247,6 +247,14 @@ describe('feature flag and empty states', () => {
 });
 
 describe('League board: Spread / Total / Points', () => {
+  it('starts with six ranked rows plus your row, and keeps the rest reachable', () => {
+    const season = Array.from({ length: 10 }, (_, i) => ({ userId: i === 9 ? ME : `fixture-${i}`, displayName: `Fixture ${i}`, points: 30 - i, rank: i + 1 }));
+    const html = renderToStaticMarkup(<PointsBoardView app={APP} read={ready({ ...READ, standings: { season, week: [] } })}/>);
+    const rows = [...walk(parseMarkup(html))].filter(n => n.tag === 'li' && n.parent?.attrs?.['aria-label'] === 'Points season standings');
+    expect(rows).toHaveLength(7);
+    expect(text(rows.at(-1))).toContain('Fixture 9 · You');
+    expect(readText(html)).toContain('3 more on the board');
+  });
   it('ranks members with shared ranks, "—" for missing, and House as an unranked row', () => {
     const html = renderToStaticMarkup(<div className="gx"><PointsBoardView app={APP} read={ready()} initialBeat/></div>);
     expect(markupProblems(html)).toEqual([]);
@@ -258,7 +266,8 @@ describe('League board: Spread / Total / Points', () => {
     expect(html).toContain('Week: 8.2 · Beat the House ›');
     expect(html).toMatch(/aria-expanded="true"[^>]*>|aria-expanded="true"/);
     const rows = [...walk(parseMarkup(html))].filter(n => n.tag === 'li' && n.parent?.attrs?.['aria-label'] === 'Points season standings');
-    expect(text(rows.at(-1))).toContain('House · unranked');
+    expect(rows).toHaveLength(3); // The House is a separate unranked card in the approved composition.
+    expect(rows.some(row => text(row).includes('House · unranked'))).toBe(false);
     expect(html).toContain('Beat the House');
     expect(html).toContain('Sean Fixture: 2 of 2 weeks');
     const houseRow = [...walk(parseMarkup(html))].find(n => /gx-pt-board-house/.test(n.attrs?.class || ''));

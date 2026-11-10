@@ -29,7 +29,10 @@ import { canGoBack, hasLayers, initialState, isDetail, layer, layerKind, modalOp
 import { SHELL_COPY } from './tabs.js';
 import { useFixedBarsPinned } from './viewportPin.js';
 import { useTabFade } from './tabFade.js';
+import { LeagueCover } from './LeagueCover.jsx';
+import { nflFrameContext } from './confirmedFrame.js';
 import './shell.css';
+import './overviewFrame.css';
 
 const browserOnline = () => typeof navigator === 'undefined' || navigator.onLine !== false;
 
@@ -62,7 +65,7 @@ export function memberOf(session) {
   return { id: user.id ?? email, email, name };
 }
 
-/** Reads the dock's height, so toasts sit 8 above a dock bar when one shows. */
+/** Measure fixed bars so docks, toasts and document focus clearance follow their rendered size. */
 function useHeight(element) {
   const [height, setHeight] = useState(0);
   useEffect(() => {
@@ -83,7 +86,7 @@ const prefersReducedMotion = () => typeof window.matchMedia === 'function' && wi
 const navigated = () => { if (isSettled()) markNavigated(); };
 const NAVIGATING_KINDS = new Set(['sheet', 'page', 'dialog']);
 
-export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, leagueName = SHELL_COPY.defaultLeague, league: shown, you, data = null, cover = null, initialLayer = null, notice = null, router = NFL_ROUTER, className = '', children }) {
+export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, leagueName = SHELL_COPY.defaultLeague, league: shown, you, data = null, cover = null, initialLayer = null, notice = null, router = NFL_ROUTER, frameContext = null, className = '', children }) {
   const [state, dispatch] = useReducer(reduce, null, () => {
     const start = initialState(startPlace(window, router));
     return initialLayer && layerKind(initialLayer) && !hasLayers(start) ? reduce(start, { type: 'open', layer: layer(initialLayer) }) : start;
@@ -96,6 +99,9 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
   const reduceMotion = preferences.motion === 'reduced';
   const [dockHost, setDockHost] = useState(null);
   const dockHeight = useHeight(dockHost);
+  const [tabHost, setTabHost] = useState(null);
+  const tabHeight = useHeight(tabHost);
+  const [framePresentation, setFramePresentation] = useState(null);
   // The address and Back follow the state (router.js).
   const stateRef = useRef(state);
   stateRef.current = state;
@@ -163,6 +169,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
     const main = document.querySelector('main');
     let frame, timeout, sizeObserver, contentObserver, stopped = false, focused = null;
     const cancelEvents = ['pointerdown', 'touchstart', 'wheel', 'keydown'];
+    const forwardEvents = ['focusin', ...cancelEvents];
     const stop = () => {
       stopped = true;
       cancelAnimationFrame(frame);
@@ -170,6 +177,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
       sizeObserver?.disconnect();
       contentObserver?.disconnect();
       for (const name of cancelEvents) window.removeEventListener(name, stop, true);
+      for (const name of forwardEvents) main?.removeEventListener(name, stop, true);
     };
     const restore = () => {
       if (stopped) return;
@@ -197,6 +205,10 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
       if (typeof ResizeObserver === 'function' && main) { sizeObserver = new ResizeObserver(schedule); sizeObserver.observe(main); }
       if (typeof MutationObserver === 'function' && main) { contentObserver = new MutationObserver(schedule); contentObserver.observe(main, { subtree: true, childList: true, characterData: true }); }
       timeout = setTimeout(stop, 3000);
+    } else if (!returning) {
+      // Yield to fresh destination focus/input before the frame runs. Header/tab focus that initiated navigation is
+      // outside main and must still receive the ordinary title handoff. Back keeps its saved-position restoration.
+      for (const name of forwardEvents) main?.addEventListener(name, stop, { capture: true, passive: true });
     }
     schedule();
     return stop;
@@ -294,7 +306,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
   const communityAdmin = data?.community?.admin === true;
   // The Community read's push guard (stage 2): the Menu offers Pick reminders only while the server can send pushes.
   const pushConfigured = data?.community?.pushConfigured === true;
-  const value = useMemo(() => ({ ...actions, communityAdmin, pushConfigured, canGoBack: canGoBack(state), state, dockHost, you: member, league, offline: !online }),
+  const value = useMemo(() => ({ ...actions, setFramePresentation, communityAdmin, pushConfigured, canGoBack: canGoBack(state), state, dockHost, you: member, league, offline: !online }),
     [actions, state, dockHost, member, league, online, communityAdmin, pushConfigured]);
 
   // A notice from outside the frame (the name just saved), once per key.
@@ -312,15 +324,42 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
 
   const tabFade = useTabFade(state.tab, state.nav);
   const Screen = screens[state.tab] ?? (state.tab === 'research' ? screens[state.views.research.section === 'fantasy' ? 'fantasy' : 'lines'] : null);
-  const style = { '--gx-dock-space': `${dockHeight > 0 ? dockHeight + 8 : 0}px` };
+  // Exact router/registry/page/cover identity precedes the scoped route policy.
+  // Sheets/dialogs inherit their opener. Errors never choose a different frame.
+  const presentation = framePresentation?.view === state.views[state.tab] && framePresentation.account === member.id ? framePresentation.kind : null;
+  const context = router === NFL_ROUTER ? nflFrameContext(state, {
+    screen: Screen === SCREENS[state.tab],
+    history: layers['page.history'] === LAYERS['page.history'],
+    cover: cover?.type === LeagueCover,
+    unknownCover: Boolean(cover) && cover.type !== LeagueCover,
+    draft: presentation === 'play-draft', points: presentation === 'play-points',
+  }) : !cover ? frameContext?.({ state, Screen, router }) : null;
+  const overviewFrame = Boolean(context);
+  const homeDesign = context === 'home';
+  // The scrolling document is outside .gx. Publish measured bar/dock clearance in every context;
+  // PlaceBets' real portal dock has no legacy save-bar class. Restore root styles on unmount.
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    const previous = root.style.getPropertyValue('--gx-frame-dock-space');
+    const previousTab = root.style.getPropertyValue('--gx-frame-tabbar-height');
+    if (tabHeight > 0) root.style.setProperty('--gx-frame-tabbar-height', `${tabHeight}px`);
+    root.style.setProperty('--gx-frame-dock-space', `${dockHeight > 0 ? dockHeight + 8 : 0}px`);
+    return () => {
+      if (previous) root.style.setProperty('--gx-frame-dock-space', previous);
+      else root.style.removeProperty('--gx-frame-dock-space');
+      if (previousTab) root.style.setProperty('--gx-frame-tabbar-height', previousTab);
+      else root.style.removeProperty('--gx-frame-tabbar-height');
+    };
+  }, [tabHeight, dockHeight]);
+  const style = { '--gx-dock-space': `${dockHeight > 0 ? dockHeight + 8 : 0}px`, ...(tabHeight > 0 ? { '--gx-tabbar-height': `${tabHeight}px` } : {}) };
   return (
     <ShellContext.Provider value={value}>
       <MomentsProvider key={member?.id ?? 'signed-out'} account={member?.id} showOverlay={actions.showOverlay}>
-      <div className={`gx ${className}`.trim()} data-motion={reduceMotion ? 'reduce' : undefined} style={style}>
+      <div className={`gx ${overviewFrame?'gx-overview-frame ':''}${homeDesign?'gx-home-design ':''}${className}`.trim()} data-frame-context={context ?? undefined} data-motion={reduceMotion ? 'reduce' : undefined} style={style}>
         <div className="gx-app" inert={modalOpen(state)}>
           <a className="gx-sr-only gx-skip-link" href="#main" onClick={event => { event.preventDefault(); document.getElementById('main')?.focus(); }}>Skip to main content</a>
-          <TopBar leagueName={league.name} you={member} onHome={onHome} onLeague={() => actions.openSheet('sh.switcher')} onMenu={() => actions.openSheet('sh.menu')}/>
-          <SportControls/>
+          <TopBar leagueName={league.name} you={member} onHome={onHome} onLeague={() => actions.openSheet('sh.switcher')} onMenu={() => actions.openSheet('sh.menu')} compact={overviewFrame}/>
+          {!overviewFrame?<SportControls/>:null}
           <main className="gx-main" id="main" tabIndex={-1} data-tab-enter={tabFade ? 'fade' : undefined}>
             <OfflineBanner offline={!online} onRetry={onRetry}/>
             {!cover && !state.page && (state.trail.length > 0 || isDetail(state)) ? <DetailBack onBack={actions.back}/> : null}
@@ -333,7 +372,7 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
             )}
           </main>
           <div className="gx-dock" ref={setDockHost}></div>
-          <TabBar current={state.tab} data={data} onTab={onTab}/>
+          <TabBar barRef={setTabHost} current={state.tab} data={data} onTab={onTab}/>
         </div>
         <SheetHost state={state} layers={layers} inert={!!visibleOverlay(state)}/>
         <PopoverHost state={state} layers={layers}/>

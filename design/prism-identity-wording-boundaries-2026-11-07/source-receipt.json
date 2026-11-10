@@ -1,0 +1,15 @@
+{
+  "publicHistorySha256": "d41ad4312a9c5598628db2308acc04ca8f78d1d74547669cd47e2284fbfe7424",
+  "controlledCsvSha256": "2d24ee73b5aa20fba2cae0c781a13bd39cd03de19dc34431edc9ac1091f8ba51",
+  "publicRows": 1424,
+  "fixtureTargets": 2,
+  "generatedAt": "2026-11-08T03:10:52.778Z",
+  "id": "research-2026-10-21-v1:total|any:t_rookie_hc:A",
+  "rawTitle": "either team: first-year NFL head coach: over/under · Over",
+  "conditions": [
+    "any:t_rookie_hc"
+  ],
+  "snapshotSha256": "2039057803cae38041a65955b1aca364d89bcca7f38ca0e658d3aeabccab42f6",
+  "captures": 4,
+  "fixtureNote": "Only registered rookie-coach presets; future coach names and accounts are fictional. Historical rows are committed public history."
+}

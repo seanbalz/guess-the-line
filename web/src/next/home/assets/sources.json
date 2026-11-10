@@ -1,0 +1,58 @@
+{
+  "scope": "Approved Home only, November 7 2026",
+  "files": [
+    {
+      "file": "nfl.png",
+      "description": "NFL shield",
+      "sourceUrl": "https://static.www.nfl.com/image/private/f_png,h_144,dpr_1.0,q_auto,w_144/league/kj8ogg7lzgfzis9i98xy",
+      "sourcePage": "https://www.nfl.com/",
+      "retrievedAt": "2026-11-07T05:04:35.676156+00:00",
+      "sha256": "e0330797bb482b60d5fca4341cdab10f5fdc35680342192a5c8b174202fa4ca9",
+      "mime": "image/png",
+      "bytes": 4566,
+      "modifications": "Derived PNG/144px rendition of the official homepage image URL; no local crop/recolor.",
+      "use": "League identification in its own circular Home sport control; not GTL branding.",
+      "rights": "Third-party trademark; no affiliation, endorsement or license claimed."
+    },
+    {
+      "file": "premier-league-white.svg",
+      "description": "Premier League white lion",
+      "sourceUrl": "https://www.premierleague.com/resources/v1.56.12/i/svg-files/elements/pl-icon-white.svg",
+      "sourcePage": "https://www.premierleague.com/resources/v1.56.12/styles/screen.css",
+      "retrievedAt": "2026-11-07T05:04:36.134143+00:00",
+      "sha256": "5157c5f9f6d67bafa213043ec6099efb060a1b5aa03070b3d1ade6135d935e6e",
+      "mime": "image/svg+xml",
+      "bytes": 4561,
+      "modifications": "Unchanged official SVG.",
+      "use": "League identification in its own circular Home sport control; not GTL branding.",
+      "rights": "Third-party trademark; no affiliation, endorsement or license claimed."
+    },
+    {
+      "file": "premier-league-purple.svg",
+      "description": "Premier League purple lion",
+      "sourceUrl": "https://www.premierleague.com/resources/v1.56.12/i/svg-files/elements/pl-icon-purple.svg",
+      "sourcePage": "https://www.premierleague.com/resources/v1.56.12/styles/screen.css",
+      "retrievedAt": "2026-11-07T05:04:36.553039+00:00",
+      "sha256": "84a1f516cf6862369ee25b2cd61ec0a2226476041f00992281fb5e4b4a1d7aa1",
+      "mime": "image/svg+xml",
+      "bytes": 3765,
+      "modifications": "Unchanged official SVG.",
+      "use": "League identification in its own circular Home sport control; not GTL branding.",
+      "rights": "Third-party trademark; no affiliation, endorsement or license claimed."
+    },
+    {
+      "file": "lime.svg",
+      "source": "logo-hybrid/lime.svg",
+      "sourceCommit": "3ac2eb50513ba73447ef890e4a47863cde7bdd76",
+      "sha256": "9d44fb0d29b21a5fc3fdc0177fb5cf906392e31c5979dbf411d950755f9a6ac8",
+      "use": "GTL original hybrid G selected by Sean; unchanged SVG."
+    },
+    {
+      "file": "light-deep-green.svg",
+      "source": "logo-hybrid/light-deep-green.svg",
+      "sourceCommit": "3ac2eb50513ba73447ef890e4a47863cde7bdd76",
+      "sha256": "ea8f11978dc2fffc3b51a15a6b631ccdb3e0be52f22be845df9e4dcbb1e74401",
+      "use": "GTL original hybrid G selected by Sean; unchanged SVG."
+    }
+  ]
+}

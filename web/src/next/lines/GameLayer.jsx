@@ -5,7 +5,7 @@
 // actions) and the sheet's paging (LayerPager: the same swipe, the same buttons, the same board-order snapshot). Paging
 // swaps the game in place, so the Nest's layer stays "game" (no new entrance, no focus jump) and Back lands on the board.
 // A team opens Research › Teams › that team. The game sheet stays for the League feed's kickoff rows (feed/PostCard.jsx).
-import { useMemo, useRef } from 'react';
+import { useLayoutEffect, useMemo, useRef } from 'react';
 import { LINES_COPY, gameSheet } from '../../../../shared/lines-view.mjs';
 import { useShell } from '../shell/context.js';
 import { Button, LayerPager, Nest, Skeleton, useLayerFocus } from '../ui/index.js';
@@ -13,9 +13,11 @@ import { RESEARCH_NAMES, closeGame, gameName, layerTitle, openTeam, pageGame } f
 import { actionsForGame, GameActions } from './GameActions.jsx';
 import { gamePager, openedBoardOrder, openedBoardResult } from './gameOrder.js';
 import { GameDetailsSlot } from './GameDetailsSlot.jsx';
+import { GameOverview } from './GameOverview.jsx';
 import { rememberedBoard } from './boardContext.js';
 import { useLinesData } from './linesData.js';
 import './lines.css';
+import { hasNavigated } from '../moments/launch.js';
 
 /** The pager names its neighbours as the board's rows do ("Next game, Texans @ Jaguars"). */
 const ROW_NAMES = Object.freeze({ title: game => gameName(game.away, game.home) });
@@ -31,6 +33,10 @@ export function GameLayer({ id }) {
   const shell = useShell(), lines = useLinesData(), root = useRef(null);
   const { app, personal, community, trends, trendsWeek, records, shown } = lines;
   useLayerFocus(root);
+  // The graphical board is taller than its detail's initial frame. Its opening scroll must not carry into the
+  // new layer and leave navigation controls underneath the fixed header. Paging keeps its existing scroll;
+  // the shell still restores the remembered board/game position on Back.
+  useLayoutEffect(() => { if (hasNavigated()) window.scrollTo(0, 0); }, []);
   const view = useMemo(() => (personal.data ? gameSheet({ personal: personal.data, community, trends: trendsWeek, trendsStatus: trends.status, records, gameId: id }) : null),
     [personal.data, community, trendsWeek, trends.status, records, id]);
   // The board's order and finals as the row that opened this game saw them (boardContext.js). It is module memory, not
@@ -51,14 +57,15 @@ export function GameLayer({ id }) {
   const actions = actionGame ? actionsForGame(actionGame, { accountId: app.accountId, personal: personal.data }) : [];
   const lips = [{ key: 'games', label: RESEARCH_NAMES.games, onOpen: () => closeGame(shell) }];
   return <div ref={root} className="gx-screen" data-research="game" data-game-layer={id}>
-    <h1 className="gx-t-title">{RESEARCH_NAMES.games}</h1>
-    <Nest label={title} lips={lips} layer="game" title={title}>
+    <h1 className={view ? 'gx-sr-only' : 'gx-t-title'}>{RESEARCH_NAMES.games}</h1>
+    <Nest className={view ? 'gx-game-research' : undefined} headingClassName={view ? 'gx-sr-only' : undefined} label={title} lips={view ? [] : lips} layer="game" title={title}>
       {!personal.data ? <Waiting personal={personal} onRetry={() => app.refresh({ only: ['personal'] })}/>
         : !view ? <p className="gx-t-body gx-c-2" role="status">{LINES_COPY.notOnBoard}</p>
-        : <LayerPager title={title} pager={pager} page={view.id}>
-            <GameDetailsSlot lines={lines} view={view} result={result} onTeam={code => openTeam(shell, code)}/>
-            {actions.length ? <GameActions game={actionGame} actions={actions} shell={shell}/> : null}
-          </LayerPager>}
+        : <><GameOverview view={view} season={shown?.season} week={shown?.week} onTeam={code => openTeam(shell, code)}/>
+          {actions.length ? <GameActions game={actionGame} actions={actions} shell={shell}/> : null}
+          <LayerPager title={title} pager={pager} page={view.id}>
+            <GameDetailsSlot compact lines={lines} view={view} result={result} onTeam={code => openTeam(shell, code)}/>
+          </LayerPager></>}
     </Nest>
   </div>;
 }

@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { randomUUID } from 'node:crypto';
 import { HOSTED } from '../migrations.mjs';
 import { ACCOUNTS, SUPABASE, communityWorld, pgliteAvailable, sendBallot, signIn, storeBookLines } from './community-world.mjs';
-import { chooseMarket, openGame } from './play-nest.mjs';
+import { openPicksWeek, chooseMarket, openGame } from './play-nest.mjs';
 
 // D-69 step 1 retires the old whole-market editor (CommunityHome.jsx WeekPicks) from the new app. Under the historical
 // D-16 rules (before M-02) Play shows the same per-game cards read-only: every saved guess shows, nothing offers to
@@ -75,8 +75,8 @@ test('historical D-16 rules: the landing and the per-game cards show every saved
     const receipt = sent.getByRole('region', { name: /Spread receipt/ });
     await expect(receipt).toBeVisible();
     // The owner's saved line (the stored 3-book median, -2.5 for the first game) is the D-16 reference the server kept.
-    await expect(receipt.locator('.gx-receipt-chip', { hasText: 'Line' })).toContainText('2.5');
-    await expect(receipt.locator('.gx-receipt-chip--you')).toContainText('3');
+    await expect(receipt.locator('.gx-pc-stats > div').first()).toContainText('2.5');
+    await expect(receipt.locator('.gx-pc-value')).toContainText('3');
     await expect(page.getByRole('button', { name: writer })).toHaveCount(0);
     expect(writes).toEqual([]);
     expect(world.errors).toEqual([]);
@@ -114,7 +114,7 @@ test('per-game rules: a 401 on lock-in keeps the typed guess through in-place si
   try {
     await signIn(page, 'luke');
     await tab(page, 'Play').click();
-    await page.getByRole('button', { name: 'Make picks', exact: true }).click();
+    await openPicksWeek(page);
     const [first] = world.state.games;
     const card = await openGame(page, first.id);
     await card.locator('[data-side="home"]').click();

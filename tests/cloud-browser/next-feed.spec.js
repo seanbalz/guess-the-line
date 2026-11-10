@@ -146,7 +146,8 @@ test('friends\' ballots of one day fold into a digest with a way to each post; w
       [ACCOUNTS.sean.id, troy.season, troy.week, troy.created_at]);
     await open(page);
     const digest = page.locator('.gx-feed-digest');
-    await expect(digest).toContainText(/(?:Sean Fixture and Troy Fixture|Troy Fixture and Sean Fixture) locked in picks/);
+    await expect(digest).toContainText(/(?:Sean Fixture and Troy Fixture|Troy Fixture and Sean Fixture)/);
+    await expect(digest).toContainText('2 players locked in picks');
     await digest.getByRole('button', { name: 'Show each post (3)' }).click();
     await expect(card(page, 'ballot_submitted')).toHaveCount(3);
     await expect(page.getByRole('button', { name: 'Fold these 3 posts' })).toBeVisible();

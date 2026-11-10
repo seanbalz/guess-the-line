@@ -5,6 +5,8 @@
 import { resolveClubCrest } from '../../teamLogoRegistry.js';
 import { fmtWhen } from '../format.js';
 import { cx } from '../ui/cx.js';
+import { Icon } from '../ui/Icon.jsx';
+import { clubName } from './clubName.js';
 
 /** A club crest on its chip, or the club code where no crest is registered. Decorative unless `alt` is wanted. */
 export function Crest({ code, size = 'md', named = false }) {
@@ -28,7 +30,7 @@ export function DraftBoard({ model }) {
         <span className="gx-sr-only">{nodeName(node)}</span>
         <span className="gx-epl-ball" aria-hidden="true">
           <span className="gx-epl-slot">{node.slot}</span>
-          {node.club ? <Crest code={node.club} size="ball" named/> : node.onClock ? <span className="gx-epl-q">?</span> : null}
+          {node.club ? <Crest code={node.club} size="ball" named/> : node.onClock ? <span className="gx-epl-q">?</span> : <Icon icon="clock" size={20}/>}
         </span>
         <span className="gx-epl-node-name" aria-hidden="true">{node.name}</span>
       </li>
@@ -36,7 +38,7 @@ export function DraftBoard({ model }) {
   </ol>;
 }
 
-const clubLabel = club => `${club.name}, ${club.home ? 'vs' : 'at'} ${club.opponent}, ${fmtWhen(club.kickoff)}`;
+const clubLabel = club => `${club.name}, ${club.home ? 'vs' : 'at'} ${clubName(club.opponent)}, ${fmtWhen(club.kickoff)}`;
 
 /** The clubs nobody has picked. Buttons (one selected, aria-pressed) only while you can pick; a plain list otherwise. */
 export function CrestGrid({ model, selected, onSelect, busy = false }) {
@@ -50,13 +52,13 @@ export function CrestGrid({ model, selected, onSelect, busy = false }) {
             aria-pressed={selected === club.code ? 'true' : 'false'} aria-label={clubLabel(club)} disabled={busy}
             onClick={() => onSelect(club.code)}>
             <Crest code={club.code}/>
-            <span className="gx-epl-club-code" aria-hidden="true">{club.code}</span>
+            <span className="gx-epl-club-code" aria-hidden="true">{club.name}</span>
           </button>
         ) : (
           <span className="gx-epl-club" data-epl-club={club.code}>
             <span className="gx-sr-only">{clubLabel(club)}</span>
             <Crest code={club.code}/>
-            <span className="gx-epl-club-code" aria-hidden="true">{club.code}</span>
+            <span className="gx-epl-club-code" aria-hidden="true">{club.name}</span>
           </span>
         )}
       </li>

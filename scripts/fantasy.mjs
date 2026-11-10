@@ -6,17 +6,23 @@ import path from 'node:path';
 import { buildFantasySnapshot } from '../shared/fantasy-build.mjs';
 import { readFantasySources } from './fantasy-sources.mjs';
 import { buildRankings } from '../shared/fantasy-rankings.mjs';
+import { attachDefenseInsights } from './fantasy-defense-sources.mjs';
+import { MAX_FILE_BYTES } from '../shared/fantasy-index.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const args = process.argv.slice(2), value = flag => args[args.indexOf(flag) + 1];
 if (args.includes('--help') || !args.includes('--season') || !args.includes('--week')) {
-  console.log('node scripts/fantasy.mjs --season 2026 --week 6 [--input-dir .local/fantasy-sources] [--check]');
+  console.log('node scripts/fantasy.mjs --season 2026 --week 6 [--input-dir .local/fantasy-sources] [--defense] [--check]');
   process.exit(args.includes('--help') ? 0 : 1);
 }
 const season = Number(value('--season')), week = Number(value('--week'));
 if (!Number.isInteger(season) || season < 2020 || season > 2200 || !Number.isInteger(week) || week < 2 || week > 18) throw new Error('Provide a valid season and week 2–18. Week 1 has no same-season pace data.');
 const { rows, sources } = await readFantasySources({ season, inputDir: args.includes('--input-dir') ? value('--input-dir') : null, root });
-const snapshot = buildFantasySnapshot({ season, week, ...rows, sources, generatedAt: new Date().toISOString() });
+const built = buildFantasySnapshot({ season, week, ...rows, sources, generatedAt: new Date().toISOString() });
+const { snapshot, note } = args.includes('--defense')
+  ? await attachDefenseInsights(built, { rows, season, inputDir: args.includes('--input-dir') ? value('--input-dir') : null, root, maxBytes: MAX_FILE_BYTES })
+  : { snapshot: built, note: null };
+if (note) console.error(note);
 const rankings = buildRankings(snapshot);
 if (rankings.error || !rankings.rows.length) throw new Error('No verified rankings could be generated.');
 if (!args.includes('--check')) {

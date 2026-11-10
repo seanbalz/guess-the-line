@@ -1,3 +1,4 @@
+import '../nfl-actions.css';
 // `sh.comments`: one post's comments, or a kickoff post's game thread (redesign build plan stage 64; prototype
 // sh.comments). Comments read oldest first, a page at a time from /league/comments; a comment is 1 to 500 characters
 // and can't be edited or deleted. What the member types is kept for this account in this tab (web/src/nextDrafts.js
@@ -8,9 +9,9 @@ import { leagueApi } from '../../api.js';
 import { nextDraftKey } from '../../nextDrafts.js';
 import { useAppData } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
-import { Avatar, Button, List, Sheet, Skeleton } from '../ui/index.js';
+import { Avatar, Button, Card, List, Sheet, Skeleton } from '../ui/index.js';
 import { fmtPostTime } from '../format.js';
-import { COMMENT_MAX, commentDraft, gameName } from './feedModel.js';
+import { COMMENT_MAX, commentDraft, gameName, postLine } from './feedModel.js';
 import { feedChanged } from './feedActions.js';
 
 const draftKey = (account, post) => nextDraftKey(account, `c-${post}`);
@@ -79,7 +80,7 @@ export function CommentsSheet({ args }) {
   const title = kickoff ? `Game thread${args?.gameId ? ` · ${gameName(args.gameId)}` : ''}` : `Comments · ${list.total}`;
   const inputLabel = kickoff ? 'Talk about the game' : 'Add a comment';
   const footer = <form className="gx-vstack gx-gap-8" onSubmit={post}>
-    <label className="gx-sr-only" htmlFor={`gx-feed-cin-${postId}`}>{inputLabel}</label>
+    <label className="gx-t-meta gx-c-2" htmlFor={`gx-feed-cin-${postId}`}>{inputLabel}</label>
     <div className="gx-hstack gx-gap-8 gx-top">
       <textarea id={`gx-feed-cin-${postId}`} className="gx-input gx-grow gx-feed-cin" rows={2} maxLength={COMMENT_MAX} placeholder={inputLabel} value={draft.body} readOnly={busy}
         onChange={event => change(event.target.value)}/>
@@ -88,7 +89,8 @@ export function CommentsSheet({ args }) {
     <p className="gx-t-meta gx-c-2">Comments can&rsquo;t be edited or deleted.{state.counter ? <span className="gx-c-pending"> {state.counter}</span> : null}</p>
     {problem ? <p className="gx-t-body gx-c-loss" role="alert">{problem}</p> : null}
   </form>;
-  return <Sheet title={title} onClose={shell.closeSheet} footer={footer} tall>
+  return <Sheet className="gx-nfl-action gx-feed-thread" bodyTabIndex={0} title={title} onClose={shell.closeSheet} footer={footer} tall>
+    {args?.actorId ? <Card className="gx-feed-thread-summary gx-vstack gx-gap-4"><p className="gx-t-strong">{names.get(args.actorId) || 'Former member'}</p><p className="gx-t-meta gx-c-2">{postLine({ kind: args.kind, mode: args.mode, week: args.week })}</p></Card> : null}
     {list.loading ? <Skeleton label="Loading comments…" shape="rows" count={3}/> : null}
     {list.error ? <p className="gx-t-body gx-c-loss" role="alert">{list.error.status ? list.error.message : 'No connection. Reconnect and try again.'}</p> : null}
     {list.next ? <Button variant="ghost" onClick={older} aria-disabled={olderBusy || undefined}>{olderBusy ? 'Loading…' : 'Show earlier comments'}</Button> : null}

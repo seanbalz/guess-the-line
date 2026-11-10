@@ -43,7 +43,7 @@ async function ciFonts(page) {
     if (document.getElementById('ci-fonts')) return;
     const style = document.createElement('style');
     style.id = 'ci-fonts';
-    style.textContent = 'html .gx { --gx-font-body: "DejaVu Sans", sans-serif; --gx-font-num: "DejaVu Sans", sans-serif; --gx-font-display: "DejaVu Sans", sans-serif; }';
+    style.textContent = 'html .gx { --gx-font-home: "DejaVu Sans", sans-serif; --gx-font-body: "DejaVu Sans", sans-serif; --gx-font-num: "DejaVu Sans", sans-serif; --gx-font-display: "DejaVu Sans", sans-serif; }';
     document.head.append(style);
   });
 }
@@ -145,39 +145,21 @@ test('Home has one primary task and compact shortcuts, with no writes or hidden-
     const reply = (await world.api('luke', 'community/read', {})).body;
     const expectedHero = homeHero({ community: reply });
     expect(expectedHero.state).toBe('due');
-    // C9: one meter per market, each with its own words.
-    const expectedMeters = heroMeters(reply).map(m => m.words);
-    expect(expectedMeters).toEqual([`Spread · ${LUKE_SPREAD_DRAFT.length} of ${world.state.games.length} picked`, `Total · 0 of ${world.state.games.length} picked`]);
+    // Approved deployment: a compact next action/ring, separate market stats, two graphical links and next-game rows.
     await expect(hero(page)).toHaveAttribute('data-state', 'due');
-    // The design lane's hierarchy pass: the headline names the games left and the deadline, the week sits above it.
-    const expectedHeadline = heroHeadline({ hero: expectedHero, community: reply });
-    expect(expectedHeadline.title).toBe(`Lock in ${world.state.games.length} games`);
-    await expect(hero(page).getByRole('heading', { level: 2 })).toHaveText(expectedHeadline.title);
-    await expect(hero(page).locator('[data-home="when"]')).toHaveText(expectedHeadline.sub);
-    expect(expectedHeadline.sub).toMatch(/^before (Sun|Mon|Tue|Wed|Thu|Fri|Sat) \d{1,2}:\d{2} (AM|PM) PT$/);
-    await expect(hero(page).locator('[data-home="status"] li')).toHaveText(expectedMeters);
-
-    // The countdown: a timer named with its words and the time left, digits in tiles, not read every tick.
-    const timer = hero(page).getByRole('timer');
-    await expect(timer).toBeVisible();
-    await expect(timer).toHaveAttribute('aria-label', new RegExp(`^${HOME_COPY.picksDueIn} (\\d+ days? )?\\d+ hours? \\d+ minutes?$`));
-    await expect(timer).toHaveAttribute('aria-live', 'off');
-    expect(await timer.locator('.gx-cd-tile').count()).toBeGreaterThanOrEqual(2);
-
-    // Exactly one lime button in view, and it is the hero's "Make picks" (the "Sign in again" prompt's own primary sits
-    // outside the frame in a closed dialog, so it is counted among the visible ones and never shows here).
-    const lime = page.locator('.gx-app .gx-btn--primary');
-    await expect(lime).toHaveCount(1);
-    await expect(lime).toHaveText(HOME_COPY.makePicks);
-    await expect(page.locator('.gx .gx-btn--primary:visible')).toHaveCount(1);
-    await expect(page.getByRole('button', { name: HOME_COPY.seeLines })).toHaveCount(0);
-
-    // D-69 step 2 (H1A): six tiles, Who's in as a tile (its layer holds Standings and Invite), the week's game tiles,
-    // and one meter per market.
-    for (const name of ['spread', 'total', 'who', 'awards', 'tickets', 'trends']) await expect(rankTile(page, name)).toBeVisible();
-    await expect(whosIn(page)).toHaveCount(0);
-    await expect(page.locator('[data-home="week"] [data-game-tile]')).toHaveCount(Math.min(4, world.state.games.length));
-    await expect(hero(page).locator('[data-home="status"] .gx-meter3')).toHaveCount(expectedMeters.length);
+    await expect(hero(page).getByRole('heading', { level:2 })).toHaveText('Finish your picks');
+    await expect(hero(page).getByRole('img', {name:/picks drafted$/})).toBeVisible();
+    await expect(hero(page).getByRole('timer')).toHaveCount(0);
+    await expect(hero(page).getByRole('button',{name:'Continue picks',exact:true})).toBeVisible();
+    await expect(page.getByRole('group',{name:'Season market'})).toBeVisible();
+    await expect(page.getByRole('button',{name:/^Spread Community rank/})).toBeVisible();
+    await page.getByRole('group',{name:'Season market'}).getByRole('button',{name:'Total',exact:true}).click();
+    await expect(page.getByRole('button',{name:/^Total Community rank/})).toBeVisible();
+    await expect(page.getByRole('button',{name:/^League\. Total Community standings/})).toBeVisible();
+    await expect(page.getByRole('button',{name:'Research. Explore games and trends',exact:true})).toBeVisible();
+    await expect(page.getByRole('heading',{name:'Around the league',exact:true})).toBeVisible();
+    await expect(page.locator('[data-home="week"] [data-game-tile]')).toHaveCount(Math.min(2,world.state.games.length));
+    await expect(page.locator('.gx-h-cd')).toHaveCount(0);
 
     await phoneChecks(page);
     await noLeak(page, world, lines, 'Home');
@@ -212,7 +194,7 @@ test('"Make picks" opens the live Play tab without leaving the new app; "See Lin
   const { world } = await lukesWeek(page, baseURL);
   try {
     await tryNewApp(page);
-    await page.locator('.gx-app .gx-btn--primary').click();
+    await page.getByRole('button', { name: 'Continue picks', exact: true }).click();
     await expect(title(page, 'Your guesses')).toBeVisible();
     await expect(tab(page, 'Play')).toHaveAttribute('aria-current', 'page');
     expect(new URL(page.url()).hash).toMatch(/^#play\/picks/);
@@ -251,4 +233,30 @@ test('axe in Dark and Light at 390 and 320 on Home and its Who’s in layer; 390
     expect(found).toEqual(Object.fromEntries(Object.keys(found).map(key => [key, []])));
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
+});
+
+test('approved Home keeps Total navigation and restores other pages and browser chrome', async ({page,baseURL})=>{
+ const {world}=await lukesWeek(page,baseURL);
+ try{
+  await tryNewApp(page);
+  await expect(page.locator('.gx')).toHaveClass(/gx-home-design/);
+  await page.getByRole('group',{name:'Season market'}).getByRole('button',{name:'Total',exact:true}).click();
+  await page.getByRole('button',{name:'League. Total Community standings',exact:true}).click();
+  await expect(page.locator('.gx')).not.toHaveClass(/gx-home-design/);
+  expect(new URL(page.url()).hash).toMatch(/market=guess_total/);
+  await tab(page,'Research').click();
+  const appearance=()=>page.locator('.gx').evaluate(el=>{const s=getComputedStyle(el),bar=getComputedStyle(el.querySelector('.gx-tabbar'));return {background:s.backgroundImage,color:s.color,font:s.fontFamily,bar:bar.borderRadius,chrome:document.querySelector('meta[name="theme-color"]').content};});
+  const before=await appearance();
+  await tab(page,'Home').click();
+  await expect(page.locator('.gx')).toHaveClass(/gx-home-design/);
+  await expect(page.getByRole('group',{name:'Season market'}).getByRole('button',{name:'Total',exact:true})).toHaveAttribute('aria-pressed','true');
+  await page.getByRole('button',{name:/^Total Community rank/}).click();
+  await expect(page).toHaveURL(/#play\/score/);
+  await expect(page.locator('.gx')).not.toHaveClass(/gx-home-design/);
+  await tab(page,'Research').click();expect(await appearance()).toEqual(before);
+  await tab(page,'Home').click();
+  await page.getByRole('button',{name:/Community, Who’s in/}).click();
+  await expect(page.locator('.gx')).not.toHaveClass(/gx-home-design/);
+  expect(world.errors).toEqual([]);
+ }finally{await world.db.close();}
 });

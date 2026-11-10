@@ -29,11 +29,11 @@ function render(Screen, patch = {}) {
 
 describe('One thing first roots', () => {
   // D-69 step 2 (H1A): Home keeps one lime action; six tiles replace the stat tiles, the awards card and the trends row.
-  it('Home has one action and six tiles instead of full boards and research', () => {
+  it('Home has the approved compact action, separate stats and graphical shortcuts', () => {
     const html = render(Home);
     expect(markupProblems(html)).toEqual([]);
-    expect((html.match(/gx-btn--primary/g) || [])).toHaveLength(1);
-    for (const name of ['Spread rank', 'Total rank', 'Who’s in', 'Awards', 'My bets', 'Trends']) expect(html).toContain(name);
+    expect((html.match(/class="gx-home-primary"/g) || [])).toHaveLength(1);
+    for (const name of ['Your week.', 'Your season', 'Community rank', 'Accuracy points', 'Season market', 'Around the league']) expect(html).toContain(name);
     for (const removed of ['Explore the week', 'Research readiness', 'New here? Start here', 'Your scores', 'This week’s trends']) expect(html).not.toContain(removed);
   });
   // D-69 step 1 (P1B): the first card is the ballot to do next; the other ballot, your results and the League are tiles.
