@@ -2,12 +2,28 @@
 -- Apply after M-33 in the ledger; no hosted action, schedule row or enablement is performed here.
 -- Fix-forward: the job constraint widens. Disable standings to stop collection; keep all evidence and usage rows.
 -- Retain the reserved moneyline job too: independent M-36 may be applied first. No row or RPC is required here.
+-- Order-safe widening (apply packet, November 10): this file may be applied after later files that widened the same
+-- constraint (M-44 adds 'results'). The new constraint is M-34's nine-job list, which already names M-44's 'results',
+-- plus every job the existing constraint accepts, so applying M-34 in any order never narrows admission.
 -- Existing five/six jobs and the original resolve writer remain unchanged. All new RPCs are service-only invokers.
 -- p_now is a trusted worker clock/test seam, never a client input. Every writer requires a live job claim.
 
-alter table public.gtl_epl_jobs_schedule drop constraint if exists gtl_epl_jobs_schedule_job_check;
-alter table public.gtl_epl_jobs_schedule add constraint gtl_epl_jobs_schedule_job_check
-  check(job in ('snapshot','fixtures','resolve','settle','nudge','dnb-check','standings','moneyline'));
+do $m34_jobs$
+declare
+  jobs text[] := array['snapshot','fixtures','resolve','settle','nudge','dnb-check','standings','moneyline','results'];
+  existing text;
+begin
+  select pg_get_constraintdef(c.oid) into existing from pg_constraint c
+   where c.conrelid = 'public.gtl_epl_jobs_schedule'::regclass and c.conname = 'gtl_epl_jobs_schedule_job_check';
+  if existing is not null then
+    jobs := jobs || array(select distinct m[1] from regexp_matches(existing, '''([^'']+)''', 'g') m
+                           where m[1] <> all(jobs) order by 1);
+  end if;
+  alter table public.gtl_epl_jobs_schedule drop constraint if exists gtl_epl_jobs_schedule_job_check;
+  execute format('alter table public.gtl_epl_jobs_schedule add constraint gtl_epl_jobs_schedule_job_check check(job in (%s))',
+    (select string_agg(quote_literal(j), ',' order by o) from unnest(jobs) with ordinality u(j, o)));
+end
+$m34_jobs$;
 
 create table if not exists public.gtl_epl_standings (
   id uuid primary key default gen_random_uuid(),

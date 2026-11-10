@@ -11,6 +11,13 @@ Task 2 queries and Sean's apply phrases. It records that M-40 is hosted in every
 record, and flags that M-34 must not be applied after M-44 as written (job constraint
 without `results`) and that M-43's RPCs have no boundary probes. Supabase was
 unavailable: no hosted value was observed and nothing was applied or deployed.
+Packet version 2 (apply-order fixes PR) resolves both: unapplied M-34's constraint
+statement now widens to its list plus `results` plus every job already accepted, so any
+apply order is safe (`tests/epl-apply-order-sql.test.mjs`; new M-34 SHA-256
+`9f8479c764eb2a7fd800740542cf2785db54b53144b32be832a69ef506148b16`, 15669 bytes, function
+md5s unchanged), and `scripts/boundary/epl-score-import.mjs` probes M-43's four tables,
+three RPCs and two routes as awaiting deploy. The M-35/M-43 next-week order precedence is
+documented as a run-time rule for Sean (packet contradiction 7). Still nothing applied.
 
 ## Fantasy defensive-matchup insights merged — November 10, 2026
 

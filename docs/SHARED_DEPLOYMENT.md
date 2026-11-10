@@ -145,7 +145,8 @@ replaces the requirement to hold CLI logins on the Mac mini for the API, fronten
 and worker targets: protected API and frontend runs are verified; the
 `push-reminders` and `points-jobs` targets have run (October 26) and `league-features` (October 27);
 `ops-alerts` (November 3, created v1), `push-reminders` again (v6) and `odds-refresh` (November 3, v6 to v7) have run;
-`fantasy-ingest` and `epl-jobs` are covered by local tests only until their first runs. Existing dated release records remain historical evidence of the
+`epl-jobs` has run (October 29, run 40937265809 from `d891291c`, worker v3; [record](RELEASE_2026_10_29_EPL_MONEYLINE.md)).
+`fantasy-ingest` has run too (October 28, run 40699619045, `gtl-fantasy-ingest` created at v1; [record](RELEASE_2026_10_28_D59_TRENDS.md)). Existing dated release records remain historical evidence of the
 Mac mini releases.
 
 ## One-time configuration
