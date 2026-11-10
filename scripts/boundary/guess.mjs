@@ -175,6 +175,8 @@ export const apiChecks = Object.freeze([
   ['epl/guess/read', {}],
   ['epl/guess/save', {eventId:'boundary-missing-event',club:'invalid',price:0,lock:false}],
   ['epl/guess/leaderboard', {}],
+  // EPL Bets recommendations (20261110100000, pending): signed-out probes prove only authentication protection.
+  ['epl/bets/read', {}],
 ]);
 
 /** [log name, Edge Function, body]: scheduled workers called without and with an invalid machine token; each must answer 401. */
@@ -192,4 +194,5 @@ export const awaitingDeploy = Object.freeze({
   'rpc/gtl_epl_recheck_due_at': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
   'rpc/gtl_epl_recheck_state': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
   'rpc/gtl_epl_record_recheck': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
+  'gtl-api/epl/bets/read': '20261110100000 (EPL three-way moneyline apply / compatible gtl-api deploy)',
 });

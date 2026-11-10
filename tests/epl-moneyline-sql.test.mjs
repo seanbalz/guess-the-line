@@ -29,6 +29,13 @@ async function setup(t) {
   await db.exec(fs.readFileSync(M30, 'utf8'));
   await db.exec(fs.readFileSync(M31, 'utf8'));
   await db.exec(fs.readFileSync(FILE, 'utf8'));
+  // tests/epl-three-way-compat.test.mjs reruns this suite with the pending three-way migration on top (legacy contract).
+  if (process.env.GTL_EPL_THREE_WAY_COMPAT === '1') {
+    await db.exec(`create table public.gtl_odds_budget(provider text primary key,conservative_remaining integer,paused boolean default false,
+      observed_remaining integer,observed_used integer,observed_last integer,observed_at timestamptz,updated_at timestamptz);
+      grant select,update on public.gtl_odds_budget to service_role;`);
+    for (const file of ['20261029165947_gtl_epl_moneyline_collector.sql', '20261110100000_gtl_epl_three_way_moneyline.sql']) await db.exec(fs.readFileSync(`supabase/migrations/${file}`, 'utf8'));
+  }
   await db.exec(`insert into auth.users values ('${U(1)}'),('${U(2)}'),('${U(3)}'),('${U(4)}'),('${U(5)}');
     update public.gtl_epl_managers set user_id='${U(1)}' where owner_id='${EVAN}';
     update public.gtl_epl_managers set user_id='${U(2)}' where owner_id='${SEAN}';

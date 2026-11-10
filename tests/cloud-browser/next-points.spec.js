@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { createHash } from 'node:crypto';
 import { ALL } from '../migrations.mjs';
-import { layoutProblems } from '../helpers/phone-layout.mjs';
+import { animationsSettled, layoutProblems } from '../helpers/phone-layout.mjs';
 import { holdAnimationFrames } from '../helpers/animation-frame-gate.mjs';
 import { ACCOUNTS, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
 import { FANTASY_REPOSITORY, snapshotFileName, updateFantasyIndex } from '../../shared/fantasy-index.mjs';
@@ -119,6 +119,7 @@ test('a fixture week: draft, lock in with a confirm, then Everyone and the House
     await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, theme);
     for (const width of [390, 320]) {
       await page.setViewportSize({ width, height: 844 });
+      await page.evaluate(animationsSettled);
       expect(await page.evaluate(layoutProblems)).toEqual([]);
       expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations.map(v => v.id)).toEqual([]);
       await page.screenshot({ path: info.outputPath(`points-ballot-${width}-${theme}.png`), fullPage: true });
@@ -214,6 +215,9 @@ test('a fixture week: draft, lock in with a confirm, then Everyone and the House
   for (const theme of ['dark', 'light']) {
     await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, theme);
     await page.setViewportSize({ width: 320, height: 844 });
+    // Back restores the week as a card that settles from 4 px up, under its "Back to Play" lip for a moment: judge the
+    // layout it settles to, not a frame of that motion.
+    await page.evaluate(animationsSettled);
     expect(await page.evaluate(layoutProblems)).toEqual([]);
   }
   await page.evaluate(() => { delete document.documentElement.dataset.theme; });

@@ -70,3 +70,21 @@ export function leaderboard(rows) {
     })
     .map(o => ({ ownerId: o.ownerId, average: o.guessed ? o.sum / o.guessed : null, guessed: o.guessed, unscored: o.unscored }));
 }
+
+// Markets (docs/EPL_FEATURES_2026_11_09.md): one guess per match in either market. draw_no_bet is the M-32 two-way
+// market (a club, a draw is a push); three_way is home / draw / away. Both are scored by the same distance above.
+export const EPL_MARKETS = Object.freeze(['draw_no_bet', 'three_way']);
+export const EPL_MARKET_OUTCOMES = Object.freeze({ draw_no_bet: Object.freeze(['home', 'away']), three_way: Object.freeze(['home', 'draw', 'away']) });
+/** Whether `outcome` is one of `market`'s outcomes. */
+export const validOutcome = (market, outcome) => Object.hasOwn(EPL_MARKET_OUTCOMES, market) && EPL_MARKET_OUTCOMES[market].includes(outcome);
+/** The club an outcome names in a fixture `{home, away}`, or null for a draw (or an unknown outcome). */
+export const outcomeClub = (fixture, outcome) => outcome === 'home' ? fixture?.home ?? null : outcome === 'away' ? fixture?.away ?? null : null;
+/** The outcome a two-way club names in a fixture, or null when the club is not in it. */
+export const clubOutcome = (fixture, club) => club && club === fixture?.home ? 'home' : club && club === fixture?.away ? 'away' : null;
+
+/**
+ * EPL Bets (stage 2): the favorable gap between a locked guess and the latest same-market price, on the line above.
+ * Positive means the latest book median pays more than the price the manager guessed. It compares two prices; it is
+ * not an estimated probability that the outcome happens and not a measure of expected value.
+ */
+export const favorableGap = (guess, latest) => validPrice(guess) && validPrice(latest) ? toLine(latest) - toLine(guess) : null;

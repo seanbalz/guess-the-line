@@ -471,7 +471,7 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
             if (providerError === providerBetsError && !['gtl_save_recommended_virtual_pick', 'gtl_read_bets'].includes(name)) throw providerError();
             throw providerError('GTL_FEATURE_OFF');
           }
-          if(providerError===providerEplError&&name==='gtl_epl_save_guess_current'&&code==='22003')throw providerError('GTL_EPL_GUESS_INVALID');
+          if(providerError===providerEplError&&['gtl_epl_save_guess_current','gtl_epl_save_market_guess_current'].includes(name)&&code==='22003')throw providerError('GTL_EPL_GUESS_INVALID');
           throw providerError(message);
         }
         return response.json();
