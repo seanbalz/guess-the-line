@@ -27,7 +27,7 @@ async function setup(t,{ready=true}={}){
   }
   if(name==='gtl_epl_weeks')return Response.json((await db.query('select season,week from public.gtl_epl_weeks order by season desc,week desc limit 38')).rows);
   if(name==='gtl_epl_job_runs')return Response.json((await db.query("select status,reason,detail from public.gtl_epl_job_runs where job='dnb-check' and status='succeeded' and reason is null and detail @> $1 order by slot_start,id limit 100",[JSON.parse(u.searchParams.get('detail').slice(3))])).rows);
-  if(name==='gtl_epl_fixtures')return Response.json((await db.query('select event_id,season,week from public.gtl_epl_fixtures where event_id=$1',[u.searchParams.get('event_id').slice(3)])).rows);
+  if(name==='gtl_epl_fixtures')return Response.json((await db.query('select event_id,season,week,home,away from public.gtl_epl_fixtures where event_id=$1',[u.searchParams.get('event_id').slice(3)])).rows);
   throw new Error(`Unexpected private read ${name}`);
  };
  const adapter=createSupabaseAdapter({url:'https://fixture.supabase.co',anonKey:'fixture',serviceRoleKey:'fixture',fetchImpl,eplMoneylineRefreshForLock:async()=>{refreshes++;now=Date.parse(kick)+1000;return {status:'unavailable'};}});

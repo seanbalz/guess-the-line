@@ -1,0 +1,8 @@
+/* EPL Bets: Prism tokens and the shared moneyline value tiles only. */
+.gx .gx-epl-bets { display: flex; flex-direction: column; gap: var(--gx-space-4); min-width: 0; }
+.gx .gx-epl-bets p, .gx .gx-epl-bets h2 { margin: 0; }
+.gx .gx-epl-bets > .gx-card, .gx .gx-epl-bet { display: flex; flex-direction: column; gap: var(--gx-space-3); }
+.gx .gx-epl-bet-list, .gx .gx-epl-bet-concerns { padding: 0; margin: 0; list-style: none; display: flex; flex-direction: column; gap: var(--gx-space-3); }
+.gx .gx-epl-bet-concerns { flex-direction: row; flex-wrap: wrap; gap: var(--gx-space-2); }
+.gx .gx-epl-bet-gap { font: 600 16px/24px var(--gx-font-body); color: var(--gx-text-1); }
+.gx .gx-epl-bet-gap strong { font: 700 24px/28px var(--gx-font-num); font-variant-numeric: tabular-nums; color: var(--gx-accent-ink); }

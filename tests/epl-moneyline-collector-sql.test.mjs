@@ -26,6 +26,8 @@ async function setup(t) {
     insert into public.gtl_odds_budget(provider,conservative_remaining) values('the-odds-api',100);
     grant select,update on public.gtl_odds_budget to service_role;`);
   await db.exec(fs.readFileSync(FILE,'utf8'));
+  // tests/epl-three-way-compat.test.mjs reruns this suite with the pending three-way migration on top (legacy contract).
+  if(process.env.GTL_EPL_THREE_WAY_COMPAT==='1') await db.exec(fs.readFileSync('supabase/migrations/20261110100000_gtl_epl_three_way_moneyline.sql','utf8'));
   for(let i=0;i<3;i++) {
     await db.query('insert into auth.users values($1)',[U(i+1)]);
     await db.query('update public.gtl_epl_managers set user_id=$1 where owner_id=$2',[U(i+1),OWNERS[i]]);
