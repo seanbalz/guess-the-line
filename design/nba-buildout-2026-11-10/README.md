@@ -17,8 +17,9 @@ Games board, My Bets and History (inspected). It has been hidden from the sport
 switch since October 29 and parked since November 6 (inspected). It never moved
 into Prism Glass, and it has no game, scoring, standings, reminders or research
 (inspected). No ticket has been saved through the app in production:
-`bet_changes` has 0 rows (executed by the audit's read-only query; not re-run
-here). The later milestones the October spec names (recommendations,
+`bet_changes` has 0 rows (executed by the audit's read-only query and
+re-counted read-only in review). The 10 tickets the app shows are the October
+archive import (`nba_private.bets` has 10 rows; count only). The later milestones the October spec names (recommendations,
 competitions, social sharing, Virtual Units, player-prop automation, Fantasy)
 are not started (inspected).
 

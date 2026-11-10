@@ -26,7 +26,9 @@ daily Games board, My Bets and History (inspected).
   account panel and a three-button nav (inspected).
 - It has no game, scoring, standings, reminders or research (inspected).
 - No ticket has ever been saved through the app in production: `bet_changes`
-  has 0 rows (executed by the audit).
+  has 0 rows (executed by the audit; re-counted read-only in review on
+  November 10). The 10 tickets `/nba/read` returns are the October archive
+  import (`nba_private.bets` has 10 rows; count only, executed in review).
 
 This plan fixes and restyles what exists first, then adds one nightly game:
 Guess the Spread, the same game the league already plays in NFL. Every
