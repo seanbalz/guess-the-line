@@ -35,6 +35,22 @@ Guess the Spread, the same game the league already plays in NFL. Every
 milestone is additive, ships only after Sean has reviewed real phone mockups,
 and needs his named approval for any migration, deploy or schedule.
 
+## Judge scores
+
+The workflow's judge scored three directions. The scores are as the workflow
+supplied them (not re-run for this record); each reason is this record's plain
+summary, not the judge's wording.
+
+- **Parity-first: 7/10, the recommended basis.** NBA gets the Prism shell and
+  the same Guess the Spread the league already plays in NFL, for about one
+  capped Odds API credit a game day.
+- **Social-first: 6.5/10.** Its zero-credit nightly Pick'em is this plan's
+  alternative (mockup 12). It costs nothing, but picking winners has no hidden
+  number, so players separate slowly.
+- **Tracker-and-research-first: 5/10.** It polishes a private tracker that has
+  no saved ticket yet (`bet_changes` 0) and adds no shared game. This plan uses
+  only its per-call credit figures.
+
 ## Rules for every milestone
 
 - **Design.** Read [the brand guide](../../BRAND_GUIDE.md), `design/tokens.json`
@@ -159,7 +175,7 @@ his physical-iPhone check.
   day, 90 minutes before the first tip-off, with `basketball_nba`,
   `markets=spreads`, `regions=us` and DraftKings, FanDuel, BetMGM plus BetRivers
   as the D-74 backup: 1 credit a call whatever the number of games (the
-  runner-up's figure; not re-verified). Per-book normalization and median as in
+  tracker direction's figure; not re-verified). Per-book normalization and median as in
   NFL; too few books is stored as unqualified. One retry 30 minutes later only
   if the first attempt spent 0 credits.
 - **Budget guard (SQL).** Begin/finish functions lock the shared
@@ -200,6 +216,21 @@ Mockups 10 and 11 (preview only).
   the existing GuessPicker, which gains an NBA range prop (0.5 to 25, an assumed
   safe bound; the mockups show today's 0.5 to 20 picker). Lock in per game, or
   "Lock in all N" for the night.
+- **Records (D-62).** Each team's W–L sits with its badge on every pick card:
+  under its code on the 48 px game card (the NFL `Matchup` stack layout in
+  `ui/matchup.css`) and beside it on 32 px rows (mockups 10 and 12).
+  Records are computed when read, in SQL, from BALLDONTLIE finals already
+  stored (`gtl_nba_games` from N2's slate job, plus the existing
+  `nba_private.game_cache`): regular-season games that are final with both
+  scores. That is zero extra provider calls, and the BALLDONTLIE call budget
+  (5-minute TTL, 15 s lease, 35 s global cooldown) is unchanged. There is no
+  standings call: the free tier offers Teams, Players and Games only, and Team
+  Standings needs the paid GOAT tier at $39.99 a month (executed: read
+  nba.balldontlie.io on November 10). A team with a game day missing from
+  storage shows "—", never a partial count (rule 8). The NBA Cup final does not
+  count toward records and needs a rule checked against fixtures (assumed).
+  The badges are not buttons, because an NBA team sheet is not in this plan.
+  Whether to backfill early-season finals is Sean's question 6.
 - **Reference.** The newest qualified line at or before the server's lock time
   (at-lock); else the first qualified line after the lock and before tip-off
   (first-after); else unscored, "No line before tip-off" (D-27). A lock never
@@ -223,7 +254,8 @@ Mockups 10 and 11 (preview only).
   game row), `gtl_nba_save_guess_current` (M-36 wrapper sampling database time
   after the lock), `gtl_nba_resolve_pending_references`, `gtl_nba_guess_board`
   (D-31/D-36 filters), `gtl_nba_guess_standings` (tipped-off games only, voids
-  excluded), `gtl_nba_void_game`. Updates only through the writer and only on
+  excluded), `gtl_nba_void_game`, `gtl_nba_team_records` (computed when read
+  from stored finals). Updates only through the writer and only on
   drafts; no delete grants.
 - **Tests.** SQL: second lock returns LOCKED with the accepted guess; saves close
   at tip-off by database time; a double-tapped lock gives one final guess;
@@ -231,7 +263,9 @@ Mockups 10 and 11 (preview only).
   5+ errors); others' drafts never visible; others' locks hidden before your own
   lock and before tip-off; line hidden until your lock or tip-off; standings
   never include an untipped game; a void deletes no row; history insert-only;
-  `total` refused. Boundary probes (`scripts/boundary/nba-guess.mjs`): anon 401,
+  `total` refused; records count only stored regular-season finals, a team
+  with a missing game day reads "—", and no record read calls the provider.
+  Boundary probes (`scripts/boundary/nba-guess.mjs`): anon 401,
   forged owner ignored, pre-tip reveal denied, non-commissioner void denied. UI:
   ported EPL guessModel state tests and the picker's NBA range. Browser: draft,
   lock, reveal and standings in PGlite.
@@ -268,6 +302,9 @@ in this record; they come with the N4 build request.
   stay byte-identical (md5 compared before apply) and NBA must already be
   unhidden.
 - **Closest-to-line W-L-T.**
+- **NBA team sheet (D-62 rule 3):** home and road records, last five and a
+  margin chart from the same stored finals; until then NBA badges and records
+  are not buttons.
 - **Not planned without paid data or more credits:** NBA Virtual Units,
   recommendations and gap record, research beyond rest and back-to-back, player
   props, Fantasy.
@@ -282,7 +319,8 @@ the straight-up winner of each game; drafts stay private and a lock is final at
 tip-off. Grading uses BALLDONTLIE finals only (status final with both scores;
 the clock never makes a final), with an append-only commissioner ruling for a
 corrected final or a void. 1 point per correct pick; ties share a rank;
-postponed games are void with picks kept. Same per-game D-31 reveal. Reuses M-30
+postponed games are void with picks kept. Same per-game D-31 reveal and the
+same team records as N3, from stored finals. Reuses M-30
 (schedule and run capability), the M-32 board and history shape, M-23 tip-off
 timing and EPL ResultsCard's Final vs Pending wording. Cost: $0; at worst about
 30 BALLDONTLIE requests a day through the existing 35 s cooldown.
@@ -305,9 +343,14 @@ Spread to the same card without a new table.
    below 360 px wide (three 52 px circles do not fit there; executed in the
    mockups).
 5. When NBA appears on the sport switch (`NBA_ON_SWITCH`).
-6. Every migration apply, deploy and schedule enable; one real production save;
+6. Team records: stored finals may not reach back to opening night, so without
+   a backfill most teams would show "—" this season (assumed; the stored dates
+   were not counted). Allow one free backfill of the earlier game days (a few
+   BALLDONTLIE Games requests, once, through the existing lease and 35 s
+   cooldown), or keep zero extra calls and show "—" where finals are missing?
+7. Every migration apply, deploy and schedule enable; one real production save;
    the physical-iPhone check.
-7. The stale Codex NBA worktree under
+8. The stale Codex NBA worktree under
    `C:\Users\sbals\.codex\worktrees\private-nba-storage` (branch
    `codex/nba-section-design`, last commit October 21, 15 uncommitted paths;
    executed with a read-only `git status --no-optional-locks`). It is untouched.

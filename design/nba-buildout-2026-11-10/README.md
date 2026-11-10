@@ -32,11 +32,12 @@ are not started (inspected).
   a sheet; old `#nba/...` links land on their new place. NBA stays off the
   production switch (`NBA_ON_SWITCH = false`) until Sean says so.
 - **N2 (no screens).** A worker stores the nightly slate and one capped
-  Odds API spread read per game day (1 credit a call per the runner-up's check;
-  not re-verified). NBA is always the lane that pauses first.
+  Odds API spread read per game day (1 credit a call per the tracker direction's
+  check; not re-verified). NBA is always the lane that pauses first.
 - **N3 (mockups 10–11, preview only).** Nightly Guess the Spread per game with
   the NFL GuessPicker and points formula, per-game D-31 reveal, Tonight, Week and
-  Season standings.
+  Season standings, and each team's W–L beside its badge (D-62), counted from
+  stored BALLDONTLIE finals with no extra provider call.
 - **N4.** Tonight moments, one opt-in reminder and rest chips. Not mocked here.
 
 ## Alternative: zero-credit nightly Pick'em (mockup 12)
@@ -47,10 +48,15 @@ but has no hidden number to guess, and favorites win most nights (assumed).
 
 ## Judge scores
 
-Not supplied to this step. The workflow's judge scoring for the recommended and
-alternative directions was not passed into this task, so this record does not
-state or invent any score. The recommendation cites a "runner-up" (tracker)
-direction only for its per-call credit figures.
+The workflow's judge scored three directions. The scores are as the workflow
+supplied them (not re-run here); each reason is this record's plain summary, not
+the judge's wording.
+
+| Direction | Score | Used here as | Reason |
+|---|---|---|---|
+| Parity-first | 7/10 | The recommended basis | NBA gets the Prism shell and the same Guess the Spread the league already plays in NFL, for about one capped credit a game day. |
+| Social-first | 6.5/10 | Its zero-credit Pick'em is the alternative (mockup 12) | It costs nothing, but picking winners has no hidden number, so players separate slowly. |
+| Tracker-and-research-first | 5/10 | Source of the per-call credit figures only | It polishes a private tracker that has no saved ticket yet (`bet_changes` 0) and adds no shared game. |
 
 ## Sean's questions
 
@@ -62,6 +68,11 @@ direction only for its per-call credit figures.
 4. **Badges.** Approve the letters-only team badges (mockup 02), the original
    "NBA" text badge, and 44 px league circles below 360 px wide (mockup 01)?
 5. **Unhide timing.** When should NBA appear on the sport switch?
+6. **Team records.** Records come only from stored BALLDONTLIE finals, with no
+   extra calls, and stored finals may not reach back to opening night; without
+   a backfill most teams would show "—" this season (assumed; stored dates not
+   counted). Allow one free backfill of the earlier game days (a few Games
+   requests, once, through the existing lease and 35 s cooldown)?
 
 Also waiting on Sean: every migration apply, deploy and schedule enable; one real
 production save; the physical-iPhone check; and the stale Codex NBA worktree
@@ -75,8 +86,9 @@ Rendered from the app's real shared components and stylesheets (inspected:
 `LockLine`, `InfoButton`, `Sheet`, `Skeleton`, `Toast`, `TabBar`, `HomeBrand`,
 `GuessPicker`, `WeekProgress`; `tokens.css`, `base.css`, `components.css`, the
 shell, overview-frame, NBA, tracked-ticket, Prism Bets and Prism Play
-stylesheets) in a local Vite preview, as the November 9 records did. Pieces the
-proposal adds (`NbaTeamBadge`, the NBA text badge, the NBA top bar) are drawn in
+stylesheets, and the D-62 `ui/matchup.css`) in a local Vite preview, as the
+November 9 records did. Pieces the proposal adds (`NbaTeamBadge`, its matchup
+with records on pick cards, the NBA text badge, the NBA top bar) are drawn in
 the preview with existing classes and tokens only; no app source changed.
 Sheets, dialogs and toasts are drawn in place so several states fit one capture;
 in the app each appears alone over the page. Every game, score, ticket, line,
@@ -103,10 +115,36 @@ Independent review corrections (executed; mockups 04 and 10 re-captured at both
 widths and themes with the same checks, all passing): the Yesterday / Today /
 Tomorrow date chips now select with Prism's outline, tint and check instead of
 a solid lime fill, matching the approved glass controls in
-`web/src/next/play/prismPlay.css`; and the Tonight preview now shows 1 locked,
-3 drafts and 1 open with "Lock in all 3", so the lock-all button and dialog
-count only unlocked drafts instead of offering to lock all 5 games when 2 were
-already locked.
+`web/src/next/play/prismPlay.css`; and the Tonight preview's lock-all button
+and dialog count only unlocked drafts instead of offering to lock games that
+were already locked (the counts changed again in the second review below).
+
+Second review corrections (executed; mockups 01, 02, 03, 04, 05, 09, 10 and 12
+re-captured at both widths and themes with the same checks, all passing; the
+other 16 PNGs are byte-identical):
+
+- **One slate.** Every board shows the same moment: Tuesday 6:44 PM PT, with the
+  board observed at 6:42 PM PT. PHI @ MIA and OKC @ SAC (overtime) tipped at
+  4:00 PM and are final; DEN @ MIN tipped at 5:30 PM and is in the 2nd quarter;
+  BOS @ NYK and DAL @ PHX (7:00 PM) and LAL @ GSW (7:30 PM) are still to come.
+  Home's first tip (4:00 PM PT) is the earliest game, the Research board shows
+  all six games (so every team in the Play preview is on it), and mockup 02's
+  observed line uses the same time.
+- **Home matches Bets.** Open tickets reads 4 · 3.6 U pending, the four
+  Bets › Open tickets (1 + 1.1 + 1 + 0.5 U). This month reads +1.38 U ·
+  8 settled, History's November totals before the 76ers result is confirmed.
+  The typed-matchup ticket is now Monday's Spurs at Rockets, so nothing in the
+  queue waits on a game that has not tipped off.
+- **Records (D-62).** The Guess the Spread and Pick'em cards (10, 12) show each
+  team's W–L under its code, in the NFL Play card's `Matchup` stack layout;
+  Pick'em result cards show it beside each code. Cards after a final count it.
+- **Locked Pick'em.** A locked card shows Locked in only, with no LOCKS IN
+  countdown. Its line now reads "Picks so far · BOS 4 · NYK 2", because your own
+  lock opens others' locked picks (D-31); it had said they reveal at tip-off.
+- **Legacy-link landing (09).** The selected tab uses the same lime tint and edge
+  as 05 and 07 (computed styles compared equal in both themes).
+- **Tonight (10).** 3 of 6 locked (the three games already tipped off) and
+  3 drafts, with Lock in all 3 for BOS @ NYK, DAL @ PHX and LAL @ GSW.
 
 Physical-iPhone acceptance, real data, hosted behavior and Sean's approval are
 not claimed.
@@ -115,26 +153,26 @@ not claimed.
 
 | # | Screen | Width (px) | Theme | File | SHA-256 |
 |---|---|---|---|---|---|
-| 01 | Sport switch | 320 | Dark | [01-sport-switch-320-dark.png](01-sport-switch-320-dark.png) | `a5415a4826a9966efa507d16608f85565afddaa5ebf5a3b99b6117eef40a9d22` |
-| 01 | Sport switch | 390 | Dark | [01-sport-switch-390-dark.png](01-sport-switch-390-dark.png) | `a1eb45314083a41fd0646944538cf20d456cf39162c542222d0e0464384ca380` |
-| 01 | Sport switch | 320 | Light | [01-sport-switch-320-light.png](01-sport-switch-320-light.png) | `1e13d256ede46e22fd45eebde8dc5418497cf060b539ea5eccb246b0ee7a3ed5` |
-| 01 | Sport switch | 390 | Light | [01-sport-switch-390-light.png](01-sport-switch-390-light.png) | `bbced8d459f20253820db1c3794c5cc676db7e6465ec9c157f45874be6e1c69a` |
-| 02 | Team badge sheet | 320 | Dark | [02-team-badges-320-dark.png](02-team-badges-320-dark.png) | `091f356746cc9e805066359e56867e73415a6ebfbe895affd7b34e27c8237378` |
-| 02 | Team badge sheet | 390 | Dark | [02-team-badges-390-dark.png](02-team-badges-390-dark.png) | `b2e6f4d1fc370c1f50bd811691dc48f6719799595752a97afc7c6fb35f2a1c58` |
-| 02 | Team badge sheet | 320 | Light | [02-team-badges-320-light.png](02-team-badges-320-light.png) | `1f50c3e2d42e094c98fc3cd66d5f0ee5627c230eb9bbccdf76bd4b743f50d561` |
-| 02 | Team badge sheet | 390 | Light | [02-team-badges-390-light.png](02-team-badges-390-light.png) | `f8ed856ee0fb420b5774ffefd4883c480cfba1d96a684730c6febab7aff329cc` |
-| 03 | NBA Home | 320 | Dark | [03-home-320-dark.png](03-home-320-dark.png) | `d0a65096351cdd08b5c59c0fa9974df785c20e26bd2deb6b7ce4e41c78e43b09` |
-| 03 | NBA Home | 390 | Dark | [03-home-390-dark.png](03-home-390-dark.png) | `e98a9b0e414bf818918ff3ea1ad0ba4678f4d17915527848c7bddd7e02294555` |
-| 03 | NBA Home | 320 | Light | [03-home-320-light.png](03-home-320-light.png) | `9db89989f52b8a4d57836e0c7348b698cf0e4ef70bfd383ea5315bdbf52f4680` |
-| 03 | NBA Home | 390 | Light | [03-home-390-light.png](03-home-390-light.png) | `d0ccf9a843bab47542e8bde70215cfe4c884c83f56fd252c187d6ee659adc245` |
-| 04 | Research › Games | 320 | Dark | [04-research-games-320-dark.png](04-research-games-320-dark.png) | `e1a8987119fb09e0b0f7e467b00af83fcbfc73b6d50a36aef2b84b9c6f81d9f2` |
-| 04 | Research › Games | 390 | Dark | [04-research-games-390-dark.png](04-research-games-390-dark.png) | `e972c0282519d63737315406f54c76308acaeb3e15edf0ba67341d9d638decbf` |
-| 04 | Research › Games | 320 | Light | [04-research-games-320-light.png](04-research-games-320-light.png) | `f883b0e40fdca37ebfdda2af9ddc2cf6d5a26dcf47ad1b9d8c88f40cdaf07f95` |
-| 04 | Research › Games | 390 | Light | [04-research-games-390-light.png](04-research-games-390-light.png) | `25567d0cbafa23016d91bdb8d8285fa5fbf2caaeb92370cdcf5808ae76dffc83` |
-| 05 | Bets › Open | 320 | Dark | [05-bets-open-320-dark.png](05-bets-open-320-dark.png) | `630b5af004fd1a74d056a5f61c8ab14682270245fe8d41ecc44c06fbce821aa6` |
-| 05 | Bets › Open | 390 | Dark | [05-bets-open-390-dark.png](05-bets-open-390-dark.png) | `94a2b5476ea63d3e26201cfc4464d01ee028744129f9dcb953991fdd62fe7b68` |
-| 05 | Bets › Open | 320 | Light | [05-bets-open-320-light.png](05-bets-open-320-light.png) | `cbfcc2b94ff269b529e7d6343e70fa6e477cbb58610f435412aa12f2e7cc0018` |
-| 05 | Bets › Open | 390 | Light | [05-bets-open-390-light.png](05-bets-open-390-light.png) | `8a192760ab6446301d3642f9bf4917de9e4d4cf9c0398bb901354ec67e23be0d` |
+| 01 | Sport switch | 320 | Dark | [01-sport-switch-320-dark.png](01-sport-switch-320-dark.png) | `b70cc9bbd12e6fa4d7aa6dd1ab7a995c0ad0bd9991687cd58b4ef53d2738c660` |
+| 01 | Sport switch | 390 | Dark | [01-sport-switch-390-dark.png](01-sport-switch-390-dark.png) | `3973667d0b62ce410b477b0a7d8a0cf46a757b468e19a3178db0645c9e3d1f43` |
+| 01 | Sport switch | 320 | Light | [01-sport-switch-320-light.png](01-sport-switch-320-light.png) | `13c5848b4d3dd679c9e07f8c0d3338cca2e3cadd2eaafed628b43cda36276b9b` |
+| 01 | Sport switch | 390 | Light | [01-sport-switch-390-light.png](01-sport-switch-390-light.png) | `b3016bf6f7429f267dfc736bdd733f5bd36d5e9b405dc2e1f17c8a6ba2c4d564` |
+| 02 | Team badge sheet | 320 | Dark | [02-team-badges-320-dark.png](02-team-badges-320-dark.png) | `bb78a0d0fbeb7102ec8262d8d2e8ba843484a0799e21bf6f35783dccd585e683` |
+| 02 | Team badge sheet | 390 | Dark | [02-team-badges-390-dark.png](02-team-badges-390-dark.png) | `244e8f0866c3d92a45e94d9b645371360e4379e2ba4c02dc7cd42b7800e4f18b` |
+| 02 | Team badge sheet | 320 | Light | [02-team-badges-320-light.png](02-team-badges-320-light.png) | `10079b30eacc0cc0d753b564cf516d5f6cf0d54870d56681b9d80df4680bc24e` |
+| 02 | Team badge sheet | 390 | Light | [02-team-badges-390-light.png](02-team-badges-390-light.png) | `00bf450831d08e8311f0801ff9feccbf388b4298c1904cd566e0a7ab03a0627c` |
+| 03 | NBA Home | 320 | Dark | [03-home-320-dark.png](03-home-320-dark.png) | `e20096ca93916ab729653805b3160886d0a409c0cc6fde3214d24099adb6d663` |
+| 03 | NBA Home | 390 | Dark | [03-home-390-dark.png](03-home-390-dark.png) | `73f2ea03f682af80b81967ca675de2c87fe75c407cd5e3c937b35587613457f2` |
+| 03 | NBA Home | 320 | Light | [03-home-320-light.png](03-home-320-light.png) | `e60be0a364bfc9fdb26658014274fe49b1b9e8323131f43e9fa8f12597aaf6a0` |
+| 03 | NBA Home | 390 | Light | [03-home-390-light.png](03-home-390-light.png) | `63148591ee938f4f86671f6dd0099ce688dc83f501e418a22b14961179969c06` |
+| 04 | Research › Games | 320 | Dark | [04-research-games-320-dark.png](04-research-games-320-dark.png) | `f62728fb133f4318c1ef3740b2a5b8b185f3509b27bd4dc5e4ab8325e0171ac2` |
+| 04 | Research › Games | 390 | Dark | [04-research-games-390-dark.png](04-research-games-390-dark.png) | `a86e61d5d163b7998adbcb804371fdb3b4ce986c95a5c72d45008047b9cd43fd` |
+| 04 | Research › Games | 320 | Light | [04-research-games-320-light.png](04-research-games-320-light.png) | `71b047132abc31f71ea06eaf6d21cfe7aa2d2962162c1503c8df5b875339d76c` |
+| 04 | Research › Games | 390 | Light | [04-research-games-390-light.png](04-research-games-390-light.png) | `6c35f38f55b3891470a7556eacb21906cd5f5c8edf47fd7b873c172fb5600e0c` |
+| 05 | Bets › Open | 320 | Dark | [05-bets-open-320-dark.png](05-bets-open-320-dark.png) | `8dd6f8eab0e2c7b11c5e8bcf3c81cc70eaabda047f0778efe83135cd7c34a303` |
+| 05 | Bets › Open | 390 | Dark | [05-bets-open-390-dark.png](05-bets-open-390-dark.png) | `95b23520ae63723614feff870a9465ea184a0e8cdbdb1089d238c0418f4487a5` |
+| 05 | Bets › Open | 320 | Light | [05-bets-open-320-light.png](05-bets-open-320-light.png) | `17095b89a91a26954c8c352d5434d222b31e96f7577fceda93cc6f8134dde4b1` |
+| 05 | Bets › Open | 390 | Light | [05-bets-open-390-light.png](05-bets-open-390-light.png) | `a0b468181b1802f340bc75e271d1d26e39c7c976f43f6caadfd376fb3c41d813` |
 | 06 | Confirm result sheet | 320 | Dark | [06-confirm-result-320-dark.png](06-confirm-result-320-dark.png) | `865b608386885e944d8cf3f94f45f59e4b9c2c5c442db1ba9a8c55428241a394` |
 | 06 | Confirm result sheet | 390 | Dark | [06-confirm-result-390-dark.png](06-confirm-result-390-dark.png) | `bbd586207e919bcd5a7d68c6a11883421a764ebef18d257e13673c9089e6d534` |
 | 06 | Confirm result sheet | 320 | Light | [06-confirm-result-320-light.png](06-confirm-result-320-light.png) | `25527fbba3ca68d3dfb500944b2200fb4fc0f69859220800d4b5be86635b86fa` |
@@ -147,34 +185,34 @@ not claimed.
 | 08 | Track bet sheet | 390 | Dark | [08-track-bet-390-dark.png](08-track-bet-390-dark.png) | `f54b4a1dec326193a0c86ecc183c63283c298987f98a129981689505e236d5e6` |
 | 08 | Track bet sheet | 320 | Light | [08-track-bet-320-light.png](08-track-bet-320-light.png) | `e718b0944240f5e039c6efe7e79ae81af15e2e72d6943d1f6337e2721887938e` |
 | 08 | Track bet sheet | 390 | Light | [08-track-bet-390-light.png](08-track-bet-390-light.png) | `453435098294569ba8081ff8844bbab425b70c69fba43f4fd21bd0473baf34db` |
-| 09 | Play held card and legacy links | 320 | Dark | [09-play-held-320-dark.png](09-play-held-320-dark.png) | `cb2b79b8d8c1361f01f76b8eee4969efc8a833670794428c69d2bee2c59db999` |
-| 09 | Play held card and legacy links | 390 | Dark | [09-play-held-390-dark.png](09-play-held-390-dark.png) | `195118e4f3b2668a7a11ff0b26fb5313e03bd46640cb08dbe2fa395ca27e514f` |
-| 09 | Play held card and legacy links | 320 | Light | [09-play-held-320-light.png](09-play-held-320-light.png) | `86290e02a48c597d9f1ee9e3e5125b29b35e586f814b29cfb5694291c3a708fd` |
-| 09 | Play held card and legacy links | 390 | Light | [09-play-held-390-light.png](09-play-held-390-light.png) | `ead47268c3cd48bf0694751bf5550b4ecf79e03e19713749f0cb664e9b0d19b0` |
-| 10 | Preview · Play › Tonight | 320 | Dark | [10-n3-tonight-320-dark.png](10-n3-tonight-320-dark.png) | `fd73149ff2797c5e80373001226893d16fa70c46860b61da7f4a276509ab5c06` |
-| 10 | Preview · Play › Tonight | 390 | Dark | [10-n3-tonight-390-dark.png](10-n3-tonight-390-dark.png) | `fc343883105bdc9c9bf169e2c5bfad27a060b4768745b90d8367adb79b940394` |
-| 10 | Preview · Play › Tonight | 320 | Light | [10-n3-tonight-320-light.png](10-n3-tonight-320-light.png) | `6ddb7a19b7923ad4315410f627e9e09880bd67ac37f7f2ae7ae43375f86e2b46` |
-| 10 | Preview · Play › Tonight | 390 | Light | [10-n3-tonight-390-light.png](10-n3-tonight-390-light.png) | `325f3b6af2629ddba4dc76e8e1c279b304d4f5a16cb63d7ac9d3b7c271e32c57` |
+| 09 | Play held card and legacy links | 320 | Dark | [09-play-held-320-dark.png](09-play-held-320-dark.png) | `94bcca89011574637116bc081c7cf9bd9dfd5eb9825b71b47ff75df1c556776f` |
+| 09 | Play held card and legacy links | 390 | Dark | [09-play-held-390-dark.png](09-play-held-390-dark.png) | `a4a51bcf013b97ee6ee70e8dcddff3364f77ba0cf42f611edbf27fe9afdffc47` |
+| 09 | Play held card and legacy links | 320 | Light | [09-play-held-320-light.png](09-play-held-320-light.png) | `7128e3ddf8fb11288f345e58d77362b7db548112b0bab6058fc4a8029bad0149` |
+| 09 | Play held card and legacy links | 390 | Light | [09-play-held-390-light.png](09-play-held-390-light.png) | `3c2f3658e938a5a08eef8d4a5f98ec8fe9784bc96cb711636f6677c51a30d432` |
+| 10 | Preview · Play › Tonight | 320 | Dark | [10-n3-tonight-320-dark.png](10-n3-tonight-320-dark.png) | `3f173e25ebe8ba5bdfe635a67cafd31619fae60e478faa957fa002ceb6bd34c0` |
+| 10 | Preview · Play › Tonight | 390 | Dark | [10-n3-tonight-390-dark.png](10-n3-tonight-390-dark.png) | `1cf19e0add11ae17b1a708ae30dd12f32a5e4cb71ee54a52a44406493e443434` |
+| 10 | Preview · Play › Tonight | 320 | Light | [10-n3-tonight-320-light.png](10-n3-tonight-320-light.png) | `e0e18a1bdf493bf3354b1401b79c7725cd81cedbed13657f176e537a0c7988d2` |
+| 10 | Preview · Play › Tonight | 390 | Light | [10-n3-tonight-390-light.png](10-n3-tonight-390-light.png) | `ff1724490e4e1a83cd0151c2522e69903561ae0cc38c25d11577081773295350` |
 | 11 | Preview · Play › Standings | 320 | Dark | [11-n3-standings-320-dark.png](11-n3-standings-320-dark.png) | `f67e6b7b651955c99a3afcd842171707ba17a0c864b4a321ceab1d9752a4ffdc` |
 | 11 | Preview · Play › Standings | 390 | Dark | [11-n3-standings-390-dark.png](11-n3-standings-390-dark.png) | `63ccb4a387313364ac2e66f2beb8a90fd6e862eae4144639a10c9fbb5240c1c8` |
 | 11 | Preview · Play › Standings | 320 | Light | [11-n3-standings-320-light.png](11-n3-standings-320-light.png) | `bf032e1e58cface77961a76f2c2f4b61b08ca623f6e6567df58021197bb462ac` |
 | 11 | Preview · Play › Standings | 390 | Light | [11-n3-standings-390-light.png](11-n3-standings-390-light.png) | `1302c1445a65cef55e69d31e510b17a76c3ae8c4f76bd2e97825c8660380d487` |
-| 12 | Alternative · Pick’em | 320 | Dark | [12-alt-pickem-320-dark.png](12-alt-pickem-320-dark.png) | `e12b6a66cd9acec5ed3074566ebbd8713418c40e63dc9c9e97d6c6731fca7d6c` |
-| 12 | Alternative · Pick’em | 390 | Dark | [12-alt-pickem-390-dark.png](12-alt-pickem-390-dark.png) | `b82998728736bdaeb602c32fe35315f2939173ab9caa50acb096f01aaf20cb9a` |
-| 12 | Alternative · Pick’em | 320 | Light | [12-alt-pickem-320-light.png](12-alt-pickem-320-light.png) | `89dfcc049e7cd2b46ed5b17bc2f94417e5ed72b00b29a930f792d263f40f0c57` |
-| 12 | Alternative · Pick’em | 390 | Light | [12-alt-pickem-390-light.png](12-alt-pickem-390-light.png) | `6877cbe70fcde6c793265e16cb4503b37fbb1aa357102bd1ff6c70becd572a51` |
+| 12 | Alternative · Pick’em | 320 | Dark | [12-alt-pickem-320-dark.png](12-alt-pickem-320-dark.png) | `7e20353c0d51906e2e98c79c027d44b3a8275565207448218e59cc282fcd52a0` |
+| 12 | Alternative · Pick’em | 390 | Dark | [12-alt-pickem-390-dark.png](12-alt-pickem-390-dark.png) | `cd1d22e902a83283b635ea461a89af9d5bf3af92ea3906ee4eb818dfda108101` |
+| 12 | Alternative · Pick’em | 320 | Light | [12-alt-pickem-320-light.png](12-alt-pickem-320-light.png) | `729dcd9219cf5c451448e872dd62e484b8f054172c952edc315c0c036ddf9e8c` |
+| 12 | Alternative · Pick’em | 390 | Light | [12-alt-pickem-390-light.png](12-alt-pickem-390-light.png) | `4e477ce6b6c20761338ad33bf47e0068ee272ac9b13b6f0355eb66e9c7aea8c0` |
 
 ## What each screen shows
 
 1. **Sport switch** (N1). Original NBA text badge in the 52px league circle: selected, unselected, keyboard focus, the hidden production default and the narrow-screen size.
 2. **Team badge sheet** (N1). All 30 teams as letters-only glass circles at 48, 32 and 24 px; the 13 codes shared with NFL; trademark notice and BALLDONTLIE source line.
-3. **NBA Home** (N1). Tonight card, Needs your result queue, This month net and the Play-coming card; loading, empty day, empty account, read error, stale and 401.
-4. **Research › Games** (N1). Date chips and picker; In progress, Scheduled and Final groups; LIVE only when in progress; loading, empty date, error keeping the last board, cached vs observed, cooldown, postponed.
+3. **NBA Home** (N1). Tonight card (first tip, the live game and the next two), Needs your result queue, This month net, open tickets matching Bets › Open and the Play-coming card; loading, empty day, empty account, read error, stale and 401.
+4. **Research › Games** (N1). Date chips and picker; all six games in In progress, Scheduled and Final groups; LIVE only when in progress; loading, empty date, error keeping the last board, cached vs observed, cooldown, postponed.
 5. **Bets › Open** (N1). Private tickets in the Prism receipt with whole American prices and result chips; loading, empty account, empty filter, error, paging.
 6. **Confirm result sheet** (N1). Final score, graded leg, suggested outcome and prefilled reason; overtime note, three no-suggestion cases, saving, saved, uncertain recovered by receipt, 409 and error with values kept.
 7. **Bets › History** (N1). Filters, filtered totals, an expanded ticket with legs, original Novig price and correction history; loading, filtered empty, error, paging.
 8. **Track bet sheet** (N1). BetEditor as a sheet: single, 3-leg parlay, American vs Novig, review step, saving, saved, uncertain, 409, correction reason required and the leave guard.
 9. **Play held card and legacy links** (N1). The held Play card, an old #nba/bets address landing on #nba/bets/open, and the full link map.
-10. **Preview · Play › Tonight** (N3 preview). Guess the Spread per game in the approved Play draft layout; saved draft, locked pending, locked and scored, tipped-off draft, no line, postponed, lines paused, and both lock dialogs.
+10. **Preview · Play › Tonight** (N3 preview). Guess the Spread per game in the approved Play draft layout with each team’s W–L under its badge (D-62), 3 of 6 locked and Lock in all 3; saved draft, locked pending, locked and scored, tipped-off draft, no line, postponed, lines paused, and both lock dialogs.
 11. **Preview · Play › Standings** (N3 preview). Tonight, Week and Season standings with ties and no-guess rows; week final, empty, error, stale; the game layer after tip-off and before your lock.
-12. **Alternative · Pick’em** (Alternative). Recommended Guess the Spread card beside the zero-credit Pick’em card; draft, locked, revealed split, awaiting final, final Right and Wrong, postponed void.
+12. **Alternative · Pick’em** (Alternative). Recommended Guess the Spread card beside the zero-credit Pick’em card, both with team records (D-62); draft, locked (no countdown), revealed split, awaiting final, final Right and Wrong, postponed void.
