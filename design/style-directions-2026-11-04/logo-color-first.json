@@ -1,0 +1,33 @@
+{
+  "status": "Exploration; no selection or production change",
+  "shape": "Existing Balanced Yardline G, unchanged",
+  "finish": "Flat solid; finish choice follows color",
+  "colors": [
+    {
+      "number": "01",
+      "name": "Soft lime",
+      "hex": "#CBDE89"
+    },
+    {
+      "number": "02",
+      "name": "Mint green",
+      "hex": "#6CC7A9"
+    },
+    {
+      "number": "03",
+      "name": "Sky blue",
+      "hex": "#8BC5FF"
+    },
+    {
+      "number": "04",
+      "name": "Warm amber",
+      "hex": "#E9C080"
+    },
+    {
+      "number": "05",
+      "name": "Soft violet",
+      "hex": "#C7ABFF"
+    }
+  ],
+  "scope": "Logo only; does not select app/button palette"
+}

@@ -95,6 +95,354 @@ sport and are third-party trademarks; no license, affiliation or endorsement is
 claimed. The [Home release plan](APPROVED_HOME_RELEASE_2026_11_07.md) records the
 exact approval and verification scope. The broader foundation PR #491 is excluded.
 
+> **Design-exploration history (merged from PR #488).** The November 4–7 sections below record the Prism Glass exploration and selection. Where they say an approval or production port is pending, the approved shared Prism foundation above and [the November 8 Prism rollout release](RELEASE_2026_11_08_PRISM_ROLLOUT.md) supersede them. Design assets under `design/` are review material, not production code.
+
+## Pick-focused scorecard and deployment roadmap — November 7, 2026
+
+Sean rejected both previous full-pill placements as too empty and explicitly
+selected “Pick-focused scorecard (recommended)”. The old placement question is
+superseded. [One fuller composition in both themes](../design/style-directions-2026-11-04/PICK_SCORECARD_REVIEW.md)
+adds opponent, team/market, saved guess, comparison, difference, points ring,
+status and a shared-scale chart. Visual approval is pending; earlier global
+palette/material/type/circle/G-exclusion/wording approvals stay closed.
+
+Existing fictional History values were asserted against the fixture: −3.5,
+comparison −4, difference 0.5, locked status, 9/10 example points. No actual
+saved record, bookmaker quote, time or verified schedule is claimed. Eight
+theme layouts at four widths, sixteen image decodes, chart/ring math and no
+overflow/clipped labels passed; both captures inspected. Zero observed page
+errors, failed resources, external browser requests or non-GET requests.
+
+The [five-workstream deployment roadmap](../design/style-directions-2026-11-04/DESIGN_DEPLOYMENT_ROADMAP.md)
+separates production implementation, actual data/interaction integration,
+regression/CI, release-candidate phone acceptance and approved hosted release.
+Production styling is not yet integrated. Main CI was green at the checked
+SHA; the prior draft head had five EPL timing/order failures across two test
+shards, with root cause unestablished. Exact integrated source must pass.
+No production/controller/data change, merge, deployment or migration here.
+NBA, new avatars/photos/awards and unpublished Signal files remain held.
+
+
+## Full-pill team-label revision prepared — November 7, 2026
+
+Sean requested a full pill with the name smaller underneath and the team's
+location. This supersedes the earlier unchosen A/B compact-label comparison;
+no A/B approval is recorded. [Two placements in both themes](../design/style-directions-2026-11-04/TEAM_VALUE_PILL_REVIEW.md) show the
+requested capsule with its existing circled logo/value and smaller Broncos /
+Denver lines: 01 below the pill, 02 inside. The active one-question clarification
+asks which placement he means, including city/region as the illustrated
+location interpretation. Neither placement is selected or applied to existing
+History/Bets/shared-sheet labels while that answer is pending.
+
+Selected theme/material/type/G-exclusion/circle decisions are retained. The
+example's −3.5 and comparison −4 reuse existing fictional History math values;
+no saved record, bookmaker quote, source time, live venue or broader location
+catalog is supplied. Name 13px, location 12px, value 30px, logo circle 38px.
+Eight theme layouts / sixteen placement layouts and sixteen image decodes
+passed at four widths; both captures inspected. No page errors, external
+browser requests or non-GET requests observed. Static proposal only: no native
+production/bundle/controller, data/permission, merge/deploy/migration change.
+
+The design handoff points to this revised pending choice. Earlier approvals
+remain closed; NBA, new avatars/photos/awards and parked Signal files stay held.
+No first-project completion claim while the label arrangement is unresolved.
+
+## Wording approved; final identity inventory and handoff prepared — November 6, 2026
+
+Sean answered “Good” to the twenty full-name wording captures in both themes
+at `5fe706bc7f1ecea2d51ab2b5f40d486f7d050718`. This closes that copy/layout
+review; previous circle, G-exclusion and native-state approvals remain scoped
+and closed. No palette/material/type choice is reopened.
+
+The final 268-route, 536-theme readback decoded 1,492 team images. It found
+one legacy Home/game view with two bare marks; the existing circle adapter now
+wraps only such unwrapped prototype matchup images, with separate 64px glass
+circles. Native React marks and the G are untouched. The repair passed eight
+layouts and two Back/reopen flows; the repeated all-route inventory has zero
+unwrapped matching team images, page errors, provider/auth reads, non-GET
+requests, resource failures or OS dialogs.
+
+Remaining team codes occur in compact History/Bets/shared-sheet labels:
+33 distinct text variants, 45 text/style combinations and nine codes repeated
+across states/themes, rather than hundreds of separate gaps. [Two visual
+format options and the Home repair](../design/style-directions-2026-11-04/TEAM_IDENTITY_CLOSEOUT_REVIEW.md) are supplied in both themes. A is
+recommended: circled logo beside a compact number, full names in explanations.
+B uses full names in both. Neither is applied to existing record labels while
+the owner question is pending. MIN timer text, NEW proposal labels and NO
+notices are unrelated and preserved. Comparison passed eight layouts; all four
+captures inspected.
+
+The consolidated [selected-design handoff](../design/style-directions-2026-11-04/SELECTED_DESIGN_HANDOFF.md) records approved recipes,
+that single format question and the actual production gap. This is review
+work only; no native production/bundle entry, data/scoring/provider, merge,
+deploy or migration change. NBA and new avatar/photo/award work remain held;
+parked Signal files remain untouched/unpublished. No first-project completion
+claim while compact identity formatting is unresolved.
+
+## Circle set approved; full league names applied — November 6, 2026
+
+Sean's “Good.. continue” approves the twenty team/league circle captures at
+`d109e5386b49093f66b173492261bbb5e126739a`. He then explicitly selected
+“Full names in explanations; logos in navigation (recommended)”. The prior
+wording question is resolved. Use National Football League and Premier League
+in explanatory copy and descriptive labels; retain the selected circular marks
+in navigation. FEPL remains the existing named league identity; G exclusion
+and all prior scoped circle/screen approvals remain.
+
+[Twenty updated copy/layout captures](../design/style-directions-2026-11-04/LEAGUE_WORDING_REVIEW.md) show six overviews, both native
+sport frames, History's expanded action and explanatory Info in both themes.
+Current copy/layout review is pending. A display-only adapter expands text
+and descriptive attributes while preserving original controls, route/option
+values, native callbacks, user-entered fields and code/source literals. Native
+production source and bundle inputs are unchanged; no rebuild required.
+
+144 responsive layouts/wording checks across 18 views, twelve action/input
+checks and two Info checks passed. All 268 registered views were also swept
+through review controls in both themes at 390px: 536 readbacks, no residual
+NFL/EPL display text outside documented exclusions or horizontal phone
+overflow. All twenty captures inspected. No observed page errors, provider/
+auth reads, non-GET requests, resource failures, console errors, storage writes
+or OS dialogs. This is automated rendering/wording evidence, not fresh owner
+acceptance of every state or actual production behavior.
+
+The History unavailable notice is the same existing state with fuller names,
+not missing-data inference or a new restriction. Six-screen gallery refreshed.
+No merge, deployment, migration or whole-project completion claim. NBA stays
+parked; new avatars/photos/awards and parked Signal files remain held.
+
+## Individual circles for all team/league mockup marks — November 6, 2026
+
+Sean accepted the sixteen league-circle placements at
+`935f457b9219b51376f3be4405f2109759bdd895` (“Looks good. All logos should have
+circles”), then explicitly chose “Team and league logos only (recommended)”.
+The original GTL G is excluded. Each existing team-logo container now uses a
+circle, retaining separate glass backgrounds, artwork aspect, names and
+actions. Home/compact-list portrait tiles are made square; nested operational
+marks retain one outer background. No artwork asset is changed.
+
+[Twenty updated phone captures](../design/style-directions-2026-11-04/TEAM_LEAGUE_CIRCLES_REVIEW.md) show six overviews plus team list,
+Spread draft, tracked ticket and FEPL Fantasy in both themes. The six-screen
+gallery is refreshed. 200 responsive layouts across 25 representative views,
+1,584 circle measurements and 1,712 image decodes passed shape checks. All
+twenty captures inspected. No G wrapped, unwrapped audited team image,
+horizontal phone overflow, page error, provider/auth read, non-GET request,
+storage write or OS dialog observed. A transient local CSS connection failure
+in the initial rapid audit prompted explicit settled-resource verification
+before publication; final result is retained in selection metadata.
+
+This is a shared mockup adapter, not native production code or a bundle-input
+change. Prior approvals remain scoped, and current whole-view review does not
+automatically cover every nested state. The earlier explanatory-text naming
+question remains unanswered; circle scope does not decide wording. NBA is
+parked; new avatars/photos/awards and parked Signal assets remain held. No
+merge, deploy, migration or whole-project completion claim.
+
+## 02 Glass circles selected and applied to mockups — November 6, 2026
+
+Sean selected “02” from the league-logo comparison at
+`a234f2f4bcddd8ec46218169f0110ff7dc395c0a`. The selected sport-switcher treatment
+is now applied throughout the paired viewer, including its isolated native
+NFL/EPL frames. Each original button and action/state remains; official marks
+use separate 52px circular glass tiles with an active lime/deep-green outline.
+Accessible full league names and hidden NBA/current NFL-only options remain.
+
+[Sixteen current placement captures](../design/style-directions-2026-11-04/LEAGUE_CIRCLES_SELECTED_REVIEW.md) show the six overview screens and
+both native sport frames in both themes. The primary gallery is refreshed to
+these current captures; earlier choice boards remain historical evidence.
+80 layouts at four widths, 52 action checks and 152 league-mark decodes passed.
+All sixteen captures inspected; Account's fixture footer is visible in an
+extended-height capture. No observed page errors, provider/auth reads, non-GET
+requests, storage writes or OS dialogs. Standalone adapter only; native
+production sources and bundle inputs are unchanged.
+
+One owner question remains: should explanatory references such as “View NFL
+history” use full league names or logos too? Full names are recommended for
+readability. Existing explanatory wording is unchanged pending the answer;
+the ten-view audit is not a claim that all nested team/chart/source labels are
+converted. Prior approvals remain scoped. NBA is parked; new avatars/photos,
+popup/award exploration and parked Signal files remain held. No merge,
+deployment or migration; the first project is not declared complete.
+
+## Overview/ticket set approved; league-logo choices prepared — November 6, 2026
+
+Sean answered “Approved continue” to the fourteen current overview/ticket/entry
+captures in both themes at `6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd`. This
+closes the older Home/Play/Bets whole-view re-review flags and accepts the
+supplied open/settled ticket and selection/terms views. Earlier scoped NFL/EPL
+approvals remain valid; no actual production save/device acceptance is inferred.
+
+The next active requirement is league-logo replacement, brought into this
+project by Sean on November 4. [Five switcher tile treatments](../design/style-directions-2026-11-04/LEAGUE_LOGO_SWITCHER_REVIEW.md) now show
+the official NFL shield and theme-appropriate Premier League lion, with each
+logo on its own glass tile and accessible full names. Recommendation: 01,
+rounded glass squares with a lime active outline. Six captures include both
+theme comparison boards and 01 with each league active in fictional context.
+Choice is pending; no approved viewer or production header was replaced.
+
+32 responsive layouts, 48 pointer/keyboard selection checks and 56 image
+decodes passed; all six final captures inspected. No observed page errors,
+external browser requests, non-GET requests, storage writes or OS dialogs.
+The new source register preserves official-site asset URLs, hashes and
+identification-only scope; no licensing or affiliation is claimed. Original
+colors/proportions and selected GTL recipes are retained.
+
+After selection, carry that placement into the viewer and reconcile remaining
+sport/team abbreviation placements before claiming full replacement. NBA stays
+parked; new avatars/photos and popup/award exploration remain held. No native
+production code, scoring, provider, migration, merge or deploy change. Parked
+Signal files are untouched and unpublished.
+
+## Play matchup logo-tile treatment approved — November 5, 2026
+
+Sean confirmed "Looks good" for the reviewed Play Spread and Total cards in
+both themes. The individual logo-tile treatment is approved for those reviewed
+placements. [Selection record](../design/style-directions-2026-11-04/selected-system-review.json)
+and [reviewed capture](../design/style-directions-2026-11-04/previews/play-separate-logo-tiles.png)
+preserve the scope. This approval does not cover every Play detail state or
+establish whole-app completion. No UI or production code changes accompany this
+record. Bets is the recommended next review area, awaiting Sean's direction.
+The parked Signal files remain untouched and unpublished.
+
+
+## Play team marks — November 5, 2026
+
+The Play mockup carries the reviewed Home/Research treatment into Spread and
+Total matchup cards: each logo has a separate 42px glass tile, its own border
+and shadow, and a 34px mark. Names and the at separator remain outside the tiles.
+Use selected light/dark surface variables. This is authorized visual exploration;
+Play approval remains pending.
+
+
+## Research logo-tile treatment approved — November 5, 2026
+
+Sean answered yes to the reviewed Research matchup and Games/Teams previews.
+The individual glass-tile treatment is approved for those reviewed placements
+in both themes. [Selection record](../design/style-directions-2026-11-04/selected-system-review.json)
+and [reviewed capture](../design/style-directions-2026-11-04/previews/research-separate-logo-tiles.png)
+preserve the scope. This does not establish approval of every Research detail
+view or whole-app completion. No UI code or production changes accompany this
+approval record. Play is the recommended next review area; its changes await
+Sean's direction. Parked Signal files remain untouched and unpublished.
+
+
+## Research team marks — November 5, 2026
+
+Carry the separate-logo glass-tile treatment from Home into Research. Each logo
+has its own border, translucent background and shadow; keep the team name and
+at separator outside each tile. Use 64px main matchup tiles and 42px quick-card
+tiles in the current mockups, with selected theme variables for light and dark.
+This is authorized preview work; whole-screen visual review remains pending.
+
+
+## Separate backgrounds for each Home team logo — November 5, 2026
+
+Sean corrected the paired Home treatment: each logo needs its own background.
+The [Home mockup](../design/style-directions-2026-11-04/selected-system-review.html?screen=Home)
+now puts each team mark in its own 34x38px glass tile, with the @ outside both
+and a fully transparent shared layout container. Each tile has its own border
+and shadow in dark and light mode. Names, sample status, selected compact card
+and native actions remain intact. [Updated paired capture](../design/style-directions-2026-11-04/previews/home-separate-logo-tiles.png)
+was inspected. Chromium verified eight individual tile backgrounds across both
+themes, no shared background/shadow, layouts at 320/390/768/1440px, loaded marks
+and four game opens. JavaScript syntax and Brand document QA passed. Whole-screen
+review remains pending; production and parked Signal files are unchanged.
+
+
+## Compact Home action card selected — November 5, 2026
+
+Sean selected the compact version from the Home comparison. The
+[selected whole-app viewer](../design/style-directions-2026-11-04/selected-system-review.html?screen=Home)
+now uses the shorter "Finish your picks" headline, 60px progress ring and 18px
+action-card padding in dark and light Home. Existing colors, materials, G,
+button styling, data and native navigation are retained. The
+[comparison](../design/style-directions-2026-11-04/home-compact-review.html)
+preserves the previous layout beside the selected version. This accepts the
+action-card layout only; fresh review of the rest of Home remains pending.
+The stopped Signal exploration is untouched and unpublished.
+
+
+## Selected icon finish: 03 Glossy glass — November 4, 2026
+
+Sean accepted the assistant recommendation ("go with your rec"): use **03 Glossy
+glass** for icons across the current dark/light mockups. The clear face, glossy
+edge and restrained shadow fit the floating glass cards and hybrid G. Keep
+functional glyphs readable and inactive navigation neutral so lime emphasis
+stays selective. Geometry remains Lucide; notices and team-mark provenance are
+retained. [Five-way visual reference](../design/style-directions-2026-11-04/icon-treatment-options.html)
+and [paired screen review](../design/style-directions-2026-11-04/selected-system-review.html)
+record the choice. Alternatives remain available for comparison. This selects
+the icon finish; reopened screens still need fresh review. Production integration,
+league-wide mark replacement, avatars and popup/award work retain their existing status.
+
+
+## Selected light background: 02 Porcelain glass — November 4, 2026
+
+Sean selected **02 / Porcelain glass** after the [three-way Research comparison](../design/style-directions-2026-11-04/light-research-comparison.html).
+Use background `#E9ECE8` with `linear-gradient(150deg,#FAFBF6,#E9ECE8 55%,#E0E7DE)`
+for the light background direction. [Selection metadata](../design/style-directions-2026-11-04/light-mode-options.json)
+records the exact choice. The shared light-preview foreground, floating glass,
+selective lime and deep-green hybrid-logo adaptation remain available for the
+next cross-screen review; this background choice does not establish whole-app
+completion or a release. Dark selections and shipped code/tokens/assets are unchanged.
+
+## Selected selective lime emphasis — November 4, 2026
+
+Sean approved the [Home/Play lime-priority preview](../design/style-directions-2026-11-04/lime-priority-preview.html).
+Use the logo's exact lime `#B8F34B` to emphasize action cards and key stats such
+as rank and accuracy. Action cards have a light lime face/edge; key stat tiles
+have a restrained lime tint with lime figures. Supporting cards remain neutral
+floating clear glass. Retain the selected charcoal gradient, ivory reading text,
+original G geometry/hybrid finish, and transparent primary with a full 3px lime
+outline. [Exact reviewed recipes and scope](../design/style-directions-2026-11-04/lime-priority-preview.json)
+supersede the earlier raw selective-color study and pending-refinement status.
+This selects the reviewed dark visual treatment; remaining screen/light-mode
+review, whole-project completion and production integration are separate.
+Shipped tokens, assets and code are unchanged.
+
+## Selected card finish: 05 Floating clear glass — November 4, 2026
+
+Sean selected **05 / Floating clear glass** from the [five-finish board](../design/style-directions-2026-11-04/glass-card-options.html).
+Retain his selected charcoal gradient, warm ivory text and lime hybrid G.
+The finish uses `linear-gradient(135deg,#FFFFFF14,#FFFFFF06)`, border `#FFFFFF38`,
+18px backdrop blur, 28px card corners, gloss opacity `.65`, and the specified
+inset/depth shadow. [Exact recipe and selection](../design/style-directions-2026-11-04/glass-card-options.json)
+include the navigation glass shown in option 05. This resolves the card-finish
+choice and supersedes the earlier open-card status. Remaining control/light-mode
+decisions, whole-project completion and production integration are separate;
+shipped tokens/assets/code remain unchanged.
+
+## Selected charcoal-gradient / warm-ivory dark direction — November 4, 2026
+
+Sean confirmed the **middle combined preview** in the [three-way comparison](../design/style-directions-2026-11-04/charcoal-ivory-combination.html):
+02's subtle charcoal gradient with 04's warm ivory text. Selected settings are
+base `#202126`, `linear-gradient(150deg,#2A2D37 0%,#202126 50%,#17181D 100%)`,
+main text `#F3E9D7`, and secondary text `#C4B9A6`. Retain the previously selected
+lime `#B8F34B` glossy-edge/frosted-center G. [Exact selection](../design/style-directions-2026-11-04/charcoal-ivory-combination.json)
+is the source for this direction. This supersedes earlier open dark-depth/text
+statuses. Card/control decisions, light mode, whole-project completion and
+production integration remain separate; shipped tokens and assets are unchanged.
+
+## Selected dark background base — November 4, 2026
+
+Sean selected **01 / Obsidian charcoal, `#202126`**, from the [background board](../design/style-directions-2026-11-04/app-background-options.html)
+for dark mode. This selects the base color only. The subsequent [ten-study
+comparison](../design/style-directions-2026-11-04/charcoal-depth-options.html)
+explores solid/gradient/glow treatments and text colors with the selected lime
+hybrid logo; none of those treatments or text pairs is selected. Light-mode,
+card/control palette and production integration remain separate decisions.
+Existing production tokens/assets/code are unchanged.
+
+## Selected glossy/frosted logo direction — November 4, 2026
+
+Sean selected **01 / Current lime** from the [hybrid comparison](../design/style-directions-2026-11-04/logo-hybrid.html),
+clarifying that "original" meant that option rather than the flat app logo.
+The [selected vector](../design/style-directions-2026-11-04/logo-hybrid/lime.svg)
+keeps exact Balanced Yardline G geometry and base lime `#B8F34B`, adding glossy
+edges and a frosted center. The [manifest](../design/style-directions-2026-11-04/logo-hybrid/manifest.json)
+records the selection. This is the selected finish/color direction; production
+integration, light-surface treatment and small-icon adaptation remain pending.
+It does not select a replacement app palette or change existing shipped assets.
+
 Status: canonical for all product UI, documents, dashboards, presentations, notifications, iOS, and agent-generated assets. Updated 2026-10-08.
 The new app (D-38, `web/src/next/`) follows the [D-38 section](#d-38-redesign-system-the-new-app--october-14-2026) at the end of this guide. Since D-65 (October 28, 2026) it is the only app; the old app is no longer built or served. Everything above is the old app's legacy styling, which only the sign-in screen (until build plan stage 76) and the local engineering dashboard still use.
 

@@ -1,0 +1,155 @@
+/* Prism Glass round 2: prototype-only material and type system. */
+.prism {
+  --bg: #E7EFFA;
+  --surface: #FFFFFF82;
+  --ink: #1C304D;
+  --muted: #50637D;
+  --accent: #1659C7;
+  --on-accent: #FFFFFF;
+  --tint: #D9E7F9;
+  --line: #FFFFFFC9;
+  --r: 30px;
+  --head: -apple-system, BlinkMacSystemFont, Inter, "Segoe UI", sans-serif;
+  --body: -apple-system, BlinkMacSystemFont, Inter, "Segoe UI", sans-serif;
+  --shadow: inset 0 1px 0 #FFFFFF, inset 0 -1px 0 #9AB5D833, 0 2px 3px #5B779B09, 0 14px 30px #5A79A523;
+  background:
+    radial-gradient(ellipse at 96% 8%, #FFFFFFE8 0%, transparent 34%),
+    radial-gradient(ellipse at 100% 35%, #B8C7F2B8 0%, transparent 46%),
+    radial-gradient(ellipse at 0% 69%, #A9DAEAA6 0%, transparent 43%),
+    radial-gradient(ellipse at 78% 98%, #DBCBEB8C 0%, transparent 40%),
+    linear-gradient(155deg, #EEF5FC, #DDE8F7 60%, #D6E7EE);
+}
+.prism .app-head { gap: 8px; padding-bottom: 14px; }
+.prism .brand-name { font-weight: 600; letter-spacing: -.3px; }
+.prism .page-title { font-size: 30px; font-weight: 600; line-height: 1.12; letter-spacing: -1.2px; }
+.prism .screen-top small { font-size: 11px; letter-spacing: .025em; text-transform: none; }
+.prism .screen-top { margin-bottom: 20px; }
+.prism .screen { padding: 12px 16px 18px; }
+.prism .home-layout, .prism .stack { gap: 16px; }
+.prism .panel,
+.prism .quick,
+.prism .pick-card,
+.prism .app-nav {
+  position: relative;
+  background: linear-gradient(135deg, #FFFFFFAD 0%, #FFFFFF54 53%, #FFFFFF89 100%);
+  border: 1px solid #FFFFFFC9;
+  backdrop-filter: blur(28px) saturate(145%);
+  -webkit-backdrop-filter: blur(28px) saturate(145%);
+  box-shadow: var(--shadow);
+}
+.prism .panel::before,
+.prism .quick::before,
+.prism .pick-card::before,
+.prism .app-nav::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(130deg, #FFFFFFF2 0%, #FFFFFF14 37%, #B6C9E94D 68%, #FFFFFFA6 100%);
+  -webkit-mask: linear-gradient(#FFFFFF 0 0) content-box, linear-gradient(#FFFFFF 0 0);
+  mask: linear-gradient(#FFFFFF 0 0) content-box, linear-gradient(#FFFFFF 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.prism .panel { padding: 20px; }
+.prism .hero {
+  padding: 26px 22px 22px;
+  background:
+    radial-gradient(ellipse at 12% 0%, #FFFFFFD9 0%, transparent 62%),
+    linear-gradient(128deg, #FFFFFF94, #FFFFFF36 65%, #D5E7FC59);
+  box-shadow: inset 0 1px 0 #FFFFFF, inset 0 -1px 0 #FFFFFF80, 0 18px 38px #456A9B26;
+}
+.prism .hero h2 { font-size: 35px; line-height: 1.07; letter-spacing: -1.45px; font-weight: 600; margin: 14px 0 16px; max-width: 10ch; }
+.prism .hero p { font-size: 14px; line-height: 1.5; }
+.prism .hero .kicker { letter-spacing: .08em; font-size: 11px; font-weight: 600; color: #3B567B; }
+.prism .screen h3 { font-family: var(--head); font-weight: 600; font-size: 16px; letter-spacing: -.4px; }
+.prism .primary {
+  border: 1px solid #0F52BD;
+  border-radius: 999px;
+  font-family: var(--body);
+  font-weight: 600;
+  background: linear-gradient(180deg, #3077E7 0%, #1A60CE 55%, #1558C4 100%);
+  box-shadow: inset 0 1px 0 #FFFFFF70, inset 0 -1px 0 #083C9226, 0 4px 7px #1558C41A, 0 8px 18px #1558C426;
+  min-height: 48px;
+}
+.prism .secondary,
+.prism .chips button,
+.prism .profile-dot,
+.prism .team-code,
+.prism .person {
+  background: linear-gradient(150deg, #FFFFFFAD, #FFFFFF47);
+  color: var(--ink);
+  border: 1px solid #FFFFFFC9;
+  box-shadow: inset 0 1px 0 #FFFFFFF2, 0 4px 10px #5A79A510;
+  backdrop-filter: blur(16px) saturate(130%);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+}
+.prism .secondary { border-radius: 999px; font-weight: 600; }
+.prism .profile-dot { font-weight: 600; }
+.prism .quick { padding: 18px; border-radius: 26px; min-height: 104px; gap: 9px; transition: transform 160ms ease, box-shadow 160ms ease; }
+.prism .quick strong { font-family: var(--head); font-weight: 600; letter-spacing: -.35px; }
+.prism .quick span { font-size: 12px; color: var(--muted); }
+.prism .quick em { font-size: 17px; }
+.prism .quick:active, .prism .pick-card:active { transform: scale(.985); }
+.prism .home-score .metrics { gap: 12px; }
+.prism .home-score .metric {
+  background: linear-gradient(140deg, #FFFFFF80, #FFFFFF24);
+  border: 1px solid #FFFFFF6B;
+  border-radius: 20px;
+  padding: 13px 11px;
+  box-shadow: inset 0 1px 0 #FFFFFF94;
+}
+.prism .metric b { font-family: var(--head); font-size: 29px; font-weight: 600; letter-spacing: -1.2px; font-variant-numeric: tabular-nums; }
+.prism .metric small { font-size: 11px; }
+.prism .progress-text { font-size: 11px; }
+.prism .track { background: #C4D7F070; height: 6px; box-shadow: inset 0 1px 2px #6B8CBF1A; }
+.prism .track span { background: linear-gradient(90deg, #3176DE, #8EB8F0); border-radius: inherit; }
+.prism .pill { background: #FFFFFF85; color: #315071; border: 1px solid #FFFFFFA6; font-size: 10px; font-weight: 600; letter-spacing: .025em; box-shadow: inset 0 1px #FFFFFF; }
+.prism .match-row, .prism .list-row, .prism .standings td, .prism .detail-metric { border-color: #6A8CB226; }
+.prism .row-text strong { font-weight: 600; letter-spacing: -.2px; }
+.prism .quiet { font-weight: 500; }
+.prism .team-code { border-radius: 13px; color: #355B87; font-weight: 600; }
+.prism .home-social .person { background: linear-gradient(145deg, #F8F5FFC7, #CAD8EE85); }
+.prism .big-number { font-family: var(--head); font-weight: 600; letter-spacing: -2.3px; font-variant-numeric: tabular-nums; }
+.prism .chart { color: #2669CC; }
+.prism .field { background: linear-gradient(135deg, #EDF5FD8C, #A9C5EA59); border: 1px solid #FFFFFFD9; box-shadow: inset 0 1px 0 #FFFFFF, inset 0 -1px 0 #FFFFFF4D; border-radius: 22px; }
+.prism .field:after { font-family: var(--body); font-weight: 500; font-size: 20px; letter-spacing: 3px; }
+.prism .chips button.active { background: #FFFFFFDB; color: #174F9E; border-color: #FFFFFF; box-shadow: inset 0 1px #FFFFFF, 0 4px 12px #5A79A51F; }
+.prism .pick-card { padding: 18px; border-radius: 24px; }
+.prism .pick-card b { font-family: var(--head); font-size: 22px; font-weight: 600; letter-spacing: -.7px; }
+.prism .you { background: #DAE9FB66; }
+.prism .about-grid div { background: #FFFFFF61; border: 1px solid #FFFFFFB3; border-radius: 18px; box-shadow: inset 0 1px #FFFFFF; }
+.prism .sport-switch { gap: 2px; padding: 3px; border-radius: 999px; background: #A8BCD62E; border: 1px solid #FFFFFF80; box-shadow: inset 0 1px 2px #6B8CBF14; }
+.prism .sport-switch button { min-height: 40px; min-width: 42px; padding-inline: 8px; border: 1px solid transparent; font-family: var(--body); font-size: 14px; font-weight: 500; }
+.prism .sport-switch .on { background: linear-gradient(#FFFFFFDE, #FFFFFF94); color: #194E94; border-color: #FFFFFFD9; box-shadow: inset 0 1px #FFFFFF, 0 2px 5px #5A79A51F; }
+.prism .app-nav { margin: 0 10px 10px; border-radius: 28px; padding: 7px 5px; background: linear-gradient(150deg, #FFFFFFBA, #FFFFFF5E); box-shadow: inset 0 1px #FFFFFF, 0 5px 16px #5A79A51A; }
+.prism .app-nav button { font-family: var(--body); font-size: 14px; font-weight: 500; letter-spacing: -.4px; border-radius: 22px; min-height: 54px; padding-inline: 2px; color: #52647E; }
+.prism .app-nav button.active { background: linear-gradient(145deg, #FFFFFFD6, #FFFFFF61); color: #164FAD; box-shadow: inset 0 1px 0 #FFFFFF, 0 3px 8px #5A79A521; }
+.prism .app-nav button i { font-size: 18px; }
+.prism .fixture { color: #516784; }
+@media (hover:hover) {
+  .prism .quick:hover { transform: translateY(-2px); box-shadow: inset 0 1px #FFFFFF, 0 16px 30px #5A79A52E; }
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) {
+  .prism .panel,.prism .quick,.prism .pick-card,.prism .app-nav { background: #F3F7FD; }
+}
+@media (prefers-reduced-transparency:reduce) {
+  .prism .panel,.prism .quick,.prism .pick-card,.prism .app-nav { background: #F3F7FD; backdrop-filter:none; -webkit-backdrop-filter:none; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .prism .quick,.prism .pick-card { transition:none; transform:none; }
+}
+@container (max-width:340px) {
+  .prism .brand-name { display:none; }
+}
+body.embed { background:transparent; }
+.embed .review-header,.embed .controls,.embed .review-footer,.embed .study-number,.embed .study>h2,.embed .study>p,.embed .study-details,.embed .feedback,.embed .palette { display:none; }
+.embed .review-grid,.embed .review-grid.focus { display:block;max-width:none;padding:0;margin:0; }
+.embed .phone { border:0;border-radius:30px;max-width:none;margin:0;box-shadow:none; }
+.embed .phone .screen { height:620px;min-height:620px;overflow-y:auto;scrollbar-width:none;overscroll-behavior:contain; }
+.embed .phone .screen::-webkit-scrollbar { display:none; }
+
+
+.prism .app-nav{grid-template-columns:1fr 1fr 1fr 1.35fr}.prism .app-nav button,.prism .sport-switch button{font-size:16px}
