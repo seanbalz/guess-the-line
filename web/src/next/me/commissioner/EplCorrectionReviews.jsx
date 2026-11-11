@@ -13,6 +13,21 @@ function Comparison({ label, before, after, change }) {
   </div>;
 }
 
+// D-83 (import wins): the order the draft keeps beside the order Tuesday's corrected totals would have set. Names only.
+const named = name => name ?? '—';
+function OrderComparison({ week, kept, candidate }) {
+  return <section className="gx-cm-comparison" aria-label={`MW${week} pick order`}>
+    <h3 className="gx-t-strong">MW{week} pick order</h3>
+    <dl className="gx-cm-orders">
+      <div><dt>Kept by your import</dt><dd><ol>{kept.map((name, i) => <li key={i}>{named(name)}</li>)}</ol></dd></div>
+      <div><dt>Tuesday’s totals</dt><dd><ol>{candidate.map((name, i) => <li key={i}>{named(name)}</li>)}</ol></dd></div>
+    </dl>
+  </section>;
+}
+function picksText(review) {
+  return `MW${review.nextWeek} has ${review.nextPickCount} recorded ${review.nextPickCount === 1 ? 'pick' : 'picks'}. Its stored picks and draft order are preserved.`;
+}
+
 export function EplCorrectionReviewsView({ data, loading = false, failed = false, denied = false, onRefresh, renderTool = inlineTool }) {
   const id = useId();
   return renderTool(<div className="gx-cm-stack gx-cm-corrections">
@@ -24,9 +39,13 @@ export function EplCorrectionReviewsView({ data, loading = false, failed = false
     {data?.available && !data.reviews?.length ? <p role="status" className="gx-t-body gx-cm-message">No Premier League stat corrections are awaiting review.</p> : null}
     {(!denied && data?.available ? data.reviews ?? [] : []).map(review => <Card as="section" className="gx-cm-stack gx-cm-correction" key={review.week} aria-labelledby={`${id}-mw${review.week}`}>
       <div className="gx-cm-heading"><span className="gx-cm-icon"><ClipboardCheck size={24} aria-hidden="true"/></span><h2 className="gx-t-strong" id={`${id}-mw${review.week}`}>MW{review.week} stat correction needs review</h2></div>
-      <p className="gx-t-body gx-cm-preserved">{review.nextPickCount > 0
-        ? `MW${review.nextWeek} has ${review.nextPickCount} recorded ${review.nextPickCount === 1 ? 'pick' : 'picks'}. Its stored picks and draft order are preserved.`
-        : `MW${review.nextWeek} has no recorded picks. Review its order against the corrected totals before drafting.`}</p>
+      {review.keptOrder?.length && review.candidateOrder?.length ? <>
+        <p className="gx-t-body gx-cm-preserved">Tuesday’s totals would put {named(review.candidateOrder[0])} first. Because you confirmed an import, MW{review.nextWeek} keeps {named(review.keptOrder[0])} first.</p>
+        <OrderComparison week={review.nextWeek} kept={review.keptOrder} candidate={review.candidateOrder}/>
+        <p className="gx-t-body gx-c-2">{review.nextPickCount > 0 ? picksText(review)
+          : `To use Tuesday’s totals, add a new Sleeper Matchups screenshot in Premier League weekly scores and record it as a correction before the first MW${review.nextWeek} pick.`}</p>
+      </> : <p className="gx-t-body gx-cm-preserved">{review.nextPickCount > 0 ? picksText(review)
+        : `MW${review.nextWeek} has no recorded picks. Review its order against the corrected totals before drafting.`}</p>}
       {!review.totalsComplete ? <p role="status" className="gx-t-body gx-cm-message">Some source totals are unavailable. Missing values are shown as —.</p> : null}
       {review.changes.map(change => <section className="gx-cm-stack" key={change.name} aria-label={change.name}>
         <h3 className="gx-t-strong">{change.name}</h3>

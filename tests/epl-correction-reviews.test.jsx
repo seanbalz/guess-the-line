@@ -29,4 +29,28 @@ describe('read-only EPL correction reviews', () => {
     expect(render({ data: { available: true, reviews: [] } })).toContain('No Premier League stat corrections are awaiting review');
     expect(render({ data: { available: true, reviews: [{ ...review, nextPickCount: 0 }] } })).toContain('Review its order against the corrected totals before drafting');
   });
+  // D-83 (Sean, November 11, 2026: "Yes, import wins"): a confirmed import kept the order; both orders are shown.
+  const kept = ['Nemo', 'Cullen', 'Adam', 'Sean', 'Evan', 'Mark', 'Steven', 'Darin'];
+  const candidate = ['Cullen', 'Nemo', 'Adam', 'Sean', 'Evan', 'Mark', 'Steven', 'Darin'];
+  const imported = { ...review, nextPickCount: 0, keptOrder: kept, candidateOrder: candidate };
+  it('says the confirmed import kept the order, lists both orders and how to use the correction, still read-only', () => {
+    const html = render({ data: { available: true, reviews: [imported] } });
+    expect(markupProblems(html)).toEqual([]);
+    expect(html).toContain('Tuesday’s totals would put Cullen first. Because you confirmed an import, MW10 keeps Nemo first.');
+    expect(html).toContain('record it as a correction before the first MW10 pick');
+    expect(html).toContain('Premier League weekly scores');
+    expect(html).not.toContain('Review its order against the corrected totals');
+    const lists = [...html.matchAll(/<ol>(.*?)<\/ol>/g)].map(m => [...m[1].matchAll(/<li>([^<]*)<\/li>/g)].map(li => li[1]));
+    expect(lists).toEqual([kept, candidate]);
+    for (const text of ['MW10 pick order', 'Kept by your import', 'Tuesday’s totals']) expect(html).toContain(text);
+    expect(html.match(/<button\b/g)).toHaveLength(1);
+    expect(html).not.toMatch(/<form\b|Apply correction|Reorder|Acknowledge/);
+  });
+  it('keeps the picks sentence once a pick exists and shows unknown managers as —', () => {
+    const html = render({ data: { available: true, reviews: [{ ...imported, nextPickCount: 2, keptOrder: [...kept.slice(0, 7), null] }] } });
+    expect(html).toContain('MW10 has 2 recorded picks. Its stored picks and draft order are preserved.');
+    expect(html).not.toContain('record it as a correction');
+    expect(html).toContain('<li>—</li>');
+    expect(render({ data: { available: true, reviews: [{ ...imported, keptOrder: null, candidateOrder: null }] } })).not.toContain('pick order');
+  });
 });

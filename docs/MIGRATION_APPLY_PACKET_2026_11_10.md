@@ -1,11 +1,13 @@
 # Migration apply packet — November 10, 2026
 
-Owner: Sean Balsiger · Version 3 · prepared from `main` at
+Owner: Sean Balsiger · Version 4 · prepared from `main` at
 `0944bc2003780aa88b173c6aaf99b746f273cd83` (PR #517 merge); version 2 (the apply-order
 fixes PR) amends unapplied M-34 so any apply order is safe, adds M-43's boundary probes and
 corrects stale records (contradictions 1, 2, 5, 6 and 7 below), and adds PR #519's
 `20261110160000_gtl_player_props_jobs.sql` as proposed M-46. Version 3 adds PR #522's
-`20261110180000_gtl_player_props_shared.sql` (merge `1ba75282`) as proposed M-47.
+`20261110180000_gtl_player_props_shared.sql` (merge `1ba75282`) as proposed M-47. Version 4
+(November 11, 2026) records Sean's D-83 ruling on contradiction 7 ("Yes, import wins") and
+amends unapplied M-35 in place: its section 1 row, section 2 dependency and section 4 md5s.
 
 Status, November 10, 20:43 UTC: **M-41 to M-47 applied and verified** (hosted `20261110203637` to `20261110204307`; [apply record](RELEASE_2026_11_10_MIGRATIONS_M41_M47.md)). M-33, M-34 and M-35 remain unapplied. The rest of this packet is the preparation as written.
 
@@ -28,7 +30,7 @@ migration is in `APPLIED`.
 | --- | --- | ---: | --- | --- | --- | --- |
 | M-33 | `20261029151727_gtl_epl_stat_rechecks.sql` | 9474 | `444394a01579d3c1cb59f5e0a774e418b225f6bc6abddbde76a6cb99c0215ea3` | nothing | none | disable the `snapshot` schedule (rechecks run inside it) |
 | M-34 | `20261029161613_gtl_epl_standings.sql` | 15669 | `9f8479c764eb2a7fd800740542cf2785db54b53144b32be832a69ef506148b16` | nothing | none (FIX_FORWARD) | no `standings` row exists; keep it absent/disabled |
-| M-35 | `20261029162144_gtl_epl_corrected_draft_order.sql` | 15343 | `329ce872d88f76ed16e133e9d6b38a79c3400541b9c0f3ba567408ec42514baf` | nothing | none | disable `snapshot`/`settle` schedules |
+| M-35 | `20261029162144_gtl_epl_corrected_draft_order.sql` | 16707 | `fed66ad06a97b0ec776f9d799095895029dd59a30cb32308da987018b25ca87c` | nothing | none | disable `snapshot`/`settle` schedules |
 | M-41 | `20261108022135_gtl_virtual_units_hundredths.sql` | 22535 | `20e4711ecc9a5134baef333825555eb9a63823905012375da6299ba775e7a876` | 3 writer bodies (section 4) | `supabase/rollback/20261108022135_gtl_virtual_units_hundredths.sql` (21637 bytes, SHA-256 `068fbc95f30bb087e833f2b68dc6c752cb9e916fdac737ee696dcef520ea6bdf`) | rollback file; capability then answers `hundredths:false` |
 | **M-42** (proposed) | `20261110100000_gtl_epl_three_way_moneyline.sql` | 43676 | `60118d30f3671eb5386b5e74e5f60ada786fef75c78a93d07e52283dd72a09c4` | 4 bodies (section 4) | none (FIX_FORWARD) | `gtl_epl_three_way_ready()` answers `false` |
 | **M-43** (proposed) | `20261110110000_gtl_epl_score_import.sql` | 24672 | `17f9ad5ac62114d17faefc79f9386ba64b1738515f54ef7f9137ecd40f6d3bb3` | nothing | none needed | do not call the two commissioner routes |
@@ -40,7 +42,10 @@ migration is in `APPLIED`.
 Byte counts and SHA-256 are of the files on `main` at `0944bc20` (M-46: at `f6a5409c`, PR #519;
 M-47: at `1ba75282`, PR #522; M-41: of PR #497's files, unchanged by its reconciliation merges), except M-34, which version 2
 amended before any apply (it was 14716 bytes, `8f8fdb5d7cf2a143d5e77b0b1ef3b2e04037ccdf25c8b861348a9939a05c8948`;
-only its job-constraint statement changed, every function body and md5 is unchanged). Before an apply,
+only its job-constraint statement changed, every function body and md5 is unchanged), and M-35,
+which version 4 amended for D-83 before any apply (it was 15343 bytes,
+`329ce872d88f76ed16e133e9d6b38a79c3400541b9c0f3ba567408ec42514baf`; its outcome check, recheck writer
+and state reader changed, section 4). Before an apply,
 recompute them from the exact merged SHA you apply from (`wc -c`, `sha256sum`).
 
 **Proposed ledger ids.** The [migration ledger](REDESIGN_BUILD_PLAN.md#6-migration-ledger)
@@ -112,7 +117,14 @@ M-43 calls `gtl_epl_advance_queues`.
    local tests only until their first runs", but `RELEASE_2026_10_29_EPL_MONEYLINE.md` records a
    protected `epl-jobs` deploy (run 40937265809, worker v3). Corrected in version 2 (with
    `fantasy-ingest`'s October 28 run 40699619045, v1, from `RELEASE_2026_10_28_D59_TRENDS.md`).
-7. **M-35 and M-43 interact at run time, not at apply time.** Checked in version 2: the
+7. **M-35 and M-43 interact at run time, not at apply time.** **Resolved in version 4 by
+   Sean's D-83 ruling ("Yes, import wins", November 11, 2026; Rule 1 of the
+   [precedence brief](EPL_ORDER_PRECEDENCE_DECISION_2026-11-10.md)).** Unapplied M-35 was amended
+   in place: once a confirmed import of week *n* exists (`gtl_epl_score_import_head`), a recheck
+   whose order differs records `preserved_import` with the kept and would-be orders and changes
+   nothing; weeks without an import still get the corrected order automatically, and an import
+   after a recheck reorder still replaces it. The text below is the version 2 analysis as
+   written. Checked in version 2: the
    eight files replace no one another's function and alter no shared column (M-46 only
    calls M-45's `gtl_props_ready`/`gtl_props_append_only` and adds triggers on its own tables;
    M-47, checked in version 3, only adds one new reader over M-45's tables and replaces nothing); the only shared DDL is
@@ -148,7 +160,7 @@ Dependencies (file headers, ledger and the PR bodies):
 | --- | --- | --- |
 | M-33 | M-31, M-32 | M-34 (ledger), M-35 (`REQUIRES`) |
 | M-34 | **M-33 (pending)** | — (order-safe against M-44 since version 2) |
-| M-35 | **M-33 (pending)**; operator interval prerequisite | — |
+| M-35 | **M-33 (pending)**, M-43 (`gtl_epl_score_import_head`, D-83); operator interval prerequisite | — |
 | M-41 | M-11 and the existing Virtual/Recommended writers; compatible `gtl-api`/Pages | — |
 | M-42 | M-30, M-31, M-32, M-36 | — |
 | M-43 | M-30, M-40 | — |
@@ -178,7 +190,8 @@ prerequisites (M-35's interval evidence, M-33 "not safe correction enablement" a
 and have been held since October 29. Deferring them is allowed ("a merged file Sean
 chose not to apply stays in NOT_HOSTED"). Since version 2, deferring M-34 past M-44 is
 safe: amended M-34 keeps `results` and every other accepted job (contradiction 1). M-35
-after M-43 still carries the run-time precedence question in contradiction 7.
+after M-43 carried the run-time precedence question in contradiction 7, which D-83 resolved
+(version 4): the amended M-35 needs hosted M-43.
 
 Each apply is its own transaction and its own "apply M-xx". After a timeout, rerun that
 migration's preflight before any retry (Gate M step 6).
@@ -386,21 +399,29 @@ order by 1;
 
 - **Purpose:** corrected-score recomputation of an empty next draft, append-only outcomes,
   a shared 12h / 8 × 2-credit result-read envelope and explicit capture-interval admission.
-- **Needs:** M-33 (`REQUIRES` in `tests/migrations.mjs`). **Operator prerequisite before
+- **Needs:** M-33 (`REQUIRES` in `tests/migrations.mjs`) and hosted M-43 (D-83: no `REQUIRES`
+  entry, because a hosted file is never listed there). **Operator prerequisite before
   the apply phrase:** review that missing interval evidence intentionally stops automatic
   final captures and can prevent the next week opening; have verified interval evidence or
-  a manual recovery plan. Interacts with M-43 (contradiction 7).
+  a manual recovery plan. **Deploy first:** the D-83 `gtl-api` reader and Pages copy (a
+  `preserved_import` outcome is refused by the older reader). Contradiction 7 is resolved by
+  D-83 (version 4).
 - **Replaces:** nothing. New: `gtl_epl_attest_capture_interval`
   `8ec52abb93c876bec23162d2a33f23c0`, `gtl_epl_capture_interval`
   `100720c54cae86de2d395bd6bd281d04`, `gtl_epl_reserve_result_read`
   `53d9324e7004d907b15e7719a8c87cf4`, `gtl_epl_apply_recheck_orders`
-  `50bf2a9a3c02480866e24c5cd3425537`, `gtl_epl_order_correction_state`
-  `4c6749d39276ad40b32b2041ae71bd89`. Calls hosted `gtl_community_admin`
-  `1b3ac35ca7caf77450df37132e86b881` and `gtl_epl_reserve_credits`
-  `14028d4ecdc63e080c581ffe244c323c`.
+  `76221a01b945924303a560b97019f061`, `gtl_epl_order_correction_state`
+  `9d92e37baf7b6edca7aebe0852a907fa` (version 4, D-83; before the amendment `50bf2a9a…` and
+  `4c6749d3…`). Calls hosted `gtl_community_admin`
+  `1b3ac35ca7caf77450df37132e86b881`, `gtl_epl_reserve_credits`
+  `14028d4ecdc63e080c581ffe244c323c` and M-43's `gtl_epl_score_import_head`
+  `a22c6aa5a21d63cd15128ae6a5dffb86` (read back hosted on November 11, 00:34 UTC).
 - **Preflight:** tables `gtl_epl_order_corrections`, `gtl_epl_result_reads`,
-  `gtl_epl_capture_intervals` absent; `gtl_epl_stat_rechecks` present; P2 on
-  `gtl_epl_weeks`, `gtl_epl_picks`, `gtl_epl_snapshots`, `gtl_epl_stat_rechecks`.
+  `gtl_epl_capture_intervals` absent; `gtl_epl_stat_rechecks` present;
+  `md5(prosrc)` of `gtl_epl_score_import_head` is `a22c6aa5a21d63cd15128ae6a5dffb86` (one row);
+  the deployed `gtl-api` carries the D-83 reader; P2 on `gtl_epl_weeks`, `gtl_epl_picks`,
+  `gtl_epl_snapshots`, `gtl_epl_stat_rechecks`, `gtl_epl_score_imports`,
+  `gtl_epl_score_import_openings`.
 - **Verify:** P3 (5 functions, 3 tables); P2, P1 unchanged; no rows in the three tables.
 - **Off switch:** disable `snapshot`/`settle`. Records kept.
 - **Follow-up:** `scripts/boundary/epl-operations.mjs` M-35 entries; worker/API identity
@@ -965,11 +986,12 @@ Recommended batch (section 2):
    `VITE_GTL_PLAYER_PROPS` or `live_lock_in` change.
 
 Only if Sean also wants the October 29 EPL corrections/standings (any time after the batch
-or before it; see contradiction 7 for M-35 after an import):
+or before it; contradiction 7 is resolved by D-83, and M-35 means the amended file):
 
 - "apply M-33" (`20261029151727`)
 - "apply M-34" (`20261029161613`), the amended file, before or after M-44
-- "apply M-35" (`20261029162144`), only after the operator interval prerequisite is reviewed
+- "apply M-35" (`20261029162144`, the D-83 amended file), only after the compatible `gtl-api`/Pages
+  deploy and after the operator interval prerequisite is reviewed
 
 Independently, for custom Virtual Units stakes (PR #497): "Deploy api-and-frontend" from the
 merged PR #497 SHA, then "apply M-41" (`20261108022135`).

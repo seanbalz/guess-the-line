@@ -125,3 +125,63 @@ test('post-lock database clock prevents a reorder using a stale pre-deadline sup
  assert.deepEqual(await f.order(),ORDER);
  assert.deepEqual(await f.rpc('gtl_epl_order_correction_state',[2026]),[{week:9,outcome:'preserved_closed'}]);
 });
+
+// D-83 (Sean, November 11, 2026: "Yes, import wins"). The commissioner's confirmed weekly-score import (hosted M-43) of
+// week n decides week n+1's order; a later recheck records the order it would have set and changes nothing.
+const IMPORTED = [...ORDER].reverse();
+const confirmImport = (f, order = IMPORTED, week = 9) => f.rpc('gtl_epl_import_weekly_scores', [id(3), 2026, week, week, false, ['d'.repeat(64)],
+  JSON.stringify(order.map((owner_id, i) => ({ owner_id, score: 40 + i }))), order, true, false, null]);
+const corrected = () => pickOrder(ORDER.map((owner, i) => ({ id: owner, weekScore: i === 0 ? 100 : i === 1 ? 0 : 10, weekBonus: 0, seasonTotal: 500.25 + (i === 0 ? 100 : i === 1 ? 0 : 10) })));
+
+test('import then recheck: the confirmed order stays and preserved_import records both orders beside the evidence', {skip}, async t => {
+  const f = await fixture(t);
+  assert.equal((await confirmImport(f)).opening.outcome, 'order_applied');
+  assert.deepEqual(await f.order(), IMPORTED);
+  assert.notDeepEqual(corrected(), IMPORTED);
+  assert.deepEqual(await f.apply(), { applied: 0, sameOrder: 0, preserved: 1, pending: 0 });
+  assert.deepEqual(await f.order(), IMPORTED, 'the recheck never changes an imported week by itself');
+  const audit = (await f.db.query("select c.outcome,c.previous_order,c.candidate_order,b.label baseline from public.gtl_epl_order_corrections c join public.gtl_epl_snapshots b on b.id=c.baseline_snapshot_id")).rows;
+  assert.deepEqual(audit, [{ outcome: 'preserved_import', previous_order: IMPORTED, candidate_order: corrected(), baseline: 'after-mw08' }]);
+  assert.deepEqual(await f.rpc('gtl_epl_order_correction_state', [2026]), [{ week: 9, outcome: 'preserved_import', keptOrder: IMPORTED, candidateOrder: corrected() }]);
+  assert.deepEqual(await f.apply(), { applied: 0, sameOrder: 0, preserved: 0, pending: 0 }, 'one outcome per recheck, never a second');
+  // The corrected order's first manager is refused: the imported order is the one the draft uses.
+  await assert.rejects(() => f.rpc('gtl_epl_save_pick', [id(2), 2026, 10, 'ARS', NOW]), /GTL_EPL_NOT_YOUR_TURN/);
+  // D-23: the M-33 flag, both snapshots, the baseline and every import row are kept.
+  assert.equal((await f.db.query('select status from public.gtl_epl_stat_rechecks')).rows[0].status, 'needs_review');
+  assert.equal((await f.db.query('select count(*)::int n from public.gtl_epl_snapshots')).rows[0].n, 3);
+  assert.equal((await f.db.query('select count(*)::int n from public.gtl_epl_score_import_rows')).rows[0].n, 8);
+  await assert.rejects(() => f.db.query("insert into public.gtl_epl_order_corrections(recheck_snapshot_id,season,week,outcome,previous_order,recorded_at) select id,2026,9,'preserved_import',$1,now() from public.gtl_epl_snapshots where label='after-mw08'", [IMPORTED]),
+    /gtl_epl_order_corrections_check/, 'preserved_import needs its candidate order and baseline');
+});
+
+test('import then recheck with the same order is same_order and leaves nothing to preserve', {skip}, async t => {
+  const f = await fixture(t);
+  await confirmImport(f, corrected());
+  assert.deepEqual(await f.apply(), { applied: 0, sameOrder: 1, preserved: 0, pending: 0 });
+  assert.deepEqual(await f.order(), corrected());
+  assert.deepEqual(await f.rpc('gtl_epl_order_correction_state', [2026]), [{ week: 9, outcome: 'same_order' }]);
+});
+
+test('recheck then import: the reorder applies first and the confirmed import then sets its own order', {skip}, async t => {
+  const f = await fixture(t);
+  assert.deepEqual(await f.apply(), { applied: 1, sameOrder: 0, preserved: 0, pending: 0 });
+  assert.deepEqual(await f.order(), corrected());
+  const out = await confirmImport(f);
+  assert.equal(out.opening.outcome, 'order_applied');
+  assert.deepEqual(out.opening.order, IMPORTED);
+  assert.deepEqual(await f.order(), IMPORTED);
+  assert.deepEqual((await f.db.query('select outcome,previous_order,applied_order from public.gtl_epl_score_import_openings')).rows,
+    [{ outcome: 'order_applied', previous_order: corrected(), applied_order: IMPORTED }]);
+  assert.deepEqual(await f.apply(), { applied: 0, sameOrder: 0, preserved: 0, pending: 0 });
+  assert.deepEqual(await f.order(), IMPORTED);
+  assert.deepEqual(await f.rpc('gtl_epl_order_correction_state', [2026]), [{ week: 9, outcome: 'applied' }]);
+});
+
+test('a week without its own import still gets the corrected order automatically, even when another week has one', {skip}, async t => {
+  const f = await fixture(t);
+  await f.db.query("insert into public.gtl_epl_weeks(season,week,window_start,window_end,first_kickoff,pick_order,status) values(2026,8,'2026-10-23','2026-10-30','2026-10-24T12:30Z',$1,'settled')", [ORDER]);
+  assert.equal((await confirmImport(f, IMPORTED, 8)).opening.outcome, 'preserved_closed', 'the week 8 import cannot touch settled week 9');
+  assert.equal(await f.rpc('gtl_epl_score_import_head', [2026, 9]), null);
+  assert.deepEqual(await f.apply(), { applied: 1, sameOrder: 0, preserved: 0, pending: 0 });
+  assert.deepEqual(await f.order(), corrected());
+});

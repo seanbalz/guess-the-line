@@ -27,11 +27,20 @@ const source = row => ({
   rosterHash: typeof row?.sha256?.rosters === 'string' && /^[a-f0-9]{64}$/.test(row.sha256.rosters) ? row.sha256.rosters : null,
 });
 const delta = (before, after) => before === null || after === null ? null : round(after - before);
+const OUTCOMES = ['applied', 'same_order', 'preserved_picks', 'preserved_closed', 'preserved_import'];
+// An M-35 draft order: 1-8 distinct Sleeper owner ids. Only canonical first names leave the server; an unknown owner is null.
+const ownerOrder = value => Array.isArray(value) && value.length >= 1 && value.length <= 8 && new Set(value).size === value.length
+  && value.every(owner => typeof owner === 'string' && /^[0-9]{1,30}$/.test(owner));
+const names = order => order.map(owner => (Object.hasOwn(MANAGER_NAMES, owner) ? MANAGER_NAMES[owner] : null));
+// D-83 (import wins): preserved_import carries the kept order and the order the recheck would have set, both complete.
+const validState = row => record(row) && Number.isInteger(row.week) && row.week >= 1 && row.week <= 37 && OUTCOMES.includes(row.outcome)
+  && (row.outcome !== 'preserved_import' || (ownerOrder(row.keptOrder) && ownerOrder(row.candidateOrder)
+    && row.keptOrder.length === row.candidateOrder.length && row.keptOrder.every(owner => row.candidateOrder.includes(owner))));
 
 export async function readEplCorrectionReviews({ rows, season, orderStates = null }) {
-  if (orderStates !== null && (!Array.isArray(orderStates) || orderStates.length > 38 || orderStates.some(row => !record(row) || !Number.isInteger(row.week)
-    || row.week < 1 || row.week > 37 || !['applied','same_order','preserved_picks','preserved_closed'].includes(row.outcome))
+  if (orderStates !== null && (!Array.isArray(orderStates) || orderStates.length > 38 || !orderStates.every(validState)
     || new Set(orderStates.map(row => row.week)).size !== orderStates.length)) throw new Error('Invalid order-correction reply.');
+  const kept = new Map((orderStates ?? []).filter(row => row.outcome === 'preserved_import').map(row => [row.week, row]));
   let audit = await rows('gtl_epl_stat_rechecks', {
     select: 'season,week,checked_at,original_snapshot_id,recheck_snapshot_id', season: `eq.${season}`,
     status: 'eq.needs_review', order: 'week.desc', limit: '38',
@@ -58,9 +67,12 @@ export async function readEplCorrectionReviews({ rows, season, orderStates = nul
       const before = totals(original?.rosters, owner), after = totals(corrected?.rosters, owner);
       return { name, before, after, pointsChange: delta(before.points, after.points), againstChange: delta(before.against, after.against) };
     }).filter(change => change.pointsChange !== 0 || change.againstChange !== 0);
+    const held = kept.get(row.week);
     return { week: row.week, checkedAt: Number.isFinite(Date.parse(row.checked_at)) ? row.checked_at : null,
       original: source(original), corrected: source(corrected), changes,
       nextWeek: row.week + 1, nextPickCount: picks.filter(pick => pick.week === row.week + 1).length,
-      totalsComplete: changes.every(change => change.pointsChange !== null && change.againstChange !== null) };
+      totalsComplete: changes.every(change => change.pointsChange !== null && change.againstChange !== null),
+      // A confirmed import kept the next week's order: the order it uses and the order Tuesday's totals would have set.
+      keptOrder: held ? names(held.keptOrder) : null, candidateOrder: held ? names(held.candidateOrder) : null };
   });
 }

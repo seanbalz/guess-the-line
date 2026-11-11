@@ -1,0 +1,110 @@
+{
+  "date": "2026-11-11",
+  "scope": "D-83 stat-corrections card (preserved_import); local synthetic browser captures only",
+  "baseSource": "8eaf7a77",
+  "branch": "claude/epl-import-wins-2026-11-11",
+  "spec": "tests/cloud-browser/epl-correction-reviews.spec.js › a confirmed import keeps the order: both orders and how to use the correction, still read-only (D-83)",
+  "sources": {
+    "supabase/migrations/20261029162144_gtl_epl_corrected_draft_order.sql": "fed66ad06a97b0ec776f9d799095895029dd59a30cb32308da987018b25ca87c",
+    "cloud/epl-correction-reviews.mjs": "5b1be01db51041c41447155b9deb85acc49bcef48a985b17b8408da2cc2590f0",
+    "web/src/next/me/commissioner/EplCorrectionReviews.jsx": "0e24b5dcea28429c52dab8c955eb6b1f2fbeb401e2cf10fba9fab83370a7f8be",
+    "web/src/next/me/commissioner/commissioner.css": "659a8b7f9f792c7a135bde0620853b6bbe8ca6188fb6b605d482d2ceeefc5399",
+    "tests/cloud-browser/epl-correction-reviews.spec.js": "4621cf1d8215815c2d689697b2a71659a74483ddd74f18c3cfa2df4a0a64e8fe",
+    "tests/cloud-browser/commissioner-capture.mjs": "2bce208fb06fa373a977dca47859a7bfd298cec56d44772a318dc9863b524fee"
+  },
+  "captures": {
+    "corrections-import-kept-dark-320-order.png": "53ddfe9fcc82c8f905754924d578f1198bb37da0903e63d8467c81f4f5c72aef",
+    "corrections-import-kept-dark-320.png": "4ed18b1810773802467a1208808817b7b07710bb280c5398d7c9b3a38b5751f8",
+    "corrections-import-kept-dark-390-bottom.png": "4d483e4461db9051f5eb28ffff663328511340c7cde56d2af9beaff230e18bcc",
+    "corrections-import-kept-dark-390-order.png": "c99b3e38b0f6cafce023da23027c94591ac64e61bf2ab5ca4af3f83fc38aa3e5",
+    "corrections-import-kept-dark-390.png": "7da3255c418be24f525c4cd1691fadd80c6f8fe790decf7058d75a586eaec085",
+    "corrections-import-kept-light-320-order.png": "e1d0476c81063dc4e1ff82e467027a8822ef9fa2ec26060af6fc11563f77eff1",
+    "corrections-import-kept-light-320.png": "6409959ae1c865abcab6f8d0fa3f8a382092a520a5ceb56806bb96fe90230bd7",
+    "corrections-import-kept-light-390-bottom.png": "83e70d81c0b57945a593527a3fe5ab9ab881cdc20770bb2571f743d100aab978",
+    "corrections-import-kept-light-390-order.png": "c5175ed32525bce6e375f10cab255ba4167b8ae8181de4797879cc7401dcbb73",
+    "corrections-import-kept-light-390.png": "1330ee1a6f00fae4cf334ddaf2f7aa64c3fae84f62152855bdbbd7473f10b9da"
+  },
+  "checks": [
+    {
+      "capture": "corrections-import-kept-dark-320",
+      "theme": "dark",
+      "width": 320,
+      "forcedColors": "none",
+      "axeViolations": 0,
+      "layoutProblems": 0,
+      "readingBelowFloor": 0,
+      "touchTargetsBelow44": 0,
+      "footerStationary": true
+    },
+    {
+      "capture": "corrections-import-kept-dark-390",
+      "theme": "dark",
+      "width": 390,
+      "forcedColors": "none",
+      "axeViolations": 0,
+      "layoutProblems": 0,
+      "readingBelowFloor": 0,
+      "touchTargetsBelow44": 0,
+      "footerStationary": true
+    },
+    {
+      "capture": "corrections-import-kept-dark-768",
+      "theme": "dark",
+      "width": 768,
+      "forcedColors": "none",
+      "axeViolations": 0,
+      "layoutProblems": 0,
+      "readingBelowFloor": 0,
+      "touchTargetsBelow44": 0,
+      "footerStationary": true
+    },
+    {
+      "capture": "corrections-import-kept-forced-320",
+      "theme": "dark",
+      "width": 320,
+      "forcedColors": "active",
+      "axeViolations": 0,
+      "layoutProblems": 0,
+      "readingBelowFloor": 0,
+      "touchTargetsBelow44": 0,
+      "footerStationary": true
+    },
+    {
+      "capture": "corrections-import-kept-light-1440",
+      "theme": "light",
+      "width": 1440,
+      "forcedColors": "none",
+      "axeViolations": 0,
+      "layoutProblems": 0,
+      "readingBelowFloor": 0,
+      "touchTargetsBelow44": 0,
+      "footerStationary": true
+    },
+    {
+      "capture": "corrections-import-kept-light-320",
+      "theme": "light",
+      "width": 320,
+      "forcedColors": "none",
+      "axeViolations": 0,
+      "layoutProblems": 0,
+      "readingBelowFloor": 0,
+      "touchTargetsBelow44": 0,
+      "footerStationary": true
+    },
+    {
+      "capture": "corrections-import-kept-light-390",
+      "theme": "light",
+      "width": 390,
+      "forcedColors": "none",
+      "axeViolations": 0,
+      "layoutProblems": 0,
+      "readingBelowFloor": 0,
+      "touchTargetsBelow44": 0,
+      "footerStationary": true
+    }
+  ],
+  "syntheticData": true,
+  "deployment": false,
+  "physicalPhone": false,
+  "hostedSignIn": false
+}

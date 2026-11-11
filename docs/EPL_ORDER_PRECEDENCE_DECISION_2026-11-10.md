@@ -2,8 +2,10 @@
 
 Owner: Sean Balsiger · Version 1 · November 10, 2026
 
-Status: **decision needed from Sean.** This brief changes no code, migration, schedule or
-hosted state. It explains contradiction 7 of the
+Status: **decided: Rule 1.** Sean answered **"Yes, import wins"** on November 11, 2026
+([D-83](DECISIONS.md)); step 1 of [After the ruling](#after-the-ruling) is the amended M-35 PR.
+The rest of this brief is unchanged as written. As written, it changed no code, migration,
+schedule or hosted state. It explains contradiction 7 of the
 [November 10 apply packet](MIGRATION_APPLY_PACKET_2026_11_10.md), which holds M-35 and,
 through M-33, M-34. It was prepared from `main` at `3ddc36d83aeb014efc7c448bf21d9fe22d1edeab`,
 the M-41 to M-47 apply record (`docs/RELEASE_2026_11_10_MIGRATIONS_M41_M47.md` on PR #525's
@@ -366,6 +368,6 @@ Rule 3 skips steps 1 and 2. Rules 2, 4 and 5 first need the change listed in the
 - **Changes:** this document only.
 - **Validation:** read-only hosted SELECTs, a scratch PGlite probe (four cases, all repo
   migrations, not committed) and code and record inspection.
-- **Status:** waiting for Sean's ruling.
+- **Status:** decided November 11, 2026: Rule 1 ("Yes, import wins", D-83).
 - **Next breadcrumb:** Sean's rule, then the change PR that rule needs (none for rule 3).
 - **Jira:** N/A

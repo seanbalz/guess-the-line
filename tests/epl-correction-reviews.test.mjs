@@ -86,3 +86,42 @@ test('applied/same-order outcomes leave the review list while preserved and unkn
     assert.equal((await readEplCorrectionReviews({ rows, season: 2026, orderStates })).length, 1);
   await assert.rejects(readEplCorrectionReviews({ rows, season: 2026, orderStates: [{week:9,outcome:'invented'}] }),/Invalid order/);
 });
+
+// D-83 (Sean, November 11, 2026: "Yes, import wins"): M-35 records preserved_import when a confirmed import kept the order.
+const OWNERS = Object.keys(MANAGER_NAMES);
+const KEPT = [...OWNERS], WOULD_BE = [OWNERS[3], ...OWNERS.filter((_, i) => i !== 3)];
+const held = (extra = {}) => [{ week: 9, outcome: 'preserved_import', keptOrder: KEPT, candidateOrder: WOULD_BE, ...extra }];
+
+test('preserved_import stays on the review list with the kept and would-be orders, by first name only', async () => {
+  const rows = async table => table === 'gtl_epl_stat_rechecks' ? audit : table === 'gtl_epl_snapshots' ? snapshots() : [];
+  const [review] = await readEplCorrectionReviews({ rows, season: 2026, orderStates: held() });
+  assert.deepEqual(review.keptOrder, KEPT.map(owner => MANAGER_NAMES[owner]));
+  assert.deepEqual(review.candidateOrder, WOULD_BE.map(owner => MANAGER_NAMES[owner]));
+  assert.equal(review.nextPickCount, 0);
+  assert.ok(OWNERS.every(owner => !JSON.stringify(review).includes(owner)), 'owner ids never leave the server');
+  for (const orderStates of [null, [], [{ week: 9, outcome: 'preserved_picks' }], [{ week: 9, outcome: 'preserved_closed' }]]) {
+    const [other] = await readEplCorrectionReviews({ rows, season: 2026, orderStates });
+    assert.equal(other.keptOrder, null); assert.equal(other.candidateOrder, null);
+  }
+  const unknown = '9'.repeat(18);
+  const [named] = await readEplCorrectionReviews({ rows, season: 2026, orderStates: held({ keptOrder: [...KEPT.slice(0, 7), unknown], candidateOrder: [unknown, ...KEPT.slice(0, 7)] }) });
+  assert.equal(named.keptOrder[7], null); assert.equal(named.candidateOrder[0], null);
+  assert.ok(!JSON.stringify(named).includes(unknown));
+});
+
+test('a preserved_import reply without both complete orders is refused instead of shown half-empty', async () => {
+  const rows = async table => table === 'gtl_epl_stat_rechecks' ? audit : table === 'gtl_epl_snapshots' ? snapshots() : [];
+  for (const extra of [{ keptOrder: undefined }, { candidateOrder: null }, { candidateOrder: [] }, { keptOrder: [KEPT[0], KEPT[0]] },
+    { candidateOrder: WOULD_BE.slice(1) }, { candidateOrder: [...WOULD_BE.slice(1), '42'] }, { keptOrder: KEPT.map(Number) }, { keptOrder: [...KEPT, '42'] }])
+    await assert.rejects(readEplCorrectionReviews({ rows, season: 2026, orderStates: held(extra) }), /Invalid order/, JSON.stringify(extra));
+});
+
+test('review endpoint returns the kept and would-be orders from the M-35 state through the commissioner route', async () => {
+  const service = createEplService({ rpc: async name => name === 'gtl_community_admin' ? true : name === 'gtl_epl_order_correction_state' ? held() : null,
+    rest: async () => ({ season: 2026, week: 10 }), rows: async table => table === 'gtl_epl_stat_rechecks' ? audit : table === 'gtl_epl_snapshots' ? snapshots() : [] });
+  const reply = await read(service);
+  assert.equal(reply.available, true);
+  assert.equal(reply.reviews.length, 1);
+  assert.equal(reply.reviews[0].keptOrder[0], MANAGER_NAMES[KEPT[0]]);
+  assert.equal(reply.reviews[0].candidateOrder[0], MANAGER_NAMES[WOULD_BE[0]]);
+});

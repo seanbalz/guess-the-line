@@ -1,5 +1,33 @@
 # Decision log
 
+## D-83 — Premier League draft order: your confirmed import wins over the Tuesday recheck (November 11, 2026)
+
+Status: decided; source amended, not applied or deployed. Sean answered
+**"Yes, import wins"** on November 11, 2026, choosing Rule 1 of the
+[precedence brief](EPL_ORDER_PRECEDENCE_DECISION_2026-11-10.md) (packet contradiction 7).
+
+Two writers can set next week's Pick a Team order (week n+1) while its draft is untouched: the
+commissioner's confirmed Sleeper screenshot import of week n (hosted M-43) and M-35's Tuesday
+Sleeper recheck. Once an import of week n is confirmed, the recheck never changes week n+1's
+order by itself. It still saves the corrected totals (M-33) and records the order it would have
+set as a `preserved_import` outcome beside the kept order. The week stays on the
+stat-corrections screen, which shows both orders: "Tuesday's totals would put C first. Because
+you confirmed an import, MW12 keeps A first." To use a Tuesday correction, the commissioner
+records a correction import, which applies while the draft is still untouched. An import
+confirmed after a recheck reorder replaces that order, as it does today. A week without an
+import keeps M-35's tested behaviour: an untouched draft gets the corrected order automatically.
+When the recheck's order equals the current order nothing changes (`same_order`).
+
+This keeps today's hosted precedence (the import already wins over `settle`) and the first-turn
+push that follows a confirmed order. Nothing is deleted (D-23): the recheck snapshot, the M-33
+row, the outcome row with both orders and every import row are kept.
+
+The change is an in-place amendment of unapplied M-35 (`20261029162144`), which now also needs
+hosted M-43 (`20261110110000`), plus the `gtl-api` reader and the screen copy. Hosted M-43 is
+unchanged. The remaining steps stay Sean's words: deploy compatible `gtl-api` and Pages before
+any M-35 apply, review the M-35 interval prerequisite, then "apply M-33" and "apply M-35" through
+Gate M. [Phone mockups](../design/epl-import-wins-2026-11-11/README.md) show the card.
+
 ## D-82 — Optional Player Props line guessing, shared Prism design (November 9, 2026)
 
 Status: design and both Dark/Light mockup boards approved for planning and

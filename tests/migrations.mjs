@@ -63,6 +63,8 @@ export const FIX_FORWARD = [
 // M-21's and M-22's entries (both needing M-13, and M-22 needing M-21) left with their October 27, 2026 apply record
 // (RELEASE_2026_10_27_FEED_MIGRATIONS.md).
 // M-31 (20261029060000) reads M-30's EPL tables; M-30 is hosted (20261029051846), so it needs no entry here.
+// M-35 (20261029162144) also calls M-43's gtl_epl_score_import_head (D-83, import wins); M-43 is hosted (20261110203856),
+// so only its pending M-33 is listed. A rollback check of M-35 never runs: it replaces no body and has no rollback file.
 // M-46's and M-47's entries (both needing M-45) left with their November 10, 2026 apply record
 // (RELEASE_2026_11_10_MIGRATIONS_M41_M47.md).
 export const REQUIRES = Object.freeze({ 20261029162144: [20261029151727] });
