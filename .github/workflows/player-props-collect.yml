@@ -1,0 +1,88 @@
+name: Player Props collect
+# D-82 Player Props pilot quote collection (scripts/player-props-collect.mjs). The one workflow that can spend odds credits
+# on props: it builds research intake's request file with scripts/player-props-quote-requests.mjs and, only when dry_run is
+# off, runs scripts/research-intake.mjs --collect-quotes with it (never --publish). DISABLED like Player Props jobs: there
+# is no schedule, and even a manual run does nothing unless the repository variable GTL_PLAYER_PROPS_JOBS is "on".
+# A dry run (the default) builds the request file and prints the credit cost; it never receives the odds key. max_credits
+# stays at most 6 unless allow_above_six is ticked, and the builder caps it at 32. Every real run spends again: the
+# builder mints new request IDs. It shares the jobs' concurrency group, so it never overlaps an offers or results run.
+# The request file stays on the runner; the summary artifact holds counts, credits, stat keys and reason names only.
+on:
+  workflow_dispatch:
+    inputs:
+      season:
+        description: NFL season
+        type: string
+        required: true
+      week:
+        description: Regular-season week
+        type: string
+        required: true
+      games:
+        description: Games to request, the earliest eligible by kickoff (1 to 4)
+        type: string
+        default: '2'
+        required: true
+      stats:
+        description: Comma-separated catalog stat keys
+        type: string
+        default: player_pass_yds,player_rush_yds,player_reception_yds
+        required: true
+      max_credits:
+        description: Credit cap for this run (games x stats x 1 region must fit)
+        type: string
+        default: '6'
+        required: true
+      allow_above_six:
+        description: Allow max_credits above 6 (the builder still caps it at 32)
+        type: boolean
+        default: false
+      dry_run:
+        description: Build the request file and print the credit cost, collecting nothing
+        type: boolean
+        default: true
+permissions:
+  contents: read
+concurrency:
+  group: player-props-jobs
+  cancel-in-progress: false
+jobs:
+  collect:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && vars.GTL_PLAYER_PROPS_JOBS == 'on'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SEASON: ${{ inputs.season }}
+      WEEK: ${{ inputs.week }}
+      GAMES: ${{ inputs.games }}
+      STATS: ${{ inputs.stats }}
+      MAX_CREDITS: ${{ inputs.max_credits }}
+      ALLOW_ABOVE_SIX: ${{ inputs.allow_above_six }}
+      DRY_RUN: ${{ inputs.dry_run }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Build the request file and print the credit cost
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GTL_RESEARCH_SUPABASE_URL: ${{ secrets.GTL_PROPS_SUPABASE_URL }}
+          GTL_RESEARCH_SERVICE_ROLE_KEY: ${{ secrets.GTL_PROPS_SERVICE_ROLE_KEY }}
+          GTL_PROPS_ODDS_API_KEY_SET: ${{ secrets.GTL_PROPS_ODDS_API_KEY != '' }}
+        run: node scripts/player-props-collect.mjs build
+      - name: Collect quotes through research intake
+        if: inputs.dry_run == false
+        env:
+          GTL_RESEARCH_SUPABASE_URL: ${{ secrets.GTL_PROPS_SUPABASE_URL }}
+          GTL_RESEARCH_SERVICE_ROLE_KEY: ${{ secrets.GTL_PROPS_SERVICE_ROLE_KEY }}
+          GTL_RESEARCH_ODDS_API_KEY: ${{ secrets.GTL_PROPS_ODDS_API_KEY }}
+        run: node scripts/player-props-collect.mjs collect
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: player-props-collect-summary
+          path: .local/player-props-collect.json
+          if-no-files-found: ignore
