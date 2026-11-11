@@ -1,5 +1,27 @@
 # Guess The Line — current completion register
 
+## D-69 overhaul closed under Prism Glass (D-84) — November 11, 2026
+
+Sean ruled "Prism Glass stands (Recommended)" ([D-84](DECISIONS.md)). No code, release or migration.
+
+- **Closed unmerged:**
+  - D-69 step 4 (Bets), at `6266ef47` on `claude/overhaul-step4-bets`. It is reference only: its tests, browser suite
+    and whole-branch review never ran on its merge of `main`.
+  - Step 5 (Menu and EPL), which was only planned.
+  - B1 Play polish.
+- **Step 3 (Research) signed-in readback**, owed since November 4, comes from the hosted logs, 24 hours to about 17:10
+  UTC on November 11. Every signed-in `gtl-api` call on Research's routes returned 200 (204 for preflights):
+  - `GET /personal`: 53, slowest 3.0 s;
+  - `/lines/research`: 16, slowest 2.6 s;
+  - `/lines/game`: 12, slowest 1.4 s;
+  - `/lines/assessments`: 8, slowest 3.9 s;
+  - `/lines/teams`: 3;
+  - `/personal/notes`: 3;
+  - `/lines/research-links`: 2.
+
+  No CPU-limit or error-level function log was found. The window's 401s were the signed-out probe runs. These calls
+  came from the live Research, which is Prism's since November 8, not only step 3's screens.
+
 ## Stat corrections release and M-33 to M-35 applied — November 11, 2026 UTC
 
 Sean said "Yes, deploy" for the D-83 stat-corrections card and the M-33 to M-35 applies, after

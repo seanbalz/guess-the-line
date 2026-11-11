@@ -1,5 +1,31 @@
 # Decision log
 
+## D-84 — Prism Glass stands; the rest of the D-69 overhaul closes unmerged (November 11, 2026)
+
+Status: decided. No code, release or migration.
+
+Sean answered **"Prism Glass stands (Recommended)"** on November 11, 2026, in the D-69 design session. The question:
+"Prism Glass (live since Nov 7–8) already restyled Bets, Menu, EPL and Play, overlapping D-69 step 4 (Bets, branch
+pushed as WIP), step 5 (Menu/EPL) and B1 Play polish. Which should the rest of the overhaul follow?" The option he
+picked read: "Close step 4, step 5 and B1 without merging. Step 4's only keepers, the bet moments and the server-clock
+fix, could come later as small PRs on main if you want them."
+
+The approved Prism Glass compositions set the layouts for Home, Play, Research, Bets, Menu and the EPL shell
+([confirmed rollout](CONFIRMED_VISUAL_ROLLOUT_2026_11_07.md), [Prism release](RELEASE_2026_11_08_PRISM_ROLLOUT.md)).
+D-69 is superseded where it disagrees:
+
+- **Steps 1–3** (Play, Home, Research) shipped on November 4. Their release records stay as history.
+- **Step 4 (Bets)** is the branch `claude/overhaul-step4-bets` at `6266ef47`. It is pushed, never merged, and kept for
+  reference only:
+  - It holds a merge of `main` at `5105abed`, unreviewed and untested.
+  - Its commit `90310c32` folds the approved Prism Bets landing into D-69 tiles; it must not reach `main`.
+- **Step 5 (Menu and Premier League)** was planned on November 4 and never built.
+- **B1 Play polish**, the design-audit fixes made on the pre-Prism Play, is closed. A fix that still applies is redone on
+  Prism's Play when Sean asks for it.
+- **Available on request, not adopted:**
+  - step 4's Bets moments (a tracked bet win small, a loss quiet, through the moments engine);
+  - the same-render fix in `web/src/next/home/useServerNow.js`.
+
 ## D-83 — Premier League draft order: your confirmed import wins over the Tuesday recheck (November 11, 2026)
 
 Status: decided; source amended, not applied or deployed. Sean answered
@@ -444,6 +470,9 @@ remain required. Player pick deadlines and locks are unchanged.
 
 
 ## D-69 — Design overhaul: Moments, nesting cards on every tab, next move first (November 2, 2026)
+
+Superseded where it disagrees by [D-84](#d-84--prism-glass-stands-the-rest-of-the-d-69-overhaul-closes-unmerged-november-11-2026)
+(November 11, 2026): Prism Glass sets the layouts. Steps 4 and 5 and B1 closed unmerged.
 
 Sean asked on October 26 for "a page by page node by node overhaul" because the app "doesn't have interactive and
 motion and game type features". On November 2 he answered five questions, one at a time, on a mockup canvas
