@@ -13,6 +13,42 @@ Branch `claude/fantasy-opportunity-signals` adds its role-versus-production read
 
 Frontend and shared code only. No API, migration, workflow, snapshot or estimate change; nothing deployed.
 
+## Stat corrections release and M-33 to M-35 applied — November 11, 2026 UTC
+
+Sean said "Yes, deploy" for the D-83 stat-corrections card and the M-33 to M-35 applies, after
+"lets turn these on" and "Yes, import opens it". The
+[release and apply record](RELEASE_2026_11_11_STAT_CORRECTIONS_M33_M35.md) has every hash and readback.
+
+- **Release.** `api-and-frontend` run
+  [43064597743](https://github.com/seanbalz/guess-the-line/actions/runs/43064597743) from `main` at
+  `5105abed`: `gtl-api` v55 and Pages `dc662a68`, 144 assets checked. `seanbalz` dispatched it outside
+  this session; this session approved the production gate under "Yes, deploy".
+- **Applies** (SQL editor in Sean's signed-in Chrome, Gate M, filename order):
+
+| Ledger | What | Hosted version |
+| --- | --- | --- |
+| M-33 | EPL Tuesday stat rechecks | `20261111171228` |
+| M-34 | EPL standings storage | `20261111171317` |
+| M-35 | EPL corrected draft order | `20261111171357` |
+
+- **History** went from 83 to 86. The new digest is
+  `5dd179dce5d388163cb6f17b6b84aa6b5cdfe8666298fd9284a7a6e29871b382`.
+- **Scores, settled results and preserved EPL tables** are unchanged. The six new tables have 0 rows.
+- **First snapshot run** after the applies (17:19 UTC) ended `skipped` / `snapshot_pending`, as before.
+  No 5xx in `gtl-api` or `gtl-epl-jobs` logs from 17:08 to 17:20 UTC.
+- **Signed-in readback** (view only): the stat corrections card opened, and
+  `epl/admin/corrections/read` returned 200 on v55.
+- **Signed-out boundary check** after the applies: 514 live denials, including all 19 M-33 to M-35
+  tables and RPCs. The only 5 awaiting entries are the flag-gated Player Props routes.
+- **Now live:** automatic EPL final capture fails closed without interval evidence. The commissioner's
+  screenshot import settles the round and opens the next draft. A Tuesday recheck never overrides a
+  confirmed import's order (D-83).
+- **Records:** every repo migration is now hosted (`NOT_HOSTED` and `REQUIRES` in `tests/migrations.mjs`
+  are empty), and the 19 probes left `awaitingDeploy`.
+- **Still off:** the standings collector; Player Props (`GTL_PLAYER_PROPS`, `live_lock_in`; the pilot
+  waits on two GitHub secrets).
+- **Still open:** a real Tuesday recheck, a real import under M-35, and phone acceptance.
+
 ## Player Props pilot collection from GitHub Actions — November 11, 2026
 
 Branch `claude/props-pilot-collect-2026-11-11` lets the hidden D-82 pilot run without a key on any laptop.
@@ -4325,7 +4361,10 @@ fixes landed after them.
 
 **Released** November 4, 2026, about 20:31 UTC: Pages `a73e79f7` from `main` at `87372514`, run 41906859675. See the
 [release record](RELEASE_2026_11_04_RESEARCH_STEP3.md). Live bytes were checked signed out.
-November 4 owner acceptance: Games/detail and Trends/chart readability and Back passed on the iPhone; broader navigation is accepted by owner direction. See the [acceptance record](OWNER_ACCEPTANCE_2026_11_04.md). Fresh signed-in technical readback and unapproved D-69 visual choices remain open.
+November 4 owner acceptance: Games/detail and Trends/chart readability and Back passed on the iPhone; broader navigation is accepted by owner direction. See the [acceptance record](OWNER_ACCEPTANCE_2026_11_04.md). The signed-in readback is done (hosted logs). The landing's `GET /personal` returned 200 on November 4. Games and the
+game layer's reads (`lines/game`, `lines/read`, `lines/teams`, `officials/read`, `trends/week`, `wind/read`) all returned
+200 in the 24 hours to November 11, 17:15 UTC, on the later `1ba75282` build, with no CPU or worker-limit message.
+The unapproved D-69 visual choices remain open.
 
 ## D-69 design overhaul, step 2: Home — November 4, 2026
 
