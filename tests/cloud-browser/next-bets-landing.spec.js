@@ -18,7 +18,8 @@ test.beforeEach(()=>test.skip(!pgliteAvailable,'PGlite required; no hosted data.
 const tab=(page,name)=>page.getByRole('navigation',{name:'Main'}).getByRole('button',{name,exact:true});
 const tile=(page,key)=>page.locator(`#gx-b-tile-${key}`);
 const heading=(page,name)=>page.getByRole('heading',{name,level:1,exact:true});
-async function login(page){await page.addInitScript(()=>{try{localStorage.setItem('gtl.app','next');}catch{/* about:blank */}});await page.goto('/#bets');await signIn(page,'luke',{navigate:false});}
+// Signed in once the landing draws, so a fresh document (openList) keeps the saved session.
+async function login(page){await page.addInitScript(()=>{try{localStorage.setItem('gtl.app','next');}catch{/* about:blank */}});await page.goto('/#bets');await signIn(page,'luke',{navigate:false});await expect(page.locator('[data-landing="bets"] [data-bets="tiles"]')).toBeVisible({timeout:30000});}
 /** A list by its own address, a fresh document (the session stays signed in). */
 async function openList(page,hash){await page.goto('about:blank');await page.goto(`/${hash}`);}
 async function capture(page,name,target=null){await page.mouse.move(0,0);if(target)await target.evaluate(el=>el.scrollIntoView({block:'start'}));else await page.evaluate(()=>scrollTo(0,0));for(const theme of ['dark','light']){await page.evaluate(t=>document.documentElement.dataset.theme=t,theme);await page.screenshot({path:`.local/prism-bets-landing/${name}-${theme}-390.png`});if(name==='landing')await page.screenshot({path:`.local/prism-bets-landing/${name}-full-${theme}-390.png`,fullPage:true});}}
