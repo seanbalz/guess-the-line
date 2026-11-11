@@ -4312,7 +4312,10 @@ fixes landed after them.
 
 **Released** November 4, 2026, about 20:31 UTC: Pages `a73e79f7` from `main` at `87372514`, run 41906859675. See the
 [release record](RELEASE_2026_11_04_RESEARCH_STEP3.md). Live bytes were checked signed out.
-November 4 owner acceptance: Games/detail and Trends/chart readability and Back passed on the iPhone; broader navigation is accepted by owner direction. See the [acceptance record](OWNER_ACCEPTANCE_2026_11_04.md). Fresh signed-in technical readback and unapproved D-69 visual choices remain open.
+November 4 owner acceptance: Games/detail and Trends/chart readability and Back passed on the iPhone; broader navigation is accepted by owner direction. See the [acceptance record](OWNER_ACCEPTANCE_2026_11_04.md). The signed-in readback is done (hosted logs). The landing's `GET /personal` returned 200 on November 4. Games and the
+game layer's reads (`lines/game`, `lines/read`, `lines/teams`, `officials/read`, `trends/week`, `wind/read`) all returned
+200 in the 24 hours to November 11, 17:15 UTC, on the later `1ba75282` build, with no CPU or worker-limit message.
+The unapproved D-69 visual choices remain open.
 
 ## D-69 design overhaul, step 2: Home — November 4, 2026
 

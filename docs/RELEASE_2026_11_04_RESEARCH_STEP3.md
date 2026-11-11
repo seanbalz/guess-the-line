@@ -70,12 +70,31 @@ from `https://guess-the-line.pages.dev`.
 
 **Hosted logs** (executed, 20:31 to about 20:40 UTC): no signed-in `gtl-api` request yet.
 
-**Not checked:**
-- Signed in.
-- On a real phone.
+**Signed-in readback, landing** (executed, hosted logs from 20:31 to about 23:15 UTC on November 4). There was one
+signed-in iPhone visit at 21:52 UTC. All 8 `gtl-api` routes in it returned 200, including the landing's `GET /personal`
+in 694 ms. The step 3 session reported this first, and this session re-ran the query.
 
-When a player opens Research, check the hosted logs for `GET /personal` (which the landing now reads) and the game
-layer's reads: status, latency and Edge CPU.
+**Signed-in readback, Games and the game layer** (executed, hosted logs for the 24 hours to about 17:15 UTC on
+November 11). The step 3 session reported this first, and this session re-ran the query.
+
+- Every signed-in, non-preflight call returned 200:
+
+  | Route | Calls | Slowest |
+  | --- | --- | --- |
+  | `lines/game` | 12 | 1,403 ms |
+  | `lines/read` | 34 | 1,556 ms |
+  | `lines/teams` | 3 | 315 ms |
+  | `officials/read` | 1 | 824 ms |
+  | `trends/week` | 6 | 1,966 ms |
+  | `wind/read` | 10 | 2,556 ms |
+
+- No log line in that window mentions CPU time, a worker limit or a memory limit.
+- **Which build this checks:** these calls were served by a later release, `api-and-frontend` from `1ba75282` (November
+  10, 06:01 UTC), which contains #486. So they show that step 3's Games and game layer work on that build, with its newer
+  `gtl-api`. They are not evidence about Pages `a73e79f7` with `gtl-api` v50.
+
+**Real phone:** in his November 4 iPhone review, Sean reported a pass for Games, one game, the Trends chart and Back.
+See the [acceptance record](OWNER_ACCEPTANCE_2026_11_04.md).
 
 ## For Sean, from the design session's ledger
 
