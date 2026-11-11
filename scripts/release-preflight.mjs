@@ -119,6 +119,21 @@ export function configuration(env, target) {
   return { ready: true, missing: [] };
 }
 
+/** The release step's own name for the repository variable VITE_GTL_PLAYER_PROPS (never a VITE_ name itself). */
+export const PLAYER_PROPS_APP_FLAG_INPUT = 'GTL_PLAYER_PROPS_APP_FLAG';
+/**
+ * The `$GITHUB_ENV` lines that turn an app build flag on (D-82 Player Props, web/src/next/props/flag.js). Unset, empty or
+ * "off" adds nothing, so Vite never sees the variable and the bundle is byte-identical to a build without it: an empty
+ * VITE_ value would still land in import.meta.env and change the bytes. "on" adds exactly VITE_GTL_PLAYER_PROPS=on. Any
+ * other value fails the release before the build.
+ */
+export function appBuildFlags(env) {
+  const value = env[PLAYER_PROPS_APP_FLAG_INPUT];
+  if (value === undefined || value === '' || value === 'off') return '';
+  assert.equal(value, 'on', 'Set the VITE_GTL_PLAYER_PROPS variable to on or off, or leave it unset.');
+  return 'VITE_GTL_PLAYER_PROPS=on\n';
+}
+
 export async function jsonRequest(url, token, options = {}, fetchImpl = fetch) {
   const response = await fetchImpl(url, { ...options, headers: { Accept: 'application/json', ...options.headers, ...(token ? { Authorization: `Bearer ${token}` } : {}) }, redirect: 'error', signal: AbortSignal.timeout(30000) });
   // Do not include response bodies or request credentials in logs, including error responses.

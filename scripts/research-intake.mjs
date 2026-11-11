@@ -1,9 +1,9 @@
 // Operator job, not a public route. Raw inputs and outputs must stay ignored.
 // Default is validation only. Publication/quote collection require explicit flags.
+// A Player Props pilot's quoteRequests come from scripts/player-props-quote-requests.mjs, never a hand-written roster.
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { gunzipSync } from 'node:zlib';
 import { validateAssessmentSnapshot, reviewResearchEvidence } from '../shared/research-assessments.mjs';
@@ -12,18 +12,7 @@ import { parseCsvRows } from '../shared/trends.mjs';
 import { finalAvailableAt } from '../shared/trends-research-candidates.mjs';
 import { observedPlayStatistics } from '../shared/research-play-statistics.mjs';
 import { parseFantasyCsv } from '../shared/fantasy-build.mjs';
-
-const ROOT = fileURLToPath(new URL('../', import.meta.url));
-async function ignoredFile(name, { exists = true } = {}) {
-  const target = path.resolve(ROOT, name ?? '');
-  if (!target.startsWith(path.join(ROOT, '.local') + path.sep)) throw new Error('Research files must remain under ignored .local.');
-  try { execFileSync('git', ['check-ignore', '--quiet', target], { cwd: ROOT, stdio: 'ignore' }); } catch { throw new Error('Research files must be Git-ignored.'); }
-  let real;
-  try { real = await fs.realpath(target); } catch (error) { if (exists || error.code !== 'ENOENT') throw error; real = await fs.realpath(path.dirname(target)); }
-  const localRoot = path.join(await fs.realpath(ROOT), '.local');
-  if (real !== localRoot && !real.startsWith(localRoot + path.sep)) throw new Error('Research paths cannot escape .local.');
-  return target;
-}
+import { ignoredLocalFile as ignoredFile } from './local-private-file.mjs';
 export async function prepareResearchIntake(input, { fetchImpl = fetch, now = Date.now() } = {}) {
   const snapshot = validateAssessmentSnapshot(input.snapshot);
   if (Date.parse(snapshot.generatedAt) > now) throw new Error('Research snapshot is future-dated.');

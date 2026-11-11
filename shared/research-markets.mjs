@@ -13,3 +13,6 @@ export const researchMarketUnit = key => {
 };
 const GAME_UNITS = Object.freeze({ h2h: 'win', spreads: 'points', totals: 'points', alternate_spreads: 'points', alternate_totals: 'points' });
 export const researchQuoteMarketUnit = key => Object.hasOwn(GAME_UNITS, key) ? GAME_UNITS[key] : researchMarketUnit(key);
+/** The key research intake compares a provider's player name with a roster receipt by (accents, case and punctuation
+ * ignored). A name is never an identity: a match must be unique in the game's receipt, and only its stable ID is kept. */
+export const researchNameKey = s => typeof s === 'string' ? s.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '') : '';
