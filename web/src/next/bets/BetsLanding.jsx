@@ -13,7 +13,7 @@ import { useNewCount } from '../moments/MomentsProvider.jsx';
 import { SCOPES } from '../moments/catalog.js';
 import { useBetWins } from './useBetWins.js';
 import { BETS_COPY, betsClock, betsHero, betsTiles, clockUntil } from './betsModel.js';
-import { BETS_NAMES, HERO_ACTION_ID, openAssessment, openView, tileId } from './betsNav.js';
+import { BETS_NAMES, HERO_ACTION_ID, openView, tileId } from './betsNav.js';
 import '../ui/focusLanding.css';
 import './landing.css';
 
@@ -48,7 +48,7 @@ export function BetsLanding() {
     {loading ? null : <ul className="gx-tiles gx-stagger" data-enter={enter} aria-label="Bets sections" data-bets="tiles">
       {tiles.map(tile => <li key={tile.key} data-tile={tile.key}>
         <Tile id={tileId(tile.key)} label={tile.label} icon={tile.icon} big={tile.big} sub={tile.sub} isNew={tile.isNew} ariaLabel={tile.ariaLabel}
-          picture={picture(tile)} onClick={() => (tile.open ? openAssessment(shell, tile.open) : openView(shell, tile.view, tile.period))}/></li>)}
+          picture={picture(tile)} onClick={() => openView(shell, tile.view, tile.period)}/></li>)}
     </ul>}
   </section>;
 }

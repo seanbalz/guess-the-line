@@ -68,7 +68,7 @@ test('five tiles in order with distinct glyphs; NEW only on My bets', () => {
   assert.deepEqual([mine.big, mine.sub, mine.ariaLabel, mine.isNew], ['—', '2 open · 0 settled', 'My bets, no net units yet, 2 open, 0 settled, 2 tracked tickets', true]);
   assert.deepEqual([picks.big, picks.sub, picks.ariaLabel], ['2', 'games open to bet', 'Your picks, 2 games open to bet']);
   assert.deepEqual([everyone.big, everyone.sub, everyone.faces.map(f => [f.id, f.you])], ['2', 'players', [[LUKE, true], [TROY, false]]]);
-  assert.deepEqual([recommended.big, recommended.sub, recommended.ariaLabel, recommended.marks, recommended.open], ['—', 'Research assessments', 'Recommended, loading research assessments', null, null]);
+  assert.deepEqual([recommended.big, recommended.sub, recommended.ariaLabel, recommended.marks], ['—', 'Research assessments', 'Recommended, loading research assessments', null]);
   assert.deepEqual([gap.big, gap.sub, gap.ariaLabel], ['3', 'locked guesses', 'Your gap, 3 locked guesses against the lines']);
   assert.deepEqual(tiles.slice(1).map(t => t.isNew), [false, false, false, false]);
   const later = betsTiles({ personal: personal(), community, tickets: tickets([]), now: ms('2026-11-10T05:00:00Z'), viewer: LUKE });
@@ -101,14 +101,14 @@ test('My bets (main’s Your tracked bets and Tickets): net units over all weeks
   assert.equal(JSON.stringify(myBetsTile(tickets(entries))).includes('400'), false, 'another owner’s ticket never counts');
 });
 
-test('Recommended (main’s teaser): the first assessment open to you, its marks and label, and it opens that assessment', () => {
+test('Recommended (main’s teaser): the first assessment open to you, its marks and label; the tile opens its section', () => {
   const a = (gameId, market, extra = {}) => ({ gameId, routeId: `${gameId}-${market}`, label: 'Research lean', selection: { market }, ...extra });
   const coverage = games => ({ games: games.map(([id, spreadAccessible, totalAccessible, closed = false]) => ({ id, spreadAccessible, totalAccessible, closed })) });
   const data = { assessments: [a('TB-DAL', 'total'), a('SEA-DEN', 'spread'), a('KC-BUF', 'player_reception_yds'), a('<x>-DEN', 'spread')],
     coverage: coverage([['TB-DAL', true, false], ['SEA-DEN', true, false], ['KC-BUF', true, true], ['<x>-DEN', true, true]]) };
   assert.deepEqual(openAssessments(data).map(x => x.gameId), ['SEA-DEN', 'KC-BUF'], 'a locked market and a malformed game are never named');
   assert.equal(teaserAssessment(data).gameId, 'SEA-DEN');
-  assert.deepEqual(recommendedTile({ status: 'ready', data }), { big: '2', sub: 'Research lean', marks: ['SEA', 'DEN'], open: { matchup: 'SEA-DEN', assessment: 'SEA-DEN-spread' },
+  assert.deepEqual(recommendedTile({ status: 'ready', data }), { big: '2', sub: 'Research lean', marks: ['SEA', 'DEN'],
     ariaLabel: 'Recommended, 2 assessments open to you, first Seahawks @ Broncos, Research lean' });
   const closed = { ...data, coverage: coverage([['SEA-DEN', true, true, true], ['KC-BUF', true, true, true]]) };
   assert.equal(teaserAssessment(closed), null, 'a closed game is never selected');
@@ -118,10 +118,10 @@ test('Recommended (main’s teaser): the first assessment open to you, its marks
   assert.equal(recommendedTile({ status: 'ready', data: { assessments: [], coverage: { games: [] } } }).sub, 'None assessed yet');
   for (const read of [{ status: 'loading', data: null }, { status: 'error', error: { status: 503 } }]) {
     const tile = recommendedTile(read);
-    assert.deepEqual([tile.big, tile.marks, tile.open], ['—', null, null], 'loading and a failed read never draw a sample matchup');
+    assert.deepEqual([tile.big, tile.marks], ['—', null], 'loading and a failed read never draw a sample matchup');
   }
   const tiles = betsTiles({ personal: personal(), community, tickets: tickets([]), research: { status: 'ready', data }, now: ms('2026-11-08T19:00:00Z'), viewer: LUKE });
-  assert.deepEqual([tiles[3].marks, tiles[3].open, tiles[3].view], [['SEA', 'DEN'], { matchup: 'SEA-DEN', assessment: 'SEA-DEN-spread' }, 'research']);
+  assert.deepEqual([tiles[3].marks, tiles[3].view], [['SEA', 'DEN'], 'research'], 'the tile opens Recommended, where that matchup is a row');
 });
 
 test('one player is "1 player", not "1 players"', () => {

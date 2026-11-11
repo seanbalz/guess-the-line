@@ -1,3 +1,6 @@
 /* D-69 step 4 (spec 5A): Bets' landing. The next-move card is the kit's (ui/nextMoveCard.css); five tiles sit under it in
    two columns on the page (the kit's .gx-tiles), the fifth alone on its row. Tokens only. */
 .gx .gx-b-landing { gap: var(--gx-space-3); }
+/* My bets carries main's net units ("+12.55U"): two tiles to a row leave its value 112 px at 320 px, so under 360 px it
+   takes 24 px (as Your gap's stat tiles do), one line in the condensed number face or a wide fallback face. */
+@media (max-width: 359px) { .gx .gx-b-landing [data-tile="mybets"] .gx-nest-num { font-size: 24px; } }

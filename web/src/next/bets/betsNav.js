@@ -27,8 +27,6 @@ export function gapTitle(item) {
 }
 export function openView(shell, view, period = null) { shell.go('bets', { view, ...BETS_FRESH, period }); }
 export function openSection(shell, key) { openView(shell, SECTION_VIEW[key], key === 'mybets' ? 'all' : null); }
-/** Recommended on one assessment (main's Explore recommendations): its game and the assessment open, a fresh step. */
-export function openAssessment(shell, { matchup, assessment }) { shell.go('bets', { view: SECTION_VIEW.recommended, ...BETS_FRESH, matchup: matchup ?? null, assessment: assessment ?? null }); }
 export function openGap(shell, item) { shell.setView('bets', { layer: BETS_LAYERS.recommended.layer, item }); }
 export function closeGap(shell) { shell.setView('bets', { layer: undefined, item: undefined }); }
 /**

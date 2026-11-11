@@ -131,8 +131,8 @@ test('the Recommended tile names permitted retained research and opens its real 
    await page.locator('[data-bets="tiles"]').evaluate(el=>el.scrollIntoView({block:'start'}));await page.screenshot({path:`.local/prism-bets-closeout/tiles-recommendation-${theme}-${width}.png`});
   }
   await page.emulateMedia({forcedColors:'active'});await expect(rec.locator('.gx-team')).toHaveCount(2);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:'.local/prism-bets-closeout/landing-forced-320.png'});await page.emulateMedia({forcedColors:'none'});
-  // Main's Explore recommendations: the tile opens that matchup's assessment in Recommended.
-  await rec.click();await expect(heading(page,'Recommended')).toBeVisible();await expect(page.locator('[data-assessment="yellow"]')).toContainText('Research lean');
+  // Main's Explore recommendations: the tile opens Recommended, where the teased matchup is a row (its real controller).
+  await rec.click();await expect(heading(page,'Recommended')).toBeVisible();await expect(page.locator('[data-assessment="yellow"]').first()).toContainText('Research lean');
   expect(calls.filter(path=>/refresh|collect|fetch-quotes/.test(path))).toEqual([]);expect(world.errors).toEqual([]);
  }finally{await world.db.close();}
 });

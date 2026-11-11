@@ -149,15 +149,17 @@ const resultFilter = (page, name) => page.getByRole('group', { name: 'Result fil
  * next-lines.spec.js's clearOfEdges: the page scrolls under the sticky top bar and the fixed tab bar, and axe's
  * target-size reads a control half under a bar as an obscured target. Before axe, move at most 120 px to the nearest
  * spot where no control straddles a bar's edge, so the check measures the controls, not where the scroll stopped.
+ * Main's native frame adds the sport controls under the top bar, which scroll under it: as in main's next-lines copy,
+ * they must sit wholly above the viewport or wholly below the bar.
  */
 const clearOfEdges = page => page.evaluate(() => {
   const edges = [document.querySelector('.gx-topbar')?.getBoundingClientRect().bottom, document.querySelector('.gx-tabbar')?.getBoundingClientRect().top].filter(Number.isFinite);
-  const controls = [...document.querySelectorAll('.gx-main :is(button, a[href], summary, input, select, textarea, [role="button"])')]
-    .map(el => el.getBoundingClientRect()).filter(r => r.height > 0);
+  const controls = [...document.querySelectorAll('.gx-main :is(button, a[href], summary, input, select, textarea, [role="button"]), .gx-sport-controls button')]
+    .map(el => ({ rect: el.getBoundingClientRect(), sport: el.matches('.gx-sport-controls button') })).filter(({ rect }) => rect.height > 0);
   const room = document.documentElement.scrollHeight - innerHeight;
   const clear = shift => scrollY + shift >= 0 && scrollY + shift <= room
-    && controls.every(r => edges.every(edge => r.bottom - shift <= edge || r.top - shift >= edge));
-  for (let d = 0; d <= 120; d += 4) for (const shift of d ? [d, -d] : [0]) if (clear(shift)) { scrollBy(0, shift); return shift; }
+    && controls.every(({ rect: r, sport }) => edges.every((edge, index) => r.bottom - shift <= (sport && index === 0 ? 0 : edge) || r.top - shift >= edge));
+  for (let d = 0; d <= 120; d++) for (const shift of d ? [d, -d] : [0]) if (clear(shift)) { scrollBy(0, shift); return shift; }
   return null;
 });
 /** Spec 3's phone rules for the page: no sideways scroll, layoutProblems, 44 px targets, no text under 12 px, fixed bars, axe. */
@@ -194,7 +196,9 @@ async function phoneProblems(page) {
   return problems;
 }
 
-test('the landing: the next move, five tiles, no Bets, line or research read; Back from each section returns to its tile', async ({ page, baseURL }) => {
+// Main's Recommended card read the account's retained assessments on the landing; its tile keeps that one read (never a
+// Bets, line or quote read) and, like every tile, opens its section.
+test('the landing: the next move, five tiles, no Bets or line read (only main’s retained assessments); Back from each section returns to its tile', async ({ page, baseURL }) => {
   const world = await world4(page, baseURL);
   try {
     const calls = gtlCalls(page);
@@ -206,9 +210,10 @@ test('the landing: the next move, five tiles, no Bets, line or research read; Ba
     await expect(hero(page).locator('.gx-meter3-seg')).toHaveCount(n);
     await expect(page.locator('.gx-btn--primary:visible'), 'the screen’s one lime button').toHaveCount(1);
     await expect(page.locator('[data-bets="tiles"] > li')).toHaveCount(5);
-    for (const [key, name] of [['mybets', /^My bets, /], ['picks', /^Your picks, \d+ games? open to bet$/], ['everyone', /^Everyone, /], ['recommended', 'Recommended, research assessments'], ['gap', 'Your gap, 8 locked guesses against the lines']]) await expect(tile(page, key)).toHaveAccessibleName(name);
+    for (const [key, name] of [['mybets', /^My bets, /], ['picks', /^Your picks, \d+ games? open to bet$/], ['everyone', /^Everyone, /], ['recommended', /^Recommended, \d+ assessments? open to you, first .+ @ .+, .+$/], ['gap', 'Your gap, 8 locked guesses against the lines']]) await expect(tile(page, key)).toHaveAccessibleName(name);
     await page.waitForLoadState('networkidle');
-    expect(calls.filter(call => /\/(bets\/|lines\/|research)/.test(call)), 'the landing reads only the shared reads').toEqual([]);
+    expect(calls.filter(call => /\/(bets\/|lines\/|research)/.test(call) && !/\/lines\/assessments$/.test(call)), 'the landing reads only the shared reads and the retained assessments').toEqual([]);
+    expect(calls.filter(call => /refresh|collect|fetch-quotes/.test(call)), 'never a quote collection').toEqual([]);
     expect(await running(page), 'nothing moves on the first paint').toEqual([]);
     // No tracked win waits, so My bets opens its tickets with every result.
     for (const [key, heading, address] of [['mybets', 'My bets', /#bets\/tracked/], ['picks', 'Your picks', /#bets\/virtual/], ['everyone', 'Everyone', /#bets\/everyone/], ['recommended', 'Recommended', /#bets\/research/], ['gap', 'Your gap', /#bets\/recommended/]]) {
@@ -427,7 +432,8 @@ test('a tracked win waits on My bets, which opens Settled; it pops once on its o
   try {
     const win = await seedTicket(world, 'to-win'), lose = await seedTicket(world, 'to-lose'), later = await seedTicket(world, 'later');
     await openAt(page, '#bets'); // this device's first ticket read: seeded, nothing waits
-    await expect(tile(page, 'mybets')).toHaveAccessibleName('My bets, 3 active tickets', { timeout: 30000 });
+    // The tile carries main's landing numbers: net units, then the open and settled counts (nothing settled yet).
+    await expect(tile(page, 'mybets')).toHaveAccessibleName('My bets, no net units yet, 3 open, 0 settled, 3 tracked tickets', { timeout: 30000 });
     await settleTicket(world, win.id, 'win'); await settleTicket(world, lose.id, 'loss');
     await shared(page, '#bets/settled'); // a launch: the settled rows show and nothing pops
     await expect(page.locator(`[data-ticket="${win.id}"]`)).toBeVisible({ timeout: 30000 });

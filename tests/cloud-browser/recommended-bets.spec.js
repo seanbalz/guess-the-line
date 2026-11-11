@@ -835,8 +835,9 @@ test('a prepared card selection survives filter changes and places exactly its r
     await expect(layer(page).getByRole('button', { name: 'Place virtual pick', exact: true })).toBeVisible();
     await lip(page).click();
     await market(page, 'All').click();
-    await expect(yourCard).toHaveCount(1);
-    await expect(yourCard).toContainText('Over 44.5 · −110 · 2U');
+    // D-81 ranks this total first, so All shows its own row (marked On your card), as main's list showed it.
+    await expect(yourCard).toHaveCount(0);
+    await expect(total).toContainText('On your card');
     await market(page, 'Totals').click();
     await expect(yourCard).toHaveCount(0);
     await total.click();

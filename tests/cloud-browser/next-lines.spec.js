@@ -2033,8 +2033,13 @@ test('long native game bets scroll to every row with market and units aligned op
     await expect(bets).not.toContainText('13.5'); // copied friends stay behind the native reveal projection
     await nativeActionCaptures(page, 'nfl-game-bets-long', async () => {
       await phoneChecks(page); expect(await axe(page)).toEqual([]);
-      expect(await bets.locator('.gx-ev-pick-head').first().evaluate(el => getComputedStyle(el).justifyContent)).toBe('space-between');
-      expect(await bets.locator('.gx-ev-pick-value').first().evaluate(el => getComputedStyle(el).justifyContent)).toBe('space-between');
+      // D-69 step 4: each pick is a picture row; its units and result word sit at the row's end, opposite the selection.
+      const aligned = await bets.locator('.gx-prow[data-pick]').first().evaluate(row => {
+        const r = row.getBoundingClientRect(), pad = parseFloat(getComputedStyle(row).paddingRight);
+        const end = row.querySelector('.gx-prow-end').getBoundingClientRect(), main = row.querySelector('.gx-prow-main').getBoundingClientRect();
+        return { endAtRight: Math.abs(r.right - pad - end.right) <= 1, opposite: end.left >= main.right - 1 };
+      });
+      expect(aligned).toEqual({ endAtRight: true, opposite: true });
     });
     await bets.getByRole('button', { name: 'Refresh league bets' }).focus();
     expect(await bets.locator('.gx-sheet-body').evaluate(el => el.scrollTop)).toBeGreaterThan(0);

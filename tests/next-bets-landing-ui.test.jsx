@@ -2,8 +2,7 @@
 // meta line and the screen's one lime button; five tiles with stable ids and faces on Everyone, NEW only on My bets (a tracked win waiting for its card); while
 // /personal loads, the meter card's skeleton with five tile skeletons; a failed read says one sentence
 // with Try again and keeps the tiles; a failed refresh keeps the last copy and says so. Main's landing cards as tiles: My
-// bets says the net units and Open and Settled counts; Recommended draws the teased matchup's two marks and opens that
-// assessment, a fresh step. Fixture data only.
+// bets says the net units and Open and Settled counts; Recommended draws the teased matchup's two marks. Fixture data only.
 import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { markupProblems, nameFrom, parseMarkup, walk } from './helpers/ui-markup.mjs';
@@ -84,7 +83,7 @@ describe('the Bets landing', () => {
     expect([...walk(hero)].filter(n => (n.attrs?.class ?? '').includes('gx-meter3-seg'))).toHaveLength(0);
     expect(textOf(byAttr(html, 'data-bets', 'hero-line')[0])).toBe('Loading your tickets…');
   });
-  it('My bets says your net units with Open and Settled; Recommended draws the teased matchup and opens that assessment', () => {
+  it('My bets says your net units with Open and Settled; Recommended draws the teased matchup', () => {
     const entry = (id, outcome) => ({ id, ownerId: LUKE, origin: 'tracked', kind: 'single', countsForRecord: true, stakeUnits: 0.75, odds: 100, legs: [], outcome });
     const entries = [entry('w', 'win'), entry('o', 'pending')];
     state.tickets = { loading: false, error: null, data: { entries }, model: { entries, summary: { bets: 2, pending: 1, roiSampleCount: 1, netUnits: 0.75 } } };

@@ -93,23 +93,24 @@ export const teaserAssessment = data => openAssessments(data)[0] ?? null;
 
 /**
  * Recommended (main's "Recommended" card): how many assessments are open to you and the first one's matchup (its marks are
- * the tile's picture) and label; tapping opens that assessment (`open`), as main's Explore recommendations did. Loading and
- * a failed read never draw a sample matchup; locked and closed weeks say so.
+ * the tile's picture) and label. Like every tile it opens its section (Recommended's list, where that matchup is a row);
+ * main's Explore went straight to the one assessment (a decision for Sean). Loading and a failed read never draw a sample
+ * matchup; locked and closed weeks say so.
  */
 export function recommendedTile(read) {
-  if (!read || read.status === 'loading') return { big: DASH, sub: 'Research assessments', ariaLabel: 'Recommended, loading research assessments', marks: null, open: null };
-  if (read.status === 'error') return { big: DASH, sub: 'Not loaded', ariaLabel: 'Recommended, research assessments not loaded', marks: null, open: null };
+  if (!read || read.status === 'loading') return { big: DASH, sub: 'Research assessments', ariaLabel: 'Recommended, loading research assessments', marks: null };
+  if (read.status === 'error') return { big: DASH, sub: 'Not loaded', ariaLabel: 'Recommended, research assessments not loaded', marks: null };
   const list = openAssessments(read.data), first = list[0] ?? null, games = Array.isArray(read.data?.coverage?.games) ? read.data.coverage.games : [];
   if (first) {
     const [away, home] = first.gameId.split('-');
-    return { big: String(list.length), sub: first.label, marks: [away, home], open: { matchup: first.gameId, assessment: first.routeId ?? null },
+    return { big: String(list.length), sub: first.label, marks: [away, home],
       ariaLabel: `Recommended, ${plural(list.length, 'assessment', 'assessments')} open to you, first ${gameName(away, home)}, ${first.label}` };
   }
   const locked = games.length > 0 && games.every(g => !g.spreadAccessible && !g.totalAccessible);
   const closed = games.length > 0 && games.every(g => g.closed);
-  return locked ? { big: '0', sub: 'Lock in to see research', ariaLabel: 'Recommended, lock in a guess to see its research', marks: null, open: null }
-    : closed ? { big: '0', sub: 'Assessments closed', ariaLabel: 'Recommended, pregame assessments closed', marks: null, open: null }
-    : { big: '0', sub: 'None assessed yet', ariaLabel: 'Recommended, no assessed matchup yet', marks: null, open: null };
+  return locked ? { big: '0', sub: 'Lock in to see research', ariaLabel: 'Recommended, lock in a guess to see its research', marks: null }
+    : closed ? { big: '0', sub: 'Assessments closed', ariaLabel: 'Recommended, pregame assessments closed', marks: null }
+    : { big: '0', sub: 'None assessed yet', ariaLabel: 'Recommended, no assessed matchup yet', marks: null };
 }
 
 /**
@@ -133,5 +134,5 @@ export function betsTiles({ personal = null, community = null, tickets = null, r
     : { big: String(own.locked), sub: own.locked === 1 ? 'locked guess' : 'locked guesses', ariaLabel: `Your gap, ${plural(own.locked, 'locked guess', 'locked guesses')} against the lines` };
   const tiles = { mybets: { ...mine, isNew: waitingWins > 0, ...(waitingWins > 0 ? { view: 'settled' } : { view: 'tracked', period: 'all' }) }, picks, everyone, gap,
     recommended: recommendedTile(research) };
-  return BETS_SECTIONS.map(key => ({ key, label: BETS_NAMES[key], icon: BETS_TILE_ICONS[key], faces: null, marks: null, open: null, isNew: false, view: SECTION_VIEW[key], ...tiles[key] }));
+  return BETS_SECTIONS.map(key => ({ key, label: BETS_NAMES[key], icon: BETS_TILE_ICONS[key], faces: null, marks: null, isNew: false, view: SECTION_VIEW[key], ...tiles[key] }));
 }
