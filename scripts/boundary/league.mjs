@@ -14,7 +14,7 @@ export const tables = Object.freeze([
   'feed_reaction_events',
   // M-25 and M-26 (hosted since October 27, 2026): the features job's records and its schedule.
   'feature_runs', 'badge_events', 'weekly_awards', 'player_streaks', 'features_schedule', 'features_schedule_runs',
-  // M-34: pending private dated standings and immutable deadline references.
+  // M-34 (hosted November 11, 2026): private dated standings and immutable deadline references.
   'epl_standings', 'epl_standings_usage',
   // M-38 ops alerts (item 22): the schedule, its runs and the incidents. Service-only.
   'ops_alert_schedule', 'ops_alert_runs', 'ops_incidents',
@@ -126,11 +126,6 @@ export const awaitingDeploy = Object.freeze({
   ...moneyline.awaitingDeploy,
   ...eplResults.awaitingDeploy,
   ...eplScoreImport.awaitingDeploy,
-  'table/epl_standings': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
-  'table/epl_standings_usage': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
-  'rpc/gtl_epl_standings_valid': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
-  'rpc/gtl_epl_standings_state': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
-  'rpc/gtl_epl_save_standings': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
-  'rpc/gtl_epl_resolve_with_standings': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
-  'rpc/gtl_epl_standings_provenance': '20261029161613 (M-34 standings apply / compatible worker and API deploy)',
+  // M-34 (20261029161613) is hosted as 20261111171317 since November 11, 2026 (RELEASE_2026_11_11_STAT_CORRECTIONS_M33_M35.md):
+  // its two tables and five RPCs left this list and must deny. The standings collector stays unconfigured (no schedule row).
 });
