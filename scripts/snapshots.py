@@ -72,7 +72,8 @@ def load_repository(root=ROOT, now=None):
             picks[pick["matchup"]] = home_spread(pick)
     if not picks:
         raise ValueError("No eligible predictions")
-    blob = hashlib.sha1(f"blob {len(picks_bytes)}\0".encode() + picks_bytes).hexdigest()
+    # Git blob object ID compatibility only; not used for security or signatures.
+    blob = hashlib.sha1(f"blob {len(picks_bytes)}\0".encode() + picks_bytes).hexdigest()  # nosemgrep: python.lang.security.insecure-hash-algorithms.insecure-hash-algorithm-sha1
     snapshots = []
     pattern = f"{scope[0]}-week-{scope[1]:02d}-*.json"
     for path in (root / "data/snapshots").glob(pattern):
