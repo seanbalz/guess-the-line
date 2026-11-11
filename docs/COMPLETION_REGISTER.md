@@ -1,5 +1,19 @@
 # Guess The Line — current completion register
 
+## Player Props pilot input builder and app-flag pass-through — November 11, 2026
+
+Sean said "lets turn these on" (D-82). Branch `claude/props-pilot-prep-2026-11-11` builds the two gaps
+[Task 2](PLAYER_PROPS_READINESS_TASK2_2026-11-10.md#pilot-input-builder-november-11) left for agents.
+
+- **The builder.** `scripts/player-props-quote-requests.mjs` builds research intake's `quoteRequests`
+  from the core market snapshot's event IDs and a GSIS-keyed roster receipt from the verified nflverse
+  files. It prints the credit cost and refuses above `--max-credits`. The default pilot is 2 games ×
+  3 yardage stats = 6 credits.
+- **The flag.** `release.yml` now passes `VITE_GTL_PLAYER_PROPS` to the Pages build only when it is `on`.
+  Built unset, the bundle hash equals `origin/main`'s.
+
+Nothing was spent, written, set, dispatched or deployed. Every enabling switch is still Sean's.
+
 ## Migrations M-41 to M-47 applied and verified — November 10, 2026 UTC
 
 Sean approved "Yes, apply M-41–M-47" through the SQL editor in his signed-in Chrome.

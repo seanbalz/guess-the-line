@@ -164,12 +164,16 @@ allowlisted and checked against the existing production project/account.
 | Variable | `CLOUDFLARE_PAGES_PROJECT` | `guess-the-line` |
 | Secret | `SUPABASE_ACCESS_TOKEN` | A dedicated project-scoped token permitting database read-only preflight and Edge Function read/deploy. Required even for frontend readiness because the schedule/history gate is hosted. |
 | Secret | `CLOUDFLARE_API_TOKEN` | Dedicated Cloudflare Pages Edit token for this account; required for frontend or combined releases, not API-only or worker (`push-reminders`, `points-jobs`, `league-features`, `fantasy-ingest`, `epl-jobs`, `ops-alerts`, `odds-refresh`) releases |
+| Variable (optional) | `VITE_GTL_PLAYER_PROPS` | D-82 Player Props app flag. Leave it **unset** (or `off`): the Pages build is then byte-identical to a build without it. `on` builds the flag in; any other value fails the release before the build. Setting it is Sean's word, only after the `gtl-api` secret `GTL_PLAYER_PROPS` and `live_lock_in` (docs/PLAYER_PROPS_READINESS_TASK2_2026-11-10.md, step 6), and it takes effect only with the next Pages deploy. |
 
 Create dedicated tokens in the providers' secure interfaces, then enter them
 directly into GitHub environment secrets. Do not paste them into a task, commit
 them, copy another project's stored login, or use `VITE_` names for secrets.
 Build/install steps receive public variables only; provider secrets are scoped
-to the steps that use them. The CLI versions come from committed
+to the steps that use them. `VITE_GTL_PLAYER_PROPS` is the one `VITE_` value that
+is not a job-level entry: a step passes it to the build through `$GITHUB_ENV` only
+when it is `on`, because an unset variable would otherwise reach Vite as an empty
+string and change the bundle bytes. The CLI versions come from committed
 `package-lock.json`; the workflow uses the same pinned action major versions as
 existing CI. It never installs `latest` deploy tools.
 

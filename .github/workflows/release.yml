@@ -120,6 +120,12 @@ jobs:
       - name: Install the committed CLI and build dependencies
         working-directory: source
         run: npm ci
+      # D-82: the repository variable VITE_GTL_PLAYER_PROPS reaches the build only as VITE_GTL_PLAYER_PROPS=on. Unset or off
+      # adds nothing, so the bundle stays byte-identical; a job-level VITE_ env entry would pass an empty value and change it.
+      - name: Pass only app flags that are on to the frontend build
+        env:
+          GTL_PLAYER_PROPS_APP_FLAG: ${{ vars.VITE_GTL_PLAYER_PROPS }}
+        run: node --input-type=module -e "import { appBuildFlags } from './control/scripts/release-preflight.mjs'; process.stdout.write(appBuildFlags(process.env))" >> "$GITHUB_ENV"
       - name: Build, scan and fingerprint exact release source
         working-directory: source
         run: |
@@ -205,6 +211,7 @@ jobs:
         if: always()
         run: |
           echo "Mode: $RELEASE_MODE. Source: $RELEASE_SHA. Target: $RELEASE_TARGET." >> "$GITHUB_STEP_SUMMARY"
+          echo "Player Props app flag in this build: ${VITE_GTL_PLAYER_PROPS:-off}." >> "$GITHUB_STEP_SUMMARY"
           echo 'Review the result of every step and the evidence artifact. No database migrations, collector changes or app-default flip are performed. A failed post-deploy check may follow a successful deployment; investigate before retrying.' >> "$GITHUB_STEP_SUMMARY"
           echo 'Signed-in acceptance and real-phone verification remain separate. Record successful deployment identifiers in a dated repository release record.' >> "$GITHUB_STEP_SUMMARY"
       - name: Save allowlisted release evidence (no credentials or private state)

@@ -13,6 +13,12 @@ full-slate prop pass. Nothing was written, enabled, collected or deployed by thi
 Evidence tags: **executed** means I ran it in this audit; **inspected** means I read the code
 or a record; **assumed** means inferred and not checked.
 
+> **Since then, November 11, 2026.** Sean said "lets turn these on". Branch
+> `claude/props-pilot-prep-2026-11-11` closes the two agent-buildable gaps below, without
+> spending a credit or changing hosted state: blocker 0(a), the input builder, and the
+> `release.yml` half of step 6. See [Pilot input builder](#pilot-input-builder-november-11) at
+> the end. Every switch is still off, and each remains Sean's own word.
+
 ## How this was run
 
 - **Project confirmed (executed).** The production environment's `SUPABASE_PROJECT_REF` and
@@ -173,3 +179,110 @@ nothing to act on.
   move past plumbing.
 
 Approving the pilot covers the scope only. Each step in the table above keeps its own word.
+
+## Pilot input builder, November 11
+
+Branch `claude/props-pilot-prep-2026-11-11` adds these two pieces. Neither is merged or
+deployed. No credit was spent, nothing hosted was written, and no switch was set.
+
+### 0(a): `scripts/player-props-quote-requests.mjs`
+
+This script builds the research-intake input file. Its logic is in
+`cloud/player-prop-quote-requests.mjs`; tests are in `tests/player-prop-quote-requests.test.mjs`.
+
+```sh
+node scripts/player-props-quote-requests.mjs --season 2026 --week 11 --output .local/props-pilot-2026-w11.json
+# Spending is a separate step, under Sean's word for the credit scope. Never add --publish:
+node scripts/research-intake.mjs --input .local/props-pilot-2026-w11.json --collect-quotes
+```
+
+**Scope (inspected and tested with fixtures).**
+
+- By default the script takes the two earliest eligible games of the week.
+- `--game AWAY-HOME`, repeated, names exact games. A named game that fails a check refuses
+  the whole build.
+- `--stats` takes catalog keys only. The default is passing, rushing and receiving yards.
+
+**Credit math (executed in tests).** A request costs 1 credit for each requested market,
+because the three named books count as one region.
+
+- The default pilot is 2 games × 3 stats × 1 region = **6 credits**, in two requests of 3.
+- `gtl_begin_research_quotes` reserves exactly those 3 credits before each request, and the
+  intake treats any higher reported cost as a failure.
+- The reservation is not refunded.
+- Each request also needs `conservative_remaining` to be at least 50 plus its cost.
+
+**Refusals (executed in tests).** These are refused before anything is read:
+
+- a scope above `--max-credits` (default 6, at most 32);
+- a scope needing more than the intake's four requests (eight markets per request);
+- a public output path.
+
+The builder also never overwrites an existing output file, because its request IDs may
+already be spent. All eleven stats for two games cost 22 credits.
+
+**Sources (inspected).** The script makes one read-only GET, on `gtl_market_snapshots`. It
+reads the newest core snapshot of the week with the intake's own `GTL_RESEARCH_*`
+credentials, and from it takes:
+
+- the provider event IDs of matched games;
+- team names that agree with the app codes;
+- kickoffs that equal the verified nflverse `games.csv`, and are at least 15 minutes away.
+
+It then reads the verified `roster_weekly_<season>.csv`. Both nflverse files have their size
+and SHA-256 checked, exactly as the jobs check theirs.
+
+**The roster receipt.** It is keyed by GSIS ID. A player is listed only when all of these hold:
+
+- he is ACT for one of the two teams;
+- he is a QB, RB, WR or TE;
+- his repeated rows agree;
+- no one on either team shares his name key.
+
+The intake matches provider names by that key and needs exactly one row.
+
+**Wiring (executed in tests).** In the tests, a built request runs through
+`collectResearchQuotes` with a fake reservation and a fake provider reply. The offers job then
+reviews the retained quotes as **eligible** offers, keyed by GSIS ID. Research intake accepts
+the built file for validation, refuses `--publish` with it (it has no `publicationId`), and
+cannot collect without its own credentials.
+
+**Output.** The script prints one line of counts, app game IDs, stat keys, credits and source
+digests. It never prints a player, a provider event ID or a key.
+
+**Timing (inspected).** The offers job reads only fetches from the last six hours and records
+nothing after kickoff. Run `offers` within six hours of the collection, before the games kick off.
+
+### Step 6's `release.yml` half
+
+A new step, "Pass only app flags that are on to the frontend build", hands the repository
+variable `VITE_GTL_PLAYER_PROPS` to the Pages build through `$GITHUB_ENV`, and only as
+`VITE_GTL_PLAYER_PROPS=on`. Unset, empty or `off` adds nothing. Any other value fails before the
+build.
+
+**Why not a job-level entry (executed).** A job-level `env` entry, like the two `VITE_SUPABASE_*`
+ones, was not used. An unset variable would reach Vite as an empty string, and that alone
+changed the bundle:
+
+| Build | `frontendSha256` | Files / bytes |
+| --- | --- | --- |
+| `origin/main` `8eaf7a77`, no variable (built twice) | `2f9d16b6f5369ddd5f27a935713a25169f8c61da7671517166edf2b7af1a7b06` | 145 / 19,756,262 |
+| `origin/main`, `VITE_GTL_PLAYER_PROPS=` (the job-level entry, unset) | `8dbfee9a07287588b2a63bdee6d361eef0e113655243b6f82fd25529de74c256` | 145 / 19,756,287 |
+| This branch, new step with the variable unset, empty or `off` | `2f9d16b6f5369ddd5f27a935713a25169f8c61da7671517166edf2b7af1a7b06` | 145 / 19,756,262 |
+| This branch, new step with `on` | `d802fdffc9e54e332148fe32f35f6d91e46d5797edd276f53ff11d15681728b9` | 145 / 19,756,289 |
+
+The unset branch build also matched `origin/main` file for file (`diff -rq`). An invalid value
+(`On`) failed the step and wrote nothing.
+
+### Still Sean's, in order
+
+- The credit scope.
+- Adding the `GTL_PROPS_SUPABASE_URL` and `GTL_PROPS_SERVICE_ROLE_KEY` secrets himself.
+- The `GTL_PLAYER_PROPS_JOBS` variable.
+- Dry runs, then write runs.
+- `live_lock_in`.
+- The `GTL_PLAYER_PROPS` secret.
+- The `VITE_GTL_PLAYER_PROPS` variable plus a Pages deploy.
+
+The collection also needs the research intake credentials on the operator machine
+(blocker 0(b), still unknown).

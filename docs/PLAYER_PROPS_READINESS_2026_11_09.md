@@ -203,7 +203,10 @@ Enabling requires these steps, in order, each under its normal gate:
 2. The repository secrets `GTL_PROPS_SUPABASE_URL` and
    `GTL_PROPS_SERVICE_ROLE_KEY`, and the variable `GTL_PLAYER_PROPS_JOBS=on`.
 3. Research intake must already retain prop quotes for the week, under its
-   existing authorization. These jobs never collect them.
+   existing authorization. These jobs never collect them. Since November 11,
+   `scripts/player-props-quote-requests.mjs` builds a bounded pilot's intake input
+   from verified sources and refuses a scope above its credit cap
+   ([Task 2 record](PLAYER_PROPS_READINESS_TASK2_2026-11-10.md#pilot-input-builder-november-11)).
 4. A dry run of each job, reviewed.
 5. Write runs, with `--record-while-dark` until the readiness audit passes and a
    reviewed SQL change sets `live_lock_in`.
