@@ -68,16 +68,18 @@
 .gx .gx-cm-comparison-values dt { color: var(--gx-text-2); font: 500 13px/1.7 var(--gx-font-body); }
 .gx .gx-cm-comparison-values dd { margin: 0; font: 600 25px/1.4 var(--gx-font-num); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .gx .gx-cm-comparison-values > dl:last-child dd { color: var(--gx-accent-ink); }
-/* D-83: a kept draft order beside the order Tuesday's corrected totals would have set (two numbered lists, names only). */
+/* D-83: the next week's current draft order beside the order Tuesday's corrected totals would have set (numbered lists,
+   names only; one list once a later import set Tuesday's order). */
 /* Both labels share row 1 and both lists row 2, so position n sits level in each column when a label wraps. */
 .gx .gx-cm-orders { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); grid-template-rows: auto auto; grid-auto-flow: column; gap: 9px 12px; }
 .gx .gx-cm-orders > div { display: contents; }
+.gx .gx-cm-orders-one { grid-template-columns: minmax(0,1fr); }
 .gx .gx-cm-orders dt { align-self: end; min-width: 0; color: var(--gx-text-2); font: 500 13px/1.7 var(--gx-font-body); }
 .gx .gx-cm-orders dd { margin: 0; min-width: 0; }
 .gx .gx-cm-orders ol { display: grid; gap: 6px; margin: 0; padding-left: 26px; list-style: decimal outside; font: 600 16px/1.5 var(--gx-font-body); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .gx .gx-cm-orders li { display: list-item; }
 .gx .gx-cm-orders li::marker { color: var(--gx-text-2); font-weight: 500; }
-.gx .gx-cm-orders > div:last-child ol { color: var(--gx-accent-ink); }
+.gx .gx-cm-orders > div:nth-child(2) ol { color: var(--gx-accent-ink); }
 .gx .gx-cm :is(summary,select,input):focus-visible { outline: 3px solid var(--gx-focus); outline-offset: 3px; }
 @media(max-width:359px) { .gx .gx-cm-ref-summary { flex-wrap: wrap; } .gx .gx-cm-quota-tiles { gap: 8px; } }
 @media(forced-colors:active) {

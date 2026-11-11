@@ -89,39 +89,74 @@ test('applied/same-order outcomes leave the review list while preserved and unkn
 
 // D-83 (Sean, November 11, 2026: "Yes, import wins"): M-35 records preserved_import when a confirmed import kept the order.
 const OWNERS = Object.keys(MANAGER_NAMES);
-const KEPT = [...OWNERS], WOULD_BE = [OWNERS[3], ...OWNERS.filter((_, i) => i !== 3)];
+const KEPT = [...OWNERS], WOULD_BE = [OWNERS[3], ...OWNERS.filter((_, i) => i !== 3)], OTHER = [...OWNERS].reverse();
+const firstNames = order => order.map(owner => MANAGER_NAMES[owner]);
 const held = (extra = {}) => [{ week: 9, outcome: 'preserved_import', keptOrder: KEPT, candidateOrder: WOULD_BE, ...extra }];
+// gtl_epl_weeks answers MW10's live order: the reader compares it with the frozen kept order and Tuesday's order.
+const reader = (live = KEPT, queries = []) => async (table, query, max) => {
+  queries.push({ table, query, max });
+  if (table === 'gtl_epl_stat_rechecks') return audit;
+  if (table === 'gtl_epl_snapshots') return snapshots();
+  if (table === 'gtl_epl_weeks') return typeof live === 'function' ? live() : [{ week: 10, pick_order: live }];
+  return [];
+};
 
-test('preserved_import stays on the review list with the kept and would-be orders, by first name only', async () => {
-  const rows = async table => table === 'gtl_epl_stat_rechecks' ? audit : table === 'gtl_epl_snapshots' ? snapshots() : [];
-  const [review] = await readEplCorrectionReviews({ rows, season: 2026, orderStates: held() });
-  assert.deepEqual(review.keptOrder, KEPT.map(owner => MANAGER_NAMES[owner]));
-  assert.deepEqual(review.candidateOrder, WOULD_BE.map(owner => MANAGER_NAMES[owner]));
-  assert.equal(review.nextPickCount, 0);
-  assert.ok(OWNERS.every(owner => !JSON.stringify(review).includes(owner)), 'owner ids never leave the server');
-  for (const orderStates of [null, [], [{ week: 9, outcome: 'preserved_picks' }], [{ week: 9, outcome: 'preserved_closed' }]]) {
-    const [other] = await readEplCorrectionReviews({ rows, season: 2026, orderStates });
-    assert.equal(other.keptOrder, null); assert.equal(other.candidateOrder, null);
+test('a kept week reports what happened to the order since the recheck: kept, adopted or changed, by first name only', async () => {
+  const queries = [];
+  const [kept] = await readEplCorrectionReviews({ rows: reader(KEPT, queries), season: 2026, orderStates: held() });
+  assert.equal(kept.orderState, 'kept', 'the live order is still the order the recheck kept');
+  assert.deepEqual(kept.currentOrder, firstNames(KEPT));
+  assert.deepEqual(kept.candidateOrder, firstNames(WOULD_BE));
+  assert.equal(kept.nextPickCount, 0);
+  assert.ok(!('keptOrder' in kept), 'the frozen order is compared on the server, not shown as if it were current');
+  // One bounded fixed-field read of the next week, only for weeks a confirmed import kept.
+  assert.deepEqual(queries.find(q => q.table === 'gtl_epl_weeks'), { table: 'gtl_epl_weeks', query: { select: 'week,pick_order', season: 'eq.2026', week: 'in.(10)', limit: '1' }, max: 1 });
+  const [adopted] = await readEplCorrectionReviews({ rows: reader(WOULD_BE), season: 2026, orderStates: held() });
+  assert.equal(adopted.orderState, 'adopted', 'a later correction import applied the order Tuesday’s totals give');
+  assert.deepEqual(adopted.currentOrder, firstNames(WOULD_BE));
+  const [changed] = await readEplCorrectionReviews({ rows: reader(OTHER), season: 2026, orderStates: held() });
+  assert.equal(changed.orderState, 'changed', 'a later import set an order that is neither');
+  assert.deepEqual(changed.currentOrder, firstNames(OTHER));
+  assert.deepEqual(changed.candidateOrder, firstNames(WOULD_BE));
+  for (const review of [kept, adopted, changed]) assert.ok(OWNERS.every(owner => !JSON.stringify(review).includes(owner)), 'owner ids never leave the server');
+});
+
+test('weeks without preserved_import read no live order and carry no order state', async () => {
+  for (const orderStates of [null, [], [{ week: 9, outcome: 'preserved_picks' }], [{ week: 9, outcome: 'preserved_closed' }], held({ week: 8 })]) {
+    const queries = [];
+    const [other] = await readEplCorrectionReviews({ rows: reader(KEPT, queries), season: 2026, orderStates });
+    assert.equal(other.orderState, null); assert.equal(other.currentOrder, null); assert.equal(other.candidateOrder, null);
+    assert.ok(!queries.some(q => q.table === 'gtl_epl_weeks'), JSON.stringify(orderStates));
   }
   const unknown = '9'.repeat(18);
-  const [named] = await readEplCorrectionReviews({ rows, season: 2026, orderStates: held({ keptOrder: [...KEPT.slice(0, 7), unknown], candidateOrder: [unknown, ...KEPT.slice(0, 7)] }) });
-  assert.equal(named.keptOrder[7], null); assert.equal(named.candidateOrder[0], null);
+  const [named] = await readEplCorrectionReviews({ rows: reader([...KEPT.slice(0, 7), unknown]), season: 2026,
+    orderStates: held({ keptOrder: [...KEPT.slice(0, 7), unknown], candidateOrder: [unknown, ...KEPT.slice(0, 7)] }) });
+  assert.equal(named.orderState, 'kept');
+  assert.equal(named.currentOrder[7], null); assert.equal(named.candidateOrder[0], null);
   assert.ok(!JSON.stringify(named).includes(unknown));
 });
 
-test('a preserved_import reply without both complete orders is refused instead of shown half-empty', async () => {
-  const rows = async table => table === 'gtl_epl_stat_rechecks' ? audit : table === 'gtl_epl_snapshots' ? snapshots() : [];
+test('a preserved_import reply without both complete, different orders is refused instead of shown half-empty', async () => {
   for (const extra of [{ keptOrder: undefined }, { candidateOrder: null }, { candidateOrder: [] }, { keptOrder: [KEPT[0], KEPT[0]] },
-    { candidateOrder: WOULD_BE.slice(1) }, { candidateOrder: [...WOULD_BE.slice(1), '42'] }, { keptOrder: KEPT.map(Number) }, { keptOrder: [...KEPT, '42'] }])
-    await assert.rejects(readEplCorrectionReviews({ rows, season: 2026, orderStates: held(extra) }), /Invalid order/, JSON.stringify(extra));
+    { candidateOrder: WOULD_BE.slice(1) }, { candidateOrder: [...WOULD_BE.slice(1), '42'] }, { keptOrder: KEPT.map(Number) }, { keptOrder: [...KEPT, '42'] },
+    { candidateOrder: [...KEPT] }])
+    await assert.rejects(readEplCorrectionReviews({ rows: reader(), season: 2026, orderStates: held(extra) }), /Invalid order/, JSON.stringify(extra));
 });
 
-test('review endpoint returns the kept and would-be orders from the M-35 state through the commissioner route', async () => {
+test('a missing, duplicated or invalid live order is refused instead of guessing a state', async () => {
+  for (const live of [() => [], () => [{ week: 11, pick_order: KEPT }], () => [{ week: 10, pick_order: KEPT }, { week: 10, pick_order: KEPT }],
+    () => [{ week: 10, pick_order: null }], () => [{ week: 10, pick_order: [] }], () => [{ week: 10, pick_order: [KEPT[0], KEPT[0]] }],
+    () => [{ week: 10, pick_order: KEPT.map(Number) }], () => [null], () => ({ week: 10, pick_order: KEPT })])
+    await assert.rejects(readEplCorrectionReviews({ rows: reader(live), season: 2026, orderStates: held() }), /Invalid correction/, String(live));
+});
+
+test('review endpoint returns the order state and both orders from the M-35 state through the commissioner route', async () => {
   const service = createEplService({ rpc: async name => name === 'gtl_community_admin' ? true : name === 'gtl_epl_order_correction_state' ? held() : null,
-    rest: async () => ({ season: 2026, week: 10 }), rows: async table => table === 'gtl_epl_stat_rechecks' ? audit : table === 'gtl_epl_snapshots' ? snapshots() : [] });
+    rest: async () => ({ season: 2026, week: 10 }), rows: reader(WOULD_BE) });
   const reply = await read(service);
   assert.equal(reply.available, true);
   assert.equal(reply.reviews.length, 1);
-  assert.equal(reply.reviews[0].keptOrder[0], MANAGER_NAMES[KEPT[0]]);
+  assert.equal(reply.reviews[0].orderState, 'adopted');
+  assert.equal(reply.reviews[0].currentOrder[0], MANAGER_NAMES[WOULD_BE[0]]);
   assert.equal(reply.reviews[0].candidateOrder[0], MANAGER_NAMES[WOULD_BE[0]]);
 });

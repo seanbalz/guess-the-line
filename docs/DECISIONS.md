@@ -6,15 +6,27 @@ Status: decided; source amended, not applied or deployed. Sean answered
 **"Yes, import wins"** on November 11, 2026 at 00:25 UTC (4:25 PM Pacific on November 10),
 choosing Rule 1 of the
 [precedence brief](EPL_ORDER_PRECEDENCE_DECISION_2026-11-10.md) (packet contradiction 7).
+The addendum below records his second answer, "Yes, import opens it".
 
 Two writers can set next week's Pick a Team order (week n+1) while its draft is untouched: the
 commissioner's confirmed Sleeper screenshot import of week n (hosted M-43) and M-35's Tuesday
 Sleeper recheck. Once an import of week n is confirmed, the recheck never changes week n+1's
 order by itself. It still saves the corrected totals (M-33) and records the order it would have
 set as a `preserved_import` outcome beside the kept order. The week stays on the
-stat-corrections screen, which shows both orders: "Tuesday's totals would put C first. Because
-you confirmed an import, MW12 keeps A first." To use a Tuesday correction, the commissioner
-records a correction import, which applies while the draft is still untouched. An import
+stat-corrections screen (the M-33 flag stays `needs_review`). `gtl-api` compares week n+1's live
+order with the two recorded orders, so the card follows what happened after the recheck:
+
+- **kept** (the live order is still the kept one): "Tuesday's totals would put C first. Because
+  you confirmed an import, MW12 keeps A first." It lists the current order beside Tuesday's and
+  says how to use the correction.
+- **adopted** (a later import set the order Tuesday's totals give): the card says so and asks
+  for nothing.
+- **changed** (the live order is neither): the card shows the current order beside Tuesday's.
+
+The first column is labelled "Current MW12 order", never "kept by your import": an import whose
+opening waited for results (`pending_results`) did not set the order; `settle` opened the week.
+To use a Tuesday correction, the commissioner records a correction import while the next
+week's draft is open, before its first pick or kickoff (M-43 applies an order only then). An import
 confirmed after a recheck reorder replaces that order, as it does today. A week without an
 import keeps M-35's tested behaviour: an untouched draft gets the corrected order automatically.
 When the recheck's order equals the current order nothing changes (`same_order`).
@@ -26,8 +38,23 @@ row, the outcome row with both orders and every import row are kept.
 The change is an in-place amendment of unapplied M-35 (`20261029162144`), which now also needs
 hosted M-43 (`20261110110000`), plus the `gtl-api` reader and the screen copy. Hosted M-43 is
 unchanged. The remaining steps stay Sean's words: deploy compatible `gtl-api` and Pages before
-any M-35 apply, review the M-35 interval prerequisite, then "apply M-33" and "apply M-35" through
-Gate M. [Phone mockups](../design/epl-import-wins-2026-11-11/README.md) show the card.
+any M-35 apply, then "apply M-33" and "apply M-35" through Gate M. The M-35 interval
+prerequisite review is done (addendum below).
+[Phone mockups](../design/epl-import-wins-2026-11-11/README.md) show the card in all three states.
+
+**Addendum — the screenshot import opens each new draft after M-35 (November 11, 2026).**
+Asked "After M-35, should your weekly screenshot import be what opens each new EPL draft?",
+Sean answered **"Yes, import opens it"** on November 11, 2026, between 00:50 and 01:00 UTC
+(4:50 to 5:00 PM Pacific on November 10). This is step 3 of the precedence brief's
+[After the ruling](EPL_ORDER_PRECEDENCE_DECISION_2026-11-10.md#after-the-ruling): he accepts the
+commissioner's M-43 screenshot import as M-35's manual recovery plan. Without verified interval
+evidence, M-35 intentionally stops automatic final captures and can keep the next week from
+opening ([operator prerequisite](EPL_FINALIZATION_ORDER_2026_10_29.md#apply-prerequisite-and-compatibility));
+the confirmed import, which reads no interval, settles week n (once its results are verified) and
+opens or orders week n+1. That clears the M-35 operator interval prerequisite review. No interval evidence is admitted by this
+answer, and nothing is applied, deployed or enabled by it. M-33 and M-35 still need the
+compatible `gtl-api` and Pages deploy first, then Sean's "apply M-33" and "apply M-35" through
+Gate M.
 
 ## D-82 — Optional Player Props line guessing, shared Prism design (November 9, 2026)
 

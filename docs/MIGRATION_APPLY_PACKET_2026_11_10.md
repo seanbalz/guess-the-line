@@ -7,7 +7,9 @@ corrects stale records (contradictions 1, 2, 5, 6 and 7 below), and adds PR #519
 `20261110160000_gtl_player_props_jobs.sql` as proposed M-46. Version 3 adds PR #522's
 `20261110180000_gtl_player_props_shared.sql` (merge `1ba75282`) as proposed M-47. Version 4
 (November 11, 2026) records Sean's D-83 ruling on contradiction 7 ("Yes, import wins") and
-amends unapplied M-35 in place: its section 1 row, section 2 dependency and section 4 md5s.
+amends unapplied M-35 in place: its section 1 row, section 2 dependency and section 4 md5s. It
+also records his D-83 addendum ("Yes, import opens it"), which accepts the screenshot import as
+M-35's manual recovery plan and so completes the M-35 operator prerequisite review.
 
 Status, November 10, 20:43 UTC: **M-41 to M-47 applied and verified** (hosted `20261110203637` to `20261110204307`; [apply record](RELEASE_2026_11_10_MIGRATIONS_M41_M47.md)). M-33, M-34 and M-35 remain unapplied. The rest of this packet is the preparation as written.
 
@@ -160,7 +162,7 @@ Dependencies (file headers, ledger and the PR bodies):
 | --- | --- | --- |
 | M-33 | M-31, M-32 | M-34 (ledger), M-35 (`REQUIRES`) |
 | M-34 | **M-33 (pending)** | — (order-safe against M-44 since version 2) |
-| M-35 | **M-33 (pending)**, M-43 (`gtl_epl_score_import_head`, D-83); operator interval prerequisite | — |
+| M-35 | **M-33 (pending)**, M-43 (`gtl_epl_score_import_head`, D-83); operator interval prerequisite (reviewed November 11, D-83 addendum) | — |
 | M-41 | M-11 and the existing Virtual/Recommended writers; compatible `gtl-api`/Pages | — |
 | M-42 | M-30, M-31, M-32, M-36 | — |
 | M-43 | M-30, M-40 | — |
@@ -185,8 +187,9 @@ A topological order that is also filename order (Gate M step 1):
 **Recommended batch when Supabase is back:** M-42, M-43, M-44, M-45, M-46, M-47 in that order
 (M-46 and M-47 only after M-45; they do not depend on each other). None of them reads M-33/M-34/M-35. M-41 is independent of all of
 them (it touches only the three Virtual Units writers) and may go before or after that
-batch; it needs its own compatible `gtl-api`/Pages deploy first. M-33 to M-35 have their own unresolved operator
-prerequisites (M-35's interval evidence, M-33 "not safe correction enablement" alone)
+batch; it needs its own compatible `gtl-api`/Pages deploy first. M-33 to M-35 have their own operator
+prerequisites (M-35's interval evidence, reviewed November 11 by the D-83 addendum: the screenshot import is
+the manual recovery plan; M-33 "not safe correction enablement" alone)
 and have been held since October 29. Deferring them is allowed ("a merged file Sean
 chose not to apply stays in NOT_HOSTED"). Since version 2, deferring M-34 past M-44 is
 safe: amended M-34 keeps `results` and every other accepted job (contradiction 1). M-35
@@ -403,9 +406,11 @@ order by 1;
   entry, because a hosted file is never listed there). **Operator prerequisite before
   the apply phrase:** review that missing interval evidence intentionally stops automatic
   final captures and can prevent the next week opening; have verified interval evidence or
-  a manual recovery plan. **Deploy first:** the D-83 `gtl-api` reader and Pages copy (a
-  `preserved_import` outcome is refused by the older reader). Contradiction 7 is resolved by
-  D-83 (version 4).
+  a manual recovery plan. **Done November 11, 2026:** Sean answered "Yes, import opens it"
+  (D-83 addendum), accepting the confirmed screenshot import (M-43, which reads no interval)
+  as the manual recovery plan; no interval evidence is admitted. **Deploy first:** the D-83
+  `gtl-api` reader and Pages copy (a `preserved_import` outcome is refused by the older
+  reader). Contradiction 7 is resolved by D-83 (version 4).
 - **Replaces:** nothing. New: `gtl_epl_attest_capture_interval`
   `8ec52abb93c876bec23162d2a33f23c0`, `gtl_epl_capture_interval`
   `100720c54cae86de2d395bd6bd281d04`, `gtl_epl_reserve_result_read`
@@ -991,7 +996,8 @@ or before it; contradiction 7 is resolved by D-83, and M-35 means the amended fi
 - "apply M-33" (`20261029151727`)
 - "apply M-34" (`20261029161613`), the amended file, before or after M-44
 - "apply M-35" (`20261029162144`, the D-83 amended file), only after the compatible `gtl-api`/Pages
-  deploy and after the operator interval prerequisite is reviewed
+  deploy. The operator interval prerequisite review is done: "Yes, import opens it" (November 11,
+  D-83 addendum) accepts the screenshot import as the manual recovery plan.
 
 Independently, for custom Virtual Units stakes (PR #497): "Deploy api-and-frontend" from the
 merged PR #497 SHA, then "apply M-41" (`20261108022135`).

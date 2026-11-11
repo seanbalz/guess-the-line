@@ -56,43 +56,63 @@ test('commissioner loads correction evidence only when opening its tool, with a 
   } finally { await world.db.close(); }
 });
 
-// D-83 (Sean, November 11, 2026: "Yes, import wins"). Fabricated reply in the brief's worked-week shape (MW11 to MW12):
-// a Tuesday correction drops Casey below Alex, but the confirmed import keeps Alex first. Fictional names and scores only.
+// D-83 (Sean, November 11, 2026: "Yes, import wins"). Fabricated replies in the brief's worked-week shape (MW11 to MW12):
+// a Tuesday correction drops Casey below Alex, so Tuesday's totals put Casey first, but the confirmed import kept Alex
+// first. gtl-api then compares MW12's live order with the kept one: still kept, adopted (a later import set Tuesday's
+// order) or changed. Fictional names and scores only.
 const KEPT = ['Alex', 'Casey', 'Jordan', 'Riley', 'Taylor', 'Morgan', 'Drew', 'Quinn'];
-const importKept = { week: 11, nextWeek: 12, nextPickCount: 0, totalsComplete: true,
+const TUESDAY = ['Casey', 'Alex', ...KEPT.slice(2)];
+const LATER = ['Jordan', 'Alex', 'Casey', ...KEPT.slice(3)];
+const imported = (orderState, currentOrder) => ({ week: 11, nextWeek: 12, nextPickCount: 0, totalsComplete: true,
   original: { capturedAt: '2026-11-23T08:10:00Z' }, corrected: { capturedAt: '2026-11-24T20:05:00Z' },
   changes: [{ name: 'Casey', before: { points: 412.6, against: 398.15 }, after: { points: 409.4, against: 398.15 }, pointsChange: -3.2, againstChange: 0 }],
-  keptOrder: KEPT, candidateOrder: ['Casey', 'Alex', ...KEPT.slice(2)] };
+  orderState, currentOrder, candidateOrder: TUESDAY });
+const USE = /record it as a correction while the MW12 draft is open, before its first pick or kickoff/;
+const STATES = [
+  { state: 'kept', review: imported('kept', KEPT), lists: [KEPT, TUESDAY], asks: true,
+    lead: 'Tuesday’s totals would put Casey first. Because you confirmed an import, MW12 keeps Alex first.' },
+  { state: 'adopted', review: imported('adopted', TUESDAY), lists: [TUESDAY], asks: false,
+    lead: 'An import after Tuesday’s recheck set the order Tuesday’s totals give. MW12 now has Casey first. Nothing else is needed.' },
+  { state: 'changed', review: imported('changed', LATER), lists: [LATER, TUESDAY], asks: true,
+    lead: 'MW12’s order changed after Tuesday’s recheck. It now has Jordan first. Tuesday’s totals would put Casey first.' },
+];
 
-test('a confirmed import keeps the order: both orders and how to use the correction, still read-only (D-83)', async ({ page, baseURL }, testInfo) => {
+test('a confirmed import kept the order: the card says kept, adopted or changed from the live order, still read-only (D-83)', async ({ page, baseURL }, testInfo) => {
   const world = await communityWorld(page, baseURL, { groupScreens: true });
+  let shown = STATES[0];
   await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/gtl-api/epl/admin/corrections/read'), route => route.fulfill({
-    status: 200, contentType: 'application/json', body: JSON.stringify({ available: true, season: 2026, reviews: [importKept] }) }));
+    status: 200, contentType: 'application/json', body: JSON.stringify({ available: true, season: 2026, reviews: [shown.review] }) }));
   try {
     await page.goto('/'); await signIn(page, 'sean', { navigate: false });
     await page.getByRole('button', { name: 'Your menu', exact: true }).click();
     await page.getByRole('button', { name: 'Commissioner tools', exact: true }).click();
     const sheet = page.getByRole('dialog').last();
     await sheet.getByRole('button', { name: 'Premier League stat corrections', exact: true }).click();
-    await expect(sheet.getByRole('heading', { name: 'MW11 stat correction needs review' })).toBeVisible();
-    await expect(sheet.getByText('Tuesday’s totals would put Casey first. Because you confirmed an import, MW12 keeps Alex first.')).toBeVisible();
-    const order = sheet.getByRole('region', { name: 'MW12 pick order' });
-    await expect(order.locator('ol').first().locator('li')).toHaveText(KEPT);
-    await expect(order.locator('ol').last().locator('li')).toHaveText(importKept.candidateOrder);
-    await expect(sheet.getByText(/record it as a correction before the first MW12 pick/)).toBeVisible();
-    await expect(sheet.getByRole('button', { name: /Apply|Reorder|Use corrected order/ })).toHaveCount(0);
-    // Position n of each list sits on the same line, at every width (a wrapped label must not shift one column).
-    const rows = async () => order.locator('ol').evaluateAll(lists => lists.map(list => [...list.children].map(li => Math.round(li.getBoundingClientRect().top))));
-    await captureCommissioner(page, testInfo, 'corrections-import-kept');
-    for (const [theme, width] of [['dark', 320], ['light', 320], ['dark', 390], ['light', 390]]) {
-      await page.setViewportSize({ width, height: 844 });
-      await setCaptureTheme(page, theme, { forcedColors: 'none' });
-      const [kept, candidate] = await rows();
-      expect(kept, `${theme} ${width} aligned order rows`).toEqual(candidate);
-      // The full lists, centred: the top and bottom captures cut through the middle of the card.
-      await order.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
-      await expect(order).toBeInViewport({ ratio: 1 });
-      await page.screenshot({ path: testInfo.outputPath(`corrections-import-kept-${theme}-${width}-order.png`) });
+    for (const current of STATES) {
+      if (current !== shown) { shown = current; await sheet.getByRole('button', { name: 'Refresh reviews', exact: true }).click(); }
+      await expect(sheet.getByRole('heading', { name: 'MW11 stat correction needs review' })).toBeVisible();
+      await expect(sheet.getByText(current.lead)).toBeVisible();
+      const order = sheet.getByRole('region', { name: 'MW12 pick order' });
+      await expect(order.locator('ol')).toHaveCount(current.lists.length);
+      for (const [i, names] of current.lists.entries()) await expect(order.locator('ol').nth(i).locator('li')).toHaveText(names);
+      await expect(order.getByText('Current MW12 order', { exact: true })).toBeVisible();
+      await expect(sheet.getByText('Kept by your import')).toHaveCount(0);
+      await expect(sheet.getByText(USE)).toHaveCount(current.asks ? 1 : 0);
+      await expect(sheet.getByRole('button', { name: /Apply|Reorder|Use corrected order/ })).toHaveCount(0);
+      // Position n of each list sits on the same line, at every width (a wrapped label must not shift one column).
+      const rows = async () => order.locator('ol').evaluateAll(lists => lists.map(list => [...list.children].map(li => Math.round(li.getBoundingClientRect().top))));
+      const name = `corrections-import-${current.state}`;
+      await captureCommissioner(page, testInfo, name);
+      for (const [theme, width] of [['dark', 320], ['light', 320], ['dark', 390], ['light', 390]]) {
+        await page.setViewportSize({ width, height: 844 });
+        await setCaptureTheme(page, theme, { forcedColors: 'none' });
+        const [first, ...others] = await rows();
+        for (const other of others) expect(other, `${current.state} ${theme} ${width} aligned order rows`).toEqual(first);
+        // The full lists, centred: the top and bottom captures cut through the middle of the card.
+        await order.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+        await expect(order).toBeInViewport({ ratio: 1 });
+        await page.screenshot({ path: testInfo.outputPath(`${name}-${theme}-${width}-order.png`) });
+      }
     }
   } finally { await world.db.close(); }
 });

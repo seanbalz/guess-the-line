@@ -29,28 +29,54 @@ describe('read-only EPL correction reviews', () => {
     expect(render({ data: { available: true, reviews: [] } })).toContain('No Premier League stat corrections are awaiting review');
     expect(render({ data: { available: true, reviews: [{ ...review, nextPickCount: 0 }] } })).toContain('Review its order against the corrected totals before drafting');
   });
-  // D-83 (Sean, November 11, 2026: "Yes, import wins"): a confirmed import kept the order; both orders are shown.
+  // D-83 (Sean, November 11, 2026: "Yes, import wins"): a confirmed import kept the order at the recheck. gtl-api compares
+  // the live order with it (orderState) and the card says what that means, never that the import set the order.
   const kept = ['Nemo', 'Cullen', 'Adam', 'Sean', 'Evan', 'Mark', 'Steven', 'Darin'];
   const candidate = ['Cullen', 'Nemo', 'Adam', 'Sean', 'Evan', 'Mark', 'Steven', 'Darin'];
-  const imported = { ...review, nextPickCount: 0, keptOrder: kept, candidateOrder: candidate };
-  it('says the confirmed import kept the order, lists both orders and how to use the correction, still read-only', () => {
-    const html = render({ data: { available: true, reviews: [imported] } });
+  const other = ['Adam', 'Nemo', 'Cullen', 'Sean', 'Evan', 'Mark', 'Steven', 'Darin'];
+  const imported = (orderState, currentOrder, extra = {}) => ({ ...review, nextPickCount: 0, orderState, currentOrder, candidateOrder: candidate, ...extra });
+  const lists = html => [...html.matchAll(/<ol>(.*?)<\/ol>/g)].map(m => [...m[1].matchAll(/<li>([^<]*)<\/li>/g)].map(li => li[1]));
+  const readOnly = html => {
     expect(markupProblems(html)).toEqual([]);
-    expect(html).toContain('Tuesday’s totals would put Cullen first. Because you confirmed an import, MW10 keeps Nemo first.');
-    expect(html).toContain('record it as a correction before the first MW10 pick');
-    expect(html).toContain('Premier League weekly scores');
-    expect(html).not.toContain('Review its order against the corrected totals');
-    const lists = [...html.matchAll(/<ol>(.*?)<\/ol>/g)].map(m => [...m[1].matchAll(/<li>([^<]*)<\/li>/g)].map(li => li[1]));
-    expect(lists).toEqual([kept, candidate]);
-    for (const text of ['MW10 pick order', 'Kept by your import', 'Tuesday’s totals']) expect(html).toContain(text);
     expect(html.match(/<button\b/g)).toHaveLength(1);
     expect(html).not.toMatch(/<form\b|Apply correction|Reorder|Acknowledge/);
+    expect(html, 'the import does not always set the order (pending_results)').not.toContain('Kept by your import');
+    expect(html).not.toContain('Review its order against the corrected totals');
+  };
+  const use = 'To use Tuesday’s totals, add a new Sleeper Matchups screenshot in Premier League weekly scores and record it as a correction while the MW10 draft is open, before its first pick or kickoff.';
+  it('kept: says the confirmed import kept the order, lists the current and Tuesday’s orders and how to use the correction', () => {
+    const html = render({ data: { available: true, reviews: [imported('kept', kept)] } });
+    readOnly(html);
+    expect(html).toContain('Tuesday’s totals would put Cullen first. Because you confirmed an import, MW10 keeps Nemo first.');
+    expect(html).toContain(use);
+    expect(lists(html)).toEqual([kept, candidate]);
+    for (const text of ['MW10 pick order', 'Current MW10 order', 'Tuesday’s totals']) expect(html).toContain(text);
   });
-  it('keeps the picks sentence once a pick exists and shows unknown managers as —', () => {
-    const html = render({ data: { available: true, reviews: [{ ...imported, nextPickCount: 2, keptOrder: [...kept.slice(0, 7), null] }] } });
-    expect(html).toContain('MW10 has 2 recorded picks. Its stored picks and draft order are preserved.');
-    expect(html).not.toContain('record it as a correction');
-    expect(html).toContain('<li>—</li>');
-    expect(render({ data: { available: true, reviews: [{ ...imported, keptOrder: null, candidateOrder: null }] } })).not.toContain('pick order');
+  it('adopted: a later import set Tuesday’s order, so the card shows that order and asks for nothing', () => {
+    const html = render({ data: { available: true, reviews: [imported('adopted', candidate)] } });
+    readOnly(html);
+    expect(html).toContain('An import after Tuesday’s recheck set the order Tuesday’s totals give. MW10 now has Cullen first. Nothing else is needed.');
+    expect(html).not.toContain('Because you confirmed an import');
+    expect(html).not.toMatch(/To use Tuesday|record it as a correction/);
+    expect(lists(html)).toEqual([candidate]);
+    expect(html).toContain('Current MW10 order');
+  });
+  it('changed: the order moved to neither, so the card shows the current and Tuesday’s orders and how to use the correction', () => {
+    const html = render({ data: { available: true, reviews: [imported('changed', other)] } });
+    readOnly(html);
+    expect(html).toContain('MW10’s order changed after Tuesday’s recheck. It now has Adam first. Tuesday’s totals would put Cullen first.');
+    expect(html).not.toContain('Because you confirmed an import');
+    expect(html).toContain(use);
+    expect(lists(html)).toEqual([other, candidate]);
+  });
+  it('keeps the picks sentence once a pick exists, shows unknown managers as — and ignores an unknown state', () => {
+    for (const [state, order] of [['kept', kept], ['changed', other], ['adopted', candidate]]) {
+      const html = render({ data: { available: true, reviews: [imported(state, [...order.slice(0, 7), null], { nextPickCount: 2 })] } });
+      expect(html).toContain('MW10 has 2 recorded picks. Its stored picks and draft order are preserved.');
+      expect(html).not.toContain('record it as a correction');
+      expect(html).toContain('<li>—</li>');
+    }
+    for (const extra of [{ orderState: null }, { orderState: 'invented' }, { currentOrder: null }, { candidateOrder: null }])
+      expect(render({ data: { available: true, reviews: [imported('kept', kept, extra)] } })).not.toContain('pick order');
   });
 });

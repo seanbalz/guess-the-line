@@ -4,7 +4,9 @@ Owner: Sean Balsiger · Version 1 · November 10, 2026
 
 Status: **decided: Rule 1.** Sean answered **"Yes, import wins"** on November 11, 2026 at
 00:25 UTC (4:25 PM Pacific on November 10; [D-83](DECISIONS.md)); step 1 of
-[After the ruling](#after-the-ruling) is the amended M-35 PR.
+[After the ruling](#after-the-ruling) is the amended M-35 PR. Step 3 is done: Sean answered
+**"Yes, import opens it"** between 00:50 and 01:00 UTC (D-83 addendum), accepting the import as
+M-35's manual recovery plan.
 The rest of this brief is unchanged as written. As written, it changed no code, migration,
 schedule or hosted state. It explains contradiction 7 of the
 [November 10 apply packet](MIGRATION_APPLY_PACKET_2026_11_10.md), which holds M-35 and,
@@ -302,6 +304,10 @@ the draft uses and whether you see the disagreement.
 
 ### M-35 operator interval prerequisite: not met
 
+**Update, November 11, 2026: met.** Sean answered "Yes, import opens it" (D-83 addendum),
+accepting the confirmed screenshot import as the manual recovery plan. The record status below
+is as written on November 10.
+
 - **Requirement (inspected).** The [finalization record](EPL_FINALIZATION_ORDER_2026_10_29.md)
   and the packet's M-35 section set it before "apply M-35". You review that missing interval
   evidence intentionally stops automatic final captures and can keep the next week from
@@ -350,7 +356,8 @@ For rule 1:
    stat-corrections card.
 2. Deploy compatible `gtl-api` and Pages.
 3. You review the interval prerequisite: accept the import as the manual recovery plan, or
-   supply evidence.
+   supply evidence. **Done November 11, 2026:** "Yes, import opens it" (D-83 addendum) accepts
+   the import as the manual recovery plan.
 4. "apply M-33", then "apply M-35" (the amended file), each through Gate M.
 5. "apply M-34" any time after M-33, if you want it. The standings collector is a separate
    word.
@@ -369,6 +376,7 @@ Rule 3 skips steps 1 and 2. Rules 2, 4 and 5 first need the change listed in the
 - **Changes:** this document only.
 - **Validation:** read-only hosted SELECTs, a scratch PGlite probe (four cases, all repo
   migrations, not committed) and code and record inspection.
-- **Status:** decided November 11, 2026: Rule 1 ("Yes, import wins", D-83).
+- **Status:** decided November 11, 2026: Rule 1 ("Yes, import wins", D-83); step 3 done
+  ("Yes, import opens it", D-83 addendum).
 - **Next breadcrumb:** Sean's rule, then the change PR that rule needs (none for rule 3).
 - **Jira:** N/A
