@@ -1,5 +1,43 @@
 # Guess The Line — current completion register
 
+## NBA N1: NBA in the Prism shell with official logos — November 11, 2026
+
+Sean chose "Guess the Spread" (N1 first, then N3) and replaced the letter badges with "we need nba
+logo and team logos not letters" (D-85). Branch `claude/nba-n1-2026-11-11` builds milestone N1 of
+[the NBA build-out](superpowers/specs/2026-11-10-nba-buildout-design.md). Pages only: no migration,
+API change, provider call or credit.
+
+- **Shell.** `NBA_SHELL` (`web/src/next/nba/NbaShell.jsx`, `shellRoute.js`, `nbaFrameContext`) puts NBA
+  in the same frame, menu and tab bar as NFL and EPL: Home, Play (held until N3), Bets › Open and
+  History, Research › Games. The v1 header, account panel and three-button nav are retired. The NBA
+  mount reads only `lobby`, `nba/games` and `nba/read` (no NFL week, roster or community read).
+- **Links.** `#nba/games`, `#nba/bets`, `#nba/history` and any unknown `#nba/...` land on their new
+  place with `replaceState`; Back never returns to the old address.
+- **Logos (D-85).** The official NBA league logo and all 30 team logos, self-hosted under the D-46
+  rule with source URL, retrieval time, SHA-256 and rights per file
+  ([register](TEAM_LOGO_SOURCES.md#nba-team-logos)); league-keyed `NbaTeamBadge`, so the 13 codes
+  shared with NFL never draw an NFL logo. NBA notice on the Terms page and NBA Research.
+- **Switch.** `NBA_ON_SWITCH = false`: no NBA circle on NFL or EPL screens; while NBA shows, its circle
+  is drawn selected. Three circles are 44 px below 360 px wide.
+- **Tracker fixes.** Whole American prices (+102 for 49.5% Novig; the stored value and original input
+  are kept); "Needs your result" suggests a result only from a linked BALLDONTLIE final
+  (`shared/nba-grade.mjs`) and saves only on the owner's tap through `/nba/save`, reason "Confirmed
+  from final score"; the Track bet editor is a shell sheet whose draft guard is the shell's.
+- **Evidence.** [37 real-build phone captures](../design/nba-n1-2026-11-11/README.md) at 320 and 390 px,
+  Dark and Light, plus one review-only 320 px capture with the switch flag forced on locally.
+
+Sean also answered "Approve 31 / 100" (NBA cap 31 credits a month, pause below 100 shared
+remaining) and "All community members" (every Community member plays NBA Guess the Spread, one
+shared standings); both are recorded in D-85 for N2 and N3 and not built.
+
+Verification (executed on Windows): node 3,224 pass / 0 skipped; vitest 1,011 pass; typecheck clean;
+`build:cloud` built; Brand QA passed; NBA, capture and persona browser specs 10 pass (1 local-only
+capture skipped); 126 related shell, EPL and sport-switch browser tests pass.
+
+Not done: merge, Pages deploy, NBA on the switch, N2 to N4, the physical-iPhone check and Sean's
+review of the captures. Spec questions 5 (switch timing), 6 (records backfill) and 8 (stale Codex
+worktree) stay open.
+
 ## D-84: Prism Glass stays; D-69 steps 4 and 5 and B1 stop — November 11, 2026
 
 Sean: "Yes, keep Prism" and "Yes, stop B1", and "Prism Glass stands (Recommended)" in the step 4 session

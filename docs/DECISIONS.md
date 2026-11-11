@@ -1,5 +1,55 @@
 # Decision log
 
+## D-85 — NBA: N1 first, then nightly Guess the Spread; official NBA logos; 31-credit cap; all members play (November 11, 2026)
+
+Status: decided; N1 built on a branch (PR, not merged), not deployed. Numbered D-85 because
+D-84 is taken by open PR #540. Sean answered in the captain session on November 11, 2026, on
+the [NBA build-out proposal](superpowers/specs/2026-11-10-nba-buildout-design.md):
+
+1. **Scope.** Sean: **"Guess the Spread"**. Build N1 (NBA in the Prism shell, plus the tracker
+   fixes) first, then nightly Guess the Spread (N3). The zero-credit Pick'em alternative is not
+   taken.
+2. **Badges.** Sean: **"Approve badges"**, immediately corrected by **"we need nba logo and team
+   logos not letters"**. NBA uses the official NBA league logo and the official logos of all 30
+   NBA teams, not the letters-only text badges and original "NBA" text badge the proposal drew.
+   The 44 px league circles below 360 px wide (three 52 px circles do not fit beside the G and
+   the avatar there) stay approved. NBA stays off the production sport switch
+   (`NBA_ON_SWITCH = false` in `web/src/next/epl/route.js`) until Sean says otherwise.
+3. **Credit cap and pause threshold.** Sean: **"Approve 31 / 100"**. NBA may spend at most 31
+   Odds API credits a month, and NBA pauses when the shared conservative remaining falls below
+   100 credits. NBA is always the lane that is refused, never NFL or EPL. Recorded for N2; nothing
+   is built or applied here.
+4. **Who plays.** Sean: **"All community members"**. Every Community member may play NBA Guess
+   the Spread (the `gtl_nba_player` rule), like EPL's open access, with one shared NBA standings.
+   Recorded for N3; nothing is built or applied here.
+
+**Logo basis (the D-46 and November 7 league-mark precedent, extended unchanged).** The 30 team
+logos are self-hosted 128 px downscaled copies of ESPN CDN images
+(`a.espncdn.com/i/teamlogos/nba/500/<code>.png`); the league mark is the NBA logoman from
+`a.espncdn.com/i/teamlogos/leagues/500/nba.png`, self-hosted at 144 px beside the NFL shield and
+Premier League lion. Each file was downloaded into its own new, empty directory outside the
+repository, checked there (real PNG, RGBA, all four corners transparent, checked by eye against
+the team names) and only then copied in; no artwork was edited. Free public sources only; no Odds
+API credit or new provider call. Rights, on every record: "Third-party trademark; used only to
+identify the team/league; no affiliation, endorsement or license claimed." The notice "NBA and
+team names, logos and marks are trademarks of the NBA and its teams; used here only to identify
+the teams. No endorsement." is on the Terms page beside the NFL and Premier League notices and
+at the foot of NBA Research › Games. Records: [the register](TEAM_LOGO_SOURCES.md#nba-team-logos),
+`web/public/team-logos/nba/sources.json` and `web/src/next/ui/brand-assets/sources.json`.
+
+**League-keyed lookup.** Thirteen NBA codes are also NFL codes (ATL CHI CLE DAL DEN DET HOU IND
+LAC MIA MIN PHI WAS). NBA screens use `resolveNbaTeamLogo` (`NbaTeamBadge`) only, never
+`resolveTeamMark` or `resolveTeamBadge`; a test proves each colliding code draws the NBA file.
+Each mark has its own glass circle; letters show only while a logo loads or if it fails.
+
+**Switch display.** With the flag off, NFL and EPL screens show no NBA circle. While a saved
+`#nba` link shows NBA, its circle is drawn selected so the member sees where they are, as the v1
+NBA header did. Turning NBA on for NFL and EPL screens is still Sean's word.
+
+**Not answered:** the switch timing, the records backfill and the stale Codex worktree (spec
+questions 5, 6 and 8). **Not built:** N2, N3 and N4 (decisions 3 and 4 are records only). Every
+migration, deploy, schedule and the physical-iPhone check stay Sean-gated.
+
 ## D-84 — Prism Glass stays; D-69 steps 4 and 5 and the B1 Play polish stop (November 11, 2026)
 
 Status: decided. Nothing is applied, deployed or merged. Sean gave the same ruling in two sessions on November 11,

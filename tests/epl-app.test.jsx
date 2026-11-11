@@ -13,10 +13,9 @@ const { default: EplGuess } = await import('../web/src/next/epl/guess/EplGuess.j
 const { default: EplGuessLeaderboard } = await import('../web/src/next/epl/guess/EplGuessLeaderboard.jsx');
 const { eplApi } = await import('../web/src/next/epl/api.js');
 const { ApiError } = await import('../web/src/apiResponse.js');
-const { NbaHeader } = await import('../web/src/next/nba/NbaHeader.jsx');
 
 const text = html => decode(html.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ');
-// Sport marks have full accessible names; the retained NBA header still has visible button text.
+// Sport marks have full accessible names.
 const buttons = html => [...html.matchAll(/<button\b([^>]*)>([\s\S]*?)<\/button>/g)].map(([, attrs, inner]) => ({
   name: text(inner).trim() || decode(attrs.match(/aria-label="([^"]+)"/)?.[1] || ''),
   selected: /aria-pressed="true"/.test(attrs),
@@ -35,15 +34,25 @@ describe('sport switch', () => {
     expect(pressed(shown)).toEqual(['National Football League']);
     expect(markupProblems(shown)).toEqual([]);
   });
-  it('the NBA header offers EPL only with access, with NBA selected (pre-T8 fix wave)', () => {
-    const shown = renderToStaticMarkup(<div className="gx"><NbaHeader epl onSportChange={() => {}}/></div>);
-    expect(text(shown)).toContain('EPL'); expect(text(shown)).toContain('NFL');
-    expect(pressed(shown)).toEqual(['NBA']);
-    expect(markupProblems(shown)).toEqual([]);
-    const hidden = renderToStaticMarkup(<div className="gx"><NbaHeader epl={false} onSportChange={() => {}}/></div>);
-    expect(text(hidden)).not.toContain('EPL');
-    expect(text(hidden)).toContain('NFL'); expect(text(hidden)).toContain('NBA');
-    expect(pressed(hidden)).toEqual(['NBA']);
+  it('contract (D-85): while NBA shows, its official mark is drawn selected in its own circle; EPL only with access', () => {
+    for (const marks of [false, true]) {
+      const shown = renderToStaticMarkup(<EplAccessContext.Provider value={true}><SportNavigationContext.Provider value={{ sport: 'nba' }}><div className="gx"><SportControls marks={marks}/></div></SportNavigationContext.Provider></EplAccessContext.Provider>);
+      expect(buttons(shown).map(button => button.name)).toEqual(['National Football League', 'Premier League', 'National Basketball Association']);
+      expect(pressed(shown)).toEqual(['National Basketball Association']);
+      expect(shown).toMatch(/<img src="[^"]*nba[^"]*\.png" alt=""\/>/);
+      expect(shown).toContain('data-count="3"');
+      expect(text(shown)).not.toMatch(/\bNBA\b/);
+      expect(markupProblems(shown)).toEqual([]);
+      const hidden = renderToStaticMarkup(<EplAccessContext.Provider value={false}><SportNavigationContext.Provider value={{ sport: 'nba' }}><div className="gx"><SportControls marks={marks}/></div></SportNavigationContext.Provider></EplAccessContext.Provider>);
+      expect(buttons(hidden).map(button => button.name)).toEqual(['National Football League', 'National Basketball Association']);
+    }
+  });
+  it('contract (D-85): NBA_ON_SWITCH is false, so NFL and EPL screens show no NBA circle', () => {
+    for (const sport of ['nfl', 'epl']) {
+      const html = renderToStaticMarkup(<EplAccessContext.Provider value={true}><SportNavigationContext.Provider value={{ sport }}><div className="gx"><SportControls marks/></div></SportNavigationContext.Provider></EplAccessContext.Provider>);
+      expect(buttons(html).map(button => button.name)).not.toContain('National Basketball Association');
+      expect(html).toContain('data-count="2"');
+    }
   });
   it('the EPL app header has EPL selected', () => {
     const html = renderToStaticMarkup(<EplAccessContext.Provider value={true}><SportNavigationContext.Provider value={{ sport: 'epl' }}><div className="gx"><SportControls/></div></SportNavigationContext.Provider></EplAccessContext.Provider>);

@@ -225,9 +225,11 @@ test('automatic alias linking survives reload without duplicate audit; Fantasy r
     await expect.poll(() => world.controls.held).toBe(true);
     world.controls.holdRead = null;
     // A saved NBA address remains supported even when NBA is hidden from the sport navigation.
+    // Since N1 (D-85) the old #nba/games address lands on NBA Research › Games in the Prism shell, whose menu signs out.
     await page.evaluate(() => { window.location.hash = '#nba/games'; });
-    await page.getByText('Account and appearance', { exact: true }).click();
-    await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'NBA games', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Your menu', exact: true }).click();
+    await page.getByRole('dialog', { name: 'Menu', exact: true }).getByRole('button', { name: 'Sign out', exact: true }).click();
     await signIn(page, 'troy', { navigate: false });
     await page.getByRole('button', { name: /^(EPL|Premier League)$/ }).click();
     await page.getByRole('button', { name: 'Research', exact: true }).click();

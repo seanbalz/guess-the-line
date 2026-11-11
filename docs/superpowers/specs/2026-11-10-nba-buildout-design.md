@@ -1,7 +1,10 @@
 # Guess the Line NBA build-out — design proposal
 
-Status: **proposal awaiting Sean's review.** Nothing here is approved, built,
-applied or deployed.
+Status: **N1 approved and built on a branch (not merged or deployed); N2 to N4 still
+proposals.** On November 11, 2026 Sean chose "Guess the Spread" (N1 first, then N3),
+replaced the letter badges with official NBA league and team logos, approved the 31-credit
+cap and 100-credit pause threshold, and opened NBA Guess the Spread to all Community
+members (D-85; see "Waiting on Sean"). Nothing is applied or deployed.
 Owner: Sean Balsiger. Date: November 10, 2026.
 Phone mockups: [design/nba-buildout-2026-11-10](../../../design/nba-buildout-2026-11-10/README.md)
 (48 captures, 320 and 390 px, Dark and Light, synthetic data).
@@ -59,10 +62,13 @@ summary, not the judge's wording.
 - **Mockups.** Built from the app's real components with synthetic data, at 320
   and 390 px, in Light and Dark. Sean sees them before the build and again
   before release. Never put real picks or tickets in static assets (D-31).
-- **Identity.** No NBA, team or league logos. Letters-only glass-circle team
-  badges and an original "NBA" text badge, plus the notice: "NBA and team names
-  are trademarks of their owners; used only to identify teams. No endorsement."
-  Keep BALLDONTLIE's unofficial-source line and observation times.
+- **Identity (amended by D-85, November 11, 2026).** Official NBA league and team
+  logos, self-hosted under the D-46 rule, each in its own glass circle, looked up by
+  NBA code only (`resolveNbaTeamLogo`), with the notice "NBA and team names, logos and
+  marks are trademarks of the NBA and its teams; used here only to identify the teams.
+  No endorsement." The proposal's letters-only badges and "NBA" text badge are
+  superseded; letters show only while a logo loads or if it fails. Keep BALLDONTLIE's
+  unofficial-source line and observation times.
 - **Data.** Free sources only. NBA may spend Odds API credits only up to Sean's
   cap, and NBA pauses before NFL or EPL is ever refused.
 - **Preservation and privacy.** D-23: player rows are append-only; corrections
@@ -115,12 +121,14 @@ Mockups 01 to 09.
    shell sheet. Research › Games (`#nba/research/games`): the existing board.
 3. **Legacy links.** `#nba/games`, `#nba/bets` and `#nba/history` redirect with
    `replaceState`, with no Back loop; unknown fragments go to `#nba/home`.
-4. **Badges.** `NbaTeamBadge` draws letters in the same glass circle (24, 32 or
-   48 px, SVG text with `textLength`) with the full team name as its accessible
-   name. It never calls `resolveTeamMark` or `resolveTeamBadge`: those take a
-   code with no league (inspected), so PHI, DAL, DEN, MIA, MIN, DET, HOU, CLE,
-   CHI, ATL, IND, WAS and LAC would otherwise resolve to NFL logos. The NBA text
-   badge sits in the 52 px league circle of the sport switch.
+4. **Badges (as built under D-85).** `NbaTeamBadge` draws the team's official NBA
+   logo in the same glass circle (24, 32 or 48 px) with the full team name as its
+   accessible name; letters (SVG text with `textLength`) hold the circle until the
+   logo decodes and stay only if it fails. It never calls `resolveTeamMark` or
+   `resolveTeamBadge`: those take a code with no league (inspected), so PHI, DAL,
+   DEN, MIA, MIN, DET, HOU, CLE, CHI, ATL, IND, WAS and LAC would otherwise resolve
+   to NFL logos. The official NBA league logo sits in its own league circle of the
+   sport switch (52 px; 44 px below 360 px wide when three circles show).
 5. **Switch flag.** `sportOptions()` gains an NBA row behind the source constant
    `NBA_ON_SWITCH = false`; it turns on only on Sean's word.
 6. **Price display.** Whole American odds (+102). The stored eight-decimal value
@@ -143,9 +151,11 @@ unchanged, and so does the BALLDONTLIE limit: 5-minute TTL, 15 s lease and 35 s
 global cooldown, at most about 1.7 calls a minute (inspected by the audit). The
 queue reads at most one cached date per pending ticket. No Odds API credits.
 
-**Tests (each names its contract).** `tests/nba-team-badge.test.jsx`: all 30
-codes render `data-mark="letters"` and no `<img>`, including every NFL-colliding
-code (no third-party or NFL mark on NBA). `tests/nba-shell-route.test.mjs`:
+**Tests (each names its contract).** `tests/nba-team-badge.test.jsx` (as built
+under D-85): all 30 codes draw their own `/team-logos/nba/<CODE>.png`, and every
+NFL-colliding code resolves to the NBA file, never an NFL logo or badge;
+`tests/nba-logos.test.mjs` checks every shipped logo against its record.
+`tests/nba-shell-route.test.mjs`:
 legacy fragments map through `replaceState` with no added history entry;
 unknown fragments go home. Sport switch: no NBA row while the flag is false,
 one while true. `tests/nba-grade.test.mjs`: moneyline, spread (half points and a
@@ -180,9 +190,9 @@ his physical-iPhone check.
   if the first attempt spent 0 credits.
 - **Budget guard (SQL).** Begin/finish functions lock the shared
   `gtl_odds_budget` row (schema unchanged), keep the 50-credit reserve, apply
-  the NBA monthly cap (default 31, set by Sean) and pause NBA when the shared
-  conservative remaining falls below 100 (proposed). NBA is always the lane that
-  is refused.
+  the NBA monthly cap (31, approved by Sean on November 11, 2026, D-85) and pause
+  NBA when the shared conservative remaining falls below 100 (approved, D-85). NBA
+  is always the lane that is refused.
 - **Linking.** `shared/nba-teams.mjs` maps the 30 teams across both providers;
   unmatched events stay unlinked and counted. Lock time is the earlier of the
   two start times; an in-progress or final BALLDONTLIE status closes the game at
@@ -334,14 +344,19 @@ Spread to the same card without a new table.
 
 ## Waiting on Sean
 
-1. Scope: build N1 first, and for the game, Guess the Spread (recommended) or
-   the zero-credit Pick'em.
-2. The NBA monthly Odds API credit cap (proposed 31) and pause threshold
-   (proposed 100 remaining).
-3. Who plays NBA Guess the Spread (the `gtl_nba_player` rule).
-4. The letters-only team badges, the "NBA" text badge, and 44 px league circles
-   below 360 px wide (three 52 px circles do not fit there; executed in the
-   mockups).
+1. ~~Scope.~~ **Answered November 11, 2026 (D-85): "Guess the Spread".** Build N1
+   first, then nightly Guess the Spread (N3); the zero-credit Pick'em is not taken.
+2. ~~Credit cap.~~ **Answered November 11, 2026 (D-85): "Approve 31 / 100".** NBA's
+   Odds API cap is 31 credits a month and NBA pauses when the shared conservative
+   remaining is below 100; NBA is always the refused lane. For N2; not built.
+3. ~~Who plays.~~ **Answered November 11, 2026 (D-85): "All community members".**
+   Every Community member may play NBA Guess the Spread (the `gtl_nba_player` rule),
+   like EPL's open access, with one shared NBA standings. For N3; not built.
+4. ~~Badges.~~ **Answered November 11, 2026 (D-85): "Approve badges", immediately
+   corrected by "we need nba logo and team logos not letters".** Official NBA league
+   and team logos replace the letter badges and the "NBA" text badge; the 44 px
+   league circles below 360 px wide are approved. N1 is built on that basis
+   ([real-build captures](../../../design/nba-n1-2026-11-11/README.md)).
 5. When NBA appears on the sport switch (`NBA_ON_SWITCH`).
 6. Team records: stored finals may not reach back to opening night, so without
    a backfill most teams would show "—" this season (assumed; the stored dates

@@ -3,6 +3,7 @@
 // to identify a team next to its name, under the trademark notice below; not licensed, no endorsement. Records:
 // docs/TEAM_LOGO_SOURCES.md#official-logos-d-46 and public/team-logos/sources.json.
 import { EPL_CLUBS } from '../../shared/epl-clubs.mjs';
+import { NBA_TEAMS } from '../../shared/nba-teams.mjs';
 
 export const TEAM_TRADEMARK_NOTICE = 'NFL and team names, logos and marks are trademarks of the NFL and its teams; used here only to identify the teams. No endorsement.';
 
@@ -89,6 +90,23 @@ const clubCrests = Object.freeze(Object.assign(Object.create(null), Object.fromE
 export function resolveClubCrest(code) {
   const key = typeof code === 'string' ? code.trim().toUpperCase() : '';
   return clubCrests[key] ?? null;
+}
+
+// NBA team logos (milestone N1; Sean, November 11, 2026: "we need nba logo and team logos not letters"; D-85). The D-46
+// rule extended to the 30 NBA teams: self-hosted 128px downscaled copies of ESPN CDN logos, used only to identify a team
+// next to its name, under the notice below; not licensed, no endorsement. Records: docs/TEAM_LOGO_SOURCES.md#nba-team-logos
+// and public/team-logos/nba/sources.json. League-keyed: thirteen NBA codes (ATL CHI CLE DAL DEN DET HOU IND LAC MIA MIN
+// PHI WAS) are also NFL codes, so NBA screens use resolveNbaTeamLogo only, never resolveTeamMark or resolveTeamBadge.
+export const NBA_TRADEMARK_NOTICE = 'NBA and team names, logos and marks are trademarks of the NBA and its teams; used here only to identify the teams. No endorsement.';
+
+const nbaLogos = Object.freeze(Object.assign(Object.create(null), Object.fromEntries(
+  NBA_TEAMS.map(({ code, name }) => [code, Object.freeze({ code, name, src: `/team-logos/nba/${code}.png`, rightsStatus: 'trademark-identification', rightsReference: 'docs/TEAM_LOGO_SOURCES.md#nba-team-logos' })]),
+)));
+
+/** The self-hosted logo `{code, name, src}` for an NBA team code (case and surrounding space ignored), or null. */
+export function resolveNbaTeamLogo(code) {
+  const key = typeof code === 'string' ? code.trim().toUpperCase() : '';
+  return nbaLogos[key] ?? null;
 }
 
 export default approvedTeamLogos;
