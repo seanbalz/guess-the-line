@@ -1,12 +1,14 @@
 // D-69 step 4 (spec 5A): the Bets landing drawn. Contracts: one glow card labelled by its eyebrow with the kit meter, one
 // meta line and the screen's one lime button; five tiles with stable ids and faces on Everyone, NEW only on My bets (a tracked win waiting for its card); while
 // /personal loads, the meter card's skeleton with five tile skeletons; a failed read says one sentence
-// with Try again and keeps the tiles; a failed refresh keeps the last copy and says so. Fixture data only.
+// with Try again and keeps the tiles; a failed refresh keeps the last copy and says so. Main's landing cards as tiles: My
+// bets says the net units and Open and Settled counts; Recommended draws the teased matchup's two marks and opens that
+// assessment, a fresh step. Fixture data only.
 import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { markupProblems, nameFrom, parseMarkup, walk } from './helpers/ui-markup.mjs';
 
-const state = vi.hoisted(() => ({ personal: null, tickets: { loading: false, error: null, data: { entries: [] } }, waiting: 0 }));
+const state = vi.hoisted(() => ({ personal: null, tickets: { loading: false, error: null, data: { entries: [] } }, waiting: 0, research: { status: 'loading', data: null } }));
 const LUKE = '00000000-0000-4000-8000-000000000003';
 vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: () => ({ accountId: LUKE, league: { community: true }, refresh: vi.fn(), requestSignIn: vi.fn(),
   community: { data: { week: { season: 2026, week: 9 }, optOuts: [], members: [{ id: LUKE, displayName: 'Luke' }, { id: 'troy', displayName: 'Troy' }] } } }),
@@ -14,6 +16,7 @@ vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: () => ({ accoun
 vi.mock('../web/src/next/league/useLeagueRead.jsx', () => ({ useLeagueRead: () => state.tickets, LeagueFailure: () => null }));
 vi.mock('../web/src/next/moments/MomentsProvider.jsx', () => ({ useMoments: () => null, useMomentScope: () => {}, useNewCount: () => state.waiting, useNewMoments: () => [], usePopped: () => false }));
 vi.mock('../web/src/api.js', () => ({ socialApi: vi.fn(), betsApi: vi.fn(), cloudApi: vi.fn(), linesApi: vi.fn() }));
+vi.mock('../web/src/next/research/useAssessments.js', () => ({ useAssessments: () => state.research }));
 const { ShellContext } = await import('../web/src/next/shell/context.js');
 const { Bets } = await import('../web/src/next/bets/Bets.jsx');
 
@@ -80,6 +83,23 @@ describe('the Bets landing', () => {
     const [hero] = byAttr(html, 'data-bets', 'hero');
     expect([...walk(hero)].filter(n => (n.attrs?.class ?? '').includes('gx-meter3-seg'))).toHaveLength(0);
     expect(textOf(byAttr(html, 'data-bets', 'hero-line')[0])).toBe('Loading your tickets…');
+  });
+  it('My bets says your net units with Open and Settled; Recommended draws the teased matchup and opens that assessment', () => {
+    const entry = (id, outcome) => ({ id, ownerId: LUKE, origin: 'tracked', kind: 'single', countsForRecord: true, stakeUnits: 0.75, odds: 100, legs: [], outcome });
+    const entries = [entry('w', 'win'), entry('o', 'pending')];
+    state.tickets = { loading: false, error: null, data: { entries }, model: { entries, summary: { bets: 2, pending: 1, roiSampleCount: 1, netUnits: 0.75 } } };
+    state.research = { status: 'ready', data: { assessments: [{ gameId: 'SEA-DEN', routeId: 'sea-den-1', label: 'Research lean', selection: { market: 'spread' } }],
+      coverage: { games: [{ id: 'SEA-DEN', closed: false, spreadAccessible: true, totalAccessible: false }] } } };
+    shell.go.mockClear();
+    const tree = render();
+    state.tickets = { loading: false, error: null, data: { entries: [] } };
+    state.research = { status: 'loading', data: null };
+    const [mine, , , recommended] = tiles(tree);
+    expect([nameFrom(mine), textOf(mine)]).toEqual(['My bets, +0.75U net, 1 open, 1 settled, 2 tracked tickets', expect.stringContaining('+0.75U1 open · 1 settled')]);
+    expect(nameFrom(recommended)).toBe('Recommended, 1 assessment open to you, first Seahawks @ Broncos, Research lean');
+    expect([...walk(recommended)].filter(n => (n.attrs?.class ?? '').split(' ').includes('gx-team')).length, 'the matchup’s two marks').toBe(2);
+    expect(textOf(recommended)).toContain('Research lean');
+    expect(nodes(tree).filter(n => n.tag === 'button' && (n.attrs.class ?? '').includes('gx-btn--primary')).map(textOf), 'still one lime button').toEqual(['Place picks']);
   });
   it('NEW only on My bets while a tracked win waits for its card', () => {
     state.waiting = 1;

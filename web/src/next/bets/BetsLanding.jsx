@@ -1,17 +1,19 @@
 // Bets (D-69 step 4, spec 5A, built for Sean's review): one next-move card (place your picks while any game is still to
-// kick off; otherwise track a bet), then five tiles in two columns. It reads only the app's shared reads (/personal for
-// the week, your own ballots and the server's clock; the Community read for faces and sit-outs) and the ticket summary
-// Home's My bets tile reads (which also reports your tracked wins: NEW on My bets); no Bets, line or research read happens
-// until a section opens.
+// kick off; otherwise track a bet), then five tiles in two columns. It reads the app's shared reads (/personal for the
+// week, your own ballots and the server's clock; the Community read for faces and sit-outs), the ticket summary Home's My
+// bets tile reads (which also reports your tracked wins: NEW on My bets) and, as main's approved landing did for its
+// Recommended card, the account's retained research assessments (never a quote collection); no Bets or line read happens
+// until a section opens. Main's landing cards live on as tiles (betsModel.js myBetsTile, recommendedTile).
 import { useAppData, useSharedRead } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
-import { AvatarStack, Button, Card, Meter, NextMoveCard, Skeleton, StaleLine, Tile, useEntrance } from '../ui/index.js';
+import { AvatarStack, Button, Card, Meter, NextMoveCard, Skeleton, StaleLine, TeamMark, Tile, useEntrance } from '../ui/index.js';
+import { useAssessments } from '../research/useAssessments.js';
 import { useServerNow } from '../home/useServerNow.js';
 import { useNewCount } from '../moments/MomentsProvider.jsx';
 import { SCOPES } from '../moments/catalog.js';
 import { useBetWins } from './useBetWins.js';
 import { BETS_COPY, betsClock, betsHero, betsTiles, clockUntil } from './betsModel.js';
-import { BETS_NAMES, HERO_ACTION_ID, openView, tileId } from './betsNav.js';
+import { BETS_NAMES, HERO_ACTION_ID, openAssessment, openView, tileId } from './betsNav.js';
 import '../ui/focusLanding.css';
 import './landing.css';
 
@@ -21,6 +23,8 @@ export function BetsLanding() {
   // D-69 step 4: the ticket summary read also reports your tracked wins; one waiting for its own card is NEW on My bets.
   const tickets = useBetWins(app);
   const waitingWins = useNewCount(SCOPES.bets);
+  // Main's Recommended card: the published account week's retained assessments, behind the server's reveal gates.
+  const research = useAssessments({ app, personal });
   const { data = null, status, error, at } = personal ?? {};
   // A 404 is a week with nothing published: the track card, not a failure.
   const none = !data && status === 'error' && error?.status === 404;
@@ -30,7 +34,9 @@ export function BetsLanding() {
   const now = useServerNow(data ? betsClock(data) : null, at, { until: clockUntil(data) });
   const hero = data || none ? betsHero({ personal: data, tickets, viewer: app.accountId, now }) : null;
   const retry = () => app.refresh({ only: ['personal'] });
-  const tiles = betsTiles({ personal: data, community: app.community?.data ?? null, tickets, now, viewer: app.accountId, communityShowing: app.league?.community !== false, waitingWins, failed });
+  const tiles = betsTiles({ personal: data, community: app.community?.data ?? null, tickets, research, now, viewer: app.accountId, communityShowing: app.league?.community !== false, waitingWins, failed });
+  const picture = tile => (tile.faces?.length ? <AvatarStack people={tile.faces} max={3} size={24}/>
+    : tile.marks ? <>{tile.marks.map(code => <TeamMark key={code} code={code} size={24} decorative/>)}</> : null);
   return <section className="gx-screen gx-b-landing" data-landing="bets">
     <div className="gx-focus-heading"><h1 className="gx-t-title">{BETS_NAMES.title}</h1></div>
     {hero ? <NextMoveCard className="gx-b-hero" data-bets="hero" data-kind={hero.kind} eyebrow={hero.eyebrow} title={hero.title}
@@ -42,7 +48,7 @@ export function BetsLanding() {
     {loading ? null : <ul className="gx-tiles gx-stagger" data-enter={enter} aria-label="Bets sections" data-bets="tiles">
       {tiles.map(tile => <li key={tile.key} data-tile={tile.key}>
         <Tile id={tileId(tile.key)} label={tile.label} icon={tile.icon} big={tile.big} sub={tile.sub} isNew={tile.isNew} ariaLabel={tile.ariaLabel}
-          picture={tile.faces?.length ? <AvatarStack people={tile.faces} max={3} size={24}/> : null} onClick={() => openView(shell, tile.view, tile.period)}/></li>)}
+          picture={picture(tile)} onClick={() => (tile.open ? openAssessment(shell, tile.open) : openView(shell, tile.view, tile.period))}/></li>)}
     </ul>}
   </section>;
 }

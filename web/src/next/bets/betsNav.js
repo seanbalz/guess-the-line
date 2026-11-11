@@ -13,8 +13,8 @@ export const SECTION_VIEW = Object.freeze({ mybets: 'tracked', picks: 'virtual',
 export const SECTION_OF = Object.freeze({ tracked: 'mybets', active: 'mybets', settled: 'mybets', add: 'mybets', virtual: 'picks', everyone: 'everyone', research: 'recommended', recommended: 'gap' });
 /** My bets' one meta line: the list its address opened. */
 export const LIST_WORDS = Object.freeze({ active: 'Active tickets · all weeks', settled: 'Settled tickets · all weeks', add: 'Add a bet' });
-/** A fresh section: no week, period, matchup or assessment carried in; My bets on its tickets. */
-export const BETS_FRESH = Object.freeze({ season: null, week: null, period: null, matchup: null, assessment: null, trackedPane: 'tickets' });
+/** A fresh section: no week, period, matchup, assessment or opened ticket carried in; My bets on its tickets. */
+export const BETS_FRESH = Object.freeze({ season: null, week: null, period: null, matchup: null, assessment: null, selectedTicket: null, trackedPane: 'tickets' });
 export const tileId = key => `gx-b-tile-${key}`;
 /** The landing's one lime button, whatever its words (Place picks, Add a bet). */
 export const HERO_ACTION_ID = 'gx-b-hero-action';
@@ -27,6 +27,8 @@ export function gapTitle(item) {
 }
 export function openView(shell, view, period = null) { shell.go('bets', { view, ...BETS_FRESH, period }); }
 export function openSection(shell, key) { openView(shell, SECTION_VIEW[key], key === 'mybets' ? 'all' : null); }
+/** Recommended on one assessment (main's Explore recommendations): its game and the assessment open, a fresh step. */
+export function openAssessment(shell, { matchup, assessment }) { shell.go('bets', { view: SECTION_VIEW.recommended, ...BETS_FRESH, matchup: matchup ?? null, assessment: assessment ?? null }); }
 export function openGap(shell, item) { shell.setView('bets', { layer: BETS_LAYERS.recommended.layer, item }); }
 export function closeGap(shell) { shell.setView('bets', { layer: undefined, item: undefined }); }
 /**

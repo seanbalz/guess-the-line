@@ -107,7 +107,9 @@ test('overview boundaries, Back, Research league access and Play League access',
     await page.locator('[data-play-tile=league] button').click();await compact(page,'play','dark',390);
     await page.getByRole('button',{name:'Your leagues',exact:true}).click();await expect(page.getByRole('dialog',{name:'Your leagues',exact:true})).toBeVisible();
     await page.keyboard.press('Escape');await page.locator('.gx-detail-nav').getByRole('button',{name:'Back',exact:true}).click();await expect(root(page)).toHaveClass(/gx-overview-frame/);
-    await tab(page,'Bets').click();await page.getByRole('button',{name:'Overview',exact:true}).click();await compact(page,'bets','dark',390);
+    // D-69 step 4: Overview is My bets' own control (the landing's Overview button became the My bets tile).
+    await tab(page,'Bets').click();await page.locator('#gx-b-tile-mybets').click();
+    await page.getByRole('group',{name:'Tracked bets section',exact:true}).getByRole('button',{name:'Overview',exact:true}).click();await compact(page,'bets','dark',390);
     await page.locator('.gx-detail-nav').getByRole('button',{name:'Back',exact:true}).click();await expect(root(page)).toHaveClass(/gx-overview-frame/);
     await tab(page,'Research').click();await native(page);
     await page.getByRole('button',{name:'League: Community. Switch league',exact:true}).click();await expect(page.getByRole('dialog',{name:'Your leagues',exact:true})).toBeVisible();
@@ -173,50 +175,36 @@ async function receiptFixture(world, settled) {
   }
   return entry;
 }
-for(const theme of ['dark','light']) test(`approved receipt-opening routes ${theme}; generic lists and local expansion retain native frame`,async({page,baseURL},info)=>{
+// D-69 step 4: main's landing ticket previews (Open / View one ticket, the bets-receipt frame) wait on Sean's placement
+// decision; the step 4 landing has no ticket opener. Kept: the generic lists by their own addresses and a ticket's local
+// expansion keep the native frame, the landing keeps its frame on Back, and one account's tickets never reach the next.
+for(const theme of ['dark','light']) test(`generic lists and local expansion retain native frame ${theme}; the landing keeps its frame`,async({page,baseURL},info)=>{
   const world=await communityWorld(page,baseURL,{migrations:ALL,optionalRpc:true});
   try {
     const entries=[await receiptFixture(world,false),await receiptFixture(world,true)];
     await enableEpl(page,world);
     await page.addInitScript(value=>localStorage.setItem('gtl.theme',value),theme);
-    await page.goto('/#bets');await signIn(page,'luke',{navigate:false});
+    await page.goto('/#bets');await signIn(page,'luke',{navigate:false});await expect(root(page)).toHaveClass(/gx-overview-frame/);
     for(const entry of entries) {
-      const kind=entry.outcome==='pending'?'open':'settled',action=entry.outcome==='pending'?'Open':'View';
-      await page.getByRole('button',{name:`${action} ${entry.legs[0].selection}`,exact:true}).click();
-      await expect(page.locator('.gx-tracked-expanded')).toBeVisible();
-      await expect(page.locator('.gx-tracked-expanded')).toContainText(entry.outcome==='pending'?'To return':'Net units');
-      for(const width of [390,320]) {
-        await page.setViewportSize({width,height:844});await setNativeActionTheme(page,theme);await page.evaluate(()=>scrollTo(0,0));
-        await compact(page,'bets',theme,width);await shot(page,info,`${kind}-ticket-${theme}-${width}-full`,true);
-        expect((await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa']).analyze()).violations.map(v=>v.id)).toEqual([]);
-        await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));
-        const last=page.locator('main button:visible,main summary:visible').last();await last.focus();await expect(last).toBeFocused();
-        const box=await last.boundingBox(),dock=await nav(page).boundingBox();expect(box.y+box.height).toBeLessThanOrEqual(dock.y-8);
-        expect(await page.evaluate(layoutProblems)).toEqual([]);await shot(page,info,`${kind}-ticket-${theme}-${width}-bottom`);
-      }
-      await page.locator('.social-filters > summary').click();
-      const markets=page.getByRole('group',{name:'Market filter',exact:true});
-      await markets.getByRole('button',{name:'Spreads',exact:true}).click();
-      await expect(page.locator('.gx-tracked-row')).toHaveCount(0);await expect(page.getByText('No bets match these filters.',{exact:true})).toBeVisible();
-      // Opening intent is not a fabricated receipt or live row telemetry when filters hide the ticket.
-      await expect(root(page)).toHaveClass(/gx-overview-frame/);
-      await markets.getByRole('button',{name:'All markets',exact:true}).click();
-      await expect(page.locator('.gx-tracked-expanded:visible')).toContainText(entry.legs[0].selection.replace(' 30+ receiving yards',''));
-      await page.locator('.social-filters > summary').click();
-      // Local collapse does not change the existing route opening intent or invent live shared row state.
-      await page.locator('.gx-tracked-collapse:visible').click();await expect(root(page)).toHaveClass(/gx-overview-frame/);
-      await page.locator('.gx-detail-nav').getByRole('button',{name:'Back',exact:true}).click();await expect(page.locator('[data-landing=bets]')).toBeVisible();
-      await page.getByText('All ticket views',{exact:true}).click();
-      await page.getByRole('button',{name:kind==='open'?'Active tickets':'Settled tickets',exact:true}).click();
+      const kind=entry.outcome==='pending'?'open':'settled';
+      await page.goto('about:blank');await page.goto(`/#bets/${kind==='open'?'active':'settled'}`);
       await native(page);await page.locator('.gx-tracked-preview').click();await native(page);
-      await page.locator('.gx-detail-nav').getByRole('button',{name:'Back',exact:true}).click();await expect(page.locator('[data-landing=bets]')).toBeVisible();
+      await expect(page.locator('.gx-tracked-expanded')).toContainText(kind==='open'?'To return':'Net units');
+      for(const width of [390,320]) {
+        await page.setViewportSize({width,height:844});await setNativeActionTheme(page,theme);
+        await shot(page,info,`${kind}-ticket-${theme}-${width}-native`,true);
+        expect((await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa']).analyze()).violations.map(v=>v.id)).toEqual([]);
+        expect(await page.evaluate(layoutProblems)).toEqual([]);
+      }
+      await page.locator('.gx-tracked-collapse:visible').click();await native(page);
+      await page.locator('.gx-detail-nav').getByRole('button',{name:'Back',exact:true}).click();await expect(page.locator('[data-landing=bets]')).toBeVisible();await expect(root(page)).toHaveClass(/gx-overview-frame/);
     }
     await page.getByRole('button',{name:'Your menu',exact:true}).click();
     await page.getByRole('dialog',{name:'Menu',exact:true}).getByRole('button',{name:'Sign out',exact:true}).click();
     await expect(page.locator('form.auth-form')).toBeVisible();
     expect(await page.evaluate(()=>['--gx-frame-dock-space','--gx-frame-tabbar-height'].map(name=>document.documentElement.style.getPropertyValue(name)))).toEqual(['','']);
     await signIn(page,'troy',{navigate:false});
-    await expect(page.locator('[data-landing=bets]')).toBeVisible();await expect(page.locator('.gx-ticket-previews')).toHaveCount(0);await expect(page.locator('.gx-tracked-row')).toHaveCount(0);
+    await expect(page.locator('[data-landing=bets]')).toBeVisible();await expect(page.locator('.gx-tracked-row')).toHaveCount(0);
     await expect(page.locator('main')).not.toContainText('Open receipt fixture');await expect(page.locator('main')).not.toContainText('Settled receipt fixture');
     expect(world.errors).toEqual([]);
   } finally {await page.unrouteAll({behavior:'wait'});await page.close();await world.db.close();}

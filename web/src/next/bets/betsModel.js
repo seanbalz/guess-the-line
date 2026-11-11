@@ -2,13 +2,17 @@
 // game of the published week is still to kick off; otherwise track a bet) and five tiles (My bets, Your picks, Everyone,
 // Recommended, Your gap). Pure. It reads only what the app already reads: the shared /personal reply (the week's games,
 // your own ballots and the server's clock, as Home's This week and Research's landing read it), the Community read (its
-// members and your sit-outs) and the ticket summary (your own tracked tickets: Home's My bets tile). No line, price,
-// pick or other player's bet reaches it (D-31, D-36).
+// members and your sit-outs), the ticket summary (your own tracked tickets: Home's My bets tile) and, as main's approved
+// landing did, the account's research assessments for the Recommended tile. No line, price, pick or other player's bet
+// reaches it (D-31, D-36).
+//
+// Main's confirmed Prism landing (#495: "Your tracked bets", "Tickets" and "Recommended" cards) folds into these tiles:
+// My bets carries its net units and its Open and Settled counts; Recommended its one permitted assessed matchup.
 import { gamesOf, optOutsFor, weekOf } from '../../../../shared/lines-view.mjs';
 import { guessLockedIn } from '../../../../shared/trends-view.mjs';
 import { DESTINATION_ICONS } from '../ui/destinations.js';
-import { DASH, SEP, plural, toMs } from '../format.js';
-import { betsTile } from '../home/homeModel.js';
+import { DASH, SEP, fmtAmt, plural, toMs } from '../format.js';
+import { gameName } from '../research/researchNav.js';
 import { BETS_NAMES, BETS_SECTIONS, SECTION_VIEW } from './betsNav.js';
 
 export const BETS_TILE_ICONS = Object.freeze({ mybets: DESTINATION_ICONS.activeTickets, picks: DESTINATION_ICONS.virtualUnits,
@@ -57,12 +61,65 @@ export function betsHero({ personal = null, tickets = null, viewer = null, now =
 }
 
 /**
+ * My bets (main's "Your tracked bets" and "Tickets" cards): net units over all weeks, then the Open and Settled counts, from
+ * the owner-only projection of your included tracked tickets (useTicketSummary's `model`, trackedOverview). Net units need
+ * a settled ticket with a complete return: none is "—", never a made-up 0U. Loading and failed stay apart from empty.
+ */
+export function myBetsTile(tickets) {
+  if (tickets?.error) return { big: DASH, sub: 'Open to retry', ariaLabel: 'My bets, could not load, open to retry' };
+  const model = tickets?.model, summary = model?.summary;
+  if (tickets?.loading || !summary) return { big: DASH, sub: 'Loading tickets…', ariaLabel: 'My bets, loading' };
+  const open = summary.pending, settled = summary.bets - summary.pending, net = summary.roiSampleCount ? fmtAmt(summary.netUnits) : DASH;
+  const tracked = Array.isArray(model.entries) ? model.entries.length : summary.bets;
+  return { big: net, sub: `${open} open${SEP}${settled} settled`,
+    ariaLabel: `My bets, ${net === DASH ? 'no net units yet' : `${net} net`}, ${open} open, ${settled} settled, ${plural(tracked, 'tracked ticket', 'tracked tickets')}` };
+}
+
+const ASSESSED_GAME = /^[A-Z]{2,4}-[A-Z]{2,4}$/;
+/**
+ * The assessments the Recommended tile may name (main's teaser rule): an open game whose market is open to you (a spread
+ * or total assessment its own market; any other, both), from the account-scoped research reply, in its order.
+ */
+export function openAssessments(data) {
+  const games = Array.isArray(data?.coverage?.games) ? data.coverage.games : [];
+  return (Array.isArray(data?.assessments) ? data.assessments : []).filter(a => {
+    const g = games.find(game => game.id === a.gameId);
+    return g && !g.closed && (a.selection?.market === 'spread' ? g.spreadAccessible : a.selection?.market === 'total' ? g.totalAccessible : g.spreadAccessible && g.totalAccessible)
+      && ASSESSED_GAME.test(a.gameId);
+  });
+}
+/** The one assessment main's landing teased: the first open to you, or null. */
+export const teaserAssessment = data => openAssessments(data)[0] ?? null;
+
+/**
+ * Recommended (main's "Recommended" card): how many assessments are open to you and the first one's matchup (its marks are
+ * the tile's picture) and label; tapping opens that assessment (`open`), as main's Explore recommendations did. Loading and
+ * a failed read never draw a sample matchup; locked and closed weeks say so.
+ */
+export function recommendedTile(read) {
+  if (!read || read.status === 'loading') return { big: DASH, sub: 'Research assessments', ariaLabel: 'Recommended, loading research assessments', marks: null, open: null };
+  if (read.status === 'error') return { big: DASH, sub: 'Not loaded', ariaLabel: 'Recommended, research assessments not loaded', marks: null, open: null };
+  const list = openAssessments(read.data), first = list[0] ?? null, games = Array.isArray(read.data?.coverage?.games) ? read.data.coverage.games : [];
+  if (first) {
+    const [away, home] = first.gameId.split('-');
+    return { big: String(list.length), sub: first.label, marks: [away, home], open: { matchup: first.gameId, assessment: first.routeId ?? null },
+      ariaLabel: `Recommended, ${plural(list.length, 'assessment', 'assessments')} open to you, first ${gameName(away, home)}, ${first.label}` };
+  }
+  const locked = games.length > 0 && games.every(g => !g.spreadAccessible && !g.totalAccessible);
+  const closed = games.length > 0 && games.every(g => g.closed);
+  return locked ? { big: '0', sub: 'Lock in to see research', ariaLabel: 'Recommended, lock in a guess to see its research', marks: null, open: null }
+    : closed ? { big: '0', sub: 'Assessments closed', ariaLabel: 'Recommended, pregame assessments closed', marks: null, open: null }
+    : { big: '0', sub: 'None assessed yet', ariaLabel: 'Recommended, no assessed matchup yet', marks: null, open: null };
+}
+
+/**
  * The five tiles, in BETS_SECTIONS order. `waitingWins`: tracked wins waiting (NEW) for their own ticket's card; the My bets
  * tile then opens Settled tickets, where that card is drawn, so opening it plays the moment. `failed`: /personal did not load.
+ * `research`: the assessments read (useAssessments) for the Recommended tile.
  */
-export function betsTiles({ personal = null, community = null, tickets = null, now = null, viewer = null, communityShowing = true, waitingWins = 0, failed = false } = {}) {
+export function betsTiles({ personal = null, community = null, tickets = null, research = null, now = null, viewer = null, communityShowing = true, waitingWins = 0, failed = false } = {}) {
   const week = weekOf(personal)?.week ?? null, own = ownWeek(personal, community, now);
-  const mine = betsTile({ loading: tickets?.loading, error: tickets?.error, active: tickets?.active });
+  const mine = myBetsTile(tickets);
   const notLoaded = name => ({ big: DASH, sub: 'Not loaded', ariaLabel: `${name}, not loaded` });
   const picks = failed ? notLoaded('Your picks') : week === null ? { big: DASH, sub: 'No week open', ariaLabel: 'Your picks, no week open' }
     : !own.open ? { big: '0', sub: `Week ${week} closed`, ariaLabel: `Your picks, week ${week} closed` }
@@ -75,6 +132,6 @@ export function betsTiles({ personal = null, community = null, tickets = null, n
   const gap = failed ? notLoaded('Your gap') : week === null ? { big: DASH, sub: 'No week open', ariaLabel: 'Your gap, no week open' }
     : { big: String(own.locked), sub: own.locked === 1 ? 'locked guess' : 'locked guesses', ariaLabel: `Your gap, ${plural(own.locked, 'locked guess', 'locked guesses')} against the lines` };
   const tiles = { mybets: { ...mine, isNew: waitingWins > 0, ...(waitingWins > 0 ? { view: 'settled' } : { view: 'tracked', period: 'all' }) }, picks, everyone, gap,
-    recommended: { big: DASH, sub: 'Research assessments', ariaLabel: 'Recommended, research assessments' } };
-  return BETS_SECTIONS.map(key => ({ key, label: BETS_NAMES[key], icon: BETS_TILE_ICONS[key], faces: null, isNew: false, view: SECTION_VIEW[key], ...tiles[key] }));
+    recommended: recommendedTile(research) };
+  return BETS_SECTIONS.map(key => ({ key, label: BETS_NAMES[key], icon: BETS_TILE_ICONS[key], faces: null, marks: null, open: null, isNew: false, view: SECTION_VIEW[key], ...tiles[key] }));
 }
