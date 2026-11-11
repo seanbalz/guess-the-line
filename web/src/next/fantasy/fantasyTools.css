@@ -41,3 +41,5 @@
 .gx .gx-fantasy-facts > div { padding: 12px; border: 1px solid var(--gx-glass-line); border-radius: 14px; background: var(--gx-data-tint); }
 .gx .gx-fantasy-facts dd { color: var(--gx-data); }
 .gx .gx-fantasy-table-wrap { min-width: 0; border: 1px solid var(--gx-glass-line); border-radius: 14px; background: var(--gx-surface-2); }
+/* Buy / sell signals: each position segment stays a 44px target at 320px. */
+.gx .gx-fantasy-signal-seg .gx-seg-btn { min-width: 44px; }

@@ -244,6 +244,14 @@ value is derived in the browser from the loaded public snapshot by
   samples, and the all-defense average, from the snapshot's `matchups` (schema 2).
   Descriptive only; no advantage or matchup grade. Schema 1 snapshots say so.
 
+## Opportunity signals (November 11, 2026)
+
+Research › Fantasy in the new app shows a Buy / Hold / Sell read for QB, RB, WR and TE from expected points (each
+game's targets, carries and attempts at league rates) against actual points, by percentile within the position. The
+usage profile has an Opportunity signal section and the Fantasy card a Buy / sell signals layer. Derived in the
+browser from the loaded snapshot; no estimate, ranking, snapshot or API change. Method, backtest (2024–25: Buy +2.61,
+Hold +0.44, Sell −1.84 points per game over the next three weeks) and limits: [FANTASY_SIGNALS.md](FANTASY_SIGNALS.md).
+
 ## Usage Tracker requirements (queue Q11–Q14)
 
 Sean asked on October 15 to bring the analysis from his Fantasy Usage Tracker

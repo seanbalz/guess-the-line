@@ -1,5 +1,18 @@
 # Guess The Line — current completion register
 
+## Fantasy opportunity signals — November 11, 2026
+
+Sean asked to "integrate with guess the line repo on github" from the `seanbalz/fantasy-football` waiver research.
+Branch `claude/fantasy-opportunity-signals` adds its role-versus-production read to Research › Fantasy in the new app.
+
+- **What.** `shared/fantasy-signals.mjs` scores each game's targets, carries and attempts at league rates (expected
+  points) and reads Buy / Hold / Sell from the role − production percentile gap (±18). The usage profile gains an
+  Opportunity signal section; Fantasy gains a Buy / sell signals tile and layer. See [the method](FANTASY_SIGNALS.md).
+- **Evidence.** 2024–25 backtest, weeks 3–15, next three weeks: Buy +2.61 points per game (69.6% improved), Hold +0.44,
+  Sell −1.84 (28.5%). New node and render tests pass.
+
+Frontend and shared code only. No API, migration, workflow, snapshot or estimate change; nothing deployed.
+
 ## Player Props pilot collection from GitHub Actions — November 11, 2026
 
 Branch `claude/props-pilot-collect-2026-11-11` lets the hidden D-82 pilot run without a key on any laptop.

@@ -361,6 +361,47 @@ test.describe('fantasy rankings', () => {
       expect(world.errors).toEqual([]);
     } finally { await world.db.close(); }
   });
+
+  test('new app: buy / sell signals layer and profile signal at phone and desktop widths in both themes, keyboard and axe', async ({ page, baseURL }, testInfo) => {
+    test.skip(!pgliteAvailable, 'Local PGlite required; never contacts hosted data.');
+    const { world } = await open(page, baseURL, 'next');
+    try {
+      for (const theme of ['dark', 'light']) {
+        await page.evaluate(value => localStorage.setItem('gtl.theme', value), theme);
+        await page.reload();
+        const screen = root(page, 'next');
+        await expect(list(screen)).toBeVisible();
+        for (const width of [320, 390, 1390]) {
+          await page.setViewportSize({ width, height: 844 });
+          await expect(screen.locator('[data-fantasy=signals]')).toContainText(/\d+ buy · \d+ sell/);
+          await screen.locator('[data-fantasy=signals]').click();
+          const board = screen.locator('section[aria-labelledby="gx-fantasy-signals-title"]');
+          await expect(board.getByRole('heading', { name: 'Buy / sell signals', exact: true })).toBeVisible();
+          await expect(board.getByRole('status')).toContainText('Stats through Week 5');
+          const sell = board.getByRole('region', { name: 'Sell: production ahead of role data', exact: true });
+          await expect(sell.locator('tbody tr').first()).toBeVisible();
+          await layout(page, screen);
+          await sell.focus();
+          await expect(sell).toBeFocused();
+          await page.screenshot({ path: testInfo.outputPath(`fantasy-signals-${width}-${theme}.png`), fullPage: true });
+          const axe = await new AxeBuilder({ page }).include('.gx-fantasy').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
+          expect(axe.violations.map(issue => `${issue.id}: ${issue.nodes.map(node => node.target.join(' ')).join(', ')}`)).toEqual([]);
+          await board.getByRole('group', { name: 'Signal position' }).getByRole('button', { name: 'QB', exact: true }).click();
+          await board.getByRole('group', { name: 'Signal position' }).getByRole('button', { name: 'All', exact: true }).click();
+          const pick = sell.locator('tbody tr th button').first();
+          const id = await pick.getAttribute('data-player');
+          await pick.click();
+          const sheet = page.getByRole('dialog', { name: snapshot.players.find(player => player.id === id).name, exact: true });
+          await expect(sheet.getByRole('heading', { name: 'Opportunity signal', exact: true })).toBeVisible();
+          await expect(sheet.getByText('Sell', { exact: true })).toBeVisible();
+          await page.keyboard.press('Escape');
+          await expect(sheet).toHaveCount(0);
+          await backToFantasy(screen);
+        }
+      }
+      expect(world.errors).toEqual([]);
+    } finally { await world.db.close(); }
+  });
 });
 
 test('capture theme preference survives opposite system media and reload', async ({ page, baseURL }) => {

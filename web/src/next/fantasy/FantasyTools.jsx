@@ -9,6 +9,7 @@ import { SCORING_OPTIONS, formatFantasyNumber as number } from '../../../../shar
 import { COMPARE_PERIODS, MAX_COMPARE, USAGE_METRICS, comparePlayers, playerProfile, searchPlayers } from '../../../../shared/fantasy-tools.mjs';
 import { Button, Card, IconButton, LockLine, Segmented, Sheet } from '../ui/index.js';
 import { DefenseMatchupSection } from './DefenseMatchup.jsx';
+import { OpportunitySignalSection } from './OpportunitySignals.jsx';
 import './fantasyTools.css';
 
 const label = (options, value) => options.find(option => option.value === value)?.label ?? value;
@@ -118,6 +119,7 @@ export function PlayerProfileBody({ profile, snapshot, settings, compare, estima
       </table></div>}
       <Averages summary={summary}/>
     </section>
+    {pointsPresentation ? null : <OpportunitySignalSection snapshot={snapshot} playerId={player.id} settings={settings}/>}
     <Card variant={pointsPresentation ? undefined : "s2"} as="section" className="gx-vstack gx-gap-8" aria-labelledby={`${player.id}-estimate`}>
       <h3 className="gx-t-section" id={`${player.id}-estimate`}>GTL estimate</h3>
       {estimateLocked ? <LockLine>{estimateLocked}</LockLine> : <>

@@ -16,6 +16,7 @@ import { Button, InfoButton, LockLine, Nest, Pill, Segmented, Switch, Skeleton, 
 import { PlayerCompare, PlayerProfileBody, PlayerProfileSheet, PlayerToolButtons } from './FantasyTools.jsx';
 import { ObservedPlayers } from './ObservedPlayers.jsx';
 import { DefenseMatchupSection, DefenseRankings } from './DefenseMatchup.jsx';
+import { SIGNAL_EVIDENCE, SIGNAL_NOTE, SignalBoard, signalCounts } from './OpportunitySignals.jsx';
 
 export const FANTASY_PAGE = 50;
 const INTRO = 'Weekly and rest-of-season player rankings from recent usage and statistics. These are GTL estimates, not expert consensus or injury-adjusted projections.';
@@ -165,6 +166,15 @@ export function FantasyNest({ navigationState, onNavigationState, view = {}, onL
     </Nest></section>;
   }
 
+  // Fantasy › Buy / sell signals: role (expected points from usage) against production, per position.
+  if (snapshot && view.fantasyLayer === 'signals') {
+    return <section className="gx-screen gx-fantasy" aria-label="Fantasy Football"><h1 className="gx-t-title">Fantasy Football</h1><Nest key="fantasy-layer" label="Fantasy layers" layer="signals" title="Buy / sell signals" lips={[toFantasy]}
+      info={<InfoButton title="About buy / sell signals" body={[SIGNAL_NOTE, SIGNAL_EVIDENCE]} links={sourceLinks(snapshot)}/>}>
+      <SignalBoard snapshot={snapshot} settings={settings} scoringLabel={scoringLabel} onProfile={onProfile}/>
+      {profile}
+    </Nest></section>;
+  }
+
   // Fantasy › the week's report card (D-69 step 3: tiles and rows; the fine print behind ⓘ).
   if (snapshot && view.fantasyLayer === 'report' && filters.scope === 'weekly' && state.review) {
     const report = reportModel(state.review, filters, scoringLabel);
@@ -188,6 +198,7 @@ export function FantasyNest({ navigationState, onNavigationState, view = {}, onL
     : state?.origin === 'hosted' && snapshot ? `Updated ${date(snapshot.generatedAt)}${state.indexStale ? ' · refresh check delayed' : ''}` : null;
   const seasons = [...new Set(entries.map(entry => entry.season))];
   const reportCard = snapshot && filters.scope === 'weekly' && state.review ? reportTile(state.review, filters) : null;
+  const signals = snapshot && browse === 'rankings' ? signalCounts(snapshot, settings) : null;
   return <section className="gx-screen gx-fantasy" aria-label="Fantasy Football"><h1 className="gx-t-title">Fantasy Football</h1>
     <Segmented label="Fantasy browse" value={browse} options={[{ value: 'players', label: 'Players' }, { value: 'rankings', label: 'Rankings' }, ...(snapshot ? [{ value: 'compare', label: `Compare (${compareIds.length})` }] : [])]} onChange={value => value === 'compare' ? onLayer({ fantasyLayer: 'compare', fantasyPlayer: null }) : setBrowse(value)}/>
     <Nest key="fantasy-layer" className={browse === 'players' ? 'gx-fantasy-browse' : undefined} label="Fantasy layers" layer="fantasy" title={browse === 'players' ? 'Players' : 'Rankings'}
@@ -227,6 +238,9 @@ export function FantasyNest({ navigationState, onNavigationState, view = {}, onL
         {snapshot.matchups ? <li><button type="button" className="gx-nest-tile" data-fantasy="defense" onClick={() => onLayer({ fantasyLayer: 'defense', fantasyPlayer: null })}>
           <span className="gx-nest-tile-label">Defense matchups</span><span className="gx-n-m gx-nest-num">{Object.keys(snapshot.matchups).length}</span>
           <span className="gx-t-meta">teams ranked by position</span></button></li> : null}
+        {signals ? <li><button type="button" className="gx-nest-tile" data-fantasy="signals" onClick={() => onLayer({ fantasyLayer: 'signals', fantasyPlayer: null })}>
+          <span className="gx-nest-tile-label">Buy / sell signals</span><span className="gx-n-m gx-nest-num">{signals.buy + signals.sell}</span>
+          <span className="gx-t-meta">{signals.buy} buy · {signals.sell} sell</span></button></li> : null}
         <li><button type="button" className="gx-nest-tile" data-fantasy="compare" onClick={() => onLayer({ fantasyLayer: 'compare', fantasyPlayer: null })}>
           <span className="gx-nest-tile-label">Compare players</span><span className="gx-n-m gx-nest-num">{compareIds.length}</span>
           <span className="gx-t-meta">of {MAX_COMPARE} chosen</span></button></li>
