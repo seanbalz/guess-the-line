@@ -15,15 +15,16 @@ import { AppDataProvider } from './data/AppData.jsx';
 import { AppGate } from './shell/AppGate.jsx';
 import { SportNavigationContext } from './sportSwitch.js';
 import { EPL_SHELL } from './epl/EplShell.jsx';
+import { NBA_SHELL } from './nba/NbaShell.jsx';
 import { addNextFontLinks } from './styles/fonts.js';
 
 export default function NextApp({ session, onSignOut }) {
   const { sport } = useContext(SportNavigationContext);
-  // One account provider survives NFL/EPL switches; the active sport supplies the frame's screens.
+  // One account provider survives NFL/EPL/NBA switches; the active sport supplies the frame's screens.
   useEffect(() => { addNextFontLinks(); }, []);
   return (
     <AppDataProvider session={session} sport={sport}>
-      <AppGate session={session} onSignOut={onSignOut} sport={sport} shellProps={sport === 'epl' ? EPL_SHELL : undefined}/>
+      <AppGate session={session} onSignOut={onSignOut} sport={sport} shellProps={sport === 'epl' ? EPL_SHELL : sport === 'nba' ? NBA_SHELL : undefined}/>
     </AppDataProvider>
   );
 }

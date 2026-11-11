@@ -21,10 +21,16 @@ export function eplHash(route) {
 /** Any #epl… fragment belongs to the EPL section while it shows, including in-page anchors (#epl-main). */
 export const eplFragment = hash => typeof hash === 'string' && hash.startsWith('#epl');
 
-export const SPORT_HOME = Object.freeze({ nba: '#nba/games', epl: '#epl/home' });
-/** NBA is hidden from navigation (Sean, October 29); saved NBA links still open their retained records. */
-export function sportOptions(epl) {
-  return [{ value: 'nfl', label: 'NFL' }, ...(epl ? [{ value: 'epl', label: 'EPL' }] : [])];
+export const SPORT_HOME = Object.freeze({ nba: '#nba/home', epl: '#epl/home' });
+/**
+ * NBA stays off the production sport switch until Sean says otherwise (October 29 hide; restated November 11, D-85).
+ * Saved #nba links still open NBA, and while NBA shows its own circle is drawn selected so the member sees where they
+ * are. Flip only on Sean's word.
+ */
+export const NBA_ON_SWITCH = false;
+/** The sport switch's options: NFL, EPL with access, and NBA only when `nba` (default: the NBA_ON_SWITCH flag). */
+export function sportOptions(epl, nba = NBA_ON_SWITCH) {
+  return [{ value: 'nfl', label: 'NFL' }, ...(epl ? [{ value: 'epl', label: 'EPL' }] : []), ...(nba ? [{ value: 'nba', label: 'NBA' }] : [])];
 }
 
 /** Whether this account sees EPL, provided by main.jsx's sport entry (false until a lobby reply says). */

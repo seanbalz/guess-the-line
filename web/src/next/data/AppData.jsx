@@ -51,7 +51,7 @@ export function AppDataProvider({ session, sources, sport = 'nfl', children }) {
   // The first read, the refresh triggers, and the abort on unmount (StrictMode mounts twice; the store survives). An
   // account this device has seen with a name reads the Community alongside /lobby instead of after it.
   useEffect(() => {
-    const disconnect = connectRefresh(window, store, { only: sport === 'epl' ? ['lobby'] : undefined });
+    const disconnect = connectRefresh(window, store, { only: sport === 'epl' || sport === 'nba' ? ['lobby'] : undefined });
     store.load('lobby');
     if (sport === 'nfl' && rememberedName(accountId)) store.load('community');
     return () => { disconnect(); store.abortAll(); };

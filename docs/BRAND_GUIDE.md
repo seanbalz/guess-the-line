@@ -1,5 +1,19 @@
 # GUESS THE LINE — BRAND & DESIGN SYSTEM v1.0
 
+## NBA marks: official league and team logos — November 11, 2026 (D-85)
+
+Sean: "Approve badges", immediately corrected by "we need nba logo and team logos not
+letters". NBA screens show the official NBA league logo and the official logo of each of
+the 30 teams, each in its own glass circle like every NFL and Premier League mark; the
+G keeps no circle. The proposal's letters-only badges and "NBA" text badge are
+superseded; letters hold a circle only while its logo loads or if it fails. Look NBA
+teams up by NBA code only (`resolveNbaTeamLogo`, `NbaTeamBadge`): 13 codes are also NFL
+codes. Below 360 px wide, three league circles are 44 px. NBA stays off the production
+sport switch (`NBA_ON_SWITCH = false`) until Sean says otherwise. Marks identify the
+league and teams only, under the NBA trademark notice; sources, hashes and rights are in
+[the logo register](TEAM_LOGO_SOURCES.md#nba-team-logos). This is not deployment or
+physical-phone acceptance.
+
 ## Approved shared Prism foundation — November 7, 2026
 
 Sean authorized the remaining selected visual updates after reviewing the November

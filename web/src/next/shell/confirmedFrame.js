@@ -25,6 +25,12 @@ export function nflFrameContext(state, { screen = false, history = false, cover 
     && view.selectedTicket.length > 0 ? 'bets-receipt' : null;
 }
 
+/** NBA (milestone N1): every actual NBA tab uses the compact Prism frame of mockups 01 to 09; pages stay native. */
+export function nbaFrameContext(state) {
+  if (state.page) return null;
+  return ['home', 'play', 'bets', 'research'].includes(state.tab) ? `nba-${state.tab}` : null;
+}
+
 export function eplFrameContext(state) {
   if (state.page) return null;
   const section = state.views[state.tab]?.section;
