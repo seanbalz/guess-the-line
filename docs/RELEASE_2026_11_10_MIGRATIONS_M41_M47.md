@@ -191,7 +191,14 @@ Nothing was deleted, truncated or rewritten (D-23).
   - The `gtl-epl-results` cron is active at `9-59/15 * * * *`. While the row is off, each dispatch
     returns `disabled` without a run row or HTTP call.
   - The other seven schedules are unchanged, and there are 0 `results` runs so far.
-  - Enabling is a separate word from Sean, followed by one real run readback (packet M-44).
+  - **Enabled** at 00:06 UTC on November 11 on Sean's "Yes, enable it", through one guarded
+    SQL-editor update. All eight EPL jobs are now on.
+  - **First real run** at 00:09:00 UTC succeeded in under a second. It announced Matchweek 10:
+    2 winners, 1 opted-in member, 1 push sent, 0 failed.
+  - It made 0 final-result reads, because the finals were already stored, so it spent no odds
+    credits (budget still 186, not paused).
+  - Off switch: `update public.gtl_epl_jobs_schedule set enabled=false where job='results';`.
+    Announcements and deliveries stay (D-23).
 - **Player Props stays dark.** Turning it on is a set of separately reviewed steps:
   - the readiness audit (packet section 8);
   - jobs: the `GTL_PROPS_*` secrets, the `GTL_PLAYER_PROPS_JOBS` variable, a dry run, then write runs;
@@ -208,6 +215,22 @@ Nothing was deleted, truncated or rewritten (D-23).
   - `/epl/*` with a three-way guess and `epl/bets/read`;
   - `epl/admin/scores/*`.
 - **Phone acceptance** of custom stakes, three-way entry and the screenshot import remains open.
+
+## Signed-in readback (view only)
+
+After the applies, the live app was opened in Sean's signed-in Chrome to look only. No pick, stake
+or import was made, and the hosted counts stayed the same: 7 Virtual Units picks, 71 EPL guesses
+and 0 three-way rows. All of the following were executed:
+
+| Request | Status | What the screen shows |
+| --- | --- | --- |
+| `bets/read` | 200 | The slip has the "Custom units" field and 0.1-unit steppers. M-41 is live. A test pick was added to the unsaved slip, then removed without placing. |
+| `epl/guess/read` | 200 | Guess the Line offers "Draw no bet (draw = push) or 3-way (home, draw, away)". M-42 is live. |
+| `epl/bets/read` | 200 | EPL Bets renders for Matchweek 10. |
+| `epl/admin/scores/read` | 200 | Commissioner tools › Premier League weekly scores shows the Sleeper screenshot import. M-43 is live. |
+
+No save, three-way guess, cent stake or import has been made through the app yet, and no phone
+check has been done.
 
 ## Change breadcrumb
 

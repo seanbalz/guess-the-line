@@ -26,11 +26,14 @@ verification:
 - **Now live:** custom Virtual Units stakes in hundredths, EPL three-way entry, the commissioner
   screenshot import and the result-announcement storage.
 - **Still off:**
-  - the EPL `results` job: created disabled at 21:19 UTC with its active 15-minute cron; enabling
-    it needs Sean's word;
   - Player Props (readiness audit, jobs, `live_lock_in` and the `GTL_PLAYER_PROPS` flags);
   - M-33/M-34/M-35.
-- **Still open:** signed-in route readback and phone acceptance.
+- **EPL results job** (Sean's word): created off at 21:19 UTC, enabled at 00:06 UTC on
+  November 11. Its first run at 00:09 announced Matchweek 10 and sent 1 push, at 0 credits.
+- **Signed-in readback** (view only, Sean's Chrome, nothing saved): `bets/read`, `epl/guess/read`,
+  `epl/bets/read` and `epl/admin/scores/read` all return 200, and the custom stake field and the
+  three-way choice are shown.
+- **Still open:** a first real save of each new feature, and phone acceptance.
 
 
 ## Player Props shared view, History and receipt finished dark — November 10, 2026
