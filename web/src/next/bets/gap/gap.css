@@ -1,20 +1,10 @@
-/* D-69 step 4: Bets › Your gap. D-77's hero keeps the look Sean approved (moved from recommendedBets.css with the same
-   tokens); the rows are the kit's picture rows; the gap layer's comparison, sides and actions. Tokens only. */
-.gx .gx-gap-hero { display: flex; flex-direction: column; gap: var(--gx-space-3); color: var(--gx-text-1); }
-.gx .gx-gap-hero .gx-t-micro, .gx .gx-gap-hero .gx-t-meta, .gx .gx-gap-rate .gx-t-body { margin: 0; color: var(--gx-text-2); }
-.gx .gx-gap-hero-top { display: flex; align-items: center; justify-content: space-between; gap: var(--gx-space-2); }
-.gx .gx-gap-about { display: grid; place-items: center; width: var(--gx-size-touch); height: var(--gx-size-touch); margin: calc(var(--gx-space-3) * -1) calc(var(--gx-space-3) * -1) calc(var(--gx-space-3) * -1) 0; padding: 0; border: 0; border-radius: var(--gx-radius-pill); background: none; color: var(--gx-text-2); cursor: pointer; }
-.gx .gx-gap-about:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
-.gx .gx-gap-rate { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--gx-space-2); }
-.gx .gx-gap-dots { display: flex; flex-wrap: wrap; gap: var(--gx-space-2); margin: 0; padding: 0; list-style: none; }
-.gx .gx-gap-dots li { display: grid; place-items: center; width: var(--gx-space-7); height: var(--gx-space-7); border-radius: var(--gx-radius-pill); background: var(--gx-win); color: var(--gx-on-state); font: 700 13px/1 var(--gx-font-body); }
-.gx .gx-gap-dots li[data-outcome="loss"] { background: var(--gx-loss); }
-.gx .gx-gap-dots li[data-outcome="push"] { background: var(--gx-pending); }
+/* D-69 step 4: Bets › Your gap. D-77's record (its hit-rate ring, periods and gaps) is main's GapRecord.jsx with its own
+   gapRecord.css; the rows are the kit's picture rows; the gap layer's comparison, sides and actions. Tokens only. */
 .gx .gx-gap-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--gx-space-2); min-width: 0; }
 .gx .gx-gap-week { display: flex; flex-direction: column; gap: var(--gx-space-2); min-width: 0; }
 .gx .gx-gap-week select { min-height: var(--gx-size-touch); width: 100%; min-width: 0; padding: var(--gx-space-2); color: var(--gx-text-1); background: var(--gx-surface-2); border: 1px solid var(--gx-border-strong); border-radius: var(--gx-radius-sm); font: inherit; }
 .gx .gx-gap-stat { justify-content: space-between; }
-/* Two tiles to a row leave a value 112 px at 320 px: enough for "185.7%" at 32 px in the condensed number face, not in a
+/* Two tiles to a row leave a value 112 px at 320 px: enough for "100.0" at 32 px in the condensed number face, not in a
    wide fallback face (CI's Linux DejaVu Sans, a phone whose webfonts did not load), where it leaves its tile. At 24 px it
    keeps one line in either; the 32 px line keeps the tile's height. Measured in next-bets-layers.spec.js. */
 @media (max-width: 359px) { .gx .gx-gap-stat .gx-nest-num { font-size: 24px; } }
@@ -30,6 +20,6 @@
 .gx .gx-gap-side[data-value-color="red"] .gx-gap-side-word { color: var(--gx-loss); }
 .gx .gx-gap-side[data-value-color="yellow"] .gx-gap-side-word { color: var(--gx-pending); }
 /* The two actions wrap under each other rather than clip (step 3's lesson: a wide font at 320 px). */
-.gx .gx-gap-actions { display: flex; flex-wrap: wrap; gap: var(--gx-space-2); }
-.gx .gx-gap-actions > .gx-btn { flex: 1 1 auto; }
+.gx .gx-gap-layer-actions { display: flex; flex-wrap: wrap; gap: var(--gx-space-2); }
+.gx .gx-gap-layer-actions > .gx-btn { flex: 1 1 auto; }
 @media (forced-colors: active) { .gx .gx-gap-side { border: 1px solid CanvasText; } }

@@ -1,6 +1,7 @@
 // Bets › Your gap › one gap (D-69 step 4): a nesting card under the Your gap lip with its own address
 // (`#bets/recommended?layer=gap&item=SEA-DEN:total`). It holds what the old Recommended card opened to: your guess and the
-// latest consensus, the market's historical trends, both sides against your guess (text-labelled traffic lights, D-54),
+// latest consensus, the gap's historical size (D-81), the market's historical trends, both sides against your guess
+// (text-labelled traffic lights: D-81's historical top quarter),
 // the suggested side and its saved quote, Track this bet and Play with Virtual Units, and the review card. A selection
 // whose row has left the list (a filter, the top three, a kickoff) is still reviewed here.
 import { useRef } from 'react';
@@ -8,7 +9,8 @@ import { Circle } from 'lucide-react';
 import { Button, Icon, MetaLine, Nest, Skeleton, useLayerFocus } from '../../ui/index.js';
 import { MINUS, SEP, fmtNum, fmtWhen } from '../../format.js';
 import { BETS_NAMES, gapTitle } from '../betsNav.js';
-import { GAP_COPY, marketNumber, quoteAge, sideName, termsText } from './gapModel.js';
+import { gapSizeLabel } from '../../../../../shared/nfl-gap-scale.mjs';
+import { GAP_COPY, gapSize, marketNumber, quoteAge, sideName, termsText } from './gapModel.js';
 import { GapMessages } from './GapParts.jsx';
 import { GapReview } from './GapReview.jsx';
 import { GapTrends } from './GapTrends.jsx';
@@ -21,7 +23,7 @@ function GapDetail({ gap, row, selection, pick }) {
   const current = gap.data.games.find(g => g.id === game.id) ?? game;
   return <>
     <MetaLine parts={[`Kickoff ${fmtWhen(game.kickoff)}`]}/>
-    {market === 'spread' && Math.abs(reference.value) < 3 ? <p className="gx-t-meta">{GAP_COPY.baseline}</p> : null}
+    <MetaLine parts={[`Gap size ${gapSize(row)}`, gapSizeLabel(row.gapScore), `${fmtNum(row.gap)} pt gap`]}/>
     <dl className="gx-gap-compare">
       <div className="gx-nest-tile"><dt className="gx-nest-tile-label">{`Your guess${market === 'spread' ? `${SEP}${home}` : ''}`}</dt><dd className="gx-n-l">{marketNumber(market, row.guess)}</dd></div>
       <div className="gx-nest-tile"><dt className="gx-nest-tile-label">{`Latest consensus${market === 'spread' ? `${SEP}${home}` : ''}`}</dt><dd className="gx-n-l">{marketNumber(market, reference.value)}</dd></div>
@@ -37,7 +39,7 @@ function GapDetail({ gap, row, selection, pick }) {
       <p className="gx-t-strong">Suggested: {sideName(game, market, row.side)}</p>
       <p className="gx-t-meta">{row.offer ? `Saved quote: ${termsText(game, market, row.side, row.offer)}${SEP}${quoteAge(row.offer.observedAt, gap.now)}` : GAP_COPY.noQuote}</p>
     </div>
-    <div className="gx-gap-actions">
+    <div className="gx-gap-layer-actions">
       {gap.canTrack ? <Button icon="plus" disabled={busy || !row.offer} onClick={() => gap.track(row)}>Track this bet</Button> : null}
       <Button icon={pick || selection ? 'check' : 'plus'} disabled={busy || !row.offer || Boolean(pick) || Boolean(selection)} onClick={() => gap.add(row)}>{pick ? 'Virtual pick saved' : selection ? 'Review below' : 'Play with Virtual Units'}</Button>
     </div>

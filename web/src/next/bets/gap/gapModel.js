@@ -1,8 +1,10 @@
 // Bets › Your gap (D-69 step 4; the old app's VirtualUnits.jsx Recommended view, rebuilt as tiles and rows on the same
-// data): your locked guesses against the latest consensus in D-54's percentage ranking with D-77's actionable rows first
-// (shared/recommended-bets.mjs decides every row) and D-77's paper record against the closing lines. Pure: the words, rows,
-// tiles and checks the screen and its gap layer draw and run. Every time is the server's (the read's `now`).
+// data): your locked guesses against the latest consensus, ranked by D-81's historical NFL gap size (0 to 100) with
+// D-77's actionable rows first (shared/recommended-bets.mjs decides every row), and D-77's paper record against the
+// closing lines (GapRecord.jsx, with its record periods). Pure: the words, rows, tiles and checks the screen and its gap
+// layer draw and run. Every time is the server's (the read's `now`).
 import { gameTrends } from '../../../../../shared/trends-view.mjs';
+import { gapSizeLabel } from '../../../../../shared/nfl-gap-scale.mjs';
 import { DASH, MINUS, PICKEM, SEP, fmtNum, fmtOdds, fmtSigned, fmtU, toMs } from '../../format.js';
 
 export const MARKET_NAME = Object.freeze({ spread: 'Spread', total: 'Total' });
@@ -16,13 +18,9 @@ export const GAP_COPY = Object.freeze({
   confirmed: 'Your saved Virtual Units pick is confirmed.', recheck: 'Saved picks refreshed. Review your selection before saving again.',
   closedNotice: 'This game is closed. Your selected terms stay on your card.', refresh: 'Refresh lines', refreshing: 'Refreshing…',
   tryAgain: 'Try again', checkSaved: 'Check saved picks', yourCard: 'Your card', savedCard: 'Your virtual card',
-  savedNote: 'Saved picks stay here when a line changes or a game starts.', baseline: 'Percentage uses a 3-point minimum spread for pick’em and small lines.',
+  savedNote: 'Saved picks stay here when a line changes or a game starts.',
   noQuote: 'No usable named-book quote on this side. It cannot be added yet.', unsavedStays: 'Your unsaved selection remains here while the ranked list changes.',
   gone: 'This gap is not on your list now.', reviewLabel: 'Review your card · play money only',
-});
-/** Fine print, behind the screen's ⓘ (D-55 rule 10), so it may run longer than a surface line. */
-export const GAP_FINE_PRINT = Object.freeze({
-  ranking: 'Ranked by percentage gap. Spread lines below 3 use 3 as a baseline. These gaps are not win probabilities.',
 });
 export const showAllLabel = n => `Show all ${n} differences`;
 export const noneForMarket = market => `No ${market} differences to show yet.`;
@@ -65,23 +63,26 @@ export function closedReason(game, now, result) {
 /** A reviewed quote is its exact terms: line, price, book and observation time. */
 export const sameQuote = (a, b) => Boolean(a && b) && a.line === b.line && a.odds === b.odds && a.book === b.book && a.source === b.source && toMs(a.observedAt) === toMs(b.observedAt);
 
+/** D-81: a gap's historical size, 0 to 100, as the row and the gap layer write it ("59.2/100"), and its spoken form. */
+export const gapSize = row => `${row.gapScore.toFixed(1)}/100`;
+export const gapSizeSpoken = row => `historical gap size ${row.gapScore.toFixed(1)} out of 100`;
 const rowWord = (row, selection) => (row.savedPick ? { word: 'Saved', tone: 'plain' } : selection ? { word: 'On your card', tone: 'warn' }
   : row.actionable ? { word: 'To act on', tone: 'good' } : { word: 'No quote', tone: 'plain' });
-/** One ranked gap as a picture row. */
+/** One ranked gap as a picture row: its D-81 size on the right over its state word; the points and size band in its meta. */
 export function gapRow(row, { selection = null, now = null } = {}) {
-  const { game, market, side, reference } = row, [away, home] = codes(game), pct = `${row.gapPercent.toFixed(1)}%`, review = sideName(game, market, side);
+  const { game, market, side, reference } = row, [away, home] = codes(game), size = gapSize(row), band = gapSizeLabel(row.gapScore), review = sideName(game, market, side);
   const { word, tone } = rowWord(row, selection);
   return { item: `${game.id}:${market}`, gameId: game.id, market, away, home, title: `${away} @ ${home}${SEP}${MARKET_NAME[market]}`,
-    meta: `${fmtNum(row.gap)} pt gap${SEP}Review ${review}${SEP}${quoteAge(reference.observedAt, now)}`, value: pct, word, tone,
-    ariaLabel: `${away} at ${home} ${market}, ${pct} gap, ${fmtNum(row.gap)} points, review ${review}, ${word}` };
+    meta: `${fmtNum(row.gap)} pt gap${SEP}${band}${SEP}Review ${review}${SEP}${quoteAge(reference.observedAt, now)}`, value: size, word, tone,
+    ariaLabel: `${away} at ${home} ${market}, ${gapSizeSpoken(row)}, ${band}, ${fmtNum(row.gap)} points, review ${review}, ${word}` };
 }
 /** The four tiles over the chosen market's ranked rows and your saved picks. */
 export function gapTiles({ rows = [], picks = [] } = {}) {
-  const act = rows.filter(r => r.actionable).length, top = rows.reduce((best, r) => (!best || r.gapPercent > best.gapPercent ? r : best), null);
+  const act = rows.filter(r => r.actionable).length, top = rows.reduce((best, r) => (!best || r.gapScore > best.gapScore ? r : best), null);
   return [
     { key: 'act', label: 'To act on', big: String(act), sub: act === 1 ? 'favorable quote' : 'favorable quotes' },
     { key: 'gaps', label: 'Gaps', big: String(rows.length), sub: 'this week' },
-    { key: 'top', label: 'Biggest gap', big: top ? `${top.gapPercent.toFixed(1)}%` : DASH, sub: top ? `${codes(top.game).join(' @ ')}${SEP}${MARKET_NAME[top.market]}` : 'None yet' },
+    { key: 'top', label: 'Biggest gap', big: top ? top.gapScore.toFixed(1) : DASH, sub: top ? `${codes(top.game).join(' @ ')}${SEP}${MARKET_NAME[top.market]}` : 'None yet' },
     { key: 'card', label: 'Your card', big: String(picks.length), sub: picks.length === 1 ? 'saved pick' : 'saved picks' },
   ];
 }

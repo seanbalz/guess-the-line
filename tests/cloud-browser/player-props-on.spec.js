@@ -162,7 +162,7 @@ test('Bets › Your guess vs. market › Player Props: accuracy, paper record an
   try {
     await signIn(page, 'luke');
     await tabs(page).getByRole('button', { name: /^Bets(,|$)/ }).click();
-    await page.getByRole('button', { name: /Your guess vs\. market/ }).click();
+    await page.locator('#gx-b-tile-gap').click(); // D-69 step 4: the Your gap tile opens Your guess vs. market
     await page.getByRole('group', { name: 'Recommendation market' }).getByRole('button', { name: 'Player Props', exact: true }).click();
     const record = page.locator('.gx-props-record');
     await record.getByLabel('Record period').selectOption('all');

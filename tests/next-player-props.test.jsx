@@ -40,12 +40,13 @@ describe('flag off (default build): Player Props is hidden everywhere', () => {
   });
   it('the Bets market control and Gap record only offer Player Props behind the flag', async () => {
     const fs = await import('node:fs');
-    const bets = fs.readFileSync('web/src/next/bets/Bets.jsx', 'utf8'), gap = fs.readFileSync('web/src/next/bets/GapRecord.jsx', 'utf8');
+    // D-69 step 4: Bets › Your gap (gap/YourGap.jsx) draws the market control Bets.jsx drew on main.
+    const bets = fs.readFileSync('web/src/next/bets/gap/YourGap.jsx', 'utf8'), gap = fs.readFileSync('web/src/next/bets/GapRecord.jsx', 'utf8');
     expect(bets).toMatch(/propsSelected = propsOn && route\.recommendedMarket === PROPS_GAP_MARKET/);
-    expect(bets).toMatch(/withPlayerProps\(RECOMMENDED_MARKETS, PROPS_GAP_MARKET, propsOn\)/);
+    expect(bets).toMatch(/withPlayerProps\(MARKETS, PROPS_GAP_MARKET, propsOn\)/);
     expect(gap).toMatch(/props\.market === PROPS_GAP_MARKET && \(props\.propsEnabled \?\? playerPropsEnabled\(\)\)/);
     // No static import pulls the prop screens into a dark build: both are lazy chunks.
-    for (const source of [bets, gap, fs.readFileSync('web/src/next/play/PicksNest.jsx', 'utf8')]) expect(source).not.toMatch(/^import .*props\/(PlayerPropsEntry|PropRecord)/m);
+    for (const source of [bets, gap, fs.readFileSync('web/src/next/bets/Bets.jsx', 'utf8'), fs.readFileSync('web/src/next/play/PicksNest.jsx', 'utf8')]) expect(source).not.toMatch(/^import .*props\/(PlayerPropsEntry|PropRecord)/m);
   });
 });
 

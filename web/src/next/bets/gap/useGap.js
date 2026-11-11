@@ -16,6 +16,12 @@ export function useGap({ accountId, market, onDirty, onSaved, onSignInAgain, onT
   const [loading, setLoading] = useState(true), [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState('');
   const [selections, setSelections] = useState({}), [uncertain, setUncertain] = useState(null), [expanded, setExpanded] = useState(false);
   const [selectedWeek, setSelectedWeek] = useState(null), [board, setBoard] = useState(null);
+  // Main (#505, #510): the record's period (Week, This season, All time, a Custom range) is only filter intent: it
+  // survives a recommendation-week change and Refresh lines for this account, while the combined-period reads stay in
+  // the record (keyed by account and week, with their own cancellation). Another account starts at Week.
+  const [periodChoice, setPeriodChoice] = useState({ accountId, period: 'week', range: null });
+  if (periodChoice.accountId !== accountId) setPeriodChoice({ accountId, period: 'week', range: null });
+  const choosePeriod = useCallback(({ period, range }) => setPeriodChoice({ accountId, period, range }), [accountId]);
   const inflight = useRef(null), generation = useRef(0), shownScope = useRef(null), lastScope = useRef(null), signIn = useRef(onSignInAgain);
   signIn.current = onSignInAgain;
   const data = reply?.virtual ?? null, personal = reply?.personal ?? null, info = reply?.info ?? null;
@@ -132,6 +138,8 @@ export function useGap({ accountId, market, onDirty, onSaved, onSignInAgain, onT
     if ((uncertain || Object.keys(selections).length) && !confirm()) return;
     setNotice(''); setSelectedWeek(next ? { season: next.season, week: next.week } : null);
   }
-  return { data, personal, info, now, loading, busy, error, notice, selections, uncertain, expanded, historical, ranked, shown, gaps, picks,
+  const gapBoard = board?.week === gapWeek ? board.board : null;
+  return { data, personal, info, now, loading, busy, error, notice, selections, uncertain, expanded, historical, ranked, shown, gaps, gapBoard, gapWeek, picks,
+    period: { period: periodChoice.period, range: periodChoice.range }, choosePeriod,
     canTrack: Boolean(onTrackTicket), setExpanded, choose, changeUnits, remove, add, track, save, refresh, changeWeek, selectedWeek };
 }

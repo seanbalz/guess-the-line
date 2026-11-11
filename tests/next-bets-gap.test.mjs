@@ -1,6 +1,7 @@
 // D-69 step 4: Bets › Your gap's rules as plain data (the old VirtualUnits.jsx Recommended view, rebuilt). Contracts: a
-// row says its game as marks and codes, its point gap, the side to review and the quote's age, the % on the right over a
-// word that says its state; four tiles; the saved card in the app's words; the review closes at kickoff by the server's
+// row says its game as marks and codes, its point gap and D-81 size band, the side to review and the quote's age, its D-81
+// historical gap size (0 to 100) on the right over a word that says its state (main's NFL gap scale replaced the %); four
+// tiles, the biggest by that size; the saved card in the app's words; the review closes at kickoff by the server's
 // clock; the placement body is the reviewed quote's exact terms; a lost reply is confirmed only by the exact saved terms;
 // a locked or already saved market's selection is dropped; the trends are the market's own; D-77's units keep their style.
 import test from 'node:test';
@@ -10,20 +11,23 @@ import { GAP_COPY, closedReason, confirmsChoice, gapRow, gapTiles, gapTrendCards
 
 const now = Date.parse('2099-10-08T17:00:00Z');
 const game = { id: 'SEA-DEN', away: 'Seattle Seahawks', home: 'Denver Broncos', awayCode: 'SEA', homeCode: 'DEN', kickoff: '2099-10-08T20:00:00Z', offers: { total: { over: { book: 'betmgm', source: 'BetMGM', side: 'over', line: 44.5, odds: -110, observedAt: '2099-10-08T15:00:00Z' } } }, locked: { spread: false, total: false } };
-const row = { key: 'SEA-DEN:total', game, market: 'total', guess: 55, gap: 10.5, gapPercent: 23.595, side: 'over', reference: { value: 44.5, books: 3, observedAt: '2099-10-08T15:00:00Z' }, offer: game.offers.total.over, savedPick: null, actionable: true, evaluations: {} };
+const row = { key: 'SEA-DEN:total', game, market: 'total', guess: 55, gap: 10.5, gapScore: 59.2, side: 'over', reference: { value: 44.5, books: 3, observedAt: '2099-10-08T15:00:00Z' }, offer: game.offers.total.over, savedPick: null, actionable: true, evaluations: {} };
 const words = text => String(text).trim().split(/\s+/).length;
 
-test('a row: marks and codes, the point gap, the side to review and the quote’s age; the % over a word that says its state', () => {
+test('a row: marks and codes, the point gap and its size band, the side to review and the quote’s age; the D-81 size over a word that says its state', () => {
   assert.deepEqual(gapRow(row, { now }), { item: 'SEA-DEN:total', gameId: 'SEA-DEN', market: 'total', away: 'SEA', home: 'DEN', title: 'SEA @ DEN · Total',
-    meta: '10.5 pt gap · Review Over · 2h old', value: '23.6%', word: 'To act on', tone: 'good', ariaLabel: 'SEA at DEN total, 23.6% gap, 10.5 points, review Over, To act on' });
+    meta: '10.5 pt gap · Moderate gap · Review Over · 2h old', value: '59.2/100', word: 'To act on', tone: 'good',
+    ariaLabel: 'SEA at DEN total, historical gap size 59.2 out of 100, Moderate gap, 10.5 points, review Over, To act on' });
+  // D-81's bands: the historical top quarter is Large, from 50 Moderate, else Small.
+  assert.deepEqual([75, 74.9, 50, 49.9].map(gapScore => gapRow({ ...row, gapScore }, { now }).meta.split(' · ')[1]), ['Large gap', 'Moderate gap', 'Moderate gap', 'Small gap']);
   assert.deepEqual([gapRow({ ...row, savedPick: {}, actionable: false }, { now }).word, gapRow(row, { now, selection: {} }).word, gapRow({ ...row, offer: null, actionable: false }, { now }).word], ['Saved', 'On your card', 'No quote']);
   assert.equal(quoteAge('2099-10-08T16:48:00Z', now), '12m old');
 });
 
-test('four tiles: to act on, gaps, the biggest gap and your card', () => {
-  const rows = [row, { ...row, key: 'HOU-JAX:spread', market: 'spread', gapPercent: 42.9, actionable: false, game: { ...game, id: 'HOU-JAX', awayCode: 'HOU', homeCode: 'JAX' } }];
+test('four tiles: to act on, gaps, the biggest gap by D-81 size (not list order) and your card', () => {
+  const rows = [row, { ...row, key: 'HOU-JAX:spread', market: 'spread', gapScore: 75.1, actionable: false, game: { ...game, id: 'HOU-JAX', awayCode: 'HOU', homeCode: 'JAX' } }];
   assert.deepEqual(gapTiles({ rows, picks: [{}] }).map(t => [t.key, t.label, t.big, t.sub]), [['act', 'To act on', '1', 'favorable quote'], ['gaps', 'Gaps', '2', 'this week'],
-    ['top', 'Biggest gap', '42.9%', 'HOU @ JAX · Spread'], ['card', 'Your card', '1', 'saved pick']]);
+    ['top', 'Biggest gap', '75.1', 'HOU @ JAX · Spread'], ['card', 'Your card', '1', 'saved pick']]);
   assert.deepEqual(gapTiles({ rows: [], picks: [] }).map(t => t.big), ['0', '0', '—', '0']);
 });
 

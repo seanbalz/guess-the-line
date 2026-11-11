@@ -29,7 +29,7 @@ test('flag off: no Player Props control, request or chunk anywhere', async ({ pa
     await openPicksWeek(page);
     await expect(page.getByRole('group', { name: 'Market', exact: true }).getByRole('button')).toHaveText(['Spread', 'Total']);
     await tabs.getByRole('button', { name: /^Bets(,|$)/ }).click();
-    await page.getByRole('button', { name: /Your guess vs\. market/ }).click();
+    await page.locator('#gx-b-tile-gap').click(); // D-69 step 4: the Your gap tile opens Your guess vs. market
     await expect(page.getByRole('group', { name: 'Recommendation market' }).getByRole('button')).toHaveText(['All', 'Spreads', 'Totals']);
     await page.goto('/#history');
     const history = page.locator('[data-page="history"]');
