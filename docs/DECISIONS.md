@@ -3,7 +3,8 @@
 ## D-83 — Premier League draft order: your confirmed import wins over the Tuesday recheck (November 11, 2026)
 
 Status: decided; source amended, not applied or deployed. Sean answered
-**"Yes, import wins"** on November 11, 2026, choosing Rule 1 of the
+**"Yes, import wins"** on November 11, 2026 at 00:25 UTC (4:25 PM Pacific on November 10),
+choosing Rule 1 of the
 [precedence brief](EPL_ORDER_PRECEDENCE_DECISION_2026-11-10.md) (packet contradiction 7).
 
 Two writers can set next week's Pick a Team order (week n+1) while its draft is untouched: the

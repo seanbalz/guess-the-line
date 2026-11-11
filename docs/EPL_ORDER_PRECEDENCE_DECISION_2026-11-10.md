@@ -2,8 +2,9 @@
 
 Owner: Sean Balsiger · Version 1 · November 10, 2026
 
-Status: **decided: Rule 1.** Sean answered **"Yes, import wins"** on November 11, 2026
-([D-83](DECISIONS.md)); step 1 of [After the ruling](#after-the-ruling) is the amended M-35 PR.
+Status: **decided: Rule 1.** Sean answered **"Yes, import wins"** on November 11, 2026 at
+00:25 UTC (4:25 PM Pacific on November 10; [D-83](DECISIONS.md)); step 1 of
+[After the ruling](#after-the-ruling) is the amended M-35 PR.
 The rest of this brief is unchanged as written. As written, it changed no code, migration,
 schedule or hosted state. It explains contradiction 7 of the
 [November 10 apply packet](MIGRATION_APPLY_PACKET_2026_11_10.md), which holds M-35 and,
