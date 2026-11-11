@@ -1,9 +1,10 @@
 // Operator job, not a public route. Raw inputs and outputs must stay ignored.
 // Default is validation only. Publication/quote collection require explicit flags.
+// A Player Props pilot's quoteRequests come from scripts/player-props-quote-requests.mjs, never a hand-written roster.
+// With --collect-quotes the receipt adds counts only: requests by outcome, credits reserved and quotes retained.
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { gunzipSync } from 'node:zlib';
 import { validateAssessmentSnapshot, reviewResearchEvidence } from '../shared/research-assessments.mjs';
@@ -12,18 +13,7 @@ import { parseCsvRows } from '../shared/trends.mjs';
 import { finalAvailableAt } from '../shared/trends-research-candidates.mjs';
 import { observedPlayStatistics } from '../shared/research-play-statistics.mjs';
 import { parseFantasyCsv } from '../shared/fantasy-build.mjs';
-
-const ROOT = fileURLToPath(new URL('../', import.meta.url));
-async function ignoredFile(name, { exists = true } = {}) {
-  const target = path.resolve(ROOT, name ?? '');
-  if (!target.startsWith(path.join(ROOT, '.local') + path.sep)) throw new Error('Research files must remain under ignored .local.');
-  try { execFileSync('git', ['check-ignore', '--quiet', target], { cwd: ROOT, stdio: 'ignore' }); } catch { throw new Error('Research files must be Git-ignored.'); }
-  let real;
-  try { real = await fs.realpath(target); } catch (error) { if (exists || error.code !== 'ENOENT') throw error; real = await fs.realpath(path.dirname(target)); }
-  const localRoot = path.join(await fs.realpath(ROOT), '.local');
-  if (real !== localRoot && !real.startsWith(localRoot + path.sep)) throw new Error('Research paths cannot escape .local.');
-  return target;
-}
+import { ignoredLocalFile as ignoredFile } from './local-private-file.mjs';
 export async function prepareResearchIntake(input, { fetchImpl = fetch, now = Date.now() } = {}) {
   const snapshot = validateAssessmentSnapshot(input.snapshot);
   if (Date.parse(snapshot.generatedAt) > now) throw new Error('Research snapshot is future-dated.');
@@ -34,7 +24,7 @@ export async function prepareResearchIntake(input, { fetchImpl = fetch, now = Da
   snapshot.sources = discovery.map(s => ({ id: s.id, status: s.status, checkedAt: s.checkedAt }));
   return { snapshot, discovery, review };
 }
-export async function run(args = process.argv.slice(2)) {
+export async function run(args = process.argv.slice(2), { env = process.env, fetchImpl = fetch, clock = Date.now, out = line => process.stdout.write(line) } = {}) {
   const flags = new Map();
   for (let i = 0; i < args.length; i++) {
     const k = args[i];
@@ -46,7 +36,7 @@ export async function run(args = process.argv.slice(2)) {
   const raw = await fs.readFile(inputPath, 'utf8'); if (raw.length > 2000000) throw new Error('Research input is too large.');
   const input = JSON.parse(raw);
   if (flags.has('--publish') && !/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(input.publicationId ?? '')) throw new Error('Use a stable publication ID for safe retries.');
-  const prepared = await prepareResearchIntake(input);
+  const prepared = await prepareResearchIntake(input, { fetchImpl, now: clock() });
   if (input.playByPlay) {
     const source = await fs.readFile(await ignoredFile(input.playByPlay.file));
     const schedule = await fs.readFile(await ignoredFile(input.playByPlay.scheduleFile), 'utf8');
@@ -63,27 +53,34 @@ export async function run(args = process.argv.slice(2)) {
   }
   let rpc;
   if (flags.has('--publish') || flags.has('--collect-quotes')) {
-    const origin = process.env.GTL_RESEARCH_SUPABASE_URL, key = process.env.GTL_RESEARCH_SERVICE_ROLE_KEY;
+    const origin = env.GTL_RESEARCH_SUPABASE_URL, key = env.GTL_RESEARCH_SERVICE_ROLE_KEY;
     if (!origin || !/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(origin) || !key) throw new Error('Research publication credentials are not configured.');
     rpc = async (name, body) => {
-      const response = await fetch(`${origin}/rest/v1/rpc/${name}`, { method: 'POST', redirect: 'error', headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(20000) });
+      const response = await fetchImpl(`${origin}/rest/v1/rpc/${name}`, { method: 'POST', redirect: 'error', headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(20000) });
       if (!response.ok) throw new Error('Research storage operation failed.');
       return response.json();
     };
   }
+  let collection = null;
   if (flags.has('--collect-quotes')) {
     // Selective jobs only; no implicit full-slate or all-market provider sweep.
     if (!Array.isArray(input.quoteRequests) || input.quoteRequests.length > 4) throw new Error('Use at most four explicit game/market quote requests.');
+    collection = { requests: 0, collected: 0, unavailable: 0, alreadyAttempted: 0, reservedCredits: 0, quotes: 0 };
     for (const job of input.quoteRequests) {
       const reply = await collectResearchQuotes({ ...job, season: prepared.snapshot.season, week: prepared.snapshot.week,
-        rpc, apiKey: process.env.GTL_RESEARCH_ODDS_API_KEY, requestId: job.requestId });
+        rpc, apiKey: env.GTL_RESEARCH_ODDS_API_KEY, requestId: job.requestId, fetchImpl, clock });
+      // gtl_begin_research_quotes reserves one credit per requested market, unrefunded; a replay reserves nothing new.
+      collection.requests++;
+      if (reply.status === 'already-attempted') collection.alreadyAttempted++;
+      else { collection.reservedCredits += job.markets.length; collection[reply.status === 'collected' ? 'collected' : 'unavailable']++; }
+      collection.quotes += reply.quotes.length;
       prepared.snapshot.quotes.push(...reply.quotes);
     }
   }
   validateAssessmentSnapshot(prepared.snapshot);
-  const receipt = { version: 1, checkedAt: new Date().toISOString(), inputSha256: createHash('sha256').update(raw).digest('hex'),
+  const receipt = { version: 1, checkedAt: new Date(clock()).toISOString(), inputSha256: createHash('sha256').update(raw).digest('hex'),
     candidates: prepared.snapshot.candidates.length, eligibleClaims: prepared.review.filter(r => r.eligible).length, pendingClaims: prepared.review.filter(r => !r.eligible).length,
-    availableSources: prepared.discovery.filter(s => s.status === 'available').length, published: false };
+    availableSources: prepared.discovery.filter(s => s.status === 'available').length, published: false, ...(collection ? { collection } : {}) };
   if (flags.has('--publish')) {
     await rpc('gtl_publish_research_snapshot', { p_id: input.publicationId, p_payload: prepared.snapshot }); receipt.published = true;
   }
@@ -92,6 +89,6 @@ export async function run(args = process.argv.slice(2)) {
     await fs.writeFile(target, JSON.stringify({ ...prepared, receipt }, null, 2) + '\n', { mode: 0o600 });
   }
   // No content, source URLs, credentials, player identities or betting terms in job logs.
-  process.stdout.write(JSON.stringify(receipt) + '\n');
+  out(JSON.stringify(receipt) + '\n');
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) run().catch(() => { process.stderr.write('Research intake failed. Check private inputs, source access and configuration.\n'); process.exitCode = 1; });

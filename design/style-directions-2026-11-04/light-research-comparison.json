@@ -1,0 +1,89 @@
+{
+  "status": "Sean selected 02 / Porcelain glass from this comparison; 04 and 05 remain unselected references",
+  "source": "light-mode-options.json",
+  "options": [
+    {
+      "number": 2,
+      "id": "porcelain",
+      "name": "Porcelain glass",
+      "note": "Off-white with a gentle green undertone.",
+      "background": "#E9ECE8",
+      "wash": "linear-gradient(150deg,#FAFBF6,#E9ECE8 55%,#E0E7DE)",
+      "source": "Earlier additional-round favorite 24 / Porcelain & Evergreen"
+    },
+    {
+      "number": 4,
+      "id": "sage",
+      "name": "Pale sage",
+      "note": "Soft green surroundings with selective lime accents.",
+      "background": "#E4EFE5",
+      "wash": "linear-gradient(150deg,#F6FBF5,#E4EFE5 55%,#D9E7DB)",
+      "source": "New green light exploration"
+    },
+    {
+      "number": 5,
+      "id": "silver",
+      "name": "Silver mist",
+      "note": "Neutral silver-grey, white glass and sharper green detail.",
+      "background": "#E9EDF1",
+      "wash": "linear-gradient(150deg,#FAFCFE,#E9EDF1 55%,#DDE3EA)",
+      "source": "New neutral light exploration"
+    }
+  ],
+  "shared": {
+    "logo": {
+      "path": "logo-hybrid/light-deep-green.svg",
+      "baseColor": "#3B6309",
+      "geometrySource": "logo-hybrid/lime.svg",
+      "status": "Light-surface adaptation proposed for review; dark lime logo unchanged",
+      "method": "Same vector geometry, masks, texture and lighting; base-derived gradient colors remapped to existing light-theme deep green"
+    },
+    "ink": "#243128",
+    "muted": "#536252",
+    "accentInk": "#3B6309",
+    "lime": "#B8F34B",
+    "card": {
+      "fill": "linear-gradient(135deg,#FFFFFFC7,#FFFFFF66)",
+      "border": "#FFFFFFD9",
+      "blur": "18px",
+      "shadow": "inset 0 1px 0 #FFFFFF,0 4px 6px #20302412,0 18px 28px #20302424",
+      "gloss": ".65",
+      "radius": "28px"
+    },
+    "button": {
+      "fill": "transparent",
+      "ink": "#2C4617",
+      "border": "3px solid #3B6309",
+      "radius": "20px",
+      "shadow": "inset 0 1px 0 #FFFFFFCC,0 8px 16px #24332318",
+      "shine": "0",
+      "secondaryRadius": "20px",
+      "secondaryShadow": "inset 0 1px 0 #FFFFFFCC,0 4px 8px #24332312",
+      "backdrop": "blur(18px)"
+    }
+  },
+  "researchFixture": "Comparison-only composition using the existing fictional Player A/B usage rows and illustrative trend SVG from app.js. No live results, projections or sportsbook prices.",
+  "metricRows": [
+    [
+      "Sample",
+      "4 games",
+      "4 games"
+    ],
+    [
+      "Targets",
+      "8.0",
+      "6.5"
+    ],
+    [
+      "Receptions",
+      "5.5",
+      "4.5"
+    ]
+  ],
+  "selection": {
+    "number": 2,
+    "id": "porcelain",
+    "source": "light-mode-options.json",
+    "confirmed": "2026-11-04"
+  }
+}

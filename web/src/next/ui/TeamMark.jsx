@@ -1,13 +1,12 @@
 // A team mark (D-46; design system 7.5): the team's official logo from the team-mark registry, in a 24, 32 or 48px
-// square tile with a 1px ring. If the logo fails to load, the team's original Guess The Line badge (D-22) replaces it
-// where one exists; otherwise, or if that fails too, the letters stay. An official logo sits on a round chip, light
-// neutral in Dark and transparent in Light (components.css, `data-mark="trademark-identification"`).
+// circular glass background. If the logo fails to load, the team's original Guess The Line badge (D-22) replaces it
+// where one exists; otherwise, or if that fails too, the letters stay inside the same individual glass circle.
 //
 // DP-27: the tile is sized before anything loads (its CSS box plus width and height on the image, so nothing moves)
 // and shows the team's abbreviation until the image has loaded and decoded off the main thread (decoding="async",
-// then decode()). Only then does the mark replace the letters, so a row is never blank and never jumps. With a wider
-// fallback font the tile widens around the letters rather than clipping them, the same before and after the mark
-// loads. Since D-46 the files are 128px downscaled copies recorded in docs/TEAM_LOGO_SOURCES.md.
+// then decode()). Only then does the mark replace the letters, so a row is never blank and never jumps. A bounded
+// SVG text run fits fallback letters horizontally inside every circle, independent of the installed font's width.
+// Since D-46 the files are 128px downscaled copies recorded in docs/TEAM_LOGO_SOURCES.md.
 import { useState } from 'react';
 import { resolveTeamBadge, resolveTeamMark, teamAliases } from '../../teamLogoRegistry.js';
 import { cx, oneOf } from './cx.js';
@@ -47,6 +46,8 @@ function Mark({ code, name, size, primary, badge, decorative, className, rest })
   const [step, setStep] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const asset = chain[step] || null;
+  const fallbackFont = size === 24 ? 12 : size === 48 ? 16 : 13;
+  const fallbackWidth = Math.min(size - 8, fallbackFont * code.length * 0.75);
   const a11y = decorative ? { 'aria-hidden': 'true' } : { role: 'img', 'aria-label': name };
   return (
     <span
@@ -55,7 +56,9 @@ function Mark({ code, name, size, primary, badge, decorative, className, rest })
       {...a11y}
       {...rest}
     >
-      <span className="gx-team-code" aria-hidden="true">{code}</span>
+      <svg className="gx-team-code" viewBox={`0 0 ${size} ${size}`} aria-hidden="true" focusable="false">
+        <text x={size / 2} y={size / 2} textAnchor="middle" dominantBaseline="central" textLength={fallbackWidth} lengthAdjust="spacingAndGlyphs">{code}</text>
+      </svg>
       {asset ? <MarkImage key={asset.src} src={asset.src} size={size} onReady={() => setLoaded(true)} onFail={() => { setLoaded(false); setStep(current => current + 1); }}/> : null}
     </span>
   );

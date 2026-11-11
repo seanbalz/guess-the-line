@@ -13,8 +13,16 @@ export function safeView(tab, view = {}) {
     const value = view[key];
     if ((typeof value === 'string' && value.length <= 100 && /^[\w .:@/+\-]*$/.test(value)) || (typeof value === 'number' && Number.isFinite(value)) || value === null) result[key] = value;
   }
-  // Home's one layer is Who's in (D-69 step 2): any other `layer` is dropped, so the address draws Home's root.
+  // Home's layers are Who's in (D-69 step 2) and the Monday recap: any other `layer` is dropped, so the address draws
+  // Home's root. Only the recap keeps a week, market and one game (`item`); Who's in and the root keep none.
   if (tab === 'home' && !HOME_LAYER_IDS.includes(result.layer)) delete result.layer;
+  if (tab === 'home') {
+    if (result.layer !== 'recap') for (const key of ['item', 'market', 'season', 'week']) delete result[key];
+    else {
+      if (!['spread', 'total'].includes(result.market)) delete result.market;
+      if (typeof result.item !== 'string' || !/^[A-Z]{2,4}-[A-Z]{2,4}$/.test(result.item)) delete result.item;
+    }
+  }
   // D-69 step 3: Research's layers (one game, one team) by allowlist; any other layer or item draws the section's list.
   if (tab === 'research' && !researchLayerOf(result.section, result)) { delete result.layer; delete result.item; }
   // D-69 step 4: Bets' one layer (one gap in Your gap) by allowlist; any other layer or item draws the section.
@@ -104,6 +112,16 @@ export function startPlace(win, route = NFL_ROUTER) {
 export function connectHistory(win, { getState, dispatch, confirmLeave = () => true, beforeNavigate = () => {}, route = NFL_ROUTER }) {
   const { placeFromFragment, fragmentFor, isLegacyFragment } = route;
   const { history, location } = win;
+  // Shell owns scroll/focus in memory. A native entry can capture the detail's scroll after
+  // React commits, then overwrite Shell's completed Back restoration during traversal.
+  // Set the mode before writing entries; new entries inherit it. Keep unsupported hosts usable.
+  let previousScrollRestoration;
+  try {
+    if (history.scrollRestoration === 'auto' || history.scrollRestoration === 'manual') {
+      previousScrollRestoration = history.scrollRestoration;
+      history.scrollRestoration = 'manual';
+    }
+  } catch { /* Scroll restoration is unavailable; navigation still works. */ }
   let index = Number.isInteger(history.state?.gxIndex) ? history.state.gxIndex : 0;
   let ours = 0;
   let pendingNavigation = false;
@@ -178,7 +196,14 @@ export function connectHistory(win, { getState, dispatch, confirmLeave = () => t
     if (place.layer) dispatch({ type: 'open', layer: place.layer });
   }
   win.addEventListener('popstate', onPopState);
-  return { sync, disconnect() { disconnected = true; win.removeEventListener('popstate', onPopState); } };
+  return { sync, disconnect() {
+    if (disconnected) return;
+    disconnected = true;
+    win.removeEventListener('popstate', onPopState);
+    try {
+      if (previousScrollRestoration && history.scrollRestoration === 'manual') history.scrollRestoration = previousScrollRestoration;
+    } catch { /* The document or its history may no longer be accessible. */ }
+  } };
 }
 
 export const NFL_ROUTER = Object.freeze({ sport: 'nfl', placeFromFragment, fragmentFor, isLegacyFragment, cleanPlace: place => routePlace(place.tab, place.view, place.adapters) });

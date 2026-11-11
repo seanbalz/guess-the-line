@@ -1,0 +1,263 @@
+{
+  "kind": "FICTIONAL_EPL_DRAFT_VISUAL_PREVIEW",
+  "prepared": "2026-11-06",
+  "notice": "All managers, order, results, bonuses, picks, rankings and draft state are fictional. The configured club catalog and registered crests are reused. This is not a live draft, actual fixture list or account data.",
+  "now": "2000-01-01T00:00:00Z",
+  "clockMeaning": "Fixed year-2000 test clock only for native eligibility checks; no match kickoff or recording time is asserted or displayed.",
+  "read": {
+    "season": 2026,
+    "week": 10,
+    "status": "open",
+    "deadline": "2000-01-02T00:00:00Z",
+    "me": "demo-epl-2",
+    "onTheClock": "demo-epl-2",
+    "order": [
+      {
+        "ownerId": "demo-epl-0",
+        "name": "Jordan Taylor"
+      },
+      {
+        "ownerId": "demo-epl-1",
+        "name": "Casey Reed"
+      },
+      {
+        "ownerId": "demo-epl-2",
+        "name": "Alex Lane"
+      },
+      {
+        "ownerId": "demo-epl-3",
+        "name": "Morgan Park"
+      },
+      {
+        "ownerId": "demo-epl-4",
+        "name": "Riley Stone"
+      },
+      {
+        "ownerId": "demo-epl-5",
+        "name": "Sam Rivera"
+      },
+      {
+        "ownerId": "demo-epl-6",
+        "name": "Cameron Wells"
+      },
+      {
+        "ownerId": "demo-epl-7",
+        "name": "Avery Cole"
+      }
+    ],
+    "clubs": [
+      {
+        "code": "BOU",
+        "name": "Bournemouth"
+      },
+      {
+        "code": "ARS",
+        "name": "Arsenal"
+      },
+      {
+        "code": "AVL",
+        "name": "Aston Villa"
+      },
+      {
+        "code": "BRE",
+        "name": "Brentford"
+      },
+      {
+        "code": "BHA",
+        "name": "Brighton"
+      },
+      {
+        "code": "CHE",
+        "name": "Chelsea"
+      },
+      {
+        "code": "COV",
+        "name": "Coventry City"
+      },
+      {
+        "code": "CRY",
+        "name": "Crystal Palace"
+      },
+      {
+        "code": "EVE",
+        "name": "Everton"
+      },
+      {
+        "code": "FUL",
+        "name": "Fulham"
+      },
+      {
+        "code": "HUL",
+        "name": "Hull City"
+      },
+      {
+        "code": "IPS",
+        "name": "Ipswich Town"
+      },
+      {
+        "code": "LEE",
+        "name": "Leeds United"
+      },
+      {
+        "code": "LIV",
+        "name": "Liverpool"
+      },
+      {
+        "code": "MNC",
+        "name": "Manchester City"
+      },
+      {
+        "code": "MUN",
+        "name": "Manchester United"
+      },
+      {
+        "code": "NEW",
+        "name": "Newcastle United"
+      },
+      {
+        "code": "NFO",
+        "name": "Nottingham Forest"
+      },
+      {
+        "code": "SUN",
+        "name": "Sunderland"
+      },
+      {
+        "code": "TOT",
+        "name": "Tottenham Hotspur"
+      }
+    ],
+    "picks": [
+      {
+        "ownerId": "demo-epl-0",
+        "club": "ARS",
+        "final": true
+      },
+      {
+        "ownerId": "demo-epl-1",
+        "club": "CHE",
+        "final": false
+      }
+    ],
+    "myQueue": [
+      "CHE",
+      "LIV",
+      "MNC"
+    ],
+    "queueOnTurn": true,
+    "bonusLastWeek": [
+      {
+        "ownerId": "demo-epl-0",
+        "name": "Jordan Taylor",
+        "club": "ARS",
+        "margin": 3,
+        "points": 15
+      },
+      {
+        "ownerId": "demo-epl-1",
+        "name": "Casey Reed",
+        "club": "CHE",
+        "margin": 3,
+        "points": 15
+      }
+    ]
+  },
+  "managers": [
+    {
+      "id": "demo-epl-0",
+      "name": "Jordan Taylor",
+      "weekScore": 40,
+      "weekBonus": 0,
+      "seasonTotal": 400
+    },
+    {
+      "id": "demo-epl-1",
+      "name": "Casey Reed",
+      "weekScore": 45,
+      "weekBonus": 0,
+      "seasonTotal": 425
+    },
+    {
+      "id": "demo-epl-2",
+      "name": "Alex Lane",
+      "weekScore": 50,
+      "weekBonus": 0,
+      "seasonTotal": 450
+    },
+    {
+      "id": "demo-epl-3",
+      "name": "Morgan Park",
+      "weekScore": 50,
+      "weekBonus": 0,
+      "seasonTotal": 475
+    },
+    {
+      "id": "demo-epl-4",
+      "name": "Riley Stone",
+      "weekScore": 60,
+      "weekBonus": 0,
+      "seasonTotal": 500
+    },
+    {
+      "id": "demo-epl-5",
+      "name": "Sam Rivera",
+      "weekScore": 65,
+      "weekBonus": 0,
+      "seasonTotal": 525
+    },
+    {
+      "id": "demo-epl-6",
+      "name": "Cameron Wells",
+      "weekScore": 70,
+      "weekBonus": 0,
+      "seasonTotal": 550
+    },
+    {
+      "id": "demo-epl-7",
+      "name": "Avery Cole",
+      "weekScore": 75,
+      "weekBonus": 0,
+      "seasonTotal": 575
+    }
+  ],
+  "prior": [
+    {
+      "managerId": "demo-epl-0",
+      "club": "ARS"
+    },
+    {
+      "managerId": "demo-epl-1",
+      "club": "CHE"
+    },
+    {
+      "managerId": "demo-epl-2",
+      "club": "LIV"
+    },
+    {
+      "managerId": "demo-epl-3",
+      "club": "MNC"
+    }
+  ],
+  "results": {
+    "ARS": {
+      "status": "final",
+      "goalsFor": 3,
+      "goalsAgainst": 0
+    },
+    "CHE": {
+      "status": "final",
+      "goalsFor": 3,
+      "goalsAgainst": 0
+    },
+    "LIV": {
+      "status": "final",
+      "goalsFor": 2,
+      "goalsAgainst": 1
+    },
+    "MNC": {
+      "status": "final",
+      "goalsFor": 1,
+      "goalsAgainst": 1
+    }
+  }
+}

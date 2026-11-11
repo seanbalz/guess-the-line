@@ -1,5 +1,283 @@
 # GTL — Design exploration and approvals (2026-10-08; status reconciled 2026-10-26)
 
+## Team marks and icon exploration brought into the redesign — November 4, 2026
+
+Sean explicitly authorized moving team/league logos and tab/other icons into the
+current visual project. Avatars and popups/awards remain held. The paired viewer
+now reuses existing NFL/EPL team marks beside names and offers five original
+Lucide-based finish studies: outline, duotone, glossy glass, lime medallion and
+inset relief. Home uses an 8/12 sample progress ring; Research uses actual team
+marks, an illustrative trend and 8.0/6.5 sample comparison bars instead of repeated
+instructions. Existing native buttons and selected theme recipes are retained.
+[Five-way comparison](../design/style-directions-2026-11-04/icon-treatment-options.html)
+and [paired screens](../design/style-directions-2026-11-04/selected-system-review.html)
+are proposals for fresh review. No new screen acceptance, icon selection, league
+mark replacement, production implementation or deployment is inferred.
+
+
+## November 4, 2026 — useful mini previews implemented
+
+Sean confirmed replacing sparse bubbles with useful mini content previews.
+The [selected-system viewer](../design/style-directions-2026-11-04/selected-system-review.html?screen=Home)
+now enriches Home/Play/Bets/Research using existing fictional matchup, rank,
+trend and player-usage fixtures, with clean full-name matchups replacing the
+field-grid placeholder. Native handlers and chosen visual recipes are retained.
+The content revision awaits fresh review; historical acknowledgments do not
+close those screens. Production and deferred logo/icon/avatar/award scope are unchanged.
+
+## November 4, 2026 — reopen earlier screen reviews
+
+Sean flagged the Research yard-line placeholder, missing marks and sparse
+bubbles, then requested revisiting earlier screens because he had not looked
+closely. [Review progress](../design/style-directions-2026-11-04/selected-system-review.json)
+reopens Home/Play/Bets and retains previous acknowledgments as history. Keep
+chosen style recipes as the starting point; clarify the intended bubble content
+before revision. Whole-project completion, production and deferred work remain open.
+
+## November 4, 2026 — Bets dark/light overview accepted
+
+Sean accepted Bets/overview in both modes. [Review progress](../design/style-directions-2026-11-04/selected-system-review.json)
+records Home, Play and Bets accepted, with Research/overview next. Remaining
+screens/layers, whole-project completion, production and deferred scope are separate.
+
+## November 4, 2026 — Play dark/light overview accepted
+
+Sean accepted Play/overview in both modes. [Review progress](../design/style-directions-2026-11-04/selected-system-review.json)
+records Home and Play accepted; Bets/overview is next. Remaining screens/layers,
+whole-project completion, production and deferred scope remain separate.
+
+## November 4, 2026 — Home dark/light overview accepted
+
+Sean accepted the Home overview in both modes in response to that specific
+question. [Review progress](../design/style-directions-2026-11-04/selected-system-review.json)
+records Home/overview accepted and Play/overview next. Remaining screens/layers,
+production and whole-project completion remain separate; deferred work stays held.
+
+## November 4, 2026 — selected system across primary screens and layers
+
+Sean authorized the selected dark/Porcelain review across Home, Play, Bets,
+Research, EPL and Account. The [live viewer](../design/style-directions-2026-11-04/selected-system-review.html)
+aligns both themes for six primary screens and twenty existing sample detail
+states; the [overview](../design/style-directions-2026-11-04/selected-system-overview.html)
+shows all six pairs. Exact source recipes are retained, with local notes/export
+for feedback. Visual sign-off and whole-project completion remain pending.
+No production or deferred-feature work starts from opening the review.
+
+## November 4, 2026 — 02 Porcelain glass selected for light mode
+
+Sean chose 02 / Porcelain glass in the same-content Research comparison.
+[Selected background metadata](../design/style-directions-2026-11-04/light-mode-options.json)
+records base `#E9ECE8` and its 150-degree light gradient. This resolves the prior
+02/04/05 background shortlist. Shared light-preview adaptations continue into
+cross-screen review; dark selections, production and deferred scope are unchanged.
+
+## November 4, 2026 — shortlist 02 / 04 / 05 on Research
+
+Sean shortlisted Porcelain (02), Pale sage (04) and Silver mist (05), then agreed
+to a denser Research comparison to help decide. The [board](../design/style-directions-2026-11-04/light-research-comparison.html)
+uses the same existing fictional usage table and trend fixture, type, glass,
+logo and accents; only background changes. Exact source mapping and bounded
+checks are documented in the artifact README. No light option or logo adaptation
+is selected. Dark selections, production and deferred scope are unchanged.
+
+## November 4, 2026 — light-mode comparison
+
+Sean agreed to five light options carrying over floating glass, selective lime
+and typography, with logo/text readability checked. The [board](../design/style-directions-2026-11-04/light-mode-options.html)
+compares Arctic, Porcelain, Warm ivory, Pale sage and Silver mist. A proposed
+light-theme deep-green hybrid G preserves exact selected geometry/finish;
+dark text and green labels replace low-contrast ivory/lime foregrounds. This
+light adaptation and all five options await selection. Dark selections,
+production and deferred scope remain unchanged.
+
+## November 4, 2026 — refined selective lime treatment selected
+
+Sean approved the lime-priority preview. The [selected treatment](../design/style-directions-2026-11-04/lime-priority-preview.json)
+uses logo-matched bright lime on action cards and key rank/accuracy stats while
+keeping supporting cards neutral and reading text ivory. Retain the charcoal
+gradient, floating-glass shape, lime hybrid G and transparent outlined primary
+shown in the preview. The raw selective-color study is superseded by this
+refinement. Remaining design review, whole-project completion, production and
+deferred follow-up are separate.
+
+## November 4, 2026 — action and rank/accuracy accents in logo lime
+
+Sean preferred Selective color, chose the logo's bright lime over forest green,
+and specified action cards plus key stats such as rank and accuracy. The
+[refined preview](../design/style-directions-2026-11-04/lime-priority-preview.html)
+shows Home and Play with exact lime edges/tints and key figures, ivory reading
+text, neutral supporting cards and the previously selected logo/background/card
+geometry. The transparent outlined button is retained. This records requested
+scope and color reference; exact visual sign-off, production and deferred work
+remain pending.
+
+## November 4, 2026 — richer dark-mode alternatives
+
+Sean felt the transparent/neutral design was becoming too grey and accepted
+five visual alternatives. The [comparison](../design/style-directions-2026-11-04/dark-character-options.html)
+shows forest glass, midnight glass, warm graphite, prism edges and selective
+color using his exact logo, ivory text and floating-glass geometry. The broader
+color/lighting/button-tint exploration is authorized, not a selected replacement.
+Earlier selections, production and deferred scope remain unchanged.
+
+## November 4, 2026 — frosted family with transparent green-outline revision
+
+Sean chose frosted glass and requested a transparent face with a bolder green
+outline. The [revision](../design/style-directions-2026-11-04/button-transparent-lime.html)
+shows the original beside a transparent, full 3px lime-border primary, keeping
+ivory text, 20px corners, glass blur and all selected surrounding design settings.
+The family preference and requested recipe are recorded; exact visual weight
+awaits review. Production and deferred scope are unchanged.
+
+## November 4, 2026 — five action-button families
+
+Sean requested five button styles with the selected background, text, logo and
+floating clear glass cards. The [board](../design/style-directions-2026-11-04/button-style-options.html)
+compares classic lime pill, glossy bubble, soft rectangle, lime outline and
+frosted glass. Primary/secondary action styling varies while selected recipes,
+typography, spacing and tab/sport styling stay fixed. No button style is
+selected; production and deferred work are unchanged.
+
+## November 4, 2026 — 05 Floating clear glass selected
+
+Sean selected card finish **05 / Floating clear glass** with light tint and a
+deeper shadow gap. [Exact recipe](../design/style-directions-2026-11-04/glass-card-options.json)
+retains the selected charcoal-gradient/ivory direction and lime hybrid G.
+This supersedes the earlier unselected-card status; remaining design decisions,
+whole-project completion, production integration and deferred follow-up are open.
+
+## November 4, 2026 — glass card finish comparison
+
+Sean's request to continue advances the current mockup review to card material.
+The [five-option board](../design/style-directions-2026-11-04/glass-card-options.html)
+shows current, bubble, frosted, smoked and floating clear glass with the selected
+charcoal-gradient/ivory direction and lime hybrid G fixed. Only material,
+corners and elevation vary; no finish is selected. Production and deferred
+avatar/team-mark/icon/award work remain unchanged.
+
+## November 4, 2026 — combined dark direction selected
+
+Sean confirmed the middle preview combining 02's subtle charcoal gradient with
+04's warm ivory text. The [selected settings](../design/style-directions-2026-11-04/charcoal-ivory-combination.json)
+keep base `#202126`, the specified 150-degree gradient, main `#F3E9D7` and
+secondary `#C4B9A6`, plus the previously selected current-lime hybrid logo.
+The background/depth/text choice is now selected. Remaining design decisions,
+whole-project completion, production integration and the deferred phase are open.
+
+## November 4, 2026 — compare combined 02/04 before choosing
+
+Sean shortlisted 02 and 04, then agreed to preview 02's subtle gradient with
+04's warm ivory text. The [comparison](../design/style-directions-2026-11-04/charcoal-ivory-combination.html)
+shows original 02, the combination, and original 04 with shared selected logo,
+card material and typography. This is authorization to show the combination,
+not adoption; production and the deferred phase remain unchanged.
+
+## November 4, 2026 — charcoal selected, depth and text exploration
+
+Sean selected background 01 / Obsidian charcoal (`#202126`) for dark mode.
+He requested about ten examples comparing solid, subtle gradient and faint glow,
+alongside unique text colors. The [ten-study board](../design/style-directions-2026-11-04/charcoal-depth-options.html)
+keeps his selected hybrid logo and shared styling; 01–03 isolate depth while
+04–10 add ivory, ice blue, sage, lavender, rose, gold and copper text pairs.
+Depth/text and light-mode decisions remain open. Production and deferred scope
+remain unchanged.
+
+## November 4, 2026 — background color after selected logo
+
+Sean requested a few app background options using his selected current-lime
+hybrid G. The [comparison](../design/style-directions-2026-11-04/app-background-options.html)
+shows five solid dark bases with identical neutral glass/text/control styling.
+Only the background changes; gradients and final card/accent decisions remain
+separate. No background is selected. The original logo studies, production
+assets and deferred phase are unchanged.
+
+## November 4, 2026 — hybrid logo option 01 selected
+
+Sean clarified that he prefers option **01 / Current lime** from the hybrid
+board. Retain the existing G geometry and lime `#B8F34B` with glossy edges and a
+frosted center. The [selected SVG](../design/style-directions-2026-11-04/logo-hybrid/lime.svg)
+is the exact reviewed vector; the other five hues remain unselected studies.
+This selects the logo direction, not the app palette or whole-app approval.
+Production integration and the deferred phase remain pending.
+
+## November 4, 2026 — shortlisted glass finishes, hybrid exploration
+
+Sean shortlisted glossy glass (1) and frosted glass (2), then requested their
+hybrid: glossy edges, frosted center, exact current G and current color, with
+additional colors. The [hybrid board](../design/style-directions-2026-11-04/logo-hybrid.html)
+keeps current lime and adds five hues under identical material/scene settings.
+The shortlist does not approve the hybrid or a replacement color. Native SVG
+paths remain exact; production assets and the deferred phase are unchanged.
+
+## November 4, 2026 — material first, color afterward
+
+Sean clarified that he wants to change the flat logo appearance before color.
+He requested five finishes, including glossy glass, retaining the same G shape
+and current color. The [finish board](../design/style-directions-2026-11-04/logo-finish-first.html)
+compares glass, frosted glass, enamel, brushed metal and satin ceramic through
+editable native SVG effects on exact canonical paths and base lime `#B8F34B`.
+This supersedes the preceding color-first sequence. No finish, replacement color
+or production change is approved; deferred avatar/logo/icon/award work stays held.
+
+## November 4, 2026 — simplify to logo color first
+
+Sean chose logo color/style as the first decision and confirmed keeping the
+current G shape. The [five-color board](../design/style-directions-2026-11-04/logo-color-first.html)
+shows that geometry with identical backgrounds and flat finish so only hue
+changes. App-palette adoption and finish selection remain separate decisions.
+No color or finish is approved; production assets and deferred phase are unchanged.
+
+## November 4, 2026 — live Prism Glass customization
+
+Sean requested editable colors, a background-gradient toggle and style options.
+The [interactive studio](../design/style-directions-2026-11-04/prism-customizer.html)
+lets him preview those choices with material, gloss, transparency, blur, shadow,
+corners, spacing and typography across six mockup areas. Dark/light settings
+persist independently; named designs and JSON export/import support review.
+Sean likes only 18 and 24 from the additional round. Earlier 12-dark, 01-light
+and 11-interest preferences remain recorded; no final replacement is inferred.
+The [record](../design/style-directions-2026-11-04/README.md) covers local browser
+checks and limitations. Final design approval and the deferred phase remain held.
+
+## November 4, 2026 — stronger contrast and optional card colors
+
+Sean prefers original colors 12 (dark) and 01 (light), with 11 also appealing.
+He requested unique new combinations and agreed to see different colors per
+card as an additional experiment. The [new palette board](../design/style-directions-2026-11-04/prism-new-colors.html)
+adds options 13–24; the [favorite comparison](../design/style-directions-2026-11-04/prism-card-color-comparison.html)
+shows the optional treatment. These are ongoing mockup explorations; the
+[deferred phase](../planning/AFTER_GLASS_COLOR_PROJECT.md) remains held.
+
+## November 4, 2026 — Prism Glass color exploration
+
+Sean asked to try different schemes, with at least ten examples. The
+[twelve-scheme board](../design/style-directions-2026-11-04/prism-colors.html)
+keeps the refined glass material, typography and layouts consistent while
+exploring seven light and five dark palettes across the mockup app. Favorites
+and exports support his review. No scheme or production replacement is selected.
+
+## November 4, 2026 — Prism Glass first refinement
+
+Sean: "Let's refine Prism Glass first. Make the cards glossier and more
+Apple-like, and carry that style across the whole app."
+The [refined six-screen board](../design/style-directions-2026-11-04/prism-board.html)
+carries the material through primary and deeper mockup screens. This is a
+refinement-stage preference; a final brand and production implementation still
+require their own decision. The [round 2 record](../design/style-directions-2026-11-04/README.md)
+links the original references, scoped material/type changes and local checks.
+
+## November 4, 2026 — eight new whole-app style directions
+
+Sean requested 5–10 distinct styles based on his selected references, then
+confirmed: "Explore new colors and typography too. I want the 5–10 styles to look
+distinctly different, based on the references I saved."
+The [eight-direction review](../design/style-directions-2026-11-04/index.html)
+provides 48 new primary concepts across Home, Play, Bets, Research, EPL and Account.
+The [source map and validation](../design/style-directions-2026-11-04/README.md)
+cover all 25 selected reference IDs. This authorizes color/type exploration in
+these mockups; no replacement brand or implementation is selected. Production
+branding remains as documented below until Sean makes a new selection.
+
 ## November 1, 2026 — My bets preview and spacing refinement
 
 After the option 04 deployment, Sean requested better spacing and a preview that

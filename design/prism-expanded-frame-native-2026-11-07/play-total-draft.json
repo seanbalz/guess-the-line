@@ -1,0 +1,271 @@
+{
+  "name": "play-total-draft",
+  "captures": [
+    {
+      "file": "play-total-draft-dark-390.png",
+      "sha256": "28bf11bdf49f0f9eb957034d590004694446a494c53de5e1082449aefacfc282",
+      "route": "#play/picks?market=total&season=2026&week=5&pickGame=TB-DAL",
+      "context": "play-draft",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 76,
+        "bottom": 76
+      },
+      "tabs": {
+        "x": 16,
+        "y": 760,
+        "width": 358,
+        "height": 72,
+        "bottom": 832
+      },
+      "stored": "dark",
+      "resolved": "dark",
+      "ink": "rgb(243, 233, 215)",
+      "background": "linear-gradient(150deg, rgb(42, 45, 55) 0%, rgb(32, 33, 38) 50%, rgb(23, 24, 29) 100%)",
+      "gradient": "linear-gradient(150deg, rgb(42, 45, 55) 0%, rgb(32, 33, 38) 50%, rgb(23, 24, 29) 100%)",
+      "targets": [
+        {
+          "name": "Guess The Line, home",
+          "width": 64,
+          "height": 54
+        },
+        {
+          "name": "National Football League",
+          "width": 52,
+          "height": 52
+        },
+        {
+          "name": "Your menu",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "name": "Home",
+          "width": 87,
+          "height": 62
+        },
+        {
+          "name": "Play, 2 ballots due",
+          "width": 87,
+          "height": 62
+        },
+        {
+          "name": "Bets",
+          "width": 87,
+          "height": 62
+        },
+        {
+          "name": "Research",
+          "width": 87,
+          "height": 62
+        }
+      ],
+      "decoded": true
+    },
+    {
+      "file": "play-total-draft-dark-320.png",
+      "sha256": "3726ab6b5702b0b4e47694f40a79d88109cb12ab32d7484031a3aeea77d96fb3",
+      "route": "#play/picks?market=total&season=2026&week=5&pickGame=TB-DAL",
+      "context": "play-draft",
+      "theme": "dark",
+      "width": 320,
+      "height": 844,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 76,
+        "bottom": 76
+      },
+      "tabs": {
+        "x": 16,
+        "y": 760,
+        "width": 288,
+        "height": 72,
+        "bottom": 832
+      },
+      "stored": "dark",
+      "resolved": "dark",
+      "ink": "rgb(243, 233, 215)",
+      "background": "linear-gradient(150deg, rgb(42, 45, 55) 0%, rgb(32, 33, 38) 50%, rgb(23, 24, 29) 100%)",
+      "gradient": "linear-gradient(150deg, rgb(42, 45, 55) 0%, rgb(32, 33, 38) 50%, rgb(23, 24, 29) 100%)",
+      "targets": [
+        {
+          "name": "Guess The Line, home",
+          "width": 64,
+          "height": 54
+        },
+        {
+          "name": "National Football League",
+          "width": 52,
+          "height": 52
+        },
+        {
+          "name": "Your menu",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "name": "Home",
+          "width": 69.5,
+          "height": 62
+        },
+        {
+          "name": "Play, 2 ballots due",
+          "width": 69.5,
+          "height": 62
+        },
+        {
+          "name": "Bets",
+          "width": 69.5,
+          "height": 62
+        },
+        {
+          "name": "Research",
+          "width": 69.5,
+          "height": 62
+        }
+      ],
+      "decoded": true
+    },
+    {
+      "file": "play-total-draft-light-390.png",
+      "sha256": "cbced9ee7dc5bf7142c8cbdbd7196b372ad010b0091c786ceb86b807c386f97b",
+      "route": "#play/picks?market=total&season=2026&week=5&pickGame=TB-DAL",
+      "context": "play-draft",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 76,
+        "bottom": 76
+      },
+      "tabs": {
+        "x": 16,
+        "y": 760,
+        "width": 358,
+        "height": 72,
+        "bottom": 832
+      },
+      "stored": "light",
+      "resolved": "light",
+      "ink": "rgb(36, 49, 40)",
+      "background": "linear-gradient(150deg, rgb(250, 251, 246), rgb(233, 236, 232) 55%, rgb(224, 231, 222))",
+      "gradient": "linear-gradient(150deg, rgb(250, 251, 246), rgb(233, 236, 232) 55%, rgb(224, 231, 222))",
+      "targets": [
+        {
+          "name": "Guess The Line, home",
+          "width": 64,
+          "height": 54
+        },
+        {
+          "name": "National Football League",
+          "width": 52,
+          "height": 52
+        },
+        {
+          "name": "Your menu",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "name": "Home",
+          "width": 87,
+          "height": 62
+        },
+        {
+          "name": "Play, 2 ballots due",
+          "width": 87,
+          "height": 62
+        },
+        {
+          "name": "Bets",
+          "width": 87,
+          "height": 62
+        },
+        {
+          "name": "Research",
+          "width": 87,
+          "height": 62
+        }
+      ],
+      "decoded": true
+    },
+    {
+      "file": "play-total-draft-light-320.png",
+      "sha256": "36846c2a1a860fb1b16175080beee2f24d15fd96c8fc48780fb48e82b1a72048",
+      "route": "#play/picks?market=total&season=2026&week=5&pickGame=TB-DAL",
+      "context": "play-draft",
+      "theme": "light",
+      "width": 320,
+      "height": 844,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 76,
+        "bottom": 76
+      },
+      "tabs": {
+        "x": 16,
+        "y": 760,
+        "width": 288,
+        "height": 72,
+        "bottom": 832
+      },
+      "stored": "light",
+      "resolved": "light",
+      "ink": "rgb(36, 49, 40)",
+      "background": "linear-gradient(150deg, rgb(250, 251, 246), rgb(233, 236, 232) 55%, rgb(224, 231, 222))",
+      "gradient": "linear-gradient(150deg, rgb(250, 251, 246), rgb(233, 236, 232) 55%, rgb(224, 231, 222))",
+      "targets": [
+        {
+          "name": "Guess The Line, home",
+          "width": 64,
+          "height": 54
+        },
+        {
+          "name": "National Football League",
+          "width": 52,
+          "height": 52
+        },
+        {
+          "name": "Your menu",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "name": "Home",
+          "width": 69.5,
+          "height": 62
+        },
+        {
+          "name": "Play, 2 ballots due",
+          "width": 69.5,
+          "height": 62
+        },
+        {
+          "name": "Bets",
+          "width": 69.5,
+          "height": 62
+        },
+        {
+          "name": "Research",
+          "width": 69.5,
+          "height": 62
+        }
+      ],
+      "decoded": true
+    }
+  ],
+  "source": "expanded task source; see manifest",
+  "scope": "Actual production controllers, disposable fixture data, outer-frame review only"
+}

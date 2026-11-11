@@ -59,7 +59,7 @@ test('social parlay creation, shared visibility, tail review, records and weekly
   await page.getByRole('button', { name: 'Unit Betting', exact: true }).click();
   await expect(page.locator('.social-bet-card')).toHaveCount(1);
   const card = page.locator('.social-bet-card');
-  await card.getByText('Details & history', { exact: true }).click();
+  // Owner actions follow the receipt directly in the confirmed ticket hierarchy.
   await card.getByRole('button', { name: /Report result/ }).click();
   await dialog.getByLabel('Outcome').selectOption('win');
   await dialog.getByLabel('Result source / note').fill('Browser fixture reported win');

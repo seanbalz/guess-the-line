@@ -98,3 +98,12 @@ test('a kickoff refusal retains its code and triggers saved-state reconciliation
     return true;
   });
 });
+
+test('D-82 Player Props refusals keep their public code, so a failed lock-in opens draft recovery instead of a bare notice', async () => {
+  const message = 'We couldn’t verify the market reference. Your guess was not locked in. We kept your draft so you can try again before kickoff.';
+  await assert.rejects(readResponse(json({ error: message, code: 'GTL_PROPS_REFERENCE_UNAVAILABLE' }, 409), true), error => {
+    assert.deepEqual([error.message, error.code, error.status], [message, 'GTL_PROPS_REFERENCE_UNAVAILABLE', 409]);
+    return true;
+  });
+  for (const code of ['GTL_PROPS_LOCKED', 'GTL_PROPS_CLOSED', 'GTL_PROPS_OFF']) await assert.rejects(readResponse(json({ error: 'x', code }, 409), true), error => error.code === code);
+});

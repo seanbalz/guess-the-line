@@ -1,0 +1,506 @@
+{
+  "status": "proposed; awaiting visual approval; not deployed",
+  "sourceCommit": "42a5ad9930a5712c6b357564701fbb5628b12b43",
+  "checkedAt": "2026-11-07T22:10:27.017Z",
+  "browser": "Playwright CLI, Chrome, Windows",
+  "data": "Local fictional community world with ALL migrations and seedFinishedWeek; no hosted account data",
+  "scope": "NFL Home landing only; browser-injected preview.css; production source unchanged",
+  "baseline": {
+    "width": 390,
+    "viewportHeight": 844,
+    "documentHeight": 1561
+  },
+  "proposed": {
+    "width": 390,
+    "viewportHeight": 844,
+    "documentHeight": 1279,
+    "reductionPixels": 282,
+    "reductionPercent": 18.1
+  },
+  "cases": [
+    {
+      "theme": "dark",
+      "font": "native",
+      "safeArea": null,
+      "width": 320,
+      "viewportHeight": 844,
+      "documentHeight": 1347,
+      "renderedChartFontMin": 12,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "dark",
+      "font": "native",
+      "safeArea": null,
+      "width": 359,
+      "viewportHeight": 844,
+      "documentHeight": 1325,
+      "renderedChartFontMin": 13.636363636363637,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "dark",
+      "font": "native",
+      "safeArea": null,
+      "width": 360,
+      "viewportHeight": 844,
+      "documentHeight": 1297,
+      "renderedChartFontMin": 13.636363636363637,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "dark",
+      "font": "native",
+      "safeArea": null,
+      "width": 390,
+      "viewportHeight": 844,
+      "documentHeight": 1279,
+      "renderedChartFontMin": 13.636363636363637,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "dark",
+      "font": "native",
+      "safeArea": null,
+      "width": 430,
+      "viewportHeight": 844,
+      "documentHeight": 1271,
+      "renderedChartFontMin": 13.636363636363637,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "dark",
+      "font": "native",
+      "safeArea": null,
+      "width": 768,
+      "viewportHeight": 844,
+      "documentHeight": 1271,
+      "renderedChartFontMin": 13.636363636363637,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "dark",
+      "font": "native",
+      "safeArea": null,
+      "width": 1440,
+      "viewportHeight": 844,
+      "documentHeight": 1271,
+      "renderedChartFontMin": 13.636363636363637,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "light",
+      "font": "native",
+      "safeArea": null,
+      "width": 320,
+      "viewportHeight": 844,
+      "documentHeight": 1347,
+      "renderedChartFontMin": 12,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "light",
+      "font": "native",
+      "safeArea": null,
+      "width": 359,
+      "viewportHeight": 844,
+      "documentHeight": 1325,
+      "renderedChartFontMin": 13.636363636363637,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "light",
+      "font": "native",
+      "safeArea": null,
+      "width": 360,
+      "viewportHeight": 844,
+      "documentHeight": 1297,
+      "renderedChartFontMin": 13.636363636363637,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "light",
+      "font": "native",
+      "safeArea": null,
+      "width": 390,
+      "viewportHeight": 844,
+      "documentHeight": 1279,
+      "renderedChartFontMin": 13.636363636363637,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "light",
+      "font": "native",
+      "safeArea": null,
+      "width": 430,
+      "viewportHeight": 844,
+      "documentHeight": 1271,
+      "renderedChartFontMin": 13.636363636363637,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "light",
+      "font": "native",
+      "safeArea": null,
+      "width": 768,
+      "viewportHeight": 844,
+      "documentHeight": 1271,
+      "renderedChartFontMin": 13.636363636363637,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "light",
+      "font": "native",
+      "safeArea": null,
+      "width": 1440,
+      "viewportHeight": 844,
+      "documentHeight": 1271,
+      "renderedChartFontMin": 13.636363636363637,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "dark",
+      "font": "Verdana",
+      "safeArea": null,
+      "width": 320,
+      "viewportHeight": 844,
+      "documentHeight": 1446,
+      "renderedChartFontMin": null,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "dark",
+      "font": "Verdana",
+      "safeArea": null,
+      "width": 359,
+      "viewportHeight": 844,
+      "documentHeight": 1345,
+      "renderedChartFontMin": null,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "dark",
+      "font": "Verdana",
+      "safeArea": null,
+      "width": 360,
+      "viewportHeight": 844,
+      "documentHeight": 1317,
+      "renderedChartFontMin": null,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "dark",
+      "font": "Verdana",
+      "safeArea": null,
+      "width": 390,
+      "viewportHeight": 844,
+      "documentHeight": 1297,
+      "renderedChartFontMin": null,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "dark",
+      "font": "Verdana",
+      "safeArea": null,
+      "width": 430,
+      "viewportHeight": 844,
+      "documentHeight": 1289,
+      "renderedChartFontMin": null,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "dark",
+      "font": "Verdana",
+      "safeArea": null,
+      "width": 768,
+      "viewportHeight": 844,
+      "documentHeight": 1271,
+      "renderedChartFontMin": null,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "dark",
+      "font": "Verdana",
+      "safeArea": null,
+      "width": 1440,
+      "viewportHeight": 844,
+      "documentHeight": 1271,
+      "renderedChartFontMin": null,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "light",
+      "font": "Verdana",
+      "safeArea": null,
+      "width": 320,
+      "viewportHeight": 844,
+      "documentHeight": 1446,
+      "renderedChartFontMin": null,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "light",
+      "font": "Verdana",
+      "safeArea": null,
+      "width": 359,
+      "viewportHeight": 844,
+      "documentHeight": 1345,
+      "renderedChartFontMin": null,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "light",
+      "font": "Verdana",
+      "safeArea": null,
+      "width": 360,
+      "viewportHeight": 844,
+      "documentHeight": 1317,
+      "renderedChartFontMin": null,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "light",
+      "font": "Verdana",
+      "safeArea": null,
+      "width": 390,
+      "viewportHeight": 844,
+      "documentHeight": 1297,
+      "renderedChartFontMin": null,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "light",
+      "font": "Verdana",
+      "safeArea": null,
+      "width": 430,
+      "viewportHeight": 844,
+      "documentHeight": 1289,
+      "renderedChartFontMin": null,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "light",
+      "font": "Verdana",
+      "safeArea": null,
+      "width": 768,
+      "viewportHeight": 844,
+      "documentHeight": 1271,
+      "renderedChartFontMin": null,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "light",
+      "font": "Verdana",
+      "safeArea": null,
+      "width": 1440,
+      "viewportHeight": 844,
+      "documentHeight": 1271,
+      "renderedChartFontMin": null,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "dark",
+      "font": "native",
+      "safeArea": "47px top / 34px bottom simulated",
+      "width": 390,
+      "viewportHeight": 844,
+      "documentHeight": 1360,
+      "renderedChartFontMin": null,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    },
+    {
+      "theme": "light",
+      "font": "native",
+      "safeArea": "47px top / 34px bottom simulated",
+      "width": 390,
+      "viewportHeight": 844,
+      "documentHeight": 1360,
+      "renderedChartFontMin": null,
+      "horizontalOverflow": false,
+      "undersizedTargets": 0,
+      "clippedText": 0,
+      "layoutProblems": []
+    }
+  ],
+  "keyboard": {
+    "observations": 24,
+    "failures": []
+  },
+  "axe": [
+    {
+      "theme": "dark",
+      "violations": [],
+      "incomplete": [
+        "color-contrast"
+      ]
+    },
+    {
+      "theme": "light",
+      "violations": [],
+      "incomplete": [
+        "color-contrast"
+      ]
+    }
+  ],
+  "tokenSuite": {
+    "command": "node --test tests/next-tokens.test.mjs",
+    "passed": 15,
+    "failed": 0,
+    "scope": "Existing production token/brand rules; preview colors reference existing Home tokens"
+  },
+  "limitations": [
+    "Browser emulation, not real iPhone acceptance",
+    "Expanded overview viewport is not the 844px phone viewport",
+    "Axe contrast incomplete on translucent surfaces",
+    "Preview CSS is not shipped or approved"
+  ],
+  "files": {
+    "before-dark-bottom.png": {
+      "sha256": "52d86d260d2cc2dd48f694b5661eb2653bb69dce20938abbac2e35b0e7411c7c",
+      "bytes": 136439
+    },
+    "before-dark-overview.png": {
+      "sha256": "e0802422feb7f87eedac8f31b3fd4eca9f36e61dc7a7634ffb0e81a5a8a9cefa",
+      "bytes": 263290
+    },
+    "before-dark-top.png": {
+      "sha256": "39634721ed04a0fcf9bd5c0c92971776c978e102337ac1b8964488579d1c3ede",
+      "bytes": 158792
+    },
+    "before-light-bottom.png": {
+      "sha256": "8ff241a93d1ddcbdb97e0b5be90647b5626234e0e7d86dc537db6187d61ee054",
+      "bytes": 136545
+    },
+    "before-light-overview.png": {
+      "sha256": "d450a3f2c0d6ecd34dc7c30afb8b749d2dfa5fc3d35f977176141c8897797f58",
+      "bytes": 295346
+    },
+    "before-light-top.png": {
+      "sha256": "50c61e1f5cf53a74760ef9136466c62293422e4f813555ef7640e64552315191",
+      "bytes": 165581
+    },
+    "preview.css": {
+      "sha256": "5542e80a09129fd49c1cafb2c3150902c93814e440465b15035819d93c4cb83a",
+      "bytes": 3871
+    },
+    "proposed-dark-bottom.png": {
+      "sha256": "ded9e28bb1d4a28d745fefd07bab6f915b7cf63a4598a99b3a81bba4b191ee75",
+      "bytes": 152816
+    },
+    "proposed-dark-overview.png": {
+      "sha256": "7c64533c440f8cbd60d854d706ebf1830758f4d15725f5ea8a9969fadba63cf8",
+      "bytes": 242520
+    },
+    "proposed-dark-safe-area-bottom.png": {
+      "sha256": "76dc1dc340e8abb12011e8ee863cd825f8885f8af95b273461e65beeeaf1a0d6",
+      "bytes": 150345
+    },
+    "proposed-dark-top.png": {
+      "sha256": "0081c40979a742dfa726b2d663e149fb8a56edc6f57c08e3fbffbe3ae6f21c2f",
+      "bytes": 168061
+    },
+    "proposed-light-bottom.png": {
+      "sha256": "0c290c2bac8893dcaaf4c5010fc8fa7e8e87191ac632f7fe27df5923df7c9a33",
+      "bytes": 153319
+    },
+    "proposed-light-overview.png": {
+      "sha256": "e96a681e3162b4ce89aebf9ee43c1493287c78ffc12d6ed37676fddadc925b8c",
+      "bytes": 276063
+    },
+    "proposed-light-safe-area-bottom.png": {
+      "sha256": "4e8f55b2507530500fd01d6e522692682a60e5c05d26f9dd26bb169e7287191f",
+      "bytes": 175654
+    },
+    "proposed-light-top.png": {
+      "sha256": "44698d65fc9d9933e2c63a78aa06e2b4cd89c8819be90e4c1b47c9d397c4a470",
+      "bytes": 182502
+    }
+  }
+}

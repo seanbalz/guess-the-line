@@ -1,0 +1,93 @@
+{
+  "observedAt": "2026-11-08T07:23:49.182471+00:00",
+  "workflowRun": 42458244319,
+  "sourceCommit": "e3f078b9e831dda46412487251b191ebdd5637c4",
+  "indexSha256": "ed841e0fffadef4d1d15ccf77570625ff1fb4a7025f39f808d1eeaa20cd58f94",
+  "generatedAt": "2026-11-08T07:18:44.893Z",
+  "publicationReceipt": {
+    "season": 2026,
+    "generatedAt": "2026-11-08T07:18:44.893Z",
+    "latestCompleted": "2026-11-05",
+    "completedGames": 122,
+    "candidates": 750,
+    "qualifyingTrends": 6,
+    "statisticMatchups": 272,
+    "pbpGames": 122,
+    "sourceSha256": "e33093d468d9be9cfe5b71235103af0baeb48163e4dae4eedb8ab0f59aa93404",
+    "pbpSha256": "c42cd6d6a86c4be337aaa1185176e8904cba8407eacbdbf21afab341a82b77e5"
+  },
+  "verifiedAssets": [
+    {
+      "period": "recent30",
+      "file": "recent30-f9722a577e070f434c8d34f3413a408ac51f462aab43b173c9ca0c5c56be7251.json.gz",
+      "compressedBytes": 588467,
+      "decodedBytes": 10511608,
+      "sha256": "f9722a577e070f434c8d34f3413a408ac51f462aab43b173c9ca0c5c56be7251",
+      "candidates": 750,
+      "periodSamples": 750,
+      "withPerSeason": 750,
+      "withRowSeries": 750,
+      "maxRowSeriesPoints": 10
+    },
+    {
+      "period": "recent25",
+      "file": "recent25-2c5e4bd0ac79e99b9f095e1beafe86ca9021dac4973298124d76bc55037bb329.json.gz",
+      "compressedBytes": 534669,
+      "decodedBytes": 9889255,
+      "sha256": "2c5e4bd0ac79e99b9f095e1beafe86ca9021dac4973298124d76bc55037bb329",
+      "candidates": 750,
+      "periodSamples": 750,
+      "withPerSeason": 750,
+      "withRowSeries": 750,
+      "maxRowSeriesPoints": 9
+    },
+    {
+      "period": "season",
+      "file": "season-73ccc4503ad6858b06569e6b04f9d1fe0549eee9ef6e077a62dcde2711816bd0.json.gz",
+      "compressedBytes": 454792,
+      "decodedBytes": 8812927,
+      "sha256": "73ccc4503ad6858b06569e6b04f9d1fe0549eee9ef6e077a62dcde2711816bd0",
+      "candidates": 750,
+      "periodSamples": 750,
+      "withPerSeason": 750,
+      "withRowSeries": 750,
+      "maxRowSeriesPoints": 12
+    },
+    {
+      "period": "previousSeason",
+      "file": "previousSeason-14fdc5306c49792b210959acb8c62d86e82b655afcdffc8b26fc6f3ec6c7b2b3.json.gz",
+      "compressedBytes": 598745,
+      "decodedBytes": 10098151,
+      "sha256": "14fdc5306c49792b210959acb8c62d86e82b655afcdffc8b26fc6f3ec6c7b2b3",
+      "candidates": 750,
+      "periodSamples": 750,
+      "withPerSeason": 750,
+      "withRowSeries": 750,
+      "maxRowSeriesPoints": 12
+    },
+    {
+      "period": "rolling12",
+      "file": "rolling12-c277a4825605675bc6fc13c84427a82662ddca4048c26da0f10738edc40cc813.json.gz",
+      "compressedBytes": 600355,
+      "decodedBytes": 10134496,
+      "sha256": "c277a4825605675bc6fc13c84427a82662ddca4048c26da0f10738edc40cc813",
+      "candidates": 750,
+      "periodSamples": 750,
+      "withPerSeason": 750,
+      "withRowSeries": 750,
+      "maxRowSeriesPoints": 12
+    },
+    {
+      "period": "all",
+      "file": "all-721ba606c82d3d528de84faf6aa0dc475389f6a71df545a54e4e7290c71b2475.json.gz",
+      "compressedBytes": 1050820,
+      "decodedBytes": 14984731,
+      "sha256": "721ba606c82d3d528de84faf6aa0dc475389f6a71df545a54e4e7290c71b2475",
+      "candidates": 750,
+      "periodSamples": 750,
+      "withPerSeason": 750,
+      "withRowSeries": 750,
+      "maxRowSeriesPoints": 12
+    }
+  ]
+}

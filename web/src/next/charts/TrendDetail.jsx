@@ -17,7 +17,7 @@ export const lineSelectionKey = (title, line) => JSON.stringify([title, line.sta
  * Function children receive `{ key, index, onSelect, chartId }` to link matching evidence.
  * `seasons` (optional): `{ rows, caption, headline, tiles }`. `pill` is the one-word state; `info` the ⓘ element.
  */
-export function TrendDetail({ title, pill, info, line, seasons, children, id }) {
+export function TrendDetail({ title, displayTitle = title, pill, info, line, seasons, children, id, headingLevel = 4 }) {
   const [view, setView] = useState('line');
   const headingId = useId(), seasonChartId = useId(), lineChartId = useId();
   const [selectedSeason, setSelectedSeason] = useState(null);
@@ -30,15 +30,16 @@ export function TrendDetail({ title, pill, info, line, seasons, children, id }) 
   const seasonIndex = matchingSeason < 0 ? rows.length - 1 : matchingSeason;
   const bySeason = view === 'seasons' && seasons;
   const shown = bySeason ? seasons : line;
+  const Heading = headingLevel === 3 ? 'h3' : 'h4';
   return (
-    <section className="gx-tc-card" aria-labelledby={headingId} id={id} data-trend-detail="">
+    <section className="gx-card gx-tc-card" aria-labelledby={headingId} id={id} data-trend-detail="">
       <div className="gx-tc-head">
-        <h4 className="gx-t-strong gx-grow" id={headingId}>{title}</h4>
+        <Heading className="gx-t-strong gx-grow" id={headingId}>{displayTitle}</Heading>
         {pill ? <span className="gx-tc-pill">{pill}</span> : null}
         {info}
       </div>
       {seasons ? (
-        <div className="gx-tc-seg" role="group" aria-label={`Chart view · ${title}`}>
+        <div className="gx-tc-seg" role="group" aria-label={`Chart view · ${displayTitle}`}>
           <button type="button" aria-pressed={!bySeason} onClick={() => setView('line')}>{line.start ? `Since ${line.start}` : 'All games'}</button>
           <button type="button" aria-pressed={Boolean(bySeason)} onClick={() => setView('seasons')}>By season</button>
         </div>
@@ -47,10 +48,10 @@ export function TrendDetail({ title, pill, info, line, seasons, children, id }) 
         <span className="gx-tc-big">{shown.headline.value}</span>
         <span className="gx-tc-headline-sub">{shown.headline.sub}</span>
       </p>
-      {bySeason ? <SeasonStems id={seasonChartId} seasons={rows} contextLabel={title} selectedIndex={seasonIndex} onSelect={index => setSelectedSeason(rows[index].season)}/> : <TrendLine id={lineChartId} values={line.values} tip={line.tip} start={line.start} end={line.end} label={line.label} contextLabel={title} formatValue={line.formatValue}
+      {bySeason ? <SeasonStems id={seasonChartId} seasons={rows} contextLabel={displayTitle} selectedIndex={seasonIndex} onSelect={index => setSelectedSeason(rows[index].season)}/> : <TrendLine id={lineChartId} values={line.values} tip={line.tip} start={line.start} end={line.end} label={line.label} contextLabel={displayTitle} formatValue={line.formatValue}
         selectedIndex={lineSelection.index} onSelect={lineSelection.onSelect}/>}
       <StatTiles tiles={shown.tiles}/>
-      {bySeason ? <SeasonTable seasons={rows} caption={seasons.caption} contextLabel={title} selectedSeason={rows[seasonIndex]?.season} onSelect={setSelectedSeason} chartId={seasonChartId}/> : null}
+      {bySeason ? <SeasonTable seasons={rows} caption={seasons.caption} contextLabel={displayTitle} selectedSeason={rows[seasonIndex]?.season} onSelect={setSelectedSeason} chartId={seasonChartId}/> : null}
       {typeof children === 'function' ? children({ ...lineSelection, chartId: lineChartId }) : children}
     </section>
   );

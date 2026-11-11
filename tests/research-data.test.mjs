@@ -9,9 +9,24 @@ import { buildPlayResearch, buildResearchRelease } from '../scripts/research-ref
 import { observedPlayStatistics } from '../shared/research-play-statistics.mjs';
 import { createResearchProvider } from '../cloud/trends-research.mjs';
 import { row, registry, venues, corrections, T } from './trends-fixture.mjs';
+import { validateResearchChartSample } from '../shared/research-data.mjs';
+import { researchRecord } from '../shared/trends-research.mjs';
+import { compactResearchSeries, compactResearchRowSeries, researchSeasonSummaries } from '../shared/trends-research-candidates.mjs';
 
 const AT = '2026-10-28T19:00:00.000Z', NOW = Date.parse(AT), hash = 'a'.repeat(64);
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
+test('optional public charts accept old assets but bound new fixed summaries and refuse raw identities', () => {
+  const record = researchRecord([{ gameId: 'one', season: 2025, date: '2026-01-04T18:00:00.000Z', result: 0, odds: -110 }]);
+  const sample = { record, series: compactResearchSeries(record), perSeason: researchSeasonSummaries(record), rowSeries: compactResearchRowSeries(compactResearchSeries(record)) };
+  assert.equal(validateResearchChartSample(sample), sample);
+  assert.equal(validateResearchChartSample({ record, series: sample.series }).perSeason, undefined);
+  for (const mutate of [s => s.perSeason.push(...Array(101).fill(s.perSeason[0])), s => s.perSeason[0].records = [],
+    s => s.perSeason[0].matchedGameIds = ['private'], s => s.perSeason[0].sample = 2,
+    s => s.rowSeries.points.push(...Array(12).fill(s.rowSeries.points[0])), s => s.rowSeries.points[0].gameId = 'private',
+    s => s.rowSeries.points[0].pushes = 2, s => s.rowSeries.points[0].illustrativeUnits = 1]) {
+    const changed = structuredClone(sample); mutate(changed); assert.throws(() => validateResearchChartSample(changed));
+  }
+});
 function publication() {
   const files = new Map(), index = { version: 1, season: 2026, generatedAt: AT, files: [] };
   for (const period of RESEARCH_PERIODS) {

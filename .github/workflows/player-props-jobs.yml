@@ -1,0 +1,75 @@
+name: Player Props jobs
+# D-82 Player Props offer and result-ingestion jobs (scripts/player-props-jobs.mjs). DISABLED: there is no schedule, and
+# even a manual run does nothing unless the repository variable GTL_PLAYER_PROPS_JOBS is set to "on" (it is unset).
+# Manual runs default to a dry run. Writing also needs the migrations 20261110130000 and 20261110160000 applied (otherwise
+# the job is a no-op, status schema_unavailable) and, while gtl_prop_capability.live_lock_in is false, record_while_dark.
+# Offers come only from quotes research intake already retained: no odds provider is called and no credit is reserved.
+# Results come from the free public nflverse stats_player weekly release (CC BY 4.0), size- and SHA-256-verified.
+# Adding a schedule is a separate reviewed change. The summary artifact holds counts and reason names only.
+on:
+  workflow_dispatch:
+    inputs:
+      job:
+        description: offers (record verified offers and references) or results (ingest final player stats)
+        type: choice
+        options: [offers, results]
+        default: offers
+        required: true
+      season:
+        description: NFL season
+        type: string
+        required: true
+      week:
+        description: Regular-season week
+        type: string
+        required: true
+      write:
+        description: Write through the service-only gtl_props_* functions (otherwise a dry run)
+        type: boolean
+        default: false
+      record_while_dark:
+        description: Allow writing while live_lock_in is false (service-only tables; nothing is shown to players)
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: player-props-jobs
+  cancel-in-progress: false
+jobs:
+  run:
+    if: github.ref == 'refs/heads/main' && vars.GTL_PLAYER_PROPS_JOBS == 'on'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Run the job
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GTL_PROPS_SUPABASE_URL: ${{ secrets.GTL_PROPS_SUPABASE_URL }}
+          GTL_PROPS_SERVICE_ROLE_KEY: ${{ secrets.GTL_PROPS_SERVICE_ROLE_KEY }}
+          JOB: ${{ inputs.job }}
+          SEASON: ${{ inputs.season }}
+          WEEK: ${{ inputs.week }}
+          WRITE: ${{ inputs.write }}
+          DARK: ${{ inputs.record_while_dark }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$JOB" =~ ^(offers|results)$ && "$SEASON" =~ ^[0-9]{4}$ && "$WEEK" =~ ^[0-9]{1,2}$ ]] || { echo "Invalid inputs."; exit 1; }
+          args=("$JOB" --season "$SEASON" --week "$WEEK")
+          if [ "$WRITE" = "true" ]; then args+=(--write); fi
+          if [ "$DARK" = "true" ]; then args+=(--record-while-dark); fi
+          mkdir -p .local
+          node scripts/player-props-jobs.mjs "${args[@]}" | tee .local/player-props-job.json
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: player-props-job-summary
+          path: .local/player-props-job.json
+          if-no-files-found: ignore

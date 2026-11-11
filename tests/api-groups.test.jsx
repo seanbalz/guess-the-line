@@ -9,15 +9,17 @@ vi.mock('../web/src/auth.js', () => ({
   supabase: { auth: { getSession: async () => ({ data: { session: { access_token: 'fixture-token' } }, error: null }) } },
 }));
 
-const { ApiError, GROUP_ACTIONS, betsApi, cloudApi, leagueApi, linesApi, meApi, pointsApi, readTeams } = await import('../web/src/api.js');
+const { ApiError, GROUP_ACTIONS, betsApi, cloudApi, leagueApi, linesApi, meApi, pointsApi, propsApi, readTeams } = await import('../web/src/api.js');
 const { SaveUncertainError } = await import('../web/src/apiResponse.js');
 
-const wrappers = { lines: linesApi, bets: betsApi, league: leagueApi, me: meApi, points: pointsApi };
+const wrappers = { lines: linesApi, bets: betsApi, league: leagueApi, me: meApi, points: pointsApi, props: propsApi };
 afterEach(() => vi.unstubAllGlobals());
 
 describe('route-group wrappers', () => {
-  it('cover the five groups, each with disjoint read and write action lists', () => {
-    expect(Object.keys(GROUP_ACTIONS)).toEqual(['lines', 'bets', 'league', 'me', 'points']);
+  it('cover the six groups, each with disjoint read and write action lists', () => {
+    expect(Object.keys(GROUP_ACTIONS)).toEqual(['lines', 'bets', 'league', 'me', 'points', 'props']);
+    // D-82: Player Props draft saves and lock-ins are sent as saves (an unconfirmed reply is never retried silently).
+    expect(GROUP_ACTIONS.props).toEqual({ reads: ['read', 'history', 'shared'], writes: ['draft', 'lock'] });
     for (const { reads, writes } of Object.values(GROUP_ACTIONS)) {
       for (const action of [...reads, ...writes]) expect(action).toMatch(/^[a-z][a-z0-9-]*(?:\/[a-z][a-z0-9-]*)*$/);
       expect(reads.filter(action => writes.includes(action))).toEqual([]);

@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { ALL } from '../migrations.mjs';
 import { communityWorld, pgliteAvailable, sendBallot, signIn, storeBookLines } from './community-world.mjs';
+import { setCaptureTheme, themedScreenshot } from './theme-capture.mjs';
 
 test.use({ viewport: { width: 320, height: 844 } });
 test.beforeEach(() => test.skip(!pgliteAvailable, 'Local PGlite required. No hosted data.'));
@@ -287,7 +288,7 @@ test('shared weekly/matchup shortlist, full opposition, periods, chart/table, Tr
     await expect(dialog.getByText(/Synthetic pattern/)).toHaveCount(0);
     await dialog.getByRole('button', { name: 'Close', exact: true }).click();
     // D-69 step 3: a board row opens the game as a layer (it was the game sheet); the research sheet still opens over it.
-    await page.locator(`.gx-prow[data-game="${ids[0]}"]`).click();
+    await page.locator(`button[data-game="${ids[0]}"]`).click();
     const gameDialog = page.locator('[data-research="game"]');
     await expect(gameDialog.locator(`[data-research-card="${canonicalId}"]`)).toHaveCount(1);
     await gameDialog.getByRole('button', { name: 'Open matchup research', exact: true }).click();
@@ -678,4 +679,80 @@ test('a separately refreshed evidence table does not control a chart from differ
     await expect(sheet(page).getByText('Spread research is locked.', { exact: false }).first()).toBeVisible();
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }
+});
+
+test('approved historical Trends rows use real scoped controllers, six periods, sample records, charts, source states and market filtering', async ({ page, baseURL }, info) => {
+  test.setTimeout(120000);
+  const { world, synthetic } = await setup(page, baseURL, { multipleBins: true, historyStatus: 'stale' });
+  try {
+    await page.goto('/#research/trends');
+    const list = page.getByRole('region', { name: 'Historical trends', exact: true });
+    await expect(list.locator('[data-research-card]')).toHaveCount(5);
+    await expect(list.getByText('History: stale. Dated evidence remains descriptive.', { exact: true })).toBeVisible();
+    const period = list.getByRole('combobox', { name: 'Evidence period', exact: true });
+    await expect(period.locator('option')).toHaveCount(6);
+    for (const value of ['recent30', 'recent25', 'season', 'previousSeason', 'rolling12', 'all']) {
+      await period.selectOption(value);
+      await expect.poll(() => synthetic.calls.at(-1)?.period).toBe(value);
+      await expect(list.locator('[data-research-card]').first()).toContainText(value === 'recent25' ? '25 games' : '30 games');
+    }
+    const market = page.getByRole('group', { name: 'Trends market', exact: true });
+    await market.getByRole('button', { name: 'Spread', exact: true }).click();
+    await expect(list.locator('[data-research-card]')).toHaveCount(0);
+    await expect(list).toContainText('No qualifying research in this view.');
+    await market.getByRole('button', { name: 'Total', exact: true }).click();
+    await expect(list.locator('[data-research-card]')).toHaveCount(5);
+    await market.getByRole('button', { name: 'All', exact: true }).click();
+    await expect(list.locator('[data-research-card]')).toHaveCount(5);
+    let first = list.locator('[data-research-card]').first();
+    for (const width of [320, 390]) for (const theme of ['dark', 'light']) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, theme);
+      await page.evaluate(() => scrollTo(0, 0));
+      await page.screenshot({ path: info.outputPath(`prism-trends-list-${width}-${theme}.png`), fullPage: true });
+      await first.getByRole('button', { expanded: false }).first().click();
+      const slider = first.getByRole('slider');
+      await expect(slider).toBeVisible();
+      await slider.focus(); await page.keyboard.press('Home');
+      await expect(slider).toHaveValue('0');
+      await page.keyboard.press('End'); await expect(slider).toHaveValue('2');
+      await first.getByRole('button', { name: 'View evidence', exact: true }).click();
+      await expect(first.getByRole('table')).toBeVisible();
+      await expect(first.locator('.gx-r-table-wrap')).toHaveAttribute('tabindex', '0');
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze()).violations.map(issue => issue.id)).toEqual([]);
+      await page.screenshot({ path: info.outputPath(`prism-trends-${width}-${theme}.png`), fullPage: true });
+      await first.getByRole('button', { name: 'Hide evidence', exact: true }).click();
+      await first.locator('.gx-tc-row').click();
+    }
+    await list.getByRole('button', { name: 'About historical trends', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: 'About historical trends', exact: true })).toContainText('Fixture derived historical records.');
+    await page.keyboard.press('Escape');
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
+test('approved historical rows use a full-width source spark and separated sample footer',async({page,baseURL},info)=>{
+ test.setTimeout(120000); const {world}=await setup(page,baseURL,{multipleBins:true});
+ try {
+  await page.goto('/#research/trends');
+  const list=page.getByRole('region',{name:'Historical trends',exact:true});
+  await expect(list.locator('[data-research-card]')).toHaveCount(5);
+  const row=list.locator('[data-research-card]').first();
+  await expect(row.locator('.gx-r-row-context')).toContainText('30 games');
+  for(const width of [320,390]) for(const theme of ['dark','light']) for(const forcedColors of ['none','active']) {
+   await page.setViewportSize({width,height:844}); await setCaptureTheme(page,theme,{forcedColors});
+   const size=await row.evaluate(el=>{const row=el.querySelector('.gx-tc-row').getBoundingClientRect(),spark=el.querySelector('.gx-tc-mini').getBoundingClientRect(),footer=el.querySelector('.gx-r-row-context').getBoundingClientRect();return {row:row.width,spark:spark.width,bottom:spark.bottom,footer:footer.top};});
+   expect(size.spark).toBeGreaterThan(size.row*.8);expect(size.footer).toBeGreaterThanOrEqual(size.bottom);
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+   await themedScreenshot(page,info,`historical-rows-${width}-${theme}-${forcedColors}.png`,theme,{fullPage:true});
+  }
+  await page.emulateMedia({forcedColors:'none'});
+  // Missing source curves stay absent; opening evidence uses the original candidate read.
+  await expect(list.locator('[data-research-card="synthetic-opposition"] .gx-tc-mini')).toHaveCount(0);
+  await row.getByRole('button',{expanded:false}).click();await expect(row.getByRole('slider')).toBeVisible();
+  await row.getByRole('button',{name:'View evidence',exact:true}).click();await expect(row.getByRole('table')).toBeVisible();
+  const violations=(await new AxeBuilder({page}).analyze()).violations.map(item=>item.id);expect(violations).toEqual([]);
+  expect(world.errors).toEqual([]);
+ } finally {await world.db.close();}
 });

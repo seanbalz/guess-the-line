@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { randomUUID } from 'node:crypto';
 import { communityWorld, pgliteAvailable, signIn, SUPABASE } from './community-world.mjs';
+import { setCaptureTheme } from './theme-capture.mjs';
 
 test.use({ viewport: { width: 390, height: 844 } });
 test.skip(!pgliteAvailable, 'Install the local PGlite test runtime.');
@@ -13,6 +14,8 @@ async function open(page, account = 'sean') {
   await page.goto('about:blank');
   await page.goto('/');
   await signIn(page, account, { navigate: false });
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: /^Research(,|$)/ }).click();
+  await expect(page.locator('[data-landing="research"]')).toBeVisible();
   await page.getByRole('button', { name: /^League: .*\. Switch league$/ }).click();
 }
 async function setup(page, baseURL) {
@@ -55,7 +58,7 @@ test('host creates and revokes a recipient-bound invitation in the new app', asy
     expect((await world.api('luke', `invites?league=${league}`)).status).toBe(403);
     expect((await world.api('luke', `invites?league=${league}`, { email: 'other@example.test', requestId: randomUUID() })).status).toBe(403);
     for (const theme of ['dark', 'light']) {
-      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      await setCaptureTheme(page, theme);
       await page.setViewportSize({ width: 320, height: 740 });
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze()).violations).toEqual([]);

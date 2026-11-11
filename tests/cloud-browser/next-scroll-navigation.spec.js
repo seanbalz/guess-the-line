@@ -3,8 +3,8 @@
 // screen" while scrolling Bets → Recommended (October 15). On local PGlite fixtures only (no hosted data), at 390 x 844
 // and 320 x 568, in Dark and Light, on every tab root and the long Bets and Play pages:
 // - at the top, middle and end of the page, and after the window gets shorter and taller again (a phone's toolbar
-//   showing and hiding), the tab bar's bottom is the screen's bottom, its tabs are what a tap there reaches, and the
-//   top bar is still at the top;
+//   showing and hiding), the tab bar keeps its shared 12px bottom offset, its tabs are what a tap
+//   there reaches, and the native top bar stays pinned while the compact header scrolls from document y=0;
 // - no ancestor of the tab bar, the dock or the top bar gives it a containing block (a transform, filter,
 //   backdrop-filter, perspective, contain or will-change on an ancestor makes a fixed bar scroll away with the page);
 // - the page never scrolls sideways (a wider page lets a phone zoom out and leaves fixed bars mid-screen);
@@ -38,8 +38,13 @@ function barProblems() {
   const bar = document.querySelector('.gx-tabbar'), top = document.querySelector('.gx-topbar');
   if (!bar || !top) return ['the tab bar or top bar is missing'];
   const b = bar.getBoundingClientRect(), t = top.getBoundingClientRect();
-  if (Math.abs(b.bottom - height) > 1) out.push(`tab bar bottom at ${Math.round(b.bottom)}, screen bottom ${height}`);
-  if (Math.abs(t.top) > 1) out.push(`top bar top at ${Math.round(t.top)}`);
+  const compact = !!bar.closest('.gx-overview-frame');
+  if (Math.abs(b.bottom - (height - 12)) > 1) out.push(`tab bar bottom at ${Math.round(b.bottom)}, screen bottom ${height}`);
+  if (compact) {
+    // Every approved compact context uses the same relative header, not a sticky header exempted from checking.
+    if (getComputedStyle(top).position !== 'relative') out.push('compact top bar is not relative');
+    if (Math.abs(t.top + scrollY) > 1) out.push(`compact top bar document top at ${Math.round(t.top + scrollY)}`);
+  } else if (Math.abs(t.top) > 1) out.push(`top bar top at ${Math.round(t.top)}`);
   for (const button of bar.querySelectorAll('button')) {
     const r = button.getBoundingClientRect();
     const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
@@ -98,7 +103,7 @@ function focusProblem() {
   if (!el || el === document.body || !el.closest('.gx-main') || el.closest('.gx-layer, dialog')) return null;
   const r = el.getBoundingClientRect();
   if (r.width < 2 || r.height < 2) return null;
-  const above = document.querySelector('.gx-topbar').getBoundingClientRect().bottom;
+  const above = Math.max(0, document.querySelector('.gx-topbar').getBoundingClientRect().bottom);
   const below = Math.min(document.querySelector('.gx-tabbar').getBoundingClientRect().top,
     ...[...document.querySelectorAll('.gx-dock-bar')].filter(d => d !== el && !d.contains(el)).map(d => d.getBoundingClientRect().top));
   // A control taller than the space between the bars cannot show whole; its top must then show.
@@ -157,6 +162,8 @@ test('the tab bar stays at the bottom while every page scrolls, and nothing is l
         await page.locator('.gx-main').evaluate(main => { main.setAttribute('tabindex', '-1'); main.focus({ preventScroll: true }); main.removeAttribute('tabindex'); });
         for (let i = 0; i < TAB_PRESSES; i++) {
           await page.keyboard.press('Tab');
+          // Inspect the painted focus position after native/custom scroll reconciliation.
+          await page.evaluate(() => new Promise(resolve => requestAnimationFrame(resolve)));
           const problem = await page.evaluate(focusProblem);
           if (problem) note(label, [`Tab ${i + 1}: ${problem}`]);
         }
@@ -178,6 +185,14 @@ test('each check reports the failure it guards against', async ({ page, baseURL 
     await expect(page.locator('[data-landing="home"]')).toBeVisible();
     await page.setViewportSize({ width: 320, height: 568 });
     const withFault = async (address, css) => { await open(page, address); await page.addStyleTag({ content: css }); };
+
+    // Compact headers must scroll with the document from its origin, and native headers must remain pinned.
+    await withFault('#play', '.gx-topbar { position: sticky !important; }');
+    expect((await page.evaluate(barProblems)).join(' | ')).toMatch(/compact top bar is not relative/);
+    await withFault('#play', '.gx-topbar { top: 20px !important; }');
+    expect((await page.evaluate(barProblems)).join(' | ')).toMatch(/compact top bar document top at 20/);
+    await withFault('#research', '.gx-topbar { top: 20px !important; }');
+    expect((await page.evaluate(barProblems)).join(' | ')).toMatch(/top bar top at 20/);
 
     // A filter on an ancestor makes the fixed tab bar scroll away with the page (the "halfway up the screen" picture).
     await withFault('#research/trends', '.gx-app { filter: saturate(1); }');

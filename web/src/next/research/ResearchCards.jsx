@@ -1,3 +1,4 @@
+import { leagueWords } from '../leagueWords.js';
 import { lazy, Suspense, useId, useRef, useState } from 'react';
 import { Button, Card, InfoButton, Matchup, Skeleton } from '../ui/index.js';
 import { TrendDetail, lineSelectionKey } from '../charts/TrendDetail.jsx';
@@ -74,21 +75,21 @@ function RecordSummary({ record, label }) {
   if (!record) return null;
   return <p className="gx-t-meta">{label}: {record.wins}-{record.losses}-{record.pushes} W-L-P · {record.sample} games · {researchDate(record.coverage?.from)} to {researchDate(record.coverage?.to)}</p>;
 }
-function ResearchDetail({ candidateId, request, withChart, selection }) {
-  const read = useResearch({ ...request, filters: { ...request?.filters, candidateId }, enabled: Boolean(request) });
-  const candidate = read.data?.candidates.find(c => c.id === candidateId);
+function ResearchDetail({ candidateId, request, withChart, selection, preparedCandidate }) {
+  const read = useResearch({ ...request, filters: { ...request?.filters, candidateId }, enabled: Boolean(request) && !preparedCandidate });
+  const candidate = preparedCandidate ?? read.data?.candidates.find(c => c.id === candidateId);
   const line = candidate ? researchLine(candidate) : null;
   const key = line ? lineSelectionKey(candidate.title, line) : null;
   const localSelection = useChartSelection(key, line?.values.length ?? 0), chartId = useId();
   // The detail is a separate read. Link only equivalent chart evidence, never a stale summary.
   const linked = !line ? null : withChart ? { ...localSelection, chartId } : selection?.key === key ? selection : null;
   return <div className="gx-r-detail gx-vstack gx-gap-12">
-    <ResearchStatus read={read} compact/>
+    {!preparedCandidate ? <ResearchStatus read={read} compact/> : null}
     {candidate ? <>
       {withChart && line ? <TrendLine id={chartId} values={line.values} tip={line.tip} start={line.start} end={line.end} label={line.label} selectedIndex={localSelection.index} onSelect={localSelection.onSelect}/> : null}
       <HistoricalTable candidate={candidate} selection={linked}/>
       <p className="gx-t-meta">Qualification uses the canonical recent sample, regardless of this display period. {candidate.qualification.label}. {(candidate.qualification.reasons ?? []).map(reason).join(' ')}</p>
-      <p className="gx-t-meta">Conditions: {candidate.conditionDescriptions?.join('; ') || 'See situation title'}. Registered {researchDate(candidate.registeredAt)} · {candidate.sourceState === 'source-reported' ? 'Source-reported · not verified' : 'Computed from permitted NFL history'}.</p>
+      <p className="gx-t-meta">Conditions: {(candidate.sourceState === 'source-reported' ? candidate.conditionDescriptions?.join('; ') : leagueWords(candidate.conditionDescriptions?.join('; '))) || 'See situation title'}. Registered {researchDate(candidate.registeredAt)} · {candidate.sourceState === 'source-reported' ? 'Source-reported · not verified' : 'Computed from permitted National Football League history'}.</p>
       <RecordSummary record={candidate.recent} label="Canonical recent sample"/>
       <RecordSummary record={candidate.seasonRecord} label="Snapshot season"/>
       <RecordSummary record={candidate.historical} label="Available history"/>
@@ -121,51 +122,82 @@ export function researchLine(candidate) {
       : { value: `${signed(values[i])} U`, label: `${records[i - 1]} total · through ${researchDate(points[i - 1].to)}` }),
   };
 }
+/** Exact selected-sample NFL seasons, never calendar years inferred from bins. */
+export function researchSeasons(candidate) {
+  if (!candidate?.perSeason?.length) return null;
+  const r = candidate.record, pct = hitPct(r.wins, r.losses);
+  return {
+    rows: candidate.perSeason.map(s => ({ season: s.season, w: s.wins, l: s.losses, p: s.pushes, units: s.illustrativeUnits })),
+    caption: `${PERIODS[candidate.period] ?? 'Selected sample'} · National Football League seasons · Illustrative units at -110`,
+    headline: { value: `${signed(r.illustrativeUnits)} U`, sub: `${recordText(r.wins, r.losses, r.pushes)} · Illustrative units at -110` },
+    tiles: [{ label: 'Win rate', value: pct === null ? '—' : `${pct}%`, meter: pct },
+      { label: 'Games', value: String(r.sample), sub: `${candidate.perSeason.length} National Football League seasons` }],
+  };
+}
 const consistencyText = candidate => (candidate.sourceState === 'source-reported' ? 'Source-reported · not verified'
   : /^Tier [12] historical consistency$/.test(candidate.qualification.label) ? 'Historical consistency · not proven' : candidate.qualification.label);
 const consistencyPill = candidate => (candidate.sourceState === 'source-reported' ? 'Not verified' : /not proven/i.test(consistencyText(candidate)) ? 'Not proven' : null);
 
-function ResearchCard({ candidate, gameId, request, open, onToggle }) {
+/** Only the opened non-shortlist row reads detail. Its compact preview is never
+ * passed to the selectable chart/table, and the existing scoped hook masks any
+ * late reply after account, access, game, candidate or period changes.
+ */
+function ResearchOpened({ candidate: summary, request, id, headingLevel, info, evidence, setEvidence }) {
+  const needsDetail = !summary.series;
+  const read = useResearch({ ...request, filters: { ...request?.filters, candidateId: summary.id }, enabled: Boolean(request) && needsDetail });
+  const candidate = needsDetail ? read.data?.candidates.find(c => c.id === summary.id) : summary;
+  const line = researchLine(candidate), r = candidate?.record ?? summary.record ?? {};
+  const pct = hitPct(r.wins ?? 0, r.losses ?? 0), units = r.illustrativeUnits ?? line?.values.at(-1);
+  const record = r.sample ? recordText(r.wins ?? 0, r.losses ?? 0, r.pushes ?? 0) : null;
+  const evidenceBlock = selection => <>
+    {!candidate?.perSeason?.length ? <p className="gx-t-meta">Season summaries unavailable for this prepared sample.</p> : null}
+    <Button variant="ghost" onClick={() => setEvidence(v => !v)} aria-expanded={evidence}>{evidence ? 'Hide evidence' : 'View evidence'}</Button>
+    {evidence && request ? <ResearchDetail candidateId={summary.id} request={request} withChart={!line} selection={selection} preparedCandidate={needsDetail ? candidate : undefined}/> : null}
+  </>;
+  if (needsDetail && request && read.status !== 'ready') return <div id={id} className="gx-tc-rowtext"><ResearchStatus read={read} compact/></div>;
+  if (!line) return <div className="gx-tc-rowtext" id={id}>
+    <RecordSummary record={r} label="Selected period"/>
+    <p className="gx-t-meta">Historical chart unavailable for this prepared sample.</p>
+    <div className="gx-l-sechead"><p className="gx-t-meta gx-grow">{consistencyText(summary)}</p>{info}</div>
+    {evidenceBlock()}
+  </div>;
+  return <TrendDetail id={id} title={candidate.title} displayTitle={candidate.sourceState === 'source-reported' ? candidate.title : leagueWords(candidate.title)} headingLevel={headingLevel} pill={consistencyPill(candidate)} info={info} seasons={researchSeasons(candidate)}
+    line={{ ...line, headline: { value: `${signed(units)} U`, sub: [record, r.coverage?.from ? `${researchDate(r.coverage.from)} to ${researchDate(r.coverage.to)}` : 'selected period', 'Illustrative units at -110'].filter(Boolean).join(' · ') },
+      tiles: [{ label: 'Win rate', value: pct === null ? '—' : `${pct}%`, meter: pct, sub: pct === null ? 'No decided games' : undefined },
+        { label: 'Games', value: String(r.sample ?? '—'), sub: PERIODS[candidate.period] ?? 'Selected period' }] }}>
+    {evidenceBlock}
+  </TrendDetail>;
+}
+
+function ResearchCard({ candidate, gameId, request, open, onToggle, valueMetric, showSample, headingLevel, historical }) {
   const id = useId();
   const [evidence, setEvidence] = useState(false);
   const applications = candidate.applications?.filter(a => !gameId || a.gameId === gameId) ?? [];
   const r = candidate.record ?? {}, pct = hitPct(r.wins ?? 0, r.losses ?? 0), line = researchLine(candidate);
+  const preview = candidate.rowSeries ? researchLine({ series: candidate.rowSeries }) : line;
   const units = Number.isFinite(r.illustrativeUnits) ? r.illustrativeUnits : line?.values.at(-1);
-  const why = `Why it applies: ${candidate.conditionDescriptions?.join('; ') || readable(candidate.family)}${applications.length ? ` · ${applications.map(a => `${a.gameId.replace('-', ' at ')} (${readable(a.direction)})`).join('; ')}` : ''}.`;
+  const rawConditions = candidate.conditionDescriptions?.join('; ') || readable(candidate.family);
+  const conditions = candidate.sourceState === 'source-reported' ? rawConditions : leagueWords(rawConditions);
+  const why = `Why it applies: ${conditions}${applications.length ? ` · ${applications.map(a => `${a.gameId.replace('-', ' at ')} (${readable(a.direction)})`).join('; ')}` : ''}.`;
   const info = <InfoButton title="About this research" body={[`Consistency: ${consistencyText(candidate)}`, why, ...INFO.research.body]} links={INFO.research.links}/>;
-  const evidenceBlock = selection => <>
-    <Button variant="ghost" onClick={() => setEvidence(v => !v)} aria-expanded={evidence}>{evidence ? 'Hide evidence' : 'View evidence'}</Button>
-    {evidence && request ? <ResearchDetail candidateId={candidate.id} request={request} withChart={!line} selection={selection}/> : null}
-  </>;
   const record = r.sample ? recordText(r.wins ?? 0, r.losses ?? 0, r.pushes ?? 0) : null;
-  const tiles = [
-    { label: 'Win rate', value: pct === null ? '—' : `${pct}%`, meter: pct, sub: pct === null ? 'No decided games' : undefined },
-    { label: 'Games', value: String(r.sample ?? '—'), sub: PERIODS[candidate.period] ?? 'Selected period' },
-  ];
   return <li className="gx-tc-item gx-r-card" data-research-card={candidate.id}>
-    <div className="gx-tc-rowcard">
-      <TrendRow title={candidate.title} sub={[consistencyPill(candidate), record].filter(Boolean).join(' · ')}
-        values={line?.values} value={Number.isFinite(units) ? `${signed(units)} U` : null} open={open} controls={id} onToggle={onToggle}/>
-      {open && !line ? <div className="gx-tc-rowtext" id={id}>
-        <RecordSummary record={candidate.record} label="Selected period"/>
-        <div className="gx-l-sechead"><p className="gx-t-meta gx-grow">{consistencyText(candidate)}</p>{info}</div>
-        {evidenceBlock()}
-      </div> : null}
+    <div className="gx-card gx-tc-rowcard">
+      <TrendRow title={candidate.title} displayTitle={candidate.sourceState === 'source-reported' ? candidate.title : leagueWords(candidate.title)} sub={historical ? [candidate.market === 'spread' ? 'ATS' : 'Total', record].filter(Boolean).join(' · ') : [consistencyPill(candidate), record, showSample && Number.isFinite(r.sample) ? `${r.sample.toLocaleString('en-US')} games` : null].filter(Boolean).join(' · ')}
+        values={preview?.values} value={valueMetric === 'winRate' ? pct === null ? '—' : `${pct}%` : Number.isFinite(units) ? `${signed(units)} U` : null} open={open} controls={id} onToggle={onToggle}/>
+      {historical ? <div className="gx-r-row-context"><span>{conditions}{consistencyPill(candidate) ? ` · ${consistencyPill(candidate)}` : ''}</span><span>{Number.isFinite(r.sample) ? `${r.sample.toLocaleString('en-US')} games` : 'Sample unavailable'}</span></div> : null}
     </div>
-    {open && line ? <TrendDetail id={id} title={candidate.title} pill={consistencyPill(candidate)} info={info}
-      line={{ ...line, headline: { value: `${signed(units)} U`, sub: [record, r.coverage?.from ? `${researchDate(r.coverage.from)} to ${researchDate(r.coverage.to)}` : 'selected period'].filter(Boolean).join(' · ') }, tiles }}>
-      {evidenceBlock}
-    </TrendDetail> : null}
+    {open ? <ResearchOpened candidate={candidate} request={request} id={id} headingLevel={headingLevel} info={info} evidence={evidence} setEvidence={setEvidence}/> : null}
   </li>;
 }
 /** The candidates a research list shows: `ids` (else the reply's shortlist), once each, at most `limit`, known ones only. */
 export const researchSelection = (data, ids, limit = 3) => [...new Set(ids ?? data?.shortlist ?? [])].slice(0, limit).map(id => data?.candidates.find(c => c.id === id)).filter(Boolean);
 /** Research as D-55 compact rows; one opens at a time, and the first opens on its own unless `openFirst` is false. */
-export function ResearchCards({ data, ids, limit = 3, gameId, request, openFirst = true }) {
+export function ResearchCards({ data, ids, limit = 3, gameId, request, openFirst = true, valueMetric = 'units', showSample = false, headingLevel = 4, historical = false }) {
   const selected = researchSelection(data, ids, limit);
   const [open, setOpen] = useState(() => (openFirst ? selected[0]?.id ?? null : null));
   return selected.length ? <ul className="gx-tc-list" aria-label="Research">{selected.map(c => <ResearchCard key={`${c.id}:${c.period}`} candidate={c} gameId={gameId} request={request}
-    open={open === c.id} onToggle={() => setOpen(value => (value === c.id ? null : c.id))}/>)}</ul>
+    open={open === c.id} valueMetric={valueMetric} showSample={showSample} historical={historical} headingLevel={headingLevel} onToggle={() => setOpen(value => (value === c.id ? null : c.id))}/>)}</ul>
     : <p className="gx-t-body gx-c-2">No qualifying research in this view. Explore other situations.</p>;
 }
 function directionLabel(game, market, direction) {

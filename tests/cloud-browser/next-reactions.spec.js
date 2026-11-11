@@ -92,12 +92,14 @@ test('Luke shares his own scored guess from his picks; the result shows in the f
     await expect(sheet).toContainText('10 pts');
     await checks(page, 'own-picks', testInfo);
     await sheet.getByRole('button', { name: 'Share your Spread result for TB @ DAL' }).click();
-    await expect(page.getByText('Shared to Community')).toBeVisible();
+    await expect(page.locator('.gx-toast-text').filter({ hasText: 'Shared to Community' })).toBeVisible();
     await expect(sheet.getByRole('button', { name: 'Share your Spread result for TB @ DAL' })).toHaveText('Shared');
     await page.keyboard.press('Escape');
     const result = page.locator('.gx-feed-post[data-kind="result_shared"]');
-    await expect(result).toContainText('Luke Fixture (you) hit a Bullseye');
-    await expect(result).toContainText('DAL −11.5 · 10 PTS');
+    await expect(result).toContainText('Luke Fixture (you)');
+    await expect(result).toContainText('hit a Bullseye');
+    await expect(result).toContainText('DAL −11.5');
+    await expect(result.getByRole('meter', { name: 'Accuracy points' })).toHaveAttribute('aria-valuenow', '10');
     expect((await world.db.query("select count(*)::int n from public.gtl_feed_posts where kind='result_shared' and actor_id=$1", [ACCOUNTS.luke.id])).rows[0].n).toBe(1);
     // Troy has not locked in: the same post hides the guess and the points from him.
     const troy = (await world.api('troy', 'league/feed', {})).body.posts.find(p => p.kind === 'result_shared');

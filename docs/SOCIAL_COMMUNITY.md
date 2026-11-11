@@ -500,6 +500,20 @@ scores, settled results, picks, queues, history, weeks and bonuses unchanged.
 M-33/M-34/M-35 remain unapplied. The registry is `tests/migrations.mjs`; no
 historical repair command or generic `db push` was run.
 
+## November 10 M-41 to M-47 apply record
+
+The [M-41 to M-47 apply record](RELEASE_2026_11_10_MIGRATIONS_M41_M47.md) maps
+repo versions to hosted versions: `20261108022135` to `20261110203637`,
+`20261110100000` to `20261110203759`, `20261110110000` to `20261110203856`,
+`20261110120000` to `20261110203957`, `20261110130000` to `20261110204106`,
+`20261110160000` to `20261110204207` and `20261110180000` to `20261110204307`.
+Each was applied alone through the SQL editor in Sean's signed-in Chrome after
+the compatible API v54/Pages and `epl-jobs` releases and his "Yes, apply
+M-41–M-47". History increased from 76 to 83 entries; scores, settled results and
+every preserved table were unchanged. M-33/M-34/M-35 remain unapplied. The
+registry is `tests/migrations.mjs`; no historical repair command or generic
+`db push` was run.
+
 ## Release checklist — October 9, 2026
 
 One ordered list for everything in this document (D-21, D-22, D-23, D-24) and for D-25. Source: `main` at `597ab59` (PRs #10–#26). Hosted project: `onmrgvcehkflfaizvedl`. Steps 1–4 and 9 are **done** (October 9, 2026, through the Supabase MCP and SQL editor; step 9 at 17:44 UTC from the cloud session). Steps 5–8 were Sean's, run from the machine with the Supabase and Cloudflare logins, and are **done** (steps 5–7 on October 12, step 8 on October 14). Fill the results into [RELEASE_2026_10_09.md](RELEASE_2026_10_09.md).

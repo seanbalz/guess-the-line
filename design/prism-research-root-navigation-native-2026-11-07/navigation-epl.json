@@ -1,0 +1,460 @@
+{
+  "scenario": {
+    "name": "navigation-epl",
+    "access": true,
+    "epl": true
+  },
+  "captures": [
+    {
+      "file": "navigation-epl-dark-390.png",
+      "sha256": "81c046d57a73f9f7380b8ff7c051bbc5033bff19be1cf5ee1f58463a92aad7d4",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "route": "#epl/research/fantasy",
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 57,
+        "right": 390,
+        "bottom": 57
+      },
+      "sports": {
+        "x": 0,
+        "y": 57,
+        "width": 390,
+        "height": 68,
+        "right": 390,
+        "bottom": 125
+      },
+      "tabs": {
+        "x": 0,
+        "y": 780,
+        "width": 390,
+        "height": 64,
+        "right": 390,
+        "bottom": 844
+      },
+      "toast": null,
+      "targets": [
+        {
+          "name": "Guess The Line, home",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "name": "League: FEPL. Switch league",
+          "width": 86.84375,
+          "height": 44
+        },
+        {
+          "name": "Your menu",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "name": "National Football League",
+          "width": 52,
+          "height": 52
+        },
+        {
+          "name": "Premier League",
+          "width": 52,
+          "height": 52
+        },
+        {
+          "name": "Home",
+          "width": 97.5,
+          "height": 63
+        },
+        {
+          "name": "Play",
+          "width": 97.5,
+          "height": 63
+        },
+        {
+          "name": "Bets",
+          "width": 97.5,
+          "height": 63
+        },
+        {
+          "name": "Research",
+          "width": 97.5,
+          "height": 63
+        }
+      ],
+      "circles": [
+        {
+          "width": 52,
+          "height": 52,
+          "radius": "999px",
+          "images": [
+            {
+              "contain": "contain",
+              "decoded": true
+            }
+          ]
+        },
+        {
+          "width": 52,
+          "height": 52,
+          "radius": "999px",
+          "images": [
+            {
+              "contain": "contain",
+              "decoded": true
+            }
+          ]
+        }
+      ],
+      "computedTheme": {
+        "stored": "dark",
+        "preference": "dark",
+        "resolved": "dark",
+        "canvas": "linear-gradient(150deg, rgb(42, 45, 55) 0%, rgb(32, 33, 38) 50%, rgb(23, 24, 29) 100%)",
+        "ink": "rgb(243, 233, 215)"
+      },
+      "overflow": false
+    },
+    {
+      "file": "navigation-epl-dark-320.png",
+      "sha256": "72861bc022f4c4acee199049ae8da157ef9deab51ebb34c593ea02c7437639e0",
+      "theme": "dark",
+      "width": 320,
+      "height": 844,
+      "route": "#epl/research/fantasy",
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 57,
+        "right": 320,
+        "bottom": 57
+      },
+      "sports": {
+        "x": 0,
+        "y": 57,
+        "width": 320,
+        "height": 68,
+        "right": 320,
+        "bottom": 125
+      },
+      "tabs": {
+        "x": 0,
+        "y": 780,
+        "width": 320,
+        "height": 64,
+        "right": 320,
+        "bottom": 844
+      },
+      "toast": null,
+      "targets": [
+        {
+          "name": "Guess The Line, home",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "name": "League: FEPL. Switch league",
+          "width": 86.84375,
+          "height": 44
+        },
+        {
+          "name": "Your menu",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "name": "National Football League",
+          "width": 52,
+          "height": 52
+        },
+        {
+          "name": "Premier League",
+          "width": 52,
+          "height": 52
+        },
+        {
+          "name": "Home",
+          "width": 80,
+          "height": 63
+        },
+        {
+          "name": "Play",
+          "width": 80,
+          "height": 63
+        },
+        {
+          "name": "Bets",
+          "width": 80,
+          "height": 63
+        },
+        {
+          "name": "Research",
+          "width": 80,
+          "height": 63
+        }
+      ],
+      "circles": [
+        {
+          "width": 52,
+          "height": 52,
+          "radius": "999px",
+          "images": [
+            {
+              "contain": "contain",
+              "decoded": true
+            }
+          ]
+        },
+        {
+          "width": 52,
+          "height": 52,
+          "radius": "999px",
+          "images": [
+            {
+              "contain": "contain",
+              "decoded": true
+            }
+          ]
+        }
+      ],
+      "computedTheme": {
+        "stored": "dark",
+        "preference": "dark",
+        "resolved": "dark",
+        "canvas": "linear-gradient(150deg, rgb(42, 45, 55) 0%, rgb(32, 33, 38) 50%, rgb(23, 24, 29) 100%)",
+        "ink": "rgb(243, 233, 215)"
+      },
+      "overflow": false
+    },
+    {
+      "file": "navigation-epl-light-390.png",
+      "sha256": "056b0d4513be037b049a362d47dd57bc027c855c3bb41fc042823965f5a5bc05",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "route": "#epl/research/fantasy",
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 57,
+        "right": 390,
+        "bottom": 57
+      },
+      "sports": {
+        "x": 0,
+        "y": 57,
+        "width": 390,
+        "height": 68,
+        "right": 390,
+        "bottom": 125
+      },
+      "tabs": {
+        "x": 0,
+        "y": 780,
+        "width": 390,
+        "height": 64,
+        "right": 390,
+        "bottom": 844
+      },
+      "toast": null,
+      "targets": [
+        {
+          "name": "Guess The Line, home",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "name": "League: FEPL. Switch league",
+          "width": 86.84375,
+          "height": 44
+        },
+        {
+          "name": "Your menu",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "name": "National Football League",
+          "width": 52,
+          "height": 52
+        },
+        {
+          "name": "Premier League",
+          "width": 52,
+          "height": 52
+        },
+        {
+          "name": "Home",
+          "width": 97.5,
+          "height": 63
+        },
+        {
+          "name": "Play",
+          "width": 97.5,
+          "height": 63
+        },
+        {
+          "name": "Bets",
+          "width": 97.5,
+          "height": 63
+        },
+        {
+          "name": "Research",
+          "width": 97.5,
+          "height": 63
+        }
+      ],
+      "circles": [
+        {
+          "width": 52,
+          "height": 52,
+          "radius": "999px",
+          "images": [
+            {
+              "contain": "contain",
+              "decoded": true
+            }
+          ]
+        },
+        {
+          "width": 52,
+          "height": 52,
+          "radius": "999px",
+          "images": [
+            {
+              "contain": "contain",
+              "decoded": true
+            }
+          ]
+        }
+      ],
+      "computedTheme": {
+        "stored": "light",
+        "preference": "light",
+        "resolved": "light",
+        "canvas": "linear-gradient(150deg, rgb(250, 251, 246), rgb(233, 236, 232) 55%, rgb(224, 231, 222))",
+        "ink": "rgb(36, 49, 40)"
+      },
+      "overflow": false
+    },
+    {
+      "file": "navigation-epl-light-320.png",
+      "sha256": "8b29e82d2751582974d2b5dfb23e1b6aeba0a3f521cb321faa74bba9398d5d1f",
+      "theme": "light",
+      "width": 320,
+      "height": 844,
+      "route": "#epl/research/fantasy",
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 57,
+        "right": 320,
+        "bottom": 57
+      },
+      "sports": {
+        "x": 0,
+        "y": 57,
+        "width": 320,
+        "height": 68,
+        "right": 320,
+        "bottom": 125
+      },
+      "tabs": {
+        "x": 0,
+        "y": 780,
+        "width": 320,
+        "height": 64,
+        "right": 320,
+        "bottom": 844
+      },
+      "toast": null,
+      "targets": [
+        {
+          "name": "Guess The Line, home",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "name": "League: FEPL. Switch league",
+          "width": 86.84375,
+          "height": 44
+        },
+        {
+          "name": "Your menu",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "name": "National Football League",
+          "width": 52,
+          "height": 52
+        },
+        {
+          "name": "Premier League",
+          "width": 52,
+          "height": 52
+        },
+        {
+          "name": "Home",
+          "width": 80,
+          "height": 63
+        },
+        {
+          "name": "Play",
+          "width": 80,
+          "height": 63
+        },
+        {
+          "name": "Bets",
+          "width": 80,
+          "height": 63
+        },
+        {
+          "name": "Research",
+          "width": 80,
+          "height": 63
+        }
+      ],
+      "circles": [
+        {
+          "width": 52,
+          "height": 52,
+          "radius": "999px",
+          "images": [
+            {
+              "contain": "contain",
+              "decoded": true
+            }
+          ]
+        },
+        {
+          "width": 52,
+          "height": 52,
+          "radius": "999px",
+          "images": [
+            {
+              "contain": "contain",
+              "decoded": true
+            }
+          ]
+        }
+      ],
+      "computedTheme": {
+        "stored": "light",
+        "preference": "light",
+        "resolved": "light",
+        "canvas": "linear-gradient(150deg, rgb(250, 251, 246), rgb(233, 236, 232) 55%, rgb(224, 231, 222))",
+        "ink": "rgb(36, 49, 40)"
+      },
+      "overflow": false
+    }
+  ],
+  "blocked": [],
+  "expectedPageErrors": [],
+  "limits": "Actual FEPL Research controller with no stored fantasy snapshots; no invented destination body."
+}

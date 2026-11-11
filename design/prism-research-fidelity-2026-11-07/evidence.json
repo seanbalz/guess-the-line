@@ -1,0 +1,533 @@
+{
+  "kind": "GTL_PRISM_RESEARCH_FIDELITY_FIX_EVIDENCE",
+  "generatedAt": "2026-11-08T00:51:31.533250+00:00",
+  "status": "Checked locally; independent parent review pending; no push/PR/merge/deploy",
+  "branch": "codex/research-visual-fidelity-2026-11-07",
+  "parentIntegration": "24824facdf7f36dfa3b36e6521e9686fe48d480b",
+  "researchDependency": "ba92384a852e5ded82c19c5a86da392ddaefa741",
+  "authorityCommit": "3ac2eb50513ba73447ef890e4a47863cde7bdd76",
+  "scopeAreas": [
+    "08",
+    "10",
+    "12",
+    "13"
+  ],
+  "checks": {
+    "vitest": {
+      "files": 8,
+      "passed": 73
+    },
+    "nodeModelsAndTokens": {
+      "passed": 35
+    },
+    "actualHandlerPGliteBrowser": {
+      "passed": 14,
+      "skipped": 0,
+      "workers": 1,
+      "port": 5236,
+      "files": [
+        "fantasy.spec.js",
+        "next-lines.spec.js",
+        "next-research-layers.spec.js",
+        "next-research.spec.js",
+        "next-trends.spec.js"
+      ]
+    },
+    "finalGameForcedColors": {
+      "passed": 1,
+      "skipped": 0,
+      "note": "After the 14-case pass, scoped game-tab forced colors were restored to Canvas/Highlight; this affected capture/control test was rerun with an explicit system-Highlight assertion."
+    },
+    "typecheck": "passed",
+    "brandQa": "passed with Python UTF-8 mode",
+    "cloudBuild": "passed",
+    "bundlePrivacyScan": "passed --bundle-only"
+  },
+  "dataBoundary": "Native real controllers, local fictional accounts and synthetic research observations through actual handler/PGlite; existing public Fantasy snapshot. No fixtures/adapters or extra providers in production source.",
+  "visualComparison": {
+    "Players": "Separate alphabetical observed browse, full-width real recorded-game curves, observed points/game and sample averages, native usage/comparison actions. Real snapshot selection and stale/source states remain. Rankings remains initial for existing links.",
+    "Trends": "Title/record and rate header, full-width source curve, separated source-condition/consistency and sample footer; no curve without a supplied series.",
+    "Game": "Compact overview, actual game actions, retained native pager, then Research tabs and statistics. Full schedule and source coverage remain explicit. Pager is a native extension absent in approved preview.",
+    "ScopeLimit": "Global header/sports row/dock placement remains outside this task. Full-page captures include native fixed bars at their capture position, not physical-phone acceptance."
+  },
+  "remainingDependencies": [
+    "Canonical candidate exact By-season array and non-shortlist summary series remain backend projection dependencies; no weekly-ID joins or invented series.",
+    "Independent parent visual review, overall rollout approval and hosted release gates remain."
+  ],
+  "approvalSources": [
+    {
+      "file": "selected-system-review.json",
+      "bytes": 333454,
+      "sha256": "cb235f3e396944f083c9cea87cc60c9d67bafac390b317ccd63e6665537dd236"
+    },
+    {
+      "file": "populated-fantasy.jsx",
+      "bytes": 6925,
+      "sha256": "92130039377608477361f5142b025f2898c0d4e8d74dd1f1d0d01c82cb641017"
+    },
+    {
+      "file": "populated-research.jsx",
+      "bytes": 17344,
+      "sha256": "f1d6425f27dd1cfe22d501890fe8484c36c4e147db49b4d23c7a7efb1627a71f"
+    },
+    {
+      "file": "game-research-panels.js",
+      "bytes": 7367,
+      "sha256": "396a1f0cd0c77db2e7d3399071c77ccf60bda664d715464dfcb5b5088c0b8c9f"
+    },
+    {
+      "file": "previews/fantasy-players-dark-phone.png",
+      "bytes": 307874,
+      "sha256": "81fee4fdec5f9df32387b36ed553b94238bcb641d26352ed53c3e55571b427c2"
+    },
+    {
+      "file": "previews/fantasy-players-light-phone.png",
+      "bytes": 325557,
+      "sha256": "9a2f2d51e6bec489b7f86a375f9263b469a6deead189e044bc9a895d26774206"
+    },
+    {
+      "file": "previews/fantasy-rankings-dark-phone.png",
+      "bytes": 304342,
+      "sha256": "f0d5c3fab921cf9b875dc7333c2a6a5fc3a2eacbf74a30590d3f10f073e748b0"
+    },
+    {
+      "file": "previews/fantasy-rankings-light-phone.png",
+      "bytes": 323700,
+      "sha256": "f51ef13c53247be01ced953665f7143ceaff9716d2d8b31b91d19952ba88d4b4"
+    },
+    {
+      "file": "previews/trends-list-dark-phone.png",
+      "bytes": 224121,
+      "sha256": "48983eb57841d1465b6dd48b8614c75eb5f8d49774e7af24ce1d822ee1495d37"
+    },
+    {
+      "file": "previews/trends-list-light-phone.png",
+      "bytes": 246424,
+      "sha256": "2afd94207d258371a3a23c021ed5fdc3ec8efdbb78e64a9dfc92b7d3c570e97f"
+    },
+    {
+      "file": "previews/populated-game-teams-dark-phone.png",
+      "bytes": 279809,
+      "sha256": "295873e0747fa14fb337b53f7c192f6fbfa38a70cf6eaca2909a3dc2203e2016"
+    },
+    {
+      "file": "previews/populated-game-teams-light-phone.png",
+      "bytes": 303218,
+      "sha256": "b56091c8e84a3752f73829b99d44357a130442a1c49f32ac8670bcef7f07cd48"
+    }
+  ],
+  "nativeSourceFiles": [
+    {
+      "file": "web/src/next/fantasy/FantasyNest.jsx",
+      "bytes": 24868,
+      "sha256": "ac084bd9269fa73cdde8e51cd4664254aac59e39e3ceceaa2b8e3c273152a612"
+    },
+    {
+      "file": "web/src/next/fantasy/ObservedPlayers.jsx",
+      "bytes": 4754,
+      "sha256": "2faeadef373f26d6306e41826584e2f6623013105a4072d292435c8109cc9408"
+    },
+    {
+      "file": "web/src/next/fantasy/fantasy.css",
+      "bytes": 12320,
+      "sha256": "fc22b16f4efd873a252c03659b8ae1208c90460bb3b22251c6eb4fd2a71463fc"
+    },
+    {
+      "file": "web/src/next/lines/GameDetails.jsx",
+      "bytes": 8280,
+      "sha256": "3f56b4f81634409e4903bbcf5477dc50ee0d1bc99e7d1f3be2e983e77bb97c84"
+    },
+    {
+      "file": "web/src/next/lines/GameLayer.jsx",
+      "bytes": 5711,
+      "sha256": "02f2a58ba209328feca0d032609d18aeacc3590d44312ed5aaf4acaf10581aad"
+    },
+    {
+      "file": "web/src/next/lines/GameOverview.jsx",
+      "bytes": 1623,
+      "sha256": "e4c3f7179ffe5db5baff0cde8bc7dfead8565c09a587fd53784b9faa9a22c1fb"
+    },
+    {
+      "file": "web/src/next/lines/lines.css",
+      "bytes": 10567,
+      "sha256": "150592d70d01ad69e42b16b528e678a599435a23882216458e013f1f5215ffa1"
+    },
+    {
+      "file": "web/src/next/research/ResearchCards.jsx",
+      "bytes": 21765,
+      "sha256": "b5ed7caeff9ff3e44d3331c461b91c7496774876c7f8b119b5a92d96f6c10f20"
+    },
+    {
+      "file": "web/src/next/trends/HistoricalTrends.jsx",
+      "bytes": 3526,
+      "sha256": "11254ea968829344b103531c25986b8c822abe0f9a13b6a22f5d359237d86ef5"
+    },
+    {
+      "file": "web/src/next/trends/trends.css",
+      "bytes": 6506,
+      "sha256": "f29cff95cd3727c2f89fe1f80c04698254dd266ec1bd7f0d4378bb9c6cafe716"
+    },
+    {
+      "file": "web/src/next/ui/Nest.jsx",
+      "bytes": 6027,
+      "sha256": "f84925122e139fafcbbecf682a1f92ec6834f46a144b053f0bb777668685c4d5"
+    }
+  ],
+  "captures": [
+    {
+      "file": "historical-rows-320-dark-active.png",
+      "nativeTestCapture": "next-research-approved-his-44a9f-and-separated-sample-footer/historical-rows-320-dark-active.png",
+      "width": 320,
+      "height": 1924,
+      "bytes": 98471,
+      "sha256": "fac9c9db1ad5d477bf158065b9a81732bb9bfb4ebacc0f5aca9accfb52542c55",
+      "fullPage": true
+    },
+    {
+      "file": "historical-rows-320-dark-none.png",
+      "nativeTestCapture": "next-research-approved-his-44a9f-and-separated-sample-footer/historical-rows-320-dark-none.png",
+      "width": 320,
+      "height": 1920,
+      "bytes": 257237,
+      "sha256": "f578f9818cd22e5d61142f35cbd1015ee2927309e1cfea983bc702ac2a7e425e",
+      "fullPage": true
+    },
+    {
+      "file": "historical-rows-320-light-active.png",
+      "nativeTestCapture": "next-research-approved-his-44a9f-and-separated-sample-footer/historical-rows-320-light-active.png",
+      "width": 320,
+      "height": 1924,
+      "bytes": 97033,
+      "sha256": "f997179822b87bfa2a4c93ffbcc113d5ff20f29b2f6e36169f97799afbc32b78",
+      "fullPage": true
+    },
+    {
+      "file": "historical-rows-320-light-none.png",
+      "nativeTestCapture": "next-research-approved-his-44a9f-and-separated-sample-footer/historical-rows-320-light-none.png",
+      "width": 320,
+      "height": 1920,
+      "bytes": 279283,
+      "sha256": "66eaef56d85c6aabd8d78acebdc18ed47f5224c279b254c7fbab5255647076ab",
+      "fullPage": true
+    },
+    {
+      "file": "historical-rows-390-dark-active.png",
+      "nativeTestCapture": "next-research-approved-his-44a9f-and-separated-sample-footer/historical-rows-390-dark-active.png",
+      "width": 390,
+      "height": 1772,
+      "bytes": 98836,
+      "sha256": "2f0370fc45e054ae8f2231360a9235095f20df8e78da7e1b647435ade1303f2d",
+      "fullPage": true
+    },
+    {
+      "file": "historical-rows-390-dark-none.png",
+      "nativeTestCapture": "next-research-approved-his-44a9f-and-separated-sample-footer/historical-rows-390-dark-none.png",
+      "width": 390,
+      "height": 1768,
+      "bytes": 267211,
+      "sha256": "e073ff5d2839bb4a286b5b73a1b30617d0d71e91fe5771976e640ad0ab4fa0ec",
+      "fullPage": true
+    },
+    {
+      "file": "historical-rows-390-light-active.png",
+      "nativeTestCapture": "next-research-approved-his-44a9f-and-separated-sample-footer/historical-rows-390-light-active.png",
+      "width": 390,
+      "height": 1772,
+      "bytes": 96994,
+      "sha256": "a1190d595e541f15ba9bb31fa675ba72a1c99f53091f0762f19619ba672c2106",
+      "fullPage": true
+    },
+    {
+      "file": "historical-rows-390-light-none.png",
+      "nativeTestCapture": "next-research-approved-his-44a9f-and-separated-sample-footer/historical-rows-390-light-none.png",
+      "width": 390,
+      "height": 1768,
+      "bytes": 297042,
+      "sha256": "3cb624f2d6207e07235b550d23d9ecbd27e4829170e296a1ab9aae7ce73643f5",
+      "fullPage": true,
+      "themeEvidence": "Explicit saved Light preference; data-theme-preference/data-theme and computed Porcelain gradient/deep-green text asserted immediately before capture."
+    },
+    {
+      "file": "players-320-dark-active.png",
+      "nativeTestCapture": "fantasy-approved-observed--79068-arison-in-both-phone-themes/players-320-dark-active.png",
+      "width": 320,
+      "height": 3269,
+      "bytes": 178733,
+      "sha256": "95613148dd096634925efa4ce4aaacfecd5439a68df68cba37391d490f735e1a",
+      "fullPage": true
+    },
+    {
+      "file": "players-320-dark-none.png",
+      "nativeTestCapture": "fantasy-approved-observed--79068-arison-in-both-phone-themes/players-320-dark-none.png",
+      "width": 320,
+      "height": 3267,
+      "bytes": 440722,
+      "sha256": "6c775b488ead244c8794fde3272ab1691181ba6db473884d0bc4b0151e7beebd",
+      "fullPage": true
+    },
+    {
+      "file": "players-320-light-active.png",
+      "nativeTestCapture": "fantasy-approved-observed--79068-arison-in-both-phone-themes/players-320-light-active.png",
+      "width": 320,
+      "height": 3269,
+      "bytes": 177786,
+      "sha256": "79a65e90e3c963ca702222308e4e57ad6aae1c805852978763458b3661093cb9",
+      "fullPage": true
+    },
+    {
+      "file": "players-320-light-none.png",
+      "nativeTestCapture": "fantasy-approved-observed--79068-arison-in-both-phone-themes/players-320-light-none.png",
+      "width": 320,
+      "height": 3267,
+      "bytes": 476134,
+      "sha256": "de8644f1eefd8f8f41a6ca4afff7b28d9f2ce18ecfe36bf8e8e437177c295d6f",
+      "fullPage": true
+    },
+    {
+      "file": "players-390-dark-active.png",
+      "nativeTestCapture": "fantasy-approved-observed--79068-arison-in-both-phone-themes/players-390-dark-active.png",
+      "width": 390,
+      "height": 2939,
+      "bytes": 178028,
+      "sha256": "96b6c3115c6a00505f9f64ae602d1cf48f276b55ace3b1fd992a06d2c8d4a702",
+      "fullPage": true
+    },
+    {
+      "file": "players-390-dark-none.png",
+      "nativeTestCapture": "fantasy-approved-observed--79068-arison-in-both-phone-themes/players-390-dark-none.png",
+      "width": 390,
+      "height": 2937,
+      "bytes": 453603,
+      "sha256": "5e41954d84e515da18ae6657cc0c8efe5cde01c5de0cd5aed9090551a4784259",
+      "fullPage": true
+    },
+    {
+      "file": "players-390-light-active.png",
+      "nativeTestCapture": "fantasy-approved-observed--79068-arison-in-both-phone-themes/players-390-light-active.png",
+      "width": 390,
+      "height": 2939,
+      "bytes": 176971,
+      "sha256": "e9ced3d5e14a92ed28cf99e1b8c9a75a08957d17bfe9ff838c006085ba6443e1",
+      "fullPage": true
+    },
+    {
+      "file": "players-390-light-none.png",
+      "nativeTestCapture": "fantasy-approved-observed--79068-arison-in-both-phone-themes/players-390-light-none.png",
+      "width": 390,
+      "height": 2937,
+      "bytes": 492290,
+      "sha256": "af17f969ea23985d20d9130bf0424cb63834fa38e9bef2fb9adfe5be05c3879f",
+      "fullPage": true,
+      "themeEvidence": "Explicit saved Light preference; data-theme-preference/data-theme and computed Porcelain gradient/deep-green text asserted immediately before capture."
+    },
+    {
+      "file": "prism-game-performance-320-dark-forced.png",
+      "nativeTestCapture": "next-research-layers-appro-b4c4e--Teams-search-survives-Back/prism-game-performance-320-dark-forced.png",
+      "width": 320,
+      "height": 1841,
+      "bytes": 88002,
+      "sha256": "121393db1dde9b9104e245ebfe20906ab4aca7df50c17a52893a03c68efedb60",
+      "fullPage": true
+    },
+    {
+      "file": "prism-game-performance-320-dark.png",
+      "nativeTestCapture": "next-research-layers-appro-b4c4e--Teams-search-survives-Back/prism-game-performance-320-dark.png",
+      "width": 320,
+      "height": 1841,
+      "bytes": 246461,
+      "sha256": "9e553e45affa83e10c40728a97a60a7535614beb1e62eee4f08e7395c1781b35",
+      "fullPage": true
+    },
+    {
+      "file": "prism-game-performance-320-light-forced.png",
+      "nativeTestCapture": "next-research-layers-appro-b4c4e--Teams-search-survives-Back/prism-game-performance-320-light-forced.png",
+      "width": 320,
+      "height": 1841,
+      "bytes": 87396,
+      "sha256": "14545c0de2929eaf94a847c18ece00bc903aa66de21adb73b906a620b4589db7",
+      "fullPage": true
+    },
+    {
+      "file": "prism-game-performance-320-light.png",
+      "nativeTestCapture": "next-research-layers-appro-b4c4e--Teams-search-survives-Back/prism-game-performance-320-light.png",
+      "width": 320,
+      "height": 1841,
+      "bytes": 261003,
+      "sha256": "8f1d50c50bb5662fc81641e7a7c5b872ca9fc2301a45f732b9756b3082d999e1",
+      "fullPage": true
+    },
+    {
+      "file": "prism-game-performance-390-dark-forced.png",
+      "nativeTestCapture": "next-research-layers-appro-b4c4e--Teams-search-survives-Back/prism-game-performance-390-dark-forced.png",
+      "width": 390,
+      "height": 1774,
+      "bytes": 87153,
+      "sha256": "0540a4369ff174776250408c5563d72b329a66f43d683d33abb08d562f9aeae1",
+      "fullPage": true
+    },
+    {
+      "file": "prism-game-performance-390-dark.png",
+      "nativeTestCapture": "next-research-layers-appro-b4c4e--Teams-search-survives-Back/prism-game-performance-390-dark.png",
+      "width": 390,
+      "height": 1774,
+      "bytes": 260816,
+      "sha256": "fcfab049662c8d4aa635505c870ef87677926ba751034c909714dc371f0286d4",
+      "fullPage": true
+    },
+    {
+      "file": "prism-game-performance-390-light-forced.png",
+      "nativeTestCapture": "next-research-layers-appro-b4c4e--Teams-search-survives-Back/prism-game-performance-390-light-forced.png",
+      "width": 390,
+      "height": 1774,
+      "bytes": 86557,
+      "sha256": "fd246acfd5003890153239b6b2d0b50dd8f7614d31dda818a81cb1ac99a20c56",
+      "fullPage": true
+    },
+    {
+      "file": "prism-game-performance-390-light.png",
+      "nativeTestCapture": "next-research-layers-appro-b4c4e--Teams-search-survives-Back/prism-game-performance-390-light.png",
+      "width": 390,
+      "height": 1774,
+      "bytes": 287862,
+      "sha256": "8f68195456f776c9cc75e7a85843aa1b0309f46c8027190e0a432dd6fac9b6b9",
+      "fullPage": true
+    },
+    {
+      "file": "rankings-390-dark.png",
+      "nativeTestCapture": "fantasy-approved-observed--79068-arison-in-both-phone-themes/rankings-390-dark.png",
+      "width": 390,
+      "height": 11255,
+      "bytes": 2002031,
+      "sha256": "c2a9b691b97327a72fa4d178761a913f8546597d9bd8ed2f0f7c0dd9ebbfb06a",
+      "fullPage": true
+    },
+    {
+      "file": "rankings-390-light.png",
+      "nativeTestCapture": "fantasy-approved-observed--79068-arison-in-both-phone-themes/rankings-390-light.png",
+      "width": 390,
+      "height": 11255,
+      "bytes": 1952029,
+      "sha256": "2c09e5cb9cc100a2c8bc91b403782eae3df1fc518bb83b3fe7d023734469c5e7",
+      "fullPage": true
+    },
+    {
+      "file": "usage-320-dark.png",
+      "nativeTestCapture": "fantasy-approved-observed--79068-arison-in-both-phone-themes/usage-320-dark.png",
+      "width": 320,
+      "height": 2115,
+      "bytes": 233562,
+      "sha256": "cce5fbf0e505a1b428725b4a0155f672ab8d703f9e5977573c07d4e89e69ac25",
+      "fullPage": true
+    },
+    {
+      "file": "usage-320-light.png",
+      "nativeTestCapture": "fantasy-approved-observed--79068-arison-in-both-phone-themes/usage-320-light.png",
+      "width": 320,
+      "height": 2115,
+      "bytes": 235825,
+      "sha256": "68bb5d4073ae2f60c507929bc2b509df415ea228aa5690cda4bb131c3ccee06a",
+      "fullPage": true
+    },
+    {
+      "file": "usage-390-dark.png",
+      "nativeTestCapture": "fantasy-approved-observed--79068-arison-in-both-phone-themes/usage-390-dark.png",
+      "width": 390,
+      "height": 1961,
+      "bytes": 227369,
+      "sha256": "8d500c3d484409e4e9b2d68c02c68f144a274b22ffdd47a7b7565b68dc1a9a39",
+      "fullPage": true
+    },
+    {
+      "file": "usage-390-light.png",
+      "nativeTestCapture": "fantasy-approved-observed--79068-arison-in-both-phone-themes/usage-390-light.png",
+      "width": 390,
+      "height": 1961,
+      "bytes": 245166,
+      "sha256": "de4ed227a20aaba45ef8d882d1499d9005c0f91a1fd7b51fde503898b07cefeb",
+      "fullPage": true
+    }
+  ],
+  "themeCaptureCorrection": {
+    "generatedAt": "2026-11-08T01:01:44.336Z",
+    "branch": "fix/research-light-evidence-20261107",
+    "freshMain": "7aa93a6f",
+    "parentIntegration": "be6bc29e3978917be78e409896ca4f5ea5a3b531",
+    "dependencies": [
+      {
+        "original": "f93d7c6560842be78ad0bd9a15d14632bb60fd0f",
+        "local": "28ab5bde"
+      },
+      {
+        "original": "2ac6ff1c31d52cba02b8c2f41ab7258035289925",
+        "local": "07ba8e72"
+      }
+    ],
+    "status": "Checked locally; independent parent re-review pending; no push/PR/merge/deploy",
+    "defect": "Two 390px normal Light files were byte-identical to Dark. Direct data-theme writes left ThemeProvider preference Dark; media changes could restore it.",
+    "fix": "Shared test-only helper uses the existing gtl.theme storage synchronization consumed by ThemeProvider/useThemePreference; asserts saved/resolved theme and computed canvas gradient/text tokens before each affected matrix capture. Forced colors check system Canvas/CanvasText.",
+    "replacedCaptures": [
+      "players-390-light-none.png",
+      "historical-rows-390-light-none.png"
+    ],
+    "priorRejectedEntries": [
+      {
+        "file": "players-390-light-none.png",
+        "nativeTestCapture": "fantasy-approved-observed--79068-arison-in-both-phone-themes/players-390-light-none.png",
+        "width": 390,
+        "height": 2937,
+        "bytes": 453603,
+        "sha256": "5e41954d84e515da18ae6657cc0c8efe5cde01c5de0cd5aed9090551a4784259",
+        "fullPage": true
+      },
+      {
+        "file": "historical-rows-390-light-none.png",
+        "nativeTestCapture": "next-research-approved-his-44a9f-and-separated-sample-footer/historical-rows-390-light-none.png",
+        "width": 390,
+        "height": 1768,
+        "bytes": 267211,
+        "sha256": "e073ff5d2839bb4a286b5b73a1b30617d0d71e91fe5771976e640ad0ab4fa0ec",
+        "fullPage": true
+      }
+    ],
+    "preservedCaptures": 28,
+    "checks": {
+      "redRegression": "Legacy dataset-only helper failed: data-theme light / data-theme-preference dark.",
+      "actualHandlerPGliteBrowser": {
+        "passed": 3,
+        "skipped": 0,
+        "workers": 1,
+        "port": 5240,
+        "durationSeconds": 31.1,
+        "command": "node node_modules/@playwright/test/cli.js test --config .local/research-light.config.mjs tests/cloud-browser/fantasy.spec.js tests/cloud-browser/next-research.spec.js --grep 'capture theme preference survives|approved observed Players browse|approved historical rows use a full-width'",
+        "coverage": [
+          "Explicit light/dark/light preference survives opposite system media and reload; saved gtl.theme remains selected.",
+          "Players 320/390 Dark/Light normal/forced matrix; existing layout/math/missing/search/pagination/usage Back/focus/comparison assertions retained; usage/rankings captures use same helper.",
+          "Historical rows 320/390 Dark/Light normal/forced matrix; original full-width curve/footer, missing curve, real candidate expansion/evidence, overflow and axe assertions retained."
+        ]
+      },
+      "cloudTestBuild": "Passed as focused Playwright webServer prerequisite; explicit worktree cwd, isolated strict port 5240.",
+      "priorChecks": "The original 14-case/browser, component/model/typecheck evidence above is preserved historical provenance, not rerun by this correction.",
+      "brandQa": "Passed with Python UTF-8 mode",
+      "manifest": "All 30 PNG SHA-256 values, byte sizes and dimensions verified; both corrected Light hashes differ from retained Dark; other 28 captures preserved",
+      "diffWhitespace": "Passed"
+    },
+    "captureRoot": ".local/.local/research-light-results",
+    "changedHarnessFiles": [
+      {
+        "file": "tests/cloud-browser/theme-capture.mjs",
+        "bytes": 2346,
+        "sha256": "eed0f10c4d3c7b12a1044b33a9d2bd15f2b39ce5f615853edcc16f207665dd7e"
+      },
+      {
+        "file": "tests/cloud-browser/fantasy.spec.js",
+        "bytes": 32098,
+        "sha256": "8ac3058d837fe03aae466be5a19151ee4346ce70e741ba782aa843cef12a52fe"
+      },
+      {
+        "file": "tests/cloud-browser/next-research.spec.js",
+        "bytes": 55222,
+        "sha256": "79d9c91362839874a89e48a1a99abb6a7e2d6bfbed82dc95aaf8ad52aed3fc0d"
+      }
+    ]
+  }
+}

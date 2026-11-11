@@ -1,3 +1,4 @@
+import '../nfl-actions.css';
 // Bets › Virtual › Your picks (redesign stages 43 and 44): the account-level placing screen. Sean, October 28, 2026:
 // it replaces the old private-league Your picks for everyone, Community included. It reads POST /bets/read for the
 // published week (the league showing only filters whose faces appear) and places through POST /bets/place (M-11).
@@ -44,26 +45,32 @@ export function PlaceBets({ onDirty }) {
   const [slip, setSlip] = useState({}), [review, setReview] = useState(false), [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState(null), [uncertain, setUncertain] = useState(false);
   const request = useRef(null);
-  const entries = board ? slipEntries(board, slip) : [];
+  // Freeze the reviewed terms with the request, including after a board refresh
+  // changes capability, quotes, saved terms, or kickoff visibility.
+  const entries = request.current?.entries ?? (board ? slipEntries(board, slip) : []);
   // A slip, a save in flight or an unconfirmed save keeps the leave guard on.
   useEffect(() => { onDirty?.(entries.length > 0 || busy || uncertain); }, [entries.length, busy, uncertain, onDirty]);
   useEffect(() => () => onDirty?.(false), [onDirty]);
-  // Any change to the slip is a new request; a retry of the same slip after an unconfirmed save reuses its id.
+  // Any change starts a new request; an unconfirmed save retries its exact body.
   const change = next => { if (uncertain) return; request.current = null; setFailure(null); setSlip(next); };
 
   function toggle(game, market, side) {
     const k = slipKey(game.id, market.market);
     if (slip[k]?.side === side.side) { const { [k]: _, ...rest } = slip; change(rest); return; }
-    change({ ...slip, [k]: { gameId: game.id, market: market.market, side: side.side, units: slip[k]?.units ?? market.mine?.selection.units ?? 1 } });
+    const units = slip[k]?.units ?? market.mine?.selection.units ?? 1;
+    change({ ...slip, [k]: { gameId: game.id, market: market.market, side: side.side, units,
+      customEntry: slip[k]?.customEntry ?? units < 0.5 } });
   }
-  const setUnits = (k, units) => change({ ...slip, [k]: { ...slip[k], units } });
+  const setUnits = (k, units, customEntry = false) => change({ ...slip, [k]: { ...slip[k], units, customEntry } });
   const remove = k => { const { [k]: _, ...rest } = slip; change(rest); if (Object.keys(rest).length === 0) setReview(false); };
 
   async function place() {
-    if (busy || !entries.length) return;
-    request.current ??= crypto.randomUUID();
+    if (busy || !entries.length || entries.some(entry => !entry.validUnits)) return;
+    request.current ??= { body: placeRequest(board, entries, crypto.randomUUID()), entries, customUnits: board.customUnits };
     setBusy(true); setFailure(null);
-    const body = placeRequest(board, entries, request.current);
+    // The request's exact body (main, M-41): a retry after an unconfirmed save resends it unchanged; its id and bets
+    // are what the placement's moment waits to see confirmed (D-69 step 4).
+    const body = request.current.body;
     try {
       const reply = await betsApi('place', body);
       const count = reply?.placed?.bets?.length ?? entries.length;
@@ -86,8 +93,8 @@ export function PlaceBets({ onDirty }) {
   if (!board.published) return <div className="gx-vstack gx-gap-12" data-bets="unpublished">
     <p className="gx-t-body" role="status">{PLACE_COPY.unpublished}</p><Button onClick={() => shell.go('play')}>Open Play</Button>
   </div>;
-  const units = entries.reduce((sum, entry) => sum + entry.units, 0);
-  return <div className="gx-place gx-vstack gx-gap-16" data-bets="place">
+  const units = entries.every(entry => entry.validUnits) ? Math.round(entries.reduce((sum, entry) => sum + entry.units, 0) * 100) / 100 : null;
+  return <div className="gx-nfl-action-content gx-place gx-vstack gx-gap-16" data-bets="place">
     <p className="gx-t-meta gx-c-2">Week {board.week} · Virtual Units · {PLACE_COPY.empty}</p>
     {read.error ? <LeagueFailure error={read.error} onRetry={read.retry}/> : null}
     <WeekCard week={weekCard(data, app.accountId)}/>
@@ -100,14 +107,14 @@ export function PlaceBets({ onDirty }) {
       <span className="gx-grow gx-vstack"><span className="gx-t-strong">Slip · {entries.length} {entries.length === 1 ? 'bet' : 'bets'}</span><span className="gx-t-meta gx-c-2">{fmtU(units)} risked</span></span>
       <Button variant="primary" onClick={() => setReview(true)}>Review slip</Button>
     </div></Dock> : null}
-    {review && entries.length ? <Sheet title="Your slip" onClose={() => { if (!busy) setReview(false); }} tall
+    {review && entries.length ? <Sheet className="gx-nfl-action" bodyTabIndex={0} title="Your slip" onClose={() => { if (!busy) setReview(false); }} tall
       footer={<div className="gx-vstack gx-gap-8">
         {stale ? <p className="gx-t-meta gx-c-2">These prices could not be refreshed. Close the slip and try again.</p> : null}
         {failure ? <p className="gx-t-body gx-c-loss" role="alert">{failure}</p> : null}
-        <Button variant="primary" block onClick={place} disabled={busy || refreshing || stale}>{busy ? 'Saving…' : uncertain ? 'Retry the same save' : `Place ${entries.length} ${entries.length === 1 ? 'bet' : 'bets'} · ${fmtU(units)}`}</Button>
+        <Button variant="primary" block onClick={place} disabled={busy || refreshing || stale || entries.some(entry => !entry.validUnits)}>{busy ? 'Saving…' : uncertain ? 'Retry the same save' : `Place ${entries.length} ${entries.length === 1 ? 'bet' : 'bets'} · ${fmtU(units)}`}</Button>
       </div>}>
       <ul className="gx-place-slip gx-vstack gx-gap-16">
-        {entries.map(entry => <SlipRow key={entry.key} entry={entry} disabled={busy || uncertain} onUnits={value => setUnits(entry.key, value)} onRemove={() => remove(entry.key)}/>)}
+        {entries.map(entry => <SlipRow key={entry.key} entry={entry} customUnits={request.current?.customUnits ?? board.customUnits} disabled={busy || uncertain} onUnits={(value, customEntry) => setUnits(entry.key, value, customEntry)} onRemove={() => remove(entry.key)}/>)}
       </ul>
       <p className="gx-t-meta gx-c-2">Virtual Units are play money. Each bet saves the price shown; if a book’s price changes first, you will be asked to review it.</p>
     </Sheet> : null}
@@ -160,7 +167,7 @@ export function PlaceGame({ game, slip, disabled, placed = null, onToggle }) {
   </Card>;
 }
 
-export function SlipRow({ entry, disabled, onUnits, onRemove }) {
+export function SlipRow({ entry, disabled, onUnits, onRemove, customUnits = false }) {
   const { game, market, side, units, edit } = entry;
   return <li className="gx-place-slip-row gx-vstack gx-gap-8" data-slip={entry.key}>
     <div className="gx-hstack gx-gap-8">
@@ -175,9 +182,11 @@ export function SlipRow({ entry, disabled, onUnits, onRemove }) {
       {UNIT_CHIPS.map(value => <Chip key={value} selected={units === value} disabled={disabled} label={`${fmtNum(value)} units`} onClick={() => onUnits(value)}>{fmtU(value)}</Chip>)}
     </ChipRail>
     <div className="gx-hstack gx-gap-8 gx-place-stepper">
-      <IconButton icon="minus" label="Half a unit less" onClick={() => onUnits(stepUnits(units, -1))} disabled={disabled || units <= 0.5}/>
-      <span className="gx-n-xs" aria-live="polite">{fmtU(units)}</span>
-      <IconButton icon="plus" label="Half a unit more" onClick={() => onUnits(stepUnits(units, 1))} disabled={disabled}/>
+      <IconButton icon="minus" label={customUnits ? '0.1 units less' : 'Half a unit less'} onClick={() => onUnits(stepUnits(units, -1, customUnits, entry.customEntry), entry.customEntry)} disabled={disabled || (customUnits && !entry.validUnits) || units <= (customUnits && entry.customEntry ? 0.01 : 0.5)}/>
+      {customUnits ? <label className="gx-place-unit-field">Custom units<input aria-label={`Custom units for ${market.name} ${side.text}`} type="number" inputMode="decimal" min="0.01" max="100" step="0.01" value={entry.unitValue ?? units} disabled={disabled} aria-invalid={!entry.validUnits || undefined} onChange={event => onUnits(event.target.value, true)}/></label>
+        : <span className="gx-n-xs" aria-live="polite">{fmtU(units)}</span>}
+      <IconButton icon="plus" label={customUnits ? '0.1 units more' : 'Half a unit more'} onClick={() => onUnits(stepUnits(units, 1, customUnits, entry.customEntry), entry.customEntry)} disabled={disabled || (customUnits && !entry.validUnits) || units >= 100}/>
     </div>
+    {customUnits && !entry.validUnits ? <p role="alert" className="gx-t-meta gx-c-loss">Enter 0.01U–100U, with up to two decimal places.</p> : null}
   </li>;
 }

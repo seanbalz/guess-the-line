@@ -1,25 +1,22 @@
 /* Guess The Line, D-38: the new app's frame (redesign build plan stages 10 and 11; prototype shell, CONTRACT section 2).
-   Top bar (56, sticky, never under the status bar), the page, the dock 8 above the tab bar, the tab bar (64 plus the
-   home-indicator inset). On a phone the frame fills the screen; on a wider screen each bar keeps its color edge to edge
-   and its contents in the 520 column. Loaded after components.css; every rule stays inside .gx. */
+   Top bar (56, sticky in native contexts), the page, the dock 8 above the shared floating Home tab bar.
+   The bar is at least 72px tall, 12px above the home-indicator inset, with contents in the 520 column. Loaded after components.css; every rule stays inside .gx. */
 
+.gx { --gx-tabbar-height: var(--gx-size-tabbar); }
 .gx-app {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   min-height: 100dvh;
-  padding-bottom: calc(var(--gx-size-tabbar) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(var(--gx-tabbar-height, var(--gx-size-tabbar)) + var(--gx-size-tabbar-gap) + 28px + env(safe-area-inset-bottom, 0px));
 }
-/* The document scrolls under the sticky top bar and the fixed tab bar. Scroll padding tells the browser where they are,
-   so a control reached with Tab (or brought into view by script) lands whole between them, not under one (UX-NEXT-01,
-   WCAG 2.4.11). It belongs on the scrolling root, outside .gx where the --gx- tokens do not reach, so it repeats them:
-   the top bar's 56 and its 1px border, the tab bar's 64, and 8 of air. Play's save dock carries the old app's
-   save-bar class, whose larger :root:has(.save-bar) padding (styles.css) already clears the dock, so the bottom yields. */
+/* The document owns scrolling. Its focus clearance follows the measured floating bar and real portal dock,
+   including enlarged labels; the root is outside .gx, so Shell publishes their heights here. */
 :root:has(.gx-app) {
+  --gx-frame-tabbar-height: 72px;
+  --gx-frame-dock-space: 0px;
   scroll-padding-top: calc(56px + 1px + env(safe-area-inset-top, 0px) + 8px);
-}
-:root:has(.gx-app):not(:has([class~="save-bar"])) {
-  scroll-padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 8px);
+  scroll-padding-bottom: calc(var(--gx-frame-tabbar-height, 72px) + 12px + 8px + var(--gx-frame-dock-space, 0px) + env(safe-area-inset-bottom, 0px) + var(--gx-viewport-gap, 0px));
 }
 /* iOS only, set inline on the root by viewportPin.js: how far the fixed bars must move to sit on the visible bottom
    after the keyboard closed (0 everywhere else). It lives on the root, outside .gx, so every fixed bar inherits it. */
@@ -35,6 +32,7 @@
   flex: none;
   padding-top: env(safe-area-inset-top, 0px);
   background: var(--gx-canvas);
+  background-image: var(--gx-card-face);
   border-bottom: 1px solid var(--gx-border);
 }
 .gx-topbar-inner {
@@ -157,7 +155,7 @@
   position: fixed;
   left: 0;
   right: 0;
-  bottom: calc(var(--gx-size-tabbar) + env(safe-area-inset-bottom, 0px) + 8px + var(--gx-viewport-gap, 0px));
+  bottom: calc(var(--gx-tabbar-height, var(--gx-size-tabbar)) + var(--gx-size-tabbar-gap) + env(safe-area-inset-bottom, 0px) + 8px + var(--gx-viewport-gap, 0px));
   z-index: var(--gx-z-dock);
   display: flex;
   flex-direction: column;
@@ -170,26 +168,30 @@
 .gx-dock .gx-dock-bar { pointer-events: auto; }
 
 /* ===== tab bar: Home, Play, Bets, Research ===== */
-/* 64 tall with its top border, plus the home-indicator inset: a toast or dock 8 above it is 8 above the border.
-   --gx-viewport-gap (viewportPin.js) is 0 except when iOS has left the fixed bars anchored above (or below) the bottom
-   of what is visible, after the keyboard closes; it moves the bar, the dock and toasts back together. */
+/* One selected Home recipe in every authenticated context. Only the header/context policy differs.
+   At ordinary text sizes this is 72px tall; enlarged labels may wrap and grow it, with measured clearance above.
+   viewportPin.js moves the bar, dock and toasts together after iOS keyboard changes. */
 .gx-tabbar {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: var(--gx-viewport-gap, 0px);
+  left: 16px;
+  right: 16px;
+  bottom: calc(var(--gx-size-tabbar-gap) + env(safe-area-inset-bottom, 0px) + var(--gx-viewport-gap, 0px));
   z-index: var(--gx-z-tabbar);
-  height: calc(var(--gx-size-tabbar) + env(safe-area-inset-bottom, 0px));
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-  background: var(--gx-surface-1);
-  border-top: 1px solid var(--gx-border);
+  min-height: var(--gx-size-tabbar);
+  max-width: calc(var(--gx-size-content) - 32px);
+  margin-inline: auto;
+  padding: 4px;
+  border: 1px solid var(--gx-home-edge);
+  border-radius: 28px;
+  background: var(--gx-home-face);
+  box-shadow: var(--gx-home-depth);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
 }
 .gx-tabbar-inner {
   display: grid;
-  /* Keep each label's full width when fallback fonts are wider than Figtree. */
-  grid-template-columns: repeat(4, minmax(max-content, 1fr));
-  max-width: var(--gx-size-content);
-  margin-inline: auto;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  min-height: calc(var(--gx-size-tabbar) - 10px);
 }
 .gx-tab {
   position: relative;
@@ -198,33 +200,30 @@
   align-items: center;
   justify-content: center;
   gap: 2px;
-  min-width: var(--gx-size-touch);
-  height: calc(var(--gx-size-tabbar) - 1px);
+  min-width: 0;
+  min-height: calc(var(--gx-size-tabbar) - 10px);
   padding-inline: var(--gx-space-1);
-  color: var(--gx-text-2);
+  color: var(--gx-home-muted);
+  border-radius: 22px;
 }
-.gx-tab .gx-ic { color: var(--gx-text-3); }
-.gx-tab-icon { position: relative; display: block; width: 24px; height: 24px; }
-.gx-tab-label { font: 600 16px/20px var(--gx-font-body); }
-.gx-tab--on { color: var(--gx-text-1); }
-.gx-tab--on .gx-tab-label { font-weight: 700; }
-.gx-tab--on .gx-ic { color: var(--gx-accent-ink); }
-.gx-tab--on::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 24px;
-  height: 3px;
-  margin-left: -12px;
-  border-radius: 0 0 3px 3px;
-  background: var(--gx-accent);
-  box-shadow: var(--gx-glow-accent);
+.gx-tab .gx-ic { color: var(--gx-home-muted); }
+.gx-tab-icon { position: relative; display: grid; place-items: center; flex: none; width: 32px; height: 32px; border: 1px solid var(--gx-home-edge); border-radius: 11px; background: var(--gx-home-face); box-shadow: var(--gx-home-soft-depth); isolation: isolate; }
+.gx-tab-label { max-width: 100%; text-align: center; overflow-wrap: anywhere; color: var(--gx-home-muted); font: 600 14px/18px var(--gx-font-home); }
+.gx-tab--on { background: var(--gx-home-tint); }
+.gx-tab--on .gx-tab-label,
+.gx-tab--on .gx-ic { color: var(--gx-home-accent); }
+.gx-tabbar .gx-counter { background: var(--gx-home-solid); color: var(--gx-home-accent); }
+.gx-tabbar :focus-visible { outline-color: var(--gx-home-accent); }
+@media (max-width: 359px) {
+  .gx-tab-label { font-size: 13px; }
 }
-/* In Light the glow token is a solid 2px ring, a heavy slab on a 3px marker; the marker takes the 1px accent-ink edge
-   every Light lime fill gets instead. Dark keeps its glow. */
-:root[data-theme="light"] .gx:not([data-theme="dark"]) .gx-tab--on::before,
-.gx[data-theme="light"] .gx-tab--on::before { box-shadow: var(--gx-lime-edge); }
+@media (prefers-reduced-transparency: reduce) {
+  .gx-tabbar { background: var(--gx-home-solid); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+@media (forced-colors: active) {
+  .gx-tabbar { border: 1px solid CanvasText; }
+  .gx-tab--on { border: 2px solid Highlight; }
+}
 /* The League tab's "new posts" dot (8, data color); counters use .gx-counter. */
 .gx-tab-dot {
   position: absolute;
@@ -241,7 +240,6 @@
   .gx-offline,
   .gx-fail,
   .gx-solo-problem { border: 1px solid CanvasText; }
-  .gx-tab--on::before { forced-color-adjust: none; background: Highlight; }
 }
 
 .gx .gx-detail-nav { width: 100%; max-width: var(--gx-size-content); margin-inline: auto; padding: var(--gx-space-2) var(--gx-space-4) 0; }
@@ -268,4 +266,24 @@
      <main> itself. */
   .gx .gx-main[data-tab-enter="fade"] > .gx-screen,
   .gx .gx-main[data-tab-enter="fade"] > .gx-kept > .gx-screen { animation: gx-fade-in var(--gx-dur-quick) var(--gx-ease-standard); }
+}
+
+/* Shared selected identity: each sport has its own 52px circle; the G is excluded. */
+.gx-prism-brand { display: grid; place-items: center; width: 44px; height: 44px; }
+.gx-prism-brand img { display: block; width: 42px; height: 36px; object-fit: contain; }
+.gx .gx-prism-light { display: none; }
+:root[data-theme="light"] .gx:not([data-theme="dark"]) .gx-prism-dark,
+.gx[data-theme="light"] .gx-prism-dark { display: none; }
+:root[data-theme="light"] .gx:not([data-theme="dark"]) .gx-prism-light,
+.gx[data-theme="light"] .gx-prism-light { display: block; }
+.gx-sport-controls { display: flex; justify-content: center; padding: 8px 16px; }
+.gx-sport-mark { display: grid; place-items: center; flex: none; width: 52px; height: 52px; padding: 9px; border: 1px solid var(--gx-glass-line); border-radius: var(--gx-radius-pill); background: var(--gx-card-face); box-shadow: var(--gx-e1); -webkit-backdrop-filter: var(--gx-glass-blur); backdrop-filter: var(--gx-glass-blur); }
+.gx-sport-mark[aria-pressed="true"] { border: 2px solid var(--gx-accent-ink); background: linear-gradient(var(--gx-accent-tint),var(--gx-accent-tint)),var(--gx-card-face); }
+.gx-sport-mark img { width: 30px; height: 32px; object-fit: contain; }
+@media (prefers-reduced-transparency: reduce) {
+  .gx-sport-mark { background: var(--gx-surface-1); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+@media (forced-colors: active) {
+  .gx-sport-mark, .gx-tab-icon { border: 1px solid CanvasText; background: Canvas; color: CanvasText; }
+  .gx-sport-mark[aria-pressed="true"] { border: 2px solid Highlight; }
 }

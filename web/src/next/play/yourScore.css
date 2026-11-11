@@ -54,3 +54,61 @@
   .gx .gx-ys-meter > span, .gx .gx-ys-bar > span, .gx .gx-ys-axis-gap, .gx .gx-ys-axis-you { background: Highlight; }
   .gx .gx-ys-axis-track, .gx .gx-ys-axis-tick { background: CanvasText; }
 }
+/* Approved Prism score/history composition (November 5–6): server points and saved references only. */
+.gx .gx-ys .gx-nest-card { gap: var(--gx-space-4); }
+.gx .gx-ys-hero, .gx .gx-ys-row, .gx .gx-ys-history { padding: var(--gx-space-5) var(--gx-space-4); border: 1px solid var(--gx-glass-line); border-radius: var(--gx-radius-md); background: var(--gx-hero-card); box-shadow: var(--gx-e1); backdrop-filter: var(--gx-glass-blur); }
+.gx .gx-ys-hero { gap: var(--gx-space-4); }
+.gx .gx-ys-hero-top { align-items: center; justify-content: flex-start; gap: var(--gx-space-4); }
+.gx .gx-ys-hero-head { flex: 1 1 120px; gap: var(--gx-space-2); }
+.gx .gx-accuracy-ring { position: relative; display: grid; place-items: center; flex: none; width: 104px; height: 104px; }
+.gx .gx-accuracy-ring > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; rotate: -90deg; }
+.gx .gx-accuracy-track, .gx .gx-accuracy-fill { fill: none; stroke-width: 7; }
+.gx .gx-accuracy-track { stroke: var(--gx-track); }
+.gx .gx-accuracy-fill { stroke: var(--gx-accent-ink); }
+.gx .gx-accuracy-value { display: flex; flex-direction: column; align-items: center; gap: var(--gx-space-1); color: var(--gx-accent-ink); }
+.gx .gx-accuracy-value small { color: var(--gx-text-2); }
+.gx .gx-ys-rows { gap: var(--gx-space-5); }
+.gx .gx-ys-row { gap: var(--gx-space-4); }
+.gx .gx-ys-row-top { justify-content: space-between; }
+.gx .gx-ys-matchup { display: inline-flex; align-items: center; justify-content: center; gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-ys-matchup > span { display: flex; flex-direction: column; align-items: center; gap: var(--gx-space-2); min-width: 0; }
+.gx .gx-ys-matchup strong, .gx .gx-ys-matchup small { font: 600 13px/18px var(--gx-font-body); }
+.gx .gx-ys-matchup small { color: var(--gx-text-2); }
+.gx .gx-ys-matchup--large { justify-content: space-around; padding-block: var(--gx-space-4); }
+.gx .gx-ys-matchup--large strong { font-size: 16px; }
+.gx .gx-ys-pill { min-height: 32px; padding: var(--gx-space-1) var(--gx-space-2); background: var(--gx-glass); box-shadow: var(--gx-glass-shadow); }
+.gx .gx-ys-pill[data-tier="good"] { color: var(--gx-accent-ink); background: var(--gx-accent-tint); }
+.gx .gx-ys-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-2); }
+.gx .gx-ys-pair > span { display: flex; flex-direction: column; gap: var(--gx-space-2); min-width: 0; padding: var(--gx-space-3); border: 1px solid var(--gx-glass-line); border-radius: var(--gx-radius-sm); background: var(--gx-glass); box-shadow: var(--gx-glass-shadow); }
+.gx .gx-ys-pair small { font: 500 13px/18px var(--gx-font-body); color: var(--gx-text-2); }
+.gx .gx-ys-pair strong { font: 600 16px/24px var(--gx-font-num); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.gx .gx-ys-pair > span + span strong { color: var(--gx-accent-ink); }
+.gx .gx-ys-bar { height: 5px; background: var(--gx-track); }
+.gx .gx-ys-bar > span, .gx .gx-ys-bar[data-tier="good"] > span { background: var(--gx-accent-ink); }
+.gx .gx-ys-history { display: flex; flex-direction: column; gap: var(--gx-space-4); }
+.gx .gx-ys-history-axis, .gx .gx-ys-history-label { display: flex; align-items: baseline; justify-content: space-between; gap: var(--gx-space-2); }
+.gx .gx-ys-history-week { display: flex; flex-direction: column; gap: var(--gx-space-3); min-height: 110px; padding: var(--gx-space-4) var(--gx-space-3); border: 1px solid var(--gx-glass-line); border-radius: var(--gx-radius-sm); color: var(--gx-text-1); background: var(--gx-glass); box-shadow: var(--gx-glass-shadow); font: inherit; text-align: left; cursor: pointer; }
+.gx .gx-ys-history-label > span { color: var(--gx-accent-ink); }
+.gx .gx-ys-history-week .gx-ys-bar { height: 9px; }
+@media (max-width: 359px) {
+  .gx .gx-ys-hero, .gx .gx-ys-row, .gx .gx-ys-history { padding: var(--gx-space-4) var(--gx-space-3); }
+  .gx .gx-accuracy-ring { width: 92px; height: 92px; }
+  .gx .gx-ys-hero-top { gap: var(--gx-space-3); }
+  .gx .gx-ys-row-top > .gx-ys-pill { margin-left: 0; }
+  .gx .gx-ys-matchup { gap: var(--gx-space-1); }
+  .gx .gx-ys-pair > span { padding: var(--gx-space-2); }
+}
+@media (forced-colors: active) {
+  .gx .gx-accuracy-track { stroke: CanvasText; }
+  .gx .gx-accuracy-fill { stroke: Highlight; }
+  .gx .gx-ys-pair > span, .gx .gx-ys-history-week { border-color: CanvasText; }
+}
+/* Score's ring, history and game rows are standalone floating cards; the native layer still owns Back and focus. */
+.gx .gx-nest.gx-ys > .gx-nest-card { margin-inline: 0; padding: 0; border: 0; background: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.gx .gx-nest.gx-ys > .gx-nest-card::before { display: none; }
+.gx .gx-ys-game-detail { display: flex; flex-direction: column; gap: var(--gx-space-4); padding: var(--gx-space-5) var(--gx-space-4); }
+
+.gx .gx-ys-hero-head > p { margin: 0; }
+.gx .gx-ys-exacts { display: flex; align-items: center; gap: var(--gx-space-2); color: var(--gx-accent-ink); }
+.gx .gx-ys-row-meta { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--gx-space-2); }
+.gx .gx-ys-row-meta > span:last-child { display: inline-flex; align-items: center; gap: var(--gx-space-1); }

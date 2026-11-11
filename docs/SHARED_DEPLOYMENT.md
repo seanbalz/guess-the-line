@@ -145,7 +145,8 @@ replaces the requirement to hold CLI logins on the Mac mini for the API, fronten
 and worker targets: protected API and frontend runs are verified; the
 `push-reminders` and `points-jobs` targets have run (October 26) and `league-features` (October 27);
 `ops-alerts` (November 3, created v1), `push-reminders` again (v6) and `odds-refresh` (November 3, v6 to v7) have run;
-`fantasy-ingest` and `epl-jobs` are covered by local tests only until their first runs. Existing dated release records remain historical evidence of the
+`epl-jobs` has run (October 29, run 40937265809 from `d891291c`, worker v3; [record](RELEASE_2026_10_29_EPL_MONEYLINE.md)).
+`fantasy-ingest` has run too (October 28, run 40699619045, `gtl-fantasy-ingest` created at v1; [record](RELEASE_2026_10_28_D59_TRENDS.md)). Existing dated release records remain historical evidence of the
 Mac mini releases.
 
 ## One-time configuration
@@ -163,14 +164,61 @@ allowlisted and checked against the existing production project/account.
 | Variable | `CLOUDFLARE_PAGES_PROJECT` | `guess-the-line` |
 | Secret | `SUPABASE_ACCESS_TOKEN` | A dedicated project-scoped token permitting database read-only preflight and Edge Function read/deploy. Required even for frontend readiness because the schedule/history gate is hosted. |
 | Secret | `CLOUDFLARE_API_TOKEN` | Dedicated Cloudflare Pages Edit token for this account; required for frontend or combined releases, not API-only or worker (`push-reminders`, `points-jobs`, `league-features`, `fantasy-ingest`, `epl-jobs`, `ops-alerts`, `odds-refresh`) releases |
+| Variable (optional) | `VITE_GTL_PLAYER_PROPS` | D-82 Player Props app flag. Leave it **unset** (or `off`): the Pages build is then byte-identical to a build without it. `on` builds the flag in; any other value fails the release before the build. Setting it is Sean's word, only after the `gtl-api` secret `GTL_PLAYER_PROPS` and `live_lock_in` (docs/PLAYER_PROPS_READINESS_TASK2_2026-11-10.md, step 6), and it takes effect only with the next Pages deploy. |
 
 Create dedicated tokens in the providers' secure interfaces, then enter them
 directly into GitHub environment secrets. Do not paste them into a task, commit
 them, copy another project's stored login, or use `VITE_` names for secrets.
 Build/install steps receive public variables only; provider secrets are scoped
-to the steps that use them. The CLI versions come from committed
+to the steps that use them. `VITE_GTL_PLAYER_PROPS` is the one `VITE_` value that
+is not a job-level entry: a step passes it to the build through `$GITHUB_ENV` only
+when it is `on`, because an unset variable would otherwise reach Vite as an empty
+string and change the bundle bytes. The CLI versions come from committed
 `package-lock.json`; the workflow uses the same pinned action major versions as
 existing CI. It never installs `latest` deploy tools.
+
+## Player Props pilot workflows (D-82)
+
+Two manual workflows run the hidden Player Props pilot. Neither is part of the release
+workflow, and neither deploys anything. **Player Props collect**
+(`player-props-collect.yml`) is the only one that can spend odds credits. It builds the
+research intake request file and, when `dry_run` is off, runs
+`research-intake.mjs --collect-quotes` with it. **Player Props jobs**
+(`player-props-jobs.yml`) records offers and results from the quotes already retained. It never
+calls the provider.
+
+Both run only from `main`, only when dispatched, and only when the repository variable below is
+`on`. Neither has a schedule. Both share one concurrency group, so they never overlap. Their
+artifacts hold counts, credits and reason names only. The configuration is
+**repository-level** (Settings → Secrets and variables → Actions), not the `production`
+environment.
+
+| Kind | Name | Used by | Value or scope |
+| --- | --- | --- | --- |
+| Secret | `GTL_PROPS_SUPABASE_URL` | collect, jobs | `https://onmrgvcehkflfaizvedl.supabase.co`, with no trailing slash. Not secret, so the coordinator can add it. |
+| Secret | `GTL_PROPS_SERVICE_ROLE_KEY` | collect, jobs | Sean adds the project's service-role key. |
+| Secret | `GTL_PROPS_ODDS_API_KEY` | collect only (collect step) | Sean adds the same The Odds API key as the `THE_ODDS_API_KEY` Edge Function secret. `gtl_odds_budget` tracks that account's quota. |
+| Variable | `GTL_PLAYER_PROPS_JOBS` | collect, jobs | `on` enables both workflows. Unset stops both. |
+
+Collect maps the three secrets onto research intake's own names: `GTL_RESEARCH_SUPABASE_URL`,
+`GTL_RESEARCH_SERVICE_ROLE_KEY` and `GTL_RESEARCH_ODDS_API_KEY`. Its dry-run build step sees
+only whether the odds key is set. `max_credits` defaults to 6. A value above 6 needs the
+`allow_above_six` input, and the builder refuses anything above 32. Every real collect run
+spends again, because its request IDs are new.
+
+**The exact pilot run order** (details in
+[the readiness record](PLAYER_PROPS_READINESS_TASK2_2026-11-10.md#the-exact-pilot-run-order)):
+
+1. Add the three secrets.
+2. Set `GTL_PLAYER_PROPS_JOBS` to `on`.
+3. Run **Player Props collect** with dry_run on (the default). Expect `status: built`,
+   `credits.planned: 6` and `oddsKeyConfigured: true`.
+4. Run **Player Props collect** with dry_run off: 6 credits or fewer. Expect `status: collected`
+   and `credits.reserved` of 6 or fewer.
+5. Within six hours and before kickoff, run **Player Props jobs** `offers` with write off. Then
+   run it with write and record_while_dark on.
+6. After the games are final, run **Player Props jobs** `results` with write off. Then run it
+   with write and record_while_dark on.
 
 ## Release train (Sean, October 28, 2026)
 

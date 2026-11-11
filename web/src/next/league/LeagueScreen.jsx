@@ -158,7 +158,7 @@ function PrivateLeague({ app, shell, mode, features, onRead }) {
     .sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity));
   return <section className="gx-vstack gx-gap-12" aria-label="Private league standings">
     <p className="gx-t-meta gx-c-2">Week {data.league.week}{data.league.practice ? ' · Practice results · unofficial' : ''}</p>
-    <BoardCard app={app} shell={shell} league={id} mode={mode} rows={rows} label="Private group members" features={features} read={data} fresh
+    <BoardCard app={app} shell={shell} league={id} mode={mode} rows={rows} label="Private group members" features={features} read={data} fresh scope={data.league.name || app.league.name} period="week" week={data.league.week}
       rowProps={row => ({ figure: `${id}.${mode}.points.${row.id}`, sub: `${row.source.satOut ? 'Sat out' : row.source.submitted ? 'Submitted' : 'Not submitted'}${row.points === null ? ' · Not scored yet' : ''}` })}/>
   </section>;
 }

@@ -1,0 +1,174 @@
+/* Native port of the selected Account recipes (review commit 3ac2eb5). Controllers remain in their owners. */
+.gx .gx-account-prism .gx-sheet-body { display: grid; align-content: start; gap: 18px; padding: 0 20px 24px; }
+.gx .gx-account-prism .gx-sheet-body > .gx-t-section { font-size: 23px; line-height: 1.4; margin-bottom: 0; }
+.gx .gx-account-prism :is(p,h3,h4) { margin: 0; }
+.gx .gx-account-prism .gx-t-body { font-size: 16px; line-height: 1.85; }
+.gx .gx-account-prism .gx-t-meta { font-size: 13px; line-height: 1.8; }
+.gx .gx-account-prism :is(.gx-field,.gx-invite-stack,.gx-profile-form) { gap: 12px; }
+.gx .gx-account-prism .gx-field > span { font-size: 13px; line-height: 1.6; }
+.gx .gx-account-prism .gx-input { min-height: 52px; padding: 12px; border-radius: 16px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); font: 400 16px/1.5 var(--gx-font-body); }
+.gx .gx-account-prism .gx-input[aria-invalid=true] { border-color: var(--gx-loss); }
+.gx .gx-account-stack { display: grid; align-content: start; gap: 17px; min-width: 0; }
+.gx .gx-account-heading { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.gx .gx-account-heading > div { min-width: 0; }
+.gx .gx-account-heading h3 { font-size: 17px; line-height: 1.5; font-weight: 600; }
+.gx .gx-account-heading p { font-size: 13px; line-height: 1.8; margin-top: 6px; color: var(--gx-text-2); }
+.gx .gx-account-icon { display: inline-grid; place-items: center; width: 48px; height: 48px; flex: none; border: 1px solid var(--gx-border); border-radius: 16px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); color: var(--gx-accent-ink); }
+.gx .gx-account-panel { min-width: 0; padding: 18px 14px; border: 1px solid var(--gx-border); border-radius: 24px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); }
+.gx .gx-account-hero { display: grid; justify-items: center; gap: 14px; min-width: 0; padding: 24px 17px; border: 1px solid var(--gx-border); border-radius: 28px; background: linear-gradient(135deg,color-mix(in srgb,var(--gx-accent-ink) 7%,transparent),transparent),var(--gx-card-face); box-shadow: var(--gx-glass-shadow); text-align: center; }
+.gx .gx-account-hero h3 { font-size: 23px; line-height: 1.4; font-weight: 600; }
+.gx .gx-account-hero p { font-size: 16px; line-height: 1.85; color: var(--gx-text-2); }
+.gx .gx-account-eyebrow { font-size: 13px; letter-spacing: .09em; font-weight: 600; color: var(--gx-text-2); }
+.gx .gx-account-note { display: flex; align-items: flex-start; gap: 12px; font-size: 16px; line-height: 1.85; color: var(--gx-text-2); }
+.gx .gx-account-note > .gx-ic { flex: none; color: var(--gx-accent-ink); margin-top: 2px; }
+.gx .gx-account-note > div { display: grid; gap: 8px; min-width: 0; }
+.gx .gx-account-note strong { color: var(--gx-text-1); font-size: 16px; }
+.gx .gx-account-footer { text-align: center; font-size: 13px; line-height: 1.8; color: var(--gx-text-2); }
+.gx .gx-account-notice:not(:empty),.gx .gx-account-prism :is(.gx-profile-problem,.gx-invite-problem,[role=alert] > p) { padding: 14px 12px; border: 1px solid var(--gx-accent-ink); border-radius: 18px; background: var(--gx-card-face); color: var(--gx-text-1); font-size: 16px; line-height: 1.85; overflow-wrap: anywhere; }
+.gx .gx-account-prism :is(.gx-profile-problem,.gx-invite-problem,[role=alert] > p),.gx .gx-account-notice[data-phase=failed],.gx .gx-account-notice[data-phase=unavailable] { border-color: var(--gx-loss); }
+.gx .gx-account-prism [role=status]:empty,.gx .gx-account-prism [role=alert]:empty { position: absolute; width: 1px; height: 1px; padding: 0; border: 0; margin: 0; overflow: hidden; clip-path: inset(50%); }
+/* Overview rows are individual floating cards, as in the approved Account entry. */
+.gx .gx-account-menu .gx-card--flush,.gx .gx-switcher-prism .gx-card--flush { padding: 0; border: 0; box-shadow: none; background: none; overflow: visible; }
+.gx .gx-account-menu .gx-card--flush::before,.gx .gx-switcher-prism .gx-card--flush::before { display: none; }
+.gx .gx-account-menu .gx-list,.gx .gx-switcher-prism .gx-list { display: grid; gap: 14px; background: transparent; }
+.gx .gx-account-menu .gx-list > li,.gx .gx-switcher-prism .gx-list > li { border: 0; }
+.gx .gx-account-menu .gx-link-row,.gx .gx-switcher-prism .gx-row,.gx .gx-switcher-prism .gx-link-row { min-height: 82px; width: 100%; padding: 15px 12px; gap: 12px; border: 1px solid var(--gx-border); border-radius: 24px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); font-size: 16px; line-height: 1.65; overflow-wrap: anywhere; }
+.gx .gx-account-menu .gx-link-row > .gx-ic:first-child { box-sizing: content-box; width: 22px; height: 22px; padding: 12px; border: 1px solid var(--gx-border); border-radius: 16px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); color: var(--gx-text-2); }
+.gx .gx-account-menu .gx-app-invite-entry { border-color: var(--gx-accent-ink); background: linear-gradient(135deg,color-mix(in srgb,var(--gx-accent-ink) 7%,transparent),transparent),var(--gx-card-face); }
+.gx .gx-account-menu .gx-app-invite-entry > .gx-ic:first-child { color: var(--gx-accent-ink); }
+.gx .gx-account-menu .gx-menu-account,.gx .gx-profile-prism .gx-profile-account { padding: 18px 14px; border-radius: 25px; gap: 12px; }
+.gx .gx-profile-prism .gx-profile-account > div { display: grid; gap: 7px; }
+.gx .gx-profile-prism .gx-profile-account .gx-t-strong { font-size: 16px; font-weight: 600; }
+.gx .gx-profile-prism .gx-profile-form { display: grid; gap: 12px; }
+/* Reminders: large two-hour graphic, market labels, separate switch and device facts. */
+.gx .gx-reminders-prism { display: grid; gap: 22px; }
+.gx .gx-reminder-hero { display: grid; grid-template-columns: 64px minmax(0,1fr); gap: 18px; align-items: center; padding: 22px 16px; border: 1px solid var(--gx-border); border-radius: 25px; background: linear-gradient(135deg,color-mix(in srgb,var(--gx-accent-ink) 7%,transparent),transparent),var(--gx-card-face); box-shadow: var(--gx-glass-shadow); }
+.gx .gx-reminder-hero .gx-account-icon { width: 64px; height: 64px; border-radius: 21px; }
+.gx .gx-reminder-hero strong { font-size: 42px; line-height: 1.1; font-weight: 600; color: var(--gx-accent-ink); }
+.gx .gx-reminder-hero p { font-size: 13px; line-height: 1.6; color: var(--gx-text-2); margin-top: 5px; }
+.gx .gx-reminder-modes { grid-column: 1/-1; display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.gx .gx-reminder-modes > span { padding: 7px 5px; border: 1px solid var(--gx-border); border-radius: 12px; background: var(--gx-card-face); text-align: center; font-size: 13px; }
+.gx .gx-reminder-switch { padding: 17px 14px; border-radius: 22px; }
+.gx .gx-reminder-facts { display: grid; gap: 15px; }
+.gx .gx-reminder-facts > div { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px; line-height: 1.7; }
+.gx .gx-reminder-facts dt { color: var(--gx-text-2); }
+.gx .gx-reminder-facts dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+/* Settings retains the native catalog keys; checked unavailable books remain explicit. */
+.gx .gx-settings-heading { display: flex; align-items: center; gap: 12px; }
+.gx .gx-settings-heading > div { flex: 1; min-width: 0; }
+.gx .gx-settings-heading h2 { font-size: 18px; line-height: 1.5; }
+.gx .gx-settings-heading p,.gx .gx-settings-copy { font-size: 13px; line-height: 1.8; color: var(--gx-text-2); }
+.gx .gx-settings-heading > strong { font-size: 30px; line-height: 1.2; color: var(--gx-accent-ink); text-align: center; }
+.gx .gx-settings-heading small { display: block; font-size: 13px; color: var(--gx-text-2); font-weight: 400; }
+.gx .gx-settings-books { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0; border: 0; min-width: 0; margin: 0; }
+.gx .gx-settings-books > legend { font-size: 13px; margin-bottom: 12px; }
+.gx .gx-settings-books > label { position: relative; display: flex; align-items: center; gap: 8px; min-height: 58px; padding: 12px 10px; border: 1px solid var(--gx-border); border-radius: 18px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); cursor: pointer; font-size: 16px; line-height: 1.6; overflow-wrap: anywhere; }
+.gx .gx-settings-books input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; z-index: 1; cursor: pointer; }
+.gx .gx-settings-books label:has(input:checked) { border-color: var(--gx-accent-ink); background: linear-gradient(135deg,color-mix(in srgb,var(--gx-accent-ink) 7%,transparent),transparent),var(--gx-card-face); }
+.gx .gx-settings-books label:has(input:focus-visible) { outline: 3px solid var(--gx-focus); outline-offset: 3px; }
+.gx .gx-settings-check { display: grid; place-items: center; width: 23px; height: 23px; border: 1px solid var(--gx-border); border-radius: 8px; flex: none; color: var(--gx-accent-ink); }
+.gx .gx-settings-books small { display: block; font-size: 13px; line-height: 1.7; color: var(--gx-text-2); }
+.gx .gx-settings-guidance { display: grid; gap: 18px; }
+/* All original guidance paragraphs and links live in these expandable cards. */
+/* Hidden overflow gives details a zero automatic grid minimum. Keep each track
+   at its intrinsic content size so the scrollport cannot compress closed summaries. */
+.gx .gx-guidance .gx-sheet-body { grid-auto-rows: min-content; }
+.gx .gx-guidance-topic { border: 1px solid var(--gx-border); border-radius: 24px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); overflow: hidden; min-width: 0; }
+.gx .gx-guidance-topic > summary { display: flex; align-items: center; gap: 12px; min-height: 78px; padding: 14px 12px; list-style: none; cursor: pointer; font-size: 16px; line-height: 1.7; font-weight: 600; }
+.gx .gx-guidance-topic > summary::-webkit-details-marker { display: none; }
+.gx .gx-guidance-topic > summary > span:nth-child(2) { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.gx .gx-guidance-topic > summary small { display: block; margin-top: 3px; color: var(--gx-text-2); font-size: 13px; line-height: 1.8; font-weight: 400; }
+.gx .gx-guidance-topic:not([open]) .gx-account-icon { color: var(--gx-text-2); }
+.gx .gx-guidance-topic[open] { border-color: var(--gx-accent-ink); }
+.gx .gx-guidance-topic[open] > summary > .gx-ic { transform: rotate(180deg); }
+.gx .gx-guidance-body { display: grid; gap: 16px; padding: 4px 16px 22px; }
+.gx .gx-guidance-body p { font-size: 16px; line-height: 1.85; overflow-wrap: anywhere; }
+.gx .gx-guidance-body a { display: block; min-height: 44px; padding: 12px 10px; border: 1px solid var(--gx-border); border-radius: 14px; background: var(--gx-card-face); color: var(--gx-accent-ink); font-size: 16px; font-weight: 600; line-height: 1.8; overflow-wrap: anywhere; }
+/* Appearance: actual preference resolves the labelled miniature and OS motion precedence. */
+.gx .gx-appearance-mini { min-height: 0; padding: 18px 13px 22px; border: 1px solid var(--gx-border); border-radius: 24px; background: var(--gx-canvas-gradient); box-shadow: var(--gx-glass-shadow); }
+.gx .gx-appearance-mini > header { display: flex; align-items: center; gap: 8px; margin-bottom: 17px; }
+.gx .gx-appearance-mini .gx-prism-brand { width: 32px; height: 32px; }
+.gx .gx-appearance-mini header strong { font-size: 13px; }
+.gx .gx-appearance-mini header > span:last-child { margin-left: auto; font-size: 13px; color: var(--gx-text-2); }
+.gx .gx-appearance-mini > article { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 17px 12px; border: 1px solid var(--gx-accent-ink); border-radius: 21px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); }
+.gx .gx-appearance-mini h4 { margin: 7px 0; font-size: 16px; line-height: 1.5; }
+.gx .gx-appearance-mini small { font-size: 13px; color: var(--gx-text-2); }
+.gx .gx-appearance-mini p { font-size: 13px; color: var(--gx-text-2); }
+.gx .gx-appearance-mini article > .gx-ic { width: 60px; height: 60px; color: var(--gx-accent-ink); }
+/* Export has descriptive categories only; records remain solely in the authenticated download. */
+.gx .gx-export-file { display: grid; place-items: center; width: 86px; height: 90px; border: 1px solid var(--gx-border); border-radius: 25px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); color: var(--gx-accent-ink); }
+.gx .gx-export-format { padding: 5px 12px; border: 1px solid var(--gx-accent-ink); border-radius: 10px; background: var(--gx-accent-tint); color: var(--gx-accent-ink); font-size: 13px; font-weight: 600; letter-spacing: .07em; }
+.gx .gx-export-categories { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; min-width: 0; }
+.gx .gx-export-categories > div { display: grid; gap: 10px; padding: 15px 12px; border-radius: 20px; font-size: 13px; line-height: 1.8; font-weight: 600; }
+.gx .gx-export-categories .gx-ic { color: var(--gx-text-2); }
+/* Public app invite has no identity, private link or recipient data. */
+.gx .gx-app-invite-hero .gx-prism-brand { width: 76px; height: 76px; }
+.gx .gx-invite-connection { display: flex; align-items: center; width: min(232px,100%); margin-top: 5px; }
+.gx .gx-invite-connection > span { display: grid; place-items: center; width: 45px; height: 45px; border: 1px solid var(--gx-border); border-radius: 15px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); color: var(--gx-accent-ink); }
+.gx .gx-invite-connection i { flex: 1; height: 1px; background: var(--gx-border); }
+.gx .gx-app-invite-payload { display: grid; gap: 12px; }
+.gx .gx-app-invite-payload strong { font-size: 16px; }
+.gx .gx-app-invite-payload > p:not(.gx-account-eyebrow) { font-size: 16px; line-height: 1.9; }
+.gx .gx-app-invite-payload a { display: flex; align-items: center; gap: 8px; min-height: 44px; color: var(--gx-accent-ink); overflow-wrap: anywhere; font-size: 16px; }
+/* Continuity and access cards change only their own content. Navigation stays native. */
+.gx .gx-continuity-fail { display: grid; gap: 22px; min-width: 0; padding: 24px 17px; border: 1px solid var(--gx-border); border-radius: 28px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); }
+.gx .gx-continuity-fail > .gx-hstack { display: grid; gap: 13px; }
+.gx .gx-continuity-fail > p { font-size: 13px; line-height: 1.85; }
+.gx .gx-access-cover { display: grid; gap: 22px; }
+.gx .gx-access-cover .gx-empty { display: grid; gap: 20px; padding: 24px 17px; border: 1px solid var(--gx-border); border-radius: 28px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); }
+.gx .gx-access-cover .gx-empty p { font-size: 13px; line-height: 1.9; }
+.gx .gx-access-cover-icon { width: 64px; height: 64px; border-radius: 22px; }
+.gx .gx-access-cover .gx-empty > .gx-btn:first-of-type { border: 3px solid var(--gx-accent-ink); }
+@media(max-width:359px) {
+  .gx .gx-account-prism .gx-sheet-body { padding-inline: 14px; }
+  .gx .gx-account-heading h3 { font-size: 15px; }
+  .gx .gx-account-menu .gx-link-row > .gx-ic:first-child { padding: 10px; }
+  .gx .gx-settings-books > label { padding: 12px 8px; gap: 7px; font-size: 16px; }
+  .gx .gx-guidance-topic > summary { gap: 9px; padding: 14px 10px; font-size: 16px; }
+  .gx .gx-guidance-topic .gx-account-icon { width: 42px; height: 44px; }
+  .gx .gx-reminder-hero { padding: 18px 12px; gap: 14px; }
+}
+@media(forced-colors:active) {
+  .gx :is(.gx-account-panel,.gx-account-hero,.gx-account-icon,.gx-guidance-topic,.gx-reminder-hero,.gx-appearance-mini,.gx-export-file,.gx-continuity-fail,.gx-access-cover .gx-empty) { border-color: CanvasText; }
+  .gx .gx-settings-books label:has(input:checked),.gx .gx-guidance-topic[open],.gx .gx-switcher-prism .gx-row[aria-current=true] { outline: 2px solid Highlight; }
+  .gx .gx-settings-check { border-color: CanvasText; }
+}
+.gx .gx-app-invite-hero .gx-prism-brand img { width: 100%; height: 100%; }
+.gx .gx-appearance-mini .gx-prism-brand img { width: 100%; height: 100%; }
+.gx .gx-offline { display: grid; grid-template-columns: 22px minmax(0,1fr); align-items: start; gap: 13px 9px; padding: 17px 13px; border: 1px solid var(--gx-border); border-radius: 23px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); }
+.gx .gx-offline > p { font-size: 13px; line-height: 1.85; }
+.gx .gx-offline > .gx-btn { grid-column: 1/-1; min-height: 46px; }
+.gx .gx-account-back { display: flex; align-items: center; gap: 7px; justify-self: start; min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--gx-accent-ink); font: 600 16px/1.7 var(--gx-font-body); }
+.gx .gx-account-prism .gx-seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 5px; padding: 5px; border: 1px solid var(--gx-border); border-radius: 19px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); }
+.gx .gx-account-prism .gx-seg-btn { min-height: 44px; min-width: 0; border: 1px solid transparent; border-radius: 14px; font-size: 16px; }
+.gx .gx-account-prism .gx-seg-btn--on { border-color: var(--gx-accent-ink); background: var(--gx-accent-tint); color: var(--gx-accent-ink); }
+.gx .gx-account-prism .gx-sheet-head { padding: 0 20px 14px; }
+.gx .gx-account-prism .gx-sheet-title { font-size: 21px; line-height: 1.4; font-weight: 600; letter-spacing: -.6px; }
+.gx .gx-account-prism .gx-sheet-foot { padding: 18px 20px max(24px,env(safe-area-inset-bottom)); }
+.gx .gx-appearance-progress { position: relative; display: grid; place-items: center; width: 60px; height: 60px; flex: none; }
+.gx .gx-appearance-progress svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.gx .gx-appearance-progress > span { font-size: 13px; font-weight: 600; }
+.gx .gx-appearance-track,.gx .gx-appearance-fill { fill: none; stroke: var(--gx-border); stroke-width: 5; }
+.gx .gx-appearance-fill { stroke: var(--gx-accent-ink); stroke-linecap: round; transform: rotate(-90deg); transform-origin: 32px 32px; }
+.gx-layer--sheet:has(> .gx-account-prism) > .gx-scrim { backdrop-filter: blur(5px); }
+.gx .gx-account-prism .gx-sheet-head .gx-icon-btn { border: 1px solid var(--gx-border); border-radius: 15px; background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); }
+.gx .gx-account-prism .gx-switch-row { padding: 0; gap: 14px; background: transparent; min-height: 56px; }
+.gx .gx-account-prism .gx-switch-row .gx-row-title { font-size: 16px; line-height: 1.6; }
+.gx .gx-account-prism .gx-switch-row .gx-row-sub { font-size: 13px; line-height: 1.8; margin-top: 8px; }
+.gx .gx-account-prism .gx-switch { border: 1px solid var(--gx-border); background: var(--gx-card-face); box-shadow: var(--gx-glass-shadow); }
+.gx .gx-account-prism .gx-switch-input:checked + .gx-switch { border: 2px solid var(--gx-accent-ink); background: var(--gx-accent-tint); }
+.gx .gx-account-prism .gx-switch-input:checked + .gx-switch::before { background: var(--gx-accent-ink); }
+.gx .gx-account-draft-note { display: flex; align-items: start; gap: 7px; padding: 13px; border: 1px solid var(--gx-border); border-radius: 15px; background: var(--gx-card-face); font-size: 13px; line-height: 1.8; color: var(--gx-text-2); }
+.gx .gx-account-draft-note::before { content: ''; width: 5px; height: 5px; margin-top: 7px; border-radius: 50%; flex: none; background: var(--gx-accent-ink); }
+.gx .gx-switcher-prism .gx-t-meta { font-size: 13px; }
+/* Keep these after the native material overrides: system contrast colors must
+   win at the same scoped specificity, including the otherwise empty off thumb. */
+@media(forced-colors:active) {
+  .gx .gx-account-prism .gx-switch { forced-color-adjust: none; border-color: CanvasText; background: Canvas; box-shadow: none; }
+  .gx .gx-account-prism .gx-switch::before { background: CanvasText; }
+  .gx .gx-account-prism .gx-switch-input:checked + .gx-switch { border-color: CanvasText; background: Highlight; outline: 2px solid Highlight; }
+  .gx .gx-account-prism .gx-switch-input:checked + .gx-switch::before { background: HighlightText; }
+  .gx .gx-account-prism .gx-seg-btn--on { forced-color-adjust: none; border-color: CanvasText; background: Highlight; color: HighlightText; box-shadow: none; }
+}
+.gx .gx-account-prism p[role=alert]:not(:empty) { padding: 14px 12px; border: 1px solid var(--gx-loss); border-radius: 18px; background: var(--gx-card-face); color: var(--gx-text-1); font-size: 16px; line-height: 1.85; overflow-wrap: anywhere; }
+.gx .gx-account-prism p[role=status]:not(.gx-t-meta):not(:empty) { padding: 14px 12px; border: 1px solid var(--gx-accent-ink); border-radius: 18px; background: var(--gx-card-face); color: var(--gx-text-1); font-size: 16px; line-height: 1.85; overflow-wrap: anywhere; }

@@ -1,0 +1,2235 @@
+{
+  "status": "local implementation and evidence; pending independent task and whole-branch review",
+  "base": "250294f10587c6467f0dc426374f92b5437c147c",
+  "sourceCommit": "9047ba20606fa0dca4004c1860497a54adec7ce8",
+  "implementationCommit": "d3c1b01b84fb6e14d80d05ebf7fa0d6dce7fdaa8",
+  "authorityCommit": "3ac2eb50513ba73447ef890e4a47863cde7bdd76",
+  "authorityLedger": {
+    "file": "design/style-directions-2026-11-04/selected-system-review.json",
+    "sha256": "cb235f3e396944f083c9cea87cc60c9d67bafac390b317ccd63e6665537dd236"
+  },
+  "capturedAt": "2026-11-08T05:11:09.036996+00:00",
+  "browser": "Playwright Chromium; reduced motion; deviceScaleFactor 1; 320/390x844 and selected768x844; viewport images; safe-area 0; simulated keyboard via viewport resize",
+  "captureCommands": [
+    "GTL_CAPTURE_EXPANDED_FRAME=1 GTL_NAVIGATION_CAPTURE=1 node node_modules/@playwright/test/cli.js test --config .local/playwright.expanded.config.js tests/cloud-browser/next-expanded-frame.spec.js tests/cloud-browser/next-prism-research-navigation.spec.js"
+  ],
+  "references": [
+    {
+      "record": "playDraftLockIn",
+      "status": "Approved by Sean for the reviewed Play draft and lock-in confirmation direction",
+      "scope": "Reviewed public Week 9 Cardinals at Seahawks fixture; Spread and Total draft controls, confirmations and in-memory confirmed state in both selected themes",
+      "reviewedCommit": "383cdf0825ed54aa811b8649c4631ae53eb2e97d",
+      "representativeReferences": [
+        {
+          "file": "previews/play-spread-draft-dark-phone.png",
+          "sha256": "7ad3dc03b4b7f5624ca24cb85383501dad37b796fa7dd844555ee519a37aca16"
+        },
+        {
+          "file": "previews/play-spread-draft-light-phone.png",
+          "sha256": "dfba0b186beb238a78cc97ccdd1a02c08b1c7b0b0d1cbf4597c7c8fe6265f2b1"
+        }
+      ],
+      "frameDisposition": "contextual; see scoped doc"
+    },
+    {
+      "record": "pointsDraftPreview",
+      "status": "Approved by Sean for the supplied Guess the Points visual direction",
+      "scope": "Example week overview, player draft, confirmation, native usage profile and in-memory confirmed card in both selected themes",
+      "reviewedCommit": "881167ad49b8df946cddae35626466b721c6041a",
+      "representativeReferences": [
+        {
+          "file": "previews/points-week-dark-phone.png",
+          "sha256": "701d2edc5d60924ab82a630e3b911f498360ecb51566d349df6db8bb40189eb9"
+        },
+        {
+          "file": "previews/points-week-light-phone.png",
+          "sha256": "b42007084b3714f6ef7bcf6639f6ee2ce2072c9b6922d061efa3b08c06892348"
+        }
+      ],
+      "frameDisposition": "contextual; see scoped doc"
+    },
+    {
+      "record": "scoreHistoryPreview",
+      "status": "Approved by Sean for the supplied score and history visual direction",
+      "scope": "Spread/Total weekly scores, filter subtotals, three-week history and opened game accuracy in both themes",
+      "reviewedCommit": "9bd5d6c96adc253afecaf333bc886a076011f3d3",
+      "representativeReferences": [
+        {
+          "file": "previews/score-spread-week-dark-phone.png",
+          "sha256": "11a292fb06a5d023b64f2f7799d3d0bfa0242fe19b70a530a7586cda688f888d"
+        },
+        {
+          "file": "previews/score-spread-week-light-phone.png",
+          "sha256": "f5644aca90d2a653bef6aeaae2986bad318ad0e437d23fd7715268e0663139e5"
+        }
+      ],
+      "frameDisposition": "contextual; see scoped doc"
+    },
+    {
+      "record": "leaguePreview",
+      "status": "Supplied League visual direction approved by Sean",
+      "scope": "Supplied leaderboard/feed/comment direction and linked Points/hidden-pick examples. Not every unseen market/state, actual league/account activity, production integration or whole-project completion.",
+      "reviewedCommit": "77bf312303a35acd1119fdc6e30efec2da2861ab",
+      "representativeReferences": [
+        {
+          "file": "previews/league-spread-board-dark-phone.png",
+          "sha256": "5ab2e62bfc208be6f7f369c03d5abde74c39d8932390da99ee26e56d9b756a54"
+        },
+        {
+          "file": "previews/league-spread-board-light-phone.png",
+          "sha256": "39f9c6c462289f78996aabc2a9f284c1eca2724d0eb7967be0dc6f39a5bcb3fb"
+        }
+      ],
+      "frameDisposition": "contextual; see scoped doc"
+    },
+    {
+      "record": "populatedGameResearch",
+      "status": "Approved by Sean for the reviewed populated game-detail visual direction",
+      "scope": "Reviewed Arizona/Seattle public-snapshot game preview, real trend/team chart components and populated information depth in both themes; not production integration, live quote acceptance or whole-project completion",
+      "reviewedCommit": null,
+      "representativeReferences": [
+        {
+          "file": "previews/populated-game-trends-dark-phone.png",
+          "sha256": "04d9a9c0f640fd75817eeed669581c50d84ea013e254de5d02fc05f758ad03dd"
+        },
+        {
+          "file": "previews/populated-game-trends-light-phone.png",
+          "sha256": "e18ab65c65dbff85de25f3d09faa50157a65000d0a641a616b154dee13898d99"
+        }
+      ],
+      "frameDisposition": "contextual; see scoped doc"
+    },
+    {
+      "record": "populatedTrendsList",
+      "status": "Approved by Sean for the reviewed populated Trends list",
+      "scope": "Research / Trends opened layer, both themes; six fixed examples from 750 published candidates",
+      "reviewedCommit": null,
+      "representativeReferences": [
+        {
+          "file": "previews/trends-list-dark-phone.png",
+          "sha256": "48983eb57841d1465b6dd48b8614c75eb5f8d49774e7af24ce1d822ee1495d37"
+        },
+        {
+          "file": "previews/trends-list-light-phone.png",
+          "sha256": "2afd94207d258371a3a23c021ed5fdc3ec8efdbb78e64a9dfc92b7d3c570e97f"
+        }
+      ],
+      "frameDisposition": "contextual; see scoped doc"
+    },
+    {
+      "record": "populatedGamesList",
+      "status": "Approved by Sean for the reviewed populated Games layout",
+      "scope": "Research / Games opened layer, selected dark/light themes; all 15 published Week 9 matchups",
+      "reviewedCommit": null,
+      "representativeReferences": [
+        {
+          "file": "previews/research-games-dark-phone.png",
+          "sha256": "95ff6cf29cdaf1e8227407236eb4c13650801e1211839cc3e15f7e46a813993c"
+        },
+        {
+          "file": "previews/research-games-light-phone.png",
+          "sha256": "52a34474072a0fb403b005f2e84f39ad56840c7f017df55ec544cdaf8244cd75"
+        }
+      ],
+      "frameDisposition": "contextual; see scoped doc"
+    },
+    {
+      "record": "populatedTeams",
+      "status": "Approved by Sean for the reviewed Teams layout and Seattle profile",
+      "scope": "Research / Teams, all 32 team rows and profiles in the selected dark/light themes; Seattle profile shown in the review captures",
+      "reviewedCommit": null,
+      "representativeReferences": [
+        {
+          "file": "previews/research-teams-dark-phone.png",
+          "sha256": "e9447658717fab370aa924c65659b7670d9d904b07071ba55c44cf94e5535664"
+        },
+        {
+          "file": "previews/research-teams-light-phone.png",
+          "sha256": "cfc26efc332aa847b00c718eadeddf7fcaf9b781c8ddba369e6f61d5818ffab0"
+        }
+      ],
+      "frameDisposition": "contextual; see scoped doc"
+    },
+    {
+      "record": "populatedFantasy",
+      "status": "Approved by Sean for the reviewed Fantasy usage/comparison direction",
+      "scope": "Research / Fantasy observed-production browse, player usage/profile and two/three-player comparison, selected dark/light themes",
+      "reviewedCommit": null,
+      "representativeReferences": [
+        {
+          "file": "previews/fantasy-players-dark-phone.png",
+          "sha256": "81fee4fdec5f9df32387b36ed553b94238bcb641d26352ed53c3e55571b427c2"
+        },
+        {
+          "file": "previews/fantasy-players-light-phone.png",
+          "sha256": "9a2f2d51e6bec489b7f86a375f9263b469a6deead189e044bc9a895d26774206"
+        }
+      ],
+      "frameDisposition": "contextual; see scoped doc"
+    },
+    {
+      "record": "fantasyRankingsAccuracy",
+      "status": "Approved by Sean for the reviewed Fantasy ranking and accuracy-report direction",
+      "scope": "Fantasy weekly/rest-of-season rankings and Week 8 accuracy report in both selected themes",
+      "reviewedCommit": null,
+      "representativeReferences": [
+        {
+          "file": "previews/fantasy-rankings-dark-phone.png",
+          "sha256": "f0d5c3fab921cf9b875dc7333c2a6a5fc3a2eacbf74a30590d3f10f073e748b0"
+        },
+        {
+          "file": "previews/fantasy-rankings-light-phone.png",
+          "sha256": "f51ef13c53247be01ced953665f7143ceaff9716d2d8b31b91d19952ba88d4b4"
+        }
+      ],
+      "frameDisposition": "contextual; see scoped doc"
+    },
+    {
+      "record": "betsOverviewPreview",
+      "status": "Supplied Overview direction approved by Sean in both themes",
+      "scope": "Supplied Overview direction in both themes and linked matching-ticket/filter/cash examples; not unseen states, real account history/writes, physical-device acceptance or whole-app completion.",
+      "reviewedCommit": "fb9ce8186157076db818a81ca8653ed9a4522d86",
+      "representativeReferences": [
+        {
+          "file": "previews/bets-overview-performance-dark-phone.png",
+          "sha256": "c2508a1f14024927ee291dffc0fe02ce496af08050f405f8659ab138ca404fca"
+        },
+        {
+          "file": "previews/bets-overview-performance-light-phone.png",
+          "sha256": "9fcdbc54dc5580e7e2af9b562d07f04213bd62664e835adcbff2174e106c6b9d"
+        }
+      ],
+      "frameDisposition": "contextual; see scoped doc"
+    },
+    {
+      "record": "gapRecordPreview",
+      "status": "Supplied gap-record direction approved by Sean in both themes",
+      "scope": "Supplied historical gap-record direction in both themes, including linked outcomes, Total detail and 10%+ example; not unseen states, actual player history, live offers, physical-device behavior or whole-app completion.",
+      "reviewedCommit": "5490d6d16a44b5d0f34c58053219dc06a6b785fc",
+      "representativeReferences": [
+        {
+          "file": "previews/bets-gap-summary-dark-phone.png",
+          "sha256": "67d605cbb81a441715d3bbb1a7193922919eaa40cf3bf2317ff1149be4fb413d"
+        },
+        {
+          "file": "previews/bets-gap-summary-light-phone.png",
+          "sha256": "9ae86b40d0f074657c8a920f599fcbc765178b734497f481b598311d137b8252"
+        }
+      ],
+      "frameDisposition": "contextual; see scoped doc"
+    },
+    {
+      "record": "nflActionsNavigationPreview",
+      "status": "Approved for the supplied NFL action/shared-navigation visual set in both themes; production acceptance remains separate.",
+      "scope": null,
+      "reviewedCommit": null,
+      "representativeReferences": [
+        {
+          "file": "previews/nfl-actions-virtual-dark-phone.png",
+          "sha256": "2a9420f6279a4f6a7930b5ff1d90d7bbc66930a7796cff23f95792c2b18a5e5b"
+        },
+        {
+          "file": "previews/nfl-actions-virtual-light-phone.png",
+          "sha256": "7cd4de18b3601b9b1f51615cc7a9748f76e74423682e42935baaab08ccb1e8a2"
+        },
+        {
+          "file": "previews/nfl-actions-navigation-epl-dark-phone.png",
+          "sha256": "c0caaf873dceda8658c6d9906c1eed2306f6cfc388daad161fe76763f2e3b0d4"
+        },
+        {
+          "file": "previews/nfl-actions-navigation-epl-light-phone.png",
+          "sha256": "4a843c2fdfbaec18cbafc15c485be505f7e05bf88df02b41bfc1cf8d1d48f490"
+        }
+      ],
+      "frameDisposition": "contextual; see scoped doc"
+    },
+    {
+      "record": "accountGuessHistoryPreview",
+      "status": "Approved for supplied visual direction in both themes",
+      "scope": "Supplied nineteen Guess History states plus expanded game/source/rules Info in both themes (44 captures). Visual direction only; actual private records, sources, timestamps/references, device behavior and whole-app completion remain separate.",
+      "reviewedCommit": "e585b0afa23deb49996f4b044010d5b41656d5ce",
+      "representativeReferences": [
+        {
+          "file": "previews/account-history-changes-empty-dark-phone.png",
+          "sha256": "57c5d5bc686a8190a72f403a1e05eba488b75612e8cb474454d0e7709773460c"
+        },
+        {
+          "file": "previews/account-history-changes-empty-light-phone.png",
+          "sha256": "36eb44ff5a95efcfed1b9ec4709d63bde47eebc9fd1b1709b8441434d2e0f339"
+        }
+      ],
+      "frameDisposition": "contextual; see scoped doc"
+    },
+    {
+      "record": "historyBetsOlderPreview",
+      "status": "Approved for the 60 reviewed captures in both themes; production and whole-app acceptance remain separate.",
+      "scope": [
+        "bets",
+        "bets-empty",
+        "bets-loading",
+        "bets-unavailable",
+        "bets-failed",
+        "weeks-loading",
+        "weeks-failed",
+        "no-weeks",
+        "older",
+        "challenge",
+        "saved",
+        "forecasts",
+        "journal",
+        "slips",
+        "archives",
+        "benchmark",
+        "benchmark-unfrozen",
+        "older-loading",
+        "older-failed",
+        "older-off",
+        "older-empty",
+        "slips-loading",
+        "slips-failed",
+        "slips-empty"
+      ],
+      "reviewedCommit": null,
+      "representativeReferences": [
+        {
+          "file": "previews/history-records-archives-dark-phone.png",
+          "sha256": "7c55b68164898b288a152d84689a658b97b1bab99c02ea3e4082b8c78433b65f"
+        },
+        {
+          "file": "previews/history-records-archives-expanded-light-phone.png",
+          "sha256": "8078cb0aabe8891905c540b9834e8fd22e2a4b6d4734c6271a584dd8b92d2573"
+        }
+      ],
+      "frameDisposition": "contextual; see scoped doc"
+    },
+    {
+      "record": "eplHomeRecoveryPreview",
+      "status": "Approved in both themes",
+      "scope": "Supplied 13-state Home/recovery and table-source popup direction in both themes only. Real clocks/permissions/turn acceptance, source completeness/provenance, recovery/readbacks, device behavior and whole-app completion remain separate.",
+      "reviewedCommit": "d2ead64e55adb3d8c3b1ee7d55505236f995bc90",
+      "representativeReferences": [
+        {
+          "file": "previews/epl-home-turn-dark-phone.png",
+          "sha256": "8050eb2433e5f8fbd2d840e205e8051bcec3dbb5a5c699e0cf3c84352c82f600"
+        },
+        {
+          "file": "previews/epl-home-turn-light-phone.png",
+          "sha256": "48b0971887612daacf84bcadc891d71710d83d5cfb0f480df054463f81460072"
+        }
+      ],
+      "frameDisposition": "contextual; see scoped doc"
+    },
+    {
+      "record": "eplDraftPreview",
+      "status": "Supplied EPL draft direction approved by Sean",
+      "scope": "Supplied draft, ranking and confirmation direction plus linked waiting/closed/backup examples; not unseen claims, failures, actual private drafts or whole-project completion.",
+      "reviewedCommit": "59a1b55f225122aca9f7e9a1cd2d4a815d821e4e",
+      "representativeReferences": [
+        {
+          "file": "previews/epl-draft-board-dark-phone.png",
+          "sha256": "101d74ab7b04166b0bdf12ae07b729d65848b3fb2cb222bc74aaab6045c9bf37"
+        },
+        {
+          "file": "previews/epl-draft-board-light-phone.png",
+          "sha256": "cf9f6f394ee7612b6c0486154e7ccc073930b3cd5631ca6d3af855e3b9366f46"
+        }
+      ],
+      "frameDisposition": "contextual; see scoped doc"
+    },
+    {
+      "record": "eplMoneylinePreview",
+      "status": "Approved for supplied visual direction in both themes",
+      "scope": "Supplied 15 moneyline/leaderboard states plus expanded fictional reveal, both themes. Visual direction only; real quotes, saves/locks/reveal privacy, device acceptance and whole-app completion remain separate.",
+      "reviewedCommit": "6c54342754972f1a31ec5b42842adae66e2cf4ba",
+      "representativeReferences": [
+        {
+          "file": "previews/epl-moneyline-entry-dark-phone.png",
+          "sha256": "c59533e97ff86feaae1e019dd644c9f6c450bb486687a6547866a603fc564d86"
+        },
+        {
+          "file": "previews/epl-moneyline-entry-light-phone.png",
+          "sha256": "0b6be01c1d4d704db1328c74eddb93f4ba0d3b5b0245b8c701508a4227c2fb50"
+        }
+      ],
+      "frameDisposition": "contextual; see scoped doc"
+    },
+    {
+      "record": "leagueAccessPreview",
+      "status": "Supplied league access and saved-invitation direction approved in both themes",
+      "scope": "Supplied private access pending, Community removed with/without groups and saved-link/joining/uncertain visual direction in both themes. Actual access rules, token behavior, joining, retention/persistence, physical-device acceptance and whole-app completion remain separate.",
+      "reviewedCommit": "5609f305f905b6949a337508a30be55a5ce7ebc7",
+      "representativeReferences": [
+        {
+          "file": "previews/league-access-pending-dark-phone.png",
+          "sha256": "cbfd6dc94dc090a2dd5546342d9f5d5c54b852dfb3b33960dc8fe0808f95d6ff"
+        },
+        {
+          "file": "previews/league-access-pending-light-phone.png",
+          "sha256": "27ef1b61f235c0a6e022f5204d7e6db1bd17d518fbb31d1db266e83e5521d40f"
+        }
+      ],
+      "frameDisposition": "contextual; see scoped doc"
+    },
+    {
+      "record": "continuityPreview",
+      "status": "Supplied app continuity direction approved in both themes",
+      "scope": "Supplied offline, startup, account/tab/page failure and reload-warning storyboard direction in both themes. Actual connection/data preservation/reload behavior, permissions, physical-device acceptance and whole-app completion remain separate.",
+      "reviewedCommit": "6e634d1fd8e1452585a5b5536855a5c337aff655",
+      "representativeReferences": [
+        {
+          "file": "previews/continuity-offline-dark-phone.png",
+          "sha256": "efaf79f1d8feb415e97bfb6f9777a1712732b3747ff7c6b974ca569121e560ed"
+        },
+        {
+          "file": "previews/continuity-offline-light-phone.png",
+          "sha256": "df5b6d41cd504b355555ff9cc894ef9b8578727d3c599645a1efa260608f1c37"
+        }
+      ],
+      "frameDisposition": "contextual; see scoped doc"
+    },
+    {
+      "record": "eplFantasyPreview",
+      "status": "Approved for supplied visual direction in both themes",
+      "scope": "Supplied sixteen FEPL states plus expanded standing and source/estimate Info, both themes. Visual direction only; real private/source/roster/inference/device behavior and whole-app completion remain separate.",
+      "reviewedCommit": "ad99d39390d63295cf87995d00558fb0a500c875",
+      "representativeReferences": [
+        {
+          "file": "previews/epl-fantasy-ambiguous-dark-phone.png",
+          "sha256": "0db056ca2b62b05c1acc4ae85e97815c1446e6d8ebae792c964fd70a872130f6"
+        },
+        {
+          "file": "previews/epl-fantasy-ambiguous-light-phone.png",
+          "sha256": "04733eb56fd9be62bdac20c3cacb9c75f06e93ac23a411f2b7c81eca3df03d35"
+        }
+      ],
+      "frameDisposition": "held/native"
+    },
+    {
+      "record": "eplShellPreview",
+      "status": "Approved for the listed eight EPL shell captures in both themes; implementation and whole-app acceptance remain separate.",
+      "scope": "Existing FEPL league sheet, EPL History-to-NFL handoff and EPL Bets unavailable state only. No new league creation, EPL history availability, EPL bets, NBA entry or avatar/award feature.",
+      "reviewedCommit": null,
+      "representativeReferences": [
+        {
+          "file": "previews/epl-shell-bets-dark-phone.png",
+          "sha256": "a48a4aa1227a405ce7dee11d82991074d57a2c12caa80e933ecbe7e3beb17c99"
+        },
+        {
+          "file": "previews/epl-shell-bets-light-phone.png",
+          "sha256": "4ed3a608e30272fe6f1a312bfe4239837fe0ae22e77a1e9335922c24b7f947be"
+        }
+      ],
+      "frameDisposition": "native EPL Bets/History"
+    }
+  ],
+  "sourceFiles": [
+    {
+      "file": "tests/cloud-browser/next-expanded-frame.spec.js",
+      "sha256": "86abdf5417f6d9656ff96dd332c10c3cc66bda25bf99bf87d9186d297084ad82"
+    },
+    {
+      "file": "tests/cloud-browser/next-overview-frame.spec.js",
+      "sha256": "9a1ea7e5ab9b31f2109011688c6cc3a8d508e72efb6bd58b3b949c88b2c62024"
+    },
+    {
+      "file": "tests/cloud-browser/next-prism-research-navigation.spec.js",
+      "sha256": "7aca98f0c938ce8a0d25e343727462870a826ed7b78ff45473f0b52c81fa3611"
+    },
+    {
+      "file": "tests/next-confirmed-frame.test.mjs",
+      "sha256": "edb3277917ede3b816b89bbfd053c4d87380a31507dc0943c6b78d8b5f98fe60"
+    },
+    {
+      "file": "web/src/next/epl/EplShell.jsx",
+      "sha256": "9bc9df539afbd78ac60b52a44e10b47730f7adb7337175bd3c79e12074b03e64"
+    },
+    {
+      "file": "web/src/next/play/PerGamePlay.jsx",
+      "sha256": "3ff5be33733d28ff9899e1f90d8203d8b494d5b77a9ce6bc234e821c24a10e80"
+    },
+    {
+      "file": "web/src/next/play/points/PointsBallot.jsx",
+      "sha256": "1f60b2e78cadbc41d2d9d8f5f189fb26a1e073e353c11961b17d35d1bf72eadb"
+    },
+    {
+      "file": "web/src/next/play/points/PointsProfile.jsx",
+      "sha256": "a9c5c4d2dea273670f76109b7eb461b8467349c3022b56512931c3de637192fe"
+    },
+    {
+      "file": "web/src/next/shell/AppGate.jsx",
+      "sha256": "446deec7b9f11bd5e5d5d2618eeae15e9a7b4b00c3e30b63f922cdcec5cf7cdd"
+    },
+    {
+      "file": "web/src/next/shell/LeagueCover.jsx",
+      "sha256": "f28badb8fd4288394178414a91e5d6ca9e76e1f8f606704f40ece745f360c3f5"
+    },
+    {
+      "file": "web/src/next/shell/Shell.jsx",
+      "sha256": "3c892de3bc568c8c1aae2ea4ca5537b8a6ac0908942f46a73c2cc6c01ff0491b"
+    },
+    {
+      "file": "web/src/next/shell/confirmedFrame.js",
+      "sha256": "a9d5a1da527492ec55709ef1e0ba73272ddab5e740305a9f9113dd79618129ba"
+    },
+    {
+      "file": "web/src/next/shell/overviewFrame.css",
+      "sha256": "473971415348fc71b1310b50be4ee8e0fccae293301ffe563f512808aa5366e4"
+    },
+    {
+      "file": "web/src/next/shell/useFramePresentation.js",
+      "sha256": "574429921efdbaf2d0cd0024a135cb3cb9de3f53167b9d2f6de71e6eadfc0d4e"
+    }
+  ],
+  "captureGroups": [
+    {
+      "receipt": "design/prism-expanded-frame-native-2026-11-07/bets-overview.json",
+      "sha256": "0e0c9416b574ece6c8e9db489640ffa405bb9dffe09074ea125636078d80cd37",
+      "captures": [
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/bets-overview-dark-390.png",
+          "sha256": "080073a3c84e02b035474d57b2b2feeb035b6bf1434a84db8290df8785bcc478",
+          "route": "#bets/tracked?season=&week=&period=all&matchup=",
+          "context": "bets-overview",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/bets-overview-dark-320.png",
+          "sha256": "b451e0e7f6848816ec88fb6c9b54dacd0356290011c4fb7ec331ed0525817d5a",
+          "route": "#bets/tracked?season=&week=&period=all&matchup=",
+          "context": "bets-overview",
+          "theme": "dark",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/bets-overview-light-390.png",
+          "sha256": "76c83ccbcaf1c327546f49d5e1d4d75c99683bf5535922ff0446b1c480a45344",
+          "route": "#bets/tracked?season=&week=&period=all&matchup=",
+          "context": "bets-overview",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/bets-overview-light-320.png",
+          "sha256": "fbd6f8f34f4ebcbd884e599a93da0dab33afcb789e69cf5acce0477fcd9f1a6b",
+          "route": "#bets/tracked?season=&week=&period=all&matchup=",
+          "context": "bets-overview",
+          "theme": "light",
+          "width": 320,
+          "height": 844
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-expanded-frame-native-2026-11-07/bets-recommended.json",
+      "sha256": "d28d653e108277a8a70cd79b7824cbc721c82666459999a2f11f7099361bf7f9",
+      "captures": [
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/bets-recommended-dark-390.png",
+          "sha256": "74574713f672520677b208acff810719771f97d8e287856e18a3be384fd9e797",
+          "route": "#bets/recommended?season=&week=&period=all&matchup=",
+          "context": "bets-recommended",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/bets-recommended-dark-320.png",
+          "sha256": "9eb6b33a9c689b0f124dfb75e1a49f3d1345cf4a94b876a3da9b8f24825d2990",
+          "route": "#bets/recommended?season=&week=&period=all&matchup=",
+          "context": "bets-recommended",
+          "theme": "dark",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/bets-recommended-light-390.png",
+          "sha256": "c9fe51d15156bfd655b9830008b5a83e8524676998e03868ce379b9fd6c4896d",
+          "route": "#bets/recommended?season=&week=&period=all&matchup=",
+          "context": "bets-recommended",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/bets-recommended-light-320.png",
+          "sha256": "4addfcc4a55b12bf6508fa0d025e60929d63940f4f02241b393a382b6468f168",
+          "route": "#bets/recommended?season=&week=&period=all&matchup=",
+          "context": "bets-recommended",
+          "theme": "light",
+          "width": 320,
+          "height": 844
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-expanded-frame-native-2026-11-07/continuity-history-from-research-failed.json",
+      "sha256": "0756436fcf171d8eebce39cfe9e239986162b2c08709e39333b7d373c2dd618e",
+      "captures": [
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/continuity-history-from-research-failed-dark-390.png",
+          "sha256": "b6722f2440aa4393815969f9df209feb9489a383fc3114b7d3c9b4677edcdafd",
+          "route": "#research/fantasy",
+          "context": "history",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/continuity-history-from-research-failed-dark-320.png",
+          "sha256": "95fabd8e5625dcbc8a87faa53adbcf1e0bd6959d6daa5673335add9057a256ae",
+          "route": "#research/fantasy",
+          "context": "history",
+          "theme": "dark",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/continuity-history-from-research-failed-light-390.png",
+          "sha256": "5ae7408e2a4d6e6cac406098cc9aef7e4297e7249bf54e970ccd85a5deeb9b86",
+          "route": "#research/fantasy",
+          "context": "history",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/continuity-history-from-research-failed-light-320.png",
+          "sha256": "10b3d4f2431a870159af8c8bd0befb96c25fc293f89ead2205a7dfd33a04ffe8",
+          "route": "#research/fantasy",
+          "context": "history",
+          "theme": "light",
+          "width": 320,
+          "height": 844
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-expanded-frame-native-2026-11-07/continuity-research-fantasy-failed.json",
+      "sha256": "9947f75c0f50a3eb65af6b530fb79cb8d56d864f09fadc838aff667331bb11eb",
+      "captures": [
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/continuity-research-fantasy-failed-dark-390.png",
+          "sha256": "63601c411758570907d501379f2249db535d4b397ff8c61bc01e0a841d789088",
+          "route": "#research/fantasy",
+          "context": "research-fantasy",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/continuity-research-fantasy-failed-dark-320.png",
+          "sha256": "2c1fbbba4745bbe80e62d8673acd72750d975f41ead9926a454122f066a985e7",
+          "route": "#research/fantasy",
+          "context": "research-fantasy",
+          "theme": "dark",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/continuity-research-fantasy-failed-light-390.png",
+          "sha256": "a206729eb646ad15db3021bb68007548947ef2fb8621feb26f9f437f1235e6fb",
+          "route": "#research/fantasy",
+          "context": "research-fantasy",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/continuity-research-fantasy-failed-light-320.png",
+          "sha256": "fa939d76753dfa9961404166abc253f924c2742e72bbed56fe8f713e64ceab99",
+          "route": "#research/fantasy",
+          "context": "research-fantasy",
+          "theme": "light",
+          "width": 320,
+          "height": 844
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-expanded-frame-native-2026-11-07/epl-home-recovery.json",
+      "sha256": "8030f60f624e3c536d672a7eff2db87a8e86b18f7949116d98f885e8cd297082",
+      "captures": [
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/epl-home-recovery-dark-390.png",
+          "sha256": "cd789bc81496ce6c843d2ee73561ce3ae5b9dd9182a8942ed6a9e6e0647af1af",
+          "route": "#epl/home",
+          "context": "epl-home",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/epl-home-recovery-dark-320.png",
+          "sha256": "b1540aa467419d15d5374bf007d55e5c6645d89c2da63548c789cfa554326da8",
+          "route": "#epl/home",
+          "context": "epl-home",
+          "theme": "dark",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/epl-home-recovery-light-390.png",
+          "sha256": "390a2aac87c9c0541825e932bab7459b1174c73e3ea519aac51a86cdc875182c",
+          "route": "#epl/home",
+          "context": "epl-home",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/epl-home-recovery-light-320.png",
+          "sha256": "1949f74982d35858a8f12dd95319f964859dd30e303b7a0a90c60e9e85190433",
+          "route": "#epl/home",
+          "context": "epl-home",
+          "theme": "light",
+          "width": 320,
+          "height": 844
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-expanded-frame-native-2026-11-07/epl-home.json",
+      "sha256": "d523f5cb53858496d1362ac1bdb296a13c4b1901e3a56032e00b182d09f603fa",
+      "captures": [
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/epl-home-dark-390.png",
+          "sha256": "5067720567049482ba8b946a01623d555376571ec7e1a59e8a5ac44c2d0513e9",
+          "route": "#epl/home",
+          "context": "epl-home",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/epl-home-dark-320.png",
+          "sha256": "1a42273c762d45032604d3b48564d19c59833058011e2f30b3ba4293a8abf3ba",
+          "route": "#epl/home",
+          "context": "epl-home",
+          "theme": "dark",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/epl-home-dark-768.png",
+          "sha256": "f94b2954b9a80f2a4a2093df34e36e6e77bb961477ab6bff59d7bfb8f539797b",
+          "route": "#epl/home",
+          "context": "epl-home",
+          "theme": "dark",
+          "width": 768,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/epl-home-light-390.png",
+          "sha256": "a9cd1f1d38f9ed605788eeb47254018635ab2dbba4eda9896b8e60c68621f200",
+          "route": "#epl/home",
+          "context": "epl-home",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/epl-home-light-320.png",
+          "sha256": "9e356fea58d594d8acfce45a47d68b9edbe6ba7418d40d53740e2b123c195553",
+          "route": "#epl/home",
+          "context": "epl-home",
+          "theme": "light",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/epl-home-light-768.png",
+          "sha256": "1a2e2128386036548b1c2a7446446313ae7197461b5a6a8ccd1dc47ad713c44d",
+          "route": "#epl/home",
+          "context": "epl-home",
+          "theme": "light",
+          "width": 768,
+          "height": 844
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-expanded-frame-native-2026-11-07/epl-play-guess.json",
+      "sha256": "a550d311e12a7753b245a9d8f5bf105f7f3888b6033e53e239b2ce5e9c4e644b",
+      "captures": [
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/epl-play-guess-dark-390.png",
+          "sha256": "2f218269d1e9d882a1232d2ecf26162b1d243fddddcd7cb695de27870d98ea53",
+          "route": "#epl/play/guess",
+          "context": "epl-play",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/epl-play-guess-dark-320.png",
+          "sha256": "753d77def6968c5eecde961e7be5e6008deb6f123aa37e2f78dfebdfe5a59536",
+          "route": "#epl/play/guess",
+          "context": "epl-play",
+          "theme": "dark",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/epl-play-guess-light-390.png",
+          "sha256": "072b3383ae40707284271d16edf3998716f05a46e935ed9a8e10cba0b9134de2",
+          "route": "#epl/play/guess",
+          "context": "epl-play",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/epl-play-guess-light-320.png",
+          "sha256": "8107643cfa40e2f64bee73044b56e0b344643ba9d2cdf03c7306cb60f15db562",
+          "route": "#epl/play/guess",
+          "context": "epl-play",
+          "theme": "light",
+          "width": 320,
+          "height": 844
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-expanded-frame-native-2026-11-07/epl-play-leaderboard.json",
+      "sha256": "95b6dbfa549bda04e620744a5d2edfc1f75fdcea48f7b08523ddd264bf61abe7",
+      "captures": [
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/epl-play-leaderboard-dark-390.png",
+          "sha256": "328cf27bedb37aaca207b7be8dad68e019201585817f5742c8592c0d15893e39",
+          "route": "#epl/play/leaderboard",
+          "context": "epl-play",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/epl-play-leaderboard-dark-320.png",
+          "sha256": "79930c31ae4694d942cb63a352a4e8b24aea63582011a0bd13cab1ef9ba45e10",
+          "route": "#epl/play/leaderboard",
+          "context": "epl-play",
+          "theme": "dark",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/epl-play-leaderboard-light-390.png",
+          "sha256": "69a0309857dca0b27d98a748f269496447ed88d04a4193b0272af0fa1daab6b0",
+          "route": "#epl/play/leaderboard",
+          "context": "epl-play",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/epl-play-leaderboard-light-320.png",
+          "sha256": "16b51684900881b0a0e3be99cffea87e5c77f3a8821515becc1010da5db44af8",
+          "route": "#epl/play/leaderboard",
+          "context": "epl-play",
+          "theme": "light",
+          "width": 320,
+          "height": 844
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-expanded-frame-native-2026-11-07/epl-play-pick.json",
+      "sha256": "f55274ba6a162748a6d83bdb36c12c634ddfb1889e461b266f3f7a2a048668e4",
+      "captures": [
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/epl-play-pick-dark-390.png",
+          "sha256": "55b1a100f82f755c9b81971ee6ac95e8e80385bfda6b5319c298d226e32f6be0",
+          "route": "#epl/play/pick",
+          "context": "epl-play",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/epl-play-pick-dark-320.png",
+          "sha256": "99eedc5a27882cffaa32704fb2a08c3db0c938e44ce1f11bf8dd71df2bbe008e",
+          "route": "#epl/play/pick",
+          "context": "epl-play",
+          "theme": "dark",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/epl-play-pick-light-390.png",
+          "sha256": "786b9ece6608906b0576d639a8808d74f9243027a46992e30f05c2d5e6e4bacd",
+          "route": "#epl/play/pick",
+          "context": "epl-play",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/epl-play-pick-light-320.png",
+          "sha256": "6da81c3d3ea556961aee991e75b2f5fe882b9a19c7b0f1d6658d3ec2952e0095",
+          "route": "#epl/play/pick",
+          "context": "epl-play",
+          "theme": "light",
+          "width": 320,
+          "height": 844
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-expanded-frame-native-2026-11-07/history-bets.json",
+      "sha256": "56639adc144d2c82cbec918f5b63844cd6fdcab802dede8a381017b2ff4016a4",
+      "captures": [
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/history-bets-dark-390.png",
+          "sha256": "a4f3231a6bb6e5572edd63da7ff259ea29cfee9e4de3627613f369c954519f35",
+          "route": "#research",
+          "context": "history",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/history-bets-dark-320.png",
+          "sha256": "d4c0a2a28b1917aeee7f9801b830ffb6f2f229f0360524d148bed356d036fb25",
+          "route": "#research",
+          "context": "history",
+          "theme": "dark",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/history-bets-light-390.png",
+          "sha256": "d9a2711a31076cfeb859a8124503a0291f7495dc1756e87444cd958d6e8a77b0",
+          "route": "#research",
+          "context": "history",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/history-bets-light-320.png",
+          "sha256": "2e918516d6d7b6d8a1ad0a0aaefcfce5d79f5a4457572e7df0f85f478af8ccd4",
+          "route": "#research",
+          "context": "history",
+          "theme": "light",
+          "width": 320,
+          "height": 844
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-expanded-frame-native-2026-11-07/history-guess.json",
+      "sha256": "04684803b0246382b1d47f02553c9222600e8f554d3ca0cca401fb88385ad8dd",
+      "captures": [
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/history-guess-dark-390.png",
+          "sha256": "573dfb2a52bc49e1599da15e37feb5016264f4db0799d0835a90481486a4fddf",
+          "route": "#research",
+          "context": "history",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/history-guess-dark-320.png",
+          "sha256": "8c149a833c7620b0a70581b6af4c0216c5591d8ce1b82acf30037be008b276e3",
+          "route": "#research",
+          "context": "history",
+          "theme": "dark",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/history-guess-light-390.png",
+          "sha256": "111d32350d117a4966c0543baf0bca2a7e1e5b0e745eed98c6ab81d6411f808e",
+          "route": "#research",
+          "context": "history",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/history-guess-light-320.png",
+          "sha256": "82635c6ff1f118b2270ac3c8765335be23a2ed9651cd79c4f00af1aff994d7c7",
+          "route": "#research",
+          "context": "history",
+          "theme": "light",
+          "width": 320,
+          "height": 844
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-expanded-frame-native-2026-11-07/history-older.json",
+      "sha256": "799ea4cb3c63c5eca5e024a4e414ca36b7c2d71bb3bde58684ae453eda7d25b3",
+      "captures": [
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/history-older-dark-390.png",
+          "sha256": "ca71c6e68be488847d1a6982c95b20d852938b399e4500653bca35f4b3e9be4b",
+          "route": "#research",
+          "context": "history",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/history-older-dark-320.png",
+          "sha256": "483e63598b78a43057ac89536da29649309f987e8745e6dc61becdff1e49e89b",
+          "route": "#research",
+          "context": "history",
+          "theme": "dark",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/history-older-dark-768.png",
+          "sha256": "b0c44c82001a919e2d93ed3f1f8c97031399c60b12cb69c02e5d266089893b9c",
+          "route": "#research",
+          "context": "history",
+          "theme": "dark",
+          "width": 768,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/history-older-light-390.png",
+          "sha256": "b127cb7683ac86b5129f9a370573df39fdb1377b2547f85bf22adbc1e57780a5",
+          "route": "#research",
+          "context": "history",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/history-older-light-320.png",
+          "sha256": "1d59ec2f812941696427fd58c33dc92d6568c10e0fd055c9dda2c0bb14f6c7db",
+          "route": "#research",
+          "context": "history",
+          "theme": "light",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/history-older-light-768.png",
+          "sha256": "a20ff4b4bc532fcadbd98053eeb29566ff84b4b65a7c4ad41fcaf2c0b7752bcb",
+          "route": "#research",
+          "context": "history",
+          "theme": "light",
+          "width": 768,
+          "height": 844
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-expanded-frame-native-2026-11-07/league-pending.json",
+      "sha256": "9252350a8e1eb5d6b7a613c4346a6871108b5fa3147231360ea6580185113b82",
+      "captures": [
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/league-pending-dark-390.png",
+          "sha256": "1a4d6f5e1c220f8a293c438698662fd43d331abecd61e4aafdb8c9dea4f4f849",
+          "route": "#home",
+          "context": "league-cover",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/league-pending-dark-320.png",
+          "sha256": "eb109b74dffca9d7912af27a5782b2d5ab70e28f56d51bfa9e6a0c57280bba04",
+          "route": "#home",
+          "context": "league-cover",
+          "theme": "dark",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/league-pending-dark-768.png",
+          "sha256": "06f66c0865e4a82c6621af9bb0d1b80577d07cd8dd36ac8a70b23d8856031a8e",
+          "route": "#home",
+          "context": "league-cover",
+          "theme": "dark",
+          "width": 768,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/league-pending-light-390.png",
+          "sha256": "e514e484206c3bc156cec9bf804b430b335bcc545ece8e946f92b645ecfa21c1",
+          "route": "#home",
+          "context": "league-cover",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/league-pending-light-320.png",
+          "sha256": "be6fc544a4f47bc4ee5cf86503b03852f09a7c11ea5071340c43602d1e474819",
+          "route": "#home",
+          "context": "league-cover",
+          "theme": "light",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/league-pending-light-768.png",
+          "sha256": "a844830e8ba031b1627e55fc4c1f2227412aa1f53b7c7904385276a99c114ee3",
+          "route": "#home",
+          "context": "league-cover",
+          "theme": "light",
+          "width": 768,
+          "height": 844
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-expanded-frame-native-2026-11-07/league-removed.json",
+      "sha256": "c2afa16e870a2baaea3e0e876be04a2848b0d4cdc7713b8de0026c7f41f129fe",
+      "captures": [
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/league-removed-dark-390.png",
+          "sha256": "1dee0d3062cb5367207c988531a374c02e817a9fc9a760e45cf0d9b5bc30e008",
+          "route": "#home",
+          "context": "league-cover",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/league-removed-dark-320.png",
+          "sha256": "87fee2912f392b4ef0f1a20f94e1338c7bfbc136d8c9e732e67408a189e279e8",
+          "route": "#home",
+          "context": "league-cover",
+          "theme": "dark",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/league-removed-light-390.png",
+          "sha256": "9fbffc05a661c6bcfe350c84d6aca21ca9457b83c8687a80e87cfba4663f80ab",
+          "route": "#home",
+          "context": "league-cover",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/league-removed-light-320.png",
+          "sha256": "c7dbe57df3519a5894aa7c7f90138c8581c545a573fae1c93c1b786120d4be05",
+          "route": "#home",
+          "context": "league-cover",
+          "theme": "light",
+          "width": 320,
+          "height": 844
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-expanded-frame-native-2026-11-07/play-league.json",
+      "sha256": "b39abc57038480951b949f1200f1526a7b2a46fedd8982d34de30399bd157e30",
+      "captures": [
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/play-league-dark-390.png",
+          "sha256": "a611baeaf52e858d39c603034243a1d3d978eb987c89a6f7b47a6ebcc8609521",
+          "route": "#play/league",
+          "context": "play-league",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/play-league-dark-320.png",
+          "sha256": "3ed3d2d54fe89c214d43ea6fd96b0bee68a9758368a12e070f90aa97d65e48e1",
+          "route": "#play/league",
+          "context": "play-league",
+          "theme": "dark",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/play-league-dark-768.png",
+          "sha256": "a8d5396e26f3f334d15ac614f6672499f6aa1592d57a8425c90ca49ce0530ac1",
+          "route": "#play/league",
+          "context": "play-league",
+          "theme": "dark",
+          "width": 768,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/play-league-light-390.png",
+          "sha256": "0c29831325c1126e18461617b0085d164db667c562d764d3a1145e62fb9d0b37",
+          "route": "#play/league",
+          "context": "play-league",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/play-league-light-320.png",
+          "sha256": "d2fdec39400c15c1db3233e8a37ba274699c04a94d2cbd9b70d3c38048118852",
+          "route": "#play/league",
+          "context": "play-league",
+          "theme": "light",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/play-league-light-768.png",
+          "sha256": "40795270383d8ec43345e9fc730623d46a4ba1445c740f0ff55a4ca6c1a797d4",
+          "route": "#play/league",
+          "context": "play-league",
+          "theme": "light",
+          "width": 768,
+          "height": 844
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-expanded-frame-native-2026-11-07/play-score.json",
+      "sha256": "1ea7f94377100b31c62e67e52629bf58e5dfa9e6a112bf10e9671c4156615d3d",
+      "captures": [
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/play-score-dark-390.png",
+          "sha256": "0aaaf5319207a45df79aef5744bfc4a7fc2d970d18c3a0357320542173eed085",
+          "route": "#play/score",
+          "context": "play-score",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/play-score-dark-320.png",
+          "sha256": "3e37f1b6ca8d2f6e0c5b9bd18c786e990f9c279438fd437555bc228a8967bc3a",
+          "route": "#play/score",
+          "context": "play-score",
+          "theme": "dark",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/play-score-light-390.png",
+          "sha256": "0976c8ba9822a2c579cabd6e6cecc986605501be0e7cf89a54b30562537611cd",
+          "route": "#play/score",
+          "context": "play-score",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/play-score-light-320.png",
+          "sha256": "37d53015f596409584b049ba17cf1dd42c5e21bed7e5e0f5cd75a71c1fc4029c",
+          "route": "#play/score",
+          "context": "play-score",
+          "theme": "light",
+          "width": 320,
+          "height": 844
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-expanded-frame-native-2026-11-07/play-spread-draft.json",
+      "sha256": "6d610b7a0c826d0b2913b29ea78fa3ed705c8b54bd0cb64e3be1d243798f1a8b",
+      "captures": [
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/play-spread-draft-dark-390.png",
+          "sha256": "cb012797a82ba27f98e3054fb4d20da132acb9148f38f05964f202ff8ccda342",
+          "route": "#play/picks?market=spread&season=2026&week=5&pickGame=TB-DAL",
+          "context": "play-draft",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/play-spread-draft-dark-320.png",
+          "sha256": "36184785d3cae9c33960fc42352cc6da4a0584966163b50e155ea70507d581d1",
+          "route": "#play/picks?market=spread&season=2026&week=5&pickGame=TB-DAL",
+          "context": "play-draft",
+          "theme": "dark",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/play-spread-draft-light-390.png",
+          "sha256": "3e7784694faba503d2fd7535ff3ee53087e40ca3ff443c2a646c483d46a0e8ef",
+          "route": "#play/picks?market=spread&season=2026&week=5&pickGame=TB-DAL",
+          "context": "play-draft",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/play-spread-draft-light-320.png",
+          "sha256": "6c907ae0ae222587b12ca3cc6471e746824e5955961eed6404e1a24ce945416d",
+          "route": "#play/picks?market=spread&season=2026&week=5&pickGame=TB-DAL",
+          "context": "play-draft",
+          "theme": "light",
+          "width": 320,
+          "height": 844
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-expanded-frame-native-2026-11-07/play-total-draft.json",
+      "sha256": "472e7c3938ca37dde72fe0a8b56f34256af278d27dc18eb1bedef8b982077798",
+      "captures": [
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/play-total-draft-dark-390.png",
+          "sha256": "28bf11bdf49f0f9eb957034d590004694446a494c53de5e1082449aefacfc282",
+          "route": "#play/picks?market=total&season=2026&week=5&pickGame=TB-DAL",
+          "context": "play-draft",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/play-total-draft-dark-320.png",
+          "sha256": "3726ab6b5702b0b4e47694f40a79d88109cb12ab32d7484031a3aeea77d96fb3",
+          "route": "#play/picks?market=total&season=2026&week=5&pickGame=TB-DAL",
+          "context": "play-draft",
+          "theme": "dark",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/play-total-draft-light-390.png",
+          "sha256": "cbced9ee7dc5bf7142c8cbdbd7196b372ad010b0091c786ceb86b807c386f97b",
+          "route": "#play/picks?market=total&season=2026&week=5&pickGame=TB-DAL",
+          "context": "play-draft",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/play-total-draft-light-320.png",
+          "sha256": "36846c2a1a860fb1b16175080beee2f24d15fd96c8fc48780fb48e82b1a72048",
+          "route": "#play/picks?market=total&season=2026&week=5&pickGame=TB-DAL",
+          "context": "play-draft",
+          "theme": "light",
+          "width": 320,
+          "height": 844
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-expanded-frame-native-2026-11-07/points-profile.json",
+      "sha256": "92e7b4859f701ae03c8d4f413e7ee98b4d878773f904f98f1233aeceff72a4b6",
+      "captures": [
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/points-profile-dark-390.png",
+          "sha256": "42f12f230587451622605ecb439a63f1c7b971aae7891f2ec5f45e9af1e35990",
+          "route": "#play/points?layer=profile&item=QB",
+          "context": "play-points",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/points-profile-dark-320.png",
+          "sha256": "6b49729dc73880498b5525af5ac286d8847f0cf10f64a26ddc3f3b5a31a9130e",
+          "route": "#play/points?layer=profile&item=QB",
+          "context": "play-points",
+          "theme": "dark",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/points-profile-light-390.png",
+          "sha256": "3c847ff308d9ecbade812bce3760e90cee2b4d273e9618348a97eb5185337c8f",
+          "route": "#play/points?layer=profile&item=QB",
+          "context": "play-points",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/points-profile-light-320.png",
+          "sha256": "41ba7bbcf5064888f75d42fa3596e2314cdb93fa6c4fc345a70ef3157ed674df",
+          "route": "#play/points?layer=profile&item=QB",
+          "context": "play-points",
+          "theme": "light",
+          "width": 320,
+          "height": 844
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-expanded-frame-native-2026-11-07/points-slot-draft.json",
+      "sha256": "a52e9080d3f308658a3bb8c8a45fc834e919c3c03fb2b6f2475c9683e08f770e",
+      "captures": [
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/points-slot-draft-dark-390.png",
+          "sha256": "99bee95a2441e47b048494533d5584d1b3eca4824ce81e1d0de0576ef46f6a44",
+          "route": "#play/points?item=QB",
+          "context": "play-points",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/points-slot-draft-dark-320.png",
+          "sha256": "abc11c924aa73d75e0776eb6ad074cc31c76f71d546d158824a25b5f768b40bf",
+          "route": "#play/points?item=QB",
+          "context": "play-points",
+          "theme": "dark",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/points-slot-draft-light-390.png",
+          "sha256": "576826b2a510aa879154d83ee25da7116062b116ebc561013be0cc0388539d09",
+          "route": "#play/points?item=QB",
+          "context": "play-points",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/points-slot-draft-light-320.png",
+          "sha256": "8ee84d6aad01355e7f66653153677fe7408fc3f33ebb0705b41a8de3786bb96d",
+          "route": "#play/points?item=QB",
+          "context": "play-points",
+          "theme": "light",
+          "width": 320,
+          "height": 844
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-expanded-frame-native-2026-11-07/points-week.json",
+      "sha256": "2a7fe2c01a4ced8001ce3605ed9067f8421c5f15a4490f1c7ec44221be2779e1",
+      "captures": [
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/points-week-dark-390.png",
+          "sha256": "dd54f894ba26fbfdad6347be44aac81d184426e89f9b067475f79379fe1b4fe9",
+          "route": "#play/points",
+          "context": "play-points",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/points-week-dark-320.png",
+          "sha256": "24369e28af02d47fae562642e29d31324d24575ebd195f53e9bdf22f94c3e91c",
+          "route": "#play/points",
+          "context": "play-points",
+          "theme": "dark",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/points-week-light-390.png",
+          "sha256": "448ad9d4747bb420578e953d6a46aa590485760a4a720538dbc9a006f09d97fb",
+          "route": "#play/points",
+          "context": "play-points",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/points-week-light-320.png",
+          "sha256": "b2b6ac07e74e3e0a3be52e833be60877517b96b38d0bdda85f1b760e862a13d2",
+          "route": "#play/points",
+          "context": "play-points",
+          "theme": "light",
+          "width": 320,
+          "height": 844
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-expanded-frame-native-2026-11-07/research-fantasy.json",
+      "sha256": "e2335629fe642e939c3a668ab4006b595c037cd48a1dcf403384086e065b3512",
+      "captures": [
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/research-fantasy-dark-390.png",
+          "sha256": "8098529108e4789c88601963f6ff45b3b4280e8acfb5bfee49ac7c72ee554a53",
+          "route": "#research/fantasy",
+          "context": "research-fantasy",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/research-fantasy-dark-320.png",
+          "sha256": "978bd1ba0f1803c333e1904479cc136009008e91bff0d460cf08b8c2670758fa",
+          "route": "#research/fantasy",
+          "context": "research-fantasy",
+          "theme": "dark",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/research-fantasy-light-390.png",
+          "sha256": "19e6c5edb38756df388fba107458c2a4e63a190e9996372791e9a632551b148e",
+          "route": "#research/fantasy",
+          "context": "research-fantasy",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/research-fantasy-light-320.png",
+          "sha256": "8c41fb4b7417efe771f4a00a031174208371afb5f9ca2740cc23c96ef3e92482",
+          "route": "#research/fantasy",
+          "context": "research-fantasy",
+          "theme": "light",
+          "width": 320,
+          "height": 844
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-expanded-frame-native-2026-11-07/research-games.json",
+      "sha256": "3811578fb218a735b99f4a0532d36f5c86061a53eff158b80e783d0adc674403",
+      "captures": [
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/research-games-dark-390.png",
+          "sha256": "abde1f3ab233dd1492616cf10b340420fdb8962b5a7de013e2887092a6b480d0",
+          "route": "#research/games",
+          "context": "research-games",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/research-games-dark-320.png",
+          "sha256": "2995368bd830b7620b1a8fc4b8f799f07597c735cc1b0a5beec67c84b78f253f",
+          "route": "#research/games",
+          "context": "research-games",
+          "theme": "dark",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/research-games-light-390.png",
+          "sha256": "fb1e1e3dd9dfc90d2f4e8b006748cd2893f8b7ef42c3e66c489294f47b69e285",
+          "route": "#research/games",
+          "context": "research-games",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/research-games-light-320.png",
+          "sha256": "f6212b5930508391ff34e47c6a9b536e9c5ae85084162ebc7e3526bc593aa2f8",
+          "route": "#research/games",
+          "context": "research-games",
+          "theme": "light",
+          "width": 320,
+          "height": 844
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-expanded-frame-native-2026-11-07/research-teams.json",
+      "sha256": "13ddb46bcc06a5720d47b7eb4e7364b23e2761ea671920fa5d02b37e19bec807",
+      "captures": [
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/research-teams-dark-390.png",
+          "sha256": "8f12d607f6a73a4d4fba17666c049be1220c6af0cf90b90d0cc5ca1fab3a0bf8",
+          "route": "#research/teams",
+          "context": "research-teams",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/research-teams-dark-320.png",
+          "sha256": "f8b26b59050578249c34758d9acb461778f6bebfc813448026f714a33716837a",
+          "route": "#research/teams",
+          "context": "research-teams",
+          "theme": "dark",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/research-teams-light-390.png",
+          "sha256": "fa1dafaf6dfcfed6964b6dbbb4d400276f3e9d10506545b4ffc5c2b5e835cf3c",
+          "route": "#research/teams",
+          "context": "research-teams",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/research-teams-light-320.png",
+          "sha256": "8c3311cd525b279f509136a73ede056679d8c05b3a3673945849b988b1e9d393",
+          "route": "#research/teams",
+          "context": "research-teams",
+          "theme": "light",
+          "width": 320,
+          "height": 844
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-expanded-frame-native-2026-11-07/research-trends.json",
+      "sha256": "488a70ce58e272832ddca99912b6bddf5f72a7d1a6f9567ef3fadd7eb1531828",
+      "captures": [
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/research-trends-dark-390.png",
+          "sha256": "9d2cff5b97ce7d0c8f038936a375762b5e0f568f43d3200277afe5a00ef07c09",
+          "route": "#research/trends?period=all",
+          "context": "research-trends",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/research-trends-dark-320.png",
+          "sha256": "1b6c202ba1b647f062bd695a7f86851ec5b8041bd369c0f926f574834692739a",
+          "route": "#research/trends?period=all",
+          "context": "research-trends",
+          "theme": "dark",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/research-trends-light-390.png",
+          "sha256": "dd6b6e7ee935ea56a1504e04a5b9f924b33f02df0d4575b54daf28dc0f281594",
+          "route": "#research/trends?period=all",
+          "context": "research-trends",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/research-trends-light-320.png",
+          "sha256": "fc9594615a4575a892e7733b6a681f096cd9ef8f59136bb523bb68dfcdf5e537",
+          "route": "#research/trends?period=all",
+          "context": "research-trends",
+          "theme": "light",
+          "width": 320,
+          "height": 844
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-expanded-frame-native-2026-11-07/virtual-production-dock.json",
+      "sha256": "4fdc0426d10e9a866fac7026e15d06829cfe6b324cfb7ecfbda8ce228161e376",
+      "captures": [
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/virtual-production-dock-dark-390.png",
+          "sha256": "e154258b0f5c48c5bcb75e883e163ad658d1b91f9f93d3841851d3b5ca647764",
+          "route": "#bets/virtual",
+          "context": "bets-virtual",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/virtual-production-dock-dark-320.png",
+          "sha256": "a22b18bc11de3feff4171219b877800aedeebed0e7bd0b64eced64f3ba3b86ea",
+          "route": "#bets/virtual",
+          "context": "bets-virtual",
+          "theme": "dark",
+          "width": 320,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/virtual-production-dock-light-390.png",
+          "sha256": "9132463929d0b64eec90e445223d945d36f5cbc675474f44935a3e190962eeac",
+          "route": "#bets/virtual",
+          "context": "bets-virtual",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        {
+          "file": "design/prism-expanded-frame-native-2026-11-07/virtual-production-dock-light-320.png",
+          "sha256": "f87505d305396bf3cacf76d12ea75d40e9cf9b47ccef0beaf9ca1682263cd1d9",
+          "route": "#bets/virtual",
+          "context": "bets-virtual",
+          "theme": "light",
+          "width": 320,
+          "height": 844
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-research-root-navigation-native-2026-11-07/navigation-epl.json",
+      "sha256": "ec17034d9a313e90a480ff5cf2f65f4c81cd23e86b0700d472a1aff56f71212e",
+      "captures": [
+        {
+          "file": "design/prism-research-root-navigation-native-2026-11-07/navigation-epl-dark-390.png",
+          "sha256": "81c046d57a73f9f7380b8ff7c051bbc5033bff19be1cf5ee1f58463a92aad7d4",
+          "theme": "dark",
+          "width": 390,
+          "height": 844,
+          "route": "#epl/research/fantasy"
+        },
+        {
+          "file": "design/prism-research-root-navigation-native-2026-11-07/navigation-epl-dark-320.png",
+          "sha256": "72861bc022f4c4acee199049ae8da157ef9deab51ebb34c593ea02c7437639e0",
+          "theme": "dark",
+          "width": 320,
+          "height": 844,
+          "route": "#epl/research/fantasy"
+        },
+        {
+          "file": "design/prism-research-root-navigation-native-2026-11-07/navigation-epl-light-390.png",
+          "sha256": "056b0d4513be037b049a362d47dd57bc027c855c3bb41fc042823965f5a5bc05",
+          "theme": "light",
+          "width": 390,
+          "height": 844,
+          "route": "#epl/research/fantasy"
+        },
+        {
+          "file": "design/prism-research-root-navigation-native-2026-11-07/navigation-epl-light-320.png",
+          "sha256": "8b29e82d2751582974d2b5dfb23e1b6aeba0a3f521cb321faa74bba9398d5d1f",
+          "theme": "light",
+          "width": 320,
+          "height": 844,
+          "route": "#epl/research/fantasy"
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-research-root-navigation-native-2026-11-07/navigation-layer-failed.json",
+      "sha256": "1ba145c0c8c9d8f6cda0211d8b3b14afaabba8998c163078a9ce2b6acf0c23b7",
+      "captures": [
+        {
+          "file": "design/prism-research-root-navigation-native-2026-11-07/navigation-layer-failed-dark-390.png",
+          "sha256": "2313aad58d800d8bb4e86fb71c663c6a1e7537b79b5bc3df3580766b4cb8afa0",
+          "theme": "dark",
+          "width": 390,
+          "height": 844,
+          "route": "#research"
+        },
+        {
+          "file": "design/prism-research-root-navigation-native-2026-11-07/navigation-layer-failed-dark-320.png",
+          "sha256": "5e3ac3ba37743c0df5713706d225198235c821d1d0f90a82c5065393a01a5fbc",
+          "theme": "dark",
+          "width": 320,
+          "height": 844,
+          "route": "#research"
+        },
+        {
+          "file": "design/prism-research-root-navigation-native-2026-11-07/navigation-layer-failed-light-390.png",
+          "sha256": "0b30db0e97a96dba430d15e5f3cfa4f30aa9df9d5ba3f2e55e9e8eddfc80c7e4",
+          "theme": "light",
+          "width": 390,
+          "height": 844,
+          "route": "#research"
+        },
+        {
+          "file": "design/prism-research-root-navigation-native-2026-11-07/navigation-layer-failed-light-320.png",
+          "sha256": "8d7218b6e2a9cc0d7fbabe42d0689b735e62acb985a8275ee470ddf33167f3be",
+          "theme": "light",
+          "width": 320,
+          "height": 844,
+          "route": "#research"
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-research-root-navigation-native-2026-11-07/navigation-nfl-only.json",
+      "sha256": "2ad95e154e169f9ad1609f0010e569a2377f9f9a888991c60ae19a6aa377ae57",
+      "captures": [
+        {
+          "file": "design/prism-research-root-navigation-native-2026-11-07/navigation-nfl-only-dark-390.png",
+          "sha256": "ef2e0080f16df50e0de5cec7ce86a0779200ad47bb45ac9292984bafaa0bdfe6",
+          "theme": "dark",
+          "width": 390,
+          "height": 844,
+          "route": "#research"
+        },
+        {
+          "file": "design/prism-research-root-navigation-native-2026-11-07/navigation-nfl-only-dark-320.png",
+          "sha256": "d39de54ce130b73da63e75cbe34490d74351b1c2d574df51f8da0a7c419c393d",
+          "theme": "dark",
+          "width": 320,
+          "height": 844,
+          "route": "#research"
+        },
+        {
+          "file": "design/prism-research-root-navigation-native-2026-11-07/navigation-nfl-only-light-390.png",
+          "sha256": "0def64d0a9853fdb512ee130da4756d29aede178a04ff18c332b16d994ed853b",
+          "theme": "light",
+          "width": 390,
+          "height": 844,
+          "route": "#research"
+        },
+        {
+          "file": "design/prism-research-root-navigation-native-2026-11-07/navigation-nfl-only-light-320.png",
+          "sha256": "a8ef68fe71d7155672e42286df31a824c2aafe4649e159dd68c78b6ebbcfd9bd",
+          "theme": "light",
+          "width": 320,
+          "height": 844,
+          "route": "#research"
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    },
+    {
+      "receipt": "design/prism-research-root-navigation-native-2026-11-07/navigation-nfl.json",
+      "sha256": "f434979f23b55294be3f9d99156a55c5253259883b77ed4edd8af0e068662983",
+      "captures": [
+        {
+          "file": "design/prism-research-root-navigation-native-2026-11-07/navigation-nfl-dark-390.png",
+          "sha256": "6501c85ac33cd0241d0ca1606544561156638c759a888ed316d15534888156cd",
+          "theme": "dark",
+          "width": 390,
+          "height": 844,
+          "route": "#research"
+        },
+        {
+          "file": "design/prism-research-root-navigation-native-2026-11-07/navigation-nfl-dark-320.png",
+          "sha256": "341ad9d626fd9655b6a5d173c677d930631f3d8701744ba33902e42937483f4d",
+          "theme": "dark",
+          "width": 320,
+          "height": 844,
+          "route": "#research"
+        },
+        {
+          "file": "design/prism-research-root-navigation-native-2026-11-07/navigation-nfl-light-390.png",
+          "sha256": "7b0f0f588c91b2cee29b6228367a468512ef5ed38adf0b1c81b0ead4d1a35d6d",
+          "theme": "light",
+          "width": 390,
+          "height": 844,
+          "route": "#research"
+        },
+        {
+          "file": "design/prism-research-root-navigation-native-2026-11-07/navigation-nfl-light-320.png",
+          "sha256": "6846197a322d9181685d3246d4d29b5deed3051e239a4568273e12d7fe6a5dbf",
+          "theme": "light",
+          "width": 320,
+          "height": 844,
+          "route": "#research"
+        }
+      ],
+      "computedPaintGeometryTargetsAndThemeProof": "See the SHA-256-bound receipt; no duplicated telemetry in this manifest."
+    }
+  ],
+  "retainedHistoricalEvidence": [
+    {
+      "directory": "design/prism-overview-frame-native-2026-11-07",
+      "sourceCommit": "ece0598063bb8ce616f1198176a431e3f7bac9ac",
+      "status": "frozen historical; not regenerated or relabeled",
+      "files": [
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/bets-dark-320-bottom.png",
+          "sha256": "2ab04b7b75a42c91af51dfba3af491453b7864da39168a70a58311ef65741306"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/bets-dark-320-full.png",
+          "sha256": "2e00996bb2636f23e447487a21e7d6d9b65db715d2942f01600403ce85dcdcd6"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/bets-dark-390-bottom.png",
+          "sha256": "4dd85360865b5050fd3b8328fa62409a6679f49690f63bcd85c769a8eb6e8706"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/bets-dark-390-full.png",
+          "sha256": "c50b461259b5180c2d295f86d93829d12e8fad7857291fe7b7416786c203ff6d"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/bets-dark-768-bottom.png",
+          "sha256": "1f75a6e61a8c68b4107686eabd25bc46cc2d92dd296b066c6ea5d9dfbd6b36f3"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/bets-dark-768-full.png",
+          "sha256": "0f8f9d283d4182e83399fa91ad8d5d78b644ae5090f7261c9b294d0819e4ff12"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/bets-dark-forced-320.png",
+          "sha256": "984835b0ea4e8a68bbc4a1ef23c0c8fb9a6f158f07c7829af98d82472bb397f0"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/bets-light-320-bottom.png",
+          "sha256": "a4aa4d1bff04d1b32deb42179b4520b78acd80266c0c52c88787fb859009baae"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/bets-light-320-full.png",
+          "sha256": "e688134402a3155c5f88c2b9c582ed65554bc3fda01d5eba5192a003378ba8c4"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/bets-light-390-bottom.png",
+          "sha256": "1fce9ec2bca4e4fc4b77e0a5c87adb80127d297b901ade29c82ba3de37617c9f"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/bets-light-390-full.png",
+          "sha256": "1a9204a91954533bdcdbb50babbd396a7d6677d998ea21d998ed47520df1dd94"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/bets-light-768-bottom.png",
+          "sha256": "118aa1c66031aebf4e15833c17bf3f198eb29d5cf270a9d0f1dbdbb4e1e79802"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/bets-light-768-full.png",
+          "sha256": "de9a9e6a1379b5c24e4014df9bd95cc95cea6b80bb017db119efa3b394643862"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/bets-light-forced-320.png",
+          "sha256": "8a3994ff6a1a15ac42094c6a471f78e971ff6a4214c020eeb98c5fc225b4bbc3"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/evidence.json",
+          "sha256": "a33eb38bbe01301d290b5c80908d34226d83311cd98f8f4b6424c5a513d6f335"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/home-dark-320-bottom.png",
+          "sha256": "fae5c3f9fafd122cdb38e63c656379745dd5c924d063dbe308ec400779ccc2b0"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/home-dark-320-full.png",
+          "sha256": "bfeb72655b5993040f298528e171a2416fdce260e15bda3a3f160da343b461d0"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/home-dark-390-bottom.png",
+          "sha256": "aac2582eb5b488d859cac8ac41ed42478e74fa1c4903768c7634e5fb8fb326b6"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/home-dark-390-full.png",
+          "sha256": "01a0583471e599b84621748854e67a24b4bdd998453adf6595ee9d03ffe3691d"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/home-dark-768-bottom.png",
+          "sha256": "b0897435bd8bef3651ea8a326e49e744f7032923962de1bea7b73cf9d132236a"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/home-dark-768-full.png",
+          "sha256": "1aa18fb3b36a5097005ea7fa027a497c3225d4beb720a149c7a4a78182746921"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/home-dark-forced-320.png",
+          "sha256": "04b5925e8b06444c6208b619db12d2ddce87de769ee8fb45cab316780ff6688a"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/home-light-320-bottom.png",
+          "sha256": "210ebe6b8f57f435c106e6cd0caf5b92270d9306ca8356ac0b904918ef1f2957"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/home-light-320-full.png",
+          "sha256": "f936a916f72f114aba8236f8a14e6cd342bec3c6ceb6ee2264585198630553a1"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/home-light-390-bottom.png",
+          "sha256": "f2ecbd9efa42a07f0a635b6dc10abb53a5deceb4ce6baeaa67aa442bf3d09202"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/home-light-390-full.png",
+          "sha256": "e25015888cb2b320dc7700afd261c243f246b91147d274547afe676a1e3a5d1f"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/home-light-768-bottom.png",
+          "sha256": "0b042c867325d45a908bd3d7bb7bd5281b7afb9a3e4ecc9bd8e3c8ba62dd190d"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/home-light-768-full.png",
+          "sha256": "c559780cdd48bc18382c589fb4fbe69525157d811217fc7b8b5a7ce327376b90"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/home-light-forced-320.png",
+          "sha256": "a6915817629c8715dec52145de716c6c1d60f17206580709880c51f33f20fb2d"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/open-ticket-dark-320-bottom.png",
+          "sha256": "4d52a3f35d8a69013e6875e4e365babac8326f1b96889b91220dfc266b15d842"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/open-ticket-dark-320-full.png",
+          "sha256": "4d62c491e347ef6dc1c61a94a61745a3316006ddd6699d8fdfc5e46872f7b9e3"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/open-ticket-dark-390-bottom.png",
+          "sha256": "b3ea4fd634992a1e9b00b1a9d83399b46dc99fb8d4680e0be8684580b9abe90f"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/open-ticket-dark-390-full.png",
+          "sha256": "b28651055e1e73754dd43ab140a0066264273f764ae51e8e9c7c04358811ec2f"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/open-ticket-light-320-bottom.png",
+          "sha256": "112e1a0f6ef2a84ca940b9871b4c275014a821efac973f9c077b23a80ab370d7"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/open-ticket-light-320-full.png",
+          "sha256": "83062719b1e94a4a4fd13025012ad3fada44e53dc038f9c546a47a52af1d7f71"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/open-ticket-light-390-bottom.png",
+          "sha256": "9f9aaa565b680fe40da27c284f399856c7d0538a8e275a7c2db457315d40dd46"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/open-ticket-light-390-full.png",
+          "sha256": "3d280c04c35e82875fdaeff639122cc9b6c839f2b86ba8d068941c6418400cc0"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/play-dark-320-bottom.png",
+          "sha256": "db04fa3974bfd290dfd4a179fe6328be02d8c9c45af135a8250a0b4b7789fd8a"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/play-dark-320-full.png",
+          "sha256": "d76b693aa063c1d70b04ce81b2e1a7578d1d79c2f4ef30d9dcd054ebfd50d313"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/play-dark-390-bottom.png",
+          "sha256": "7c5d136683d35d0bd11abc3a834eff189e886e9caa55a50fb1288c76b58f981b"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/play-dark-390-full.png",
+          "sha256": "546936b0ad22f26652d593ae5649bd867725cb01f5b4c8fdcfb25d2c824be7d8"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/play-dark-768-bottom.png",
+          "sha256": "57aa2048606dcf2ca0fead39c52c81f051b4d41a65816a7293707c2f188e3b17"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/play-dark-768-full.png",
+          "sha256": "52f00fa35aebe2e6596d018f98a353d4744f7c544312724e7bc1ab4d2e2a6903"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/play-dark-forced-320.png",
+          "sha256": "bedb9ed8d871cb43cdccfda53a12cea42403f3e92da3798dcac2a68f935dd74d"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/play-light-320-bottom.png",
+          "sha256": "be9ae37ae06dc77f73dce680d45711182b87c851f3cb6c969eec26a3cd303ef8"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/play-light-320-full.png",
+          "sha256": "221bf9974fb18104e7f792e882f4511a6d02f0e21b96dfb145d31d57ec06f505"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/play-light-390-bottom.png",
+          "sha256": "ec3fcccdd13c46f7ca88c1d992b8aed09ae018b365e90f592ebcf95d87d8d633"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/play-light-390-full.png",
+          "sha256": "d257bb6a935ce8993381f81101faceaaf1afc1721ec46369b8c7fee22af071b0"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/play-light-768-bottom.png",
+          "sha256": "ac3eb295cd971e0a8d9a860450917c69bdf33da4c22176de3ac90f943bc95bae"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/play-light-768-full.png",
+          "sha256": "1e42a770f228a38bc3455a69c6588c953e4d65246499a5f946585f43ecf2cdde"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/play-light-forced-320.png",
+          "sha256": "768d6d7c823e2c5e8f1128f637a3b9185fa59c56c451493fa219525827040ac2"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/settled-ticket-dark-320-bottom.png",
+          "sha256": "3da6a4a937256d5d02d6cd1e709e4eee752a52c2b52bcab1654f2a78899c125e"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/settled-ticket-dark-320-full.png",
+          "sha256": "17c6659193eeda6e3c0bac642312ceda616a2d0f64931d38e8138dff4df23041"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/settled-ticket-dark-390-bottom.png",
+          "sha256": "4e59f5588468f00650db38c44565ef030b8533c681480fbe7ccae0e225de7356"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/settled-ticket-dark-390-full.png",
+          "sha256": "0ba7af0377850ea1dd269a5c6f7ef35317d0798da936881d3bfb9b40d0bf9a21"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/settled-ticket-light-320-bottom.png",
+          "sha256": "f8d08fcbfd6dd11fc50ae8a68e0f3b387f0fc932e73d20ac5c4ce2b03176019e"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/settled-ticket-light-320-full.png",
+          "sha256": "fd034b88c32794768d6260f5df54e9f00021856f6c16702c2df45c864b556042"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/settled-ticket-light-390-bottom.png",
+          "sha256": "cda8d3e2889e393075ed5e0bbd57d54b701992c669d8452ca820cebd45c0700f"
+        },
+        {
+          "file": "design/prism-overview-frame-native-2026-11-07/settled-ticket-light-390-full.png",
+          "sha256": "cc267fd47a097f33d76c32bb3457e81f22db92ab6b300efcb1f1bbeecc00e43a"
+        }
+      ]
+    },
+    {
+      "directory": "design/prism-research-navigation-native-2026-11-07",
+      "sourceCommit": "1ba236960dfb8050538ba762b35e40eb2799e071",
+      "status": "frozen historical; not regenerated or relabeled",
+      "files": [
+        {
+          "file": "design/prism-research-navigation-native-2026-11-07/evidence.json",
+          "sha256": "44d1978f415a83783e1149e0b041b0f1cb7163d7cebc839e7d6b0c35f59ef690"
+        },
+        {
+          "file": "design/prism-research-navigation-native-2026-11-07/navigation-epl-dark-320.png",
+          "sha256": "72861bc022f4c4acee199049ae8da157ef9deab51ebb34c593ea02c7437639e0"
+        },
+        {
+          "file": "design/prism-research-navigation-native-2026-11-07/navigation-epl-dark-390.png",
+          "sha256": "81c046d57a73f9f7380b8ff7c051bbc5033bff19be1cf5ee1f58463a92aad7d4"
+        },
+        {
+          "file": "design/prism-research-navigation-native-2026-11-07/navigation-epl-light-320.png",
+          "sha256": "8b29e82d2751582974d2b5dfb23e1b6aeba0a3f521cb321faa74bba9398d5d1f"
+        },
+        {
+          "file": "design/prism-research-navigation-native-2026-11-07/navigation-epl-light-390.png",
+          "sha256": "056b0d4513be037b049a362d47dd57bc027c855c3bb41fc042823965f5a5bc05"
+        },
+        {
+          "file": "design/prism-research-navigation-native-2026-11-07/navigation-epl.json",
+          "sha256": "ec17034d9a313e90a480ff5cf2f65f4c81cd23e86b0700d472a1aff56f71212e"
+        },
+        {
+          "file": "design/prism-research-navigation-native-2026-11-07/navigation-layer-failed-dark-320.png",
+          "sha256": "050b501318f563857612a9465754d8767af03d4c04f96809546c7e04aed04e64"
+        },
+        {
+          "file": "design/prism-research-navigation-native-2026-11-07/navigation-layer-failed-dark-390.png",
+          "sha256": "7c627e3b5aaceb429ac81477e9410bd2a4db973802bdda51b5dce4571af36536"
+        },
+        {
+          "file": "design/prism-research-navigation-native-2026-11-07/navigation-layer-failed-light-320.png",
+          "sha256": "60bccdcb7220bea38b62e6aeb7bfca2774bf0dc2e5766337d636145320824012"
+        },
+        {
+          "file": "design/prism-research-navigation-native-2026-11-07/navigation-layer-failed-light-390.png",
+          "sha256": "0957cfb2a9d53158a3e8d79ca0cff9ac82c89ce4afc4aa3e97441c4d701e32fc"
+        },
+        {
+          "file": "design/prism-research-navigation-native-2026-11-07/navigation-layer-failed.json",
+          "sha256": "64d2575b0f7785515a69609a1cc7a9c4c5a76558c4f0b49826299add57f6392e"
+        },
+        {
+          "file": "design/prism-research-navigation-native-2026-11-07/navigation-nfl-dark-320.png",
+          "sha256": "252c8c9d5639ef879ecf8668b75847ce2be38b117b4a48ec94861a60a6bedfbd"
+        },
+        {
+          "file": "design/prism-research-navigation-native-2026-11-07/navigation-nfl-dark-390.png",
+          "sha256": "3b1db93804e6eca4f55e3adbc385cd702858520bc31b78ec639734fffc4cc7e5"
+        },
+        {
+          "file": "design/prism-research-navigation-native-2026-11-07/navigation-nfl-light-320.png",
+          "sha256": "61c6e6bed82e63683054e11228a0b15b9be3c1b6c18e3025eb57c457e6d75ff5"
+        },
+        {
+          "file": "design/prism-research-navigation-native-2026-11-07/navigation-nfl-light-390.png",
+          "sha256": "0518576a73b657e38d3a38c6135b6619eb701654f3faedc5bb866e661849e85d"
+        },
+        {
+          "file": "design/prism-research-navigation-native-2026-11-07/navigation-nfl-only-dark-320.png",
+          "sha256": "fcb1be1205ab7b6051218e5f24911889a4d4e907b7cc329ff94be3bfc5013e8e"
+        },
+        {
+          "file": "design/prism-research-navigation-native-2026-11-07/navigation-nfl-only-dark-390.png",
+          "sha256": "1eb6c52b498d3c38ecfa7b2177d62c249565862f3823bf93ef89b33a720dbea8"
+        },
+        {
+          "file": "design/prism-research-navigation-native-2026-11-07/navigation-nfl-only-light-320.png",
+          "sha256": "51bde59fed82b2f53a28f05add6cac6afb4d9d061ec7f76d7bff8903f482ef20"
+        },
+        {
+          "file": "design/prism-research-navigation-native-2026-11-07/navigation-nfl-only-light-390.png",
+          "sha256": "08d12f4c4538f44a79c3c2f8cfa1733446ead99e952303c73d766ed5a0899ed3"
+        },
+        {
+          "file": "design/prism-research-navigation-native-2026-11-07/navigation-nfl-only.json",
+          "sha256": "48addbf25eaeeeab3cbe35c512a0d6e1d9bbcb84e37aeb3711ad2d40f0b2cc52"
+        },
+        {
+          "file": "design/prism-research-navigation-native-2026-11-07/navigation-nfl.json",
+          "sha256": "d1905a438744b35b2b34e79e6d4689b7b202daed806b34bd9d177762f82b34e3"
+        }
+      ]
+    }
+  ],
+  "holds": [
+    "FEPL Research frame overlap requires the queued owner answer; default/fantasy aliases and local tabs all remain native."
+  ],
+  "continuityMapping": [
+    "Actual FantasyPage lazy failure at #research/fantasy retains compact named Research host.",
+    "Actual registered NFL HistoryPage lazy failure opened from Research retains compact History replacement; original preview did not name a production page ID.",
+    "NFL Research root Export layer failure retains native root and existing toast/reload behavior."
+  ],
+  "limits": [
+    "Outer-frame evidence, not reapproval of each per-area body or every unseen variant.",
+    "No hosted access, provider connection, release, physical-phone acceptance or M-41 enablement.",
+    "Trends fixture uses unmodified committed public 2021+ history with controlled future slate; fixture quotes/accounts/Points/EPL values are synthetic.",
+    "Generic error does not choose a frame. Locked/late/error/uncertain drafts and unpopulated Points profiles stay native.",
+    "The old58partial and16Research capture sets remain historical and unchanged."
+  ],
+  "captureCount": 128,
+  "verification": {
+    "strictNode": {
+      "passed": 104,
+      "failed": 0,
+      "skipped": 0,
+      "command": "node --test --test-concurrency=2 tests/next-confirmed-frame.test.mjs tests/next-shell-state.test.mjs tests/next-router.test.mjs tests/next-loading.test.mjs tests/next-tokens.test.mjs tests/theme-tokens.test.mjs tests/next-app-view.test.mjs tests/brand-mark.test.mjs tests/webfonts.test.mjs"
+    },
+    "vitest": {
+      "passed": 923,
+      "files": 92,
+      "failed": 0,
+      "skipped": 0,
+      "command": "node node_modules/vitest/vitest.mjs run"
+    },
+    "capture": {
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0
+    },
+    "regression": {
+      "passed": 46,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0,
+      "files": [
+        "next-shell.spec.js",
+        "next-play-nest.spec.js",
+        "next-points.spec.js",
+        "next-prism-score.spec.js",
+        "next-prism-history.spec.js",
+        "epl-navigation.spec.js",
+        "epl-moneyline-shell.spec.js"
+      ],
+      "selection": "--grep-invert Pick reminders (two unrelated reminder cases outside focused selection)"
+    },
+    "lazyLoading": {
+      "passed": 1,
+      "failed": 0,
+      "command": "node node_modules/@playwright/test/cli.js test --config .local/playwright.expanded-performance.config.js tests/performance/lazy-loading.spec.js"
+    },
+    "priorOverviewReplay": {
+      "passed": 11,
+      "note": "All11 overview/receipt cases passed in combined ordinary run; unrelated newly added fixture failures were fixed and final capture12 passed."
+    },
+    "typecheck": "passed",
+    "brandQa": "passed via python -X utf8 scripts/check-brand-docs.py",
+    "build": "npm run build:cloud passed with public test environment",
+    "privacy": "node scripts/check-cloud-boundary.mjs --bundle-only passed",
+    "captureAndHistoricalHashCheck": "128 fresh hashes/dimensions and80historical hashes verified",
+    "wholeBranchCi": "not claimed; root coordinates external stale expectations in four-tab-redesign/next-scroll-navigation/next-data"
+  }
+}

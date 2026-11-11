@@ -21,6 +21,7 @@ export const DESTINATION_ICONS = Object.freeze({
   // Menu
   members: 'people',
   commissioner: 'shieldCheck',
+  appInvite: 'userPlus', // Owner-selected public app invitation, separate from private league access.
   profile: 'circleUser',
   history: 'clock',
   export: 'download',
@@ -35,4 +36,5 @@ export const DESTINATION_ICONS = Object.freeze({
   finalScores: 'trophy',
   odds: 'plug',
   eplCorrections: 'chart',
+  eplScores: 'clipboardCheck', // Premier League weekly scores (Sleeper screenshot import)
 });

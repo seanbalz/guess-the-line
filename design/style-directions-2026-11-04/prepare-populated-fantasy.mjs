@@ -1,0 +1,27 @@
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+import {validateFantasyIndex} from '../../shared/fantasy-index.mjs';
+import {validateFantasySnapshot} from '../../shared/fantasy-rankings.mjs';
+import {playerProfile} from '../../shared/fantasy-tools.mjs';
+import {validateFantasyReview} from '../../shared/fantasy-review.mjs';
+const source='.local/fantasy-review-20261105/',out='design/style-directions-2026-11-04/';
+const indexBytes=fs.readFileSync(source+'index.json'),index=JSON.parse(indexBytes),validIndex=validateFantasyIndex(index);
+if(!validIndex.valid)throw Error(validIndex.errors.join('; '));
+const entry=index.snapshots.find(s=>s.week===9),bytes=fs.readFileSync(source+entry.file),sha256=crypto.createHash('sha256').update(bytes).digest('hex');
+if(sha256!==entry.sha256||bytes.length!==entry.bytes)throw Error('Published Fantasy bytes do not match index');
+const snapshot=JSON.parse(bytes),valid=validateFantasySnapshot(snapshot);
+if(!valid.valid||snapshot.week!==entry.week||snapshot.statsThroughWeek!==entry.statsThroughWeek)throw Error(valid.errors.join('; ')||'Wrong Fantasy coverage');
+const reviewEntry=index.reviews.find(r=>r.week===snapshot.week-1),reviewBytes=fs.readFileSync(source+reviewEntry.file),review=JSON.parse(reviewBytes),reviewSha=crypto.createHash('sha256').update(reviewBytes).digest('hex');
+if(reviewSha!==reviewEntry.sha256||reviewBytes.length!==reviewEntry.bytes||!validateFantasyReview(review).valid||review.status!==reviewEntry.status||review.week!==snapshot.week-1)throw Error('Invalid published accuracy review');
+const estimateBytes=fs.readFileSync(source+review.estimate.file),estimate=JSON.parse(estimateBytes);
+if(crypto.createHash('sha256').update(estimateBytes).digest('hex')!==review.estimate.sha256||!validateFantasySnapshot(estimate).valid||estimate.week!==review.week||estimate.generatedAt!==review.estimate.generatedAt)throw Error('Wrong historical estimate source');
+const estimatedPlayers=new Map(estimate.players.map(p=>[p.id,p]));
+for(const p of review.players){const original=estimatedPlayers.get(p.id);if(!original||original.weekly?.status!=='scheduled'||original.name!==p.name||original.team!==p.team||original.position!==p.position||JSON.stringify(original.weekly.stats)!==JSON.stringify(p.estimate))throw Error('Review estimate differs from publication '+p.id);}
+const names=["Ja'Marr Chase",'CeeDee Lamb','Justin Jefferson','Josh Allen','Bijan Robinson','Brock Bowers'];
+const featuredIds=names.map(name=>{const player=snapshot.players.find(p=>p.name===name);if(!player||!playerProfile(snapshot,player.id,{scoring:'ppr',passingTds:4}).summary.season.games)throw Error('Missing observed example '+name);return player.id;});
+const model={version:1,checkedOn:'2026-11-05',source:{index:'https://github.com/seanbalz/guess-the-line/releases/download/fantasy-data-2026/index.json',release:'https://github.com/seanbalz/guess-the-line/releases/tag/fantasy-data-2026',file:`https://github.com/seanbalz/guess-the-line/releases/download/fantasy-data-2026/${entry.file}`,indexSha256:crypto.createHash('sha256').update(indexBytes).digest('hex'),sha256,bytes:bytes.length,generatedAt:snapshot.generatedAt,asOf:snapshot.asOf,credit:'nflverse · CC BY 4.0'},snapshotAsset:'fantasy-snapshot.json',featuredIds,initialCompare:featuredIds.slice(0,2),selection:'Fixed named examples across WR, QB, RB and TE; observed-production browse order, not a performance ranking'};
+model.reviewSource={asset:'fantasy-review.json',file:`https://github.com/seanbalz/guess-the-line/releases/download/fantasy-data-2026/${reviewEntry.file}`,sha256:reviewSha,bytes:reviewBytes.length,week:review.week,status:review.status,generatedAt:review.generatedAt,estimate:{...review.estimate,url:`https://github.com/seanbalz/guess-the-line/releases/download/fantasy-data-2026/${review.estimate.file}`}};
+fs.writeFileSync(out+'fantasy-review.json',reviewBytes);
+fs.writeFileSync(out+'fantasy-snapshot.json',bytes);
+fs.writeFileSync(out+'populated-fantasy-data.json',JSON.stringify(model,null,2)+'\n');
+console.log(JSON.stringify({verified:true,players:snapshot.players.length,matchupTeams:Object.keys(snapshot.matchups).length,season:snapshot.season,week:snapshot.week,statsThroughWeek:snapshot.statsThroughWeek,bytes:bytes.length,sha256,examples:names,review:{week:review.week,status:review.status,estimates:review.players.length,sha256:reviewSha}}));

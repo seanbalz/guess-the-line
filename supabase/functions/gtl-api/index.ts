@@ -24,4 +24,6 @@ const nbaGames = createNbaGamesService({ apiKey: Deno.env.get('BALLDONTLIE_API_K
 // Lazy provider creation keeps normal game routes available if setup is incomplete.
 // D-28: the VAPID public key is public by design; the browser needs it to subscribe.
 // GTL_FEATURE_OFF: comma-separated feature names whose writers refuse (Gate M off switches, cloud/feature-off.mjs).
-Deno.serve(createCloudHandler({ ...adapter, nbaGames, oddsProvider: oddsKey ? () => createOddsProvider({ apiKey: oddsKey }) : null, pushPublicKey: Deno.env.get('VAPID_PUBLIC_KEY'), featureOff: Deno.env.get('GTL_FEATURE_OFF') }));
+Deno.serve(createCloudHandler({ ...adapter, nbaGames, oddsProvider: oddsKey ? () => createOddsProvider({ apiKey: oddsKey }) : null, pushPublicKey: Deno.env.get('VAPID_PUBLIC_KEY'), featureOff: Deno.env.get('GTL_FEATURE_OFF'),
+  // GTL_PLAYER_PROPS: "on" exposes the D-82 Player Props routes; unset (the default) keeps them answering 404 Not found.
+  playerProps: Deno.env.get('GTL_PLAYER_PROPS') }));

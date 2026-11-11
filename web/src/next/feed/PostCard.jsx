@@ -9,11 +9,12 @@ import { fmtNum, fmtPostTime, plural } from '../format.js';
 import { MARKET, codes, commentButton, gameName, guessText, lateWords, postLine, postLink, postMeta, reactionChips, realSlipPost, systemPost } from './feedModel.js';
 import { motionReduced } from '../ui/motion.js';
 import { onFeedChange, react } from './feedActions.js';
+import { shortName } from '../../communityFormat.js';
 
 /** A game id ("SEA-DEN") as marks (D-62): away, "@", home; "—" when the id is not two codes. */
-export function FeedGame({ gameId }) {
+export function FeedGame({ gameId, size = 24, showCodes = true }) {
   const { away, home } = codes(gameId);
-  return away && home ? <Matchup away={away} home={home}/> : gameName(gameId);
+  return away && home ? <Matchup away={away} home={home} size={size} codes={showCodes}/> : gameName(gameId);
 }
 
 function BallotRows({ post, names, viewer, shell }) {
@@ -37,9 +38,13 @@ function BallotRows({ post, names, viewer, shell }) {
 function ResultEmbed({ post }) {
   const e = post.embed ?? {}, market = MARKET[post.mode] ?? '';
   if (!e.visible) return <div className="gx-feed-embed"><LockLine>Lock in your {market} pick for <FeedGame gameId={e.gameId}/> to see this result.</LockLine></div>;
-  return <div className="gx-feed-embed gx-vstack gx-gap-4">
-    <p className="gx-n-m">{guessText(post.mode, e.gameId, e.pick)} · {fmtNum(e.points)} PTS</p>
-    <p className="gx-t-meta gx-c-2">{market} · <FeedGame gameId={e.gameId}/>{e.points === 10 ? ' · Exact' : ''}</p>
+  const scored = Number.isFinite(e.points);
+  const { away, home } = codes(e.gameId);
+  return <div className="gx-feed-embed gx-feed-result">
+    <div className="gx-feed-result-game"><FeedGame gameId={e.gameId} size={48} showCodes={false}/>{away && home ? <div className="gx-feed-result-teams gx-t-meta" aria-hidden="true"><span>{shortName(away)}</span><span>{shortName(home)}</span></div> : null}</div>
+    <div className="gx-feed-result-value"><strong>{scored ? fmtNum(e.points) : '—'} <small>/ 10</small></strong><span className="gx-t-meta gx-c-2">{market} accuracy points{e.points === 10 ? ' · Exact' : ''}</span></div>
+    <p className="gx-t-body">{guessText(post.mode, e.gameId, e.pick)}</p>
+    {scored ? <div className="gx-feed-result-bar" role="meter" aria-label="Accuracy points" aria-valuemin={0} aria-valuemax={10} aria-valuenow={e.points}><span style={{ width: `${Math.max(0, Math.min(10, e.points)) * 10}%` }}/></div> : null}
   </div>;
 }
 
@@ -79,7 +84,7 @@ export function ReactionRow({ post, leagueId }) {
     </button>)}
     <IconButton icon="plus" size={16} label="Add a reaction" className="gx-feed-chip gx-feed-chip--add" onClick={() => shell.openPopover('pop.reactions', { postId: post.id, reactions: post.reactions, leagueId })}/>
     <span className="gx-grow"></span>
-    <Button variant="ghost-2" icon="message" className="gx-feed-cbtn" aria-label={comments.label} onClick={() => shell.openSheet('sh.comments', { postId: post.id, kind: post.kind, gameId: post.embed?.games?.[0]?.gameId ?? null })}>
+    <Button variant="ghost-2" icon="message" className="gx-feed-cbtn" aria-label={comments.label} onClick={() => shell.openSheet('sh.comments', { postId: post.id, kind: post.kind, actorId: post.actorId, mode: post.mode, week: post.week, gameId: post.embed?.games?.[0]?.gameId ?? null })}>
       <span aria-hidden="true">{comments.text}</span>
     </Button>
   </div>;
@@ -94,11 +99,11 @@ export function PostCard({ post, names, viewer, now, leagueId, isNew = false, ar
     <div className="gx-feed-head">
       {system ? <FieldMark size={40} className="gx-feed-sys"/> : <Avatar id={post.actorId} name={actor} size={40}/>}
       <div className="gx-grow gx-vstack gx-gap-2">
-        <p className="gx-t-body">{system ? <span className="gx-t-strong">{line}</span> : <><span className="gx-t-strong">{actor}{post.actorId === viewer ? ' (you)' : ''}</span> <span className="gx-c-2">{line}</span></>}</p>
+        {system ? <p className="gx-t-strong">{line}</p> : <><p className="gx-t-strong">{actor}{post.actorId === viewer ? ' (you)' : ''}</p><p className="gx-t-body gx-c-2">{line}</p></>}
         {(realSlipPost(post) || late) ? <span className="gx-hstack gx-gap-8 gx-wrap">{realSlipPost(post) ? <Pill tone="real">Real slip</Pill> : null}{late ? <Pill tone="pending">{late}</Pill> : null}</span> : null}
+        <time className="gx-t-meta gx-c-2" dateTime={post.createdAt}>{fmtPostTime(post.createdAt, now)}</time>
       </div>
       {isNew ? <NewPill/> : null}
-      <time className="gx-t-meta gx-c-2 gx-none" dateTime={post.createdAt}>{fmtPostTime(post.createdAt, now)}</time>
     </div>
     {meta ? <p className="gx-t-meta gx-c-2">{meta}</p> : null}
     {post.kind === 'ballot_submitted' ? <BallotRows post={post} names={names} viewer={viewer} shell={shell}/> : null}
@@ -108,7 +113,7 @@ export function PostCard({ post, names, viewer, now, leagueId, isNew = false, ar
     <ReactionRow post={post} leagueId={leagueId}/>
     {preview.length ? <div className="gx-vstack gx-gap-4 gx-feed-preview">
       {preview.map(comment => <p key={comment.id} className="gx-feed-cm"><span className="gx-t-meta gx-c-2 gx-none">{names.get(comment.userId)?.displayName || 'Former member'}</span> <span className="gx-feed-cm-text">{comment.body}</span></p>)}
-      {post.commentCount > preview.length ? <Button variant="ghost-2" className="gx-feed-act" onClick={() => shell.openSheet('sh.comments', { postId: post.id, kind: post.kind })}>View all {post.commentCount}</Button> : null}
+      {post.commentCount > preview.length ? <Button variant="ghost-2" className="gx-feed-act" onClick={() => shell.openSheet('sh.comments', { postId: post.id, kind: post.kind, actorId: post.actorId, mode: post.mode, week: post.week })}>View all {post.commentCount}</Button> : null}
     </div> : null}
   </Card>;
 }

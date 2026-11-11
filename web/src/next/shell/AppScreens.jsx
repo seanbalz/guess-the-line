@@ -7,10 +7,13 @@
 // - RemovedScreen and AccessPending show inside the frame, in place of the tab: the league pill, the menu and the
 //   tab bar still work, so the member can switch league or reload the app. Nothing the member entered is hidden by
 //   them (D-23): the server already refuses these reads, and these screens say so in plain words.
+import { PrismBrand } from '../ui/PrismBrand.jsx';
+import '../me/accountPrism.css';
+import '../me/accessPrism.css';
 import { useId } from 'react';
 import { APP_RELOAD_COPY } from '../../appView.js';
 import { useDashboardPreferences } from '../../dashboardPreferences.js';
-import { Button, FieldMark, Icon, Skeleton } from '../ui/index.js';
+import { Button, Icon, Skeleton } from '../ui/index.js';
 
 export const APP_SCREENS_COPY = Object.freeze({
   name: 'Guess The Line',
@@ -38,10 +41,11 @@ export function FrameRoot({ children }) {
 /** While `/lobby` loads: the monogram and one sentence, announced. */
 export function StartScreen() {
   return (
-    <main className="gx-solo" id="main">
+    <main className="gx-solo gx-start-prism" id="main">
       <h1 className="gx-sr-only">{APP_SCREENS_COPY.name}</h1>
-      <FieldMark size={80}/>
-      <Skeleton label={APP_SCREENS_COPY.loading} shape="lines" count={2}/>
+      <div className="gx-access-brand"><PrismBrand/><strong>Guess The Line</strong></div>
+      <section className="gx-start-panel"><h2>Getting your game ready.</h2><Skeleton label={APP_SCREENS_COPY.loading} shape="panels" count={2}/></section>
+
     </main>
   );
 }
@@ -54,8 +58,8 @@ export function LoadFailed({ error, busy, onRetry, onReload, onSignOut }) {
   const id = useId();
   const refused = typeof error?.status === 'number' && error.status >= 400 && error.status < 500 && typeof error.message === 'string' && error.message;
   return (
-    <main className="gx-solo" id="main">
-      <FieldMark size={56}/>
+    <main className="gx-solo gx-start-prism" id="main">
+      <div className="gx-access-brand"><PrismBrand/><strong>Guess The Line</strong></div>
       <section className="gx-fail gx-solo-card" role="alert" aria-labelledby={id}>
         <Icon icon="alert" size={20} className="gx-c-loss"/>
         <h1 className="gx-t-section" id={id}>{APP_SCREENS_COPY.failedTitle}</h1>
@@ -71,9 +75,9 @@ export function LoadFailed({ error, busy, onRetry, onReload, onSignOut }) {
 /** The Community refused this account (`/community/read` 403 after the name step): the commissioner removed it. */
 export function RemovedScreen({ hasGroups, onLeagues, onReload }) {
   return (
-    <div className="gx-screen">
+    <div className="gx-screen gx-access-cover">
       <h1 className="gx-t-title">{APP_SCREENS_COPY.removedTitle}</h1>
-      <section className="gx-empty" aria-label={APP_SCREENS_COPY.removedTitle}>
+      <section className="gx-empty" aria-label={APP_SCREENS_COPY.removedTitle}><span className="gx-account-icon gx-access-cover-icon"><Icon icon="people" size={32}/></span>
         <p className="gx-t-body">{APP_SCREENS_COPY.removedBody}</p>
         <p className="gx-t-body gx-c-2">{APP_SCREENS_COPY.removedHelp}</p>
         {hasGroups ? <Button variant="secondary" block onClick={onLeagues}>{APP_SCREENS_COPY.yourLeagues}</Button> : null}
@@ -86,9 +90,9 @@ export function RemovedScreen({ hasGroups, onLeagues, onReload }) {
 /** The saved league is one this account is not in (any more, or not yet). */
 export function AccessPending({ name, onCommunity, onLeagues }) {
   return (
-    <div className="gx-screen">
+    <div className="gx-screen gx-access-cover">
       <h1 className="gx-t-title">{APP_SCREENS_COPY.pendingTitle}</h1>
-      <section className="gx-empty" aria-label={APP_SCREENS_COPY.pendingTitle}>
+      <section className="gx-empty" aria-label={APP_SCREENS_COPY.pendingTitle}><span className="gx-account-icon gx-access-cover-icon"><Icon icon="lock" size={32}/></span>
         <p className="gx-t-body">{APP_SCREENS_COPY.pendingBody(name)}</p>
         <Button variant="secondary" block onClick={onCommunity}>{APP_SCREENS_COPY.toCommunity}</Button>
         <Button variant="ghost" onClick={onLeagues}>{APP_SCREENS_COPY.yourLeagues}</Button>

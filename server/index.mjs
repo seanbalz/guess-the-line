@@ -6,11 +6,12 @@ import { createStore } from './store.mjs';
 import { SubmissionReferenceError } from './engine.mjs';
 import { SocialError } from '../shared/social-bets.mjs';
 // Served under X-Content-Type-Options: nosniff, so every published asset type needs an entry; unknown types stay octet-stream.
-const mimeTypes = {'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp','.ico':'image/x-icon','.webmanifest':'application/manifest+json','.json':'application/json','.txt':'text/plain'};
+const mimeTypes = {'.gz':'application/gzip','.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp','.ico':'image/x-icon','.webmanifest':'application/manifest+json','.json':'application/json','.txt':'text/plain'};
 export function createServer(store = createStore(), { dist = path.resolve(import.meta.dirname, '../dist') } = {}) {
   return http.createServer(async (req,res) => {
     res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','same-origin');res.setHeader('X-Frame-Options','DENY');
-    res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
+    // EPL stage 3: only the self-hosted OCR worker files (/ocr/) may compile WebAssembly, as in web/public/_headers.
+    res.setHeader('Content-Security-Policy',/^\/ocr\//.test(req.url || '')?"default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'":"default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
     const send = (status,data) => {res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
     try {
       if(!/^(localhost|127\.0\.0\.1):\d+$/.test(req.headers.host || '')) return send(403,{error:'This workspace is only available on localhost.'});

@@ -1,5 +1,6 @@
 import React, { useId, useState } from 'react';
-import { Check } from 'lucide-react';
+import { Check, Minus, Plus } from 'lucide-react';
+import { adjustTicketOdds, adjustTicketUnits } from './betEntryAdjustments.js';
 import './betEntryControls.css';
 
 const present = value => value !== '' && value !== null && value !== undefined;
@@ -24,13 +25,21 @@ export function ChoiceButtons({ label, options, value, onChange, disabled = fals
   </div></fieldset>;
 }
 
-export function NumberChoices({ label, value, onChange, presets, format = String, disabled = false, allowUnknown = false, required = false, step = '0.01', min, max, adjust, children }) {
+export function NumberChoices({ label, value, onChange, presets, format = String, disabled = false, allowUnknown = false, required = false, step = '0.01', min, max, adjust, ticketAdjust, children }) {
   const id = useId(), [custom, setCustom] = useState(false);
   const hasValue = present(value), numeric = Number(value);
   const showCustom = custom || (hasValue && !presets.includes(numeric));
   const choose = next => { onChange(next); setCustom(false); };
+  const adjustment = direction => ticketAdjust === 'odds' ? adjustTicketOdds(value, direction) : adjustTicketUnits(value, direction, min, max);
+  const lower = ticketAdjust ? adjustment(-1) : null, higher = ticketAdjust ? adjustment(1) : null;
+  const tap = ticketAdjust === 'odds' ? 5 : 0.1;
   return <fieldset className="social-entry-field social-entry-numbers" disabled={disabled}><legend>{label}</legend>
     {children}
+    {ticketAdjust && <><div className="social-ticket-adjustment" data-unknown={!hasValue} role="group" aria-label={`Adjust ${label}`}>
+      <button type="button" className="social-entry-option" aria-label={`Decrease ${label} by ${tap}`} disabled={disabled || lower === null} onClick={() => choose(lower)}><Minus size={20} aria-hidden="true"/></button>
+      <output aria-live="polite" aria-atomic="true">{hasValue && Number.isFinite(numeric) ? format(numeric) : 'Unknown'}</output>
+      <button type="button" className="social-entry-option" aria-label={`Increase ${label} by ${tap}`} disabled={disabled || higher === null} onClick={() => choose(higher)}><Plus size={20} aria-hidden="true"/></button>
+    </div><small className="social-ticket-step-note">{hasValue ? `Each tap: ${tap}${ticketAdjust === 'units' ? 'U' : ' points'}` : 'Choose a preset to enable − / +.'}</small></>}
     <div className="social-entry-options">{presets.map(option => {
       const selected = hasValue && numeric === option;
       return <button className="social-entry-option" key={option} type="button" aria-pressed={selected} disabled={disabled} onClick={() => choose(option)}>{selected && <Check size={16} aria-hidden="true"/>}{format(option)}</button>;
@@ -66,8 +75,9 @@ export function MatchupChoices({ games, value, onChange, disabled }) {
     {!matches.length && <p role="status" className="social-help">No matching game in this week.</p>}</div>;
 }
 
-const books = ['DraftKings', 'FanDuel', 'BetMGM', 'Caesars', 'BetRivers', 'Novig'];
-const moreBooks = ['Fanatics', 'Hard Rock Bet', 'bet365', 'Circa Sports', 'Pinnacle', 'Sporttrade', 'BetOnline', 'Bovada', 'Wager5', 'ProphetX', 'Fliff', 'Rebet', 'BetUS', 'MyBookie', 'Heritage Sports', 'Bally Bet', 'SuperBook', 'Betfred', 'William Hill', 'Unibet', 'PointsBet', 'ESPN BET', 'theScore Bet', 'PrizePicks', 'Underdog', 'Sleeper', 'Dabble'];
+// Manual source catalog. A label does not indicate a provider connection.
+const books = ['DraftKings', 'FanDuel', 'BetMGM', 'Caesars', 'BetRivers', 'Novig', 'Fanatics', 'Hard Rock Bet', 'bet365', 'Circa Sports', 'Pinnacle', 'BetOnline'];
+const moreBooks = ['Sporttrade', 'Bovada', 'Wager5', 'ProphetX', 'Fliff', 'Rebet', 'BetUS', 'MyBookie', 'Heritage Sports', 'Bally Bet', 'SuperBook', 'Betfred', 'William Hill', 'Unibet', 'PointsBet', 'ESPN BET', 'theScore Bet', 'PrizePicks', 'Underdog', 'Sleeper', 'Dabble'];
 export function BookChoices({ value, onChange, disabled, required }) {
   const [custom, setCustom] = useState(false), [search, setSearch] = useState(''), id = useId();
   const matches = [...books, ...moreBooks].filter(book => book.toLowerCase().includes(search.trim().toLowerCase()));
@@ -77,7 +87,7 @@ export function BookChoices({ value, onChange, disabled, required }) {
       {!required && <button className="social-entry-option" type="button" aria-pressed={!value} disabled={disabled} onClick={() => { onChange(''); setCustom(false); }}>{!value && <Check size={16} aria-hidden="true"/>}Unknown</button>}
       <button className="social-entry-option" type="button" aria-expanded={showCustom} aria-controls={id} disabled={disabled} onClick={() => setCustom(open => !open)}>Custom</button>
     </div>
-    <details className="social-more-books" open={moreBooks.includes(value)||undefined}><summary>More sportsbooks</summary>
+    <details className="social-more-books" open={moreBooks.includes(value)||undefined}><summary>More sportsbooks &amp; sources ({moreBooks.length})</summary>
       <label>Find sportsbook<input type="search" value={search} disabled={disabled} placeholder="Book, exchange or pick’em app" onChange={event=>setSearch(event.target.value)} onKeyDown={event=>{if(event.key==='Enter')event.preventDefault();}}/></label>
       <div className="social-entry-options">{(search.trim()?matches:moreBooks).map(book=><button className="social-entry-option" key={book} type="button" aria-pressed={value===book} disabled={disabled} onClick={()=>{onChange(book);setCustom(false);}}>{value===book&&<Check size={16} aria-hidden="true"/>}{book}</button>)}</div>
       {!matches.length&&<p role="status" className="social-help">No match. Use Custom to enter the source on your ticket.</p>}

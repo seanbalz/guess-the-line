@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { HOSTED } from '../migrations.mjs';
 import { SUPABASE, communityWorld, pgliteAvailable, signIn } from './community-world.mjs';
-import { chooseMarket, gameCard, openGame, openWeek } from './play-nest.mjs';
+import { openPicksWeek, chooseMarket, gameCard, openGame, openWeek } from './play-nest.mjs';
 
 // D-70 Play › Your guesses as nesting cards (docs/superpowers/specs/2026-11-02-play-picks-nesting-cards-design.md):
 // the week's game tiles, then one game's card, on the real shell and router. Fictional /personal reads and writes over
@@ -36,7 +36,7 @@ async function fixture(page, baseURL, { beforeSignIn } = {}) {
   await beforeSignIn?.({ world, personal });
   await signIn(page, 'luke');
   await tabs(page).getByRole('button', { name: /^Play(,|$)/ }).click();
-  await page.getByRole('button', { name: 'Make picks', exact: true }).click();
+  await openPicksWeek(page);
   await expect(page.locator('.gx-per-game [data-tile]').first()).toBeVisible();
   return { ...world, personal, writes, dialogs };
 }
@@ -107,7 +107,7 @@ test('the week is one tile per game; a tile opens its card; Lock in then Next sw
     await expect(page.locator('[data-play="count"]')).toHaveText(`2 of ${world.personal.games.length} locked`);
     await expect(page.locator(`[data-tile="${first.id}"]`)).toHaveAttribute('data-state', 'locked');
     await page.goBack();
-    await expect(page.locator('[data-landing="play"] [data-play="hero"]').getByRole('button', { name: 'Make picks', exact: true })).toBeVisible();
+    await expect(page.locator('[data-landing="play"] .gx-play-overview-picks')).toBeVisible();
     expect(world.dialogs).toEqual([]);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }

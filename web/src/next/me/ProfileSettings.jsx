@@ -1,11 +1,13 @@
+import { AccountSheet } from './AccountSheet.jsx';
 // Existing /profile workflow, with an explicit save. A stored draft never overwrites the account on mount.
 import { useEffect, useId, useRef, useState } from 'react';
 import { readNextDraft, removeNextDraft, writeNextDraft } from '../../nextDrafts.js';
 import { useAppData } from '../data/AppData.jsx';
 import { profileName } from '../data/account.js';
 import { useShell } from '../shell/context.js';
-import { Avatar, Button, Card, Sheet } from '../ui/index.js';
+import { Avatar, Button, Card } from '../ui/index.js';
 import './profile.css';
+import './accountPrism.css';
 
 export const PROFILE_DRAFT = 'profile-name';
 const MAX_NAME = 60;
@@ -31,6 +33,7 @@ export function ProfileSettings() {
     lifetime.current = scope;
     return () => { if (lifetime.current === scope) lifetime.current = null; };
   }, [app.accountId]);
+  const formId = useId();
   const fieldId = useId(), helpId = useId(), problemId = useId();
   const clean = draft.text.trim(), dirty = draft.text !== draft.base || !!draft.pending;
   const { setDirty } = shell;
@@ -103,24 +106,24 @@ export function ProfileSettings() {
     } finally { if (lifetime.current === scope) { request.current = false; setBusy(false); } }
   }
   function leave(next) { if (!request.current && shell.confirmLeave()) next(); }
-  return <Sheet title="Profile" back={{ label: 'Menu', onBack: () => leave(() => shell.setSheetArgs({ sub: null })) }} onClose={() => leave(shell.closeSheet)}>
+  return <AccountSheet className="gx-account-prism gx-profile-prism" footer={<div className="gx-account-stack">{draft.pending ? <>
+        {!problem && <p className="gx-t-body">A save needs checking. Your draft is kept; no request will be sent again automatically.</p>}
+        <Button variant="primary" block onClick={check} aria-disabled={!!busy || undefined}>{busy === 'save' ? 'Saving…' : busy ? 'Checking…' : 'Check if it saved'}</Button>
+      </> : <Button type="submit" form={formId} variant="primary" block aria-disabled={!!busy || !dirty || undefined}>{busy ? 'Saving…' : 'Save name'}</Button>}<p className="gx-account-footer">Changes save to your account.</p></div>} title="Profile" back={{ label: 'Menu', onBack: () => leave(() => shell.setSheetArgs({ sub: null })) }} onClose={() => leave(shell.closeSheet)}>
     <Card className="gx-profile-account"><Avatar id={app.accountId} name={app.name} size={56}/><div>
       <p className="gx-t-strong">{app.name}</p><p className="gx-t-meta">{app.email}</p>
     </div></Card>
-    <form className="gx-profile-form" onSubmit={submit} noValidate>
+    <form id={formId} className="gx-profile-form" onSubmit={submit} noValidate>
       <label className="gx-field" htmlFor={fieldId}><span className="gx-t-strong">Display name</span>
         <input ref={input} id={fieldId} className="gx-input" autoComplete="nickname" maxLength={MAX_NAME} value={draft.text}
           readOnly={!!busy || !!draft.pending} aria-describedby={`${helpId} ${problemId}`} aria-invalid={problem && (!clean || clean.length > MAX_NAME || /[\x00-\x1f\x7f]/.test(clean)) ? true : undefined}
           onChange={event => { keep({ ...draft, text: event.target.value }); setProblem(''); setNotice(''); }}/>
       </label>
       <p className="gx-t-meta" id={helpId}>Friends see this name across your leagues. Up to 60 characters.</p>
-      {dirty && <p className="gx-t-meta">{kept ? 'Unsaved draft kept in this tab. It is cleared when you sign out.' : 'This browser is not keeping the draft. Keep this screen open until you save.'}</p>}
+      {dirty && <p className="gx-account-draft-note">{kept ? 'Unsaved draft kept in this tab. It is cleared when you sign out.' : 'This browser is not keeping the draft. Keep this screen open until you save.'}</p>}
       <div role="alert" id={problemId}>{problem && <p className="gx-t-body gx-profile-problem">{problem}</p>}</div>
       <p className="gx-t-body" role="status">{notice}</p>
-      {draft.pending ? <>
-        {!problem && <p className="gx-t-body">A save needs checking. Your draft is kept; no request will be sent again automatically.</p>}
-        <Button variant="primary" block onClick={check} aria-disabled={!!busy || undefined}>{busy === 'save' ? 'Saving…' : busy ? 'Checking…' : 'Check if it saved'}</Button>
-      </> : <Button type="submit" variant="primary" block aria-disabled={!!busy || !dirty || undefined}>{busy ? 'Saving…' : 'Save name'}</Button>}
+
     </form>
-  </Sheet>;
+  </AccountSheet>;
 }

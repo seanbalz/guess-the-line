@@ -65,7 +65,7 @@ const test = base.extend({
 const googleButton = page => page.getByRole('button', { name: 'Continue with Google', exact: true });
 
 for (const theme of ['light', 'dark']) for (const width of [320, 390, 1440]) {
-  test(`the Google button renders at ${width}px in ${theme} with a 44px target, 16px text and tokens only`, async ({ page, auth }, testInfo) => {
+  test(`the Google button renders at ${width}px in ${theme} with a 44px target, 16px text and selected glass tokens`, async ({ page, auth }, testInfo) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/');
     await page.getByLabel('Color theme').selectOption(theme);
@@ -81,15 +81,21 @@ for (const theme of ['light', 'dark']) for (const width of [320, 390, 1440]) {
       // Sample settled colors, not a mid-transition blend after the theme switch.
       await page.evaluate(() => Promise.all(document.getAnimations().map(animation => animation.finished.catch(() => {}))));
       const style = await button.evaluate(element => {
-        const css = getComputedStyle(element), root = getComputedStyle(document.documentElement), probe = document.createElement('span');
-        document.body.append(probe);
-        const resolve = name => { probe.style.color = root.getPropertyValue(name).trim(); return getComputedStyle(probe).color; };
-        const result = { fontSize: css.fontSize, color: css.color, background: css.backgroundColor, border: css.borderTopColor, text: resolve('--text'), surface: resolve('--surface'), line: resolve('--border') };
+        const css = getComputedStyle(element), probe = document.createElement('span');
+        // Resolve the selected native tokens in the button's scope; legacy :root
+        // variables belong to the old sign-in appearance, before the approved port.
+        element.append(probe);
+        probe.style.cssText = 'color:var(--gx-text-1);background:var(--gx-card-face);border:1px solid var(--gx-border)';
+        const token = getComputedStyle(probe);
+        const result = { fontSize: css.fontSize, color: css.color, background: css.backgroundColor, image: css.backgroundImage, border: css.borderTopColor, text: token.color, surface: token.backgroundColor, face: token.backgroundImage, line: token.borderTopColor };
         probe.remove(); return result;
       });
       expect(style.fontSize).toBe('16px');
+      await expect(page.getByLabel('Email',{exact:true})).toHaveCSS('font-size','16px');
+      await expect(page.getByLabel('Password',{exact:true})).toHaveCSS('font-size','16px');
       expect(style.color).toBe(style.text);
       expect(style.background).toBe(style.surface);
+      expect(style.image).toBe(style.face);
       expect(style.border).toBe(style.line);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     }

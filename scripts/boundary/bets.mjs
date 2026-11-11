@@ -7,6 +7,8 @@ export const tables = Object.freeze([
 ]);
 
 export const rpcChecks = Object.freeze([
+  ['gtl_virtual_unit_rules', {}],
+  ['gtl_virtual_units_supported', { p_units: 0.01 }],
   // Private NBA account capabilities, independent of NFL membership.
   ['gtl_nba_claim_games', { p_date: '2026-10-21', p_refresh: false }],
   ['gtl_nba_finish_games', { p_date: '2026-10-21', p_token: missingId, p_games: null }],
@@ -64,5 +66,6 @@ export const workerChecks = Object.freeze([
 // (RELEASE_2026_10_27_FEED_MIGRATIONS.md).
 // M-11 (stage 41) is hosted as 20261029041843 since October 29, 2026, after /bets/place shipped in the 1998e4c gtl-api
 // release (RELEASE_2026_10_29_M11.md).
-export const awaitingDeploy = Object.freeze({
-});
+// M-41 is hosted as 20261110203637 since November 10, 2026, after the compatible API/Pages release from 1ba75282
+// (RELEASE_2026_11_10_MIGRATIONS_M41_M47.md); its two capability RPCs left this list.
+export const awaitingDeploy = Object.freeze({});

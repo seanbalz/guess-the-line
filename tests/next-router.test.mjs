@@ -66,6 +66,47 @@ function app(win, confirmLeave, route) {
 }
 
 
+test('history connection owns manual scroll restoration and restores the previous mode once', () => {
+  for (const previous of ['auto', 'manual']) {
+    const win = fakeWindow();
+    win.history.scrollRestoration = previous;
+    const shell = app(win);
+    assert.equal(win.history.scrollRestoration, 'manual');
+    shell.dispatch({ type: 'go', tab: 'research', view: { section: 'games' } });
+    assert.equal(win.history.scrollRestoration, 'manual');
+    shell.connection.disconnect();
+    assert.equal(win.history.scrollRestoration, previous);
+    win.history.scrollRestoration = 'auto';
+    shell.connection.disconnect();
+    assert.equal(win.history.scrollRestoration, 'auto', 'repeat cleanup must not overwrite a later owner');
+    assert.equal(win.listeners.size, 0);
+  }
+});
+test('scroll ownership leaves unsupported or inaccessible APIs and a later mode choice alone', () => {
+  const unsupported = fakeWindow();
+  app(unsupported).connection.disconnect();
+  assert.equal('scrollRestoration' in unsupported.history, false);
+  for (const descriptor of [
+    { get() { throw new Error('not accessible'); } },
+    { value: 'auto', writable: false },
+    { get() { return 'auto'; }, set() { throw new Error('not writable'); } },
+  ]) {
+    const win = fakeWindow();
+    Object.defineProperty(win.history, 'scrollRestoration', descriptor);
+    const shell = app(win);
+    shell.dispatch({ type: 'tab', tab: 'research' });
+    assert.equal(win.location.hash, '#research');
+    shell.connection.disconnect();
+    assert.equal(win.listeners.size, 0);
+  }
+  const win = fakeWindow();
+  win.history.scrollRestoration = 'manual';
+  const shell = app(win);
+  win.history.scrollRestoration = 'auto';
+  shell.connection.disconnect();
+  assert.equal(win.history.scrollRestoration, 'auto');
+});
+
 test('legacy links map to explicit details while authentication and unknown fragments stay untouched', () => {
   for (const [fragment, tab, section] of [['#trends','research','trends'], ['#lines','research','games'], ['#fantasy','research','fantasy'], ['#league','play','league'], ['#feed','play','league'], ['#picks-total','play','picks']]) {
     const place = placeFromFragment(fragment); assert.equal(place.tab,tab); assert.equal(place.view.section,section);
@@ -756,4 +797,31 @@ test('D-69 step 4: browser Back closes the gap layer; Forward and a reload reope
   const reloaded = app(win);
   assert.deepEqual(betsLayerOf(reloaded.state.views.bets), { layer: 'gap', item: 'SEA-DEN:total' });
   reloaded.connection.disconnect();
+});
+
+test('Monday recap: #home?layer=recap keeps its week, market and one game; Back closes the game, then the recap; other Home places keep none', () => {
+  const place = placeFromFragment('#home?layer=recap&season=2026&week=9&market=total&item=MIA-GB');
+  assert.deepEqual(place.view, { layer: 'recap', season: 2026, week: 9, market: 'total', item: 'MIA-GB' });
+  assert.deepEqual(placeFromFragment(fragmentFor('home', place.view)).view, place.view, 'the address round-trips');
+  // Only allowlisted values: a malformed game or market is dropped, never drawn.
+  assert.deepEqual(placeFromFragment('#home?layer=recap&week=9&market=moneyline&item=%3Cscript%3E').view, { layer: 'recap', week: 9 });
+  // Who's in and Home's root carry no recap keys.
+  assert.deepEqual(placeFromFragment('#home?layer=who&week=9&item=MIA-GB').view, { layer: 'who' });
+  assert.equal(placeFromFragment('#home?week=9&item=MIA-GB').view, undefined);
+  // From Home: the recap, then one game, are two steps; Back closes the game and keeps the week, then the recap.
+  const root = initialState({ tab: 'home' });
+  const recap = reduce(root, { type: 'go', tab: 'home', view: { layer: 'recap', season: 2026, week: 9, market: 'spread' } });
+  assert.equal(isDetail(recap), true);
+  const game = reduce(recap, { type: 'view', tab: 'home', patch: { layer: 'recap', season: 2026, week: 9, market: 'spread', item: 'SEA-DEN' } });
+  assert.equal(game.views.home.item, 'SEA-DEN');
+  assert.equal(game.trail.length, recap.trail.length + 1, 'opening a game is a step');
+  const market = reduce(recap, { type: 'view', tab: 'home', patch: { market: 'total' } });
+  assert.equal(market.trail.length, recap.trail.length, 'Spread | Total is a choice inside the layer, not a step');
+  const back = reduce(game, { type: 'back' });
+  assert.deepEqual([back.views.home.layer, back.views.home.week, back.views.home.item ?? null], ['recap', 9, null]);
+  const home = reduce(back, { type: 'back' });
+  assert.equal(home.views.home.layer ?? null, null);
+  // The recap never leaks into another tab, and a fresh Home destination starts at its root.
+  assert.equal(reduce(game, { type: 'go', tab: 'play', view: { section: 'score' } }).views.play.item, undefined);
+  assert.equal(reduce(reduce(game, { type: 'tab', tab: 'play' }), { type: 'tab', tab: 'home' }).views.home.item, undefined);
 });

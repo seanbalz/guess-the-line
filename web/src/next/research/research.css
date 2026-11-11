@@ -37,3 +37,17 @@
   .gx .gx-r-table tr[data-selected="true"] { outline: 2px solid Highlight; outline-offset: -2px; }
   .gx .gx-r-period-pick { border-color: ButtonText; }
 }
+/* The approved evidence view retains native source, sample and table controls. */
+.gx .gx-r-filter select { border-color: var(--gx-glass-line); border-radius: 14px; background: var(--gx-surface-2); }
+.gx .gx-r-card > .gx-tc-rowcard.gx-card { padding: 0; border: 1px solid var(--gx-glass-line); border-radius: 28px; background: var(--gx-card-face); box-shadow: var(--gx-e1); }
+.gx .gx-r-observed { display: flex; flex-direction: column; gap: 12px; }
+.gx .gx-r-observed-row { display: flex; align-items: center; gap: 10px; padding-top: 12px; border-top: 1px solid var(--gx-glass-line); min-width: 0; }
+.gx .gx-r-observed-row > .gx-grow { display: flex; flex-direction: column; min-width: 0; }
+.gx .gx-r-observed-row .gx-n-xs { flex: none; }
+.gx .gx-r-team-stats { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin: 0; }
+.gx .gx-r-team-stats > div { min-width: 0; padding: 12px 8px; }
+.gx .gx-r-team-stats dd { margin: 8px 0 0; }
+.gx .gx-r-team-stats dt { overflow-wrap: anywhere; }
+.gx .gx-r-team-stats .gx-n-m { font-size: 24px; line-height: 28px; }
+.gx .gx-r-team-stats > div:first-child dd { font-size: 16px; line-height: 24px; white-space: nowrap; }
+.gx .gx-r-team-stats dd, .gx .gx-r-observed-row .gx-n-xs { color: var(--gx-accent-ink); }

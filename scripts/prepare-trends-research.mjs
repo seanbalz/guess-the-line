@@ -7,6 +7,7 @@ import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import { createResearchSnapshot, RESEARCH_PERIODS } from '../shared/trends-research-candidates.mjs';
 import { TRENDS_SOURCE } from '../shared/trends.mjs';
+import { validateResearchChartSample, MAX_RESEARCH_DECODED_BYTES, MAX_RESEARCH_FILE_BYTES } from '../shared/research-data.mjs';
 
 const output = new URL('../cloud/trends-research-snapshot.mjs', import.meta.url);
 const readJson = path => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
@@ -24,13 +25,18 @@ export function snapshotModule(snapshot) {
       throw new Error('Upcoming snapshot context must be redacted.');
     }
   }
+  for (const candidate of snapshot.candidates) for (const sample of Object.values(candidate.periods ?? {})) validateResearchChartSample(sample);
+  for (const period of RESEARCH_PERIODS) {
+    const decoded = JSON.stringify({ ...snapshot, candidates: snapshot.candidates.map(c => ({ ...c, periods: { [period]: c.periods?.[period] } })) });
+    if (Buffer.byteLength(decoded) > MAX_RESEARCH_DECODED_BYTES) throw new Error('Prepared snapshot exceeds the decoded limit.');
+  }
   const pack = value => gzipSync(Buffer.from(JSON.stringify(value)), { level: 9 }).toString('base64');
   const payload = pack({ ...snapshot, candidates: snapshot.candidates.map(({ periods, ...candidate }) => candidate) });
   const periodPayloads = Object.fromEntries(RESEARCH_PERIODS.map(period => [period,
     pack(snapshot.candidates.map(candidate => candidate.periods?.[period] ?? null))]));
   // Leave room for the rest of the Edge bundle within the documented 5 MB API
   // packaging limit. CLI bundles can be larger; neither is deployment evidence.
-  if (payload.length + Object.values(periodPayloads).reduce((n, part) => n + part.length, 0) > 3_500_000) {
+  if (payload.length + Object.values(periodPayloads).reduce((n, part) => n + part.length, 0) > MAX_RESEARCH_FILE_BYTES) {
     throw new Error('Prepared snapshot exceeds the 3.5 MB artifact budget.');
   }
   const metadata = { version: snapshot.version, generatedAt: snapshot.generatedAt,

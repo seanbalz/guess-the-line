@@ -86,28 +86,28 @@ describe('slotContext: averages with game counts, the opponent, the report and i
 });
 
 describe('the slot layer’s context strip', () => {
-  it('reads the slot’s own week and draws three tiles, each value over its game count, and the report with its time', () => {
+  it('reads the slot’s own week and draws two tiles and an opponent strip, each value over its game count, and the report with its time', () => {
     fantasy.keys = [];
     const html = sheet(SLOTS.QB);
     expect(fantasy.keys).toEqual(['2026-07']);
     expect(markupProblems(html)).toEqual([]);
     const words = strip(html);
     expect(words).toContain('Player context Full PPR per game, completed games only');
-    expect(words).toMatch(/Last 3 15\.3 3 games Season 15\.6 5 games @ CLE allows 15\.2 to QBs · 5 games/);
+    expect(words).toMatch(/Last 3 15\.3 3 games Season 15\.6 5 games CLE @ CLE allows to QBs · 5 games 15\.2/);
     expect(words).toContain(`Limited Participation in Practice · as of ${CONTEXT_SNAPSHOT_TIMES.asOfText}`);
-    expect(html).toContain('aria-label="Open profile: Fixture QB Player"');
+    expect(decode(html)).toContain('aria-label="Usage & weekly chart: Fixture QB Player"');
     expect(words).not.toContain('19.4');
     expect(words).not.toMatch(/implied/i);
   });
 
   it('"—" for every missing value, never 0, read out in words', () => {
     const wr = strip(sheet(SLOTS.WR));
-    expect(wr).toMatch(/Last 3 — no recorded games no games Season — no recorded games no games @ DEN allows 15\.0 to WRs · 2 games/);
+    expect(wr).toMatch(/Last 3 — no recorded games no games Season — no recorded games no games DEN @ DEN allows to WRs · 2 games 15\.0/);
     expect(wr).toContain('Questionable · as of');
     const rb = strip(sheet(SLOTS.RB));
-    expect(rb).toMatch(/@ LV allows — not available to RBs · no games/);
+    expect(rb).toMatch(/@ LV allows to RBs · no games — not available/);
     const flex = sheet(SLOTS.FLEX);
-    expect(strip(flex)).toMatch(/Last 3 — no recorded games no games Season — no recorded games no games @ NE allows — not available not in this data/);
+    expect(strip(flex)).toMatch(/Last 3 — no recorded games no games Season — no recorded games no games NE @ NE allows not in this data — not available/);
     expect(strip(flex)).toContain(`${CONTEXT_COPY.notInSnapshot} · as of ${CONTEXT_SNAPSHOT_TIMES.asOfText}`);
     expect(flex).not.toContain('Open profile');
     for (const html of [sheet(SLOTS.WR), sheet(SLOTS.RB), flex]) expect(strip(html)).not.toMatch(/(^|\s)0(\.0)?(\s|$)/);

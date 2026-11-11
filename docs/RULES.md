@@ -136,6 +136,34 @@ signed-in live acceptance remain open; source completion does not authorize or
 establish those effects. The [moneyline acceptance record](EPL_MONEYLINE_ACCEPTANCE_2026_10_29.md)
 distinguishes local source/fixture evidence from hosted release gates.
 
+### Three-way markets and EPL Bets — November 9, 2026 (source written, not released)
+
+[docs/EPL_FEATURES_2026_11_09.md](EPL_FEATURES_2026_11_09.md) items 1–3 revise the
+"three-way moneylines are not offered" sentence above once migration
+`20261110100000_gtl_epl_three_way_moneyline.sql` is applied and a compatible
+gtl-api, gtl-epl-jobs and frontend are deployed. Until then the hosted game stays
+two-way. The revised rules:
+
+- **Markets:** each match offers draw-no-bet (choose a club; a draw is a push) or
+  three-way (choose home, draw or away). Choose one outcome and enter one price.
+  Each manager keeps one guess per match, in either market; market, outcome and
+  price become final together at lock-in. Drafts may move between markets.
+- **References and scoring:** a three-way guess is scored against the three-way
+  median for its outcome (all three outcomes from at least two of the approved
+  books, same event and kickoff), under the same at-lock / first-after-lock /
+  unscored rule as above. A draw-no-bet price never scores a three-way guess or the
+  reverse. Both markets feed the one leaderboard with the distance above.
+- **EPL Bets:** recommendations come only from your own locked guesses on matches
+  not yet kicked off, compared with the latest stored same-market odds. Favorable
+  gap (how much more the latest price pays than your guess, on the same line)
+  alone orders the list; trend and concern notes explain or flag without
+  reordering or excluding. A guess of a sportsbook price is not an estimated
+  outcome probability, and a favorable gap is not proof of profitable expected
+  value. Opening EPL Bets reads stored prices only and never requests new odds.
+- **Rollout:** older app builds keep reading and saving two-way guesses; new
+  builds offer three-way entry only when the server positively reports the
+  three-way schema. A legacy read omits three-way rows rather than misreading them.
+
 ## Historical common-reference Total analysis — D-13 (superseded for scoring by D-16)
 After a player's Total ballot is submitted, the dashboard can show that market's
 guesses, provisional accuracy points and closest-pick records against one complete
@@ -330,6 +358,15 @@ scheduler is a later stage.
 
 ## Virtual Units placement (M-11, written)
 
+**Prepared follow-up, November 7:** [M-41](VIRTUAL_UNITS_HUNDREDTHS_M41.md) prepares
+capability-gated hundredths (Custom 0.01–100U, quick/ordinary minimum 0.5U,
+0.1U taps) while retaining existing half-unit inputs. It is not applied or
+deployed; existing writers remain half-unit-only until the named apply.
+D-78 answers the ROI choice with uniform saved-four-place accounting, merged
+separately in PR #500; its compatible release is pending. M-41 still requires
+Gate M queue/precheck and named apply approval.
+No payout, ranking, qualification or historical result is changed by preparation.
+
 M-11 (`20261028181000_gtl_bets_place.sql`, build plan stage 41) adds
 `POST /bets/place` for the published community week. It is written and not
 applied; it waits for Sean's "apply M-11" and a `gtl-api` deploy.
@@ -366,6 +403,14 @@ definition for the API and the screens.
   counts, including a voided row, which keeps its credit.
 - **Record, net units and ROI** come from settled rows only. A loss without a
   saved net costs its units. ROI is "—" until something settles.
+  D-78 (November 8, 2026) confirms that unit amounts retain the saved four
+  decimal places through weekly and season totals; ROI is net divided by
+  settled risk, rounded only as a percentage to the existing two places.
+  Do not first round each result or week to cents. A 0.5U win with saved net
+  +0.4545U gives 90.9%, while amount labels keep their existing formatting.
+  [Implementation and release state](VIRTUAL_ROI_SAVED_PRECISION_2026_11_08.md)
+  are recorded separately; the earlier M-12 not-applied statement above is
+  historical (M-12 was applied October 27).
 - **The weekly board** lists qualified players by ROI, then net units, then
   wins. A "—" ROI ranks after every number, and equal players share a rank
   ("T-2").

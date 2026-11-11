@@ -14,7 +14,7 @@ export default function DistanceLine({ guess }) {
         <circle cx={a === b ? 16 : a < b ? 224 : 16} cy="14" r="4" className="gx-epl-distance-real"/>
       </svg>
       <p className="gx-t-strong">{guess.distance} points off</p>
-      <p className="gx-t-meta">Saved median · {guess.referenceSource === 'first-after' ? 'first qualifying price after lock' : 'at lock'} · {guess.referenceObservedAt ? fmtWhen(guess.referenceObservedAt) : 'Time unavailable'}</p>
-    </> : <p className="gx-t-meta">{guess.status === 'draft' ? 'Draft · not locked or scored' : guess.state === 'unscored' ? 'No line before kickoff · unscored, excluded from average' : 'Reference pending · first qualifying price before kickoff will count'}</p>}
+      <p data-epl-text="metadata" className="gx-t-meta">Saved median · {guess.referenceSource === 'first-after' ? 'first qualifying price after lock' : 'at lock'} · {guess.referenceObservedAt ? fmtWhen(guess.referenceObservedAt) : 'Time unavailable'}</p>
+    </> : <p className="gx-t-body">{guess.status === 'draft' ? 'Draft · not locked or scored' : guess.state === 'unscored' ? 'No line before kickoff · unscored, excluded from average' : 'Reference pending · first qualifying price before kickoff will count'}</p>}
   </div>;
 }

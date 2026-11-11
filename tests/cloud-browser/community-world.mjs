@@ -29,6 +29,7 @@ import { providerBetsError } from '../../cloud/bets.mjs';
 import { providerPointsError } from '../../cloud/points.mjs';
 import { providerFeaturesError } from '../../cloud/features.mjs';
 import { createOptionalRpc } from '../../cloud/optional-rpc.mjs';
+import { providerPropsError } from '../../cloud/player-props.mjs';
 import { isWebfont } from '../fixtures/webfonts.mjs';
 import { openDeadline } from './fixture-deadline.mjs';
 import { shiftBrowserClock } from './test-clock.mjs';
@@ -64,6 +65,9 @@ export const ACCOUNTS = {
  * spec's /state gains the market snapshot.
  * optionalRpc: answer optional RPCs (cloud/optional-rpc.mjs) from the database, with PostgREST's PGRST202 for a function the applied
  * migrations do not have, as the hosted project does. Off by default: every reply then carries today's rules.
+ * props: D-82 Player Props on (gtl-api's GTL_PLAYER_PROPS=on) with its RPCs on the same database; a function the applied
+ * migrations do not have reads as PostgREST's PGRST202 (off), as the production adapter does. Off by default, so every
+ * other spec's gtl-api answers /props/* exactly like a missing route. It needs migrations that include the props files.
  */
 export async function communityWorld(page, baseURL, options = {}) {
   const world = await createCommunityWorld(options);
@@ -100,7 +104,7 @@ function realKickoffTrends(service) {
   } };
 }
 
-export async function createCommunityWorld({ deadline = openDeadline(), games = 2, groupScreens = false, troyBallots = true, clock = Date.now, prepare = null, wind = null, migrations = MIGRATIONS, pushPublicKey, virtualUnits = false, optionalRpc = false, research, trendsReadSeason = async () => trendsSeed.seasonCsv, fantasyFetch = null } = {}) {
+export async function createCommunityWorld({ deadline = openDeadline(), games = 2, groupScreens = false, troyBallots = true, clock = Date.now, prepare = null, wind = null, migrations = MIGRATIONS, pushPublicKey, virtualUnits = false, optionalRpc = false, props = false, research, trendsReadSeason = async () => trendsSeed.seasonCsv, fantasyFetch = null } = {}) {
   const db = new PGlite(), errors = [], accounts = Object.values(ACCOUNTS), troy = ACCOUNTS.troy;
   await db.exec(PRELUDE);
   await db.exec(migrationSql(migrations[0]));
@@ -193,6 +197,7 @@ export async function createCommunityWorld({ deadline = openDeadline(), games = 
       weekRevealed: async (userId, season, week, mode, now) => (await rawRpc('gtl_week_revealed', { p_user: userId, p_season: season, p_week: week, p_mode: mode, p_now: now })) === true,
     } } : {}),
     ...(optionalRpc ? { optionalRpc: createOptionalRpc(optionalPost) } : {}),
+    ...(props ? { playerProps: 'on', props: { rpc: rpc(message => providerPropsError(/^function public\.\w+\(.*\) does not exist$/.test(message) ? 'GTL_FEATURE_OFF' : message)) } } : {}),
     storage: { async membership(userId, leagueId) {
       if (!groupScreens) throw new Error('Community routes must not require membership.');
       return (await db.query('select player_id,active,role from public.gtl_memberships where user_id=$1 and league_id=$2 and active limit 1', [userId, leagueId])).rows[0] || null;

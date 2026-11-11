@@ -2,7 +2,7 @@
 // the offline banner, the dock host and the "coming next" card each tab shows until its own stage replaces it.
 import { createPortal } from 'react-dom';
 import { useContext, useId } from 'react';
-import { Avatar, Button, FieldMark, Icon, Segmented } from '../ui/index.js';
+import { Avatar, Button, Icon } from '../ui/index.js';
 import { cx } from '../ui/cx.js';
 import { APP_RELOAD_COPY } from '../../appView.js';
 import { useShell } from './context.js';
@@ -10,24 +10,29 @@ import { navigateSport } from '../nba/route.js';
 import { EplAccessContext, sportOptions } from '../epl/route.js';
 import { SportNavigationContext, sportSwitchHash } from '../sportSwitch.js';
 import { SHELL_COPY, TABS, TAB_INFO, leagueLabel, tabBadge } from './tabs.js';
+import { PrismBrand } from '../ui/PrismBrand.jsx';
+import { HomeBrand } from '../home/HomeBrand.jsx';
+import homeNfl from '../ui/brand-assets/nfl.png';
+import homePremierDark from '../ui/brand-assets/premier-league-white.svg';
+import homePremierLight from '../ui/brand-assets/premier-league-purple.svg';
 
 // Four primary destinations, using the shared original icon language.
 const TAB_ICONS = { home: 'house', play: 'target', bets: 'ticket', research: 'chart' };
 
 /** Top bar (spec 1.3): the Field monogram (to Home), the league pill (the switcher) and your avatar (the menu). */
-export function TopBar({ leagueName, you, onHome, onLeague, onMenu }) {
+export function TopBar({ leagueName, you, onHome, onLeague, onMenu, compact = false }) {
   return (
     <header className="gx-topbar">
       <div className="gx-topbar-inner">
         <button type="button" className="gx-top-btn" aria-label={SHELL_COPY.home} onClick={onHome}>
-          <FieldMark size={32}/>
+          {compact?<HomeBrand/>:<PrismBrand/>}
         </button>
-        <button type="button" className="gx-league-btn" aria-label={leagueLabel(leagueName)} onClick={onLeague}>
+        {compact?<SportControls marks/>:<button type="button" className="gx-league-btn" aria-label={leagueLabel(leagueName)} onClick={onLeague}>
           <span className="gx-league-pill">
             <span className="gx-league-name gx-truncate">{leagueName}</span>
             <Icon icon="chevronDown" size={16}/>
           </span>
-        </button>
+        </button>}
         <button type="button" className="gx-top-btn" aria-label={SHELL_COPY.menu} onClick={onMenu}>
           <Avatar id={you.id} name={you.name} size={32}/>
         </button>
@@ -40,10 +45,12 @@ export function TopBar({ leagueName, you, onHome, onLeague, onMenu }) {
  * The NFL/EPL selector, a plain row right after the top bar. NBA is hidden from this navigation. It stays out of the sticky
  * bar so the bar keeps its --gx-size-topbar height, which sticky headings and focus scroll margins rely on.
  */
-export function SportControls() {
+export function SportControls({ marks = false }) {
   const epl = useContext(EplAccessContext);
   const { sport, change } = useContext(SportNavigationContext);
-  return <nav className="gx-sport-controls" aria-label="Sports"><Segmented label="Sport" value={sport} options={sportOptions(epl)} onChange={value => change ? change(value) : navigateSport(sportSwitchHash(value, window.location.hash))}/></nav>;
+  const choose=value=>change?change(value):navigateSport(sportSwitchHash(value,window.location.hash));
+  if(marks)return <nav className="gx-home-sports" aria-label="Sports"><div className="gx-hstack gx-gap-8" role="group" aria-label="Sport">{sportOptions(epl).map(option=><button key={option.value} type="button" className="gx-home-sport" aria-label={option.value==='nfl'?'National Football League':'Premier League'} aria-pressed={sport===option.value} onClick={()=>choose(option.value)}>{option.value==='nfl'?<img src={homeNfl} alt=""/>:<><img className="gx-home-pl-dark" src={homePremierDark} alt=""/><img className="gx-home-pl-light" src={homePremierLight} alt=""/></>}</button>)}</div></nav>;
+  return <nav className="gx-sport-controls" aria-label="Sports"><div className="gx-hstack gx-gap-8" role="group" aria-label="Sport">{sportOptions(epl).map(option=><button key={option.value} type="button" className="gx-sport-mark" aria-label={option.value==='nfl'?'National Football League':'Premier League'} title={option.value==='nfl'?'National Football League':'Premier League'} aria-pressed={sport===option.value} onClick={()=>choose(option.value)}>{option.value==='nfl'?<img src={homeNfl} alt=""/>:<><img className="gx-prism-dark" src={homePremierDark} alt=""/><img className="gx-prism-light" src={homePremierLight} alt=""/></>}</button>)}</div></nav>;
 }
 
 /** Shared detail navigation stays above the destination's own title. */
@@ -52,12 +59,12 @@ export function DetailBack({ onBack }) {
 }
 
 /**
- * Four-tab bar: the one showing marked with aria-current and the lime bar; a counter or dot
+ * Four-tab bar: the one showing marked with aria-current and the selected tint; a counter or dot
  * from each tab's slot file, in its name too ("Play, 1 ballot due").
  */
-export function TabBar({ current, data, onTab }) {
+export function TabBar({ current, data, onTab, barRef }) {
   return (
-    <nav className="gx-tabbar" aria-label={SHELL_COPY.tabs}>
+    <nav ref={barRef} className="gx-tabbar" aria-label={SHELL_COPY.tabs}>
       <div className="gx-tabbar-inner">
         {TABS.map(tab => {
           const on = tab === current;

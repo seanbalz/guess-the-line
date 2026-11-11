@@ -631,3 +631,18 @@ test('push adapter: both Points RPC names are allowed and a PostgREST 404 PGRST2
   assert.deepEqual(seen, ['https://abc.supabase.co/rest/v1/rpc/gtl_points_reminder_candidates', 'https://abc.supabase.co/rest/v1/rpc/gtl_mark_points_reminder']);
   await assert.rejects(() => adapter.rpc('gtl_something_else', {}), /Invalid reminder operation/);
 });
+
+// EPL delivery stage 4: a Pick a Team result announcement (cloud/epl-jobs.mjs, shared/epl-results.mjs) opens EPL Play ›
+// Pick a Team, where the results card is; its tag fits the worker's limit, and look-alikes still open Picks.
+test('notification click: a Pick a Team result announcement opens EPL Play › Pick a Team', async () => {
+  const { resultsPayload } = await import('../shared/epl-results.mjs');
+  const { eplRoute } = await import('../web/src/next/epl/route.js');
+  const payload = resultsPayload({ season: 2026, week: 11, winners: [] });
+  assert.ok(payload.tag.length <= 64 && payload.body.length <= 160);
+  const worker = workerScope();
+  await worker.click({ tag: payload.tag });
+  await worker.click({ tag: 'gtl-epl-turn-2026-11' });
+  await worker.click({ tag: 'x-gtl-epl-results-2026-11' });
+  assert.deepEqual(worker.opened, [`${ORIGIN}/#epl/play/pick`, PICKS_URL, PICKS_URL]);
+  assert.deepEqual(eplRoute('#epl/play/pick'), { tab: 'play', section: 'pick' });
+});

@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { validateRequest, configuration, successfulRun, checkSource, publishedSchedule, migrationDigest, jsonRequest, livePreflight, verifyRelease, REPOSITORY, PROJECT, ACCOUNT, REQUIRED_CI, TARGETS, TARGET_DEPLOYS } from '../scripts/release-preflight.mjs';
+import { validateRequest, configuration, successfulRun, checkSource, publishedSchedule, migrationDigest, jsonRequest, livePreflight, verifyRelease, appBuildFlags, REPOSITORY, PROJECT, ACCOUNT, REQUIRED_CI, TARGETS, TARGET_DEPLOYS, PLAYER_PROPS_APP_FLAG_INPUT } from '../scripts/release-preflight.mjs';
 
 const sha = 'a'.repeat(40);
 const request = (extra = {}) => ({ RELEASE_SHA: sha, RELEASE_TARGET: 'frontend', RELEASE_MODE: 'check-only', ...extra });
@@ -851,4 +851,29 @@ test('supabase/config.toml registers gtl-odds-refresh with gateway JWT verificat
   const config = fs.readFileSync(new URL('../supabase/config.toml', import.meta.url), 'utf8');
   assert.match(config, /\[functions\.gtl-odds-refresh\]\n(?:#.*\n)*verify_jwt = false/);
   assert.deepEqual(TARGET_DEPLOYS['odds-refresh'], { edgeFunction: 'gtl-odds-refresh', pages: false });
+});
+
+// D-82 (Sean, November 11, 2026: "lets turn these on"): release.yml can pass the repository variable VITE_GTL_PLAYER_PROPS
+// to the Pages build. Contract: unset (or off) never reaches Vite, so the bundle is byte-identical to a build without the
+// variable; "on" reaches it as exactly VITE_GTL_PLAYER_PROPS=on; anything else stops the release before the build.
+test('the Player Props app flag reaches the frontend build only when it is on, and unset adds nothing', () => {
+  assert.equal(PLAYER_PROPS_APP_FLAG_INPUT, 'GTL_PLAYER_PROPS_APP_FLAG');
+  for (const unset of [{}, { GTL_PLAYER_PROPS_APP_FLAG: '' }, { GTL_PLAYER_PROPS_APP_FLAG: 'off' }]) assert.equal(appBuildFlags(unset), '', JSON.stringify(unset));
+  assert.equal(appBuildFlags({ GTL_PLAYER_PROPS_APP_FLAG: 'on' }), 'VITE_GTL_PLAYER_PROPS=on\n');
+  for (const value of ['ON', ' on', 'on\nVITE_SUPABASE_URL=https://evil.example', '1', 'true', 'yes'])
+    assert.throws(() => appBuildFlags({ GTL_PLAYER_PROPS_APP_FLAG: value }), /on or off, or leave it unset/, JSON.stringify(value));
+  assert.equal(appBuildFlags({ VITE_GTL_PLAYER_PROPS: 'on' }), '', 'only the step input counts, never an inherited VITE_ value');
+
+  const steps = productionSteps(), names = steps.map(step => step.name);
+  const flags = steps.find(step => step.name === 'Pass only app flags that are on to the frontend build');
+  assert.ok(flags, 'release.yml has the app flag step');
+  assert.deepEqual(flags.env, { GTL_PLAYER_PROPS_APP_FLAG: '${{ vars.VITE_GTL_PLAYER_PROPS }}' });
+  assert.equal(flags.if, undefined, 'readiness and deploy builds use the same flags');
+  assert.equal(flags.run, `node --input-type=module -e "import { appBuildFlags } from './control/scripts/release-preflight.mjs'; process.stdout.write(appBuildFlags(process.env))" >> "$GITHUB_ENV"`);
+  assert.equal(names.indexOf('Pass only app flags that are on to the frontend build') + 1, names.indexOf('Build, scan and fingerprint exact release source'), 'the flags are set right before the build');
+  assert.deepEqual(steps.find(step => step.name === 'Build, scan and fingerprint exact release source').env, {}, 'the build step sets no VITE_ value of its own');
+  // No env block hands Vite the variable directly: an unset repository variable would arrive as an empty string.
+  assert.doesNotMatch(releaseYaml, /^\s+VITE_GTL_PLAYER_PROPS:/m);
+  const job = releaseYaml.split(/^ {2}production:\n/m)[1].split(/^ {4}steps:\n/m)[0];
+  assert.deepEqual(job.match(/^ {6}VITE_[A-Z_]+(?=:)/gm), ['      VITE_SUPABASE_URL', '      VITE_SUPABASE_PUBLISHABLE_KEY']);
 });

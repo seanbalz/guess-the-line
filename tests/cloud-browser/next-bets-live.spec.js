@@ -1,3 +1,4 @@
+import { TEAM_NAMES } from '../../shared/nfl-schedule.mjs';
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import fs from 'node:fs';
@@ -34,7 +35,7 @@ async function fillTicket(page, gameId) {
   await expect(editor.getByRole('button', {name: 'Save tracked bet', exact: true})).toBeDisabled();
   await expect(editor.getByRole('group', {name: 'Units risked', exact: true}).getByRole('button', {name: 'Unknown', exact: true})).toHaveAttribute('aria-pressed', 'true');
   await editor.getByRole('group', { name: 'Matchup', exact: true }).getByRole('button', { name: gameId.replace('-', ' @ '), exact: true }).click();
-  await editor.getByRole('group', { name: 'Team', exact: true }).getByRole('button', { name: gameId.split('-')[1], exact: true }).click();
+  await editor.getByRole('group', { name: 'Team', exact: true }).getByRole('button', { name: TEAM_NAMES[gameId.split('-')[1]], exact: true }).click();
   await editor.getByRole('button', { name: 'Favorite (−)', exact: true }).click();
   await editor.getByRole('group', { name: 'Exact signed spread', exact: true }).getByRole('button', { name: '−3.5', exact: true }).click();
   await editor.getByRole('group', { name: 'American odds', exact: true }).getByRole('button', { name: '−110', exact: true }).click();
@@ -300,7 +301,7 @@ test('custom ticket terms stay exact when switching back to buttons and changing
     await editor.getByRole('button', { name: 'Change matchup', exact: true }).click();
     const nextId = world.state.games[1].id;
     await editor.getByRole('group', { name: 'Matchup', exact: true }).getByRole('button', { name: nextId.replace('-', ' @ '), exact: true }).click();
-    await editor.getByRole('group', { name: 'Team', exact: true }).getByRole('button', { name: nextId.split('-')[0], exact: true }).click();
+    await editor.getByRole('group', { name: 'Team', exact: true }).getByRole('button', { name: TEAM_NAMES[nextId.split('-')[0]], exact: true }).click();
     await expect(editor.getByRole('button', { name: 'Save tracked bet', exact: true })).toBeDisabled();
     // A custom price and stake are ticket-level terms, so changing the matchup must not rewrite them.
     await expect(editor.getByRole('spinbutton', { name: 'American odds', exact: true })).toHaveValue('-112.5');
@@ -548,7 +549,7 @@ test('an inclusion save finishing after a filter change does not invalidate the 
     });
     await page.locator('.gx-tracked-preview').click();
     await page.locator('.gx-tracked-menu').click();
-    await page.locator('.social-bet-card').getByText('Details & history', { exact: true }).click();
+    await page.locator('.social-bet-card').getByText('Receipt metadata', { exact: true }).click();
     await page.getByRole('button', { name: /Exclude from records/ }).click();
     await expect.poll(() => saveHeld).toBe(true);
     await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/social/read'), async route => {
@@ -640,7 +641,7 @@ test('roomy parlay preview expands all six exact saved selections in place and c
   await editor.getByRole('group',{name:'Stake entry',exact:true}).getByRole('button',{name:'Cash ($)',exact:true}).click();
   await editor.getByLabel('Cash value of 1U ($)',{exact:true}).fill('100');
   await editor.getByLabel('Cash stake ($)',{exact:true}).fill('25');
-  await editor.getByText('More sportsbooks',{exact:true}).click();
+  await editor.getByText('More sportsbooks & sources (21)',{exact:true}).click();
   await editor.getByRole('button',{name:'Fanatics',exact:true}).click();
   await editor.getByRole('button',{name:'Save tracked bet',exact:true}).click();
   await expect(editor).toHaveCount(0);
@@ -676,6 +677,67 @@ test('roomy parlay preview expands all six exact saved selections in place and c
  }finally{await world.db.close();}
 });
 
+test('approved manual ticket controls save 0.01U with exact odds and keep source selection manual',async({page,baseURL})=>{
+ const world=await communityWorld(page,baseURL);
+ try{
+  const calls=callsFrom(page);await openBets(page);
+  const editor=await fillTicket(page,world.state.games[0].id);
+  const stake=editor.getByRole('group',{name:'Units risked',exact:true});
+  await stake.getByRole('button',{name:'Unknown',exact:true}).click();
+  await expect(stake.getByRole('button',{name:'Increase Units risked by 0.1',exact:true})).toBeDisabled();
+  await stake.getByRole('button',{name:'0.5u',exact:true}).click();
+  await stake.getByRole('button',{name:'Decrease Units risked by 0.1',exact:true}).click();
+  await expect(stake.locator('output')).toHaveText('0.4u');
+  await stake.getByRole('button',{name:'Increase Units risked by 0.1',exact:true}).click();
+  await expect(stake.locator('output')).toHaveText('0.5u');
+  await stake.getByRole('button',{name:'Custom',exact:true}).click();
+  await stake.getByRole('spinbutton',{name:'Units risked',exact:true}).fill('0.01');
+  const odds=editor.getByRole('group',{name:'American odds',exact:true});
+  await odds.getByRole('button',{name:'−105',exact:true}).click();
+  await odds.getByRole('button',{name:'Increase American odds by 5',exact:true}).click();
+  await expect(odds.locator('output')).toHaveText('+100');
+  await editor.getByRole('button',{name:'BetOnline',exact:true}).click();
+  for(const theme of ['light','dark'])for(const width of [320,390]){
+   await page.evaluate(t=>document.documentElement.dataset.theme=t,theme);await page.setViewportSize({width,height:844});
+   await stake.locator('.social-ticket-adjustment').evaluate(el=>el.scrollIntoView({block:'center'}));expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+   const scan=await new AxeBuilder({page}).include('.social-modal').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(scan.violations.map(v=>v.id)).toEqual([]);
+   await page.screenshot({path:`.local/prism-bets/entry-terms-${theme}-${width}.png`});
+  }
+  await page.emulateMedia({forcedColors:'active'});
+  const forced=await editor.getByRole('button',{name:'BetOnline',exact:true}).evaluate(el=>{
+   const probe=document.createElement('span');probe.style.backgroundColor='Highlight';probe.style.color='HighlightText';document.body.append(probe);
+   const expected=getComputedStyle(probe),actual=getComputedStyle(el),values={actual:[actual.backgroundColor,actual.color],expected:[expected.backgroundColor,expected.color]};probe.remove();return values;
+  });expect(forced.actual).toEqual(forced.expected);
+  await page.emulateMedia({forcedColors:'none'});
+  expect(calls.filter(c=>c.path==='social/create')).toHaveLength(0);
+  await editor.getByRole('button',{name:'Save tracked bet',exact:true}).click();await expect(editor).toHaveCount(0);
+  expect(calls.find(c=>c.path==='social/create').body).toMatchObject({stakeUnits:.01,odds:100,source:'BetOnline',quotedAt:null,placedAt:null});
+  await expect(page.locator('.gx-tracked-preview-money')).toContainText('0.01U');
+  await page.reload();await expect(page.locator('.gx-tracked-preview-money')).toContainText('0.01U');
+  const row=page.locator('.gx-tracked-row');await row.locator('.gx-tracked-preview').click();
+  await expect(row.getByRole('region',{name:'Ticket change history'})).toBeVisible();
+  await row.getByRole('button',{name:'Report result',exact:true}).click();
+  const result=page.getByRole('dialog',{name:'Report this bet’s result',exact:true});
+  await result.getByLabel('Actual total return in units (optional)',{exact:true}).fill('0.03');
+  await result.getByLabel('Result source / note',{exact:true}).fill('Local fixture reported return');
+  for(const theme of ['light','dark']){
+   await page.evaluate(t=>document.documentElement.dataset.theme=t,theme);await page.setViewportSize({width:390,height:844});
+   const scan=await new AxeBuilder({page}).include('.social-modal').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(scan.violations.map(v=>v.id)).toEqual([]);
+   await page.screenshot({path:`.local/prism-bets/reported-result-${theme}-390.png`});
+  }
+  await result.getByRole('button',{name:'Save reported result',exact:true}).click();await expect(result).toHaveCount(0);
+  expect(calls.find(c=>c.path==='social/settle').body).toMatchObject({outcome:'win',actualReturnUnits:.03,reason:'Local fixture reported return'});
+  await expect(row.locator('.gx-tracked-money')).toContainText('+0.02U');
+  await row.getByRole('button',{name:'Ticket details',exact:true}).click();
+  for(const theme of ['light','dark']){
+   await page.evaluate(t=>document.documentElement.dataset.theme=t,theme);
+   await row.evaluate(el=>el.scrollIntoView({block:'center'}));
+   await row.screenshot({path:`.local/prism-bets/settled-ticket-${theme}-390.png`});
+  }
+  expect(world.errors).toEqual([]);
+ }finally{await world.db.close();}
+});
+
 test('guided milestone keeps 70+ and four-decimal units after save and correction',async({page,baseURL})=>{
  const world=await communityWorld(page,baseURL);
  try{
@@ -693,13 +755,13 @@ test('guided milestone keeps 70+ and four-decimal units after save and correctio
   const row=page.locator('.gx-tracked-row');await expect(row.locator('.gx-tracked-preview')).toContainText('70+');await expect(row.locator('.gx-tracked-preview')).toContainText('$7.47');
   await row.getByRole('button',{name:'Expand Fixture Runner',exact:true}).click();await expect(row.locator('.gx-tracked-money')).toContainText('0.0747U');
   expect(calls.find(c=>c.path==='social/create').body.legs[0]).toMatchObject({line:70,selection:'Fixture Runner 70+ rushing yards'});
-  await row.getByRole('button',{name:'Ticket details',exact:true}).click();await row.getByText('Details & history',{exact:true}).click();await row.getByRole('button',{name:'Correct ticket',exact:true}).click();
+  await expect(row.getByRole('region',{name:'Ticket change history'})).toBeVisible();await row.getByRole('button',{name:'Correct ticket',exact:true}).click();
   const correction=page.getByRole('dialog',{name:'Correct saved bet'});await correction.getByLabel('Reason for correction',{exact:true}).fill('Reviewed exact recorded milestone');await correction.getByRole('button',{name:'Save correction',exact:true}).click();await expect(correction).toHaveCount(0);
   const fixed=calls.find(c=>c.path==='social/correct');expect(fixed.body.stakeUnits).toBe(.0747);expect(fixed.body.legs[0].selection).toBe('Fixture Runner 70+ rushing yards');expect(world.errors).toEqual([]);
  }finally{await world.db.close();}
 });
 
-test('populated tickets keep a measured 32px gap after lazy styles load and inline expansion',async({page,baseURL})=>{
+test('populated tickets keep the approved 24px gap after lazy styles load and inline expansion',async({page,baseURL})=>{
  const world=await communityWorld(page,baseURL,{games:3});
  try{
   await openBets(page);
@@ -713,13 +775,13 @@ test('populated tickets keep a measured 32px gap after lazy styles load and inli
    for(const expanded of [false,true]){
     if(expanded)await rows.first().locator('.gx-tracked-preview').click();
     const geometry=await rows.evaluateAll(elements=>elements.map((el,i)=>({gap:i?el.getBoundingClientRect().top-elements[i-1].getBoundingClientRect().bottom:null,left:el.getBoundingClientRect().left,right:el.getBoundingClientRect().right})));
-    for(const row of geometry){if(row.gap!==null)expect(row.gap,`${theme} ${width}px expanded=${expanded}`).toBeCloseTo(32,0);expect(row.left).toBeGreaterThanOrEqual(0);expect(row.right).toBeLessThanOrEqual(width);}
+    for(const row of geometry){if(row.gap!==null)expect(row.gap,`${theme} ${width}px expanded=${expanded}`).toBeCloseTo(24,0);expect(row.left).toBeGreaterThanOrEqual(0);expect(row.right).toBeLessThanOrEqual(width);}
     if(expanded)await rows.first().getByRole('button',{name:/^Collapse /}).click();
    }
    await page.screenshot({path:`.local/weekend-bets/spacing-${theme}-${width}.png`,fullPage:true});
   }
   await page.reload();await expect(rows).toHaveCount(3);
-  expect(await rows.nth(1).evaluate(el=>el.getBoundingClientRect().top-el.previousElementSibling.getBoundingClientRect().bottom)).toBeCloseTo(32,0);
+  expect(await rows.nth(1).evaluate(el=>el.getBoundingClientRect().top-el.previousElementSibling.getBoundingClientRect().bottom)).toBeCloseTo(24,0);
   expect(world.errors).toEqual([]);
  }finally{await world.db.close();}
 });
@@ -742,7 +804,7 @@ test('matchup and sportsbook searches plus roster suggestions keep exact manuall
   await expect(editor.getByLabel('Player name',{exact:true})).toHaveValue(matching.name);
   await editor.getByLabel('Prop market',{exact:true}).selectOption('receiving yards');
   await editor.getByRole('group',{name:'Prop direction',exact:true}).getByRole('button',{name:'At least (+)',exact:true}).click();await editor.getByLabel('Prop line',{exact:true}).fill('40');
-  await editor.getByText('More sportsbooks',{exact:true}).click();await editor.getByLabel('Find sportsbook',{exact:true}).fill('Prophet');
+  await editor.getByText('More sportsbooks & sources (21)',{exact:true}).click();await editor.getByLabel('Find sportsbook',{exact:true}).fill('Prophet');
   await editor.getByLabel('Find sportsbook',{exact:true}).press('Enter');await expect(editor).toBeVisible();
   expect(calls.filter(c=>c.path==='social/create')).toHaveLength(0);
   await editor.getByRole('button',{name:'ProphetX',exact:true}).click();

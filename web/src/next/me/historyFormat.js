@@ -102,6 +102,9 @@ export function gameRow(week, entry, game, { own = false, rules, now = Date.now(
   const kickedOff = Date.parse(game.kickoff) <= now;
   const draftClosed = own && pick && pick.lockedIn === false && number(pick.guess) !== null && (pick.closedAtKickoff || kickedOff);
   return {
+    mode, locked: pick?.lockedIn === true || (pick?.lockedIn === undefined && entry?.status === 'submitted'),
+    guessValue: hidden ? null : number(pick?.guess), lineValue: hidden ? null : number(pick?.reference?.value),
+    pointsValue: hidden || entry?.eligible === false ? null : number(pick?.points),
     gameId: game.id, matchup: matchupWords(game), away: game.awayCode ?? null, home: game.homeCode ?? null, hidden,
     guess: hidden ? null : guessWords(mode, game, pick?.guess),
     line: hidden ? null : referenceWords(mode, game, pick?.reference),

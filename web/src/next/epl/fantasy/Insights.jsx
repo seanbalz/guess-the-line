@@ -28,7 +28,7 @@ export function InsightsPanel({ view }) {
       <Tile label={FANTASY_COPY.topScorer} value={top ? top.playerName ?? FANTASY_COPY.unknownPlayer : DASH} meta={top ? `${fmtPts(top.points)} pts` : null}/>
       <Tile label={FANTASY_COPY.vsProjection} value={last ? fmtSigned(last.diff) : DASH} meta={last ? `MW${last.week}` : null}/>
     </div>
-    {hasWeekly ? null : <p className="gx-t-meta gx-c-2">{FANTASY_COPY.detailStarts(ins.detailStartsWeek ?? view.week)}</p>}
+    {hasWeekly ? null : <p className="gx-t-body gx-c-2">{FANTASY_COPY.detailStarts(ins.detailStartsWeek ?? view.week)}</p>}
     {ins.topScorerPerTeam?.length ? <Card as="section" aria-labelledby={`${base}-top`}>
       <h2 className="gx-t-micro gx-c-2" id={`${base}-top`}>{FANTASY_COPY.topPerTeam}</h2>
       <ul className="gx-epl-fx-players">
@@ -41,7 +41,7 @@ export function InsightsPanel({ view }) {
     {hasWeekly ? <Card as="section" aria-labelledby={`${base}-weekly`}>
       <h2 className="gx-t-micro gx-c-2" id={`${base}-weekly`}>{FANTASY_COPY.weekly}</h2>
       <WeeklyLine weekly={ins.weekly} viewer={view.viewer}/>
-      {(ins.weekly ?? []).some(w => w.points === null) ? <p className="gx-t-meta gx-c-2">{FANTASY_COPY.gapNote}</p> : null}
+      {(ins.weekly ?? []).some(w => w.points === null) ? <p className="gx-t-body gx-c-2">{FANTASY_COPY.gapNote}</p> : null}
     </Card> : null}
   </div>;
 }

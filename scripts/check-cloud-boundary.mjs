@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isPinnedOcrAsset } from './ocr-assets.mjs';
 import * as guess from './boundary/guess.mjs';
 import * as lines from './boundary/lines.mjs';
 import * as bets from './boundary/bets.mjs';
@@ -160,6 +161,8 @@ export function scanFrontend(dir, top = true) {
       scanFrontend(file, false);
     } else {
       assert.ok(!privateFilename.test(entry.name), 'Private or source file in cloud frontend.');
+      // The self-hosted OCR engine (EPL stage 3) is accepted only as an exact copy of its pinned npm package file.
+      if (top === false && path.basename(dir) === 'ocr' && isPinnedOcrAsset(entry.name, file)) continue;
       const text = fs.readFileSync(file, 'utf8');
       assert.ok(!privateMaterial.test(text), 'Private material in cloud frontend.');
       for (const [token] of text.matchAll(/\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g)) {

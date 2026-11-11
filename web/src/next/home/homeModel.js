@@ -23,7 +23,7 @@ import { CARD_STATE, gameState } from '../play/moments.js';
 import { rankChip } from '../play/yourScore.js';
 
 /** Home's layers (`#home?layer=who`). */
-export const HOME_LAYERS = Object.freeze({ who: 'who' });
+export const HOME_LAYERS = Object.freeze({ who: 'who', recap: 'recap' });
 /** Each tile's glyph (ui/Icon.jsx names); My bets and Trends take theirs from ui/destinations.js. */
 export const HOME_TILE_ICONS = Object.freeze({ guess_spread: 'chart', guess_total: 'target', who: 'people', awards: 'award' });
 /** How many of the week's games This week shows. */

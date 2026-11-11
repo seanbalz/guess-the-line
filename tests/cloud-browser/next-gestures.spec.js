@@ -1,3 +1,4 @@
+import { setCaptureTheme } from './theme-capture.mjs';
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { ALL } from '../migrations.mjs';
@@ -26,7 +27,7 @@ test.beforeEach(() => { test.skip(!pgliteAvailable, 'Local PGlite required; neve
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 const sheet = (page, name) => page.getByRole('dialog', { name, exact: true });
 // D-69 step 3: the board is picture rows and one game is a layer with the sheet's pager (LayerPager).
-const card = (page, id) => page.locator(`.gx-prow[data-game="${id}"]`);
+const card = (page, id) => page.locator(`button[data-game="${id}"]`);
 const layer = page => page.locator('[data-research="game"]');
 const place = page => page.locator('[data-research="game"] [data-pager] [aria-live="polite"]');
 const pageButton = (page, which) => page.locator('[data-research="game"] [data-pager] .gx-sheet-page').nth(which === 'prev' ? 0 : 1);
@@ -82,7 +83,7 @@ async function axe(page) {
 /** Both themes and both widths: the phone rules and axe, for the state on screen now. */
 async function everyLook(page, where, testInfo) {
   for (const theme of ['dark', 'light']) {
-    await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+    await setCaptureTheme(page, theme);
     for (const width of [390, 320]) {
       await page.setViewportSize({ width, height: width === 390 ? 844 : 640 });
       await phoneChecks(page, `${where} ${theme} ${width}`);
@@ -90,7 +91,7 @@ async function everyLook(page, where, testInfo) {
       if (width === 390) await page.screenshot({ path: testInfo.outputPath(`${where.replace(/\W+/g, '-')}-390-${theme}.png`) });
     }
   }
-  await page.evaluate(() => { document.documentElement.dataset.theme = 'dark'; });
+  await setCaptureTheme(page, 'dark');
   await page.setViewportSize({ width: 390, height: 844 });
 }
 
@@ -176,7 +177,7 @@ test('press feedback: a pressed card, button or icon button dips and dims, then 
     const targets = { card: card(page, order[0].id), button: page.locator('.gx-lock-card').getByRole('button', { name: /^Finish (Spread|Total) picks$/ }),
       row: page.getByRole('button', { name: 'Open weekly research', exact: true }), icon: page.getByRole('button', { name: 'About trends', exact: true }) };
     for (const [kind, target] of Object.entries(targets)) {
-      await target.scrollIntoViewIfNeeded();
+      await target.evaluate(el => el.scrollIntoView({ block: 'center' }));
       await settle(page);
       const at = await center(target);
       await page.mouse.move(at.x, at.y);
@@ -190,14 +191,14 @@ test('press feedback: a pressed card, button or icon button dips and dims, then 
       await expect.poll(() => opacity(target)).toBe(1);
     }
     // The press runs on the tap tokens (100ms, standard easing), transform and opacity only; the card is the board's row.
-    expect(await targets.card.evaluate(el => [el.tagName, el.classList.contains('gx-prow')])).toEqual(['BUTTON', true]);
+    expect(await targets.card.evaluate(el => [el.tagName, el.hasAttribute('data-game')])).toEqual(['BUTTON', true]);
     expect(await targets.card.evaluate(el => [getComputedStyle(el).transitionProperty, getComputedStyle(el).transitionDuration])).toEqual(['transform, opacity', '0.1s, 0.1s']);
     expect(await page.evaluate(() => window.__vibrations), 'no tick for a card, a text button, a row or an icon button').toEqual([]);
 
     // Reduced motion, from the device: the dim stays, the dip goes, and nothing transitions.
     await page.emulateMedia({ reducedMotion: 'reduce' });
     for (const [kind, target] of Object.entries(targets)) {
-      await target.scrollIntoViewIfNeeded(); // the research row sits below the games
+      await target.evaluate(el => el.scrollIntoView({ block: 'center' })); // the research row sits below the games
       const at = await center(target);
       await page.mouse.move(at.x, at.y);
       await page.mouse.down();
@@ -209,6 +210,7 @@ test('press feedback: a pressed card, button or icon button dips and dims, then 
     // Reduced motion, from the app's own setting (data-motion="reduce" on the .gx root).
     await page.emulateMedia({ reducedMotion: 'no-preference' });
     await page.evaluate(() => document.querySelector('.gx').setAttribute('data-motion', 'reduce'));
+    await targets.card.evaluate(el => el.scrollIntoView({ block: 'center' }));
     const at = await center(targets.card);
     await page.mouse.move(at.x, at.y);
     await page.mouse.down();
@@ -434,7 +436,7 @@ test('skeletons: while the week and a game\'s market lines load, static token bl
     await page.goto('about:blank');
     await page.goto('/#lines');
     // D-69 step 3: the board's skeleton is rows (picture rows stand in), on .gx-l-skel.
-    const board = page.locator('.gx-skel[data-skeleton="rows"]');
+    const board = page.locator('.gx-l-skel[data-skeleton="cards"]');
     await expect(board).toBeVisible();
     await expect(board).toHaveAttribute('role', 'status');
     await expect(page.getByRole('status').filter({ hasText: 'Loading this week’s games…' })).toHaveCount(1);
@@ -453,7 +455,7 @@ test('skeletons: while the week and a game\'s market lines load, static token bl
     });
     expect(tint).toEqual({ count: expect.any(Number), tinted: true, moving: 0, named: [] });
     expect(tint.count).toBeGreaterThan(6);
-    await expect(board.locator('.gx-skel-row')).toHaveCount(4);
+    await expect(board.locator('.gx-skel-card')).toHaveCount(4);
     await everyLook(page, 'lines board skeleton', testInfo);
 
     gates.personal.open();

@@ -27,8 +27,11 @@ export function destination(tab, view) {
   const { section, ...adapterView } = view;
   return { tab, view, adapter, adapterView };
 }
-/** Home's layers by name (home/homeModel.js HOME_LAYERS): `#home?layer=who` is Who's in; any other value is Home's root. */
-export const HOME_LAYER_IDS = Object.freeze(['who']);
+/**
+ * Home's layers by name (home/homeModel.js HOME_LAYERS): `#home?layer=who` is Who's in and `#home?layer=recap` the Monday
+ * recap of one week (`season`, `week`, `market`, and `item` for one game's matchup); any other value is Home's root.
+ */
+export const HOME_LAYER_IDS = Object.freeze(['who', 'recap']);
 /**
  * D-69 step 3: Research's layers by section, each one layer name and its item's allowlist: one game in Research › Games
  * (`#research/games?layer=game&item=SEA-DEN`, kept in the lines view) and one team in Research › Teams
@@ -89,6 +92,8 @@ export const navigationPatch = (state, tab, patch) => !!patch && (
   || (tab === 'play' && state.views.play.section !== 'compare' && ['layer', 'item'].some(key => Object.hasOwn(patch, key) && (patch[key] ?? null) !== (state.views.play[key] ?? null)))
   // D-69 step 2: opening or closing Home's layer (Who's in, `#home?layer=who`) is a step, so Back closes it and its lip goes back.
   || (tab === 'home' && Object.hasOwn(patch, 'layer') && (patch.layer ?? null) !== (state.views.home?.layer ?? null))
+  // The Monday recap's matchup (`item`, one game) is a layer in the recap, so Back closes the game and leaves the week.
+  || (tab === 'home' && Object.hasOwn(patch, 'item') && (patch.item ?? null) !== (state.views.home?.item ?? null))
   // D-69 step 3: opening or closing one game (the lines view) or one team (Research's view) is a step, so Back closes
   // it; the game layer's pager showing another game is not (it swaps the item in place, and Back still lands on the board).
   || (tab === 'lines' && ['layer', 'item'].some(key => Object.hasOwn(patch, key) && (patch[key] ?? null) !== (state.views.lines?.[key] ?? null)) && !pagesGame(state, patch))
@@ -151,8 +156,8 @@ const closed = { sheets: [], dialog: null, popover: null, page: null };
 /** The Play view keys that open a nested layer (D-69): Your guesses (`pickGame`), Your score (`scoreGame`) and every
  * other section's generic `layer` and `item`. */
 const PLAY_LAYER_KEYS = Object.freeze(['pickGame', 'scoreGame', 'layer', 'item']);
-/** Home's layer key (D-69 step 2): Who's in opens over Home's root. */
-const HOME_LAYER_KEYS = Object.freeze(['layer']);
+/** Home's layer keys (D-69 step 2): Who's in, or the Monday recap with its week, market and one game, over Home's root. */
+const HOME_LAYER_KEYS = Object.freeze(['layer', 'item', 'market', 'season', 'week']);
 /** The view keys that open a nested layer, per tab: a fresh destination on that tab never carries one over: Play's, Home's, Research's and Bets' layers. */
 const LAYER_KEYS = Object.freeze({ play: PLAY_LAYER_KEYS, home: HOME_LAYER_KEYS, research: Object.freeze(['layer', 'item']), bets: Object.freeze(['layer', 'item']) });
 const withView = (views, tab, patch) => (isRecord(patch) ? { ...views, [tab]: { ...views[tab], ...patch } } : views);

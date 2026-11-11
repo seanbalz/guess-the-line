@@ -501,7 +501,16 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
   // API v43 deployed all four EPL readers/writer routes on October 29; pending M33 schema is separate.
   for (const route of ['epl/guess/read','epl/guess/save','epl/guess/leaderboard','epl/admin/corrections/read'])
     assert.equal(awaitingDeploy[`gtl-api/${route}`], undefined);
+  // A gtl-api route that ships behind an off-by-default secret answers 404 until that separately approved switch: it may
+  // await only under a registered flag, never under an applied migration. D-82 Player Props (M-45 hosted November 10, 2026,
+  // RELEASE_2026_11_10_MIGRATIONS_M41_M47.md) keeps its /props/* routes off until GTL_PLAYER_PROPS is set.
+  const FLAG_GATED = ['GTL_PLAYER_PROPS'];
   for (const [key, until] of Object.entries(awaitingDeploy)) {
+    const flag = /^flag (GTL_[A-Z_]+)\b/.exec(until);
+    if (flag) {
+      assert.ok(FLAG_GATED.includes(flag[1]) && key.startsWith('gtl-api/'), `${key}: only a gtl-api route may await a registered feature flag`);
+      continue;
+    }
     const version = /^(\d{14})\b/.exec(until);
     assert.ok(version, `${key}: pending descriptors name their migration version`);
     assert.ok(NOT_HOSTED.includes(Number(version[1])), `${key}: an applied migration cannot retain an absence exception`);

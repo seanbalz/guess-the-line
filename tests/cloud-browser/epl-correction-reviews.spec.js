@@ -1,7 +1,8 @@
 // Fixture-only commissioner review UI. Existing auth/commissioner navigation uses local PGlite; this new read returns
 // fabricated normalized API data. Separate Node adapter tests enforce the new endpoint's real server-side admin guard.
 import { test, expect } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
+import { captureCommissioner } from './commissioner-capture.mjs';
+import { setCaptureTheme } from './theme-capture.mjs';
 import { communityWorld, pgliteAvailable, signIn, SUPABASE } from './community-world.mjs';
 
 test.use({ viewport: { width: 390, height: 844 } });
@@ -27,32 +28,91 @@ test('commissioner loads correction evidence only when opening its tool, with a 
     await page.getByRole('button', { name: 'Your menu', exact: true }).click();
     await page.getByRole('button', { name: 'Commissioner tools', exact: true }).click();
     const sheet = page.getByRole('dialog').last();
-    await expect(sheet.getByRole('button', { name: 'EPL stat corrections', exact: true })).toBeVisible();
+    await expect(sheet.getByRole('button', { name: 'Premier League stat corrections', exact: true })).toBeVisible();
     expect(calls).toBe(0); expect(chunks).toHaveLength(0);
-    await sheet.getByRole('button', { name: 'EPL stat corrections', exact: true }).click();
+    await sheet.getByRole('button', { name: 'Premier League stat corrections', exact: true }).click();
     await expect(sheet.getByRole('heading', { name: 'MW9 stat correction needs review' })).toBeVisible();
     expect(calls).toBe(1); expect(chunks).toHaveLength(1);
     await expect(sheet.getByText('MW10 has 1 recorded pick. Its stored picks and draft order are preserved.')).toBeVisible();
-    await expect(sheet.getByText('500.25 → 501.25 (+1)')).toBeVisible();
-    for (const theme of ['dark', 'light']) {
-      await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
-      await page.setViewportSize({ width: theme === 'dark' ? 390 : 320, height: 844 });
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-      expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze()).violations).toEqual([]);
-      await page.screenshot({ path: testInfo.outputPath(`epl-correction-review-${theme}.png`) });
-    }
+    await expect(sheet.locator('.gx-cm-comparison').filter({ hasText: 'Season points' })).toContainText('501.25');
+    await captureCommissioner(page, testInfo, 'corrections-ready');
     status = 'error'; await sheet.getByRole('button', { name: 'Refresh reviews', exact: true }).click();
     await expect(sheet.getByText('Could not refresh. Showing the last loaded reviews.')).toBeVisible();
     await expect(sheet.getByRole('heading', { name: 'MW9 stat correction needs review' })).toBeVisible();
+    await captureCommissioner(page, testInfo, 'corrections-stale', { compact: true });
     status = 'unavailable'; await sheet.getByRole('button', { name: 'Refresh reviews', exact: true }).click();
-    await expect(sheet.getByText('EPL correction checks are not available yet.')).toBeVisible();
+    await expect(sheet.getByText('Premier League correction checks are not available yet.')).toBeVisible();
     await expect(sheet.getByRole('heading', { name: 'MW9 stat correction needs review' })).toHaveCount(0);
+    await captureCommissioner(page, testInfo, 'corrections-unavailable', { compact: true });
     status = 'empty'; await sheet.getByRole('button', { name: 'Refresh reviews', exact: true }).click();
-    await expect(sheet.getByText('No EPL stat corrections are awaiting review.')).toBeVisible();
+    await expect(sheet.getByText('No Premier League stat corrections are awaiting review.')).toBeVisible();
+    await captureCommissioner(page, testInfo, 'corrections-empty', { compact: true });
     status = 'ready'; await sheet.getByRole('button', { name: 'Refresh reviews', exact: true }).click();
     await expect(sheet.getByRole('heading', { name: 'MW9 stat correction needs review' })).toBeVisible();
     status = 'forbidden'; await sheet.getByRole('button', { name: 'Refresh reviews', exact: true }).click();
     await expect(sheet.getByText('Only the Community commissioner can view these corrections.')).toBeVisible();
     await expect(sheet.getByRole('heading', { name: 'MW9 stat correction needs review' })).toHaveCount(0);
+    await captureCommissioner(page, testInfo, 'corrections-denied', { compact: true });
+  } finally { await world.db.close(); }
+});
+
+// D-83 (Sean, November 11, 2026: "Yes, import wins"). Fabricated replies in the brief's worked-week shape (MW11 to MW12):
+// a Tuesday correction drops Casey below Alex, so Tuesday's totals put Casey first, but the confirmed import kept Alex
+// first. gtl-api then compares MW12's live order with the kept one: still kept, adopted (a later import set Tuesday's
+// order) or changed. Fictional names and scores only.
+const KEPT = ['Alex', 'Casey', 'Jordan', 'Riley', 'Taylor', 'Morgan', 'Drew', 'Quinn'];
+const TUESDAY = ['Casey', 'Alex', ...KEPT.slice(2)];
+const LATER = ['Jordan', 'Alex', 'Casey', ...KEPT.slice(3)];
+const imported = (orderState, currentOrder) => ({ week: 11, nextWeek: 12, nextPickCount: 0, totalsComplete: true,
+  original: { capturedAt: '2026-11-23T08:10:00Z' }, corrected: { capturedAt: '2026-11-24T20:05:00Z' },
+  changes: [{ name: 'Casey', before: { points: 412.6, against: 398.15 }, after: { points: 409.4, against: 398.15 }, pointsChange: -3.2, againstChange: 0 }],
+  orderState, currentOrder, candidateOrder: TUESDAY });
+const USE = /record it as a correction while the MW12 draft is open, before its first pick or kickoff/;
+const STATES = [
+  { state: 'kept', review: imported('kept', KEPT), lists: [KEPT, TUESDAY], asks: true,
+    lead: 'Tuesday’s totals would put Casey first. Because you confirmed an import, MW12 keeps Alex first.' },
+  { state: 'adopted', review: imported('adopted', TUESDAY), lists: [TUESDAY], asks: false,
+    lead: 'An import after Tuesday’s recheck set the order Tuesday’s totals give. MW12 now has Casey first. Nothing else is needed.' },
+  { state: 'changed', review: imported('changed', LATER), lists: [LATER, TUESDAY], asks: true,
+    lead: 'MW12’s order changed after Tuesday’s recheck. It now has Jordan first. Tuesday’s totals would put Casey first.' },
+];
+
+test('a confirmed import kept the order: the card says kept, adopted or changed from the live order, still read-only (D-83)', async ({ page, baseURL }, testInfo) => {
+  const world = await communityWorld(page, baseURL, { groupScreens: true });
+  let shown = STATES[0];
+  await page.route(url => url.origin === SUPABASE && url.pathname.endsWith('/gtl-api/epl/admin/corrections/read'), route => route.fulfill({
+    status: 200, contentType: 'application/json', body: JSON.stringify({ available: true, season: 2026, reviews: [shown.review] }) }));
+  try {
+    await page.goto('/'); await signIn(page, 'sean', { navigate: false });
+    await page.getByRole('button', { name: 'Your menu', exact: true }).click();
+    await page.getByRole('button', { name: 'Commissioner tools', exact: true }).click();
+    const sheet = page.getByRole('dialog').last();
+    await sheet.getByRole('button', { name: 'Premier League stat corrections', exact: true }).click();
+    for (const current of STATES) {
+      if (current !== shown) { shown = current; await sheet.getByRole('button', { name: 'Refresh reviews', exact: true }).click(); }
+      await expect(sheet.getByRole('heading', { name: 'MW11 stat correction needs review' })).toBeVisible();
+      await expect(sheet.getByText(current.lead)).toBeVisible();
+      const order = sheet.getByRole('region', { name: 'MW12 pick order' });
+      await expect(order.locator('ol')).toHaveCount(current.lists.length);
+      for (const [i, names] of current.lists.entries()) await expect(order.locator('ol').nth(i).locator('li')).toHaveText(names);
+      await expect(order.getByText('Current MW12 order', { exact: true })).toBeVisible();
+      await expect(sheet.getByText('Kept by your import')).toHaveCount(0);
+      await expect(sheet.getByText(USE)).toHaveCount(current.asks ? 1 : 0);
+      await expect(sheet.getByRole('button', { name: /Apply|Reorder|Use corrected order/ })).toHaveCount(0);
+      // Position n of each list sits on the same line, at every width (a wrapped label must not shift one column).
+      const rows = async () => order.locator('ol').evaluateAll(lists => lists.map(list => [...list.children].map(li => Math.round(li.getBoundingClientRect().top))));
+      const name = `corrections-import-${current.state}`;
+      await captureCommissioner(page, testInfo, name);
+      for (const [theme, width] of [['dark', 320], ['light', 320], ['dark', 390], ['light', 390]]) {
+        await page.setViewportSize({ width, height: 844 });
+        await setCaptureTheme(page, theme, { forcedColors: 'none' });
+        const [first, ...others] = await rows();
+        for (const other of others) expect(other, `${current.state} ${theme} ${width} aligned order rows`).toEqual(first);
+        // The full lists, centred: the top and bottom captures cut through the middle of the card.
+        await order.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+        await expect(order).toBeInViewport({ ratio: 1 });
+        await page.screenshot({ path: testInfo.outputPath(`${name}-${theme}-${width}-order.png`) });
+      }
+    }
   } finally { await world.db.close(); }
 });

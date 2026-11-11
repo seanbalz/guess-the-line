@@ -50,7 +50,7 @@ async function targets44(scope) {
   }
 }
 
-test('without M-25: the Badges tile on Play says "coming soon", so do Home’s Awards tile and the screen', async ({ page, baseURL }) => {
+test('without M-25: Home remains usable; Play and the awards screen say coming soon', async ({ page, baseURL }) => {
   const world = await communityWorld(page, baseURL, { migrations: BEFORE_M25 });
   expect((await world.api('luke', 'league/features', {})).status).toBe(404);
   await openNewApp(page);
@@ -59,11 +59,7 @@ test('without M-25: the Badges tile on Play says "coming soon", so do Home’s A
   await expect(page.getByRole('button', { name: 'Badges, coming soon' })).toBeVisible();
   await tabs(page).getByRole('button', { name: /^Home(,|$)/ }).click();
   await expect(page.locator('[data-landing="home"]')).toBeVisible();
-  // D-69 step 2 (H1A): the Awards tile is always one of Home's six; without M-25 it says so, with no number and no NEW.
-  const awards = page.locator('[data-tile="awards"]').getByRole('button');
-  await expect(awards).toHaveAccessibleName('Awards, coming soon');
-  await expect(awards.locator('.gx-nest-num')).toHaveText('—');
-  await expect(awards.locator('.gx-new')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Continue picks', exact: true })).toBeVisible();
   await page.goto('/#play/features');
   await expect(page.getByText('Badges and awards are coming soon.')).toBeVisible();
   expect(world.errors).toEqual([]);
@@ -74,9 +70,9 @@ test('before the job has run: an empty recap with no sample, streaks at 0 and th
   await seedFinishedWeek(world);
   await openNewApp(page);
   // The landing's Your score tile makes this device's first read of the score source, which seeds Luke's plain Bullseye
-  // moments as seen (a Bullseye badge shares Your score's Bullseye id). Wait for its loaded name, so that seeding has
+  // moments as seen (a Bullseye badge shares Your score's Bullseye id). Wait for its loaded scope, so that seeding has
   // happened before the landing unmounts; otherwise the overlay's count below depends on which reply came first.
-  await expect(page.locator('[data-play-tile="score"]').getByRole('button')).toHaveAccessibleName(/^Your score, (?!loading)/);
+  await expect(page.locator('.gx-play-score-card')).toContainText('Personal season accuracy points');
   const row = page.getByRole('button', { name: /^Badges, 0 earned/ });
   await expect(row).toBeVisible();
   await row.click();
@@ -142,14 +138,35 @@ test('before the job has run: an empty recap with no sample, streaks at 0 and th
   await expect(page).toHaveURL(/#play\/features$/);
 
   // A badge's layer: the 96 tile, rarity in words, the rule, how often and when; a reload reopens it.
-  await screen.getByRole('button', { name: /^Bullseye, Uncommon, earned 3 times/ }).click();
+  const bullseye = screen.getByRole('button', { name: /^Bullseye, Uncommon, earned 3 times/ });
+  await bullseye.scrollIntoViewIfNeeded();
+  // Visibility alone need not scroll a compact shelf far enough to exercise Back restoration.
+  await bullseye.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+  const shelfScroll = await page.evaluate(() => scrollY);
+  expect(shelfScroll, 'the badge opens from a scrolled shelf').toBeGreaterThan(100);
+  await bullseye.click();
   await expect(page).toHaveURL(/#play\/features\?layer=badge&item=bullseye$/);
   await expect(screen.getByRole('heading', { name: 'Bullseye', level: 2 })).toBeFocused();
+  await expect.poll(() => page.evaluate(() => scrollY), 'a new layer opens at the top, preserving its heading focus').toBe(0);
+  const header = await page.getByRole('banner').boundingBox();
+  const sport = await page.getByRole('button', { name: 'National Football League', exact: true }).boundingBox();
+  expect(sport.y, 'the sport control is fully below the native header on entry').toBeGreaterThanOrEqual(header.y + header.height);
   await expect(screen).toContainText('Guess a line exactly (10 points).');
   await expect(screen).toContainText('Earned 3 times');
   // D-62: the game is drawn as marks (read as one sentence); the codes beside the marks sit between in textContent.
   await expect(screen).toContainText(/Week 4 · Seattle Seahawks at Denver Broncos[A-Z@]* · Spread DEN −8\.5 exact/);
   await phoneChecks(page, info, 'features-badge');
+  // Native/browser Back still belongs to Shell: the layer's top reset must not discard the shelf's saved position.
+  await page.goBack();
+  await expect(page).toHaveURL(/#play\/features$/);
+  await expect(bullseye).toBeFocused();
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(shelfScroll);
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  await expect(bullseye).toBeFocused();
+  expect(await page.evaluate(() => scrollY), 'shelf restoration survives settled browser traversal frames').toBe(shelfScroll);
+  await bullseye.click();
+  await expect(screen.getByRole('heading', { name: 'Bullseye', level: 2 })).toBeFocused();
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
   await page.reload();
   await expect(screen.getByRole('heading', { name: 'Bullseye', level: 2 })).toBeVisible();
   await screen.getByRole('button', { name: 'Back to Badges and awards' }).click();
@@ -173,19 +190,15 @@ test('reduced motion: the celebration still says what happened, with no animatio
   expect(world.errors).toEqual([]);
 });
 
-test('Home\'s Awards tile and the League board\'s "Won Week 4" show once the job has run, and open the screen', async ({ page, baseURL }) => {
+test('Play awards and the League board remain reachable from approved Home', async ({ page, baseURL }) => {
   const world = await communityWorld(page, baseURL, { migrations: ALL });
   await seedFinishedWeek(world);
   expect((await world.api('sean', 'league/features/run', {})).status).toBe(200);
   await openNewApp(page, '#home');
   await expect(page.locator('[data-landing="home"]')).toBeVisible();
-  // D-69 step 2 (H1A): the awards card became the Awards tile (the week's award count, Luke's own award named).
-  const awards = page.locator('[data-tile="awards"]').getByRole('button');
-  await expect(awards).toHaveAccessibleName('Awards, 7 in Week 4, you won Spread winner');
-  await expect(awards).toContainText('Week 4 · You won Spread winner');
-  // The first read on this device seeds what Luke has seen: no celebration on page load.
   await expect(page.getByRole('dialog', { name: 'New results' })).toHaveCount(0);
-  await awards.click();
+  await tabs(page).getByRole('button', { name: /^Play(,|$)/ }).click();
+  await page.locator('[data-play-tile="badges"]').getByRole('button').click();
   await expect(page).toHaveURL(/#play\/features/);
   await page.goto('/#play/league?view=board');
   const board = page.getByRole('list', { name: 'Spread season standings' });
@@ -216,12 +229,10 @@ test('D-69 (the review race): a scroll press on the launch screen is not a navig
   const hero = page.locator('[data-home="hero"]');
   await expect(hero).toBeVisible();
   await hero.getByRole('heading', { level: 2 }).click(); // a trusted press on words (a scroll touch), not a navigation
+  const featuresRead = page.waitForResponse(response => response.url().endsWith('/league/features') && response.status() === 200);
   release();
-  // The away results wait as NEW on the Awards tile, with the newest of Luke's own awards named "New:".
-  const awards = page.locator('[data-tile="awards"]');
-  await expect(awards.locator('.gx-new')).toBeVisible();
-  await expect(awards.getByRole('button')).toHaveAccessibleName(/^Awards, 7 in Week 4, new: .+$/);
-  await expect(awards.locator('.gx-tile-sub')).toHaveText(/^Week 4 · New: .+$/);
+  // Home reports away results; their visible destination remains the Play card.
+  await featuresRead;
   // Let the read's effects and any overlay they open commit before looking.
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(resolve, 0)))));
   const flash = page.getByRole('dialog', { name: 'New results' });

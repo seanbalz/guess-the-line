@@ -57,7 +57,7 @@ test('one game is a layer: a step to open, paging in place, the chart reveal, te
     expect(await historyLength(page)).toBe(before + 1);
     await expect(page.locator('.gx-kept')).toBeHidden();
     await expect(page.locator('.gx-kept')).toHaveCount(1);
-    await expect(layer(page).getByRole('button', { name: 'Back to Games', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Back', exact: true })).toBeVisible();
     await expect(layer(page).getByRole('region', { name: 'Market lines', exact: true })).toBeVisible();
     await expect(layer(page).locator('[data-section="trends"]')).toBeVisible();
 
@@ -146,17 +146,20 @@ test('the game layer’s Spread, Total and Bets buttons stay inside the layer at
     await page.addStyleTag({ content: WIDE_FONT });
     const buttons = layer(page).locator('.gx-l-actions > button');
     await expect(buttons.first()).toBeVisible({ timeout: 30000 });
-    // The edge that clips is the nearest ancestor with overflow-x clip/hidden (the pager), not the card around it.
+    // Actions precede the pager in the approved compact layout; every button fits its own bar.
     const edges = await page.evaluate(() => {
       const bar = document.querySelector('[data-research="game"] .gx-l-actions');
-      let clip = bar.parentElement;
-      while (clip && !['clip', 'hidden'].includes(getComputedStyle(clip).overflowX)) clip = clip.parentElement;
-      return { right: (clip ?? document.documentElement).getBoundingClientRect().right, clipped: !!clip,
-        buttons: [...bar.children].map(b => ({ text: b.textContent, right: b.getBoundingClientRect().right })) };
+      const box = bar.getBoundingClientRect();
+      return { left: box.left, right: box.right,
+        buttons: [...bar.children].map(b => ({ text: b.textContent, left: b.getBoundingClientRect().left, right: b.getBoundingClientRect().right })) };
     });
-    expect(edges.clipped).toBe(true);
+    expect(edges.left).toBeGreaterThanOrEqual(0);
+    expect(edges.right).toBeLessThanOrEqual(320);
     expect(edges.buttons.length).toBeGreaterThan(0);
-    for (const b of edges.buttons) expect(b.right, `${b.text} inside the clipping edge`).toBeLessThanOrEqual(edges.right + 0.5);
+    for (const b of edges.buttons) {
+      expect(b.left, `${b.text} inside the left edge`).toBeGreaterThanOrEqual(edges.left - 0.5);
+      expect(b.right, `${b.text} inside the right edge`).toBeLessThanOrEqual(edges.right + 0.5);
+    }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     expect(world.errors).toEqual([]);
   } finally {

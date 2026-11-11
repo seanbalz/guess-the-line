@@ -99,7 +99,9 @@ const shared = Object.fromEntries(SHARED_GROUPS.flatMap(group => Object.entries(
 const themeVars = name => Object.fromEntries(Object.entries({ ...tokens.themes[name].color, ...tokens.themes[name].effect }).map(([key, value]) => [`--gx-${key}`, value]));
 const dark = themeVars('dark'), light = themeVars('light');
 const LIGHT_SELECTORS = [':root[data-theme="light"] .gx:not([data-theme="dark"])', '.gx[data-theme="light"]'];
-const familyName = key => tokens.font[key].split(',')[0].replaceAll('"', '').trim();
+// The approved Prism stack leads with native Apple/system fonts. Inter is the web fallback;
+// platform families do not need a Google Fonts download to make the same weight available.
+const familyName = key => tokens.font[key].includes('Inter') ? 'Inter' : tokens.font[key].split(',')[0].replaceAll('"', '').trim();
 
 test('tokens-next.json is complete: both themes define the same tokens, colors are hex and fonts are loaded', () => {
   assert.equal(tokens.name, 'Guess The Line');
@@ -115,17 +117,18 @@ test('tokens-next.json is complete: both themes define the same tokens, colors a
   assert.equal(tokens.css.classPrefix, 'gx-');
   assert.deepEqual(tokens.css.files, [tokensFile, `${stylesDir}/base.css`, `${stylesDir}/components.css`]);
   for (const file of tokens.css.files) assert.ok(files.includes(file), `${file} exists`);
-  // Each stack leads with a family the Google Fonts link loads, then system fallbacks.
+  // Native-first on Apple, with an explicitly loaded cross-platform fallback.
   for (const key of Object.keys(tokens.font)) {
-    assert.ok(familyName(key) in tokens.webfonts.weights, `${key} leads with a loaded family`);
+    assert.match(tokens.font[key], /^-apple-system, BlinkMacSystemFont, Inter, "Segoe UI", sans-serif$/, `${key}: approved platform stack`);
+    assert.ok(familyName(key) in tokens.webfonts.weights, `${key} has a loaded fallback`);
     assert.match(tokens.font[key], /sans-serif$/, `${key} ends in a generic family`);
   }
-  // Big Shoulders Display has no tabular figures: never for numbers.
+  // The selected system stack uses tabular figures for every numeric style.
   for (const [key, style] of Object.entries(tokens.type)) {
     assert.ok(tokens.webfonts.weights[familyName(style.family)].includes(style.weight), `type ${key}: weight ${style.weight} is loaded`);
     assert.ok(Number.parseFloat(style.size) >= 12, `type ${key} is at least 12px`);
     if (style.family === 'num') assert.equal(style.tabular, true, `type ${key} uses tabular figures`);
-    if (key.startsWith('n-')) assert.equal(style.family, 'num', `numeral ${key} uses Barlow Condensed`);
+    if (key.startsWith('n-')) assert.equal(style.family, 'num', `numeral ${key} uses the numeric stack`);
   }
 });
 
@@ -176,7 +179,7 @@ const contrast = (a, b) => { const [hi, lo] = [luminance(a), luminance(b)].sort(
 
 test('contrast: text and icons at least 4.5:1, control edges and focus at least 3:1, in both themes', () => {
   const surfaces = ['canvas', 'surface-1', 'surface-2', 'surface-3', 'accent-tint', 'toast-bg', 'seg-on'];
-  const inks = ['text-1', 'text-2', 'text-3', 'accent-ink', 'data', 'win', 'loss', 'pending', 'live'];
+  const inks = ['text-1', 'text-2', 'text-3', 'accent-ink', 'primary-ink', 'data', 'win', 'loss', 'pending', 'live'];
   const states = ['data', 'win', 'loss', 'pending', 'live'];
   for (const name of ['dark', 'light']) {
     const c = tokens.themes[name].color;
@@ -199,15 +202,15 @@ test('contrast: text and icons at least 4.5:1, control edges and focus at least 
     for (const [fill, hex] of Object.entries(tokens.av)) if (fill !== 'ink' && contrast(tokens.av.ink, hex) < 4.5) failures.push(`avatar initials on ${fill}`);
     assert.deepEqual(failures, []);
   }
-  // The tightest pairs the design system recorded (design-final section 4) still hold.
-  assert.equal(contrast(tokens.themes.dark.color['text-3'], tokens.themes.dark.color['accent-tint']).toFixed(2), '4.80');
-  assert.equal(contrast(tokens.themes.light.color.win, tokens.themes.light.color['surface-3']).toFixed(2), '4.87');
+  // Keep the semantic threshold across palette revisions rather than pinning the old palette's ratio.
+  assert.ok(contrast(tokens.themes.dark.color['text-3'], tokens.themes.dark.color['accent-tint']) >= 4.5);
+  assert.ok(contrast(tokens.themes.light.color.win, tokens.themes.light.color['surface-3']) >= 4.5);
   // The brand guide's reason for the light lime edge quotes lime's range on the light surfaces (stage 6 review: it
   // left out surface-3); keep it equal to the tokens.
   const light = tokens.themes.light.color;
   const lime = ['canvas', 'surface-1', 'surface-2', 'surface-3'].map(surface => contrast(light.accent, light[surface]));
   const range = `${Math.min(...lime).toFixed(2)} to ${Math.max(...lime).toFixed(2)}:1`;
-  assert.equal(range, '1.07 to 1.32:1');
+  assert.ok(lime.every(ratio => ratio < 3), 'light lime still requires the contrasting green edge');
   assert.ok(read('docs/BRAND_GUIDE.md').includes(`lime on the light surfaces is only ${range}`), `docs/BRAND_GUIDE.md says lime on the light surfaces is ${range}`);
 });
 
@@ -232,7 +235,7 @@ test('D-55 glow card: text, glass, chart line, bars and the break-even tick keep
     ]) { const ratio = contrast(fg, bg); if (ratio < min) failures.push(`${name} ${label}: ${ratio.toFixed(2)}`); }
     assert.deepEqual(failures, []);
     // Lime stays the primary action: as a chart color it is only the last, decorative stop of the glow.
-    assert.ok(!Object.entries(c).some(([key, value]) => value === c.accent && !['accent', 'accent-ink', 'glow-3'].includes(key)), `${name}: lime only as accent, accent-ink or glow-3`);
+    assert.ok(!Object.entries(c).some(([key, value]) => value === c.accent && !['accent', 'accent-ink', 'glow-3', 'home-accent'].includes(key)), `${name}: lime only as accent, accent-ink or glow-3`);
   }
 });
 
@@ -270,12 +273,12 @@ test('no font under 12px, and 12px only for uppercase pills, labels and counters
   assert.ok(checked > 40);
 });
 
-test('fonts: every weight used is one the Google Fonts link loads, and Big Shoulders never sets numbers', () => {
+test('fonts: every weight used is loaded by the fallback and numbers keep their own stack', () => {
   for (const rule of styleRules) {
     const fontDecl = rule.decls.find(d => d.prop === 'font' && d.value !== 'inherit');
     const familyDecl = [...rule.decls].reverse().find(d => d.prop === 'font' || d.prop === 'font-family');
     const familyKey = familyDecl?.value.match(/var\(--gx-font-(\w+)\)/)?.[1] || 'body';
-    if (familyDecl && familyDecl.value !== 'inherit') assert.match(familyDecl.value, /var\(--gx-font-(display|num|body)\)/, `${rule.file}: ${rule.selector} names a font outside the tokens`);
+    if (familyDecl && familyDecl.value !== 'inherit') assert.match(familyDecl.value, /var\(--gx-font-(display|num|body|home)\)/, `${rule.file}: ${rule.selector} names a font outside the tokens`);
     const weights = rule.decls.filter(d => d.prop === 'font-weight').map(d => Number(d.value));
     if (fontDecl) weights.push(Number(fontDecl.value.split(/\s+/)[0]));
     for (const weight of weights) assert.ok(tokens.webfonts.weights[familyName(familyKey)].includes(weight), `${rule.file}: ${rule.selector} uses ${familyName(familyKey)} ${weight}, which is not loaded`);
@@ -298,7 +301,7 @@ test('fonts: every weight used is one the Google Fonts link loads, and Big Shoul
   assert.ok(weightOnly >= 5, 'the weight-only rules were found');
 });
 
-test('tabular numbers: every Barlow Condensed rule sets tabular-nums after its font shorthand', () => {
+test('tabular numbers: every numeric rule sets tabular-nums after its font shorthand', () => {
   let numRules = 0;
   for (const rule of styleRules) {
     const usesNum = rule.decls.some(d => (d.prop === 'font' || d.prop === 'font-family') && d.value.includes('var(--gx-font-num)'));
@@ -368,8 +371,10 @@ test('motion: keyframes animate only transform and opacity, and reduced motion s
       const name = decl.value.split(/\s+/).find(token => /^[a-z]/i.test(token) && !/^(ease|linear|infinite|alternate|forwards|backwards|both|step|var)/.test(token));
       assert.ok(allKeyframes.has(name), `${rule.file}: ${rule.selector} runs @keyframes ${name}, which is not defined`);
     }
-    // !important belongs only to the reduced-motion blocks, and to base.css's one [hidden] guard (its own test below).
+    // Accessibility preferences and the hidden guard must survive lazy screen styles.
     if (decl.important) assert.ok(rule.context.some(c => c.includes('prefers-reduced-motion: reduce')) || rule.selector.includes('[data-motion="reduce"]')
+      || (rule.context.includes('@media (prefers-reduced-transparency: reduce)')
+        && ((decl.prop === 'background' && decl.value === 'var(--gx-surface-1)') || (['backdrop-filter', '-webkit-backdrop-filter'].includes(decl.prop) && decl.value === 'none')))
       || (rule.file === `${stylesDir}/base.css` && rule.selector === HIDDEN_GUARD && decl.prop === 'display' && decl.value === 'none'), `${rule.file}: ${rule.selector} uses !important`);
   }
   const stops = rule => ['animation', 'transition'].every(prop => rule.decls.some(d => d.prop === prop && d.value === 'none' && d.important));

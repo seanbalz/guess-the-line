@@ -27,11 +27,31 @@ const source = row => ({
   rosterHash: typeof row?.sha256?.rosters === 'string' && /^[a-f0-9]{64}$/.test(row.sha256.rosters) ? row.sha256.rosters : null,
 });
 const delta = (before, after) => before === null || after === null ? null : round(after - before);
+const OUTCOMES = ['applied', 'same_order', 'preserved_picks', 'preserved_closed', 'preserved_import'];
+// An M-35 draft order: 1-8 distinct Sleeper owner ids. Only canonical first names leave the server; an unknown owner is null.
+const ownerOrder = value => Array.isArray(value) && value.length >= 1 && value.length <= 8 && new Set(value).size === value.length
+  && value.every(owner => typeof owner === 'string' && /^[0-9]{1,30}$/.test(owner));
+const names = order => order.map(owner => (Object.hasOwn(MANAGER_NAMES, owner) ? MANAGER_NAMES[owner] : null));
+const same = (a, b) => a.length === b.length && a.every((owner, i) => owner === b[i]);
+// D-83 (import wins): preserved_import carries the kept order and the order the recheck would have set, both complete and
+// different (M-35's check constraint).
+const validState = row => record(row) && Number.isInteger(row.week) && row.week >= 1 && row.week <= 37 && OUTCOMES.includes(row.outcome)
+  && (row.outcome !== 'preserved_import' || (ownerOrder(row.keptOrder) && ownerOrder(row.candidateOrder)
+    && row.keptOrder.length === row.candidateOrder.length && row.keptOrder.every(owner => row.candidateOrder.includes(owner))
+    && !same(row.keptOrder, row.candidateOrder)));
+// The kept order is frozen at the recheck, so the next week's live order says what happened since. After the recheck, the
+// writer that changes an untouched draft's order is a later commissioner import (M-43) of week n; M-35 records one outcome
+// per recheck and never reorders a preserved_import week.
+//   kept:    the live order is still the kept one;
+//   adopted: the live order is the one Tuesday's totals give (a later import applied it);
+//   changed: the live order is neither.
+// None of them says the import set the kept order: after a pending_results import, settle opened the next week.
+const orderState = (live, held) => same(live, held.keptOrder) ? 'kept' : same(live, held.candidateOrder) ? 'adopted' : 'changed';
 
 export async function readEplCorrectionReviews({ rows, season, orderStates = null }) {
-  if (orderStates !== null && (!Array.isArray(orderStates) || orderStates.length > 38 || orderStates.some(row => !record(row) || !Number.isInteger(row.week)
-    || row.week < 1 || row.week > 37 || !['applied','same_order','preserved_picks','preserved_closed'].includes(row.outcome))
+  if (orderStates !== null && (!Array.isArray(orderStates) || orderStates.length > 38 || !orderStates.every(validState)
     || new Set(orderStates.map(row => row.week)).size !== orderStates.length)) throw new Error('Invalid order-correction reply.');
+  const kept = new Map((orderStates ?? []).filter(row => row.outcome === 'preserved_import').map(row => [row.week, row]));
   let audit = await rows('gtl_epl_stat_rechecks', {
     select: 'season,week,checked_at,original_snapshot_id,recheck_snapshot_id', season: `eq.${season}`,
     status: 'eq.needs_review', order: 'week.desc', limit: '38',
@@ -43,14 +63,21 @@ export async function readEplCorrectionReviews({ rows, season, orderStates = nul
   if (!audit.length) return [];
   const ids = [...new Set(audit.flatMap(row => [id(row.original_snapshot_id), id(row.recheck_snapshot_id)]))];
   const weeks = [...new Set(audit.map(row => row.week + 1))];
-  const [snapshots, picks] = await Promise.all([
+  const heldWeeks = audit.filter(row => kept.has(row.week)).map(row => row.week + 1);
+  const [snapshots, picks, live] = await Promise.all([
     rows('gtl_epl_snapshots', { select: 'id,label,captured_at,sha256,rosters:payload->rosters', id: `in.(${ids.join(',')})`, limit: String(ids.length) }, ids.length),
     rows('gtl_epl_picks', { select: 'week', season: `eq.${season}`, week: `in.(${weeks.join(',')})`, limit: '304' }, 304),
+    // Only weeks a confirmed import kept: the next week's current order (owner ids; only first names leave the server).
+    heldWeeks.length ? rows('gtl_epl_weeks', { select: 'week,pick_order', season: `eq.${season}`, week: `in.(${heldWeeks.join(',')})`, limit: String(heldWeeks.length) }, heldWeeks.length) : [],
   ]);
-  if (!Array.isArray(snapshots) || snapshots.length > ids.length || !Array.isArray(picks) || picks.length > 304) throw new Error('Invalid correction reply.');
+  if (!Array.isArray(snapshots) || snapshots.length > ids.length || !Array.isArray(picks) || picks.length > 304
+    || !Array.isArray(live) || live.length > heldWeeks.length || !live.every(record)) throw new Error('Invalid correction reply.');
   const byId = new Map(snapshots.map(row => [id(row.id), row]));
+  const current = new Map(live.map(row => [row.week, row.pick_order]));
   if (byId.size !== snapshots.length || [...byId.keys()].some(key => !ids.includes(key))
-    || picks.some(pick => !record(pick) || !weeks.includes(pick.week)) || weeks.some(week => picks.filter(pick => pick.week === week).length > 8))
+    || picks.some(pick => !record(pick) || !weeks.includes(pick.week)) || weeks.some(week => picks.filter(pick => pick.week === week).length > 8)
+    // A kept week's next week exists (M-35 read its order under lock; weeks are never deleted, D-23) with a valid order.
+    || current.size !== live.length || heldWeeks.some(week => !ownerOrder(current.get(week))))
     throw new Error('Invalid correction reply.');
   return audit.map(row => {
     const original = byId.get(id(row.original_snapshot_id)), corrected = byId.get(id(row.recheck_snapshot_id));
@@ -58,9 +85,14 @@ export async function readEplCorrectionReviews({ rows, season, orderStates = nul
       const before = totals(original?.rosters, owner), after = totals(corrected?.rosters, owner);
       return { name, before, after, pointsChange: delta(before.points, after.points), againstChange: delta(before.against, after.against) };
     }).filter(change => change.pointsChange !== 0 || change.againstChange !== 0);
+    const held = kept.get(row.week), now = held ? current.get(row.week + 1) : null;
     return { week: row.week, checkedAt: Number.isFinite(Date.parse(row.checked_at)) ? row.checked_at : null,
       original: source(original), corrected: source(corrected), changes,
       nextWeek: row.week + 1, nextPickCount: picks.filter(pick => pick.week === row.week + 1).length,
-      totalsComplete: changes.every(change => change.pointsChange !== null && change.againstChange !== null) };
+      totalsComplete: changes.every(change => change.pointsChange !== null && change.againstChange !== null),
+      // A confirmed import kept the next week's order: what has happened since, the order the draft uses now and the order
+      // Tuesday's totals would have set.
+      orderState: held ? orderState(now, held) : null,
+      currentOrder: held ? names(now) : null, candidateOrder: held ? names(held.candidateOrder) : null };
   });
 }

@@ -1,0 +1,178 @@
+{
+  "status": "design approved; source audit partial; live lock-in not ready",
+  "date": "2026-11-09",
+  "sourceBase": "9a34f9e47d5fb7dd32eecd6fdc697cef53340ed9",
+  "design": {
+    "decision": "D-82",
+    "approved": true,
+    "condition": "Use the surrounding app's actual shared Prism design, tokens, components, typography, frame, marks and bottom navigation.",
+    "entryBoardSha256": "7f8df26aec6f5a7669e5765290eefff9ac726f7007d02ebd2ebda1cc8a0ea5df",
+    "recordsBoardSha256": "f720c31a6484d722e3d53fd1f7ac5450c57d546e57d4f693fc537de4d6bde779"
+  },
+  "publicStats": {
+    "observedAt": "2026-11-09T18:15:05.259217+00:00",
+    "scope": "Public upstream weekly raw statistics only; no hosted quote, account, eligibility or finality assertion.",
+    "source": {
+      "id": 727734232,
+      "name": "stats_player_week_2026.csv",
+      "size": 4178818,
+      "digest": "sha256:dcebb2e00bfbf667a078d078af9a169adff10dde1bea2b8e8cae83c195d8584a",
+      "updated_at": "2026-11-09T14:15:08Z",
+      "browser_download_url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_2026.csv",
+      "sha256": "dcebb2e00bfbf667a078d078af9a169adff10dde1bea2b8e8cae83c195d8584a",
+      "bytesMatched": true,
+      "digestMatched": true,
+      "licenseUrl": "https://github.com/nflverse/nflverse-data/blob/main/LICENSE.md"
+    },
+    "rows": 9393,
+    "regularSeasonRows": 9393,
+    "offensiveRows": 3016,
+    "regularSeasonWeeks": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "offensiveRowsByWeek": {
+      "1": 357,
+      "2": 359,
+      "3": 362,
+      "4": 358,
+      "5": 342,
+      "6": 313,
+      "7": 303,
+      "8": 308,
+      "9": 314
+    },
+    "identityColumnsPresent": true,
+    "offensiveRowsMissingIdentity": 0,
+    "duplicateOffensivePlayerGameIdentities": 0,
+    "statFields": {
+      "passing_yards": {
+        "column": "passing_yards",
+        "present": true,
+        "numericOffensiveRows": 3016
+      },
+      "passing_completions": {
+        "column": "completions",
+        "present": true,
+        "numericOffensiveRows": 3016
+      },
+      "passing_attempts": {
+        "column": "attempts",
+        "present": true,
+        "numericOffensiveRows": 3016
+      },
+      "passing_touchdowns": {
+        "column": "passing_tds",
+        "present": true,
+        "numericOffensiveRows": 3016
+      },
+      "passing_interceptions": {
+        "column": "passing_interceptions",
+        "present": true,
+        "numericOffensiveRows": 3016
+      },
+      "rushing_yards": {
+        "column": "rushing_yards",
+        "present": true,
+        "numericOffensiveRows": 3016
+      },
+      "rushing_attempts": {
+        "column": "carries",
+        "present": true,
+        "numericOffensiveRows": 3016
+      },
+      "rushing_touchdowns": {
+        "column": "rushing_tds",
+        "present": true,
+        "numericOffensiveRows": 3016
+      },
+      "receiving_yards": {
+        "column": "receiving_yards",
+        "present": true,
+        "numericOffensiveRows": 3016
+      },
+      "receptions": {
+        "column": "receptions",
+        "present": true,
+        "numericOffensiveRows": 3016
+      },
+      "receiving_touchdowns": {
+        "column": "receiving_tds",
+        "present": true,
+        "numericOffensiveRows": 3016
+      }
+    },
+    "limitations": [
+      "Presence of a numeric cell does not independently verify participation, official finality or correction handling.",
+      "An absent player/stat row is not a zero, DNP or loss.",
+      "A public upstream game ID needs verified mapping to the application event before grading.",
+      "The existing Fantasy snapshot is not an immutable actual-result receipt for prop settlement.",
+      "No odds provider called, free odds credits spent, production account read or hosted writes performed."
+    ]
+  },
+  "quoteSource": {
+    "provider": "the-odds-api",
+    "sourceAdapterBooks": [
+      "draftkings",
+      "fanduel",
+      "betmgm"
+    ],
+    "catalogKeysRecognized": 11,
+    "maxMarketsPerResearchRequest": 8,
+    "maxRequestsPerIntakeJob": 4,
+    "existingReserveCredits": 50,
+    "pageReadsCollectOdds": false,
+    "providerCreditRequestsPerformed": 0,
+    "historicalPaidEndpointsAllowed": false,
+    "hostedCoverageVerified": false
+  },
+  "hostedAudit": {
+    "status": "UNAUTHORIZED: connected Supabase inventory requires reauthentication",
+    "queriesExecuted": 0,
+    "quoteCount": null,
+    "eligibleBookCoverage": null,
+    "quotaCapacity": null,
+    "currentRosterEventMapping": null,
+    "actualStatFinalityPath": null
+  },
+  "hostedAuditNovember10": {
+    "record": "docs/PLAYER_PROPS_READINESS_TASK2_2026-11-10.md",
+    "observedAt": "2026-11-10T21:23:00Z/2026-11-10T21:27:00Z",
+    "status": "executed read-only after the M-45 to M-47 applies",
+    "migrationHistoryRows": 83,
+    "propsFunctionsMatchingPacket": 21,
+    "propsTablesNonCapabilityRows": 0,
+    "liveLockIn": false,
+    "researchQuoteFetchesAllTime": 0,
+    "quoteCount": 0,
+    "eligibleBookCoverage": "none: no retained quotes",
+    "quotaCapacity": "full slate does not fit above the 50-credit reserve; a 2-game, 3-stat pilot fits",
+    "currentRosterEventMapping": "provider event IDs present for all 14 Week 10 games; no builder for intake quoteRequests or the GSIS-keyed roster receipt",
+    "actualStatFinalityPath": "not run: 0 offers; nflverse file row coverage not measured"
+  },
+  "liveLockInReady": false,
+  "implementationStarted": false,
+  "migrationApplied": false,
+  "collectorActivated": false,
+  "deployed": false,
+  "limitations": [
+    "Source adapters and public numeric cells are not proof of current eligible three-book lines, player participation or official finality.",
+    "The public player-stat file covers weeks 1-9; no Week 10 source coverage is claimed.",
+    "Existing Research/other users tracked-prop quote visibility is unchanged; new Guess-value privacy remains separate.",
+    "Approved mockup images are illustrative layouts, not production assets or verified account statistics."
+  ],
+  "concurrentWork": {
+    "pr": 508,
+    "decision": "D-81",
+    "scope": "NFL spread/total gap magnitudes; not a prop-stat calibration",
+    "mergeAssumed": false,
+    "freshMainReconciliationRequiredBeforeProductPlan": true
+  }
+}

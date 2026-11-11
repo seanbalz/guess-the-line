@@ -185,6 +185,11 @@ test('the apps keep separate shells and allow only documented workflow and pick-
     for (const spec of importsOf(text)) {
       if (!spec.startsWith('.')) continue;
       const target = path.relative(path.join(root, 'web/src'), path.resolve(path.join(root, path.dirname(file)), spec));
+      // Home's browser chrome reads canonical design tokens, never an old screen or shell.
+      if (file === 'web/src/next/home/HomeBrand.jsx' && spec === '../../../../design/tokens-next.json') {
+        assertNamedAccess(text, spec, ['homeThemeColor', 'themeColor'], file);
+        continue;
+      }
       if (adapters[file]?.includes(target)) continue;
       if (namedOnly[target]) {
         assertNamedAccess(text, spec, namedOnly[target], file);
@@ -221,6 +226,17 @@ test('the apps keep separate shells and allow only documented workflow and pick-
         assert.match(text, /import \{ Card, Pill \} from '\.\/next\/ui\/index\.js'/);
         continue;
       }
+      // November 7 selected auth rollout: AuthGate is the shared native sign-in entry (D-65),
+      // not a legacy app screen. Its bridge imports only the approved identity and two scoped
+      // stylesheets, never a new shell, app-data controller or whole UI-kit namespace.
+      if (file === 'AuthGate.jsx' && spec === './next/ui/PrismBrand.jsx') {
+        assertNamedAccess(text, spec, ['PrismBrand'], file);
+        continue;
+      }
+      if (file === 'AuthGate.jsx' && ['./next/styles/tokens.css', './next/me/accessPrism.css'].includes(spec)) {
+        assert.match(text, new RegExp(`^import ['"]${spec.replaceAll('.', '\\.')}['"];?$`, 'm'));
+        continue;
+      }
       assert.ok(!spec.startsWith('./next/'), `web/src/${file} imports ${spec}`);
     }
   }
@@ -240,5 +256,15 @@ test('no screen offers the old app: failure screens reload, the Menu has no old-
   // Every "Reload the app" outside the shell's own wiring is on a failure screen.
   for (const file of filesUnder('web/src/next').filter(file => /shell\.reload\b/.test(read(file)) && !file.includes('/shell/'))) {
     assert.match(read(file), /role="alert"/, `${file} offers a reload outside a failure screen`);
+  }
+});
+
+test('the shared native auth entry has only the three exact selected visual imports', () => {
+  const text = read('web/src/AuthGate.jsx');
+  assert.deepEqual(importsOf(text).filter(spec => spec.startsWith('./next/') && spec !== './next/moments/forget.js').sort(),
+    ['./next/me/accessPrism.css', './next/styles/tokens.css', './next/ui/PrismBrand.jsx']);
+  assertNamedAccess(text, './next/ui/PrismBrand.jsx', ['PrismBrand'], 'AuthGate.jsx');
+  for (const spec of ['./next/styles/tokens.css', './next/me/accessPrism.css']) {
+    assert.match(text, new RegExp(`^import ['"]${spec.replaceAll('.', '\\.')}['"];?$`, 'm'));
   }
 });

@@ -1,3 +1,4 @@
+import '../nfl-actions.css';
 // `sh.reactors`: who reacted to a post, and with what (redesign build plan stage 65; prototype sh.reactors). One row per
 // person, newest first, faces first; the emoji sits inside data-emoji-ok, and each row's name says the reaction in words.
 import { useEffect, useState } from 'react';
@@ -18,11 +19,11 @@ export function ReactorsSheet({ args }) {
     }).catch(error => { if (!controller.signal.aborted && error?.name !== 'AbortError') setState({ loading: false, reactors: [], error }); });
     return () => controller.abort();
   }, [args?.postId]);
-  return <Sheet title={state.loading ? 'Reactions' : `Reactions · ${state.reactors.length}`} onClose={shell.closeSheet}>
+  return <Sheet className="gx-nfl-action" bodyTabIndex={0} title={state.loading ? 'Reactions' : `Reactions · ${state.reactors.length}`} onClose={shell.closeSheet}>
     {state.loading ? <Skeleton label="Loading reactions…" shape="rows" count={4}/> : null}
     {state.error ? <p className="gx-t-body gx-c-loss" role="alert">{state.error.status ? state.error.message : 'No connection. Reconnect and try again.'}</p> : null}
     {!state.loading && !state.error && !state.reactors.length ? <p className="gx-t-body gx-c-2">No reactions yet.</p> : null}
-    {state.reactors.length ? <Card variant="flush"><List label="Who reacted" data-emoji-ok="true">{state.reactors.map(row => {
+    {state.reactors.length ? <Card variant="flush"><List label="Who reacted" className="gx-feed-reactors" data-emoji-ok="true">{state.reactors.map(row => {
       const name = names.get(row.userId) || 'Former member', reaction = reactionOf(row.reaction);
       return <div key={row.userId} className="gx-feed-reactor">
         <Avatar id={row.userId} name={name} size={36} you={row.userId === app.accountId}/>

@@ -1,0 +1,29 @@
+/* Existing initials Avatar recipe, scoped unchanged; no new avatar options. */
+.real-league .gx-av {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--gx-radius-pill);
+  color: var(--gx-av-ink);
+  font-family: var(--gx-font-body);
+  font-weight: 700;
+  line-height: 1;
+  user-select: none;
+  box-shadow: var(--gx-av-ring);
+}
+.real-league .gx-av--24 { width: 24px; height: 24px; font-size: 12px; }
+.real-league .gx-av--32 { width: 32px; height: 32px; font-size: 13px; }
+.real-league .gx-av--36 { width: 36px; height: 36px; font-size: 14px; }
+.real-league .gx-av--40 { width: 40px; height: 40px; font-size: 16px; }
+.real-league .gx-av--56 { width: 56px; height: 56px; font-size: 22px; }
+.real-league .gx-av--80 { width: 80px; height: 80px; font-size: 32px; }
+.real-league .gx-av--96 { width: 96px; height: 96px; font-size: 38px; }
+.real-league .gx-av-iris { background: var(--gx-av-iris); }
+.real-league .gx-av-peach { background: var(--gx-av-peach); }
+.real-league .gx-av-sky { background: var(--gx-av-sky); }
+.real-league .gx-av-mint { background: var(--gx-av-mint); }
+.real-league .gx-av-butter { background: var(--gx-av-butter); }
+.real-league .gx-av-rose { background: var(--gx-av-rose); }
+.real-league .gx-av-lilac { background: var(--gx-av-lilac); }
+.real-league .gx-av-sand { background: var(--gx-av-sand); }
+.real-league .gx-av--you { box-shadow: 0 0 0 2px var(--gx-accent-ink); }

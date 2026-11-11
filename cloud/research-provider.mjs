@@ -2,9 +2,8 @@
 // needs a durable reservation against the EXISTING shared free budget first.
 import { validResearchSelection, submittedResearchLink, ASSESSMENT_SOURCES } from '../shared/research-assessments.mjs';
 const BOOKS = Object.freeze({ draftkings: 'DraftKings', fanduel: 'FanDuel', betmgm: 'BetMGM' });
-import { researchMarketUnit, researchQuoteMarketUnit } from '../shared/research-markets.mjs';
+import { researchMarketUnit, researchNameKey as nameKey, researchQuoteMarketUnit } from '../shared/research-markets.mjs';
 export { researchMarketUnit } from '../shared/research-markets.mjs';
-const nameKey = s => typeof s === 'string' ? s.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '') : '';
 const iso = value => typeof value === 'string' && Number.isFinite(Date.parse(value));
 async function boundedText(response, limit) {
   const length = response.headers.get('content-length');

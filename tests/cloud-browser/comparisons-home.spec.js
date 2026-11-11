@@ -39,7 +39,8 @@ test('Home guide and account settings persist; Compare is one head-to-head at a 
     await page.keyboard.press('Escape');
     // D-69 step 1 Compare (P3B). Troy also sends a Total ballot Luke has not matched: it must stay hidden (D-31).
     await sendBallot(world,'troy','guess_total',Object.fromEntries(world.state.games.map((g,i) => [g.id,[41.5,52.5][i]])));
-    await page.locator('[data-play-tile="compare"]').getByRole('button').click();
+    await page.getByRole('button', { name: 'Open score & history', exact: true }).click();
+    await page.getByRole('button', { name: 'Compare players', exact: true }).click();
     const layer = page.getByRole('region',{ name: 'Compare',exact: true });
     await expect(layer.getByRole('heading',{ name: 'Compare',exact: true })).toBeVisible();
     const faces = layer.getByRole('group',{ name: 'Compare with' });

@@ -35,7 +35,7 @@ function Tiles({ tiles }) {
   return (
     <ul className="gx-team-tiles">
       {tiles.map(tile => (
-        <li key={tile.key} className={tile.key === 'ppg' ? 'gx-team-tile gx-team-tile--wide' : 'gx-team-tile'}>
+        <li key={tile.key} className={tile.key === 'ppg' ? 'gx-card gx-team-tile gx-team-tile--wide' : 'gx-card gx-team-tile'}>
           <span className="gx-t-meta gx-c-2">{tile.label}</span>
           {tile.key === 'ppg' ? (
             <span className="gx-team-ppg">

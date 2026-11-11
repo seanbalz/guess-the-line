@@ -10,10 +10,10 @@ import path from 'node:path';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { markupProblems, parseMarkup, walk } from './helpers/ui-markup.mjs';
 
-const state = vi.hoisted(() => ({ app: null, personal: { status: 'error', data: null, error: { status: 404 } }, read: { loading: true, data: null, error: null } }));
+const state = vi.hoisted(() => ({ app: null, personal: { status: 'error', data: null, error: { status: 404 } }, read: { loading: false, data: { entries: [] }, error: null } }));
 vi.mock('../web/src/next/data/AppData.jsx', () => ({ useAppData: () => state.app, useSharedRead: () => state.personal }));
 vi.mock('../web/src/next/home/homeData.js', () => ({ useHomeData: () => ({ app: state.app, community: state.app.community, viewer: 'fixture', preferences: {} }) }));
-vi.mock('../web/src/next/league/useLeagueRead.jsx', () => ({ useLeagueRead: () => state.read, LeagueFailure: () => <p>Read failed</p> }));
+vi.mock('../web/src/next/league/useLeagueRead.jsx', async importOriginal => ({ ...await importOriginal(), useLeagueRead: () => state.read, LeagueFailure: () => <p>Read failed</p> }));
 vi.mock('../web/src/api.js', () => ({ cloudApi: vi.fn(), communityApi: vi.fn(), meApi: vi.fn(), socialApi: vi.fn() }));
 // Research's sections are other screens with their own tests; only its landing is drawn here (its read, /personal, is a week with nothing published: the no-week card and the four tiles).
 vi.mock('../web/src/next/teams/TeamsScreen.jsx', () => ({ TeamsScreen: () => null })); // D-69 step 3: the team list and its layer
@@ -42,6 +42,12 @@ function rows(html) {
   });
 }
 /** Each of Home's tiles (the kit's Tile: a button with its label and its glyph) as [its label, its Lucide glyph]. */
+function homeLinks(html) {
+  return nodes(html).filter(n => n.tag === 'button' && /\bgx-home-nav-card\b/.test(n.attrs?.class ?? '')).map(row => {
+    const svg = [...walk(row)].find(n => n.tag === 'svg');
+    return [row.attrs['aria-label'], (svg?.attrs.class ?? '').split(' ').find(c => c.startsWith('lucide-'))];
+  });
+}
 function tiles(html) {
   return nodes(html).filter(n => n.tag === 'button' && /\bgx-tile\b/.test(n.attrs?.class ?? '')).map(tile => {
     const label = [...walk(tile)].find(n => /\bgx-nest-tile-label\b/.test(n.attrs?.class ?? ''));
@@ -58,7 +64,7 @@ describe('A9: one glyph per destination on the landings', () => {
   it('no two rows on one screen share a glyph', () => {
     for (const [name, html] of Object.entries(screens)) {
       expect(markupProblems(html), name).toEqual([]);
-      const list = tiles(html);
+      const list = name === 'Home' ? homeLinks(html) : tiles(html);
       expect(list.length, `${name} has destination rows`).toBeGreaterThan(0);
       expect(list.filter(([, glyph]) => !glyph), `${name}: every row has a glyph`).toEqual([]);
       expect(duplicates(list), name).toEqual([]);
@@ -67,7 +73,7 @@ describe('A9: one glyph per destination on the landings', () => {
     expect(rows(screens.Bets), 'Bets’ destinations are tiles, not rows').toEqual([]);
     expect(tiles(screens.Research).map(([title]) => title)).toEqual(['Games', 'Trends', 'Fantasy', 'Teams']);
     expect(rows(screens.Research), 'Research’s destinations are tiles, not rows').toEqual([]);
-    expect(tiles(screens.Home).map(([title]) => title)).toEqual(['Spread rank', 'Total rank', 'Who’s in', 'Awards', 'My bets', 'Trends']);
+    expect(homeLinks(screens.Home).map(([title]) => title)).toEqual(['League. Spread Community standings', 'Research. Explore games and trends']);
     expect(rows(screens.Home), 'Home’s destinations are tiles, not rows').toEqual([]);
   });
 
@@ -78,9 +84,11 @@ describe('A9: one glyph per destination on the landings', () => {
     expect(tileGlyph(screens.Research, 'Fantasy')).toBe(glyphOf('fantasy'));
     expect(tileGlyph(screens.Research, 'Games')).toBe(glyphOf('games'));
     expect(tileGlyph(screens.Research, 'Teams')).toBe(glyphOf('teams'));
-    expect(tileGlyph(screens.Home, 'Trends')).toBe(glyphOf('trends'));
-    expect(tileGlyph(screens.Home, 'My bets')).toBe(glyphOf('activeTickets'));
+    expect(homeLinks(screens.Home).map(([,glyph]) => glyph)).toEqual(['lucide-users', 'lucide-chart-line']);
     expect(tileGlyph(screens.Bets, 'My bets')).toBe(glyphOf('activeTickets'));
+    expect(tileGlyph(screens.Bets, 'Your picks')).toBe(glyphOf('virtualUnits'));
+    expect(tileGlyph(screens.Bets, 'Everyone')).toBe(glyphOf('everyone'));
+    expect(tileGlyph(screens.Bets, 'Your gap')).toBe(glyphOf('guessGap'));
   });
 
   it('every glyph in the map is one the kit draws (the Lucide outline set)', () => {
@@ -89,6 +97,8 @@ describe('A9: one glyph per destination on the landings', () => {
 
   it('the landing headline is the title style, and only Home keeps the display line', () => {
     expect(screens.Research, 'Research').not.toContain('gx-t-display');
+    const title = nodes(screens.Bets).find(n => n.tag === 'h1');
+    expect([title.attrs.class, textOf(title)], 'Bets’ page title').toEqual(['gx-t-title', 'Bets']);
     const headline = nodes(screens.Bets).find(n => n.tag === 'h2' && n.parent?.attrs?.['data-bets'] === 'hero');
     expect(headline.attrs.class, 'Bets').toBe('gx-t-title');
     expect(screens.Bets, 'Bets').not.toContain('gx-t-display');

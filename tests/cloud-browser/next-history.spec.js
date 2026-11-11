@@ -12,6 +12,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { ACCOUNTS, pgliteAvailable, signIn } from './community-world.mjs';
 import { historyWorld, ANCHORS, BEN, STEVEN } from './history-world.mjs';
 import { layoutProblems } from '../helpers/phone-layout.mjs';
+import { setCaptureTheme, themedScreenshot } from './theme-capture.mjs';
 
 test.use({ viewport: { width: 390, height: 844 } });
 test.setTimeout(180000);
@@ -32,7 +33,7 @@ async function openNext(page, account = 'luke', fragment = '#home') {
 async function phoneChecks(page, label, testInfo) {
   const found = {};
   for (const theme of ['dark', 'light']) {
-    await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+    await setCaptureTheme(page, theme);
     for (const width of [390, 320]) {
       await page.setViewportSize({ width, height: 844 });
       // The shell's sport row scrolls under the fixed top bar; check each screen from its top, as the phone layout spec does.

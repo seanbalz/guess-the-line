@@ -1,3 +1,4 @@
+import '../nfl-actions.css';
 import { Button, Card, InfoButton, Pill, Sheet } from '../ui/index.js';
 import { useShell } from '../shell/context.js';
 import { useLinesData } from './linesData.js';
@@ -25,9 +26,9 @@ export function YourPickSheet({ args }) {
   const view = matches ? yourPick(personal.data, lines.community, args.game, args.market) : null;
   const marketName = args.market === 'total' ? 'Total' : 'Spread';
   const title = `Your ${marketName} pick`;
-  if (!view) return <Sheet title={title} onClose={close}><p className="gx-t-body" role="status">This saved pick is not in the current account and week.</p><Button onClick={close}>Back to game</Button></Sheet>;
+  if (!view) return <Sheet className="gx-nfl-action" title={title} onClose={close}><p className="gx-t-body" role="status">This saved pick is not in the current account and week.</p><Button onClick={close}>Back to game</Button></Sheet>;
   const openPlay = market => shell.go('play', { section: 'picks', market, season: args.season, week: args.week, pickGame: args.game });
-  return <Sheet title={title} onClose={close} back={{ label: `${view.game.away} @ ${view.game.home}`, onBack: close }} tall className="gx-l-sheet"
+  return <Sheet title={title} onClose={close} back={{ label: `${view.game.away} @ ${view.game.home}`, onBack: close }} tall className="gx-l-sheet gx-nfl-action"
     footer={<Button block onClick={() => openPlay(args.market)}>Open {marketName} in Play</Button>}>
     <p className="gx-t-meta">Week {args.week} · {args.season} · Kickoff {marketTime(view.game.kickoff)}</p>
     {personal.error && <p className="gx-t-body" role="status">Your pick could not refresh. Showing the last loaded saved record.</p>}

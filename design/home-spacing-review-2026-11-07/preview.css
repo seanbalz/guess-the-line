@@ -1,0 +1,49 @@
+/* Review-only layout overrides. Not imported by the app or included in its build. */
+/* Retains the approved Home tokens, type, content and 44px minimum targets. */
+.gx-home-design .gx-topbar { padding-top: calc(var(--gx-space-3) + env(safe-area-inset-top, 0px)); }
+.gx .gx-home-approved { gap: var(--gx-space-4); padding: var(--gx-space-4) var(--gx-space-4) var(--gx-space-2); }
+.gx .gx-home-heading { margin-bottom: 0; }
+.gx .gx-home-heading h1 { margin-top: var(--gx-space-1); }
+.gx .gx-home-card { padding: var(--gx-space-4); gap: var(--gx-space-3); }
+.gx .gx-home-action { display: grid; grid-template-columns: minmax(0,1fr) 60px; gap: 0 var(--gx-space-3); }
+.gx .gx-home-kicker { grid-column: 1; grid-row: 1; }
+.gx .gx-home-action h2 { grid-column: 1; grid-row: 2; margin: var(--gx-space-1) 0 var(--gx-space-2); }
+.gx .gx-home-progress { display: contents; }
+.gx .gx-home-progress > .gx-home-ring { grid-column: 2; grid-row: 1 / 4; align-self: center; }
+.gx .gx-home-progress[data-moment="pop"] > .gx-home-ring { animation: inherit; }
+.gx .gx-home-progress > div { grid-column: 1; grid-row: 3; }
+.gx .gx-home-primary { grid-column: 1 / -1; grid-row: 4; margin-top: var(--gx-space-4); }
+.gx .gx-home-stat { display: grid; grid-template-columns: minmax(0,1fr) 28px; grid-template-rows: auto 1fr; align-content: start; align-items: center; min-height: 104px; gap: var(--gx-space-2) var(--gx-space-1); }
+.gx .gx-home-stat > span:first-child { grid-column: 1 / -1; grid-row: 1; }
+.gx .gx-home-stat > strong { grid-column: 1; grid-row: 2; }
+.gx .gx-home-stat > .gx-home-icon { grid-column: 2; grid-row: 2; }
+.gx .gx-home-stat > .gx-new { grid-column: 1 / -1; }
+.gx .gx-home-nav-grid { gap: var(--gx-space-3); }
+.gx .gx-home-nav-card { display: grid; grid-template-columns: 34px minmax(0,1fr); grid-template-rows: 34px 80px auto; align-items: center; align-content: start; gap: var(--gx-space-2) var(--gx-space-1); min-height: 0; padding: var(--gx-space-3); }
+.gx .gx-home-nav-card > .gx-home-icon { grid-column: 1; grid-row: 1; }
+.gx .gx-home-card-label { grid-column: 2; grid-row: 1; align-items: center; gap: var(--gx-space-1); color: var(--gx-home-ink); }
+.gx .gx-home-card-label > .gx-ic { flex: none; }
+.gx .gx-home-mini-chart,
+.gx .gx-home-mini-empty { grid-column: 1 / -1; grid-row: 2; height: 80px; margin-top: 0; }
+.gx .gx-home-mini-chart text { font-size: 15px; }
+.gx .gx-home-card-sub { grid-column: 1 / -1; grid-row: 3; align-self: start; }
+.gx-home-design .gx-h-week { padding: var(--gx-space-3) var(--gx-space-4); gap: 0; }
+.gx-home-design .gx-h-week-head { align-items: center; }
+.gx-home-design .gx-h-week .gx-h-game { grid-template-columns: 76px minmax(0,1fr); align-items: center; gap: var(--gx-space-1) var(--gx-space-3); min-height: 0; padding: var(--gx-space-3) 0; }
+.gx-home-design .gx-h-game-marks { grid-column: 1; grid-row: 1; }
+.gx-home-design .gx-h-game-match { grid-column: 2; grid-row: 1; }
+.gx-home-design .gx-h-game > .gx-t-meta:not(.gx-h-game-state) { grid-column: 2; grid-row: 2; }
+.gx-home-design .gx-h-game .gx-h-game-state { grid-column: 1; grid-row: 2; justify-content: center; }
+.gx-home-design .gx-h-week .gx-tiles > li:first-child .gx-h-game { padding-top: var(--gx-space-1); }
+.gx .gx-home-activity { gap: var(--gx-space-2); }
+.gx .gx-home-activity-row { align-items: center; min-height: 56px; }
+.gx .gx-home-activity-row > span:last-child { gap: var(--gx-space-1); }
+@media(max-width:359px) {
+ .gx .gx-home-season .gx-home-section-head { flex-direction: row; align-items: center; }
+ .gx .gx-home-nav-card { grid-template-columns: minmax(0,1fr); grid-template-rows: 34px auto 80px auto; }
+ .gx .gx-home-nav-card > .gx-home-icon { grid-column: 1; grid-row: 1; }
+ .gx .gx-home-card-label { grid-column: 1; grid-row: 2; }
+ .gx .gx-home-mini-chart,
+ .gx .gx-home-mini-empty { grid-row: 3; }
+ .gx .gx-home-card-sub { grid-row: 4; }
+}

@@ -1,0 +1,9 @@
+/* Still playing from last week (PriorWeek.jsx): a wait card (data-colored edge) over the kit's own type and buttons. */
+.gx-pw { display: flex; flex-direction: column; gap: 12px; }
+.gx-pw-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.gx-pw-head .gx-t-section { min-width: 0; }
+.gx-pw-games { display: flex; flex-direction: column; gap: 16px; margin: 0; padding: 0; list-style: none; }
+.gx-pw-game { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.gx-pw-game + .gx-pw-game { padding-top: 16px; border-top: 1px solid var(--gx-border); }
+.gx-pw-matchup { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.gx-pw-game .gx-btn { margin-top: 4px; }

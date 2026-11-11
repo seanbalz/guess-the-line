@@ -3,6 +3,7 @@ import { ArrowDown, ArrowUp, Check, ChevronDown, Circle, CircleCheckBig, Clock3,
 import { cloudApi, date, linesApi, signed } from './api';
 import { lockSentence } from './lineLock';
 import { buildRecommendations, gapRecord, recommendationList, recommendationMarket } from '../../shared/recommended-bets.mjs';
+import { GAP_SCALE_EXPLANATION, GAP_SCALE_LARGE, gapSizeLabel } from '../../shared/nfl-gap-scale.mjs';
 import { RecommendationTrendDetail, useRecommendationTrends } from './RecommendationTrends.jsx';
 import './recommendedBets.css';
 
@@ -38,13 +39,10 @@ export const BETS_VISIBLE_NOTE = "Coming soon: everyone in the league will see e
 
 function Stat({ label, value, detail }) { return <div className="stat"><span>{label}</span><strong>{value}</strong><small>{detail}</small></div>; }
 
-// D-77 (Sean, November 3, 2026: "Your gaps' paper record", then option 1, "Hit rate hero"): one hero card with the share
-// of your decided gaps that beat the closing line (W / (W + L), as D-75's win rate), the record and units, and one dot per
-// graded gap in kickoff order. The fine print opens from its info button. Your own /lines/read only (gapRecord).
 const GAP_WORDS = { win: ['W', 'Win'], loss: ['L', 'Loss'], push: ['P', 'Push'] };
-function GapRecord({ record, week }) {
+function LegacyGapRecord({ record, week }) {
   const [about, setAbout] = useState(false);
-  const decided = record.wins + record.losses, waiting = record.notGraded.noFinal + record.notGraded.noLine, favorable = record.favorable;
+  const decided = record.wins + record.losses, waiting = record.notGraded.noFinal + record.notGraded.noLine, large = record.large;
   const rate = decided ? `${(record.wins / decided * 100).toFixed(1)}%` : '—';
   const tally = value => `${value.wins}–${value.losses}${value.pushes ? `–${value.pushes}` : ''}`;
   return <section className="gx-card gx-card--hero recommended-gap-hero" aria-label="Your gaps vs. closing lines">
@@ -56,7 +54,7 @@ function GapRecord({ record, week }) {
       <ol className="recommended-gap-dots" aria-label="Each gap, in kickoff order">{record.graded.map(gap => <li key={`${gap.gameId}:${gap.market}`} data-outcome={gap.outcome}
         aria-label={`${gap.gameId.replace('-', ' at ')} ${gap.market === 'spread' ? 'spread' : 'total'}: ${GAP_WORDS[gap.outcome][1]}`}><span aria-hidden="true">{GAP_WORDS[gap.outcome][0]}</span></li>)}</ol>
     </> : <p className="gx-t-body">No finished games with a gap yet.</p>}
-    {about && <p className="gx-t-meta">Each locked guess that differed from the last three-book line before kickoff, graded on the side your guess favored: a paper record, not bets placed. 1 U a gap at −110. Gaps of 10% or more: {tally(favorable)}.{waiting ? ` ${waiting} not graded yet.` : ''}</p>}
+    {about && <p className="gx-t-meta">Each locked guess that differed from the last three-book line before kickoff, graded on the side your guess favored: a paper record, not bets placed. 1 U a gap at −110. Large gaps: {tally(large)}. {GAP_SCALE_LARGE}{waiting ? ` ${waiting} not graded yet.` : ''}</p>}
   </section>;
 }
 function closedReviewReason(game, now, result) {
@@ -66,12 +64,18 @@ function closedReviewReason(game, now, result) {
   return null;
 }
 
-export default function VirtualUnits({ leagueId, accountId, onDirty, onSaved, onSignInAgain, onTrackTicket, embedded = false, initialView = 'all', showViewTabs = true, accountRecommendations = false, recommendedMarket, onRecommendedMarket, marketControl }) {
+export default function VirtualUnits({ leagueId, accountId, onDirty, onSaved, onSignInAgain, onTrackTicket, embedded = false, initialView = 'all', showViewTabs = true, accountRecommendations = false, recommendedMarket, onRecommendedMarket, marketControl, GapRecordView = LegacyGapRecord }) {
   const [data, setData] = useState(null), [loading, setLoading] = useState(true), [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState('');
   const [selections, setSelections] = useState({}), [uncertain, setUncertain] = useState(null);
   const [view, setView] = useState(initialView === 'recommended' ? 'recommended' : 'all');
   const [personalRead, setPersonalRead] = useState(null), [expanded, setExpanded] = useState(false);
   const [selectedWeek, setSelectedWeek] = useState(null), [weekInfo, setWeekInfo] = useState(null);
+  // Only filter intent survives record reloads. Combined-period reads remain in
+  // the keyed child with its existing cancellation and visibility checks.
+  const [gapPeriodPreference, setGapPeriodPreference] = useState({ accountId, period: 'week', range: null });
+  if (gapPeriodPreference.accountId !== accountId) {
+    setGapPeriodPreference({ accountId, period: 'week', range: null });
+  }
   const [now, setNow] = useState(Date.now);
   const currentRecommendations = accountRecommendations || view === 'recommended';
   const readRequest = useRef(null);
@@ -260,10 +264,10 @@ export default function VirtualUnits({ leagueId, accountId, onDirty, onSaved, on
   const visibleRecommendations = historical ? [] : shown.visible;
   const separateReviews = Object.entries(selections).filter(([key]) => !visibleRecommendations.some(row => row.key === key));
   return <div className="virtual-units">
-    <header className="page-heading"><div><div className="eyebrow"><span className="tiny-rule"/>PICKS · PLAY MONEY</div><Heading>{view === 'recommended' ? 'Recommended bets' : 'Virtual Units'}</Heading><p>{view === 'recommended' ? 'Largest percentage gaps between your guesses and current lines.' : 'Place one spread and one total pick per matchup. Every unit represents $100 virtual risk.'}</p></div><div className="heading-actions"><button className="secondary" onClick={refresh} disabled={loading || busy} aria-busy={loading}><RefreshCw size={17}/>{loading ? 'Refreshing…' : 'Refresh lines'}</button>{commissioner && view !== 'recommended' && <button className="secondary" onClick={settle} disabled={loading || busy || Boolean(uncertain)}><CircleCheckBig size={17}/>Settle finals</button>}</div></header>
+    <header className="page-heading"><div><div className="eyebrow"><span className="tiny-rule"/>PICKS · PLAY MONEY</div><Heading>{view === 'recommended' ? 'Recommended bets' : 'Virtual Units'}</Heading><p>{view === 'recommended' ? 'Largest historical gap sizes between your guesses and current lines.' : 'Place one spread and one total pick per matchup. Every unit represents $100 virtual risk.'}</p></div><div className="heading-actions"><button className="secondary" onClick={refresh} disabled={loading || busy} aria-busy={loading}><RefreshCw size={17}/>{loading ? 'Refreshing…' : 'Refresh lines'}</button>{commissioner && view !== 'recommended' && <button className="secondary" onClick={settle} disabled={loading || busy || Boolean(uncertain)}><CircleCheckBig size={17}/>Settle finals</button>}</div></header>
     {showViewTabs && <div className="recommended-view-tabs" role="group" aria-label="Virtual Units view"><button className="secondary" disabled={busy} aria-pressed={view === 'all'} onClick={() => changeView('all')}>All games</button><button className="secondary" disabled={busy} aria-pressed={view === 'recommended'} onClick={() => changeView('recommended')}>Recommended</button></div>}
     {view === 'recommended' && weekInfo && <label className="recommended-week-select">Week<select aria-label="Recommendation week" value={selectedWeek ? `${selectedWeek.season}:${selectedWeek.week}` : 'current'} disabled={busy || loading} onChange={event => changeWeek(event.target.value)}><option value="current">Current{weekInfo.publishedWeek ? ` · ${weekInfo.publishedWeek.season} Week ${weekInfo.publishedWeek.week}` : ''}</option>{weekInfo.slates.filter(week => week.season !== weekInfo.publishedWeek?.season || week.week !== weekInfo.publishedWeek?.week).map(week => <option key={`${week.season}:${week.week}`} value={`${week.season}:${week.week}`}>{week.season} Week {week.week}</option>)}</select></label>}
-    {view === 'recommended' ? historical ? <p className="source-note recommended-explanation"><Lock size={17}/><span>View only · older week. Your saved card stays available here; new picks can be placed only in the current published week.</span></p> : <p className="source-note recommended-explanation"><ShieldCheck size={17}/><span>Ranked by percentage gap. Spread lines below 3 use 3 as a baseline. Open a matchup for sources, historical trends and actions. These gaps are not win probabilities.</span></p> : <>
+    {view === 'recommended' ? historical ? <p className="source-note recommended-explanation"><Lock size={17}/><span>View only · older week. Your saved card stays available here; new picks can be placed only in the current published week.</span></p> : embedded ? null : <p className="source-note recommended-explanation"><ShieldCheck size={17}/><span>{GAP_SCALE_EXPLANATION}</span></p> : <>
       <p className="source-note"><ShieldCheck size={17}/><span><strong>Saved named-book lines</strong> · Buttons use the best retained point line from the latest accessible books. Consensus is shown separately when available. A saved line remains usable before kickoff even if it is old; its age is always shown. Picks settle against the published final score with the line and odds saved at placement (D-26).</span></p>
       <p className="source-note virtual-visibility-note"><Eye size={17}/><span>{BETS_VISIBLE_NOTE}</span></p>
     </>}
@@ -273,7 +277,9 @@ export default function VirtualUnits({ leagueId, accountId, onDirty, onSaved, on
       {settledCount > 0 && data.settlement?.lastSettledAt && <p className="virtual-settlement-note" role="status"><CircleCheckBig size={15}/>{settledCount} settled pick{settledCount === 1 ? '' : 's'}{data.summary.pending ? ` · ${data.summary.pending} still pending` : ''} · finals as of {date(data.settlement.lastSettledAt)} PT</p>}
       <div className="virtual-game-grid">{data.games.map(game => <GameCard key={game.id} game={game} result={data.results?.[game.id]} picks={picks} selections={selections} choose={choose} changeUnits={changeUnits} save={save} busy={busy || loading || Boolean(uncertain)} rules={data.rules}/>)}</div></>}
     {view === 'recommended' && data && !loading && <section className="recommended-bets" aria-label="Recommended bets">
-      {gaps && <GapRecord record={gaps} week={data.week}/>}
+      {gaps && <GapRecordView key={`${accountId}:${gapWeek}`} record={gaps} board={gapBoard.board} season={data.season} week={data.week}
+        slates={weekInfo?.slates} market={market} accountId={accountId || data.playerId} onSignInAgain={onSignInAgain}
+        periodSelection={gapPeriodPreference} onPeriodSelectionChange={({ period, range }) => setGapPeriodPreference({ accountId, period, range })}/>}
       {historical ? <p className="recommended-source" role="status">Viewing {data.season} Week {data.week}{data.picks?.length ? '' : ' · No saved virtual picks this week.'}</p>
         : !personal ? <p className="loading" role="status">Loading your saved guesses…</p>
         : recommendations.status !== 'ready' ? <div className="recommended-empty" role="status"><p>Your guesses and these lines are not available for the same week.</p><button className="secondary" onClick={refresh}>Refresh recommendations</button></div>
@@ -322,13 +328,12 @@ export function RecommendationCard({ row, season, week, selection, pick, now, ad
   return <details className="panel recommended-bet-card" data-game-id={game.id} data-market={market}>
     <summary className="recommended-card-heading">
       <span className="recommended-card-main"><span className="recommended-market-label">{market === 'spread' ? 'Spread' : 'Total'} · {date(game.kickoff)} PT</span><strong>{game.awayCode || game.away} at {game.homeCode || game.home}</strong><span className="recommended-card-side">Review {sideName(game, market, row.side)} · {quoteAge(reference.observedAt, now)}</span></span>
-      <span className="recommended-card-aside"><strong className="recommended-percent">{row.gapPercent.toFixed(1)}% gap</strong><span className="recommended-gap">{row.gap} pt gap</span></span>
+      <span className="recommended-card-aside"><strong className="recommended-percent" aria-label={`Historical gap size ${row.gapScore.toFixed(1)} out of 100`}>Size {row.gapScore.toFixed(1)}/100</strong><span className="recommended-gap">{row.gap} pt gap</span><span className="recommended-gap">{gapSizeLabel(row.gapScore)}</span></span>
       <ChevronDown className="recommended-chevron" size={18} aria-hidden="true"/>
       {firstTrend && <span className="recommended-trend-summary">Historical: {firstTrend.title} · {firstTrend.record} ({firstTrend.sample})</span>}
     </summary>
     <div className="recommended-card-detail">
     <h3>{game.away} at {game.home} · {market === 'spread' ? 'Spread' : 'Total'}</h3>
-    {market === 'spread' && Math.abs(reference.value) < 3 && <p className="recommended-source">Percentage uses a 3-point minimum spread for pick’em and small lines.</p>}
     <dl className="recommended-comparison"><div><dt>Your guess{market === 'spread' ? ` · ${game.homeCode || game.home}` : ''}</dt><dd>{marketNumber(market, row.guess)}</dd></div><div><dt>Latest consensus{market === 'spread' ? ` · ${game.homeCode || game.home}` : ''}</dt><dd>{marketNumber(market, reference.value)}</dd></div></dl>
     <p className="recommended-source">{reference.source || 'Named-book median'} · {reference.books} books · {date(reference.observedAt)} PT · {quoteAge(reference.observedAt, now)}</p>
     <RecommendationTrendDetail trend={trend}/>

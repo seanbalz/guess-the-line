@@ -1,0 +1,55 @@
+/* D-82 Player Props (approved sheets in design/player-props-review-2026-11-09). Layout only: the faces, edges, glass,
+   type, chips, buttons and the floating bar are the shared Prism kit's; every color is a --gx- token. */
+.gx .gx-props-card { display: grid; gap: var(--gx-space-3); min-width: 0; }
+.gx .gx-props-state { grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+.gx .gx-props-state > .gx-btn { grid-column: 1 / -1; }
+.gx .gx-props-state-icon { display: inline-flex; padding-top: var(--gx-space-1); color: var(--gx-accent-ink); }
+.gx .gx-props-athlete { display: flex; align-items: center; gap: var(--gx-space-3); min-width: 0; }
+.gx .gx-props-avatar { display: inline-flex; flex: none; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: var(--gx-radius-pill); color: var(--gx-text-2); background: var(--gx-surface-2); }
+.gx .gx-props-athlete-name { display: grid; flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.gx .gx-props-positions, .gx .gx-props-stats { display: flex; flex-wrap: wrap; gap: var(--gx-space-2); }
+.gx .gx-props-field { display: grid; gap: var(--gx-space-2); min-width: 0; font: 500 16px/24px var(--gx-font-body); }
+.gx .gx-props-field input { width: 100%; min-width: 0; min-height: 44px; padding: var(--gx-space-2) var(--gx-space-3); border: 1px solid var(--gx-border-strong); border-radius: var(--gx-radius-pill); color: var(--gx-text-1); background: var(--gx-surface-2); font: inherit; }
+.gx .gx-props-field input:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
+.gx .gx-props-hidden { display: flex; align-items: center; justify-content: center; gap: var(--gx-space-2); }
+.gx .gx-props-center { text-align: center; }
+.gx .gx-props-guess > .gx-btn--ghost { justify-self: center; }
+.gx .gx-props-stepper { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: var(--gx-space-3); }
+.gx .gx-props-step { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 1px solid var(--gx-border-strong); border-radius: var(--gx-radius-pill); color: var(--gx-text-1); background: var(--gx-card-face); }
+.gx .gx-props-step:focus-visible { outline: 2px solid var(--gx-focus); outline-offset: 2px; }
+.gx .gx-props-step:disabled { color: var(--gx-text-3); }
+.gx .gx-props-value { min-width: 0; text-align: center; color: var(--gx-text-1); font: 700 56px/56px var(--gx-font-num); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+/* Sheets 02 and 05: "Locked in" and "Editable draft" are sentence-case labels beside their icon. */
+.gx .gx-props-pill { display: inline-flex; align-items: center; gap: var(--gx-space-1); font: 700 13px/20px var(--gx-font-body); }
+/* Sheet 01: the chosen stat takes its own row above the athlete's other stats. */
+.gx .gx-props-stats > .gx-chip[aria-pressed="true"] { flex: 1 1 100%; justify-content: center; }
+.gx .gx-props-final { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--gx-space-2); }
+/* Sheet 01: the search field carries its person icon inside, and its name for assistive technology. */
+.gx .gx-props-search { position: relative; }
+.gx .gx-props-search-icon { position: absolute; inset-inline-start: var(--gx-space-4); top: 50%; translate: 0 -50%; color: var(--gx-text-2); pointer-events: none; }
+.gx .gx-props-search input { padding-inline-start: calc(var(--gx-space-4) + 28px); }
+/* The saved receipt reuses the Spread/Total scorecard; an athlete's name may be long. */
+.gx .gx-prop-scorecard .gx-pc-team { text-align: center; }
+.gx .gx-prop-scorecard .gx-pc-team strong { overflow-wrap: anywhere; }
+.gx .gx-props-list { display: grid; gap: var(--gx-space-3); margin: 0; padding: 0; list-style: none; }
+.gx .gx-props-pick { width: 100%; text-align: start; }
+.gx .gx-props-filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-3); }
+.gx .gx-props-acc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-3); }
+.gx .gx-props-acc { align-content: start; }
+.gx .gx-props-mean { display: flex; align-items: baseline; gap: var(--gx-space-1); color: var(--gx-text-1); }
+.gx .gx-props-bars { display: flex; align-items: flex-end; gap: var(--gx-space-2); min-height: 88px; margin: 0; padding: 0 0 var(--gx-space-1); list-style: none; border-bottom: 1px solid var(--gx-border); }
+.gx .gx-props-bars > .gx-props-bar-col { display: grid; flex: 1 1 0; justify-items: center; gap: var(--gx-space-1); min-width: 0; }
+.gx .gx-props-bar { display: block; inline-size: 100%; max-inline-size: 24px; border-radius: var(--gx-radius-xs); background: var(--gx-accent-ink); }
+/* Sheet 04: the paper win rate sits inside its ring, as on the approved board. */
+.gx .gx-props-ring { position: relative; display: inline-grid; flex: none; place-items: center; }
+.gx .gx-gap-rate.gx-props-rate svg { width: 104px; height: 104px; }
+.gx .gx-props-ring > b { position: absolute; color: var(--gx-text-1); font: 700 24px/28px var(--gx-font-num); font-variant-numeric: tabular-nums; }
+.gx .gx-props-ring > b > small { font-size: 14px; }
+.gx .gx-props-tally { padding-top: var(--gx-space-4); border-top: 1px solid var(--gx-border); }
+.gx .gx-props-rate > div > strong { color: var(--gx-text-1); }
+@media (max-width: 359px) {
+  .gx .gx-props-acc-grid, .gx .gx-props-filters { grid-template-columns: minmax(0, 1fr); }
+  .gx .gx-props-value { font-size: 44px; line-height: 48px; }
+}
+/* Inside a card the athlete and the saved guess may stack; the pick panel keeps the card radius instead of becoming an oval. */
+.gx .gx-prop-scorecard .gx-pc-pick { border-radius: var(--gx-radius-md); }

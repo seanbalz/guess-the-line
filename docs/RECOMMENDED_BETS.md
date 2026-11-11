@@ -15,15 +15,20 @@ This is D-48; D-47 is reserved by the weather-schedule draft.
 
 ## Ranking and colors
 
+Current rule: D-81, November 9, 2026. The [historical gap-size scale](NFL_GAP_SCALE_2026_11_09.md)
+replaces D-54's percentage-of-line ranking and 10% color/filter boundaries.
+
 Compare the player's submitted (or per-game locked-in) guess with the current
 accessible named-book consensus for that game and market. Keep every positive
 gap, including gaps smaller than three points, and rank Spread and Total together
-by percentage gap (October 21 update). Divide absolute points apart by the
-absolute current consensus line: a 5-point gap at a 50-point total equals a
-1-point gap at a 10-point spread (10%). For spreads below 3 points, including
-pick’em, use a 3-point minimum denominator and label that adjustment. A zero
-total cannot provide a percentage, so it is unavailable. Show both points and
-percentage, three initially, and let the player expand the remainder.
+by historical gap size within D-77's actionable-first groups. Each market has
+its own empirical distribution of absolute final-minus-line errors from 2,639
+NFL regular-season games in 2016–2025. A positive gap's 0–100 score is the share
+of those errors no larger than that gap; zero means no difference. Show both
+the score and point gap, three initially, with expansion for the remainder.
+There is no division by the line magnitude or special pick’em denominator.
+A zero total reference is unavailable. Full-precision scores determine rank;
+display rounding does not affect ordering.
 This ranking does not combine the two Guess games' scores or leaderboards.
 
 Both sides have a signed advantage relative to the player's guess:
@@ -36,11 +41,12 @@ Both sides have a signed advantage relative to the player's guess:
 | Total | Under | Market total minus guessed total |
 
 A positive advantage points toward the player's perceived value. Green means
-10% or more in that direction; red means 10% or more against it;
-yellow means a smaller relative difference or an even line. These are display
-boundaries chosen for this first version, not a measured confidence scale or
-a reason to hide a smaller discrepancy. Every color has text and the actual
-signed number. Equal guesses have no suggested side.
+a Large gap in that direction; red means the same Large gap against it. Large
+is the historical top quarter (score at least 75): 14 spread points or 14.5
+total points in the fixed sample. Yellow covers Small (below 50) and Moderate
+(50 to below 75). Every color has a label and signed point difference. Smaller
+gaps remain visible, and equal guesses have no suggested side. The historical
+record uses the same Large gaps definition in place of the old 10%+ filter.
 
 These suggestions express the player's own valuation. A guess is not a
 validated outcome model, a probability, or proof of positive expected value.
@@ -90,7 +96,7 @@ implemented on a review branch; not deployed, and real-phone acceptance is separ
   control ("Recommendation market"), the new app's shared segmented control. The
   selected segment is marked by `aria-pressed`, weight and an inset ring, not by
   color alone, and each segment is a native button for keyboard and screen readers.
-- All is the default and keeps the mixed percentage-gap ranking above. Spreads
+- All is the default and keeps the mixed historical-size ranking above. Spreads
   or Totals narrows the complete eligible ranked list first (`recommendationList`
   in `shared/recommended-bets.mjs`); the top-three preview and "Show all" then
   apply to that market, its order is unchanged, and "N available" counts it.
@@ -152,7 +158,7 @@ the application rollback targets.
 
 ## Verification and release
 
-The pure helper tests cover direction, relative thresholds, ranking and fail-closed
+The pure helper tests cover direction, historical-size thresholds, ranking and fail-closed
 eligibility. Fictional-account browser tests cover the top-three list, expansion,
 side labels, preparing versus placing, failure states and phone layouts in both
 themes. Existing Virtual Units, Bets, privacy, brand and broader CI checks remain

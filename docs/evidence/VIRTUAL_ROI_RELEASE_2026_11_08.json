@@ -1,0 +1,526 @@
+{
+  "source": "1c5a9da0deb479c15abf390a905acd47084cb338",
+  "sourcePr": 500,
+  "reviews": {
+    "task": "approved C0/I0/M0",
+    "wholeBranch": "approved C0/I0/M0"
+  },
+  "mainCi": {
+    "tests": 42493816185,
+    "brand": 42493816244,
+    "dashboard": 42493816247
+  },
+  "sourceCheckRun": 42495528469,
+  "readinessRun": 42495675724,
+  "deployRun": 42496125746,
+  "readiness": {
+    "source": "1c5a9da0deb479c15abf390a905acd47084cb338",
+    "target": "api-and-frontend",
+    "deployed": false,
+    "observedAt": "2026-11-08T15:39:11.699Z",
+    "migrationHistorySha256": "d40fdad9eb144738cdbd032e3c95ba433b4cb1606f3de3ab8079f0df1b8108f1",
+    "migrationCount": 76,
+    "pendingRepoMigrations": [
+      20261029151727,
+      20261029161613,
+      20261029162144
+    ],
+    "schedule": {
+      "checkedAt": "2026-11-08T15:39:11.699Z",
+      "timeRestrictions": false,
+      "publishedWeek": {
+        "season": 2026,
+        "week": 9
+      },
+      "games": 29
+    },
+    "functions": [
+      {
+        "slug": "gtl-api",
+        "version": 51,
+        "status": "ACTIVE",
+        "verify_jwt": true,
+        "bundleSha256": "969c38c673a4bb4d891ffa0325db7910bdcd84031f4e8f6f0a0dd40204311644"
+      },
+      {
+        "slug": "gtl-epl-jobs",
+        "version": 3,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "e1e90385539ff785d7882a9eb65e838048fb36dd54d5386aae807345100d5135"
+      },
+      {
+        "slug": "gtl-fantasy-ingest",
+        "version": 1,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "326f6c5b1e6138703577c2c67c285ab91252779d37909ab6bd0cca4c6848c923"
+      },
+      {
+        "slug": "gtl-league-features",
+        "version": 1,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "9ddad5ceccdf03a2710f13f9889160f2a08c2da4a3097f74f6dfeb3626c98836"
+      },
+      {
+        "slug": "gtl-odds-refresh",
+        "version": 8,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "65d23faf48eab2130b1ac252e9d7471334d535404c9b364c3502ce4f8b140c4e"
+      },
+      {
+        "slug": "gtl-ops-alerts",
+        "version": 1,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "b78376f31aafb7630e6e10c80223aed53d3e1fd2ec9a0f1c70f8dcd10e901e53"
+      },
+      {
+        "slug": "gtl-points-jobs",
+        "version": 2,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "7c90c8587a1932de14710c33fcc65c965332647f23be11839003046a1c3868fb"
+      },
+      {
+        "slug": "gtl-push-reminders",
+        "version": 6,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "460389e9ea2cadbf963f6b4f85519073f410aa298b0bd9428353d16b47fb952b"
+      },
+      {
+        "slug": "gtl-results-refresh",
+        "version": 4,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "346ec8a8323529373df4ee086b2ed74ad28efe5f4101cc6c3b95110701f7a786"
+      },
+      {
+        "slug": "gtl-week-open",
+        "version": 5,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "bcf6044516ff009400b85fcb15e8fe9537318502991cd6a1977b8cc016b6a438"
+      }
+    ],
+    "previousPages": {
+      "id": "31417a19-3cea-47fc-bc0a-9b776df4724b",
+      "source": "e3f078b9e831dda46412487251b191ebdd5637c4"
+    },
+    "boundary": {
+      "checked": 457,
+      "denied": 438,
+      "awaiting": [
+        {
+          "name": "anonymous epl_order_corrections table",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous epl_result_reads table",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous epl_capture_intervals table",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous epl_stat_rechecks table",
+          "until": "20261029151727 (M-33 stat recheck apply / compatible API deploy)"
+        },
+        {
+          "name": "anonymous epl_standings table",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous epl_standings_usage table",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_reserve_result_read RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_apply_recheck_orders RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_order_correction_state RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_capture_interval RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_attest_capture_interval RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_recheck_due_at RPC",
+          "until": "20261029151727 (M-33 stat recheck apply / compatible API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_recheck_state RPC",
+          "until": "20261029151727 (M-33 stat recheck apply / compatible API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_record_recheck RPC",
+          "until": "20261029151727 (M-33 stat recheck apply / compatible API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_standings_valid RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_standings_state RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_save_standings RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_resolve_with_standings RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_standings_provenance RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        }
+      ]
+    }
+  },
+  "beforeDeploy": {
+    "source": "1c5a9da0deb479c15abf390a905acd47084cb338",
+    "target": "api-and-frontend",
+    "deployed": false,
+    "observedAt": "2026-11-08T15:44:44.918Z",
+    "migrationHistorySha256": "d40fdad9eb144738cdbd032e3c95ba433b4cb1606f3de3ab8079f0df1b8108f1",
+    "migrationCount": 76,
+    "pendingRepoMigrations": [
+      20261029151727,
+      20261029161613,
+      20261029162144
+    ],
+    "schedule": {
+      "checkedAt": "2026-11-08T15:44:44.918Z",
+      "timeRestrictions": false,
+      "publishedWeek": {
+        "season": 2026,
+        "week": 9
+      },
+      "games": 29
+    },
+    "functions": [
+      {
+        "slug": "gtl-api",
+        "version": 51,
+        "status": "ACTIVE",
+        "verify_jwt": true,
+        "bundleSha256": "969c38c673a4bb4d891ffa0325db7910bdcd84031f4e8f6f0a0dd40204311644"
+      },
+      {
+        "slug": "gtl-epl-jobs",
+        "version": 3,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "e1e90385539ff785d7882a9eb65e838048fb36dd54d5386aae807345100d5135"
+      },
+      {
+        "slug": "gtl-fantasy-ingest",
+        "version": 1,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "326f6c5b1e6138703577c2c67c285ab91252779d37909ab6bd0cca4c6848c923"
+      },
+      {
+        "slug": "gtl-league-features",
+        "version": 1,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "9ddad5ceccdf03a2710f13f9889160f2a08c2da4a3097f74f6dfeb3626c98836"
+      },
+      {
+        "slug": "gtl-odds-refresh",
+        "version": 8,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "65d23faf48eab2130b1ac252e9d7471334d535404c9b364c3502ce4f8b140c4e"
+      },
+      {
+        "slug": "gtl-ops-alerts",
+        "version": 1,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "b78376f31aafb7630e6e10c80223aed53d3e1fd2ec9a0f1c70f8dcd10e901e53"
+      },
+      {
+        "slug": "gtl-points-jobs",
+        "version": 2,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "7c90c8587a1932de14710c33fcc65c965332647f23be11839003046a1c3868fb"
+      },
+      {
+        "slug": "gtl-push-reminders",
+        "version": 6,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "460389e9ea2cadbf963f6b4f85519073f410aa298b0bd9428353d16b47fb952b"
+      },
+      {
+        "slug": "gtl-results-refresh",
+        "version": 4,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "346ec8a8323529373df4ee086b2ed74ad28efe5f4101cc6c3b95110701f7a786"
+      },
+      {
+        "slug": "gtl-week-open",
+        "version": 5,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "bundleSha256": "bcf6044516ff009400b85fcb15e8fe9537318502991cd6a1977b8cc016b6a438"
+      }
+    ],
+    "previousPages": {
+      "id": "31417a19-3cea-47fc-bc0a-9b776df4724b",
+      "source": "e3f078b9e831dda46412487251b191ebdd5637c4"
+    },
+    "boundary": {
+      "checked": 457,
+      "denied": 438,
+      "awaiting": [
+        {
+          "name": "anonymous epl_order_corrections table",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous epl_result_reads table",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous epl_capture_intervals table",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous epl_stat_rechecks table",
+          "until": "20261029151727 (M-33 stat recheck apply / compatible API deploy)"
+        },
+        {
+          "name": "anonymous epl_standings table",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous epl_standings_usage table",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_reserve_result_read RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_apply_recheck_orders RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_order_correction_state RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_capture_interval RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_attest_capture_interval RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_recheck_due_at RPC",
+          "until": "20261029151727 (M-33 stat recheck apply / compatible API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_recheck_state RPC",
+          "until": "20261029151727 (M-33 stat recheck apply / compatible API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_record_recheck RPC",
+          "until": "20261029151727 (M-33 stat recheck apply / compatible API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_standings_valid RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_standings_state RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_save_standings RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_resolve_with_standings RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_standings_provenance RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        }
+      ]
+    }
+  },
+  "verified": {
+    "requestedSource": "1c5a9da0deb479c15abf390a905acd47084cb338",
+    "target": "api-and-frontend",
+    "checkedAt": "2026-11-08T15:47:16.550Z",
+    "api": {
+      "slug": "gtl-api",
+      "version": 52,
+      "status": "ACTIVE",
+      "verify_jwt": true,
+      "bundleSha256": "76893d3a32c000669a0f11601a1454616630e6ff7ca2e55742221f63f3565ce1"
+    },
+    "pages": {
+      "id": "b3bd6187-adbf-4097-98e2-28417cac7d09",
+      "url": "https://b3bd6187.guess-the-line.pages.dev",
+      "productionUrl": "https://guess-the-line.pages.dev",
+      "deploymentUrlAccess": "protected",
+      "checkedUrls": [
+        "https://guess-the-line.pages.dev"
+      ],
+      "checkedAssetsPerUrl": 132,
+      "frontendSha256": "6caa0aa077b4114b6f80a318e9ce5781122b63b633010d51d46924983f90d3a4"
+    },
+    "boundary": {
+      "checked": 457,
+      "denied": 438,
+      "awaiting": [
+        {
+          "name": "anonymous epl_order_corrections table",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous epl_result_reads table",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous epl_capture_intervals table",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous epl_stat_rechecks table",
+          "until": "20261029151727 (M-33 stat recheck apply / compatible API deploy)"
+        },
+        {
+          "name": "anonymous epl_standings table",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous epl_standings_usage table",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_reserve_result_read RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_apply_recheck_orders RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_order_correction_state RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_capture_interval RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_attest_capture_interval RPC",
+          "until": "20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)"
+        },
+        {
+          "name": "anonymous gtl_epl_recheck_due_at RPC",
+          "until": "20261029151727 (M-33 stat recheck apply / compatible API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_recheck_state RPC",
+          "until": "20261029151727 (M-33 stat recheck apply / compatible API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_record_recheck RPC",
+          "until": "20261029151727 (M-33 stat recheck apply / compatible API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_standings_valid RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_standings_state RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_save_standings RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_resolve_with_standings RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        },
+        {
+          "name": "anonymous gtl_epl_standings_provenance RPC",
+          "until": "20261029161613 (M-34 standings apply / compatible worker and API deploy)"
+        }
+      ]
+    },
+    "apiDeploymentMetadataVerified": true,
+    "apiSourceVerified": false,
+    "apiBundleMatchesCheckout": "not-independently-verified",
+    "apiSourceLimitation": "The deploy command uses the clean requested checkout. The remote bundle digest is recorded, but remote API bytes have not been independently matched to that checkout. API source acceptance remains a manual release-record gate.",
+    "migrationHistorySha256": "d40fdad9eb144738cdbd032e3c95ba433b4cb1606f3de3ab8079f0df1b8108f1",
+    "pendingRepoMigrations": [
+      20261029151727,
+      20261029161613,
+      20261029162144
+    ],
+    "limitation": "Signed-out boundaries and deployment metadata/assets only; real-phone and signed-in acceptance remain separate. No migrations applied."
+  },
+  "manifest": {
+    "gitHead": "1c5a9da0deb479c15abf390a905acd47084cb338",
+    "dirtyWorkingTree": false,
+    "sourceSha256": "af4ac31a3e259034b1f73827f77d3883434a63cae5f12b93c11bd3f34ae6669d",
+    "frontendSha256": "6caa0aa077b4114b6f80a318e9ce5781122b63b633010d51d46924983f90d3a4",
+    "artifactCount": 133
+  },
+  "sourcePreservation": {
+    "observedAt": "2026-11-08T15:13:16.503873+00:00",
+    "source": "54c9a1fefa94c318533c225832e8b7d1d3502f43",
+    "tree": "2fd1033304d22f642b0a351a333fbbe6a9ed6053",
+    "week5SourceSha256": "a4ee8f13c4b58777767dbd94a022dbc0a721ff6ece90522e4ddf4e25d2d9f1dd",
+    "preservedSourceDirectories": {
+      "data": {
+        "changedFiles": []
+      },
+      "sql": {
+        "changedFiles": []
+      },
+      "design": {
+        "changedFiles": []
+      },
+      "frozenV62": {
+        "changedFiles": []
+      }
+    },
+    "limits": "Source hashes and local read-only model tests; not hosted private score-row hashes."
+  },
+  "limitations": [
+    "No hosted private-row preservation hash or actual affected-rank count obtained",
+    "No new signed-in production or physical-phone acceptance",
+    "API remote source bytes not independently matched",
+    "M41 not part of source/release; no SQL apply"
+  ]
+}

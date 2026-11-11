@@ -132,6 +132,9 @@ test('only his leagues, the Community first; a choice is kept across a reload; a
     const calls = apiCalls(page);
     await openNewApp(page, 'luke');
     await expect(tabBar(page)).toBeVisible();
+    // The approved compact Home/Play/Bets roots use sport marks; Research's real root retains the league picker.
+    await tabBar(page).getByRole('button', { name: /^Research(,|$)/ }).click();
+    await expect(page.locator('[data-landing="research"]')).toBeVisible();
     await expect(pill(page)).toHaveAccessibleName('League: Community. Switch league');
     // The Play counter: both of this week's ballots are still due for Luke.
     await expect(tab(page, 'Play, 2 ballots due')).toBeVisible();
@@ -165,10 +168,19 @@ test('only his leagues, the Community first; a choice is kept across a reload; a
     await page.reload();
     await expect(title(page, 'Your spot is pending')).toBeVisible();
     await expect(page.getByText('Fixture Elsewhere isn’t open to this account yet.')).toBeVisible();
-    await expect(pill(page)).toHaveAccessibleName('League: Fixture Elsewhere. Switch league');
+    await tabBar(page).getByRole('button', { name: /^Play(,|$)/ }).click();
+    await expect(title(page, 'Your spot is pending')).toBeVisible();
     await tab(page, 'Research').click();
     await expect(title(page, 'Your spot is pending')).toBeVisible();
     await phoneChecks(page);
+    // The named cover retains its real body recovery action even when compact framing has no header league pill.
+    await page.getByRole('button', { name: 'Your leagues', exact: true }).click();
+    await expect(switcher(page)).toBeFocused();
+    await expect(switcher(page).getByRole('list', { name: 'Leagues' }).getByRole('button')).toHaveCount(2);
+    await expect(switcher(page)).not.toContainText('Fixture Elsewhere');
+    await expect(switcher(page).locator('[aria-current="true"]')).toHaveCount(0);
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('button', { name: 'Your leagues', exact: true })).toBeFocused();
     await page.getByRole('button', { name: 'Switch to Community' }).click();
     await expect(toast(page, 'Showing Community')).toBeVisible();
     await expect(title(page, 'Research')).toBeVisible();
@@ -262,6 +274,8 @@ test('invites: the saved link opens the switcher with Join and Dismiss; an expir
     await switcher(page).getByRole('button', { name: 'Join with your invite link' }).click();
     await expect(switcher(page)).toHaveCount(0);
     await expect(toast(page, 'You’re in Fixture Friends')).toBeVisible();
+    await tabBar(page).getByRole('button', { name: /^Research(,|$)/ }).click();
+    await expect(page.locator('[data-landing="research"]')).toBeVisible();
     await expect(pill(page)).toHaveAccessibleName('League: Fixture Friends. Switch league');
     expect(await page.evaluate(() => sessionStorage.getItem('gtl.pendingInvitation'))).toBeNull();
 
@@ -396,8 +410,10 @@ test('an account the commissioner removed from the Community sees why, keeps its
     await leagueRow(page, 'Triple Threat').click();
     await page.locator('[data-play-tile="league"]').getByRole('button').click();
     await expect(title(page, 'League')).toBeVisible();
-    await expect(pill(page)).toHaveAccessibleName('League: Triple Threat. Switch league');
     await expect(page.getByRole('list', { name: 'Private group members' })).toContainText('Troy Jun');
+    await tab(page, 'Research').click();
+    await expect(page.locator('[data-landing="research"]')).toBeVisible();
+    await expect(pill(page)).toHaveAccessibleName('League: Triple Threat. Switch league');
     expect(writes(calls)).toEqual([]);
     expect(world.errors).toEqual([]);
   } finally { await world.db.close(); }

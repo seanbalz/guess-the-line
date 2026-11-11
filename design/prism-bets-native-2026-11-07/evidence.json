@@ -1,0 +1,57 @@
+{
+  "owner": "Sean Balsiger",
+  "state": "Local native integration evidence, not owner/phone/hosted acceptance",
+  "authorityCommit": "3ac2eb50513ba73447ef890e4a47863cde7bdd76",
+  "approvedCurrentCaptureCommit": "6bfcfdbe787bdc2d44019aa3e3c85530cf009ebd",
+  "foundationSource": "1e104fdf1266660a84c98971ddae91d9c153be68",
+  "fixtureMeaning": "Fictional accounts/games/tickets in isolated local PGlite through actual cloud handler and native components. Manual 0.01U, +100 odds, unknown quote/placement times; reported full return 0.03U produces +0.02U net. No hosted or player data, live quote or provider connection.",
+  "port": 5212,
+  "captures": [
+    {
+      "file": "entry-terms-dark-390.png",
+      "theme": "dark",
+      "width": 390,
+      "sha256": "b984fecdc5cbf10d42c8ce41601306111076134573e2f80fd0b246217c0c385e"
+    },
+    {
+      "file": "entry-terms-light-390.png",
+      "theme": "light",
+      "width": 390,
+      "sha256": "336b596f0642f6597a2e6abd1aeefdcbee1b6726c94cd36f243ec1eab4604a36"
+    },
+    {
+      "file": "reported-result-dark-390.png",
+      "theme": "dark",
+      "width": 390,
+      "sha256": "177628aa429e7a958d10ae32642d86531fd80cc3b6cee6a99162a45e000ca5ae"
+    },
+    {
+      "file": "reported-result-light-390.png",
+      "theme": "light",
+      "width": 390,
+      "sha256": "699f31a1c238b952f3941976b2a68207091cd4a9ec37cfa4ea964485b63958fa"
+    },
+    {
+      "file": "settled-ticket-dark-390.png",
+      "theme": "dark",
+      "width": 390,
+      "sha256": "6a25c4ba60c84a516c2ef301583595c684d8d8b462c64271c8d85e148371cc51"
+    },
+    {
+      "file": "settled-ticket-light-390.png",
+      "theme": "light",
+      "width": 390,
+      "sha256": "aa6635b172a0ebe238ae2a7b248ad40f2a49301e7d0c02a0bdf4682d07a45187"
+    }
+  ],
+  "checks": {
+    "fullBetsBrowser": 17,
+    "finalFocusedPhoneAndAxe": 6,
+    "finalExactReturnBrowser": 1,
+    "nodeModelCloudSql": 38,
+    "nativeComponent": 32,
+    "tokenAndBrand": 20,
+    "recommendationReviewBrowser": 4
+  },
+  "excluded": "Separately approved Guess scorecard integration, rejected pills, held shared header/dock placement, backend unit-rule changes, migrations, publication/release and actual-phone acceptance"
+}

@@ -22,12 +22,13 @@ export function DigestCard({ posts, names, viewer, now, leagueId, fresh = NONE, 
     </section>;
   }
   return <Card as="article" className="gx-feed-post gx-feed-digest" data-digest={posts.length} data-arrived={posts.some(post => arrived.has(post.id)) ? 'true' : undefined} aria-label={`${text}, ${fmtPostTime(posts[0].createdAt, now)}${isNew ? ', new' : ''}`}>
-    <div className="gx-feed-head">
-      <AvatarStack people={people} max={4} size={24}/>
-      <p className="gx-grow gx-t-body">{text}</p>
+    <div className="gx-feed-head gx-feed-digest-head">
+      <AvatarStack people={people} max={4} size={32}/>
+      <h4 className="gx-t-strong">{namesLine(people.map(person => person.name))}</h4>
+      <p className="gx-t-meta gx-c-2">{actors.length} {actors.length === 1 ? 'player' : 'players'} locked in picks</p>
       {isNew ? <NewPill/> : null}
       <time className="gx-t-meta gx-c-2 gx-none" dateTime={posts[0].createdAt}>{fmtPostTime(posts[0].createdAt, now)}</time>
     </div>
-    <Button variant="ghost" className="gx-feed-act" iconEnd="chevronDown" aria-expanded="false" onClick={() => setOpen(true)}>Show each post ({posts.length})</Button>
+    <Button variant="secondary" block iconEnd="chevronDown" aria-expanded="false" onClick={() => setOpen(true)}>Show each post ({posts.length})</Button>
   </Card>;
 }

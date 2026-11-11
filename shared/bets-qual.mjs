@@ -8,6 +8,7 @@
 // - Record, net units and ROI come from settled rows only (win, loss, push). A settled row's net is its saved
 //   `result.netUnits`, or −units for a loss and 0 for a push when none is saved. Void and pending rows are left out.
 // - ROI is net units over units risked on settled rows, as a percentage to two places; null ("—") until a row settles.
+//   Unit amounts retain D-26's saved four places through week and season totals; only the ROI percentage uses two.
 // - Board order: qualified players only, by ROI, then net units, then wins. A null ROI ranks after every number.
 //   Players equal on all three share a rank, shown "T-2".
 
@@ -15,6 +16,7 @@ const SETTLED = new Set(['win', 'loss', 'push']);
 const finite = value => typeof value === 'number' && Number.isFinite(value);
 const num = value => (typeof value === 'number' ? value : typeof value === 'string' && value.trim() !== '' ? Number(value) : NaN);
 const round2 = value => Math.round(value * 100) / 100;
+const round4 = value => Math.round(value * 1e4) / 1e4;
 
 export const QUALIFY_PICKS = 3;
 export const QUALIFY_UNITS = 3;
@@ -36,7 +38,7 @@ export function roiOf(netUnits, riskUnits) {
 /** A normalized week: `{ wins, losses, pushes, pending, voids, picks, units, riskUnits, netUnits, roi, qualified }`. */
 export function normalizeWeek(row = {}) {
   const int = key => (Number.isSafeInteger(num(row[key])) && num(row[key]) >= 0 ? num(row[key]) : 0);
-  const amount = key => (Number.isFinite(num(row[key])) ? round2(num(row[key])) : 0);
+  const amount = key => (Number.isFinite(num(row[key])) ? round4(num(row[key])) : 0);
   const week = { wins: int('wins'), losses: int('losses'), pushes: int('pushes'), pending: int('pending'), voids: int('voids'),
     picks: int('picks'), units: amount('units'), riskUnits: amount('riskUnits'), netUnits: amount('netUnits') };
   return { ...week, roi: roiOf(week.netUnits, week.riskUnits), qualified: week.picks >= QUALIFY_PICKS || week.units >= QUALIFY_UNITS };
