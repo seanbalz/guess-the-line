@@ -1,5 +1,35 @@
 # Decision log
 
+## D-84 — Prism Glass stays for Bets and Menu; D-69 steps 4 and 5 stop (November 11, 2026)
+
+Status: decided. Nothing is applied, deployed or merged. On November 11, 2026, in the operating session, Sean answered
+**"Yes, keep Prism"** to "Stop D-69 steps 4 and 5 and keep Prism Glass for Bets and Menu?".
+
+**Why it came up.** D-69 steps 1 to 3 (Play, Home and Research) were released on November 4. Step 4 (Bets) was built
+the same day on its own branch, and it stopped unmerged when its session hit a usage limit. On November 7 and 8 Sean
+approved and released the Prism Glass redesign:
+- Home: [the Home release](RELEASE_2026_11_07_APPROVED_HOME.md).
+- Play and Score, an approved Bets landing with four more Bets compositions, the Menu variants and the Premier League
+  shell: [the rollout checklist](CONFIRMED_VISUAL_ROLLOUT_2026_11_07.md),
+  [the Bets closeout](PRISM_BETS_CLOSEOUT_2026_11_07.md) and
+  [the November 8 release](RELEASE_2026_11_08_PRISM_ROLLOUT.md).
+
+On November 11, step 4 resumed and merged `main`. Its commit `90310c32` folded the approved Prism Bets landing into
+step 4's tiles, which would have replaced a design Sean had approved. The operating session paused it and asked.
+
+**Ruling:**
+- Prism Glass is the design for Bets and the Menu, as it already is for Home. Later Bets or Menu work starts from it.
+- D-69 step 4 (Bets) and step 5 (Menu and Premier League) stop. Neither is merged or released.
+- Step 4's work is kept, unmerged, on `claude/overhaul-step4-bets`, at `6266ef47` when it was paused. That commit
+  includes the unfinished port as a WIP commit. The step 5 plan stays in the design session's notes, not in this
+  repository.
+
+**Unchanged:**
+- Steps 1 to 3 as released.
+- Their build decisions in D-69, which Sean has not approved. A decision about a screen that Prism replaced, such as
+  step 2's H1A Home card, no longer applies. The rest stay open. This ruling does not re-check each one.
+- Every game rule. This is a layout ruling only.
+
 ## D-83 — Premier League draft order: your confirmed import wins over the Tuesday recheck (November 11, 2026)
 
 Status: decided; source amended, not applied or deployed. Sean answered

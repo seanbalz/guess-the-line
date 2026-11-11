@@ -1,5 +1,11 @@
 # Guess The Line — current completion register
 
+## D-84: Prism Glass stays; D-69 steps 4 and 5 stop — November 11, 2026
+
+Sean: "Yes, keep Prism" ([D-84](DECISIONS.md)). D-69 step 4 (Bets) and step 5 (Menu and Premier League) are stopped,
+not merged and not released. Prism Glass stays the design for Home, Bets and the Menu. Step 4's work is kept,
+unmerged, on `claude/overhaul-step4-bets` (`6266ef47`, which includes a WIP commit). Nothing on the live site changed.
+
 ## Player Props pilot collection from GitHub Actions — November 11, 2026
 
 Branch `claude/props-pilot-collect-2026-11-11` lets the hidden D-82 pilot run without a key on any laptop.
