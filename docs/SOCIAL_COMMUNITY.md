@@ -514,6 +514,18 @@ every preserved table were unchanged. M-33/M-34/M-35 remain unapplied. The
 registry is `tests/migrations.mjs`; no historical repair command or generic
 `db push` was run.
 
+## November 11 M-33 to M-35 apply record
+
+The [M-33 to M-35 apply record](RELEASE_2026_11_11_STAT_CORRECTIONS_M33_M35.md)
+maps repo versions to hosted versions: `20261029151727` to `20261111171228`,
+`20261029161613` to `20261111171317` and `20261029162144` to `20261111171357`.
+Each was applied alone, in filename order, through the SQL editor in Sean's
+signed-in Chrome after the compatible API v55/Pages release from `5105abed` and
+his "Yes, deploy". History increased from 83 to 86 entries; scores, settled
+results and every preserved table were unchanged. Every repo migration is now
+hosted. The registry is `tests/migrations.mjs`; no historical repair command or
+generic `db push` was run.
+
 ## Release checklist — October 9, 2026
 
 One ordered list for everything in this document (D-21, D-22, D-23, D-24) and for D-25. Source: `main` at `597ab59` (PRs #10–#26). Hosted project: `onmrgvcehkflfaizvedl`. Steps 1–4 and 9 are **done** (October 9, 2026, through the Supabase MCP and SQL editor; step 9 at 17:44 UTC from the cloud session). Steps 5–8 were Sean's, run from the machine with the Supabase and Cloudflare logins, and are **done** (steps 5–7 on October 12, step 8 on October 14). Fill the results into [RELEASE_2026_10_09.md](RELEASE_2026_10_09.md).

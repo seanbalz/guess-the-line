@@ -14,20 +14,19 @@ const resources = [
   { key: 'gtl-api/epl/admin/corrections/read', path: '/functions/v1/gtl-api/epl/admin/corrections/read', missing: { error: 'Not found.' }, count: 2 },
 ];
 
-test('M33 schema stays pending while applied M32 and deployed API routes have mandatory boundaries', () => {
-  assert.ok(NOT_HOSTED.includes(20261029151727));
-  assert.ok(!APPLIED.includes(20261029151727));
+test('M33 schema, applied M32 and deployed API routes all have mandatory boundaries', () => {
+  // M-33 is hosted as 20261111171228 since November 11, 2026 (RELEASE_2026_11_11_STAT_CORRECTIONS_M33_M35.md): no absence
+  // exception remains for its table or RPCs.
+  assert.ok(APPLIED.includes(20261029151727));
+  assert.ok(!NOT_HOSTED.includes(20261029151727));
   assert.ok(APPLIED.includes(20261029150000));
   assert.ok(!NOT_HOSTED.includes(20261029150000));
-  for (const resource of resources) {
-    if (resource.key.startsWith('gtl-api/')) assert.equal(awaitingDeploy[resource.key], undefined);
-    else assert.match(awaitingDeploy[resource.key], /^20261029151727\b/);
-  }
+  for (const resource of resources) assert.equal(awaitingDeploy[resource.key], undefined, resource.key);
   for (const rpc of ['moneyline_distance', 'guess_json', 'save_guess', 'resolve_pending_references', 'guess_board', 'guess_leaderboard'])
     assert.equal(awaitingDeploy[`rpc/gtl_epl_${rpc}`], undefined, 'applied M32 absence cannot be excused');
 });
 
-for (const resource of resources) test(`${resource.key}: denial required; only pending schema absence is allowed`, async () => {
+for (const resource of resources) test(`${resource.key}: denial required; absence of the hosted schema or deployed route fails`, async () => {
   const calls = [];
   await checkCloudBoundary({ ...options, strict: true, fetchImpl: async (url, request) => {
     if (url.includes(resource.path)) calls.push(request);
@@ -39,12 +38,8 @@ for (const resource of resources) test(`${resource.key}: denial required; only p
     assert.ok(calls.every(request => request.method === 'POST' && request.body === '{}'));
   } else assert.ok(calls.every(request => request.headers.Authorization === undefined));
   const missing = (url, request) => url.includes(resource.path) ? reply(404, resource.missing) : denied(url, request);
-  if (resource.key.startsWith('gtl-api/')) await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: missing }), /unexpected 404/);
-  else {
-    const result = await checkCloudBoundary({ ...options, fetchImpl: missing });
-    assert.equal(result.awaiting.length, resource.count);
-    assert.equal(result.denied, result.checked - resource.count);
-  }
+  // Hosted M-33 and the deployed route: a missing table, RPC or route is an unexpected 404 with or without --strict.
+  await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: missing }), /unexpected 404/);
   await assert.rejects(() => checkCloudBoundary({ ...options, strict: true, fetchImpl: missing }), /unexpected 404/);
   for (const status of [200, 400]) await assert.rejects(() => checkCloudBoundary({ ...options,
     fetchImpl: (url, request) => url.includes(resource.path) ? reply(status, {}) : denied(url, request),
@@ -69,8 +64,13 @@ test('commissioner correction denials and pending-table replies cannot carry rev
     await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: (url, request) => url.includes('/functions/v1/gtl-api/epl/admin/corrections/read')
       ? reply(401, { error: 'Unauthorized.', [field]: [] }) : denied(url, request),
     }), /private material in denied response/);
-  await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: (url, request) => url.includes('/rest/v1/gtl_epl_stat_rechecks?')
-    ? reply(404, { code: 'PGRST205', rosters: [] }) : denied(url, request),
+  // M-33 is hosted, so a missing table is an unexpected 404; the awaiting path's not-found privacy check is still exercised
+  // with an explicit pendingDeploy fixture (the checker's own option for that path).
+  const rosterNotFound = (url, request) => url.includes('/rest/v1/gtl_epl_stat_rechecks?')
+    ? reply(404, { code: 'PGRST205', rosters: [] }) : denied(url, request);
+  await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: rosterNotFound }), /unexpected 404/);
+  await assert.rejects(() => checkCloudBoundary({ ...options, fetchImpl: rosterNotFound,
+    pendingDeploy: { 'table/epl_stat_rechecks': 'migration fixture_not_applied.sql' },
   }), /private material in not-found response/);
 });
 

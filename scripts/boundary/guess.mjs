@@ -46,7 +46,7 @@ export const tables = Object.freeze([
   'points_job_schedule', 'points_job_runs',
   // M-32 (hosted October 29, 2026): private EPL moneyline guesses and append-only history.
   'epl_guesses', 'epl_guess_history',
-  // M-33 is pending; absence is reported separately from a verified permission denial.
+  // M-33 (hosted November 11, 2026): the private stat recheck audit.
   'epl_stat_rechecks',
   // D-82 Player Props (M-45/M-46, hosted November 10, 2026): every table is service-only.
   ...PROP_TABLES,
@@ -207,8 +207,6 @@ export const awaitingDeploy = Object.freeze({
   // M-45 to M-47's tables and RPCs left with their November 10, 2026 apply record (RELEASE_2026_11_10_MIGRATIONS_M41_M47.md);
   // only the Player Props routes wait, for the separately approved GTL_PLAYER_PROPS switch.
   ...Object.fromEntries(PROP_ROUTES.map(([route]) => [`gtl-api/${route}`, PROP_ROUTE_FLAG])),
-  'table/epl_stat_rechecks': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
-  'rpc/gtl_epl_recheck_due_at': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
-  'rpc/gtl_epl_recheck_state': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
-  'rpc/gtl_epl_record_recheck': '20261029151727 (M-33 stat recheck apply / compatible API deploy)',
+  // M-33 (20261029151727) is hosted as 20261111171228 since November 11, 2026, after the gtl-api v55 release from 5105abed
+  // (RELEASE_2026_11_11_STAT_CORRECTIONS_M33_M35.md): its table and three RPCs left this list and must deny.
 });

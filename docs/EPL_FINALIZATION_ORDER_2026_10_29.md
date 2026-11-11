@@ -2,7 +2,9 @@
 
 Owner: EPL operations workflow · Version 1 · October 29, 2026
 
-Status: source implementation and local fixtures only. M-35 (`20261029162144`) is **NOT_HOSTED** and requires M-33. M-32's separately verified applied status is preserved. This record does not establish deployment, actual correction, or a completed MW9 → MW10 cycle.
+Status, November 11, 2026: **M-35 (`20261029162144`) is applied** as hosted `20261111171357`, after M-33 (`20261111171228`) and the compatible API v55/Pages release ([apply record](RELEASE_2026_11_11_STAT_CORRECTIONS_M33_M35.md)). No interval evidence is admitted, so automatic final capture now fails closed; the commissioner's screenshot import is the recovery path (D-83 addendum). A real correction or MW cycle under M-35 is not yet verified. The original status follows.
+
+Original status: source implementation and local fixtures only. M-35 (`20261029162144`) is **NOT_HOSTED** and requires M-33. M-32's separately verified applied status is preserved. This record does not establish deployment, actual correction, or a completed MW9 → MW10 cycle.
 
 ## Timing and source evidence
 

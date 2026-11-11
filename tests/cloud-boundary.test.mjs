@@ -498,9 +498,20 @@ test('only the registered rollout pieces are awaiting deploy, and every awaiting
   for (const key of ['rpc/gtl_place_bets', 'rpc/gtl_bets_newest_quote', 'rpc/gtl_bets_terms', 'gtl-api/bets/place']) assert.ok(!Object.hasOwn(awaitingDeploy, key), key);
   // M-19 is hosted since October 28, 2026 (RELEASE_2026_10_28_AUTO_SETTLE.md): nothing awaits deploy.
   for (const key of Object.keys(m19)) assert.ok(!Object.hasOwn(awaitingDeploy, key), key);
-  // API v43 deployed all four EPL readers/writer routes on October 29; pending M33 schema is separate.
+  // API v43 deployed all four EPL readers/writer routes on October 29.
   for (const route of ['epl/guess/read','epl/guess/save','epl/guess/leaderboard','epl/admin/corrections/read'])
     assert.equal(awaitingDeploy[`gtl-api/${route}`], undefined);
+  // M-33, M-34 and M-35 are hosted since November 11, 2026 (RELEASE_2026_11_11_STAT_CORRECTIONS_M33_M35.md): none of their
+  // 19 tables and RPCs may await, so a missing one is an unexpected 404 (the loop below also refuses any applied version).
+  const statCorrections = [
+    'table/epl_stat_rechecks', 'rpc/gtl_epl_recheck_due_at', 'rpc/gtl_epl_recheck_state', 'rpc/gtl_epl_record_recheck',
+    'table/epl_standings', 'table/epl_standings_usage', 'rpc/gtl_epl_standings_valid', 'rpc/gtl_epl_standings_state',
+    'rpc/gtl_epl_save_standings', 'rpc/gtl_epl_resolve_with_standings', 'rpc/gtl_epl_standings_provenance',
+    'table/epl_order_corrections', 'table/epl_result_reads', 'table/epl_capture_intervals', 'rpc/gtl_epl_reserve_result_read',
+    'rpc/gtl_epl_apply_recheck_orders', 'rpc/gtl_epl_order_correction_state', 'rpc/gtl_epl_capture_interval', 'rpc/gtl_epl_attest_capture_interval',
+  ];
+  assert.equal(new Set(statCorrections).size, 19);
+  for (const key of statCorrections) assert.ok(!Object.hasOwn(awaitingDeploy, key), key);
   // A gtl-api route that ships behind an off-by-default secret answers 404 until that separately approved switch: it may
   // await only under a registered flag, never under an applied migration. D-82 Player Props (M-45 hosted November 10, 2026,
   // RELEASE_2026_11_10_MIGRATIONS_M41_M47.md) keeps its /props/* routes off until GTL_PLAYER_PROPS is set.

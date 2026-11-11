@@ -1,4 +1,4 @@
-// M-35 pending resources belong to Guess's area. Inert probes never name an actual claim or admitted schedule.
+// M-35 (20261029162144, hosted) resources belong to Guess's area. Inert probes never name an actual claim or admitted schedule.
 import { missingId } from './fixtures.mjs';
 export const tables=Object.freeze(['epl_order_corrections','epl_result_reads','epl_capture_intervals']);
 export const rpcChecks=Object.freeze([
@@ -8,6 +8,6 @@ export const rpcChecks=Object.freeze([
   ['gtl_epl_capture_interval',{p_run:missingId,p_claim:missingId,p_season:0,p_week:0}],
   ['gtl_epl_attest_capture_interval',{p_by:missingId,p_season:0,p_week:0,p_next_week:0,p_next_kickoff:null,p_verified_at:null,p_schedule_sha256:null,p_reference:null,p_coverage_complete:false}],
 ]);
-export const awaitingDeploy=Object.freeze(Object.fromEntries([
-  ...tables.map(name=>`table/${name}`),...rpcChecks.map(([name])=>`rpc/${name}`),
-].map(key=>[key,'20261029162144 (M-35 apply; verified interval/operator recovery prerequisite)'])));
+// M-35 (20261029162144) is hosted as 20261111171357 since November 11, 2026, after the gtl-api v55 / Pages release from
+// 5105abed (RELEASE_2026_11_11_STAT_CORRECTIONS_M33_M35.md): its tables and RPCs left this list and must deny.
+export const awaitingDeploy=Object.freeze({});

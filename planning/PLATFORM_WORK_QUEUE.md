@@ -18,6 +18,9 @@ checked. This section supersedes the dated "Where things stand" sections below.
 - **Migration history:** 83 rows, newest `20261110204307`. M-41 to M-47 are applied
   ([apply record](../docs/RELEASE_2026_11_10_MIGRATIONS_M41_M47.md), PR #525, auto-merge on). In the repo,
   only M-33, M-34 and M-35 are not hosted.
+  **Update November 11, 2026:** M-33, M-34 and M-35 are applied (hosted `20261111171228`, `20261111171317`,
+  `20261111171357`) after `gtl-api` v55/Pages `dc662a68` from `5105abed`. History is 86 rows, and every repo
+  migration is hosted ([apply record](../docs/RELEASE_2026_11_11_STAT_CORRECTIONS_M33_M35.md)).
 - **Enabled schedules:** NFL `nfl-weekly`, `nfl-results`, `nfl-12h` and `deadline-2h`; Points `nfl-points`;
   `league-features`; ops alerts `ops`; and seven EPL jobs (`dnb-check`, `fixtures`, `moneyline`, `nudge`,
   `resolve`, `settle`, `snapshot`).
@@ -36,7 +39,7 @@ word, choice or phone.
 | 1 | Merge PR #525 (M-41 to M-47 apply record) | Coordinator | Agent (auto-merge on CI) | Merge on green. Then fix the M-38 ledger row in `docs/REDESIGN_BUILD_PLAN.md` ("function not deployed"; `gtl-ops-alerts` v1 has run since November 3). |
 | 2 | EPL `results` job | EPL operations lane | **Sean** | "Enable results", then one real run readback (packet M-44). |
 | 3 | Player Props switch-on | Player Props lane | **Sean** | The read-only Task 2 audit ([packet section 8](../docs/MIGRATION_APPLY_PACKET_2026_11_10.md#8-player-props-readiness--task-2-read-only-queries)) ran November 10 in PR #526, open at this writing. `liveLockInReady` stays false: no prop quote has ever been retained, and the free allowance cannot fund a full-slate pass. Next, each a separate word: a quote-source and budget decision, then secrets, `GTL_PLAYER_PROPS_JOBS`, a dry run, write runs, `live_lock_in` and the two flags. |
-| 4 | M-33, M-34, M-35 (EPL corrections, standings, corrected order) | EPL operations lane | **Sean** | Sean ruled November 11: "Yes, import wins" (D-83; amended M-35 in PR #531) and "Yes, import opens it" (D-83 addendum: the screenshot import is M-35's manual recovery plan, so the interval prerequisite review is done). Next: merge PR #531, deploy the compatible `gtl-api` and Pages, then "apply M-33" and "apply M-35" (and "apply M-34" if wanted). |
+| 4 | M-33, M-34, M-35 (EPL corrections, standings, corrected order) | EPL operations lane | **Sean** | Sean ruled November 11: "Yes, import wins" (D-83; amended M-35 in PR #531) and "Yes, import opens it" (D-83 addendum: the screenshot import is M-35's manual recovery plan, so the interval prerequisite review is done). Next: merge PR #531, deploy the compatible `gtl-api` and Pages, then "apply M-33" and "apply M-35" (and "apply M-34" if wanted). **Done November 11, 2026:** Sean said "Yes, deploy"; `gtl-api` v55/Pages `dc662a68` shipped from `5105abed`, then M-33, M-34 and M-35 were applied ([apply record](../docs/RELEASE_2026_11_11_STAT_CORRECTIONS_M33_M35.md)). Open: a real Tuesday recheck and a real import under M-35. |
 | 5 | Signed-in readback of the November 10 routes | Release lane | Agent, once real signed-in use happens | Function logs: 2xx on `/bets/*` with a cent stake, `/epl/*` three-way, `epl/bets/read` and `epl/admin/scores/*`. |
 | 6 | EPL full cycle (EPL-01) | EPL operations lane | Agent watches; Sean imports | Matchweek 10 settles, then Matchweek 11 opens: by the automatic path or by Sean's reviewed screenshot import. |
 | 7 | Phone acceptance (Q07–Q10, Q19, #388, #398) | Sean with an agent | **Sean** | Phone checks: custom stakes, three-way entry, screenshot import, Monday recap, prior-week card, Fantasy defense views, and the older Q07–Q10 list. |
@@ -105,6 +108,7 @@ the release that carried it.
 
   **Checked November 10:** all three are still open. Issues #388 and #398 are open, M-33 to M-35 have no
   hosted history row, and RETIRE-03 step 2 (deletion) has no recorded approval.
+  **Checked November 11:** M-33 to M-35 are applied ([apply record](../docs/RELEASE_2026_11_11_STAT_CORRECTIONS_M33_M35.md)).
 - **Architecture:** [ARCHITECTURE.md](../docs/ARCHITECTURE.md) maps the system as it is built today.
 
 ## Tracked bets Overview — November 2, 2026
