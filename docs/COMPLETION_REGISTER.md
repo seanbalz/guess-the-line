@@ -1,5 +1,20 @@
 # Guess The Line — current completion register
 
+## Player Props pilot collection from GitHub Actions — November 11, 2026
+
+Branch `claude/props-pilot-collect-2026-11-11` lets the hidden D-82 pilot run without a key on any laptop.
+
+- **The workflow.** Manual **Player Props collect** (`player-props-collect.yml`) builds the request file and,
+  only when `dry_run` is off, runs research intake `--collect-quotes`. It is main-only, gated by
+  `GTL_PLAYER_PROPS_JOBS`, dry by default and capped at 6 credits unless `allow_above_six` is ticked.
+- **Secrets.** `GTL_PROPS_SUPABASE_URL`, `GTL_PROPS_SERVICE_ROLE_KEY` and the new `GTL_PROPS_ODDS_API_KEY`
+  map onto research intake's `GTL_RESEARCH_*` names. The odds key reaches the collect step only.
+- **Evidence.** The summary artifact is counts, credits and reason names. Research intake's receipt now
+  counts a collection. The run order is in
+  [the readiness record](PLAYER_PROPS_READINESS_TASK2_2026-11-10.md#the-exact-pilot-run-order).
+
+Nothing was set, dispatched, spent, written or deployed. `live_lock_in` and `GTL_PLAYER_PROPS` stay off.
+
 ## Player Props pilot input builder and app-flag pass-through — November 11, 2026
 
 Sean said "lets turn these on" (D-82). Branch `claude/props-pilot-prep-2026-11-11` builds the two gaps

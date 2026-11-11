@@ -18,6 +18,11 @@ or a record; **assumed** means inferred and not checked.
 > spending a credit or changing hosted state: blocker 0(a), the input builder, and the
 > `release.yml` half of step 6. See [Pilot input builder](#pilot-input-builder-november-11) at
 > the end. Every switch is still off, and each remains Sean's own word.
+>
+> **Later on November 11.** Branch `claude/props-pilot-collect-2026-11-11` moves the collection
+> into GitHub Actions, so no laptop holds a key (blocker 0(b)). See
+> [Pilot collection from GitHub Actions](#pilot-collection-from-github-actions-november-11) for
+> the exact run order.
 
 ## How this was run
 
@@ -285,4 +290,88 @@ The unset branch build also matched `origin/main` file for file (`diff -rq`). An
 - The `VITE_GTL_PLAYER_PROPS` variable plus a Pages deploy.
 
 The collection also needs the research intake credentials on the operator machine
-(blocker 0(b), still unknown).
+(blocker 0(b), still unknown). *Superseded the same day: the next section runs the
+collection in GitHub Actions instead.*
+
+## Pilot collection from GitHub Actions, November 11
+
+Branch `claude/props-pilot-collect-2026-11-11` adds the manual workflow **Player Props
+collect** (`.github/workflows/player-props-collect.yml`) and its step script
+`scripts/player-props-collect.mjs`. Tests are in `tests/player-props-collect.test.mjs`. Nothing
+was merged, dispatched, set, spent or written by this branch.
+
+The coordinator relayed Sean's approval of the hidden pilot (D-82, November 11): 2 games × 3
+yardage stats a week, about 6 credits, recorded while dark. That approval is not yet written in
+`docs/DECISIONS.md`. `live_lock_in` and `GTL_PLAYER_PROPS` stay off.
+
+**Why a separate workflow (inspected).** The offers and results workflow never calls the odds
+provider, and its tests say so. Keeping the spending step in its own file means the odds key is
+named in exactly one workflow, and `player-props-jobs.yml` is unchanged. Both workflows share the
+`player-props-jobs` concurrency group, so a collection never overlaps an offers or results run.
+
+**Guards (executed in tests).**
+
+- It runs only on `workflow_dispatch`, only from `main`, and only when the repository variable
+  `GTL_PLAYER_PROPS_JOBS` is `on`. There is no schedule.
+- `dry_run` defaults to on. A dry run builds the request file and prints the credit cost. Its
+  build step never receives the odds key, only whether it is set.
+- `max_credits` defaults to 6. A value above 6 is refused unless `allow_above_six` is ticked, and
+  the builder still refuses anything above 32. Inputs are checked before anything is read.
+- Before spending, the collect step checks the built file again: same season, week, stats and
+  cap, no `publicationId`, and a market count equal to the planned credits. Any difference stops
+  the run with nothing reserved. It never passes `--publish`.
+- The token is `contents: read`, checkout keeps no credentials, and no input or secret is
+  interpolated into a shell line.
+
+**Secrets mapping (executed in tests).** Each value reaches only the steps that use it.
+
+| Repository secret | Research intake name | Build step | Collect step |
+| --- | --- | --- | --- |
+| `GTL_PROPS_SUPABASE_URL` | `GTL_RESEARCH_SUPABASE_URL` | yes | yes |
+| `GTL_PROPS_SERVICE_ROLE_KEY` | `GTL_RESEARCH_SERVICE_ROLE_KEY` | yes | yes |
+| `GTL_PROPS_ODDS_API_KEY` (new) | `GTL_RESEARCH_ODDS_API_KEY` | only "is it set" | yes |
+
+**The summary artifact (executed in tests).** `player-props-collect-summary` holds one JSON file:
+counts, credits, stat keys and reason names. It never holds a key, URL, quote, player, provider
+event ID or game ID. The request file, with its event IDs and roster receipts, stays on the
+runner. For this, research intake's receipt now also counts a collection: requests collected,
+unavailable or already attempted, credits reserved, and quotes retained. It adds counts only.
+
+**Each real run spends again (inspected).** The builder mints new request IDs every run, so a
+second real dispatch reserves its credits a second time. Before re-running, read the last
+summary: `credits.reserved` is what that run reserved. A failed run reports `reservedAtMost`
+instead, because the failure may have come after a reservation.
+
+### The exact pilot run order
+
+1. **Secrets.** In **Settings → Secrets and variables → Actions → Repository secrets** (not the
+   `production` environment):
+   - `GTL_PROPS_SUPABASE_URL`: `https://onmrgvcehkflfaizvedl.supabase.co`, with no trailing
+     slash. The URL is not secret, so the coordinator can add it.
+   - `GTL_PROPS_SERVICE_ROLE_KEY`: Sean adds the project's service-role key.
+   - `GTL_PROPS_ODDS_API_KEY`: Sean adds the same The Odds API key that is saved as the
+     `THE_ODDS_API_KEY` Edge Function secret. `gtl_odds_budget` tracks that one account's quota
+     (inspected), so a key from another account would put the wrong quota into the shared row.
+
+   The first two also serve Player Props jobs.
+2. **The variable.** Set the repository variable `GTL_PLAYER_PROPS_JOBS` to `on`. It switches on
+   both Player Props workflows. Unset it to stop both.
+3. **Collect, dry run.** Run **Player Props collect** from `main` with the season and week. Leave
+   games `2`, the three yardage stats, max_credits `6`, allow_above_six off and dry_run on.
+   Expect `status: built`, `mode: dry_run`, `credits.planned: 6`, `build.games: 2` and
+   `oddsKeyConfigured: true`. Nothing is reserved. This makes one read-only GET on the core market
+   snapshot and reads the two nflverse files.
+4. **Collect for real (6 credits or fewer).** Run it again with the same inputs and dry_run off.
+   Expect `status: collected`, `credits.reserved` of 6 or fewer, and `collection.quotes` above 0.
+   Each game must still be at least 15 minutes from kickoff. `gtl_begin_research_quotes` also needs
+   a successful core odds preflight within 24 hours and `conservative_remaining` of at least 50 plus
+   the request's cost (inspected).
+5. **Offers, dry run, then write.** Within six hours of step 4 and before kickoff, run **Player
+   Props jobs** with job `offers`, the same season and week, and write off. Then run it again with
+   write on and record_while_dark on.
+6. **Results, after the games are final.** Run **Player Props jobs** with job `results` and write
+   off. Then run it again with write on and record_while_dark on. A result needs the game's stats
+   release at least three hours after kickoff.
+
+`live_lock_in`, `GTL_PLAYER_PROPS` and `VITE_GTL_PLAYER_PROPS` are not part of this order. Each
+stays off until Sean's separate word.

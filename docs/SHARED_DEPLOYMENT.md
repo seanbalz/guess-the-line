@@ -177,6 +177,49 @@ string and change the bundle bytes. The CLI versions come from committed
 `package-lock.json`; the workflow uses the same pinned action major versions as
 existing CI. It never installs `latest` deploy tools.
 
+## Player Props pilot workflows (D-82)
+
+Two manual workflows run the hidden Player Props pilot. Neither is part of the release
+workflow, and neither deploys anything. **Player Props collect**
+(`player-props-collect.yml`) is the only one that can spend odds credits. It builds the
+research intake request file and, when `dry_run` is off, runs
+`research-intake.mjs --collect-quotes` with it. **Player Props jobs**
+(`player-props-jobs.yml`) records offers and results from the quotes already retained. It never
+calls the provider.
+
+Both run only from `main`, only when dispatched, and only when the repository variable below is
+`on`. Neither has a schedule. Both share one concurrency group, so they never overlap. Their
+artifacts hold counts, credits and reason names only. The configuration is
+**repository-level** (Settings → Secrets and variables → Actions), not the `production`
+environment.
+
+| Kind | Name | Used by | Value or scope |
+| --- | --- | --- | --- |
+| Secret | `GTL_PROPS_SUPABASE_URL` | collect, jobs | `https://onmrgvcehkflfaizvedl.supabase.co`, with no trailing slash. Not secret, so the coordinator can add it. |
+| Secret | `GTL_PROPS_SERVICE_ROLE_KEY` | collect, jobs | Sean adds the project's service-role key. |
+| Secret | `GTL_PROPS_ODDS_API_KEY` | collect only (collect step) | Sean adds the same The Odds API key as the `THE_ODDS_API_KEY` Edge Function secret. `gtl_odds_budget` tracks that account's quota. |
+| Variable | `GTL_PLAYER_PROPS_JOBS` | collect, jobs | `on` enables both workflows. Unset stops both. |
+
+Collect maps the three secrets onto research intake's own names: `GTL_RESEARCH_SUPABASE_URL`,
+`GTL_RESEARCH_SERVICE_ROLE_KEY` and `GTL_RESEARCH_ODDS_API_KEY`. Its dry-run build step sees
+only whether the odds key is set. `max_credits` defaults to 6. A value above 6 needs the
+`allow_above_six` input, and the builder refuses anything above 32. Every real collect run
+spends again, because its request IDs are new.
+
+**The exact pilot run order** (details in
+[the readiness record](PLAYER_PROPS_READINESS_TASK2_2026-11-10.md#the-exact-pilot-run-order)):
+
+1. Add the three secrets.
+2. Set `GTL_PLAYER_PROPS_JOBS` to `on`.
+3. Run **Player Props collect** with dry_run on (the default). Expect `status: built`,
+   `credits.planned: 6` and `oddsKeyConfigured: true`.
+4. Run **Player Props collect** with dry_run off: 6 credits or fewer. Expect `status: collected`
+   and `credits.reserved` of 6 or fewer.
+5. Within six hours and before kickoff, run **Player Props jobs** `offers` with write off. Then
+   run it with write and record_while_dark on.
+6. After the games are final, run **Player Props jobs** `results` with write off. Then run it
+   with write and record_while_dark on.
+
 ## Release train (Sean, October 28, 2026)
 
 Several sessions work on GTL at once. To stop duplicate fixes and one release per PR, Sean set these rules:
