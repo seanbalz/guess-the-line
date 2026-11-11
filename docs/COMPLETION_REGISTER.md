@@ -1,9 +1,10 @@
 # Guess The Line — current completion register
 
-## D-84: Prism Glass stays; D-69 steps 4 and 5 stop — November 11, 2026
+## D-84: Prism Glass stays; D-69 steps 4 and 5 and B1 stop — November 11, 2026
 
-Sean: "Yes, keep Prism" ([D-84](DECISIONS.md)). D-69 step 4 (Bets) and step 5 (Menu and Premier League) are stopped,
-not merged and not released. Prism Glass stays the design for Home, Bets and the Menu. Step 4's work is kept,
+Sean: "Yes, keep Prism" and "Yes, stop B1", and "Prism Glass stands (Recommended)" in the step 4 session
+([D-84](DECISIONS.md)). D-69 step 4 (Bets), step 5 (Menu and Premier League) and the B1 Play polish are stopped,
+not merged and not released. Prism Glass stays the design for Home, Play, Bets and the Menu. Step 4's work is kept,
 unmerged, on `claude/overhaul-step4-bets` (`6266ef47`, which includes a WIP commit). Nothing on the live site changed.
 
 ## Stat corrections release and M-33 to M-35 applied — November 11, 2026 UTC
