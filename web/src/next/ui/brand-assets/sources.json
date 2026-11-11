@@ -53,6 +53,35 @@
       "sourceCommit": "3ac2eb50513ba73447ef890e4a47863cde7bdd76",
       "sha256": "ea8f11978dc2fffc3b51a15a6b631ccdb3e0be52f22be845df9e4dcbb1e74401",
       "use": "GTL original hybrid G selected by Sean; unchanged SVG."
+    },
+    {
+      "file": "nba.png",
+      "description": "NBA league logo (logoman)",
+      "sourceUrl": "https://a.espncdn.com/i/teamlogos/leagues/500/nba.png",
+      "sourcePage": "https://www.espn.com/nba/",
+      "retrievedAt": "2026-11-11T17:54:44Z",
+      "original": {
+        "sha256": "04b2b9dd2a0bda5310227001f9b48af3bb30ad9919d891a39ac723283e1ffbda",
+        "bytes": 19058,
+        "width": 500,
+        "height": 500,
+        "format": "PNG",
+        "mode": "RGBA"
+      },
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sha256": "6d90fd9d90de51f63c1de81b565ea0f4fd4bd5e5f6835fd73d101d067b2f3680",
+      "mime": "image/png",
+      "bytes": 8311,
+      "width": 144,
+      "height": 144,
+      "modifications": "Downscaled only to 144px (Pillow LANCZOS, aspect and alpha kept); no crop or recolor.",
+      "use": "League identification in its own circular sport control (behind NBA_ON_SWITCH); not GTL branding.",
+      "rights": "Third-party trademark; used only to identify the team/league; no affiliation, endorsement or license claimed."
     }
   ]
 }
