@@ -1,21 +1,26 @@
 -- M-35: corrected order only before any next-week pick/deadline; append-only outcomes preserve M-33 evidence.
 -- Also shares a durable result-read envelope between snapshot/settle: 12h cooldown, max8 reservations x2 credits/week.
--- Pending Gate M. Requires M-33; no existing function/table is replaced. No schedules enabled or hosted action here.
+-- D-83 (Sean, November 11, 2026: "Yes, import wins"): once the commissioner has confirmed a weekly-score import of week n
+-- (hosted M-43's gtl_epl_score_import_head), a recheck never changes week n+1's order by itself. A differing corrected
+-- order is recorded as preserved_import beside the kept order; a week without an import still gets it automatically.
+-- Pending Gate M. Requires M-33 (pending) and hosted M-43 (20261110110000); no existing function/table is replaced.
+-- No schedules enabled or hosted action here.
 -- Off switch: existing snapshot/settle schedules. Preserve these records (D-23); fix forward, never delete evidence.
 
 create table if not exists public.gtl_epl_order_corrections (
   recheck_snapshot_id bigint primary key references public.gtl_epl_snapshots(id),
   season integer not null,
   week integer not null,
-  outcome text not null check(outcome in ('applied','same_order','preserved_picks','preserved_closed')),
+  outcome text not null check(outcome in ('applied','same_order','preserved_picks','preserved_closed','preserved_import')),
   previous_order text[] not null,
   candidate_order text[],
   baseline_snapshot_id bigint references public.gtl_epl_snapshots(id),
   recorded_at timestamptz not null,
   foreign key(season,week) references public.gtl_epl_weeks(season,week),
-  check((outcome in ('applied','same_order') and candidate_order is not null and baseline_snapshot_id is not null)
+  -- preserved_import keeps previous_order (the order the draft uses) and records the order the recheck would have set.
+  check((outcome in ('applied','same_order','preserved_import') and candidate_order is not null and baseline_snapshot_id is not null)
     or (outcome in ('preserved_picks','preserved_closed') and candidate_order is null)),
-  check(outcome<>'applied' or previous_order<>candidate_order),
+  check(outcome not in ('applied','preserved_import') or previous_order<>candidate_order),
   check(outcome<>'same_order' or previous_order=candidate_order)
 );
 create table if not exists public.gtl_epl_result_reads (
@@ -169,12 +174,16 @@ begin
     select array_agg(owner order by ((after_points->>owner)::numeric-(before_points->>owner)::numeric)*100,
       (after_points->>owner)::numeric*100,
       owner collate "C") into wanted from unnest(w.pick_order) as owners(owner);
-    outcome:=case when wanted is distinct from nxt.pick_order then 'applied' else 'same_order' end;
+    -- D-83: a confirmed commissioner import of week n wins. Read after both locks: M-43's writer takes the same week n then
+    -- week n+1 row locks, so an import either committed before this check or waits and later replaces the order itself.
+    outcome:=case when wanted is not distinct from nxt.pick_order then 'same_order'
+      when public.gtl_epl_score_import_head(item.season,item.week) is not null then 'preserved_import' else 'applied' end;
     insert into public.gtl_epl_order_corrections(recheck_snapshot_id,season,week,outcome,previous_order,candidate_order,baseline_snapshot_id,recorded_at)
       values(item.recheck_snapshot_id,item.season,item.week,outcome,nxt.pick_order,wanted,baseline.id,stamp);
     if outcome='applied' then
       update public.gtl_epl_weeks set pick_order=wanted where season=nxt.season and week=nxt.week;
       applied:=applied+1;
+    elsif outcome='preserved_import' then preserved:=preserved+1; -- the worker reports needs_review; nothing is updated
     else same_count:=same_count+1; end if;
   end loop;
   return jsonb_build_object('applied',applied,'sameOrder',same_count,'preserved',preserved,'pending',pending);
@@ -182,7 +191,10 @@ end $$;
 
 create or replace function public.gtl_epl_order_correction_state(p_season integer) returns jsonb
 language sql stable security invoker set search_path='' as $$
-  select coalesce(jsonb_agg(jsonb_build_object('week',week,'outcome',outcome) order by week),'[]'::jsonb)
+  -- preserved_import also returns the kept order and the order the recheck would have set (owner ids; gtl-api names them).
+  select coalesce(jsonb_agg(jsonb_build_object('week',week,'outcome',outcome)||case when outcome='preserved_import'
+      then jsonb_build_object('keptOrder',to_jsonb(previous_order),'candidateOrder',to_jsonb(candidate_order)) else '{}'::jsonb end
+    order by week),'[]'::jsonb)
     from public.gtl_epl_order_corrections where season=p_season;
 $$;
 revoke all on function public.gtl_epl_reserve_result_read(uuid,uuid,integer,integer,timestamptz),public.gtl_epl_apply_recheck_orders(uuid,uuid,timestamptz),public.gtl_epl_order_correction_state(integer),
