@@ -1,15 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { nbaRoute, nbaHash, nbaFragment, displayUnits, recoverOperation } from '../web/src/next/nba/route.js';
-test('NBA namespace preserves date/filter routes without consuming NFL links', () => {
+test('NBA namespace keeps its date and filter values on the new places without consuming NFL links', () => {
   assert.equal(nbaRoute('#play'), null);
-  assert.deepEqual(nbaRoute('#nba/history?market=spread&from=2026-10-01'), { screen: 'history', filters: { status: 'settled', market: 'spread', from: '2026-10-01' } });
-  assert.equal(nbaHash(nbaRoute('#nba/games?date=2026-10-21')), '#nba/games?date=2026-10-21');
-  assert.deepEqual(nbaRoute('#nba/bets'), { screen: 'bets', filters: { status: 'pending' } });
-  assert.deepEqual(nbaRoute('#nba/bets?status=all'), { screen: 'bets', filters: {} });
+  assert.deepEqual(nbaRoute('#nba/history?market=spread&from=2026-10-01'), { tab: 'bets', view: { pane: 'history', status: undefined, market: 'spread', from: '2026-10-01', to: undefined }, legacy: true });
+  assert.equal(nbaHash(nbaRoute('#nba/games?date=2026-10-21')), '#nba/research/games?date=2026-10-21');
+  assert.deepEqual(nbaRoute('#nba/bets/open'), { tab: 'bets', view: { pane: 'open', status: undefined, market: undefined, from: undefined, to: undefined }, legacy: false });
+  assert.equal(nbaHash(nbaRoute('#nba/bets?status=all')), '#nba/bets/open');
+  // Values outside each tab's allowlist never reach an NBA read.
+  assert.equal(nbaHash(nbaRoute('#nba/bets/history?status=nope&market=props&from=2026-13-40')), '#nba/bets/history');
 });
 test('in-page #nba fragments stay in the NBA section; NFL addresses and empty hashes do not', () => {
-  // SportEntry keeps NBA mounted for these while NBA shows, so a skip-link anchor never reads as a sport change.
+  // SportEntry keeps NBA mounted for these while NBA shows, so an in-page anchor never reads as a sport change.
   assert.equal(nbaRoute('#nba-main'), null);
   assert.equal(nbaFragment('#nba-main'), true);
   assert.equal(nbaFragment('#nba/games'), true);

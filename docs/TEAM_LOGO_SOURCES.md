@@ -1,6 +1,6 @@
-# NFL team marks and Premier League crests — source register
+# NFL team marks, Premier League crests and NBA logos — source register
 
-Updated: October 28, 2026 (Premier League crests for all 20 clubs; D-46 official NFL logos for all 32 teams, October 14, 2026) · Owner: team-logo workflow agent
+Updated: November 11, 2026 (NBA league logo and all 30 NBA team logos, D-85; Premier League crests for all 20 clubs, October 28; D-46 official NFL logos for all 32 teams, October 14, 2026) · Owner: team-logo workflow agent
 
 ## Official logos (D-46)
 
@@ -203,6 +203,62 @@ Every other logo keeps the default rule.
 | NFO | Nottingham Forest | `NFO.png` | `393.png` | 500×500, 20,645 B | `766868d667069609a8904ba1ec6a66f09fccfe9fbad21300791bf778dd9ddaae` | 128×128, 10,132 B | `8a364d3fed5027db795b6ec8f8897c48d4101282391c54eb79567f6f72d61007` |
 | SUN | Sunderland | `SUN.png` | `366.png` | 500×500, 53,898 B | `aee718a79be592a8bb36ab68b0960a1dbb5763692f4d91c3f4249f95edbf19af` | 128×128, 19,576 B | `53110fcc65094c9a7753e45137ff90c8dd1169698df4b748db79e7e811c0d19b` |
 | TOT | Tottenham Hotspur | `TOT.png` | `367.png` | 500×500, 26,224 B | `f66f956414b0fd99df6a7e29bed0bd8a849f11d41bd749a1e08ff8d032570d35` | 128×128, 8,298 B | `b826d2742886aa97470d797ef73dac704f26f8910404374afd9449dcbc587639` |
+
+## NBA team logos
+
+**All 30 NBA teams show their official logo, and the NBA league mark is the official logo (D-85, November 11, 2026).** Sean's rulings in the captain session: "Approve badges", immediately corrected by "we need nba logo and team logos not letters". This replaces the letters-only text badges and the original "NBA" text badge the November 10 proposal drew. The [D-46 rule](#official-logos-d-46) and the November 7 league-mark record are extended unchanged to the NBA.
+
+### Basis
+
+- **Identification only.** Each team logo appears only beside, or in place of, the team's name in NBA screens (`NbaTeamBadge`, `NbaMatchup`), each in its own glass circle (brand guide: "Each team and league mark has its own circle"). The league mark identifies the sport in its own circle of the sport switch, behind `NBA_ON_SWITCH = false`, and is drawn selected while NBA shows. No NBA mark becomes Guess The Line branding, the app icon, advertising or merchandise.
+- **Trademark notice.** "NBA and team names, logos and marks are trademarks of the NBA and its teams; used here only to identify the teams. No endorsement." It is on the Terms page (`web/public/terms.html`, "Team names and logos"), at the foot of NBA Research › Games beside the BALLDONTLIE source line, and in `NBA_TRADEMARK_NOTICE` in `web/src/teamLogoRegistry.js`.
+- **Not licensed.** No NBA or team license, permission or endorsement is claimed. Every record says: "Third-party trademark; used only to identify the team/league; no affiliation, endorsement or license claimed." `sources.json` records `rightsBasis: "trademark-identification"` and `licensed: false`.
+- **League-keyed lookup.** `resolveNbaTeamLogo(code)` in `web/src/teamLogoRegistry.js` takes NBA codes only. Thirteen NBA codes are also NFL codes (ATL CHI CLE DAL DEN DET HOU IND LAC MIA MIN PHI WAS); NBA screens never call `resolveTeamMark` or `resolveTeamBadge`, and `tests/nba-team-badge.test.jsx` proves each colliding code draws `/team-logos/nba/<CODE>.png`, never an NFL file.
+- **Fallback.** The team's letters hold its glass circle until the logo has decoded and stay if the logo fails to load (the DP-27 pattern); there is no NFL or original-badge fallback for an NBA team.
+
+### Source
+
+- **Team list:** `shared/nba-teams.mjs` (`NBA_TEAMS`: code as BALLDONTLIE sends it, full name, ESPN path). ESPN's paths differ from the app codes for GSW (`gs`), NOP (`no`), NYK (`ny`), SAS (`sa`), UTA (`utah`) and WAS (`wsh`).
+- **Team images:** `https://a.espncdn.com/i/teamlogos/nba/500/<espn>.png`, the ESPN CDN the D-46 record used for NFL; source page `https://www.espn.com/nba/teams`. Fetched 2026-11-11T17:55:26Z to 2026-11-11T17:55:31Z.
+- **League mark:** `https://a.espncdn.com/i/teamlogos/leagues/500/nba.png` (the NBA logoman), retrieved 2026-11-11T17:54:44Z, original 500×500 RGBA, 19,058 B, SHA-256 `04b2b9dd2a0bda5310227001f9b48af3bb30ad9919d891a39ac723283e1ffbda`; shipped as `web/src/next/ui/brand-assets/nba.png`, 144×144, 8,311 B, SHA-256 `6d90fd9d90de51f63c1de81b565ea0f4fd4bd5e5f6835fd73d101d067b2f3680` (144 px, the size of the self-hosted NFL shield). The NBA's own `https://cdn.nba.com/logos/leagues/logo-nba.svg` was also downloaded and inspected (paths only, no script or external reference) but not used: it is a 51×30 wide mark that does not fit a circle.
+- **Handling (untrusted downloads).** Each file was downloaded into its own new, empty directory outside the repository, inspected there (PNG signature, Pillow decode, RGBA with an alpha channel, all four corners fully transparent, a contact sheet checked by eye on dark and light against the team names), and only then downscaled and copied in by `scripts/ship-nba-logos.py ship <dir>` (its `fetch` step repeats the download the same way). All 31 originals passed; no artwork was edited.
+- **Self-hosted, never hotlinked.** Each team original was downscaled once (Pillow, LANCZOS) to 128 px on its longer side; no recolor, no crop; aspect ratio and alpha kept. Files: `web/public/team-logos/nba/<CODE>.png`.
+- `web/public/team-logos/nba/sources.json` records, for each team, the source URL and page, the team-list row, the fetch time (UTC), the original's SHA-256, size and pixel dimensions, the shipped file's name, size and SHA-256, modifications, use and rights. `tests/nba-logos.test.mjs` checks every shipped file against it.
+
+### Register
+
+| Team | Name | File | ESPN path (`/i/teamlogos/nba/`) | Original | Original SHA-256 | Shipped | Shipped SHA-256 |
+|---|---|---|---|---|---|---|---|
+| ATL | Atlanta Hawks | `ATL.png` | `500/atl.png` | 500×500, 44,138 B | `aacfe9bb2e3f69321bcd0b415a72d860fc97609c6c1f25985c6e70b78bd7f3cc` | 128×128, 12,363 B | `2c41db77e4b81014c62311b71bd6c87465f48f975766189b031cd5398bbeda15` |
+| BOS | Boston Celtics | `BOS.png` | `500/bos.png` | 500×500, 45,561 B | `0d0d6b85971b1d18428ba1161772b8c2f7e3ee103846ec4b4763bf0cc849ece0` | 128×128, 14,415 B | `f87975adec1541d3ca1157b4ca793190a2a7f3dfb0fc0ddab89cefb6ede0a2b6` |
+| BKN | Brooklyn Nets | `BKN.png` | `500/bkn.png` | 500×500, 38,184 B | `a407016d7c6a93b8b7b580b0de3f76caf80801bfd4fa66dc5badecc031164779` | 128×128, 11,314 B | `b8aaf112aa0b678cfe7abd61c19850e0846a9b603fda8b31bf5e0d05ffbe114c` |
+| CHA | Charlotte Hornets | `CHA.png` | `500/cha.png` | 500×500, 95,626 B | `95b3fe42c24e262fb5ce4f52c50f634ba9b7daeae88d090555f1ef301aa0a451` | 128×128, 20,181 B | `12ec3b1b448c126fbdd4c3909929f6b8545e2433f88b00ea2871079013ac3886` |
+| CHI | Chicago Bulls | `CHI.png` | `500/chi.png` | 500×500, 51,667 B | `3d70e58419859b30a8f2599f930ca502b175f9110c7cc1b2ab496787b8d445c2` | 128×128, 11,881 B | `0389c05d1378bd2ea569cd5ce8d6f922df8d3122f62cb606ca09eee1c1d61fac` |
+| CLE | Cleveland Cavaliers | `CLE.png` | `500/cle.png` | 500×500, 37,308 B | `f6eeede7fb286c450b80436ad8c21e430ff1eec73adb187d285cb2b8f681e063` | 128×128, 12,444 B | `567da9a55944757a5a3c5061364ca4ca1608664a49dab5223a48665592d18489` |
+| DAL | Dallas Mavericks | `DAL.png` | `500/dal.png` | 500×500, 83,889 B | `d0d526f5400b7266883476071df0d24cdea0655a1641f0e5a2ea212e6c1b2b09` | 128×128, 20,515 B | `92c20d0a79571aeb099556812916acd51910abb4b483f487811081a165c9d2b1` |
+| DEN | Denver Nuggets | `DEN.png` | `500/den.png` | 500×500, 81,056 B | `33f295fabf1bc3ddb60dfcbefb35ab9a3a91c865752e4539778495aab27f535d` | 128×128, 20,888 B | `6e3b78fac3163b4f47ac6da7c9cfd09c7a0b5dd32e434be856284d31f3bc25c7` |
+| DET | Detroit Pistons | `DET.png` | `500/det.png` | 500×500, 76,673 B | `e5bcfd905add9ef97e06a9cc6bfdde49864fe91731625501c14bf861e84b8853` | 128×128, 20,335 B | `ffca4b90759f3a4408bea8cb6e149f22a5928b1c6f7fed68b5f9fccdcfd848f9` |
+| GSW | Golden State Warriors | `GSW.png` | `500/gs.png` | 500×500, 82,070 B | `b623681ece167224ad4f51aef1ffa5a6f9e072af1cf1d6a6c158fd796e8d33ab` | 128×128, 19,379 B | `1921aeaf48857872dcaacf682b8cd2162a400c0519f75151f466668ea5b379dc` |
+| HOU | Houston Rockets | `HOU.png` | `500/hou.png` | 500×500, 48,428 B | `720e35c0d3b39af8d57ae66f00ae1058bd0f32b41fba1137f779af5bc439e011` | 128×128, 8,063 B | `b6de9eb957025a86bf5157f916e80445f53f6ec8d09a4be1fe97cc4b18dfacf0` |
+| IND | Indiana Pacers | `IND.png` | `500/ind.png` | 500×500, 58,101 B | `8dc8165d842c4b0d3b6f607ac9494a68189b2b06f48a3d820cd5b3997ae7c9da` | 128×128, 12,603 B | `a77073acf53b252841b28ee88c2669ea27a0918f58e79de5555a17a0f2883490` |
+| LAC | LA Clippers | `LAC.png` | `500/lac.png` | 500×500, 60,835 B | `d43253c0630f0d3d3a4c3c50ce92c9dbe8d5bf21e3bfd5326920c9487b26dbec` | 128×128, 17,375 B | `55699f1e328c09010cf101136045e6a7636260e2050b852df277eb49f16cb6bd` |
+| LAL | Los Angeles Lakers | `LAL.png` | `500/lal.png` | 500×500, 64,550 B | `82fda3df51058c5aad8a52123868f43959017be0c39c886e9aefbb77e6c69c89` | 128×128, 13,861 B | `1ab5b853bf666f68789a0595ef79da400689ff4e2b6a60aee0cf1d8e6bc71206` |
+| MEM | Memphis Grizzlies | `MEM.png` | `500/mem.png` | 500×500, 71,654 B | `eb3f14246f67bccd4d8dd44be2f431992115beac8837c4b1be51d098b0a388bd` | 128×128, 15,865 B | `0bc5002b673487c3e76525eef366aace57f99bb5febaa8c36da0da473d83fd34` |
+| MIA | Miami Heat | `MIA.png` | `500/mia.png` | 500×500, 55,105 B | `3ba9ff33e65ea12cef33cbf445163a8ec4063b4cbd42c6d2c63109b6d438575f` | 128×128, 13,605 B | `f7b92dac448119e198a8299a693dce07a6da35053b10a7f876ae6f011e95d06b` |
+| MIL | Milwaukee Bucks | `MIL.png` | `500/mil.png` | 500×500, 74,663 B | `84fbddec67f59fa143f4fde9c2745ca15f3ad03594da4e677a4a1034aefa6f33` | 128×128, 17,119 B | `bd3429d799c2a47f1d68c5190278cb18ef2e6d945ad636babd16f3e46f11eaa9` |
+| MIN | Minnesota Timberwolves | `MIN.png` | `500/min.png` | 500×500, 81,082 B | `ff53859dd29fb795e2f9c0a7fbaf808548731526d3fbcbb2fdfb842224c36979` | 128×128, 22,940 B | `b0257125df5138c2ace28ea98afb28283c7078d7a8e5422d05d748447dd5f7b1` |
+| NOP | New Orleans Pelicans | `NOP.png` | `500/no.png` | 500×500, 65,947 B | `2c2bf09a59358e024c442d80f16707cd8b705863df9b6aa0ee478346561dc18a` | 128×128, 11,354 B | `26343a4114c7a055e7d181cd39d3252810a865f2e1b55883eb25b4e87a1bae87` |
+| NYK | New York Knicks | `NYK.png` | `500/ny.png` | 500×500, 98,474 B | `35d2cc3780d172d427ed9bec8300bdcb91dd1065a3e1b6b015d46bb065ea35f5` | 128×128, 18,240 B | `b89a4abb493d7361ea915dbe4475f0921c42d2b891a1ee7e1c274e329c57629a` |
+| OKC | Oklahoma City Thunder | `OKC.png` | `500/okc.png` | 500×500, 62,595 B | `6b4801ae99c7dac7240d3b6ab3fbd4249a371473fc06517384e891834164a76e` | 128×128, 12,779 B | `ef35c04b75fcfd4773e5e45232eb7c646ca09b09e2a508082da2f1b44774b5e5` |
+| ORL | Orlando Magic | `ORL.png` | `500/orl.png` | 500×500, 71,926 B | `ccb08b4b69603f4d41e6494b4a35dba8fd2e6a2a75012559d6844c2fc93e0963` | 128×128, 15,418 B | `418318b4ae485440f3588c4cf1e155c44a6cd7f34110d4bfcd264f5e2a10dbb5` |
+| PHI | Philadelphia 76ers | `PHI.png` | `500/phi.png` | 500×500, 29,120 B | `3b96bf98838e3ea9e5d4fcccda3a98b69636346d2e50aabf1a5a4ba5aad7585e` | 128×128, 10,421 B | `b393febe4f38170384a98e583a9c196a2e47a16898843ac1b8da05daf87dda70` |
+| PHX | Phoenix Suns | `PHX.png` | `500/phx.png` | 500×500, 40,162 B | `5f8932efdb7595069610b11ec2f417d78a9213691c2ba21e2bd491c172397ead` | 128×128, 11,925 B | `50907280b0a29e9bdcd1c8d6b50ce9e044c744ac6862c554d2f4cca01c1662b2` |
+| POR | Portland Trail Blazers | `POR.png` | `500/por.png` | 500×500, 62,286 B | `635515bc924cef7432e9b362da558c41032daf6f4c41be2e1dc80a34360b6f18` | 128×128, 16,047 B | `2159ecdbfef583c5af056a5023db5d14e8ca1b132409038cf388a7554b67b15c` |
+| SAC | Sacramento Kings | `SAC.png` | `500/sac.png` | 500×500, 42,990 B | `38728eaaf98d73d00363ee570601d64a4caa7fe2590fb0df5afb1b9129d6e20b` | 128×128, 12,824 B | `5bd4f64b9433ab166c3a1831e4ab92b30e8821ab17e24e363b5c037a302707c3` |
+| SAS | San Antonio Spurs | `SAS.png` | `500/sa.png` | 500×500, 40,623 B | `cc3d33fa8faf34874258b10a8e0377d70b80c7900b4d90698f35edba9952fa1c` | 128×128, 10,471 B | `8c2a0f150df9433c9ea9041214541cfd0704d1af8adb4b99df2cc155fae88e03` |
+| TOR | Toronto Raptors | `TOR.png` | `500/tor.png` | 500×500, 22,692 B | `9b466dfc1c47b22d6692569ea7f6cb1075a5bb3a35296b5053d6562842850b13` | 128×128, 12,515 B | `6d652e9962e11ddcd580f6a08c4fab6bdf767e53a357430c83f3d5d27d19b937` |
+| UTA | Utah Jazz | `UTA.png` | `500/utah.png` | 500×500, 18,467 B | `eb20ed36a17b49f65fa30627a2ab2aae5c6e3ee31ab9f03983c15c05270016e1` | 128×128, 5,264 B | `0c32b2fd1adc12081ef1de01cb0e279ab5f40937aae8ba0b377fd5ba2bc0f3ab` |
+| WAS | Washington Wizards | `WAS.png` | `500/wsh.png` | 500×500, 65,691 B | `33977129ba2139eaee1611f55570c347c9ce4223fbeef413294cbdf66497bc55` | 128×128, 17,439 B | `40a7a0e24425ebd6bd64abf382add746283b5ff2436431abe8d66d66d1de3d66` |
 
 ## Original badges
 
