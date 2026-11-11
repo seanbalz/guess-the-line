@@ -69,7 +69,7 @@ export function AppGate({ session, onSignOut, sport = 'nfl', shellProps }) {
       onSignOut={onSignOut}
       league={app.league}
       you={you}
-      data={sport === 'epl' ? { community: eplCommunity(app.community.data) } : app.counters}
+      data={sport === 'epl' || sport === 'nba' ? { community: eplCommunity(app.community.data) } : app.counters}
       cover={covered ? <LeagueCover app={app}/> : null}
       initialLayer={sport === 'nfl' && app.savedInvite ? 'sh.switcher' : null}
       notice={notice}

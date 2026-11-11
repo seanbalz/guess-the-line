@@ -25,7 +25,6 @@ vi.mock('../web/src/fantasyContext.js', () => ({ useFantasyGameContext: () => ({
 const { FantasyNest, methodBody } = await import('../web/src/next/fantasy/FantasyNest.jsx');
 const { REPORT_COPY, reportModel, reportTile } = await import('../web/src/next/fantasy/fantasyReport.js');
 const { FantasyPage } = await import('../web/src/next/fantasy/FantasyPage.jsx');
-const { Games } = await import('../web/src/next/nba/Games.jsx');
 
 const review = reviewFixture(base);
 const ready = method => ({ status: 'ready', snapshot: { ...base, method }, review, origin: 'hosted', weeks: [{ key: '2026-06', season: 2026, week: 6 }] });
@@ -135,12 +134,7 @@ describe('the Track 1 owner’s conditions', () => {
   it('every new-app Fantasy file parses', () => {
     for (const file of FANTASY) expect(() => code(file), file).not.toThrow();
   });
-  it('the NBA status region stays mounted while games load and after', () => {
-    const draw = props => renderToStaticMarkup(<div className="gx"><Games board={null} date="2026-11-04" timeZone="America/Los_Angeles" onDate={() => {}} onTrack={() => {}} refresh={() => {}} {...props}/></div>);
-    for (const props of [{ loading: true }, { loading: false }, { loading: false, error: { status: 500, message: 'down' } }]) {
-      expect(nodes(draw(props)).filter(n => n.tag === 'div' && n.attrs.role === 'status' && n.attrs['data-skeleton'] === undefined), JSON.stringify(props)).toHaveLength(1);
-    }
-  });
+  // The NBA status-region contract moved with the NBA board to tests/nba-ui.test.jsx (milestone N1).
   it('one Fantasy title, "Fantasy Football", on every layer and while the code loads', () => {
     state.value = ready(USAGE);
     for (const view of SURFACES) expect(nodes(render(view)).filter(n => n.tag === 'h1').map(textOf), JSON.stringify(view)).toEqual(['Fantasy Football']);

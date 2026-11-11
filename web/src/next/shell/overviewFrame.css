@@ -15,6 +15,13 @@
 .gx-overview-frame .gx-home-sport { display: grid; place-items: center; width: 52px; height: 52px; border: 1px solid var(--gx-home-edge); border-radius: 50%; background: var(--gx-home-face); box-shadow: var(--gx-home-depth); }
 .gx-overview-frame .gx-home-sport[aria-pressed="true"] { border: 2px solid var(--gx-home-accent); box-shadow: inset 0 1px 0 var(--gx-home-gloss), 0 0 0 3px var(--gx-home-tint), var(--gx-home-depth); }
 .gx-overview-frame .gx-home-sport img { width: 30px; height: 32px; object-fit: contain; grid-area: 1 / 1; }
+/* D-85: three 52px league circles do not fit beside the G and avatar below 360px wide; there they are 44px (still
+   44px targets). Two circles keep 52px at every width. */
+@media (max-width: 359px) {
+  .gx-overview-frame .gx-home-sports [data-count="3"] { gap: 6px; }
+  .gx-overview-frame .gx-home-sports [data-count="3"] .gx-home-sport { width: 44px; height: 44px; }
+  .gx-overview-frame .gx-home-sports [data-count="3"] .gx-home-sport img { width: 26px; height: 28px; }
+}
 .gx-overview-frame .gx-home-pl-light { visibility: hidden; }
 :root[data-theme="light"] .gx-overview-frame .gx-home-pl-dark { visibility: hidden; }
 :root[data-theme="light"] .gx-overview-frame .gx-home-pl-light { visibility: visible; }
