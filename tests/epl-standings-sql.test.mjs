@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { ALL, NOT_HOSTED, FIX_FORWARD } from './migrations.mjs';
+import { ALL, APPLIED, NOT_HOSTED, FIX_FORWARD } from './migrations.mjs';
 import { createCommunityWorld, pgliteAvailable } from './cloud-browser/community-world.mjs';
 import { eplStandingsPositions } from '../shared/epl-standings.mjs';
 
@@ -34,9 +34,10 @@ async function fixture(t) {
   return { db, rpc, owners, run, save, state, resolve };
 }
 
-test('M-34 is pending/fix-forward and creates no standing schedule or enabled collector', { skip }, async t => {
+test('M-34 is hosted/fix-forward and creates no standing schedule or enabled collector', { skip }, async t => {
   const f = await fixture(t);
-  assert.ok(NOT_HOSTED.includes(20261029161613)); assert.ok(FIX_FORWARD.includes(20261029161613));
+  // Hosted as 20261111171317 on November 11, 2026 with no standings schedule row (RELEASE_2026_11_11_STAT_CORRECTIONS_M33_M35.md).
+  assert.ok(APPLIED.includes(20261029161613) && !NOT_HOSTED.includes(20261029161613)); assert.ok(FIX_FORWARD.includes(20261029161613));
   assert.equal((await f.db.query("select count(*)::int n from public.gtl_epl_jobs_schedule where job='standings'")).rows[0].n, 0);
   await f.db.exec("insert into public.gtl_epl_jobs_schedule(job,enabled) values('standings',false)");
   assert.deepEqual((await f.db.query("select public.gtl_epl_dispatch_jobs('standings') r")).rows[0].r, { status: 'disabled' });

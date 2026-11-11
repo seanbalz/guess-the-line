@@ -2,6 +2,8 @@
 
 Owner: Sean Balsiger · State: local implementation; M-33 is not applied and this worker is not deployed.
 
+Status, November 11, 2026: **M-33 is applied** as hosted `20261111171228`, with M-35 (`20261111171357`) right after it; no recheck ran on M-33 alone ([apply record](RELEASE_2026_11_11_STAT_CORRECTIONS_M33_M35.md)). The first snapshot run after the applies wrote no recheck row. A real Tuesday recheck is not yet verified. The text below is the original record.
+
 Current follow-on: [M-35 finalization/order guards](EPL_FINALIZATION_ORDER_2026_10_29.md) add source-only zero-pick recomputation and next-round interval protection. The no-order-change/window-end statements below describe M-33 alone. **Do not enable or dispatch M-33-only correction rechecks:** exact N+1 state cannot exclude N+1 points. Keep the shared snapshot schedule paused if M-33 is applied before the guarded M-35 path and operator prerequisites are ready. Both remain unhosted; no actual correction or full-cycle acceptance is claimed.
 
 The original worker could not check Sleeper stat corrections after opening the next matchweek. Its jobs state read only

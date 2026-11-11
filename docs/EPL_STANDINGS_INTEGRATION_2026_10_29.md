@@ -1,6 +1,8 @@
 # EPL standings integration source — October 29, 2026
 
-Status: **source implementation; M-34 is not applied, collection is not enabled, and hosted acceptance is open.** This
+Status, November 11, 2026: **M-34 (`20261029161613`) is applied** as hosted `20261111171317` ([apply record](RELEASE_2026_11_11_STAT_CORRECTIONS_M33_M35.md)). Its two tables are empty, the job constraint is unchanged, and there is no `standings` schedule row: the collector is not configured, and enabling it is separately unauthorized. The original status follows.
+
+Original status: **source implementation; M-34 is not applied, collection is not enabled, and hosted acceptance is open.** This
 work connects the bounded community-source adapter to private persistence and the strict deadline resolver in source.
 No sports-provider request, signup, hosted write, migration/history apply, job enablement or deployment was performed
 by this integration lane. Tests use the previously captured, licensed fixture and disposable local databases.

@@ -34,11 +34,9 @@ export const PRELUDE = "set timezone to 'UTC';create role anon;create role authe
 
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
 // M-41 and M-42 to M-47 left this list with their November 10, 2026 apply record (RELEASE_2026_11_10_MIGRATIONS_M41_M47.md).
-export const NOT_HOSTED = [
-  20261029151727, // M-33 gtl_epl_stat_rechecks: local source only; Gate M apply is separate.
-  20261029161613, // M-34 gtl_epl_standings: private dated source persistence/usage; collection absent/disabled until separately authorized.
-  20261029162144, // M-35 gtl_epl_corrected_draft_order: local source only; requires pending M-33.
-];
+// M-33, M-34 and M-35 left it with their November 11, 2026 apply record (RELEASE_2026_11_11_STAT_CORRECTIONS_M33_M35.md).
+// Every repo migration is hosted today; the next migration PR adds its version here.
+export const NOT_HOSTED = [];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
  * they are fix-forward only (Gate M step 9: M-13, M-21 and M-23 add themselves here). By version.
@@ -63,11 +61,11 @@ export const FIX_FORWARD = [
 // M-21's and M-22's entries (both needing M-13, and M-22 needing M-21) left with their October 27, 2026 apply record
 // (RELEASE_2026_10_27_FEED_MIGRATIONS.md).
 // M-31 (20261029060000) reads M-30's EPL tables; M-30 is hosted (20261029051846), so it needs no entry here.
-// M-35 (20261029162144) also calls M-43's gtl_epl_score_import_head (D-83, import wins); M-43 is hosted (20261110203856),
-// so only its pending M-33 is listed. A rollback check of M-35 never runs: it replaces no body and has no rollback file.
 // M-46's and M-47's entries (both needing M-45) left with their November 10, 2026 apply record
 // (RELEASE_2026_11_10_MIGRATIONS_M41_M47.md).
-export const REQUIRES = Object.freeze({ 20261029162144: [20261029151727] });
+// M-35's entry (needing M-33; it also calls M-43's gtl_epl_score_import_head, D-83) left with its November 11, 2026 apply
+// record (RELEASE_2026_11_11_STAT_CORRECTIONS_M33_M35.md): M-33 is hosted as 20261111171228 and M-43 as 20261110203856.
+export const REQUIRES = Object.freeze({});
 
 export const version = file => Number(path.basename(file).slice(0, 14));
 export const FILES = fs.readdirSync(MIGRATIONS_DIR).filter(file => file.endsWith('.sql')).sort();
@@ -187,6 +185,9 @@ export const APPLIED = [
   20261028190000, // M-30 gtl_epl_pick_a_team: hosted as 20261029051846 on October 29, 2026 (SQL editor, Gate M); see RELEASE_2026_10_29_M30.md.
   20261029060000, // M-31 gtl_epl_open_access: hosted as 20261029131259 on October 29, 2026 (SQL editor, Gate M); see RELEASE_2026_10_29_M31.md.
   20261029150000, // M-32 gtl_epl_moneyline: hosted as 20261029162422 on October 29, 2026 (Supabase MCP, Gate M); see RELEASE_2026_10_29_M32.md.
+  20261029151727, // M-33 gtl_epl_stat_rechecks: hosted as 20261111171228 on November 11, 2026 (SQL editor, Gate M); see RELEASE_2026_11_11_STAT_CORRECTIONS_M33_M35.md.
+  20261029161613, // M-34 gtl_epl_standings: hosted as 20261111171317 on November 11, 2026 (SQL editor, Gate M; standings collector not configured); see RELEASE_2026_11_11_STAT_CORRECTIONS_M33_M35.md.
+  20261029162144, // M-35 gtl_epl_corrected_draft_order: hosted as 20261111171357 on November 11, 2026 (SQL editor, Gate M); see RELEASE_2026_11_11_STAT_CORRECTIONS_M33_M35.md.
   20261029165947, // M-36 gtl_epl_moneyline_collector: hosted as 20261029183135 on October 29, 2026 (Supabase MCP, Gate M); see RELEASE_2026_10_29_M36.md.
   20261030204548, // Research assessments: hosted as 20261031131929 on October 31, 2026 (Supabase MCP); see RELEASE_2026_10_31_RESEARCH_ASSESSMENTS.md.
   20261103170000, // M-37 gtl_odds_refresh_fixes: hosted as 20261103164210 on November 3, 2026 (SQL editor, Gate M); see RELEASE_2026_11_03_ODDS_REFRESH_M37.md.

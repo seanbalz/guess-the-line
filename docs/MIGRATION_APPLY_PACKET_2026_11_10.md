@@ -11,6 +11,8 @@ amends unapplied M-35 in place: its section 1 row, section 2 dependency and sect
 also records his D-83 addendum ("Yes, import opens it"), which accepts the screenshot import as
 M-35's manual recovery plan and so completes the M-35 operator prerequisite review.
 
+Status, November 11, 17:13 UTC: **M-33, M-34 and M-35 applied and verified** (hosted `20261111171228`, `20261111171317` and `20261111171357`, in filename order, after the API v55/Pages release from `5105abed`; [apply record](RELEASE_2026_11_11_STAT_CORRECTIONS_M33_M35.md)). Every migration in this packet is now hosted.
+
 Status, November 10, 20:43 UTC: **M-41 to M-47 applied and verified** (hosted `20261110203637` to `20261110204307`; [apply record](RELEASE_2026_11_10_MIGRATIONS_M41_M47.md)). M-33, M-34 and M-35 remain unapplied. The rest of this packet is the preparation as written.
 
 Original status: **preparation only.** Nothing in this packet has been run against the hosted
