@@ -39,10 +39,18 @@ called.**
 - **Apply packet.** [M-49 apply packet](MIGRATION_APPLY_PACKET_2026_11_12_NBA_N2.md): hashes,
   preflight, guard, verify, rollback and the order of the later steps.
 
-Verification (executed on this branch): see the PR for exact counts. Not run: `check:cloud` (no
-`.env.cloud` here). `build:cloud` and one OCR asset test cannot pass in this checkout, because the
-shared `node_modules` lacks `tesseract.js` (EPL OCR, unrelated to N2); CI installs it from the
-lockfile.
+Verification (executed on this branch, after merging `main` at `13d9f8de`):
+
+- `node --test`: 3314 tests, 3313 pass, 1 fail, 0 skipped. The new suites (46 PGlite, 11 worker, 8
+  adapter, 20 boundary) all pass, as does the M-49 rollback check.
+- The one failure is the EPL OCR asset test. The shared `node_modules` in this checkout lacks
+  `tesseract.js`, which has nothing to do with N2; CI installs it from the lockfile.
+- vitest: 1025 of 1025 pass. Typecheck and Brand QA pass.
+- `build:cloud` fails here for the same missing `tesseract.js`. Without the OCR copy, the build
+  passes and its output is byte-identical to `main`'s.
+- Breaking each SQL rule on purpose (append-only, cap, pause, lease, final, start time, no delete,
+  retry, gate, closure) made its test fail.
+- Not run: `check:cloud`, because there is no `.env.cloud` here.
 
 **Waiting on you, each its own word, in order:**
 
