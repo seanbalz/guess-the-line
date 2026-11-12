@@ -1,5 +1,7 @@
 // Presentation only. Callers prove the actual production router/component identities;
 // no private read, stored preference or error condition selects a frame here.
+import { PROPS_PLAY_SECTION } from '../props/flag.js';
+
 export function nflFrameContext(state, { screen = false, history = false, cover = false, unknownCover = false, draft = false, points = false } = {}) {
   if (unknownCover) return null;
   if (cover) return 'league-cover';
@@ -9,7 +11,7 @@ export function nflFrameContext(state, { screen = false, history = false, cover 
   const view = state.views[state.tab] ?? {};
   if (state.tab === 'home') return !view.layer ? 'home' : null;
   if (state.tab === 'play') {
-    if (!view.section) return 'play';
+    if (!view.section || view.section === PROPS_PLAY_SECTION) return 'play';
     if (view.section === 'score') return 'play-score';
     if (view.section === 'league') return [undefined, 'board', 'feed'].includes(state.views.league?.view ?? view.view) ? 'play-league' : null;
     if (view.section === 'points' && points) return 'play-points';

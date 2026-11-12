@@ -5,6 +5,7 @@
 export const PLAYER_PROPS_FLAG = 'VITE_GTL_PLAYER_PROPS';
 /** Play's market value for Player Props beside guess_spread and guess_total. */
 export const PROPS_MARKET = 'player_props';
+export const PROPS_PLAY_SECTION = 'props';
 /** Your guess vs. market's filter value for Player Props beside all, spread and total. */
 export const PROPS_GAP_MARKET = 'props';
 
