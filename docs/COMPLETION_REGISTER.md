@@ -1,5 +1,15 @@
 # Guess The Line — current completion register
 
+## NBA N1 released — November 12, 2026 UTC (November 11 Pacific)
+
+Sean merged PR #542 and said "Yes, deploy". `frontend` run
+[43124865004](https://github.com/seanbalz/guess-the-line/actions/runs/43124865004) from `main` at
+`cac63e7a` shipped Pages `b8019df1` (176 assets checked); `gtl-api` stays v55 and history stays 86
+rows. Signed-in view: `#nba/home` drew NBA in the Prism shell with the official logos;
+`nba/games` and `nba/read` answered 200 on v55; no 5xx. NBA stays off the switch. Sean also
+answered "Backfill once, free" for NBA records (D-85 item 5, PR #544). Physical-iPhone check not
+done. [Release record](RELEASE_2026_11_12_NBA_N1.md).
+
 ## NBA N1: NBA in the Prism shell with official logos — November 11, 2026
 
 Sean chose "Guess the Spread" (N1 first, then N3) and replaced the letter badges with "we need nba
@@ -34,9 +44,10 @@ Verification (executed on Windows): node 3,224 pass / 0 skipped; vitest 1,011 pa
 `build:cloud` built; Brand QA passed; NBA, capture and persona browser specs 10 pass (1 local-only
 capture skipped); 126 related shell, EPL and sport-switch browser tests pass.
 
-Not done: merge, Pages deploy, NBA on the switch, N2 to N4, the physical-iPhone check and Sean's
-review of the captures. Spec questions 5 (switch timing), 6 (records backfill) and 8 (stale Codex
-worktree) stay open.
+Not done at the time: merge, Pages deploy, NBA on the switch, N2 to N4, the physical-iPhone check
+and Sean's review of the captures. **Update:** merged (PR #542) and deployed (Pages `b8019df1`, see
+the section above); question 6 is answered ("Backfill once, free"). Spec questions 5 (switch timing)
+and 8 (stale Codex worktree) stay open.
 ## Stat corrections release and M-33 to M-35 applied — November 11, 2026 UTC
 
 Sean said "Yes, deploy" for the D-83 stat-corrections card and the M-33 to M-35 applies, after

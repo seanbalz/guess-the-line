@@ -2,6 +2,10 @@
 
 ## Where things stand — 2026-11-10
 
+**Update November 12, 2026 UTC:** the frontend is Pages `b8019df1` from `cac63e7a` (NBA N1, PR #542),
+`frontend` run 43124865004; `gtl-api` stays v55 and history 86 rows
+([release record](../docs/RELEASE_2026_11_12_NBA_N1.md)).
+
 Checked on November 10, 2026 at 21:24 UTC from `main` at `3ddc36d8`, the merged PRs, the release
 runs (`gh`) and read-only hosted reads through the Supabase connector. Only counts and states were
 read. Tags: **executed** = read or run here, **inspected** = read in a record, **assumed** = not
@@ -44,7 +48,7 @@ word, choice or phone.
 | 6 | EPL full cycle (EPL-01) | EPL operations lane | Agent watches; Sean imports | Matchweek 10 settles, then Matchweek 11 opens: by the automatic path or by Sean's reviewed screenshot import. |
 | 7 | Phone acceptance (Q07–Q10, Q19, #388, #398) | Sean with an agent | **Sean** | Phone checks: custom stakes, three-way entry, screenshot import, Monday recap, prior-week card, Fantasy defense views, and the older Q07–Q10 list. |
 | 8 | Visual sign-off of the NFL actions and navigation set | Design lane | Closed | Sean answered "Approved" on November 6: 104 newly approved captures plus the two Virtual-minimum captures, 106 in all (register, "NFL set approved"). The earlier same-day line counting 104 captures without approval is superseded. Nothing waits here. |
-| 9 | NBA | NBA design lane (assumed: started from Sean's November 10 request) | Agent for mockups; **Sean** to choose | Built so far: daily games and private bet tracking (released October 22, API v34). NBA competitions were never built. NBA has been hidden from the sport switch since October 29 (Sean: "hide the nba section of the app"), and Sean parked it on November 6 ("Parked for now"). On November 10 he asked whether NBA is fully built; it is not. Mockups and design come first (mockups before release). |
+| 9 | NBA | NBA design lane (assumed: started from Sean's November 10 request) | Agent for mockups; **Sean** to choose | Built so far: daily games and private bet tracking (released October 22, API v34). NBA competitions were never built. NBA has been hidden from the sport switch since October 29 (Sean: "hide the nba section of the app"), and Sean parked it on November 6 ("Parked for now"). On November 10 he asked whether NBA is fully built; it is not. Mockups and design come first (mockups before release). **November 11 (D-85):** Sean chose N1 then nightly Guess the Spread, official logos, a 31-credit cap with a 100-credit pause, all Community members and one free records backfill. N1 is merged (PR #542) and deployed as Pages `b8019df1`; NBA stays off the switch. Next: switch timing (Sean), then N2. |
 | 10 | Q21 trend discovery in the product | Research lane | Agent builds; **Sean** approves mockups | PR #363 merged November 3 (`dd77ae50`) as an offline scanner. No app code imports it. Publication and D-66 integration still need mockups first. |
 | 11 | Q06 remaining Bets screens | Bets lane | Agent; **Sean** for mockups and any apply | M-11 is applied (`20261029041843`) and Your picks is live. Native board screens still do not read `/bets/board` or `/bets/season`. Friend challenges (M-15, M-16, M-18) and bet sharing (M-17) are not written; M-14 was dropped, and only M-19's shared-ticket part (D-64 `gtl_social_auto_settle`, run by Sean on October 28 without a history row) exists. |
 | 12 | Q15 trade-value charts | Fantasy lane | **Sean** | Not started. Choose permitted free sources and league formats; an agent can research the options first. |

@@ -1,11 +1,11 @@
 # Guess the Line NBA build-out — design proposal
 
-Status: **N1 approved and built on a branch (not merged or deployed); N2 to N4 still
-proposals.** On November 11, 2026 Sean chose "Guess the Spread" (N1 first, then N3),
+Status: **N1 approved, merged (PR #542) and deployed (Pages `b8019df1`, November 12, 2026
+UTC; NBA still off the switch); N2 to N4 still proposals.** On November 11, 2026 Sean chose "Guess the Spread" (N1 first, then N3),
 replaced the letter badges with official NBA league and team logos, approved the 31-credit
 cap and 100-credit pause threshold, opened NBA Guess the Spread to all Community
-members and allowed one free records backfill (D-85; see "Waiting on Sean"). Nothing is
-applied or deployed.
+members and allowed one free records backfill (D-85; see "Waiting on Sean"). No migration
+is applied; the N1 release is [recorded](../../RELEASE_2026_11_12_NBA_N1.md).
 Owner: Sean Balsiger. Date: November 10, 2026.
 Phone mockups: [design/nba-buildout-2026-11-10](../../../design/nba-buildout-2026-11-10/README.md)
 (48 captures, 320 and 390 px, Dark and Light, synthetic data).
