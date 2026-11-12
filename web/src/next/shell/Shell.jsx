@@ -31,6 +31,7 @@ import { useFixedBarsPinned } from './viewportPin.js';
 import { useTabFade } from './tabFade.js';
 import { LeagueCover } from './LeagueCover.jsx';
 import { nflFrameContext } from './confirmedFrame.js';
+import { PROPS_PLAY_SECTION } from '../props/flag.js';
 import './shell.css';
 import './overviewFrame.css';
 
@@ -362,7 +363,8 @@ export function Shell({ session, onSignOut, screens = SCREENS, layers = LAYERS, 
           {!overviewFrame?<SportControls/>:null}
           <main className="gx-main" id="main" tabIndex={-1} data-tab-enter={tabFade ? 'fade' : undefined}>
             <OfflineBanner offline={!online} onRetry={onRetry}/>
-            {!cover && !state.page && (state.trail.length > 0 || isDetail(state)) ? <DetailBack onBack={actions.back}/> : null}
+            {!cover && !state.page && !(context === 'play' && state.views.play.section === PROPS_PLAY_SECTION)
+              && (state.trail.length > 0 || isDetail(state)) ? <DetailBack onBack={actions.back}/> : null}
             {cover ? (
               <Boundary resetKey="cover" fallback={reset => <FailCard title={SHELL_COPY.tabFailed} onRetry={reset} onReload={actions.reload}/>}>{cover}</Boundary>
             ) : state.page ? <PageHost page={state.page} layers={layers}/> : (

@@ -60,6 +60,20 @@ record awaits final stats. The [release procedure](SHARED_DEPLOYMENT.md#player-p
 adds an opt-in frontend deploy step for the API flag. The reviewed database
 switch and verified production release still need to run.
 
+## Direct Player Props tab in NFL Play — November 11, 2026 Pacific
+
+Sean approved the Light and Dark mockups with Player Props beside Overview,
+above Your picks. The tab opens the existing athlete picker for the current
+published week. Browser Back returns to Overview and closes the prop info
+dialog. Reopening the picker refreshes the board and keeps the guess in progress
+for the same account and week.
+
+The tab uses the existing Player Props build flag, NFL Play frame and shared
+bottom bar. Local browser checks cover both themes at 320px and 390px, Back,
+direct reload, touch targets, horizontal overflow and bottom bar clearance.
+Release target is the frontend with `VITE_GTL_PLAYER_PROPS=on` and the existing
+Player Props API active. The tab uses the already applied D-82 schema.
+
 ## Security warning remediation — November 11, 2026
 
 Owner: Sean Balsiger. Version 1. Branch `codex/security-warning-fixes-2026-11-11`,
