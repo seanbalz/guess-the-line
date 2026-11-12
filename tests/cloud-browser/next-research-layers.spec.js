@@ -297,7 +297,9 @@ test('one game is a layer: a row, its heading focused, a reload, Back and Forwar
     const sports = frame.locator('.gx-topbar').getByRole('navigation', { name: 'Sports', exact: true });
     await expect(sports).toHaveCount(1);
     const sport = sports.getByRole('button', { name: 'National Football League', exact: true });
-    await expect(sports.getByRole('button')).toHaveCount(1);
+    // NFL and NBA (on the switch since D-85 item 6); this account has no EPL access.
+    await expect(sports.getByRole('button')).toHaveCount(2);
+    await expect(sports.getByRole('button', { name: 'National Basketball Association', exact: true })).toHaveAttribute('aria-pressed', 'false');
     await expect(sport).toHaveAttribute('aria-pressed', 'true');
     await expect(sport).toHaveCSS('border-radius', '50%');
     await expect(sport).toHaveCSS('width', '52px');await expect(sport).toHaveCSS('height', '52px');

@@ -9,15 +9,20 @@ import argparse
 import csv
 import datetime as dt
 import hashlib
+import importlib.util
 import io
 import itertools
 import json
 import math
 import pathlib
 import statistics
-import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+_DOWNLOAD = importlib.util.spec_from_file_location('gtl_public_download', ROOT / 'scripts' / 'public_download.py')
+public_download = importlib.util.module_from_spec(_DOWNLOAD)
+_DOWNLOAD.loader.exec_module(public_download)
+HISTORY_URL = ('https://raw.githubusercontent.com/fivethirtyeight/nfl-elo-game/'
+               'fbec1afa38ece5befe24fb21be8ddba8eb160fe6/data/nfl_games.csv')
 DEFAULT_DATA = ROOT / ".local" / "model-data"
 VERSION = "gtl-score-baseline-0.1.0"
 CONFIG = {"warmup_start": 1995, "train_start": 2000, "train_end": 2013,
@@ -43,9 +48,9 @@ def digest(data):
 def fetch_history(directory=DEFAULT_DATA):
     """Fetch only the pinned, approved public CSV; reject drift and HTML."""
     source = source_record()
-    request = urllib.request.Request(source["url"], headers={"User-Agent": "GuessTheLine-research/0.1"})
-    with urllib.request.urlopen(request, timeout=30) as response:
-        data = response.read(source["bytes"] + 1)
+    data = public_download.fetch_public_bytes(
+        source['url'], allowed_urls={HISTORY_URL}, maximum=source['bytes'],
+        user_agent='GuessTheLine-research/0.1', timeout=30)
     if len(data) != source["bytes"] or digest(data) != source["sha256"]:
         raise ValueError("Source bytes changed; review and repin the manifest before use.")
     read_games(data)  # Structure is checked before any write.

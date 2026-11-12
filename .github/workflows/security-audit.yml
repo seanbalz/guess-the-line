@@ -10,7 +10,9 @@ on:
       - 'dashboard/**'
       - 'cloud/**'
       - 'package*.json'
-      - '.github/workflows/security-audit.yml'
+      - 'model/**'
+      - 'scripts/**'
+      - '.github/**'
 permissions:
   contents: read
 jobs:
@@ -19,7 +21,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
       - name: Semgrep static analysis (report only)
@@ -28,7 +30,7 @@ jobs:
           semgrep scan --config p/owasp-top-ten --config p/security-audit --metrics=off --json --output semgrep-report.json .
       - name: Upload Semgrep findings
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: semgrep-report
           path: semgrep-report.json
@@ -38,11 +40,11 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
       - name: Trivy filesystem and dependency scan (report only)
-        uses: aquasecurity/trivy-action@v0.36.0
+        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 # v0.36.0
         with:
           scan-type: fs
           scan-ref: .
@@ -53,7 +55,7 @@ jobs:
           exit-code: '0'
       - name: Upload Trivy findings
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: trivy-report
           path: trivy-report.json

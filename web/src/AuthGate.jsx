@@ -15,8 +15,12 @@ import { pendingInvitation } from './invitations';
 import { oauthReturnError, startGoogleSignIn } from './oauth';
 import { forgetSharedReads } from './sharedReads.js';
 import { signInMayBePending } from './signInPending.js';
+import { RESEND_WAIT_SECONDS, looksLikeEmail, resendSignupConfirmation, saveNewPassword, sendPasswordReset, signInWithEmail, signOutThisDevice } from './signInCalls.js';
 
-export default function AuthGate({ children }) {
+// Redesign stage 76: the Supabase session and its account boundary. Every account change clears the account before's
+// drafts and moments. The recovery link and a failed restore are handed to the screen through `events`, one object
+// made once by useSignInForm, so the single subscription below can hold it.
+function useAuthSession(events) {
   const [session, setSession] = useState(null);
   const lastAccount = useRef(null);
   function accountChanged(nextSession) {
@@ -31,6 +35,37 @@ export default function AuthGate({ children }) {
   }
   // Waits for the session check only when one may exist; a signed-out visitor sees the form at once (signInPending.js).
   const [loading, setLoading] = useState(() => Boolean(supabase) && signInMayBePending());
+
+  useEffect(() => {
+    if (!supabase) { setLoading(false); return; }
+    let active = true;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      if (event === 'SIGNED_OUT') { clearTabDrafts(); clearSoloDrafts(); clearCommunityDrafts(); forgetMomentsDevice(); }
+      accountChanged(nextSession);
+      if (active) { if (event === 'PASSWORD_RECOVERY') events.onPasswordRecovery(); setSession(nextSession); setLoading(false); }
+    });
+    supabase.auth.getSession().then(({ data, error: sessionError }) => {
+      if (!active) return;
+      accountChanged(data.session);
+      setSession(data.session);
+      if (sessionError) events.onRestoreError('Your saved sign-in could not be restored. Please sign in again.');
+      setLoading(false);
+    }).catch(() => {
+      if (active) { events.onRestoreError('Sign-in is temporarily unavailable. Please try again.'); setLoading(false); }
+    });
+    return () => { active = false; subscription.unsubscribe(); };
+  }, []);
+
+  async function endSession() {
+    await signOutThisDevice(supabase.auth);
+    clearTabDrafts(); clearSoloDrafts(); clearCommunityDrafts();
+  }
+  return { session, loading, endSession };
+}
+
+// Redesign stage 76: what the sign-in screen holds (which screen, what was typed, the wait before another confirmation
+// email) and what its buttons do. The Supabase calls themselves are signInCalls.js.
+function useSignInForm() {
   const [creating, setCreating] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [forgotten, setForgotten] = useState(false);
@@ -43,26 +78,11 @@ export default function AuthGate({ children }) {
   const [redirecting, setRedirecting] = useState(false);
   const [error, setError] = useState(oauthReturnError);
   const [notice, setNotice] = useState('');
-
-  useEffect(() => {
-    if (!supabase) { setLoading(false); return; }
-    let active = true;
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
-      if (event === 'SIGNED_OUT') { clearTabDrafts(); clearSoloDrafts(); clearCommunityDrafts(); forgetMomentsDevice(); }
-      accountChanged(nextSession);
-      if (active) { if (event === 'PASSWORD_RECOVERY') { setConfirming(false); setRecovering(true); } setSession(nextSession); setLoading(false); }
-    });
-    supabase.auth.getSession().then(({ data, error: sessionError }) => {
-      if (!active) return;
-      accountChanged(data.session);
-      setSession(data.session);
-      if (sessionError) setError('Your saved sign-in could not be restored. Please sign in again.');
-      setLoading(false);
-    }).catch(() => {
-      if (active) { setError('Sign-in is temporarily unavailable. Please try again.'); setLoading(false); }
-    });
-    return () => { active = false; subscription.unsubscribe(); };
-  }, []);
+  // The session's events for this screen, made once from state setters (which never change).
+  const [sessionEvents] = useState(() => ({
+    onPasswordRecovery() { setConfirming(false); setRecovering(true); },
+    onRestoreError: setError,
+  }));
 
   useEffect(() => {
     if (!resendCooldown) return;
@@ -76,26 +96,19 @@ export default function AuthGate({ children }) {
     setBusy(true); setError(''); setNotice('');
     try {
       if (recovering) {
-        if (password !== confirmPassword) throw new Error('The passwords do not match. Please enter them again.');
-        const { error: updateError } = await supabase.auth.updateUser({ password });
-        if (updateError) throw updateError;
+        await saveNewPassword(supabase.auth, { password, confirmPassword });
         setPassword(''); setConfirmPassword(''); setRecovering(false); return;
       }
       if (forgotten) {
-        const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: window.location.origin });
-        if (resetError) throw resetError;
+        await sendPasswordReset(supabase.auth, { email, origin: window.location.origin });
         setNotice('If this address has a game account, look for a password reset link in your email.');
         return;
       }
-      const credentials = { email: email.trim(), password };
-      const result = creating
-        ? await supabase.auth.signUp({ ...credentials, options: { emailRedirectTo: window.location.origin } })
-        : await supabase.auth.signInWithPassword(credentials);
-      if (result.error) throw result.error;
+      const { needsConfirmation } = await signInWithEmail(supabase.auth, { creating, email, password, origin: window.location.origin });
       setPassword('');
-      if (creating && !result.data.session) {
+      if (needsConfirmation) {
         setNotice('Check your email for a confirmation link, then return here to sign in. You can create your own game or accept an invitation after confirming your account.');
-        setResendCooldown(60);
+        setResendCooldown(RESEND_WAIT_SECONDS);
         setConfirming(true);
         setCreating(false);
       }
@@ -106,12 +119,11 @@ export default function AuthGate({ children }) {
 
   async function resendConfirmation() {
     if (busy || resendCooldown) return;
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { setError('Enter your email address above first.'); return; }
+    if (!looksLikeEmail(email.trim())) { setError('Enter your email address above first.'); return; }
     setBusy(true); setError(''); setNotice('');
     try {
-      const { error: resendError } = await supabase.auth.resend({ type: 'signup', email: email.trim(), options: { emailRedirectTo: window.location.origin } });
-      if (resendError) throw resendError;
-      setResendCooldown(60); setNotice('If your account needs confirmation, look for a confirmation link in your email.');
+      await resendSignupConfirmation(supabase.auth, { email, origin: window.location.origin });
+      setResendCooldown(RESEND_WAIT_SECONDS); setNotice('If your account needs confirmation, look for a confirmation link in your email.');
     } catch (failure) { setError(failure.message || 'The confirmation request could not be completed.'); }
     finally { setBusy(false); }
   }
@@ -126,12 +138,28 @@ export default function AuthGate({ children }) {
   }
 
   function changeScreen(signup) { setConfirming(false); setCreating(signup); setForgotten(false); setError(''); setNotice(''); setPassword(''); }
+  function showForgotPassword() { setForgotten(true); setError(''); setNotice(''); setPassword(''); }
+  function clearAfterSignOut() { setPassword(''); setError(''); setNotice(''); }
+  async function cancelRecovery(signOut) { try { await signOut(); setRecovering(false); } catch (failure) { setError(failure.message); } }
+
+  return {
+    creating, confirming, forgotten, recovering, confirmPassword, resendCooldown, email, password, busy, redirecting, error, notice,
+    setEmail, setPassword, setConfirmPassword, sessionEvents,
+    submit, resendConfirmation, continueWithGoogle, changeScreen, showForgotPassword, clearAfterSignOut, cancelRecovery,
+  };
+}
+
+export default function AuthGate({ children }) {
+  const {
+    creating, confirming, forgotten, recovering, confirmPassword, resendCooldown, email, password, busy, redirecting, error, notice,
+    setEmail, setPassword, setConfirmPassword, sessionEvents,
+    submit, resendConfirmation, continueWithGoogle, changeScreen, showForgotPassword, clearAfterSignOut, cancelRecovery,
+  } = useSignInForm();
+  const { session, loading, endSession } = useAuthSession(sessionEvents);
 
   async function signOut() {
-    const { error: signOutError } = await supabase.auth.signOut({ scope: 'local' });
-    if (signOutError) throw new Error('We could not sign you out. Please try again.');
-    clearTabDrafts(); clearSoloDrafts(); clearCommunityDrafts();
-    setPassword(''); setError(''); setNotice('');
+    await endSession();
+    clearAfterSignOut();
   }
 
   if (session && !configurationError && !recovering) return children({ session, onSignOut: signOut });
@@ -163,8 +191,8 @@ export default function AuthGate({ children }) {
             {creating && <p className="auth-help gx-auth-help">Use at least 8 characters. Account creation may send a confirmation email. Invitations give access only to the game you accept.</p>}
             <button className="primary gx-auth-primary" type="submit" disabled={busy}>{busy ? <><LoaderCircle className="spin" size={18}/>Please wait…</> : <>{recovering ? 'Save new password' : forgotten ? 'Send reset link' : creating ? 'Create account' : 'Sign in'}<ArrowRight size={18}/></>}</button>
           </form>}
-          {!confirming && !recovering && (forgotten ? <button className="auth-switch gx-auth-switch" onClick={() => changeScreen(false)} disabled={busy}>Back to sign in</button> : <div className="auth-support gx-auth-support"><button onClick={() => { setForgotten(true); setError(''); setNotice(''); setPassword(''); }} disabled={busy}>Forgot password?</button><button onClick={resendConfirmation} disabled={busy || resendCooldown > 0}>{resendCooldown ? `Resend available in ${resendCooldown}s` : 'Resend confirmation email'}</button></div>)}
-          {recovering && <button className="auth-switch gx-auth-switch" disabled={busy} onClick={async () => { try { await signOut(); setRecovering(false); } catch (failure) { setError(failure.message); } }}>Cancel and sign out</button>}
+          {!confirming && !recovering && (forgotten ? <button className="auth-switch gx-auth-switch" onClick={() => changeScreen(false)} disabled={busy}>Back to sign in</button> : <div className="auth-support gx-auth-support"><button onClick={showForgotPassword} disabled={busy}>Forgot password?</button><button onClick={resendConfirmation} disabled={busy || resendCooldown > 0}>{resendCooldown ? `Resend available in ${resendCooldown}s` : 'Resend confirmation email'}</button></div>)}
+          {recovering && <button className="auth-switch gx-auth-switch" disabled={busy} onClick={() => cancelRecovery(signOut)}>Cancel and sign out</button>}
           <p className="auth-help gx-auth-help">Use the same game account on every device. Each player uses their own account.</p>
         </>}
       <LegalLinks className="auth-legal gx-auth-legal"/>

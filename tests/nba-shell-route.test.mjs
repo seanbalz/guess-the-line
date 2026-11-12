@@ -109,12 +109,14 @@ test('contract: Open/History and filters are values on the Bets root (no Back lo
   assert.deepEqual(nbaView('bets', { from: '2026-11-10', to: '2026-11-01' }).to, undefined, 'a To before From is dropped');
 });
 
-test('contract: NBA stays off the switch while NBA_ON_SWITCH is false; one NBA option when on', () => {
-  assert.equal(NBA_ON_SWITCH, false, 'NBA stays off the production switch until Sean says otherwise (D-85)');
+test('contract (D-85 item 6): NBA is on the switch by default; one NBA option when on, none when the flag is off', () => {
+  assert.equal(NBA_ON_SWITCH, true, 'Sean: "Yes, show NBA" (November 11, 2026)');
   for (const epl of [false, true]) {
-    assert.equal(sportOptions(epl).filter(option => option.value === 'nba').length, 0);
+    assert.equal(sportOptions(epl).filter(option => option.value === 'nba').length, 1);
     assert.equal(sportOptions(epl, true).filter(option => option.value === 'nba').length, 1);
+    assert.equal(sportOptions(epl, false).filter(option => option.value === 'nba').length, 0);
   }
+  assert.deepEqual(sportOptions(false).map(option => option.value), ['nfl', 'nba'], 'without EPL access NBA still shows');
   assert.deepEqual(sportOptions(true, true).map(option => option.value), ['nfl', 'epl', 'nba']);
 });
 

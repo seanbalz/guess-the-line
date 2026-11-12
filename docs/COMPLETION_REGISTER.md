@@ -17,6 +17,57 @@ There are still zero confirmed screenshot imports. A real import and resulting
 next draft/first-turn notice, plus physical-phone acceptance, remain unverified.
 Winner publication waits for verified finals and is not guaranteed at the final
 whistle. The older EPL task checkout's unpublished commits and files were preserved.
+## Player Props pregame launch preparation - November 11, 2026 Pacific
+
+Sean requested the approved weekly Player Props guessing flow to launch.
+The [pilot](https://github.com/seanbalz/guess-the-line/pull/548) stored 31
+verified offers and references across two games. Scoring the separate paper
+record awaits final stats. The [release procedure](SHARED_DEPLOYMENT.md#player-props-pregame-activation)
+adds an opt-in frontend deploy step for the API flag. The reviewed database
+switch and verified production release still need to run.
+
+## Security warning remediation — November 11, 2026
+
+Owner: Sean Balsiger. Version 1. Branch `codex/security-warning-fixes-2026-11-11`,
+based on freshly fetched `main` at `248108cb2f57fb9565e48f44920b502f5315796a`.
+This records source changes and local evidence; merge and deployment are separate.
+
+- The [previous audit](https://github.com/seanbalz/guess-the-line/actions/runs/42988129446)
+  reported 43 mutable action references and five dynamic Python URL calls, plus
+  the Git object SHA-1 warning already addressed in PR #536. All **45** current
+  external action references (including two in the Playwright composite action)
+  now use full commit hashes, resolved with `git ls-remote` against the original
+  publishers' existing tags. Version comments retain the selected tags; this
+  does not intentionally upgrade action versions. The action-pin regression
+  test covers workflows and composite actions.
+- All five Python callers use `scripts/public_download.py`: exact initial URL
+  allowlists, HTTPS with explicit certificate and hostname verification, no embedded credentials
+  or custom ports, bounded reads and at most five redirects. Each redirect is
+  checked before connecting; only the explicit GitHub release CDN is additionally
+  allowed for nflverse downloads. The historical CSV and ESPN crest fetches have
+  no additional redirect hosts. Source hashes, parser validation and immutable
+  evidence writes remain in place. One narrow `HTTPSConnection` audit annotation
+  covers Semgrep's pre-Python-3.4.3 compatibility warning: the project requires
+  Python 3.10+, explicitly supplies `ssl.create_default_context()`, and tests
+  `check_hostname` plus `CERT_REQUIRED`. No scan rule is globally disabled.
+- Regression evidence: the tampered-manifest local-file test and action-pin test
+  both failed before the fixes and pass afterward. All 172 Python model tests
+  pass with the pinned historical CSV present (zero skips), including 14 new
+  download security tests. The nine snapshot tests and 15 focused workflow tests
+  pass. The full local suite passes: 3,225 Node tests and 1,011 Vitest tests, with
+  zero skips. Typecheck, build and Brand QA pass (Python UTF-8 mode on Windows).
+- Read-only network checks passed for the pinned historical CSV, the nflverse
+  schedule release and metadata, and one existing ESPN crest URL. No source
+  manifest, shipped image, player record or production service was changed.
+- The audit trigger now includes model code, scripts and all GitHub workflow/
+  composite-action changes. [PR #549](https://github.com/seanbalz/guess-the-line/pull/549)
+  carries this work. The [first fresh audit](https://github.com/seanbalz/guess-the-line/actions/runs/43131382094)
+  at `79a4f5fa81ec104f86121f597fc51ba11ae5f44b` cleared the original findings and
+  found only the HTTPS compatibility audit warning addressed above. Trivy found
+  zero high/critical findings. Both the old and fresh Semgrep reports contain
+  24 engine diagnostics (partial parsing, a matching error, and generated-bundle
+  timeouts); a zero finding count does not establish complete scan coverage.
+  The final audit is available through the PR's security checks after this update.
 
 ## NBA N1 released — November 12, 2026 UTC (November 11 Pacific)
 
@@ -27,6 +78,15 @@ rows. Signed-in view: `#nba/home` drew NBA in the Prism shell with the official 
 `nba/games` and `nba/read` answered 200 on v55; no 5xx. NBA stays off the switch. Sean also
 answered "Backfill once, free" for NBA records (D-85 item 5, PR #544). Physical-iPhone check not
 done. [Release record](RELEASE_2026_11_12_NBA_N1.md).
+
+## Sign-in hooks split, redesign stage 76 as code only — November 11, 2026
+
+Sean chose "Keep Prism, code only": the sign-in, recovery, invitation and name screens keep the Prism look
+released November 8, so nothing changes on screen. `AuthGate.jsx` now holds `useAuthSession()` and
+`useSignInForm()`, and every form call to Supabase Auth goes through `web/src/signInCalls.js`. D-65 removed the
+`gtl.app` flag, so there is no `NextSignIn` chunk. The new browser spec `next-auth.spec.js` passed 7 of 7 on the
+unchanged AuthGate before the split, and again after it with `google-sign-in.spec.js` (18 of 18). The Vitest file
+`next-sign-in.test.jsx` has 14 tests. Not released; a release goes through the shared workflow.
 
 ## NBA N1: NBA in the Prism shell with official logos — November 11, 2026
 
@@ -66,6 +126,27 @@ Not done at the time: merge, Pages deploy, NBA on the switch, N2 to N4, the phys
 and Sean's review of the captures. **Update:** merged (PR #542) and deployed (Pages `b8019df1`, see
 the section above); question 6 is answered ("Backfill once, free"). Spec questions 5 (switch timing)
 and 8 (stale Codex worktree) stay open.
+
+## D-84: Prism Glass stays; D-69 steps 4 and 5 and B1 stop — November 11, 2026
+
+Sean: "Yes, keep Prism" and "Yes, stop B1", and "Prism Glass stands (Recommended)" in the step 4 session
+([D-84](DECISIONS.md)). D-69 step 4 (Bets), step 5 (Menu and Premier League) and the B1 Play polish are stopped,
+not merged and not released. Prism Glass stays the design for Home, Play, Bets and the Menu. Step 4's work is kept,
+unmerged, on `claude/overhaul-step4-bets` (`6266ef47`, which includes a WIP commit). Nothing on the live site changed.
+
+**Step 3 (Research) signed-in readback**, owed since November 4, comes from the hosted logs, 24 hours to about 17:10
+UTC on November 11. Every signed-in `gtl-api` call on Research's routes returned 200 (204 for preflights):
+- `GET /personal`: 53, slowest 3.0 s;
+- `/lines/research`: 16, slowest 2.6 s;
+- `/lines/game`: 12, slowest 1.4 s;
+- `/lines/assessments`: 8, slowest 3.9 s;
+- `/lines/teams`: 3;
+- `/personal/notes`: 3;
+- `/lines/research-links`: 2.
+
+No CPU-limit or error-level function log was found. The window's 401s were the signed-out probe runs. These calls
+came from the live Research, which has been Prism's since November 8, not only step 3's screens.
+
 ## Stat corrections release and M-33 to M-35 applied — November 11, 2026 UTC
 
 Sean said "Yes, deploy" for the D-83 stat-corrections card and the M-33 to M-35 applies, after
@@ -315,14 +396,20 @@ acceptance is not established by the release.
 ## Gap period follow-up fixes and mockups — November 9, 2026
 
 The [post-release review and fix evidence](GAP_PERIOD_FOLLOWUP_REVIEW_2026_11_09.md)
-record both PR #505 follow-ups fixed locally: period/applied-range intent survives
+record both PR #505 follow-ups fixed and deployed: period/applied-range intent survives
 recommendation-week changes and Refresh lines, and expanded records include all
 rows when the period grows. The existing account and read guards remain. Both
 regressions failed before the fixes and passed after; 22 unique recommendation
 browser cases, 39 Node checks, six UI checks and build/QA passed. Actual-component
 [Dark/Light mockups](../design/gap-period-fixes-2026-11-09/index.html) use synthetic
-data. Owner review, exact CI, merge, protected deploy and real-phone acceptance
-remain separate. PR #507 still owns the prior release-evidence reconciliation.
+data. Sean approved the mockups. PR #510 merged at
+`3d7bbc12d3eeb8692d5c133ed4cba68b43eeb8bc`; November 11 Pacific readback confirms
+both fixes remain in release source `cac63e7a0d10a38b4badc41c663a763b5301aee4`.
+[Release 43124865004](https://github.com/seanbalz/guess-the-line/actions/runs/43124865004)
+passed exact-source CI and verified all 176 production assets; the
+[batch release record](RELEASE_2026_11_12_NBA_N1.md) preserves its evidence.
+No duplicate deployment was dispatched. Fresh signed-in Gap and real-phone
+acceptance remain separate. PR #507 records the original PR #505 release.
 
 ## Comparable NFL gap scale checked locally — November 9, 2026
 

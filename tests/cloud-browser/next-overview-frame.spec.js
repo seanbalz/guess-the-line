@@ -38,9 +38,11 @@ async function compact(page, name, theme, width, forced=false) {
   await expect(page.locator('.gx-topbar-inner')).toHaveCSS('height','64px');
   expect(await page.locator('.gx-home-brand').evaluate(el=>getComputedStyle(el).backgroundColor.endsWith(', 0)'))).toBe(true);
   await expect(page.locator('.gx-home-brand img:visible')).toHaveCount(1);
-  for(const mark of await page.locator('.gx-home-sport').all()) {
+  // D-85: three league circles (NBA is on the switch, item 6) are 44px below 360px wide; otherwise 52px.
+  const marks=await page.locator('.gx-home-sport').all(),circle=width<360&&marks.length===3?'44px':'52px';
+  for(const mark of marks) {
     await expect(mark).toHaveCSS('border-radius','50%');
-    await expect(mark).toHaveCSS('width','52px');await expect(mark).toHaveCSS('height','52px');
+    await expect(mark).toHaveCSS('width',circle);await expect(mark).toHaveCSS('height',circle);
     await expect(mark.locator('img:visible')).toHaveCSS('object-fit','contain');
     expect(await mark.locator('img:visible').evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
   }
@@ -121,7 +123,7 @@ test('EPL approved Play frame and a pending NFL guess still guard the header spo
     await enableEpl(page,world);
     await page.route('**/functions/v1/gtl-api/epl/**',route=>route.fulfill({json:{season:2026,week:9,status:'open',deadline:'2099-10-31T12:30:00Z',order:[],picks:[],clubs:[],me:null,fixtures:[],guesses:[],weeks:[],available:false,reason:'prices_not_verified'}}));
     await page.goto('/#play');await signIn(page,'luke',{navigate:false});
-    await expect(page.locator('.gx-topbar .gx-home-sport')).toHaveCount(2);
+    await expect(page.locator('.gx-topbar .gx-home-sport')).toHaveCount(3);
     await page.getByRole('group',{name:'Guess market',exact:true}).getByRole('button',{name:'Spread',exact:true}).click();
     await page.locator('.gx-per-game [data-tile]').first().click();await compact(page,'play','dark',390);
     await page.getByRole('button',{name:/Pick'em/i}).first().click();

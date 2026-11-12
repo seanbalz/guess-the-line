@@ -15,8 +15,8 @@ jobs:
   dashboard:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
           cache: npm
@@ -42,7 +42,7 @@ jobs:
           node scripts/release-manifest.mjs
       - name: Restore the pinned public model data
         id: model-data
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: .local/model-data
           key: model-data-${{ hashFiles('model/sources.json') }}
@@ -63,7 +63,7 @@ jobs:
           fi
       - name: Save browser evidence
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: dashboard-browser-evidence
           path: |
@@ -81,8 +81,8 @@ jobs:
       matrix:
         shard: [1, 2, 3, 4]
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
           cache: npm
@@ -95,7 +95,7 @@ jobs:
         run: npx playwright test --config playwright.cloud.config.js --shard=${{ matrix.shard }}/4 tests/cloud-browser/*.spec.js
       - name: Save browser evidence
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: cloud-browser-evidence-${{ matrix.shard }}
           path: |
@@ -107,8 +107,8 @@ jobs:
     name: Persona suite
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
           cache: npm
@@ -123,7 +123,7 @@ jobs:
         run: npx playwright test --config playwright.cloud.config.js tests/cloud-browser/personas
       - name: Save persona evidence
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: persona-evidence
           path: |

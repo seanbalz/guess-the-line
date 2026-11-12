@@ -9,17 +9,18 @@ web/public/team-logos/epl/sources.json. The club list (code, name, ESPN id) is r
 Usage: python3 scripts/fetch-epl-crests.py   (needs network and Pillow; run again only when the club list changes)
 """
 import hashlib
+import importlib.util
 import io
 import json
 import re
 import sys
-import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-from PIL import Image
-
 ROOT = Path(__file__).resolve().parent.parent
+_DOWNLOAD = importlib.util.spec_from_file_location('gtl_public_download', ROOT / 'scripts' / 'public_download.py')
+public_download = importlib.util.module_from_spec(_DOWNLOAD)
+_DOWNLOAD.loader.exec_module(public_download)
 CLUBS_FILE = ROOT / 'shared' / 'epl-clubs.mjs'
 OUT_DIR = ROOT / 'web' / 'public' / 'team-logos' / 'epl'
 SOURCE_URL = 'https://a.espncdn.com/i/teamlogos/soccer/500/{espn_id}.png'
@@ -37,11 +38,10 @@ def read_clubs():
 
 
 def fetch(url):
-    request = urllib.request.Request(url, headers={'User-Agent': 'guess-the-line-crest-fetch/1'})
-    with urllib.request.urlopen(request, timeout=30) as response:
-        if response.status != 200:
-            sys.exit(f'{url}: HTTP {response.status}')
-        return response.read()
+    allowed = {SOURCE_URL.format(espn_id=espn_id) for _, _, espn_id in read_clubs()}
+    return public_download.fetch_public_bytes(
+        url, allowed_urls=allowed, maximum=5_000_000,
+        user_agent='guess-the-line-crest-fetch/1', timeout=30)
 
 
 def corner_alpha(image):
@@ -50,6 +50,8 @@ def corner_alpha(image):
 
 
 def main():
+    from PIL import Image
+
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     assets = {}
     for code, name, espn_id in read_clubs():

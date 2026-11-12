@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { validateRequest, configuration, successfulRun, checkSource, publishedSchedule, migrationDigest, jsonRequest, livePreflight, verifyRelease, appBuildFlags, REPOSITORY, PROJECT, ACCOUNT, REQUIRED_CI, TARGETS, TARGET_DEPLOYS, PLAYER_PROPS_APP_FLAG_INPUT } from '../scripts/release-preflight.mjs';
+import { validateRequest, configuration, successfulRun, checkSource, publishedSchedule, migrationDigest, jsonRequest, livePreflight, verifyRelease, appBuildFlags, syncPlayerPropsApi, REPOSITORY, PROJECT, ACCOUNT, REQUIRED_CI, TARGETS, TARGET_DEPLOYS, PLAYER_PROPS_APP_FLAG_INPUT } from '../scripts/release-preflight.mjs';
 
 const sha = 'a'.repeat(40);
 const request = (extra = {}) => ({ RELEASE_SHA: sha, RELEASE_TARGET: 'frontend', RELEASE_MODE: 'check-only', ...extra });
@@ -30,9 +30,13 @@ test('Pages verification uses canonical HTML routes and rejects changed bytes an
   const env = request({ RELEASE_MODE: 'deploy' });
   const routes = new Map([['/', files[0]], ['/privacy', files[1]], ['/terms', files[2]], ['/about/', files[3]], ['/assets/app.js', files[4]]]);
   let corrupt = false, redirect = false, access = 'public';
+  let propsStatus = 401, propsMessage = 'Sign in to continue.';
   const served = [];
   const accessLogin = host => `https://guess-the-line-pages.cloudflareaccess.com/cdn-cgi/access/login/${host}?kid=k&redirect_url=%2F`;
   const fake = async (url, options) => {
+    if (url.startsWith(`https://${PROJECT}.supabase.co/functions/v1/gtl-api/props/`)) {
+      return { status: propsStatus, json: async () => ({ error: propsMessage }) };
+    }
     if (url.endsWith('/functions')) return { ok: true, json: async () => functions.map(f => ({ ...f, ezbr_sha256: f.bundleSha256 })) };
     if (url.endsWith('/database/query/read-only')) return { ok: true, json: async () => [{ migrations }] };
     if (url.includes('/deployments?')) return { ok: true, json: async () => ({ success: true, result: [{
@@ -60,6 +64,16 @@ test('Pages verification uses canonical HTML routes and rejects changed bytes an
   assert.equal(report.pages.deploymentUrlAccess, 'public');
   assert.equal(served.length, 10);
   assert.equal(new Set(served).size, 10);
+
+  const sync = { ...env, RELEASE_SYNC_PLAYER_PROPS_API: 'true', VITE_SUPABASE_URL: `https://${PROJECT}.supabase.co` };
+  const enabling = { ...sync, VITE_GTL_PLAYER_PROPS: 'on' };
+  assert.deepEqual((await verifyRelease(cwd, enabling, before, fake)).playerPropsApi, { enabled: true, checked: 5 });
+  await assert.rejects(verifyRelease(cwd, sync, before, fake), /did not confirm the disabled state/);
+  propsMessage = 'Invalid JWT';
+  await assert.rejects(verifyRelease(cwd, enabling, before, fake), /did not confirm the enabled state/);
+  propsStatus = 404; propsMessage = 'Not found.';
+  assert.deepEqual((await verifyRelease(cwd, sync, before, fake)).playerPropsApi, { enabled: false, checked: 5 });
+
   // Behind Cloudflare Access the deployment URL must send its own host to the Access login; production is still read in full.
   access = 'protected'; served.length = 0;
   const guarded = await verifyRelease(cwd, env, before, fake);
@@ -88,6 +102,47 @@ test('release dispatch rejects PRs, branches, forks, abbreviations and unreviewe
   validateRequest(deploy);
   assert.throws(() => validateRequest({ ...deploy, RELEASE_CARD: 'https://github.com/other/repo/issues/1' }));
   assert.throws(() => validateRequest({ ...deploy, RELEASE_COMPATIBLE: 'false' }));
+});
+
+test('the Player Props API flag can be synced only by a reviewed frontend deploy', () => {
+  const toggle = { RELEASE_SYNC_PLAYER_PROPS_API: 'true' };
+  assert.throws(() => validateRequest(request(toggle)), /Player Props API flag.*frontend deploy/);
+  assert.throws(() => validateRequest(request({ ...toggle, RELEASE_MODE: 'readiness' })), /Player Props API flag.*frontend deploy/);
+  const deploy = request({
+    ...toggle,
+    RELEASE_MODE: 'deploy',
+    RELEASE_CARD: `https://github.com/${REPOSITORY}/pull/1`,
+    RELEASE_HISTORY_SHA256: 'b'.repeat(64),
+    RELEASE_COMPATIBLE: 'true',
+  });
+  validateRequest(deploy);
+  assert.throws(() => validateRequest({ ...deploy, RELEASE_TARGET: 'api-and-frontend' }), /Player Props API flag.*frontend deploy/);
+  assert.throws(() => validateRequest({ ...deploy, RELEASE_SYNC_PLAYER_PROPS_API: 'on' }), /Invalid Player Props API sync input/);
+});
+
+test('the opt-in release sends exactly one Player Props flag to the production project', async () => {
+  const env = request({
+    RELEASE_MODE: 'deploy', RELEASE_SYNC_PLAYER_PROPS_API: 'true',
+    RELEASE_CARD: `https://github.com/${REPOSITORY}/pull/1`, RELEASE_HISTORY_SHA256: 'b'.repeat(64),
+    RELEASE_COMPATIBLE: 'true', GITHUB_ACTIONS: 'true', GITHUB_EVENT_NAME: 'workflow_dispatch',
+    GITHUB_REF: 'refs/heads/main', GITHUB_REPOSITORY: REPOSITORY,
+    SUPABASE_PROJECT_REF: PROJECT, SUPABASE_ACCESS_TOKEN: 'test-token',
+  });
+  const values = [];
+  const fake = async (url, options) => {
+    assert.equal(url, `https://api.supabase.com/v1/projects/${PROJECT}/secrets`);
+    assert.equal(options.method, 'POST');
+    const [flag, ...rest] = JSON.parse(options.body);
+    assert.equal(flag.name, 'GTL_PLAYER_PROPS');
+    assert.deepEqual(rest, []);
+    values.push(flag.value);
+    return { status: 201 };
+  };
+  await syncPlayerPropsApi({ ...env, VITE_GTL_PLAYER_PROPS: 'on' }, fake);
+  await syncPlayerPropsApi(env, fake);
+  await assert.rejects(syncPlayerPropsApi({ ...env, RELEASE_SYNC_PLAYER_PROPS_API: 'false' }, fake), /Select the Player Props API flag sync input/);
+  await assert.rejects(syncPlayerPropsApi({ ...env, SUPABASE_PROJECT_REF: 'wrong' }, fake), /Unexpected Supabase project/);
+  assert.deepEqual(values, ['on', 'off']);
 });
 
 test('CI gate refuses wrong SHA, PR-only evidence, skipped jobs and a newer failed rerun', () => {
@@ -280,10 +335,11 @@ function productionSteps() {
 /** Evaluates the small GitHub expression subset the release steps use; anything else fails the test rather than guessing. */
 function stepRuns(condition, inputs) {
   if (!condition) return true;
-  assert.match(condition, /^(?:\s+|inputs\.(?:mode|target)|'[a-z-]+'|==|!=|&&|\|\||[()]|always\(\))+$/, `Unsupported step condition: ${condition}`);
+  assert.match(condition, /^(?:\s+|inputs\.(?:mode|target|sync_player_props_api)|'[a-z-]+'|==|!=|&&|\|\||[()]|always\(\))+$/, `Unsupported step condition: ${condition}`);
   return Function('inputs', `return (${condition.replace(/always\(\)/g, 'true').replace(/(==|!=)/g, '$1=')});`)(inputs);
 }
-const stepsRun = (mode, target) => productionSteps().filter(step => stepRuns(step.if, { mode, target }));
+const stepsRun = (mode, target, sync_player_props_api = false) =>
+  productionSteps().filter(step => stepRuns(step.if, { mode, target, sync_player_props_api }));
 const deployCommands = (mode, target) => stepsRun(mode, target).map(step => step.run).filter(run => / deploy /.test(run || ''));
 
 test('release.yml offers exactly the preflight targets, both worker targets included', () => {
@@ -321,6 +377,23 @@ test('each target deploys only its own component; the worker targets never deplo
   assert.equal(productionSteps().filter(step => /epl-jobs/.test(step.if || '')).length, 1, 'no other step selects epl-jobs');
   assert.equal(deploySteps.find(step => step.run === RESULTS_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'results-refresh'");
   assert.equal(deploySteps.find(step => step.run === WORKER_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'push-reminders'");
+});
+
+test('the Player Props flag step runs after hosted preflight only on an opted-in frontend deploy', () => {
+  const isPropsSync = step => step.name === 'Set the reviewed Player Props API flag';
+  assert.ok(!stepsRun('deploy', 'frontend').some(isPropsSync));
+  for (const mode of ['check-only', 'readiness']) {
+    assert.ok(!stepsRun(mode, 'frontend', true).some(isPropsSync));
+  }
+  for (const target of TARGETS.filter(name => name !== 'frontend')) {
+    assert.ok(!stepsRun('deploy', target, true).some(isPropsSync));
+  }
+  const steps = stepsRun('deploy', 'frontend', true);
+  const flag = steps.findIndex(isPropsSync);
+  const preflight = steps.findIndex(step => step.name === 'Read-only hosted preflight and schedule evidence');
+  const pages = steps.findIndex(step => step.run === PAGES_DEPLOY);
+  assert.ok(preflight >= 0 && flag > preflight && pages > flag);
+  assert.deepEqual(steps[flag].env, { SUPABASE_ACCESS_TOKEN: '${{ secrets.SUPABASE_ACCESS_TOKEN }}' });
 });
 
 test('each worker deploy mirrors the API deploy step: same checkout directory, same single secret, project ref from the environment', () => {

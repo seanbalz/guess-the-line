@@ -802,6 +802,14 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 **76. Sign-in skin**
 - Scope: AuthGate's logic moves into `useAuthSession()` and `useSignInForm()` with no change in behavior; `NextSignIn` (email, Google, recovery, resend, confirmation) on devices with `gtl.app = next`; the restyled name step (the logic stays in stage 11); legal links.
 - Tests: vitest `next-sign-in` (the same Supabase calls as AuthGate); the old `auth`, `google-sign-in` and `onboarding` specs untouched and green; Playwright 390 `next-auth.spec.js`; performance: the chunk loads only with the flag.
+- Built November 11 as code only (Sean: "Approve, no flag", then "Keep Prism, code only"). The look was already
+  delivered by the Prism access port (November 7, released November 8: `accessPrism.css`, `PrismBrand`, the name
+  step and the legal links), so this stage changes nothing on screen. D-65 removed the `gtl.app` flag, so there is no
+  `NextSignIn` chunk: sign-in stays in the main download, Prism's deliberate auth bridge. `AuthGate.jsx` now holds
+  `useAuthSession()` (the session, the account-boundary clean-up, sign-out of this device) and `useSignInForm()` (the
+  screens, fields, resend wait and buttons); every form call to Supabase Auth goes through `web/src/signInCalls.js`.
+  Vitest `tests/next-sign-in.test.jsx` pins each call. Playwright 390 `tests/cloud-browser/next-auth.spec.js` pins
+  each request's method, path, query and body, and it passed on the unchanged AuthGate before the split.
 
 **77. Commissioner tools page**
 - Scope: `page.commish`, admin only, linking to the old screens: Week opening, Game referees, Settle bets and challenges (with the schedule status), Odds connection, Members (Remove and Restore, with the D-23 warning), Older tools (Final scores: "Never settles bets").
