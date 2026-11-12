@@ -2,10 +2,10 @@
 // tiles in two columns, each opening its own section on its first layer (openPlay). Picks are the per-game cards
 // (PerGamePlay.jsx). When the server's rules are not per-game, the same cards show the saved ballot read-only, so the old
 // whole-market editor is retired from the new app (spec test 13).
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAppData, useSharedRead } from '../data/AppData.jsx';
 import { useShell } from '../shell/context.js';
-import { Button, Card, Meter, NextMoveCard, StaleLine } from '../ui/index.js';
+import { Button, Card, Meter, NextMoveCard, Segmented, Skeleton, StaleLine } from '../ui/index.js';
 import '../ui/focusLanding.css';
 import { HomeGuide } from '../home/HomeGuide.jsx';
 import { useAccountPreferences } from '../me/AccountPreferences.jsx';
@@ -23,6 +23,8 @@ import { ScoreTile } from './ScoreTile.jsx';
 import { CompareTile } from './CompareTile.jsx';
 import { PlayTile } from './PlayTile.jsx';
 import { PlayOverviewPicks } from './PlayOverviewPicks.jsx';
+import { PROPS_ENTRY_LINE, PropsNest } from './PicksNest.jsx';
+import { PROPS_PLAY_SECTION, playerPropsEnabled } from '../props/flag.js';
 import { PriorWeekCard } from '../lines/PriorWeek.jsx';
 import { CLOSED_LAYER, PLAY_ROOT, openPlay } from './PlayLayer.jsx';
 import { ballotTile, otherMarket, playHero } from './landing.js';
@@ -38,6 +40,7 @@ import { useMomentScope, useNewMoments, usePopped } from '../moments/MomentsProv
 
 const modeOf = value => value === 'total' || value === 'guess_total' ? 'guess_total'
   : value === 'spread' || value === 'guess_spread' ? 'guess_spread' : null;
+const PLAY_VIEWS = [{ value: 'overview', label: 'Overview' }, { value: PROPS_PLAY_SECTION, label: 'Player Props' }];
 
 export function Play() {
   const shell = useShell(), app = useAppData();
@@ -53,11 +56,44 @@ export function Play() {
 
 function PlayLanding() {
   const app = useAppData(), shell = useShell(), data = app.community.data;
+  const hero = data ? playHero(data) : null, week = data?.week ?? null;
+  const propsOn = playerPropsEnabled(), propsSelected = propsOn && shell.state.views.play.section === PROPS_PLAY_SECTION;
+  // Keep the editor's in-progress guess when switching views within this account and week.
+  const propsKey = `${app.accountId}:${week?.season}:${week?.week}`;
+  const [visitedProps, setVisitedProps] = useState(null);
+  useEffect(() => { if (propsSelected) setVisitedProps(propsKey); }, [propsSelected, propsKey]);
+  const heading = <div className="gx-focus-heading"><h1 className="gx-t-title">Play</h1>{hero?.week != null && <p className="gx-t-meta">Week {hero.week}</p>}</div>;
+  return <div className="gx-screen gx-play-landing" data-landing="play">
+    {propsOn ? <div className="gx-vstack gx-gap-12">
+      {heading}
+      <Segmented className="gx-play-landing-tabs" label="Play views" options={PLAY_VIEWS} value={propsSelected ? PROPS_PLAY_SECTION : 'overview'}
+        onChange={view => view === PROPS_PLAY_SECTION ? openPlay(shell, view) : shell.back()}/>
+    </div> : heading}
+    {!propsSelected && <PlayOverview hero={hero} week={week}/>}
+    {propsOn && (propsSelected || visitedProps === propsKey) && <PlayPropsPanel key={propsKey} app={app} week={week} hidden={!propsSelected}/>}
+  </div>;
+}
+
+function PlayPropsPanel({ app, week, hidden }) {
+  const [status, setStatus] = useState(PROPS_ENTRY_LINE);
+  const refreshWeek = () => app.refresh({ only: ['community'] });
+  return <section className="gx-play-props-pane" aria-labelledby="gx-play-props-title" hidden={hidden}>
+    <div className="gx-vstack gx-gap-4">
+      <h2 className="gx-t-section" id="gx-play-props-title">Player Props</h2>
+      <p className="gx-t-meta gx-c-2" data-props-line="">{status}</p>
+    </div>
+    {!week && app.community.status === 'error' ? <PlayFailure what="Player Props" error={app.community.error} onRetry={refreshWeek}/>
+      : !week && !app.community.data ? <Skeleton label="Loading Player Props…" shape="panels" count={2}/>
+      : <PropsNest season={week?.season} week={week?.week} active={!hidden} onSignInAgain={app.requestSignIn} onStatus={setStatus} onRetryWeek={refreshWeek}/>}
+  </section>;
+}
+
+function PlayOverview({ hero, week }) {
+  const app = useAppData(), shell = useShell(), data = app.community.data;
   const personal = useSharedRead('personal');
   const preferences = useAccountPreferences(app);
   useMomentScope(SCOPES.play);
   const heroButton = useRef(null), pointsTile = useRef(null);
-  const hero = data ? playHero(data) : null, week = data?.week ?? null;
   const overview = personal.data?.rules?.perGameScoring === true && week && personal.data.season === week.season && personal.data.week === week.week ? personal.data : null;
   const other = otherMarket(hero?.market ?? 'spread'), tile = ballotTile(data, other);
   const lockedId = mode => (week && Number.isInteger(week.season) ? weekLockedId(week.season, week.week, mode) : '');
@@ -71,8 +107,7 @@ function PlayLanding() {
   // The reminder prompt sits under the first card until it is answered; when it leaves, focus returns to that card's
   // button (or, with no week loaded, to the Points tile).
   const onPromptGone = () => (heroButton.current ?? pointsTile.current)?.focus();
-  return <div className="gx-screen gx-play-landing" data-landing="play">
-    <div className="gx-focus-heading"><h1 className="gx-t-title">Play</h1>{hero?.week != null && <p className="gx-t-meta">Week {hero.week}</p>}</div>
+  return <>
     <Card as="section" className="gx-play-picks-card" aria-label="Your picks">
     {overview ? <PlayOverviewPicks data={overview} market={hero?.market} onMarket={openPicks}
       onGame={(market, pickGame) => openPlay(shell, 'picks', { market: market === 'guess_total' ? 'total' : 'spread', season: week.season, week: week.week, pickGame })}
@@ -101,7 +136,7 @@ function PlayLanding() {
       {!overview ? <li data-play-tile="compare"><CompareTile onOpen={view => openPlay(shell, 'compare', view)}/></li> : null}
     </ul>
     <details className="gx-focus-help"><summary className="gx-t-strong">How to play</summary><HomeGuide key={app.accountId} preferences={preferences} perGame={data?.rules?.perGameScoring === true}/></details>
-  </div>;
+  </>;
 }
 
 function PlayDetail() {

@@ -45,7 +45,8 @@ the four real-build captures were sent to him (mockups before release), and merg
 ## Not verified or not done
 
 - The physical-iPhone check.
-- NBA on the production sport switch (spec question 5, Sean's word).
+- ~~NBA on the production sport switch (spec question 5, Sean's word).~~ Shipped in the second
+  release below.
 - N2 to N4 (D-85 decisions 3 to 5 are records only). The stale Codex NBA worktree (spec
   question 8) is untouched.
 
@@ -54,3 +55,42 @@ the four real-build captures were sent to him (mockups before release), and merg
 Re-deploy the previous frontend (`5105abed`, Pages `dc662a68`) through the same workflow
 (`target frontend`, `source_sha 5105abedadd0c0913de503b01a7413770d4910f9`). No data or migration
 is involved; tickets saved through `/nba/save` are unaffected.
+
+## Second release: NBA on the sport switch — November 12, 2026 UTC (November 11 Pacific)
+
+**Deployed and verified.** Sean answered **"Yes, show NBA"** (D-85 item 6). PR
+[#546](https://github.com/seanbalz/guess-the-line/pull/546) set `NBA_ON_SWITCH = true`. It was
+merged by this session at 01:09:02 UTC as `875c9ceb`, after all twelve PR checks passed at head
+`2933da6a`.
+
+`875c9ceb`'s Dashboard checks were cancelled by the next push to `main`. Sean then said
+**"Just deploy latest main instead"** and **"deploy"**. Main kept moving, and each new push
+cancelled the previous Dashboard run. The release therefore went from the first `main` commit
+whose three push workflows all succeeded.
+
+| Evidence | Result |
+| --- | --- |
+| Run | [43146347808](https://github.com/seanbalz/guess-the-line/actions/runs/43146347808), deploy mode, success. Dispatched by this session at 03:10:06 UTC, with the lane empty. Production gate approved by this session under Sean's words |
+| Source | `main` at `1aaf32d3dcd7b565213d6783dc2116c87472b322` |
+| What it adds over the live `cac63e7a` | PR #546 (NBA on the switch) and #545 (the N1 record); #543 (sign-in hooks split, code only); #549 (pinned GitHub actions, explicit TLS); #540 and #541 (D-84 records); #552 (the Player Props API flag sync option in the release workflow); #550 (Gap follow-up docs). No `supabase/`, `cloud/` or `shared/` change since `cac63e7a` |
+| Inputs | target `frontend`; release card [PR #546](https://github.com/seanbalz/guess-the-line/pull/546); `migration_history_sha256` `5dd179dce5d388163cb6f17b6b84aa6b5cdfe8666298fd9284a7a6e29871b382` (86 rows, read fresh); `compatibility_reviewed` true; `sync_player_props_api` left at its default `false`, so this release did not touch the Player Props API flag |
+| Pages | `355329af-8c61-44d2-9681-a912ff0dbf75` (from `cac63e7a`, the Player Props frontend release run 43143702762 dispatched outside this session) to **`060f35c4-12a2-4d88-9e43-50cb4084f241`**; production URL checked, 176 assets |
+| Frontend SHA-256 | `1b8b3103faea666b674124a651d7d899c1f51d32988dec4ee463bfd911a410ff` |
+| API | `gtl-api` v56, ACTIVE, `verify_jwt` true, bundle `85f4191c2c6e29cb5eb5fc78b28701fefd8edc661484bae7b91b915f0e0d0e95` (the v55 bundle; the version moved with the Player Props flag outside this session). Unchanged by this release |
+| Boundary | 519 checked, 519 denied, 0 awaiting |
+| History | 86 rows before and after; digest unchanged |
+
+**After the release (executed):**
+
+- **Signed in, view only** (Sean's Chrome, Browser 4; nothing saved). The session restored through
+  the new sign-in hooks of #543. NFL Home drew three circles: NFL selected, then Premier League and
+  NBA. Tapping NBA opened `#nba/home` with the NBA circle selected and tonight's games.
+- **Hosted logs** 03:12 to 03:40 UTC: no 5xx. Signed-in `lobby`, `community/read`, `personal`,
+  `lines/read`, `me/preferences`, `league/features`, `nba/games` and `nba/read` all answered 200
+  on v56.
+
+**Not verified:** the physical-iPhone check; a fresh email or Google sign-in through the new
+hooks (only a restored session was seen).
+
+**Rollback:** re-deploy `cac63e7a` (`target frontend`). With `NBA_ON_SWITCH` back at `false` on
+a new commit, the NBA circle leaves NFL and EPL screens. No data or migration is involved.
