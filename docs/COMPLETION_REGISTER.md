@@ -1,5 +1,38 @@
 # Guess The Line — current completion register
 
+## Security warning remediation — November 11, 2026
+
+Owner: Sean Balsiger. Version 1. Branch `codex/security-warning-fixes-2026-11-11`,
+based on freshly fetched `main` at `248108cb2f57fb9565e48f44920b502f5315796a`.
+This records source changes and local evidence; merge and deployment are separate.
+
+- The [previous audit](https://github.com/seanbalz/guess-the-line/actions/runs/42988129446)
+  reported 43 mutable action references and five dynamic Python URL calls, plus
+  the Git object SHA-1 warning already addressed in PR #536. All **45** current
+  external action references (including two in the Playwright composite action)
+  now use full commit hashes, resolved with `git ls-remote` against the original
+  publishers' existing tags. Version comments retain the selected tags; this
+  does not intentionally upgrade action versions. The action-pin regression
+  test covers workflows and composite actions.
+- All five Python callers use `scripts/public_download.py`: exact initial URL
+  allowlists, HTTPS with default certificate verification, no embedded credentials
+  or custom ports, bounded reads and at most five redirects. Each redirect is
+  checked before connecting; only the explicit GitHub release CDN is additionally
+  allowed for nflverse downloads. The historical CSV and ESPN crest fetches have
+  no additional redirect hosts. Source hashes, parser validation and immutable
+  evidence writes remain in place. No new warning suppression was added.
+- Regression evidence: the tampered-manifest local-file test and action-pin test
+  both failed before the fixes and pass afterward. All 172 Python model tests
+  pass with the pinned historical CSV present (zero skips), including 14 new
+  download security tests. The nine snapshot tests and 15 focused workflow tests
+  pass. Typecheck and Brand QA pass (Python UTF-8 mode on Windows).
+- Read-only network checks passed for the pinned historical CSV, the nflverse
+  schedule release and metadata, and one existing ESPN crest URL. No source
+  manifest, shipped image, player record or production service was changed.
+- The audit trigger now includes model code, scripts and all GitHub workflow/
+  composite-action changes. Fresh hosted Semgrep/Trivy results and full-suite
+  completion will be recorded after the branch checks finish.
+
 ## NBA N1 released — November 12, 2026 UTC (November 11 Pacific)
 
 Sean merged PR #542 and said "Yes, deploy". `frontend` run
