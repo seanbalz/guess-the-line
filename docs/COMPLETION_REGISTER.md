@@ -1,5 +1,22 @@
 # Guess The Line — current completion register
 
+## Premier League feature request reconciled with live release — November 11, 2026 Pacific
+
+The [fresh verification record](EPL_FEATURES_LIVE_VERIFICATION_2026_11_11.md) reconciles
+Sean's November 9 request and subsequent approval to proceed with the already merged
+and released work: optional three-way guessing, gap-ranked recommended bets,
+reviewed Sleeper screenshot imports, and Pick a Team winner announcements.
+
+Read-only hosted checks at approximately November 12, 00:44–00:46 UTC confirm the
+three-way capability, applied M-42 to M-44 and M-33 to M-35, API v55, jobs v4 and
+the active 15-minute results cron. The first announcement job succeeded with two
+winners, one opted-in push sent and zero failures. Focused local tests: 38 passed,
+zero failed or skipped. This is verification, not another release or migration apply.
+
+There are still zero confirmed screenshot imports. A real import and resulting
+next draft/first-turn notice, plus physical-phone acceptance, remain unverified.
+Winner publication waits for verified finals and is not guaranteed at the final
+whistle. The older EPL task checkout's unpublished commits and files were preserved.
 ## Player Props pregame launch preparation - November 11, 2026 Pacific
 
 Sean requested the approved weekly Player Props guessing flow to launch.
