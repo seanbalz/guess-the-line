@@ -10,6 +10,15 @@ rows. Signed-in view: `#nba/home` drew NBA in the Prism shell with the official 
 answered "Backfill once, free" for NBA records (D-85 item 5, PR #544). Physical-iPhone check not
 done. [Release record](RELEASE_2026_11_12_NBA_N1.md).
 
+## Sign-in hooks split, redesign stage 76 as code only — November 11, 2026
+
+Sean chose "Keep Prism, code only": the sign-in, recovery, invitation and name screens keep the Prism look
+released November 8, so nothing changes on screen. `AuthGate.jsx` now holds `useAuthSession()` and
+`useSignInForm()`, and every form call to Supabase Auth goes through `web/src/signInCalls.js`. D-65 removed the
+`gtl.app` flag, so there is no `NextSignIn` chunk. The new browser spec `next-auth.spec.js` passed 7 of 7 on the
+unchanged AuthGate before the split, and again after it with `google-sign-in.spec.js` (18 of 18). The Vitest file
+`next-sign-in.test.jsx` has 14 tests. Not released; a release goes through the shared workflow.
+
 ## NBA N1: NBA in the Prism shell with official logos — November 11, 2026
 
 Sean chose "Guess the Spread" (N1 first, then N3) and replaced the letter badges with "we need nba

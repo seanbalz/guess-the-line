@@ -69,7 +69,7 @@ When a later stage moves a home, it updates the row in the same PR. `tests/inven
 
 | # | Item today | Home | Stages | In the new app | Data kept |
 |---|---|---|---|---|---|
-| 1 | Sign-in and create-account card | Stage | 76 | Sign-in page (`NextSignIn`): email and password | Accounts and sign-in methods unchanged |
+| 1 | Sign-in and create-account card | Stage | 76 | Sign-in page (`AuthGate.jsx` with the Prism access styles; no separate `NextSignIn`): email and password | Accounts and sign-in methods unchanged |
 | 2 | Continue with Google | Stage | 76 | Sign-in page: Google | Accounts unchanged |
 | 3 | Forgot password, reset, new password, resend confirmation | Stage | 76 | Sign-in page: recovery, resend, confirmation | Accounts unchanged |
 | 4 | One-line game pitch | Stage | 76 | Sign-in page, rewritten for two games (Guess the Line and Bets) | None |
