@@ -4,7 +4,9 @@
 
 Status: decided; N1 merged (PR #542) and deployed as Pages `b8019df1` on November 12, 2026 UTC
 ([release record](RELEASE_2026_11_12_NBA_N1.md)); NBA joined the sport switch by item 6 (PR #546, live in Pages
-`060f35c4`). Numbered D-85 because
+`060f35c4`). N2 (items 3 and 7) is live on the server since November 12, 2026 UTC: M-49 hosted as `20261112055355`,
+`gtl-nba-jobs` v1 deployed, `slate` on and `lines` off ([release record](RELEASE_2026_11_12_NBA_N2_M49.md)).
+Numbered D-85 because
 D-84 is taken by open PR #540. Sean answered in the captain session on November 11, 2026, on
 the [NBA build-out proposal](superpowers/specs/2026-11-10-nba-buildout-design.md):
 
@@ -59,7 +61,8 @@ the [NBA build-out proposal](superpowers/specs/2026-11-10-nba-buildout-design.md
      off-season) has no window; NFL then has nothing to collect for it either.
    - **Shadow gate.** A day that loses its read to the window is not excused: it fails like any
      other day, and lists its `nfl_window` refusals.
-   - **What changes.** Built into unapplied M-49 on PR #558. NFL and EPL code is unchanged.
+   - **What changes.** Built into M-49 on PR #558, hosted as `20261112055355` since November 12, 2026 UTC. NFL and
+     EPL code is unchanged.
 
 **Logo basis (the D-46 and November 7 league-mark precedent, extended unchanged).** The 30 team
 logos are self-hosted 128 px downscaled copies of ESPN CDN images
@@ -84,9 +87,12 @@ Each mark has its own glass circle; letters show only while a logo loads or if i
 `#nba` link shows NBA, its circle is drawn selected so the member sees where they are, as the v1
 NBA header did. Sean turned NBA on for NFL and EPL screens with item 6.
 
-**Not answered:** the stale Codex worktree (spec question 8).
-**Not built:** N3 and N4 (decisions 4 and 5 are records only). N2, with decisions 3 and 7, is built on PR #558
-and not applied or deployed. Every migration, deploy, schedule and the physical-iPhone check stay Sean-gated.
+**Answered since:** the stale Codex worktree (spec question 8). Sean: **"Yes, save and remove"** (November 11,
+2026). Its uncommitted changes were archived outside the repository and the worktree was removed; the branch
+`codex/nba-section-design` is kept.
+**Not built:** N3 and N4 (decisions 4 and 5 are records only). N2, with decisions 3 and 7, is merged (PR #558) and
+live on the server on Sean's "Yes, all three": M-49 applied, the worker deployed and `slate` on. `lines`, N3's and
+N4's applies and deploys, and the physical-iPhone check are still open.
 
 ## D-84 — Prism Glass stays; D-69 steps 4 and 5 and the B1 Play polish stop (November 11, 2026)
 

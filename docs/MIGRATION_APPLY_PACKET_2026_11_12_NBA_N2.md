@@ -5,7 +5,16 @@ Owner: Sean Balsiger. Version 2, prepared on branch `claude/nba-n2-2026-11-12` (
 item 7, Sean: "Yes, avoid that hour"), so the file's hashes and five function md5s changed. Spec: [NBA build-out, N2](superpowers/specs/2026-11-10-nba-buildout-design.md#n2-slate-and-capped-spread-lines-server-only-players-see-nothing).
 Credit rule: [D-85](DECISIONS.md) item 3.
 
-**Status: preparation only. Nothing here has been run against the hosted project.** The file is
+Status, November 12, 2026 UTC: **applied, deployed, and slate on.** Sean said "Yes, all three"
+(November 11 Pacific). PR #558 merged as `2345d78f`. M-49 is hosted as `20261112055355` (SQL
+editor, about 05:53 UTC; history 87 rows, digest `d0bcee51…`). `gtl-nba-jobs` v1 is deployed (run
+43169209526 from `635e15cc`). The `slate` schedule row is enabled and `lines` is disabled
+([release record](RELEASE_2026_11_12_NBA_N2_M49.md)). In section 6, steps 1 to 3 are done (step 1's
+records are that PR; its `check:cloud --strict` is not run). Step 4 has `slate` enabled, with its
+first run due 17:00 UTC November 12. Steps 5 and 6 are open. The rest of this packet is the
+preparation as written.
+
+Original status: **preparation only. Nothing here has been run against the hosted project.** The file is
 written and tested on local PGlite only. Applying it needs your own "apply M-49", after the PR is
 reviewed and merged with green CI, and a fresh read-only preflight in the same session. This
 packet authorizes no apply, deploy, secret, schedule change or provider call.
@@ -215,11 +224,12 @@ denied, not awaiting.
    readbacks above. Move `20261112040000` from `NOT_HOSTED` to `APPLIED` in `tests/migrations.mjs`,
    and add the ledger row. Remove the M-49 `awaitingDeploy` entries in
    `scripts/boundary/nba-jobs.mjs`, then run `check:cloud --strict`.
-2. **Deploy the worker.** `gtl-nba-jobs` is not deployed. Its `supabase/config.toml` entry is
-   `verify_jwt = false` (the one-run capability is the credential). It reads the secrets
-   `THE_ODDS_API_KEY` and `BALLDONTLIE_API_KEY`, which are already used by the other workers and
-   `gtl-api`. The release workflow has no `nba-jobs` target yet; adding one is a separate reviewed
-   change. After the deploy, add `['scheduled nba jobs', 'gtl-nba-jobs', { runId: missingId }]` to
+2. **Deploy the worker.** `gtl-nba-jobs` was not deployed when this was written (it is v1 since
+   November 12 UTC). Its `supabase/config.toml` entry is `verify_jwt = false` (the one-run
+   capability is the credential). It reads the secrets `THE_ODDS_API_KEY` and
+   `BALLDONTLIE_API_KEY`, which are already used by the other workers and `gtl-api`. The release
+   workflow's `nba-jobs` target deploys it (added by PR #560, merged November 12 UTC). After the
+   deploy, add `['scheduled nba jobs', 'gtl-nba-jobs', { runId: missingId }]` to
    `scripts/boundary/bets.mjs` `workerChecks`.
 3. **Schedule rows.** Run `supabase/admin/nba_jobs_cron.sql`, which creates both rows disabled.
 4. **Enable `slate`** (free). Check one run in `gtl_nba_job_runs` and the `gtl_nba_slate_reads`

@@ -1,14 +1,14 @@
-// NBA build-out N2 (M-49, supabase/migrations/20261112040000_gtl_nba_slate_lines.sql; NOT applied) on local PGlite with every
-// repo migration (ALL). It never connects to the hosted project and never calls a provider: BALLDONTLIE and The Odds API are
-// local doubles counted by the end-to-end tests, and pg_net is a local outbox (as tests/epl-jobs-sql.test.mjs does). Every
-// game, team pairing, time and line is synthetic.
+// NBA build-out N2 (M-49, supabase/migrations/20261112040000_gtl_nba_slate_lines.sql; hosted as 20261112055355 on November 12,
+// 2026 UTC, RELEASE_2026_11_12_NBA_N2_M49.md) on local PGlite with every repo migration (ALL). It never connects to the hosted
+// project and never calls a provider: BALLDONTLIE and The Odds API are local doubles counted by the end-to-end tests, and pg_net
+// is a local outbox (as tests/epl-jobs-sql.test.mjs does). Every game, team pairing, time and line is synthetic.
 // Optional disposable PostgreSQL runtime.
 // Install: npm install --prefix .local/sql-check --no-audit --no-fund --save-exact @electric-sql/pglite@0.5.8
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
-import { ALL, NOT_HOSTED, PRELUDE, REQUIRES, ROLLBACK_DIR, migrationSql, version } from './migrations.mjs';
+import { ALL, APPLIED, NOT_HOSTED, PRELUDE, REQUIRES, ROLLBACK_DIR, migrationSql, version } from './migrations.mjs';
 import { createNbaJobsHandler, createNbaSources, NBA_FAIL_REASONS, NBA_SKIP_REASONS } from '../cloud/nba-jobs.mjs';
 import { nbaOddsApiName, nbaTeam } from '../shared/nba-teams.mjs';
 import { pacificDate } from '../shared/nba-slate.mjs';
@@ -106,10 +106,12 @@ async function seedSpent(f, credits) {
     select $1,date '2020-01-01'+i,1,'finished',1,1,clock_timestamp(),clock_timestamp(),clock_timestamp(),gen_random_uuid() from generate_series(1,$2) i`, [runId, credits]);
 }
 
-test('M-49 is registered as written and not applied: NOT_HOSTED, no REQUIRES, an off-switch rollback, ledger number in its header', () => {
+test('M-49 is registered as hosted: APPLIED, not NOT_HOSTED, no REQUIRES, an off-switch rollback, ledger number in its header', () => {
   assert.ok(ALL.includes(MIGRATION));
-  assert.ok(NOT_HOSTED.includes(version(MIGRATION)));
-  assert.equal(REQUIRES[version(MIGRATION)], undefined, 'it needs no unapplied file');
+  // Hosted as 20261112055355 on November 12, 2026 UTC (RELEASE_2026_11_12_NBA_N2_M49.md).
+  assert.ok(APPLIED.includes(version(MIGRATION)));
+  assert.ok(!NOT_HOSTED.includes(version(MIGRATION)));
+  assert.equal(REQUIRES[version(MIGRATION)], undefined, 'it needed no unapplied file');
   assert.ok(fs.existsSync(`${ROLLBACK_DIR}${MIGRATION}`));
   const sql = fs.readFileSync(`supabase/migrations/${MIGRATION}`, 'utf8');
   assert.match(sql, /^-- M-49 gtl_nba_slate_lines/);
@@ -246,7 +248,9 @@ test('NBA and NFL reads serialize on the one shared lease, and NBA is always the
     // A worker that reserved a read 31 minutes ago and never finished it: its 30-second lease is still on the shared row.
     const { runId } = await f.queue('lines'), lease = randomUUID();
     const { id } = await f.one(`insert into public.gtl_nba_line_attempts(run_id,game_date,attempt,status,reserved_credits,requested_at,expires_at,lease)
-      values($1,$2::date,1,'running',1,clock_timestamp()-interval '31 minutes',clock_timestamp()-interval '30 minutes',$3) returning id::text`, [runId, await f.today(), lease]);
+      values($1,$2::date,1,'running',1,clock_timestamp()-interval '31 minutes',clock_timestamp()-interval '30 minutes',$3) returning id::text`,
+      // The game's own Pacific day, not today's: near Pacific midnight a game an hour out belongs to tomorrow.
+      [runId, (await f.stored('NBA:balldontlie:1')).day, lease]);
     await f.db.query("update public.gtl_odds_budget set lease_token=$1,lease_until=clock_timestamp()-interval '30 minutes'", [lease]);
     assert.equal((await f.begin()).status, 'not_due', 'the unfinished read spent its credit, so there is no retry');
     assert.deepEqual(await f.one('select status,error,reserved_credits from public.gtl_nba_line_attempts where id=$1', [id]),
@@ -328,7 +332,8 @@ test('lines are due 90 minutes before the first tip-off, once a game day, with o
     const at = iso(Date.now() - minutesAgo * MIN);
     await f.db.query(`insert into public.gtl_nba_line_attempts(run_id,game_date,attempt,status,refusal,reserved_credits,observed_cost,requested_at,expires_at,finished_at,lease)
       values($1,$2::date,1,$3,$4,$5,$6,$7,$7::timestamptz+interval '30 seconds',case when $3='running' then null else $7::timestamptz end,case when $3='refused' then null else gen_random_uuid() end)`,
-    [runId, await f.today(), status, status === 'refused' ? 'busy' : null, status === 'refused' ? 0 : 1, cost, at]);
+    // The game's own Pacific day, not today's: near Pacific midnight a game an hour out belongs to tomorrow.
+    [runId, (await f.stored('NBA:balldontlie:1')).day, status, status === 'refused' ? 'busy' : null, status === 'refused' ? 0 : 1, cost, at]);
   };
   await t.test('not before 90 minutes; due inside them', async t2 => {
     const f = await database(t2);
