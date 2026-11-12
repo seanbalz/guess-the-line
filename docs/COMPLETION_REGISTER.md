@@ -1,6 +1,6 @@
 # Guess The Line — current completion register
 
-## Security coverage stage 1 prepared — November 11, 2026 Pacific
+## Security coverage stage 1 published — November 11, 2026 Pacific
 
 Owner: Sean Balsiger. Version 1. Branch `codex/security-coverage-gates-2026-11-11`
 starts from fresh main at `acbe8406a88481bc8b60045668b035c614bf059e`, the verified
@@ -23,8 +23,15 @@ regex AST equivalence, three Bash syntax checks and aggregate success/failure
 behavior. Unchanged-main scan: zero findings, 27 diagnostics. Initial dirty-source
 scan: zero findings, 19 diagnostics (16 partial parses, three bundle timeouts),
 with the five targeted parser/matching issues removed. Transient timeout changes
-are not counted as fixes. Clean exact-head hosted evidence remains a separate
-verification step; this entry does not claim merge or deployment.
+are not counted as fixes. [PR #556](https://github.com/seanbalz/guess-the-line/pull/556)
+publishes implementation commit `4166395a02ed740059e1616631a9ade25e36bd53`.
+Its clean local and [hosted scan](https://github.com/seanbalz/guess-the-line/actions/runs/43151668317)
+both have zero findings and 19 diagnostics across 1,776 scanned paths; Trivy
+reports zero high/critical findings and retains the explicit Rego compatibility
+warning. Raw evidence hashes and skipped scope are in the investigation. A final
+Trivy cache-directory correction and evidence update receive fresh PR checks.
+The branch passed `sync:check`, clean and zero ahead/behind, at `4166395a`; final
+commit/check status is recorded in the PR handoff. No merge or deployment.
 
 ## Security closeout merged; scan coverage investigated — November 11, 2026
 

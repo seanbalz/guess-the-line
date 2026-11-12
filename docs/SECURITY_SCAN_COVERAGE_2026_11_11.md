@@ -68,8 +68,36 @@ head evidence) scanned 1,776 files with zero findings and **19 diagnostics**:
 16 partial parses and three bundle timeouts. The five targeted parsing/matching
 diagnostics are removed; disappearing incidental timeouts are not claimed as
 source fixes. Resolved packs contain 560 and 225 entries, 690 unique rule IDs.
-The exact clean candidate scan and hosted artifacts are recorded through the
-follow-up PR checks. Local draft evidence lives under
+Clean implementation commit `4166395a02ed740059e1616631a9ade25e36bd53` is published
+in [PR #556](https://github.com/seanbalz/guess-the-line/pull/556). Both its local
+scan and [hosted audit](https://github.com/seanbalz/guess-the-line/actions/runs/43151668317)
+completed with zero findings, 16 partial parses and three bundle timeouts. Both
+scanned 1,776 paths, listed 25 oversize and 587 ignore-pattern entries, and recorded
+3,549 tracked paths absent from the scanned list. Seventeen partial/error skip
+entries overlap the scanned inventory. Timeout rule identities can vary; full
+file/rule fingerprints remain in each artifact. The five targeted diagnostics
+are absent in both reports.
+
+| Evidence at `4166395a` | SHA-256 |
+| --- | --- |
+| Local Semgrep report | `d8ad6c0668ddd824a3fd1771656ec1a980643876ba4da31cf6435396cd23fd7e` |
+| Hosted Semgrep report | `5e802d5a61bb1263fbe3c44f51fc3c8893d5f4d04993709cbc3f1c56d150ba0f` |
+| Local OWASP pack | `43beca03b92e943e60210ba74330bbddac8d12254cab85587cbbc91e77df4e32` |
+| Hosted OWASP pack | `c3e53c168af0117dbe123dcdaeb52b45e604b885e78ba95885cc2e2fdf6b5b53` |
+| Security-audit pack, both runs | `83d7cde9157b3c79cc5cfaea26e7bd2ba9c740f2ba07635ad475b2585556c32d` |
+| Hosted Trivy report | `b7a0a9529ad1e51a5503dbe617293aeb65e2bb65c352d82deec1f66fb6470b9b` |
+
+The OWASP raw bytes differ but all 560 decoded rules compare equal by ID;
+the manifest records individual version IDs. Trivy 0.70.0 reports zero
+high/critical vulnerabilities, secrets or misconfigurations. Its log explicitly
+skips `aws/cloudfront/enable_logging.rego`, which requires Trivy 0.72.0. The first
+version artifact contained only the engine because it used a different cache
+directory; the final workflow uses the scan's explicit `.cache/trivy` for version
+reporting too. That correction and this evidence-only update receive another
+exact-head hosted audit; the PR checks identify the final commit and artifacts.
+No all-checks-passed or full-coverage claim is made by this intermediate record.
+
+Local and downloaded hosted evidence lives under
 `C:/Users/sbals/outputs/security-coverage-gates-20261111` and this worktree's
 ignored `.local/security-audit-*` folders.
 

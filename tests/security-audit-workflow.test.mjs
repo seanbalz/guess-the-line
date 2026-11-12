@@ -17,5 +17,7 @@ test('security evidence uses the PR head, pinned engine, and retains failure art
   assert.match(workflow, /if: always\(\)/);
   assert.match(workflow, /path: \.local\/security-audit\//);
   assert.match(workflow, /contents: read/);
+  assert.match(workflow, /cache-dir: \.cache\/trivy/);
+  assert.match(workflow, /trivy --cache-dir \.cache\/trivy --version/);
   assert.doesNotMatch(workflow, /--autofix|--exclude|--disable-nosem|continue-on-error/);
 });

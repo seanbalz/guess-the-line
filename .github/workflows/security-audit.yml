@@ -48,6 +48,7 @@ jobs:
         with:
           scan-type: fs
           scan-ref: .
+          cache-dir: .cache/trivy
           scanners: vuln,secret,misconfig
           severity: CRITICAL,HIGH
           format: json
@@ -55,7 +56,7 @@ jobs:
           exit-code: '0'
       - name: Record the Trivy engine and database versions
         if: always()
-        run: trivy --version | tee trivy-version.txt
+        run: trivy --cache-dir .cache/trivy --version | tee trivy-version.txt
       - name: Upload Trivy findings
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
