@@ -12,7 +12,7 @@ class StandingsError extends Error { constructor(reason) { super('EPL community 
 const stop = reason => { throw new StandingsError(reason); };
 const record = value => value && typeof value === 'object' && !Array.isArray(value);
 const titleFor = season => `${season}–${String(season + 1).slice(-2)} Premier League`;
-const text = value => value.replace(/<!--[^]*?-->/g, '').trim();
+const text = value => value.replace(/\x3c!--[^]*?-->/g, '').trim();
 const caption = value => {
   const match = /^\[\[[^\[\]\n|]+\|([^\[\]\n|]+)\]\]$/.exec(value);
   return match ? match[1].trim() : value;

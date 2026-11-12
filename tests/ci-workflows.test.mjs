@@ -29,7 +29,8 @@ test('npm test runs once, in Tests, as three shards with the skipped-test assert
   assert.equal(pkg.scripts.test, 'node --test tests/*.test.mjs && vitest run', 'the shards together run exactly npm test');
   // The required check passes only when every shard passed.
   assert.match(workflows['test.yml'], /name: Typecheck and test\n {4}needs: test-shard\n {4}if: always\(\)/);
-  assert.match(workflows['test.yml'], /test "\$\{\{ needs\.test-shard\.result \}\}" = success/);
+  assert.match(workflows['test.yml'], /TEST_SHARD_RESULT: \$\{\{ needs\.test-shard\.result \}\}/);
+  assert.match(workflows['test.yml'], /test "\$TEST_SHARD_RESULT" = success/);
   assert.match(workflows['test.yml'], /node:test skipped/);
   assert.doesNotMatch(dashboard, /^\s+- run: npm test$/m);
   assert.doesNotMatch(dashboard, /run: npm test\b/);
@@ -39,7 +40,8 @@ test('the cloud browser suite runs as four shards over every top-level spec, and
   assert.match(dashboard, /^ {4}name: Cloud browser suite \(\$\{\{ matrix\.shard \}\}\/4\)$/m);
   assert.match(dashboard, /fail-fast: false\n\s+matrix:\n\s+shard: \[1, 2, 3, 4\]/);
   const runs = dashboard.match(/--config playwright\.cloud\.config\.js[^\n]*tests\/cloud-browser\/\*\.spec\.js/g);
-  assert.deepEqual(runs, ['--config playwright.cloud.config.js --shard=${{ matrix.shard }}/4 tests/cloud-browser/*.spec.js']);
+  assert.match(dashboard, /TEST_SHARD: \$\{\{ matrix\.shard \}\}/);
+  assert.deepEqual(runs, ['--config playwright.cloud.config.js --shard="$TEST_SHARD/4" tests/cloud-browser/*.spec.js']);
   assert.match(dashboard, /npx playwright test --config playwright\.cloud\.config\.js tests\/cloud-browser\/personas/, 'personas keep their own job');
   assert.match(dashboard, /name: cloud-browser-evidence-\$\{\{ matrix\.shard \}\}/, 'each shard keeps its evidence');
 });

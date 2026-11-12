@@ -72,6 +72,39 @@ Verification (executed on this branch with `main` merged through `6a3e02e9`, aft
 
 N3 waits for the shadow gate to open.
 
+## Security coverage stage 1 published — November 11, 2026 Pacific
+
+Owner: Sean Balsiger. Version 1. Branch `codex/security-coverage-gates-2026-11-11`
+starts from fresh main at `acbe8406a88481bc8b60045668b035c614bf059e`, the verified
+#551 merge from final head `4833cc685ced1d650a2243fff63989a652083396`.
+No other open PR or committed fix duplicates this work. The
+[updated investigation](SECURITY_SCAN_COVERAGE_2026_11_11.md#stage-1-implementation--november-11-2026-pacific)
+records this staged implementation and the earlier report's provenance.
+
+Every PR now triggers both audits on its actual head. Semgrep 1.185.0 records
+resolved rule bytes/hashes/version IDs, source/engine/budgets, findings and full
+diagnostic/scanned/skipped inventories. Its summary labels incomplete coverage
+explicitly; missing/bad scan evidence fails. Findings/diagnostics remain
+report-only, with no new exclusions or suppressions. Trivy's version output is
+retained too; its previously observed skipped Rego module remains a review item.
+Two workflow snippets and two active-module regexes receive behavior-preserving
+normalizations. Design/generated/legacy source and frozen v62 files are unchanged.
+
+Local checks pass: 11 reporter tests, 14 HTTPS tests, 30 Node tests, Brand QA,
+regex AST equivalence, three Bash syntax checks and aggregate success/failure
+behavior. Unchanged-main scan: zero findings, 27 diagnostics. Initial dirty-source
+scan: zero findings, 19 diagnostics (16 partial parses, three bundle timeouts),
+with the five targeted parser/matching issues removed. Transient timeout changes
+are not counted as fixes. [PR #556](https://github.com/seanbalz/guess-the-line/pull/556)
+publishes implementation commit `4166395a02ed740059e1616631a9ade25e36bd53`.
+Its clean local and [hosted scan](https://github.com/seanbalz/guess-the-line/actions/runs/43151668317)
+both have zero findings and 19 diagnostics across 1,776 scanned paths; Trivy
+reports zero high/critical findings and retains the explicit Rego compatibility
+warning. Raw evidence hashes and skipped scope are in the investigation. A final
+Trivy cache-directory correction and evidence update receive fresh PR checks.
+The branch passed `sync:check`, clean and zero ahead/behind, at `4166395a`; final
+commit/check status is recorded in the PR handoff. No merge or deployment.
+
 ## NBA on the sport switch released — November 12, 2026 UTC (November 11 Pacific)
 
 Sean said "Yes, show NBA" (D-85 item 6), then "Just deploy latest main instead" and "deploy".
@@ -113,12 +146,14 @@ The baseline had the same diagnostic counts but one different timeout rule ID.
 
 Branch `codex/security-scan-coverage-2026-11-11`, based on fresh main at the merge
 commit, publishes the report and this entry only in
-[PR #551](https://github.com/seanbalz/guess-the-line/pull/551), left open and unmerged.
-Implementation, scanner-coverage
-gates and missing PR path triggers remain planned; no blanket exclusions or rule
+[PR #551](https://github.com/seanbalz/guess-the-line/pull/551), initially left open
+and unmerged. It subsequently merged at `acbe8406a88481bc8b60045668b035c614bf059e`
+from head `4833cc685ced1d650a2243fff63989a652083396`; stage 1 above supersedes the
+earlier implementation plan. At original publication, scanner-coverage
+gates and missing PR path triggers remained planned; no blanket exclusions or rule
 suppressions were added. Local artifacts are retained under
-`C:/Users/sbals/outputs/security-closeout-20261111`. This follow-up is not authorized
-to merge by #549's authorization, and production deployment remains separate.
+`C:/Users/sbals/outputs/security-closeout-20261111`. #549's authorization did not
+authorize that follow-up merge in this chat; production deployment remains separate.
 
 ## Premier League feature request reconciled with live release — November 11, 2026 Pacific
 
@@ -145,6 +180,31 @@ verified offers and references across two games. Scoring the separate paper
 record awaits final stats. The [release procedure](SHARED_DEPLOYMENT.md#player-props-pregame-activation)
 adds an opt-in frontend deploy step for the API flag. The reviewed database
 switch and verified production release still need to run.
+
+## On-demand Player Props refresh — November 11, 2026 Pacific
+
+Sean approved on-demand collection with up to 12 Player Props credits per NFL
+week. Manual collections and refreshes share that total and the existing
+50-credit reserve. Week 10 used six credits to seed its two pilot games.
+
+The lock-in flow reuses a qualifying reference from the last six hours. If it
+needs a refresh, the server verifies the offered game and athlete against the
+published slate and weekly roster, then requests the selected yardage stat for
+that game. The shared reservation applies a five-minute cooldown per game and
+stat. If a qualifying quote is still unavailable, the draft remains available
+for another attempt before kickoff.
+
+The source check verified the published checksum and loaded 2,253 Week 10
+roster records. Concurrent attempts reused one credential-free roster load in
+the local test. [nflverse weekly roster release](https://github.com/nflverse/nflverse-data/releases/tag/weekly_rosters)
+
+The read-only hosted check on November 12 at 03:28 UTC confirmed Week 10, six
+reserved credits, the service-only research RPC, the active Player Props
+capability and 86 migration records. The new M-48 RPC is pending. The release
+requires the named apply of `20261112031000_gtl_player_props_refresh.sql`, a fresh
+preservation check and the protected API release. `GTL_FEATURE_OFF` accepts
+`player-props-refresh` to pause automatic collection. The tested M-48 rollback
+restores the prior reservation function and preserves the collection ledger.
 
 ## Direct Player Props tab in NFL Play — November 11, 2026 Pacific
 
