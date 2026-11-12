@@ -99,6 +99,11 @@ Branch `claude/props-pilot-collect-2026-11-11` lets the hidden D-82 pilot run wi
 
 Nothing was set, dispatched, spent, written or deployed. `live_lock_in` and `GTL_PLAYER_PROPS` stay off.
 
+The [November 11 Pacific readback](PLAYER_PROPS_READINESS_TASK2_2026-11-10.md#week-10-pilot-readiness-readback)
+confirmed the three hosted Player Props migrations and zero retained quotes. The local dry build
+matched two Week 10 games and 58 roster entries for six planned credits. The first GitHub pilot run
+needs the repository secrets `GTL_PROPS_SERVICE_ROLE_KEY` and `GTL_PROPS_ODDS_API_KEY`.
+
 ## Player Props pilot input builder and app-flag pass-through — November 11, 2026
 
 Sean said "lets turn these on" (D-82). Branch `claude/props-pilot-prep-2026-11-11` builds the two gaps

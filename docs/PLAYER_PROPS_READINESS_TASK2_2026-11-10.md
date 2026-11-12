@@ -375,3 +375,28 @@ instead, because the failure may have come after a reservation.
 
 `live_lock_in`, `GTL_PLAYER_PROPS` and `VITE_GTL_PLAYER_PROPS` are not part of this order. Each
 stays off until Sean's separate word.
+
+### Week 10 pilot readiness readback
+
+At 00:44–00:47 UTC November 12 (November 11 Pacific), the GTL connection returned
+86 hosted migrations, including all three Player Props versions. The capability
+row had `live_lock_in = false`. Research fetches, offers, references, guesses,
+results and review/check records each counted zero. The shared budget had a
+recent preflight, room for six credits above the reserve, and no active lease
+or pause at the time of the read.
+
+The latest published slate was 2026 Week 10. Its November 11 18:15 UTC core
+snapshot had 14 matched games. The production request builder ran locally against
+a read-only projection of that snapshot and the current size- and digest-verified
+nflverse schedule and roster. It selected two games with 58 eligible roster
+entries and planned two requests at three credits each. The schedule digest was
+`d10922778a11525cf00597ff56f934964a37cdea45b42a189d409357d2f4ed13` and the roster
+digest was `e864647adeca43c6d84665f9387096dea79b787afbbf2cc11c3a6add63579d71`.
+The local run reserved zero credits. All 16 existing builder and collection tests
+passed at `cac63e7a0d10a38b4badc41c663a763b5301aee4`.
+
+GitHub reported the URL secret present and both `GTL_PROPS_SERVICE_ROLE_KEY` and
+`GTL_PROPS_ODDS_API_KEY` missing. After adding the keys in repository secrets,
+recheck the current slate, roster, kickoff and budget in the workflow dry run.
+The pilot still needs actual quotes, eligible references and verified results
+before players can lock in a guess.
