@@ -51,6 +51,7 @@ import { EplGuessError, eplGuessErrorBody } from './epl-guess.mjs';
 // D-82 Player Props: its own route group; dark unless GTL_PLAYER_PROPS=on, and off until its migration and capability are on.
 import { handleProps, PROPS_METHODS, PROPS_PUBLIC_CODES, PROPS_RPCS, PropsError, playerPropsOn, providerPropsError } from './player-props.mjs';
 import { createPropReferenceSource } from './player-prop-receipts.mjs';
+import { createPropRefreshForLock, providerPropRefreshError } from './player-prop-refresh.mjs';
 import { handleEpl, EPL_BODY_LIMITS, EPL_METHODS, EPL_PUBLIC_CODES, EPL_RPCS, EplError, providerEplError, createEplService } from './epl.mjs';
 
 const MAX_BODY_BYTES = 32 * 1024;
@@ -409,7 +410,7 @@ export function createCloudHandler({ authenticate, storage, weekly, lobby, perso
 const OPTIONAL_PERSONAL_RPCS = new Set(['gtl_read_game_notes', 'gtl_set_game_note']);
 
 /** Native HTTP adapter. Service-role credentials never leave the server. */
-export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl = fetch, clock = Date.now, reviewedResearchFeed, researchSnapshotLoader, eplMoneylineRefreshForLock }) {
+export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl = fetch, clock = Date.now, reviewedResearchFeed, researchSnapshotLoader, eplMoneylineRefreshForLock, playerPropsOddsKey }) {
   const base = new URL(url);
   if ((base.protocol !== 'https:' && !(base.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(base.hostname))) || base.username || base.password || base.pathname !== '/' || base.search || base.hash || !anonKey || !serviceRoleKey) throw new Error('Invalid service configuration.');
   const headers = { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}`, 'Content-Type': 'application/json' };
@@ -502,6 +503,7 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
     const history = snapshots.map(row => ({ id: row.id, createdAt: row.created_at, payload: row.payload }));
     return { snapshot: history.length ? { ...history[0], history } : null, picks, settlements };
   }
+  const props = groupRpc(providerPropsError, PROPS_RPCS);
   return {
     nba: groupRpc(providerNbaError, ['gtl_nba_read_bets', 'gtl_nba_save_bet']),
     nbaGamesCache: createNbaGamesCache(groupRpc(providerNbaError, ['gtl_nba_claim_games', 'gtl_nba_finish_games'])),
@@ -514,8 +516,10 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
     // EPL Pick a Team and Fantasy: its functions only, plus the latest-week, own-queue, snapshot and bonus table reads
     // (cloud/epl.mjs createEplService).
     epl: createEplService({ rpc: groupRpc(providerEplError, EPL_RPCS).rpc, rest, rows: restRows, refreshForLock:eplMoneylineRefreshForLock }),
-    // D-82 Player Props: its functions only, plus the retained research quotes a lock-in reference is built from (no provider call).
-    props: { ...groupRpc(providerPropsError, PROPS_RPCS), references: createPropReferenceSource({ rows: restRows, rpc: groupRpc(providerPropsError, PROPS_RPCS).rpc, clock }) },
+    // The refresh RPCs are scoped separately from the Player Props route RPCs.
+    props: { ...props, references: createPropReferenceSource({ rows: restRows, rpc: props.rpc, clock }),
+      refreshForLock: createPropRefreshForLock({ rows: restRows, rpc: groupRpc(providerPropRefreshError, ['gtl_props_begin_refresh', 'gtl_finish_research_quotes']).rpc,
+        apiKey: playerPropsOddsKey, fetchImpl, clock }) },
     // New fields on old routes (build plan, section 3.3): PostgREST's PGRST202 for a missing function reads as "feature off".
     optionalRpc: createOptionalRpc((name, body) => request(`/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(body) })),
     async authenticate(token) {

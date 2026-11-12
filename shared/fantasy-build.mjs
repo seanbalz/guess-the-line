@@ -19,10 +19,25 @@ const number = value => missing(value) ? null : Number.isFinite(Number(value)) ?
 const sum = (row, keys) => keys.every(key => number(row[key]) !== null) ? keys.reduce((total, key) => total + number(row[key]), 0) : null;
 const round = value => Math.round(value * 1e6) / 1e6;
 
-/** CSV with quoted commas/newlines and escaped quotes; missing numeric cells stay missing. */
-export function parseFantasyCsv(text, required = []) {
-  const records = []; let row = [], cell = '', quoted = false;
+/** CSV with quoted commas/newlines and escaped quotes. `project(get)` can select fields or return null to skip a row. */
+export function parseFantasyCsv(text, required = [], project = null) {
+  const records = [];
+  let row = [], cell = '', quoted = false, header = null, columns, rowNumber = 1;
   const source = text.replace(/^\uFEFF/, '');
+  const clean = cell => { const value = cell.trim(); return value === 'NA' ? '' : value; };
+  function storeRow() {
+    if (!header) {
+      header = row;
+      if (new Set(header).size !== header.length || required.some(key => !header.includes(key))) throw new Error('Missing or duplicate CSV columns.');
+      if (project) columns = new Map(header.map((key, index) => [key, index]));
+    } else {
+      if (row.length !== header.length) throw new Error(`Malformed CSV row ${rowNumber}.`);
+      const record = project ? project(key => clean(row[columns.get(key)] ?? ''))
+        : Object.fromEntries(header.map((key, index) => [key, clean(row[index])]));
+      if (record !== null) records.push(record);
+    }
+    rowNumber++;
+  }
   for (let i = 0; i < source.length; i++) {
     const ch = source[i];
     if (ch === '"') {
@@ -30,17 +45,13 @@ export function parseFantasyCsv(text, required = []) {
       else quoted = !quoted;
     } else if (!quoted && (ch === ',' || ch === '\n' || ch === '\r')) {
       row.push(cell); cell = '';
-      if (ch !== ',') { if (row.some(value => value !== '')) records.push(row); row = []; if (ch === '\r' && source[i + 1] === '\n') i++; }
+      if (ch !== ',') { if (row.some(value => value !== '')) storeRow(); row = []; if (ch === '\r' && source[i + 1] === '\n') i++; }
     } else cell += ch;
   }
   if (quoted) throw new Error('Unclosed CSV quote.');
-  if (cell || row.length) { row.push(cell); records.push(row); }
-  const header = records.shift();
-  if (!header || new Set(header).size !== header.length || required.some(key => !header.includes(key))) throw new Error('Missing or duplicate CSV columns.');
-  return records.map((values, index) => {
-    if (values.length !== header.length) throw new Error(`Malformed CSV row ${index + 2}.`);
-    return Object.fromEntries(header.map((key, i) => [key, values[i].trim() === 'NA' ? '' : values[i].trim()]));
-  });
+  if (cell || row.length) { row.push(cell); storeRow(); }
+  if (!header) throw new Error('Missing or duplicate CSV columns.');
+  return records;
 }
 
 export function normalizePlayerStats(row) {

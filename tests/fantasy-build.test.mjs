@@ -94,6 +94,14 @@ test('CSV preserves quoted commas/newlines and escaped quotes while blank/NA cel
   assert.throws(() => parseFantasyCsv('name,position\na,RB,extra'), /Malformed/);
 });
 
+test('CSV projection filters rows without changing quoted fields or skipping malformed rows', () => {
+  const csv = '\uFEFFweek,name,notes\r\n9,Earlier,NA\r\n10,"A ""Name""","one,two\r\nthree"\r\n';
+  const project = get => get('week') === '10' ? { name: get('name'), notes: get('notes') } : null;
+  assert.deepEqual(parseFantasyCsv(csv), [{ week: '9', name: 'Earlier', notes: '' }, { week: '10', name: 'A "Name"', notes: 'one,two\r\nthree' }]);
+  assert.deepEqual(parseFantasyCsv(csv, ['week', 'name', 'notes'], project), [{ name: 'A "Name"', notes: 'one,two\r\nthree' }]);
+  assert.throws(() => parseFantasyCsv(`${csv}9,broken\n`, ['week'], project), /Malformed CSV row 4/);
+});
+
 test('normalization preserves missing fields and uses total fumbles lost including returns', () => {
   const row = rawStats('SEA', 1, { fumbles_lost_total: '3', sack_fumbles_lost: '1', rushing_fumbles_lost: '1', receiving_fumbles_lost: '0', rushing_yards: '-4' });
   const normalized = normalizePlayerStats(row);

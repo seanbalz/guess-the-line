@@ -1,9 +1,9 @@
 // D-82 Player Props routes: the real gtl-api handler and Supabase adapter over the real (unapplied) migration on local
-// PGlite, plus the dark-launch flag and old-client/unapplied-schema compatibility. No hosted, provider or credit
-// request is made: the stubbed fetch serves only PGlite RPCs and the retained research-quote table. Fixture data only.
+// PGlite, plus the dark-launch flag and old-client/unapplied-schema compatibility. The stubbed fetch serves local
+// database results and fixture provider data. It makes no network requests and uses no credits.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { ALL, PRELUDE, migrationSql } from './migrations.mjs';
 import { createCloudHandler, createSupabaseAdapter, ROUTE_METHODS } from '../cloud/handler.mjs';
 import { handleProps, playerPropsOn, propGuessView, PROPS_METHODS, sharedView } from '../cloud/player-props.mjs';
@@ -15,8 +15,9 @@ const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const EVENT = '2026_10_DAL_PHI', PLAYER = '00-0036358';
 const iso = ms => new Date(ms).toISOString();
 const MIGRATION = '20261110130000_gtl_player_props.sql';
-// The jobs migration builds on MIGRATION (tests/migrations.mjs REQUIRES), so an unapplied MIGRATION leaves it out too.
-const DEPENDENTS = ['20261110160000_gtl_player_props_jobs.sql', '20261110180000_gtl_player_props_shared.sql'];
+const REFRESH = '20261112031000_gtl_player_props_refresh.sql';
+// These migrations need the Player Props storage, so the legacy fixture leaves them out too.
+const DEPENDENTS = ['20261110160000_gtl_player_props_jobs.sql', '20261110180000_gtl_player_props_shared.sql', REFRESH];
 const SHARED = '20261110180000_gtl_player_props_shared.sql';
 
 /** Normalized research quotes, as cloud/research-provider.mjs retains them, for one prop at three books. */
@@ -26,10 +27,13 @@ function retainedQuotes(lines, observedAt, kickoff) {
     provider: 'the-odds-api', providerEventId: 'evt-fixture', book, source: book, odds: -110, observedAt, capturedAt: observedAt })));
 }
 
-async function setup(t, { flag = 'on', ready = true, schema = true, quotes = true, shared = true } = {}) {
+async function setup(t, { flag = 'on', ready = true, schema = true, quotes = true, shared = true, refresh = false, refreshSchema = true } = {}) {
   const db = new PGlite(); t.after(() => db.close());
   await db.exec(PRELUDE);
-  for (const file of ALL) if ((schema || (file !== MIGRATION && !DEPENDENTS.includes(file))) && (shared || file !== SHARED)) await db.exec(migrationSql(file));
+  for (const file of ALL) {
+    if ((!schema && (file === MIGRATION || DEPENDENTS.includes(file))) || (!shared && file === SHARED) || (!refreshSchema && file === REFRESH)) continue;
+    await db.exec(migrationSql(file));
+  }
   for (const n of [1, 2, 3]) await db.query('insert into auth.users values($1)', [id(n)]);
   await db.query("insert into public.gtl_profiles(user_id,display_name) values($1,'Troy Fixture'),($2,'Luke Fixture')", [id(1), id(2)]);
   const now = Date.now(), kickoff = iso(now + 86_400_000);
@@ -42,9 +46,39 @@ async function setup(t, { flag = 'on', ready = true, schema = true, quotes = tru
   }
   if (quotes) await db.query(`insert into public.gtl_research_quote_fetches(request_id,lease,season,week,game_id,markets,reserved_credits,status,started_at,expires_at,quote_payload)
     values($1,$2,2026,10,'DAL-PHI',array['player_reception_yds'],1,'finished',$3,$3,$4)`, [randomUUID(), randomUUID(), iso(now - 5 * 60_000), JSON.stringify(retainedQuotes([66.5, 67.5, 68.5], iso(now - 5 * 60_000), kickoff))]);
+  const away = 'Dallas Cowboys', home = 'Philadelphia Eagles';
+  const rosterFile = 'roster_weekly_2026.csv';
+  const rosterUrl = `https://github.com/nflverse/nflverse-data/releases/download/weekly_rosters/${rosterFile}`;
+  const rosterCsv = `season,week,game_type,gsis_id,team,position,status,full_name\n2026,10,REG,${PLAYER},DAL,WR,ACT,Fixture Receiver\n2026,10,REG,00-0000001,PHI,WR,ACT,Other Receiver\n`;
+  if (refresh) {
+    const signature = { season: 2026, week: 10, games: [{ id: 'DAL-PHI', away: 'DAL', home: 'PHI', kickoff: Date.parse(kickoff) / 1000 }] };
+    const snapshot = { games: [{ gameId: 'DAL-PHI', away, home, kickoff, providerEventId: 'evt-fixture', matchStatus: 'matched' }] };
+    const snapshotId = randomUUID();
+    await db.query('insert into public.gtl_weekly_slates(season,week,signature) values(2026,10,$1)', [signature]);
+    await db.query(`insert into public.gtl_odds_collections(id,actor_id,operation,status,lease_token,started_at,expires_at,reserved_credits,season,week,slate_signature)
+      values($1,$2,'collect','succeeded',$3,now(),now()+interval '90 seconds',2,2026,10,$4)`, [snapshotId, id(1), randomUUID(), signature]);
+    await db.query('insert into public.gtl_market_snapshots(id,season,week,slate_signature,payload,created_at) values($1,2026,10,$2,$3,$4)',
+      [snapshotId, signature, snapshot, iso(now)]);
+    await db.exec("update public.gtl_odds_budget set conservative_remaining=100,last_successful_preflight_at=clock_timestamp() where provider='the-odds-api'");
+  }
   const calls = [], providerHosts = [];
   const fetchImpl = async (url, options = {}) => {
     const u = new URL(url), name = u.pathname.split('/').at(-1);
+    if (refresh && u.href === 'https://api.github.com/repos/nflverse/nflverse-data/releases/tags/weekly_rosters') {
+      const asset = { name: rosterFile, browser_download_url: rosterUrl, size: Buffer.byteLength(rosterCsv), state: 'uploaded', updated_at: iso(now - 300_000),
+        digest: `sha256:${createHash('sha256').update(rosterCsv).digest('hex')}` };
+      return Response.json({ tag_name: 'weekly_rosters', draft: false, assets: [asset] });
+    }
+    if (refresh && u.href === rosterUrl) return new Response(rosterCsv);
+    if (refresh && u.hostname === 'api.the-odds-api.com') {
+      providerHosts.push(u.hostname);
+      assert.match(u.pathname, /\/events\/evt-fixture\/odds$/);
+      assert.equal(u.searchParams.get('markets'), 'player_reception_yds');
+      return Response.json({ id: 'evt-fixture', sport_key: 'americanfootball_nfl', away_team: away, home_team: home, commence_time: kickoff,
+        bookmakers: ['draftkings', 'fanduel', 'betmgm'].map((key, index) => ({ key, markets: [{ key: 'player_reception_yds', last_update: iso(now - 60_000),
+          outcomes: ['Over', 'Under'].map(side => ({ name: side, description: 'Fixture Receiver', point: 66.5 + index, price: -110 })) }] })) },
+      { headers: { 'x-requests-remaining': '99', 'x-requests-used': '401', 'x-requests-last': '1' } });
+    }
     if (u.hostname !== 'fixture.supabase.co') { providerHosts.push(u.hostname); throw new Error('no external request'); }
     if (u.pathname.includes('/rpc/')) {
       const body = JSON.parse(options.body); calls.push(name);
@@ -60,12 +94,18 @@ async function setup(t, { flag = 'on', ready = true, schema = true, quotes = tru
       calls.push(name);
       const q = Object.fromEntries([...u.searchParams].map(([k, v]) => [k, v.replace(/^(eq|gte)\./, '')]));
       const { rows } = await db.query(`select status,error,quote_payload from public.gtl_research_quote_fetches where season=$1 and week=$2 and game_id=$3 and status=$4 and started_at>=$5
-        order by started_at desc,request_id desc limit 20`, [Number(q.season), Number(q.week), q.game_id, q.status, q.started_at]);
+        and markets @> $6::text[] and error is null order by started_at desc,request_id desc limit $7`, [Number(q.season), Number(q.week), q.game_id, q.status, q.started_at, q.markets.slice(3), Number(q.limit)]);
+      return Response.json(rows);
+    }
+    if (name === 'gtl_market_snapshots' && refresh) {
+      const { rows } = await db.query(`select created_at,payload->'games' games from public.gtl_market_snapshots
+        where season=$1 and week=$2 order by created_at desc,id desc limit 1`, [Number(u.searchParams.get('season').slice(3)), Number(u.searchParams.get('week').slice(3))]);
       return Response.json(rows);
     }
     throw new Error(`Unexpected private read ${name}`);
   };
-  const adapter = createSupabaseAdapter({ url: 'https://fixture.supabase.co', anonKey: 'fixture', serviceRoleKey: 'fixture', fetchImpl });
+  const adapter = createSupabaseAdapter({ url: 'https://fixture.supabase.co', anonKey: 'fixture', serviceRoleKey: 'fixture', fetchImpl,
+    playerPropsOddsKey: refresh ? 'fixture-odds-key' : undefined });
   let authenticated = 0;
   const handler = createCloudHandler({ props: adapter.props, playerProps: flag, authenticate: async token => { authenticated += 1; return { id: id(Number(token)), email: 'fixture@example.test', emailConfirmed: true }; } });
   const call = async (action, body = {}, user = 1) => {
@@ -141,6 +181,34 @@ test('no qualifying reference: lock refused with a retry code, draft kept with t
   assert.equal(r.status, 409); assert.equal(r.body.code, 'GTL_PROPS_REFERENCE_UNAVAILABLE');
   assert.match(r.body.error, /kept your draft/);
   assert.deepEqual(await f.stored(), [{ stat: 'player_receptions', guess: 5.5, status: 'draft' }]);
+});
+
+test('on-demand lock retains a provider capture through the real shared reservation and finish RPCs', { skip }, async t => {
+  const f = await setup(t, { quotes: false, refresh: true });
+  const body = save(72.5);
+  const lock = await f.call('lock', body);
+  assert.equal(lock.status, 200, JSON.stringify(lock.body));
+  assert.equal(lock.body.reference.line, 67.5);
+  assert.deepEqual(await f.stored(), [{ stat: 'player_reception_yds', guess: 72.5, status: 'locked' }]);
+  const { rows: fetches } = await f.db.query('select status,reserved_credits,jsonb_array_length(quote_payload) quotes,error from public.gtl_research_quote_fetches');
+  assert.deepEqual(fetches, [{ status: 'finished', reserved_credits: 1, quotes: 6, error: null }]);
+  const { rows: budget } = await f.db.query('select conservative_remaining,lease_token from public.gtl_odds_budget');
+  assert.deepEqual(budget, [{ conservative_remaining: 99, lease_token: null }]);
+  const { rows: audit } = await f.db.query('select action,request_id from public.gtl_prop_guess_events order by created_at');
+  assert.deepEqual(audit.map(row => row.action), ['draft', 'lock']);
+  assert.equal(audit[1].request_id, body.requestId);
+  assert.equal((await f.call('lock', body)).body.replayed, true);
+  assert.deepEqual(f.providerHosts, ['api.the-odds-api.com']);
+});
+
+test('an older Player Props schema keeps the draft when the refresh reservation is absent', { skip }, async t => {
+  const f = await setup(t, { quotes: false, refresh: true, refreshSchema: false });
+  const result = await f.call('lock', save(72.5));
+  assert.equal(result.status, 409);
+  assert.equal(result.body.code, 'GTL_PROPS_REFERENCE_UNAVAILABLE');
+  assert.deepEqual(await f.stored(), [{ stat: 'player_reception_yds', guess: 72.5, status: 'draft' }]);
+  assert.ok(f.calls.includes('gtl_props_begin_refresh'));
+  assert.deepEqual(f.providerHosts, []);
 });
 
 test('input validation, paused writers and history', { skip }, async t => {
