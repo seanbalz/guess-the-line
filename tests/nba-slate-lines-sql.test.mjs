@@ -248,7 +248,9 @@ test('NBA and NFL reads serialize on the one shared lease, and NBA is always the
     // A worker that reserved a read 31 minutes ago and never finished it: its 30-second lease is still on the shared row.
     const { runId } = await f.queue('lines'), lease = randomUUID();
     const { id } = await f.one(`insert into public.gtl_nba_line_attempts(run_id,game_date,attempt,status,reserved_credits,requested_at,expires_at,lease)
-      values($1,$2::date,1,'running',1,clock_timestamp()-interval '31 minutes',clock_timestamp()-interval '30 minutes',$3) returning id::text`, [runId, await f.today(), lease]);
+      values($1,$2::date,1,'running',1,clock_timestamp()-interval '31 minutes',clock_timestamp()-interval '30 minutes',$3) returning id::text`,
+      // The game's own Pacific day, not today's: near Pacific midnight a game an hour out belongs to tomorrow.
+      [runId, (await f.stored('NBA:balldontlie:1')).day, lease]);
     await f.db.query("update public.gtl_odds_budget set lease_token=$1,lease_until=clock_timestamp()-interval '30 minutes'", [lease]);
     assert.equal((await f.begin()).status, 'not_due', 'the unfinished read spent its credit, so there is no retry');
     assert.deepEqual(await f.one('select status,error,reserved_credits from public.gtl_nba_line_attempts where id=$1', [id]),
@@ -330,7 +332,8 @@ test('lines are due 90 minutes before the first tip-off, once a game day, with o
     const at = iso(Date.now() - minutesAgo * MIN);
     await f.db.query(`insert into public.gtl_nba_line_attempts(run_id,game_date,attempt,status,refusal,reserved_credits,observed_cost,requested_at,expires_at,finished_at,lease)
       values($1,$2::date,1,$3,$4,$5,$6,$7,$7::timestamptz+interval '30 seconds',case when $3='running' then null else $7::timestamptz end,case when $3='refused' then null else gen_random_uuid() end)`,
-    [runId, await f.today(), status, status === 'refused' ? 'busy' : null, status === 'refused' ? 0 : 1, cost, at]);
+    // The game's own Pacific day, not today's: near Pacific midnight a game an hour out belongs to tomorrow.
+    [runId, (await f.stored('NBA:balldontlie:1')).day, status, status === 'refused' ? 'busy' : null, status === 'refused' ? 0 : 1, cost, at]);
   };
   await t.test('not before 90 minutes; due inside them', async t2 => {
     const f = await database(t2);
