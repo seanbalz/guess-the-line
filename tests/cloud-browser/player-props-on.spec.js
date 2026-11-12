@@ -41,7 +41,7 @@ async function shoot(page, info, name, { axe = true } = {}) {
       await page.evaluate(() => window.scrollTo(0, 0));
       expect(await page.evaluate(layoutProblems), `${name} ${theme} ${width}`).toEqual([]);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${name} ${theme} ${width} side scroll`).toBe(true);
-      const small = await page.evaluate(() => [...document.querySelectorAll('.gx-props button, .gx-props input, .gx-props-record button, .gx-props-record select, [data-prop-reveal] button')]
+      const small = await page.evaluate(() => [...document.querySelectorAll('.gx-play-landing-tabs button, .gx-props button, .gx-props input, .gx-props-record button, .gx-props-record select, [data-prop-reveal] button')]
         .filter(el => el.getClientRects().length && !el.closest('dialog:not([open])')).filter(el => el.offsetWidth < 44 || el.offsetHeight < 44)
         .map(el => `${el.getAttribute('aria-label') || el.textContent.trim()} ${el.offsetWidth}x${el.offsetHeight}`));
       expect(small, `${name} ${theme} ${width} targets`).toEqual([]);
@@ -83,6 +83,81 @@ async function openProps(page) {
 }
 
 test.beforeAll(() => { if (CAPTURE) fs.mkdirSync(OUT, { recursive: true }); });
+
+test('Play opens the athlete picker from its Player Props tab', async ({ page, baseURL }, info) => {
+  const world = await propsWorld(page, baseURL);
+  const reads = [];
+  const lockSent = Promise.withResolvers(), lockReply = Promise.withResolvers();
+  page.on('request', request => { if (request.url() === api('props/read')) reads.push(request.postDataJSON()); });
+  try {
+    await signIn(page, 'luke');
+    await tabs(page).getByRole('button', { name: /^Play(,|$)/ }).click();
+    const views = page.getByRole('group', { name: 'Play views', exact: true });
+    const overview = views.getByRole('button', { name: 'Overview', exact: true });
+    const props = views.getByRole('button', { name: 'Player Props', exact: true });
+    await expect(overview).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('region', { name: 'Your picks', exact: true })).toBeVisible();
+    expect(reads).toEqual([]);
+    await shoot(page, info, 'play-props-overview');
+
+    await props.click();
+    await expect(page).toHaveURL(/#play\/props$/);
+    await expect(props).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('[data-frame-context="play"]')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Play', exact: true })).toBeVisible();
+    const athletes = page.getByRole('list', { name: 'Athletes with verified lines' });
+    await expect(athletes).toBeVisible();
+    expect(reads).toEqual([{ season: world.state.league.season, week: world.state.league.week }]);
+    await shoot(page, info, 'play-props-athletes');
+
+    await page.goBack();
+    await expect(overview).toHaveAttribute('aria-pressed', 'true');
+    await expect(props).toBeFocused();
+    await expect(athletes).toBeHidden();
+    await props.click();
+    await expect.poll(() => reads.length).toBe(2);
+    await athletes.getByRole('button', { name: /CeeDee Lamb/ }).click();
+    await page.getByRole('button', { name: 'Raise receiving yards guess by 0.5' }).click();
+    await page.getByRole('button', { name: 'About prop guesses', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: 'About prop guesses' })).toBeVisible();
+    await page.goBack();
+    await expect(overview).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('dialog:modal')).toHaveCount(0);
+    await props.click();
+    await expect(page.locator('.gx-props output')).toHaveText('0.5');
+    await overview.click();
+    await expect(overview).toHaveAttribute('aria-pressed', 'true');
+    await props.click();
+    await expect(page.locator('.gx-props output')).toHaveText('0.5');
+    await page.getByRole('button', { name: 'Edit number', exact: true }).click();
+    const input = page.getByLabel('Your receiving yards guess');
+    await input.fill('0.25');
+    await overview.click();
+    await props.click();
+    await expect(input).toHaveValue('0.25');
+    await input.fill('72.5');
+    await input.press('Enter');
+
+    await page.route(api('props/lock'), async route => {
+      lockSent.resolve();
+      await lockReply.promise;
+      await route.fallback();
+    }, { times: 1 });
+    const confirmation = page.waitForResponse(response => response.url() === api('props/lock') && response.request().method() === 'POST');
+    await page.getByRole('button', { name: 'Lock in receiving yards' }).click();
+    await lockSent.promise;
+    await overview.click();
+    await page.route(api('props/read'), route => route.fulfill({ status: 500, headers: { 'access-control-allow-origin': '*' }, contentType: 'application/json', body: JSON.stringify({ error: 'failed' }) }), { times: 1 });
+    await props.click();
+    await expect(page.getByRole('alert').filter({ hasText: 'Player Props couldn’t load' })).toBeVisible();
+    lockReply.resolve();
+    expect((await confirmation).status()).toBe(200);
+    await expect(page.getByLabel(/^Locked in · CeeDee Lamb Receiving yards$/)).toBeVisible();
+    await page.reload();
+    await expect(props).toHaveAttribute('aria-pressed', 'true');
+    await expect(athletes).toBeVisible();
+  } finally { lockReply.resolve(); await world.db.close(); }
+});
 
 test('Play › Player Props: entry, lock-in with the saved receipt and revealed guesses, and draft recovery', async ({ page, baseURL }, info) => {
   const world = await propsWorld(page, baseURL);

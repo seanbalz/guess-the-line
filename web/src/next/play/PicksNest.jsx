@@ -22,9 +22,11 @@ export const playMarkets = (base, enabled = playerPropsEnabled()) => withPlayerP
  * D-82 Player Props inside Your guesses: optional, any number of props, no weekly obligation, and separate from the
  * week's Spread/Total tiles and their locks. Renders nothing while the flag is off.
  */
-export function PropsNest({ season, week, onSignInAgain, onStatus, enabled = playerPropsEnabled() }) {
+export function PropsNest({ season, week, onSignInAgain, onStatus, onRetryWeek, active, enabled = playerPropsEnabled() }) {
   if (!enabled) return null;
-  return <Deferred resetKey={`props:${season}:${week}`} label="Player Props"><PlayerPropsEntry season={season} week={week} onSignInAgain={onSignInAgain} onStatus={onStatus}/></Deferred>;
+  return <Deferred resetKey={`props:${season}:${week}`} label="Player Props">
+    <PlayerPropsEntry season={season} week={week} active={active} onSignInAgain={onSignInAgain} onStatus={onStatus} onRetryWeek={onRetryWeek}/>
+  </Deferred>;
 }
 /** The line under Your guesses until the props screen reports its state (sheet 01; 02 and 05 replace it). */
 export const PROPS_ENTRY_LINE = 'Optional · choose as many props as you want';

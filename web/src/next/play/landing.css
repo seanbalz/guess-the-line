@@ -3,6 +3,33 @@
 .gx .gx-play-landing { gap: var(--gx-space-3); }
 /* Approved overview hierarchy: grouped picks, a full-width personal score chart, then supporting sections. */
 .gx .gx-play-landing { gap: var(--gx-space-5); }
+.gx .gx-play-landing-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--gx-space-1);
+  padding: var(--gx-space-1);
+  border: 1px solid var(--gx-border-strong);
+  border-radius: var(--gx-radius-sm);
+  background: var(--gx-glass);
+  box-shadow: var(--gx-glass-shadow);
+}
+.gx .gx-play-landing-tabs .gx-seg-btn {
+  padding-inline: var(--gx-space-2);
+  border: 1px solid transparent;
+  border-radius: calc(var(--gx-radius-sm) - var(--gx-space-1));
+  color: var(--gx-text-1);
+}
+.gx .gx-play-landing-tabs .gx-seg-btn--on {
+  border-color: var(--gx-accent-ink);
+  background: var(--gx-accent-tint);
+  color: var(--gx-accent-ink);
+  box-shadow: none;
+}
+.gx .gx-play-props-pane:not([hidden]) { display: flex; flex-direction: column; gap: var(--gx-space-4); min-width: 0; }
+.gx .gx-play-props-pane > .gx-vstack > :is(h2,p) { margin: 0; }
+@media (forced-colors: active) {
+  .gx .gx-play-landing-tabs .gx-seg-btn--on { border-color: Highlight; outline: 1px solid Highlight; }
+}
 .gx .gx-play-picks-card { display: flex; flex-direction: column; gap: var(--gx-space-4); min-width: 0; padding: var(--gx-space-5); }
 .gx .gx-play-picks-card .gx-play-hero { margin: 0; }
 .gx .gx-play-picks-card > .gx-tiles { gap: var(--gx-space-3); }
