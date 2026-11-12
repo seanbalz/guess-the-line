@@ -1,9 +1,9 @@
 # Decision log
 
-## D-85 — NBA: N1 first, then nightly Guess the Spread; official NBA logos; 31-credit cap; all members play; records backfill (November 11, 2026)
+## D-85 — NBA: N1 first, then nightly Guess the Spread; official NBA logos; 31-credit cap; all members play; records backfill; NBA on the switch (November 11, 2026)
 
 Status: decided; N1 merged (PR #542) and deployed as Pages `b8019df1` on November 12, 2026 UTC
-([release record](RELEASE_2026_11_12_NBA_N1.md)); NBA stays off the switch. Numbered D-85 because
+([release record](RELEASE_2026_11_12_NBA_N1.md)); NBA joins the sport switch by item 6. Numbered D-85 because
 D-84 is taken by open PR #540. Sean answered in the captain session on November 11, 2026, on
 the [NBA build-out proposal](superpowers/specs/2026-11-10-nba-buildout-design.md):
 
@@ -31,6 +31,13 @@ the [NBA build-out proposal](superpowers/specs/2026-11-10-nba-buildout-design.md
    "—", never a partial count (D-62 rule 8). The backfill is not repeated, and no record read
    calls the provider. Recorded for N3; nothing is built or run here, and the run rides N3's
    Sean-gated apply and deploy.
+6. **NBA on the switch.** Sean: **"Yes, show NBA"** (spec question 5), answering "Show NBA on the
+   sport switch now?" after the N1 release, with the live NBA Home and the 320 px capture of the
+   switch with NBA on in front of him. `NBA_ON_SWITCH` is now `true`: NFL and EPL screens show the
+   NBA circle (not selected) after NFL and EPL, three 44 px circles below 360 px wide. NBA needs
+   no access check (the tracker is private to each member). This ends the October 29 hide; the
+   flag stays so NBA can be hidden again on Sean's word. Frontend only: no migration, API change
+   or credit.
 
 **Logo basis (the D-46 and November 7 league-mark precedent, extended unchanged).** The 30 team
 logos are self-hosted 128 px downscaled copies of ESPN CDN images
@@ -53,9 +60,9 @@ Each mark has its own glass circle; letters show only while a logo loads or if i
 
 **Switch display.** With the flag off, NFL and EPL screens show no NBA circle. While a saved
 `#nba` link shows NBA, its circle is drawn selected so the member sees where they are, as the v1
-NBA header did. Turning NBA on for NFL and EPL screens is still Sean's word.
+NBA header did. Sean turned NBA on for NFL and EPL screens with item 6.
 
-**Not answered:** the switch timing and the stale Codex worktree (spec questions 5 and 8).
+**Not answered:** the stale Codex worktree (spec question 8).
 **Not built:** N2, N3 and N4 (decisions 3, 4 and 5 are records only). Every
 migration, deploy, schedule and the physical-iPhone check stay Sean-gated.
 
