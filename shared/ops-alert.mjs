@@ -5,7 +5,7 @@
 export const OPS_ALERT_LABEL = 'ops-alert';
 export const WATCHED_WORKFLOWS = Object.freeze(['.github/workflows/fantasy-refresh.yml', '.github/workflows/research-refresh.yml']);
 const FAILED = new Set(['failure', 'timed_out', 'startup_failure']);
-const MARKER = /<!-- ops-alert (\{.*?\}) -->/;
+const MARKER = /\x3c!-- ops-alert (\{.*?\}) -->/;
 
 const utc = value => `${new Date(value).toISOString().slice(0, 16).replace('T', ' ')} UTC`;
 const startedAt = run => run.run_started_at ?? run.created_at;

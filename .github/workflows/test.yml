@@ -47,7 +47,7 @@ jobs:
           BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
         run: |
           if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
-            echo "::notice::No base commit for this ${{ github.event_name }} event; skipping git diff --check"
+            echo "::notice::No base commit for this $GITHUB_EVENT_NAME event; skipping git diff --check"
             exit 0
           fi
           if ! git fetch --no-tags --depth=1 origin "$BASE_SHA"; then
@@ -99,4 +99,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Every test shard passed
-        run: test "${{ needs.test-shard.result }}" = success
+        env:
+          TEST_SHARD_RESULT: ${{ needs.test-shard.result }}
+        run: test "$TEST_SHARD_RESULT" = success
