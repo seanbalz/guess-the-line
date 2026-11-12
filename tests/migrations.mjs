@@ -35,8 +35,11 @@ export const PRELUDE = "set timezone to 'UTC';create role anon;create role authe
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
 // M-41 and M-42 to M-47 left this list with their November 10, 2026 apply record (RELEASE_2026_11_10_MIGRATIONS_M41_M47.md).
 // M-33, M-34 and M-35 left it with their November 11, 2026 apply record (RELEASE_2026_11_11_STAT_CORRECTIONS_M33_M35.md).
+// M-49 (NBA N2, 20261112040000) is written and not applied: it waits for Sean's own "apply M-49"
+// (docs/MIGRATION_APPLY_PACKET_2026_11_12_NBA_N2.md). It needs no other unapplied file, so it has no REQUIRES entry.
 export const NOT_HOSTED = [
   20261112031000, // M-48 Player Props on-demand refresh and weekly research reservation cap.
+  20261112040000, // M-49 NBA N2 slate and capped spread lines.
 ];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because

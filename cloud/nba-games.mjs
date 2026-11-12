@@ -1,7 +1,9 @@
 import { normalizeNbaGames, gamesForLocalDate, validateNbaGamesRequest } from '../shared/nba-games.mjs';
 const TTL = 300000;
 const SOURCE = 'BALLDONTLIE';
-function cachedSnapshot(raw) {
+/** Validates a gtl_nba_claim_games reply and rebuilds every cached game through the canonical normalizer (also used by the
+ * gtl-nba-jobs slate job, cloud/nba-jobs.mjs). */
+export function cachedSnapshot(raw) {
   if (raw?.games === null && raw.observedAt === null) return { ...raw, games: null };
   if (!Array.isArray(raw?.games) || typeof raw.observedAt !== 'string' || !Number.isFinite(Date.parse(raw.observedAt))) throw new Error('Invalid NBA cache.');
   // Reuse the canonical validator and rebuild every field; storage metadata and source records stay server-side.
@@ -22,24 +24,27 @@ export function createNbaGamesCache(service) {
     publish: ({ date, leaseToken, games }) => service.rpc('gtl_nba_finish_games', { p_date: date, p_token: leaseToken, p_games: games }),
   };
 }
+/** One BALLDONTLIE Games request for `date` - 1 to `date` + 1 (the board's range and the gtl-nba-jobs slate). Call it only
+ * while holding a gtl_nba_claim_games lease: the database owns the TTL, lease and global cooldown. */
+export async function fetchNbaGameRange({ apiKey, fetchImpl = fetch, date, observedAt }) {
+  const url = new URL('https://api.balldontlie.io/v1/games');
+  url.searchParams.set('per_page', '100');
+  for (const offset of [-1, 0, 1]) url.searchParams.append('dates[]', new Date(Date.parse(`${date}T12:00:00Z`) + offset * 86400000).toISOString().slice(0, 10));
+  const controller = new AbortController(); let timer;
+  try {
+    return await Promise.race([
+      (async () => {
+        const response = await fetchImpl(url, { method: 'GET', headers: { Authorization: apiKey }, redirect: 'error', signal: controller.signal });
+        if (!response.ok || response.redirected) throw new Error('NBA source unavailable.');
+        return normalizeNbaGames(await response.json(), observedAt);
+      })(),
+      new Promise((_, reject) => { timer = setTimeout(() => { controller.abort(); reject(new Error('NBA source unavailable.')); }, 10000); }),
+    ]);
+  } finally { clearTimeout(timer); }
+}
 // The database, rather than a worker's memory or client options, owns TTL, lease and global cooldown.
 export function createNbaGamesService({ apiKey, fetchImpl = fetch, cache, clock = Date.now }) {
-  async function collect(date, observedAt) {
-    const url = new URL('https://api.balldontlie.io/v1/games');
-    url.searchParams.set('per_page', '100');
-    for (const offset of [-1, 0, 1]) url.searchParams.append('dates[]', new Date(Date.parse(`${date}T12:00:00Z`) + offset * 86400000).toISOString().slice(0, 10));
-    const controller = new AbortController(); let timer;
-    try {
-      return await Promise.race([
-        (async () => {
-          const response = await fetchImpl(url, { method: 'GET', headers: { Authorization: apiKey }, redirect: 'error', signal: controller.signal });
-          if (!response.ok || response.redirected) throw new Error('NBA source unavailable.');
-          return normalizeNbaGames(await response.json(), observedAt);
-        })(),
-        new Promise((_, reject) => { timer = setTimeout(() => { controller.abort(); reject(new Error('NBA source unavailable.')); }, 10000); }),
-      ]);
-    } finally { clearTimeout(timer); }
-  }
+  const collect = (date, observedAt) => fetchNbaGameRange({ apiKey, fetchImpl, date, observedAt });
   return { async read(input) {
     const { date, timeZone } = validateNbaGamesRequest(input);
     const configured = typeof apiKey === 'string' && Boolean(apiKey.trim());

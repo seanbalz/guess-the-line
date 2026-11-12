@@ -38,3 +38,7 @@ verify_jwt = false
 [functions.gtl-ops-alerts]
 # Item 22 (M-38) Supabase job alerts to the commissioner's phone; same one-run capability pattern as gtl-week-open.
 verify_jwt = false
+
+[functions.gtl-nba-jobs]
+# NBA N2 slate and capped spread lines jobs; same one-run capability pattern as gtl-week-open. Not deployed until Sean approves.
+verify_jwt = false
