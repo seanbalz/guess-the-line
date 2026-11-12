@@ -1,10 +1,11 @@
 # Guess the Line NBA build-out — design proposal
 
-Status: **N1 approved and built on a branch (not merged or deployed); N2 to N4 still
-proposals.** On November 11, 2026 Sean chose "Guess the Spread" (N1 first, then N3),
+Status: **N1 approved, merged (PR #542) and deployed (Pages `b8019df1`, November 12, 2026
+UTC; NBA still off the switch); N2 to N4 still proposals.** On November 11, 2026 Sean chose "Guess the Spread" (N1 first, then N3),
 replaced the letter badges with official NBA league and team logos, approved the 31-credit
-cap and 100-credit pause threshold, and opened NBA Guess the Spread to all Community
-members (D-85; see "Waiting on Sean"). Nothing is applied or deployed.
+cap and 100-credit pause threshold, opened NBA Guess the Spread to all Community
+members and allowed one free records backfill (D-85; see "Waiting on Sean"). No migration
+is applied; the N1 release is [recorded](../../RELEASE_2026_11_12_NBA_N1.md).
 Owner: Sean Balsiger. Date: November 10, 2026.
 Phone mockups: [design/nba-buildout-2026-11-10](../../../design/nba-buildout-2026-11-10/README.md)
 (48 captures, 320 and 390 px, Dark and Light, synthetic data).
@@ -240,7 +241,9 @@ Mockups 10 and 11 (preview only).
   storage shows "—", never a partial count (rule 8). The NBA Cup final does not
   count toward records and needs a rule checked against fixtures (assumed).
   The badges are not buttons, because an NBA team sheet is not in this plan.
-  Whether to backfill early-season finals is Sean's question 6.
+  Sean allowed one free backfill of the earlier game days (question 6, D-85):
+  a few BALLDONTLIE Games requests, once, through the same TTL, lease and
+  cooldown; days still missing after it show "—".
 - **Reference.** The newest qualified line at or before the server's lock time
   (at-lock); else the first qualified line after the lock and before tip-off
   (first-after); else unscored, "No line before tip-off" (D-27). A lock never
@@ -358,11 +361,11 @@ Spread to the same card without a new table.
    league circles below 360 px wide are approved. N1 is built on that basis
    ([real-build captures](../../../design/nba-n1-2026-11-11/README.md)).
 5. When NBA appears on the sport switch (`NBA_ON_SWITCH`).
-6. Team records: stored finals may not reach back to opening night, so without
-   a backfill most teams would show "—" this season (assumed; the stored dates
-   were not counted). Allow one free backfill of the earlier game days (a few
-   BALLDONTLIE Games requests, once, through the existing lease and 35 s
-   cooldown), or keep zero extra calls and show "—" where finals are missing?
+6. ~~Team records.~~ **Answered November 11, 2026 (D-85): "Backfill once, free".**
+   One backfill of the earlier regular-season game days storage lacks (a few free
+   BALLDONTLIE Games requests, once, through the existing TTL, 15 s lease and 35 s
+   cooldown; no Odds API credit). Days still missing afterwards show "—". For N3;
+   not built or run.
 7. Every migration apply, deploy and schedule enable; one real production save;
    the physical-iPhone check.
 8. The stale Codex NBA worktree under

@@ -2,7 +2,8 @@
 
 Owner: Sean Balsiger · November 11, 2026 · Milestone N1 of the
 [NBA build-out](../../docs/superpowers/specs/2026-11-10-nba-buildout-design.md),
-built in the PR that adds this folder. **Not deployed; not approved yet.**
+built in the PR that adds this folder. **Merged and deployed November 12, 2026 UTC (Pages
+`b8019df1`, [release record](../../docs/RELEASE_2026_11_12_NBA_N1.md)).**
 
 These are screenshots of the actual app, not drawings: the production React
 components and stylesheets, built with `vite build --mode cloud-test` and served on

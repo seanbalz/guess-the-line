@@ -1,8 +1,9 @@
 # Decision log
 
-## D-85 — NBA: N1 first, then nightly Guess the Spread; official NBA logos; 31-credit cap; all members play (November 11, 2026)
+## D-85 — NBA: N1 first, then nightly Guess the Spread; official NBA logos; 31-credit cap; all members play; records backfill (November 11, 2026)
 
-Status: decided; N1 built on a branch (PR, not merged), not deployed. Numbered D-85 because
+Status: decided; N1 merged (PR #542) and deployed as Pages `b8019df1` on November 12, 2026 UTC
+([release record](RELEASE_2026_11_12_NBA_N1.md)); NBA stays off the switch. Numbered D-85 because
 D-84 is taken by open PR #540. Sean answered in the captain session on November 11, 2026, on
 the [NBA build-out proposal](superpowers/specs/2026-11-10-nba-buildout-design.md):
 
@@ -22,6 +23,14 @@ the [NBA build-out proposal](superpowers/specs/2026-11-10-nba-buildout-design.md
 4. **Who plays.** Sean: **"All community members"**. Every Community member may play NBA Guess
    the Spread (the `gtl_nba_player` rule), like EPL's open access, with one shared NBA standings.
    Recorded for N3; nothing is built or applied here.
+5. **Records backfill.** Sean: **"Backfill once, free"** (spec question 6). Team W–L records
+   on NBA pick cards may use one backfill of the earlier regular-season game days that storage
+   lacks: a few free BALLDONTLIE Games requests, run once, through the existing 5-minute TTL,
+   15 s lease and 35 s global cooldown, and no Odds API credit. Records are still computed when
+   read from stored finals only; after the backfill, a team with a game day still missing shows
+   "—", never a partial count (D-62 rule 8). The backfill is not repeated, and no record read
+   calls the provider. Recorded for N3; nothing is built or run here, and the run rides N3's
+   Sean-gated apply and deploy.
 
 **Logo basis (the D-46 and November 7 league-mark precedent, extended unchanged).** The 30 team
 logos are self-hosted 128 px downscaled copies of ESPN CDN images
@@ -46,8 +55,8 @@ Each mark has its own glass circle; letters show only while a logo loads or if i
 `#nba` link shows NBA, its circle is drawn selected so the member sees where they are, as the v1
 NBA header did. Turning NBA on for NFL and EPL screens is still Sean's word.
 
-**Not answered:** the switch timing, the records backfill and the stale Codex worktree (spec
-questions 5, 6 and 8). **Not built:** N2, N3 and N4 (decisions 3 and 4 are records only). Every
+**Not answered:** the switch timing and the stale Codex worktree (spec questions 5 and 8).
+**Not built:** N2, N3 and N4 (decisions 3, 4 and 5 are records only). Every
 migration, deploy, schedule and the physical-iPhone check stay Sean-gated.
 
 ## D-84 — Prism Glass stays; D-69 steps 4 and 5 and the B1 Play polish stop (November 11, 2026)
