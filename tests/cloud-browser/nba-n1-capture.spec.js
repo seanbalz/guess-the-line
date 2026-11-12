@@ -152,10 +152,8 @@ test('N1 captures: Home, Research, Bets, Confirm, History, Track bet and Play ho
   } finally { await world.db.close(); }
 });
 
-// Review only: run against a local build with NBA_ON_SWITCH forced on (never committed). It shows NFL Home with the NBA
-// circle unselected at 320px, where three circles are 44px.
-test('N1 capture (local, flag forced on): the sport switch at 320px with three 44px circles', async ({ page, baseURL }) => {
-  test.skip(process.env.GTL_NBA_SWITCH_ON_CAPTURE !== '1', 'Local review capture only: needs a build with NBA_ON_SWITCH forced on.');
+// NBA_ON_SWITCH is on (D-85 item 6): NFL Home with the NBA circle unselected at 320px, where three circles are 44px.
+test('N1 capture: the NFL sport switch at 320px with three 44px circles', async ({ page, baseURL }) => {
   test.skip(!pgliteAvailable, 'Disposable PGlite required.');
   const world = await nbaFixture(page, baseURL);
   try {

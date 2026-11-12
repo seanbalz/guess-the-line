@@ -24,7 +24,7 @@ test('EPL tab navigation opens the default Play section and preserves explicit s
     await signIn(page, 'luke', { navigate: false });
     const nav = page.getByRole('navigation', { name: 'Main', exact: true });
     await expect(nav).toBeVisible();
-    await expect(page.getByRole('group', { name: 'Sport', exact: true }).getByRole('button', { name: 'NBA', exact: true })).toHaveCount(0);
+    await expect(page.getByRole('group', { name: 'Sport', exact: true }).getByRole('button', { name: 'National Basketball Association', exact: true })).toHaveAttribute('aria-pressed', 'false');
     const draft = page.getByRole('heading', { name: 'MW9 draft · order from MW8 Sleeper score' });
     await nav.getByRole('button', { name: 'Play', exact: true }).click();
     await expect(draft).toBeVisible();

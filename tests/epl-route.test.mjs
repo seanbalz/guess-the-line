@@ -34,9 +34,10 @@ test('EPL and NBA fragments never claim each other', () => {
   for (const hash of ['#nba/games', '#home', '', null, undefined]) assert.equal(eplFragment(hash), false, String(hash));
 });
 
-test('sport switch hides NBA and offers EPL only with access; saved NBA links retain a home address', () => {
-  assert.deepEqual(sportOptions(false), [{ value: 'nfl', label: 'NFL' }]);
-  assert.deepEqual(sportOptions(true), [{ value: 'nfl', label: 'NFL' }, { value: 'epl', label: 'EPL' }]);
+test('sport switch offers NBA (D-85 item 6) and EPL only with access; saved NBA links retain a home address', () => {
+  assert.deepEqual(sportOptions(false), [{ value: 'nfl', label: 'NFL' }, { value: 'nba', label: 'NBA' }]);
+  assert.deepEqual(sportOptions(true), [{ value: 'nfl', label: 'NFL' }, { value: 'epl', label: 'EPL' }, { value: 'nba', label: 'NBA' }]);
+  assert.deepEqual(sportOptions(true, false), [{ value: 'nfl', label: 'NFL' }, { value: 'epl', label: 'EPL' }], 'the flag still hides NBA');
   // Since N1 (D-85) a saved NBA link lands on NBA Home in the Prism shell; #nba/games redirects to Research › Games.
   assert.equal(SPORT_HOME.nba, '#nba/home');
   assert.equal(SPORT_HOME.epl, '#epl/home');

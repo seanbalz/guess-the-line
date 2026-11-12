@@ -1,7 +1,7 @@
 # Guess the Line NBA build-out — design proposal
 
 Status: **N1 approved, merged (PR #542) and deployed (Pages `b8019df1`, November 12, 2026
-UTC; NBA still off the switch); N2 to N4 still proposals.** On November 11, 2026 Sean chose "Guess the Spread" (N1 first, then N3),
+UTC; NBA on the switch by Sean's "Yes, show NBA", D-85 item 6); N2 to N4 still proposals.** On November 11, 2026 Sean chose "Guess the Spread" (N1 first, then N3),
 replaced the letter badges with official NBA league and team logos, approved the 31-credit
 cap and 100-credit pause threshold, opened NBA Guess the Spread to all Community
 members and allowed one free records backfill (D-85; see "Waiting on Sean"). No migration
@@ -131,7 +131,8 @@ Mockups 01 to 09.
    to NFL logos. The official NBA league logo sits in its own league circle of the
    sport switch (52 px; 44 px below 360 px wide when three circles show).
 5. **Switch flag.** `sportOptions()` gains an NBA row behind the source constant
-   `NBA_ON_SWITCH = false`; it turns on only on Sean's word.
+   `NBA_ON_SWITCH`, built `false`; it turns on only on Sean's word. Sean said "Yes, show
+   NBA" on November 11, 2026 (D-85 item 6), so it is now `true`.
 6. **Price display.** Whole American odds (+102). The stored eight-decimal value
    is never rewritten; details show the original input ("49.5% Novig").
 7. **"Needs your result" queue.** A pure `shared/nba-grade.mjs` (modeled on
@@ -360,7 +361,8 @@ Spread to the same card without a new table.
    and team logos replace the letter badges and the "NBA" text badge; the 44 px
    league circles below 360 px wide are approved. N1 is built on that basis
    ([real-build captures](../../../design/nba-n1-2026-11-11/README.md)).
-5. When NBA appears on the sport switch (`NBA_ON_SWITCH`).
+5. ~~Switch timing.~~ **Answered November 11, 2026 (D-85 item 6): "Yes, show NBA".**
+   `NBA_ON_SWITCH` is `true`; NFL and EPL screens offer the NBA circle.
 6. ~~Team records.~~ **Answered November 11, 2026 (D-85): "Backfill once, free".**
    One backfill of the earlier regular-season game days storage lacks (a few free
    BALLDONTLIE Games requests, once, through the existing TTL, 15 s lease and 35 s

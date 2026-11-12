@@ -235,7 +235,7 @@ test('server full-set pagination, filters, empty/unavailable/read failures, impo
   } finally { release?.(); await world.db.close(); }
 });
 
-test('sport entry and return: the NFL circle leaves NBA, an NFL draft guards the way back, and NBA stays off the NFL switch', async ({ page, baseURL }) => {
+test('sport entry and return: the NFL circle leaves NBA, an NFL draft guards the way back, and the NFL switch offers NBA', async ({ page, baseURL }) => {
   test.skip(!pgliteAvailable, 'Disposable PGlite required.'); test.setTimeout(60000);
   const world = await nbaFixture(page, baseURL);
   try {
@@ -247,8 +247,8 @@ test('sport entry and return: the NFL circle leaves NBA, an NFL draft guards the
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(page.locator('.gx-topbar .gx-home-sports')).toBeVisible();
     await expect(page.getByRole('button', { name: 'National Football League', exact: true })).toHaveAttribute('aria-pressed', 'true');
-    // NBA_ON_SWITCH is false: no NBA circle on NFL.
-    await expect(page.getByRole('button', { name: 'National Basketball Association', exact: true })).toHaveCount(0);
+    // NBA_ON_SWITCH is on (D-85 item 6): NFL offers the NBA circle, not selected.
+    await expect(page.getByRole('button', { name: 'National Basketball Association', exact: true })).toHaveAttribute('aria-pressed', 'false');
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: /^Play/ }).click();
     await page.getByRole('group', { name: 'Guess market', exact: true }).getByRole('button', { name: 'Spread', exact: true }).click();

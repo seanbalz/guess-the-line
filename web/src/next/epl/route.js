@@ -23,11 +23,11 @@ export const eplFragment = hash => typeof hash === 'string' && hash.startsWith('
 
 export const SPORT_HOME = Object.freeze({ nba: '#nba/home', epl: '#epl/home' });
 /**
- * NBA stays off the production sport switch until Sean says otherwise (October 29 hide; restated November 11, D-85).
- * Saved #nba links still open NBA, and while NBA shows its own circle is drawn selected so the member sees where they
- * are. Flip only on Sean's word.
+ * NBA is on the production sport switch: Sean answered "Yes, show NBA" on November 11, 2026 (D-85 item 6), ending the
+ * October 29 hide. Every #nba/ link opens NBA, and while NBA shows its own circle is drawn selected. Setting this back to
+ * false hides the NBA circle from NFL and EPL screens again; change it only on Sean's word.
  */
-export const NBA_ON_SWITCH = false;
+export const NBA_ON_SWITCH = true;
 /** The sport switch's options: NFL, EPL with access, and NBA only when `nba` (default: the NBA_ON_SWITCH flag). */
 export function sportOptions(epl, nba = NBA_ON_SWITCH) {
   return [{ value: 'nfl', label: 'NFL' }, ...(epl ? [{ value: 'epl', label: 'EPL' }] : []), ...(nba ? [{ value: 'nba', label: 'NBA' }] : [])];
