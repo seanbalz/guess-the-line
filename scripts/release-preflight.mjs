@@ -17,6 +17,7 @@ export const RESULTS_REFRESH = 'gtl-results-refresh';
 export const EPL_JOBS = 'gtl-epl-jobs';
 export const OPS_ALERTS = 'gtl-ops-alerts';
 export const ODDS_REFRESH = 'gtl-odds-refresh';
+export const NBA_JOBS = 'gtl-nba-jobs';
 /**
  * What each target deploys: at most one Edge Function (with its supabase/config.toml settings) and whether Pages is
  * uploaded. createsOnFirstDeploy lets a target's first deploy create its function; every other target updates one.
@@ -46,6 +47,9 @@ export const TARGET_DEPLOYS = Object.freeze({
   // November 3, 2026: the D-17 odds refresh worker, hosted since October 2026 and until now deployed only from the Mac mini
   // (M-37's mismatch notes wait on it). It exists, so a deploy updates it.
   'odds-refresh': Object.freeze({ edgeFunction: ODDS_REFRESH, pages: false }),
+  // Sean, November 11, 2026 ("Yes, all three"): the NBA N2 / M-49 slate and capped spread lines worker, not hosted yet, so
+  // its first deploy creates it.
+  'nba-jobs': Object.freeze({ edgeFunction: NBA_JOBS, pages: false, createsOnFirstDeploy: true }),
 });
 export const TARGETS = Object.keys(TARGET_DEPLOYS);
 const deploys = target => { assert.ok(Object.hasOwn(TARGET_DEPLOYS, target), 'Unknown release target.'); return TARGET_DEPLOYS[target]; };
@@ -61,6 +65,7 @@ const WORKERS = Object.freeze({
   [EPL_JOBS]: Object.freeze({ key: 'eplJobs', name: 'EPL jobs worker', auth: ONE_RUN }),
   [OPS_ALERTS]: Object.freeze({ key: 'opsAlerts', name: 'ops alerts worker', auth: ONE_RUN }),
   [ODDS_REFRESH]: Object.freeze({ key: 'oddsRefresh', name: 'odds refresh worker', auth: ONE_RUN }),
+  [NBA_JOBS]: Object.freeze({ key: 'nbaJobs', name: 'NBA jobs worker', auth: ONE_RUN }),
 });
 /** The worker a target deploys, or null for gtl-api and frontend targets. */
 const workerFor = scope => {
@@ -88,7 +93,7 @@ const fail = message => { throw new Error(message); };
 
 export function validateRequest(env) {
   assert.match(env.RELEASE_SHA || '', /^[a-f0-9]{40}$/, 'Use a full lowercase 40-character source SHA.');
-  assert.ok(TARGETS.includes(env.RELEASE_TARGET), 'Choose frontend, api, api-and-frontend, push-reminders, points-jobs, league-features, fantasy-ingest, results-refresh, epl-jobs, ops-alerts, or odds-refresh.');
+  assert.ok(TARGETS.includes(env.RELEASE_TARGET), 'Choose frontend, api, api-and-frontend, push-reminders, points-jobs, league-features, fantasy-ingest, results-refresh, epl-jobs, ops-alerts, odds-refresh, or nba-jobs.');
   assert.ok(['check-only', 'readiness', 'deploy'].includes(env.RELEASE_MODE), 'Unknown release mode.');
   const syncProps = env.RELEASE_SYNC_PLAYER_PROPS_API ?? 'false';
   assert.ok(['true', 'false'].includes(syncProps), 'Invalid Player Props API sync input.');
@@ -398,7 +403,7 @@ export async function verifyRelease(cwd, env, before, fetchImpl = fetch) {
 export async function main(args, env = process.env) {
   const [command, ...rest] = args;
   if (!command || command === '--help') {
-    console.log('Usage: node scripts/release-preflight.mjs <source|configuration|live|verify> [--source DIR] [--out FILE] [--before FILE]\nInputs: RELEASE_SHA (full SHA), RELEASE_TARGET (frontend|api|api-and-frontend|push-reminders|points-jobs|league-features|fantasy-ingest|results-refresh|epl-jobs|ops-alerts|odds-refresh), RELEASE_MODE (check-only|readiness|deploy). Deploy also requires RELEASE_CARD, RELEASE_HISTORY_SHA256, RELEASE_COMPATIBLE=true.\nsource reads Git and GitHub CI; configuration reports missing names only; live uses protected credentials for read-only schedule/history and boundary checks; verify checks deployed metadata/assets. This helper never deploys or applies SQL.');
+    console.log('Usage: node scripts/release-preflight.mjs <source|configuration|live|verify> [--source DIR] [--out FILE] [--before FILE]\nInputs: RELEASE_SHA (full SHA), RELEASE_TARGET (frontend|api|api-and-frontend|push-reminders|points-jobs|league-features|fantasy-ingest|results-refresh|epl-jobs|ops-alerts|odds-refresh|nba-jobs), RELEASE_MODE (check-only|readiness|deploy). Deploy also requires RELEASE_CARD, RELEASE_HISTORY_SHA256, RELEASE_COMPATIBLE=true.\nsource reads Git and GitHub CI; configuration reports missing names only; live uses protected credentials for read-only schedule/history and boundary checks; verify checks deployed metadata/assets. This helper never deploys or applies SQL.');
     return;
   }
   assert.ok(['source', 'configuration', 'live', 'verify'].includes(command), 'Unknown preflight command.');
