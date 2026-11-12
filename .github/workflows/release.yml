@@ -14,9 +14,9 @@ on:
         type: string
         required: true
       target:
-        description: One component (push-reminders, points-jobs, league-features, fantasy-ingest, results-refresh, epl-jobs, ops-alerts and odds-refresh are one worker each), or backward-compatible API then frontend
+        description: One component (push-reminders, points-jobs, league-features, fantasy-ingest, results-refresh, epl-jobs, ops-alerts, odds-refresh and nba-jobs are one worker each), or backward-compatible API then frontend
         type: choice
-        options: [frontend, api, api-and-frontend, push-reminders, points-jobs, league-features, fantasy-ingest, results-refresh, epl-jobs, ops-alerts, odds-refresh]
+        options: [frontend, api, api-and-frontend, push-reminders, points-jobs, league-features, fantasy-ingest, results-refresh, epl-jobs, ops-alerts, odds-refresh, nba-jobs]
         default: frontend
         required: true
       release_card:
@@ -200,6 +200,12 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: ./node_modules/.bin/supabase functions deploy gtl-odds-refresh --project-ref "$SUPABASE_PROJECT_REF" --use-api
+      - name: Deploy only the NBA jobs worker (config.toml keeps verify_jwt off; SQL checks its one-run capability; a first deploy creates it)
+        if: inputs.mode == 'deploy' && inputs.target == 'nba-jobs'
+        working-directory: source
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: ./node_modules/.bin/supabase functions deploy gtl-nba-jobs --project-ref "$SUPABASE_PROJECT_REF" --use-api
       - name: Set the reviewed Player Props API flag
         if: inputs.mode == 'deploy' && inputs.target == 'frontend' && inputs.sync_player_props_api
         env:
