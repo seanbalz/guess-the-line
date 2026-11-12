@@ -26,6 +26,7 @@ test('flag off: no Player Props control, request or chunk anywhere', async ({ pa
     await signIn(page, 'luke');
     const tabs = page.getByRole('navigation', { name: 'Main' });
     await tabs.getByRole('button', { name: /^Play(,|$)/ }).click();
+    await expect(page.getByRole('group', { name: 'Play views', exact: true })).toHaveCount(0);
     await openPicksWeek(page);
     await expect(page.getByRole('group', { name: 'Market', exact: true }).getByRole('button')).toHaveText(['Spread', 'Total']);
     await tabs.getByRole('button', { name: /^Bets(,|$)/ }).click();
@@ -34,6 +35,9 @@ test('flag off: no Player Props control, request or chunk anywhere', async ({ pa
     await page.goto('/#history');
     const history = page.locator('[data-page="history"]');
     await expect(history.getByRole('group', { name: 'Market' }).getByRole('button')).toHaveText(['Spread', 'Total']);
+    await page.goto('/#play/props');
+    await expect(page.getByRole('heading', { name: 'Play', exact: true })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Your picks', exact: true })).toBeVisible();
     await expect(page.getByText('Player Props')).toHaveCount(0);
     expect(requests).toEqual([]);
     expect(chunks).toEqual([]);

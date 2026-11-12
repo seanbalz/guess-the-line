@@ -66,9 +66,10 @@ export function PropsUnavailable({ onRetry, busy = false }) {
 }
 
 /** Sheet 01: the hidden-market guess card with half-point plus/minus and a direct numeric editor. */
-export function PropGuessCard({ stat, value, editing, problem, disabled, onStep, onEdit, onType, onDone }) {
+export function PropGuessCard({ stat, value, typed, editing, problem, disabled, onStep, onEdit, onType, onDone }) {
   const s = propStat(stat), inputId = useId(), problemId = useId();
   if (!s) return null;
+  const inputValue = typed ?? value;
   return <Card as="section" className="gx-props-card gx-props-guess" aria-label="Guess the sportsbook line">
     <div className="gx-between gx-hstack gx-gap-8"><h3 className="gx-t-strong">Guess the sportsbook line</h3>
       <InfoButton title="About prop guesses" body={[`Guess the sportsbook line for ${s.label.toLowerCase()}, in ${s.unit}. The market number stays hidden on this screen until you lock in.`, 'Each prop locks on its own and is final. Your accuracy is the miss from the line saved at lock-in.']}/></div>
@@ -81,7 +82,7 @@ export function PropGuessCard({ stat, value, editing, problem, disabled, onStep,
     <p className="gx-t-body gx-c-2 gx-props-center">Your guess · {s.unit}</p>
     {editing ? <div className="gx-props-field">
       <label htmlFor={inputId}>Your {s.label.toLowerCase()} guess</label>
-      <input id={inputId} autoFocus type="number" inputMode="decimal" step="0.5" min={s.guessMin} max={s.guessMax} defaultValue={Number.isFinite(value) ? value : ''}
+      <input id={inputId} autoFocus type="number" inputMode="decimal" step="0.5" min={s.guessMin} max={s.guessMax} defaultValue={Number.isFinite(inputValue) ? inputValue : ''}
         aria-invalid={problem ? true : undefined} aria-describedby={problem ? problemId : undefined} disabled={disabled}
         onChange={event => onType(event.target.value)} onBlur={() => { if (!problem) onDone?.(); }}
         onKeyDown={event => { if (event.key === 'Enter' && !problem) { event.preventDefault(); onDone?.(); } }}/>
@@ -187,7 +188,7 @@ export function PropsEntryScreen({ read, state, on, shared = { status: 'idle', s
       {!list.length ? <li className="gx-t-body gx-c-2">No athlete matches this filter.</li> : null}
     </ul>}
     {athlete && s ? <>
-      <PropGuessCard stat={s.key} value={state.value} editing={state.editing} problem={problem} disabled={state.busy || athlete.closed}
+      <PropGuessCard stat={s.key} value={state.value} typed={state.typed} editing={state.editing} problem={problem} disabled={state.busy || athlete.closed}
         onStep={direction => on.value(stepPropGuess(s.key, state.value, direction))} onEdit={on.edit} onType={on.type} onDone={on.doneEditing}/>
       {state.notice ? <p className="gx-t-body" role="status">{state.notice}</p> : null}
       <Button variant="primary" icon="lock" block disabled={state.busy || athlete.closed || !Number.isFinite(state.value) || Boolean(problem)} onClick={on.lock}>Lock in {s.label.toLowerCase()}</Button>
@@ -198,28 +199,33 @@ export function PropsEntryScreen({ read, state, on, shared = { status: 'idle', s
 }
 
 /** The stateful screen: reads the owner's board for one week and sends draft saves and lock-ins. */
-export default function PlayerPropsEntry({ season, week, onSignInAgain, onStatus }) {
+export default function PlayerPropsEntry({ season, week, onSignInAgain, onStatus, onRetryWeek, active = true }) {
   const [read, setRead] = useState({ status: 'loading', data: null }), [attempt, setAttempt] = useState(0);
   const [state, setState] = useState({ filter: { position: 'all', query: '' }, pick: null, value: null, typed: null, editing: false, phase: 'entry', busy: false, notice: '' });
+  const lockRevision = useRef(0);
   const auth = useRef(onSignInAgain); auth.current = onSignInAgain;
   useEffect(() => {
+    if (!active) return undefined;
     if (!Number.isInteger(season) || !Number.isInteger(week)) { setRead({ status: 'ready', data: { available: false } }); return undefined; }
     const controller = new AbortController();
+    // A board read started before a confirmed lock can still carry the pre-lock state.
+    const revision = lockRevision.current;
+    const stale = () => controller.signal.aborted || lockRevision.current !== revision;
     setRead(current => ({ ...current, status: current.data ? current.status : 'loading' }));
-    propsApi('read', { season, week }, controller.signal).then(data => { if (!controller.signal.aborted) setRead({ status: 'ready', data }); })
+    propsApi('read', { season, week }, controller.signal).then(data => { if (!stale()) setRead({ status: 'ready', data }); })
       .catch(error => {
-        if (controller.signal.aborted) return;
+        if (stale()) return;
         if (error?.status === 401) auth.current?.();
         // A dark or unapplied server answers 404 (GTL_PROPS_OFF or "Not found."): no verified props, never an error.
         setRead(error?.status === 404 ? { status: 'ready', data: { available: false } } : { status: 'error', data: null });
       });
     return () => controller.abort();
-  }, [season, week, attempt]);
+  }, [active, season, week, attempt]);
   const own = useMemo(() => new Map((read.data?.own ?? []).map(g => [selectionKey(g), g])), [read.data]);
   // Other players' guesses are read only once something can be open to you: one of your locks, or a kicked-off offer.
   const locks = (read.data?.own ?? []).filter(g => g.status === 'locked').map(selectionKey).sort().join(',');
   const anyClosed = (read.data?.offers ?? []).some(o => o.closed);
-  const shared = usePropsShared({ season, week, enabled: read.data?.available === true && (Boolean(locks) || anyClosed), version: locks, onSignInAgain });
+  const shared = usePropsShared({ season, week, enabled: active && read.data?.available === true && (Boolean(locks) || anyClosed), version: locks, onSignInAgain });
   const status = useRef(onStatus); status.current = onStatus;
   const pickedLock = state.pick ? own.get(selectionKey(state.pick))?.status === 'locked' : false;
   const phrase = pickedLock ? PROPS_STATUS.locked : state.phase === 'recovery' && state.pick ? PROPS_STATUS.recovery : PROPS_STATUS.entry;
@@ -232,10 +238,15 @@ export default function PlayerPropsEntry({ season, week, onSignInAgain, onStatus
   async function lock() {
     const s = propStat(state.pick?.stat);
     if (!s || state.busy || !Number.isFinite(state.value) || propGuessProblem(s.key, state.value)) return;
+    const boardAtLock = read.data;
     patch({ busy: true, notice: '' });
     try {
       const saved = await propsApi('lock', { ...state.pick, guess: state.value, requestId: crypto.randomUUID() });
-      setRead(current => ({ ...current, data: { ...current.data, own: [...(current.data?.own ?? []).filter(g => selectionKey(g) !== selectionKey(saved)), saved] } }));
+      lockRevision.current += 1;
+      setRead(current => {
+        const board = current.data?.available === true ? current.data : boardAtLock;
+        return { status: 'ready', data: { ...board, own: [...(board?.own ?? []).filter(g => selectionKey(g) !== selectionKey(saved)), saved] } };
+      });
       patch({ busy: false, phase: 'entry' });
     } catch (error) {
       if (error?.status === 401) auth.current?.();
@@ -245,7 +256,7 @@ export default function PlayerPropsEntry({ season, week, onSignInAgain, onStatus
     }
   }
   const on = {
-    retry: () => setAttempt(n => n + 1),
+    retry: () => Number.isInteger(season) && Number.isInteger(week) ? setAttempt(n => n + 1) : onRetryWeek?.(),
     // Changing the position or search goes back to the athlete list (sheet 01 keeps the filters above the chosen athlete).
     filter: filter => patch({ filter, pick: null, value: null, typed: null, editing: false, phase: 'entry', notice: '' }),
     pick,
@@ -262,5 +273,6 @@ export default function PlayerPropsEntry({ season, week, onSignInAgain, onStatus
     keepEditing: () => patch({ phase: 'entry', editing: true }),
     sharedRetry: shared.retry,
   };
-  return <div className={cx('gx-props')}><PropsEntryScreen read={read} state={state} on={on} shared={shared}/></div>;
+  // Remove the picker markup and its native dialogs when leaving the view. The state above retains the guess.
+  return active ? <div className={cx('gx-props')}><PropsEntryScreen read={read} state={state} on={on} shared={shared}/></div> : null;
 }
