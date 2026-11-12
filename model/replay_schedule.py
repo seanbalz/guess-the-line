@@ -13,10 +13,9 @@ import io
 import json
 import pathlib
 import re
-import urllib.request
 from zoneinfo import ZoneInfo
 
-from replay_sources import ALIASES, TEAMS, digest, immutable_write, timestamp
+from replay_sources import ALIASES, TEAMS, digest, immutable_write, timestamp, public_download
 
 DATA_DIR = pathlib.Path(__file__).resolve().parents[1] / '.local' / 'replay-data'
 URL = 'https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv'
@@ -55,12 +54,10 @@ def read_bounded(path, maximum=MAX_BYTES):
 def public_bytes(url):
     if url not in (URL, METADATA_URL):
         raise ValueError('Unsupported public schedule source')
-    request = urllib.request.Request(url, headers={'User-Agent': 'GuessTheLine-source-audit/1'})
-    with urllib.request.urlopen(request, timeout=60) as response:
-        data = response.read(MAX_BYTES + 1)
-    if len(data) > MAX_BYTES:
-        raise ValueError('Schedule download exceeds the size limit')
-    return data
+    return public_download.fetch_public_bytes(
+        url, allowed_urls={URL, METADATA_URL}, maximum=MAX_BYTES,
+        user_agent='GuessTheLine-source-audit/1',
+        redirect_hosts={'release-assets.githubusercontent.com'})
 
 
 def asset_from(metadata):

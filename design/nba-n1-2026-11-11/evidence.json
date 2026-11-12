@@ -1,0 +1,673 @@
+{
+  "generated": "2026-11-11",
+  "scope": "Real production components in the local cloud-test build (vite build --mode cloud-test, served on 127.0.0.1:5198 by playwright.cloud.config.js) with the disposable PGlite ticket store and a synthetic board; no account, provider, hosted read or write.",
+  "clock": "2026-11-11T02:44:00Z (Tuesday, November 10, 2026, 6:44 PM PT)",
+  "captures": [
+    {
+      "file": "01-sport-switch-320-dark.png",
+      "screen": "01-sport-switch",
+      "width": 320,
+      "theme": "dark",
+      "bytes": 154955,
+      "sha256": "f300bb081d4dc3dd3ba3de4818ec0e749d9a0e686c54af16dbdfd343bc1069db",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        44,
+        44,
+        44
+      ],
+      "logos": 6
+    },
+    {
+      "file": "01-sport-switch-390-dark.png",
+      "screen": "01-sport-switch",
+      "width": 390,
+      "theme": "dark",
+      "bytes": 171035,
+      "sha256": "eb1b3676a1303f9a3da769f0861edc15ae3752113fe84581a946b0f0f335324c",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        52,
+        52,
+        52
+      ],
+      "logos": 6
+    },
+    {
+      "file": "01-sport-switch-320-light.png",
+      "screen": "01-sport-switch",
+      "width": 320,
+      "theme": "light",
+      "bytes": 149011,
+      "sha256": "64da5abe18600ed164ac2d9ecced8fdc8abace6ce0385e4f710206bff251e2b1",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        44,
+        44,
+        44
+      ],
+      "logos": 6
+    },
+    {
+      "file": "01-sport-switch-390-light.png",
+      "screen": "01-sport-switch",
+      "width": 390,
+      "theme": "light",
+      "bytes": 164456,
+      "sha256": "91d03e43581c46901581e83b763190242a58fdcf9aedc034489106f2592f6020",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        52,
+        52,
+        52
+      ],
+      "logos": 6
+    },
+    {
+      "file": "01-sport-switch-flag-on-320-dark.png",
+      "screen": "01-sport-switch-flag-on",
+      "width": 320,
+      "theme": "dark",
+      "bytes": 166553,
+      "sha256": "f82023704ce2d16c15b6cd94f32c3b32b4d072844cd2bba045f3cd42201558f3",
+      "targets": [],
+      "fields": [],
+      "smallest": 13,
+      "circles": [],
+      "sports": [
+        44,
+        44,
+        44
+      ],
+      "logos": 0
+    },
+    {
+      "file": "02-team-badges-320-dark.png",
+      "screen": "02-team-badges",
+      "width": 320,
+      "theme": "dark",
+      "bytes": 584886,
+      "sha256": "c01089d6c8b3360a7cebf2237aec73965a0c35b7e265fed4b0282577ab00d77d",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        44,
+        44,
+        44
+      ],
+      "logos": 30
+    },
+    {
+      "file": "02-team-badges-390-dark.png",
+      "screen": "02-team-badges",
+      "width": 390,
+      "theme": "dark",
+      "bytes": 592254,
+      "sha256": "4ef4788d0b3c86a541a45ffa23a35331fcbc432422ff5346e8a27ca910faa06d",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        52,
+        52,
+        52
+      ],
+      "logos": 30
+    },
+    {
+      "file": "02-team-badges-320-light.png",
+      "screen": "02-team-badges",
+      "width": 320,
+      "theme": "light",
+      "bytes": 607645,
+      "sha256": "d65c7745f1e51a1a2ebd1807d9d9a4def8e9ec6c5e4f45d465eda0ac43bc4869",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        44,
+        44,
+        44
+      ],
+      "logos": 30
+    },
+    {
+      "file": "02-team-badges-390-light.png",
+      "screen": "02-team-badges",
+      "width": 390,
+      "theme": "light",
+      "bytes": 636237,
+      "sha256": "9ceb5d1df407e9d95b7f6f54294466e0a1ad8bfeb906c7ebc10d40df889eaa65",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        52,
+        52,
+        52
+      ],
+      "logos": 30
+    },
+    {
+      "file": "03-home-320-dark.png",
+      "screen": "03-home",
+      "width": 320,
+      "theme": "dark",
+      "bytes": 216961,
+      "sha256": "a535e3d258fc6c300b5fe01ffa7b18c9591aa6aeffe8d7f751f50ec95a03e224",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        44,
+        44,
+        44
+      ],
+      "logos": 6
+    },
+    {
+      "file": "03-home-390-dark.png",
+      "screen": "03-home",
+      "width": 390,
+      "theme": "dark",
+      "bytes": 233911,
+      "sha256": "79bb4b836fa79bca0e9d44e9984664e0e2d329198f770b6c2a90aa82d72a798a",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        52,
+        52,
+        52
+      ],
+      "logos": 6
+    },
+    {
+      "file": "03-home-320-light.png",
+      "screen": "03-home",
+      "width": 320,
+      "theme": "light",
+      "bytes": 227566,
+      "sha256": "5ffe223e92abd2d47870c6387a48132f9902aad70ba135f1a57e9f205f3ad414",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        44,
+        44,
+        44
+      ],
+      "logos": 6
+    },
+    {
+      "file": "03-home-390-light.png",
+      "screen": "03-home",
+      "width": 390,
+      "theme": "light",
+      "bytes": 243202,
+      "sha256": "634c7f3d7cbdfc67082c6c924c3e931f393595f7673d902b629250d1a3d93c2d",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        52,
+        52,
+        52
+      ],
+      "logos": 6
+    },
+    {
+      "file": "04-research-games-320-dark.png",
+      "screen": "04-research-games",
+      "width": 320,
+      "theme": "dark",
+      "bytes": 330165,
+      "sha256": "15d72d42b650094531bde56fabfa3ab93703dc695856918b8133105848fe27d0",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        44,
+        44,
+        44
+      ],
+      "logos": 12
+    },
+    {
+      "file": "04-research-games-390-dark.png",
+      "screen": "04-research-games",
+      "width": 390,
+      "theme": "dark",
+      "bytes": 342533,
+      "sha256": "c3416589ba9483dd5719cafb0ca2c150dafc685a3f3d6760858b062b49e192d0",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        52,
+        52,
+        52
+      ],
+      "logos": 12
+    },
+    {
+      "file": "04-research-games-320-light.png",
+      "screen": "04-research-games",
+      "width": 320,
+      "theme": "light",
+      "bytes": 343775,
+      "sha256": "37199c90ac38b4910ffdd7ad413751874330af8955a7c1f9155abb342335ea11",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        44,
+        44,
+        44
+      ],
+      "logos": 12
+    },
+    {
+      "file": "04-research-games-390-light.png",
+      "screen": "04-research-games",
+      "width": 390,
+      "theme": "light",
+      "bytes": 363841,
+      "sha256": "10cae819d3e99b19437c902ca422639db1424df577b16e8d931f7721e7d75cf6",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        52,
+        52,
+        52
+      ],
+      "logos": 12
+    },
+    {
+      "file": "05-bets-open-320-dark.png",
+      "screen": "05-bets-open",
+      "width": 320,
+      "theme": "dark",
+      "bytes": 297635,
+      "sha256": "2d08616fb8531f1b0325eedd23f78c8111f174d0eb639afb79450707984c4fdf",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        44,
+        44,
+        44
+      ],
+      "logos": 10
+    },
+    {
+      "file": "05-bets-open-390-dark.png",
+      "screen": "05-bets-open",
+      "width": 390,
+      "theme": "dark",
+      "bytes": 314959,
+      "sha256": "4bf9465125f196683efe4bc6d170eaaa9a2d63890482116c72ddfd8f7ef698fe",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        52,
+        52,
+        52
+      ],
+      "logos": 10
+    },
+    {
+      "file": "05-bets-open-320-light.png",
+      "screen": "05-bets-open",
+      "width": 320,
+      "theme": "light",
+      "bytes": 320158,
+      "sha256": "656791dd3954a7e8249c0fcd4ac6f93afe2f9e53956a4c28aa739e499e668d07",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        44,
+        44,
+        44
+      ],
+      "logos": 10
+    },
+    {
+      "file": "05-bets-open-390-light.png",
+      "screen": "05-bets-open",
+      "width": 390,
+      "theme": "light",
+      "bytes": 327670,
+      "sha256": "a0df08555b560d4401367797684190b6442ccd00a5536647a5cfd46db78b5c6a",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        52,
+        52,
+        52
+      ],
+      "logos": 10
+    },
+    {
+      "file": "06-confirm-result-320-dark.png",
+      "screen": "06-confirm-result",
+      "width": 320,
+      "theme": "dark",
+      "bytes": 105816,
+      "sha256": "e929c6b545747c9515fcadb9161420fc44e371cb611bccdedaf955787cc42938",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        44,
+        44,
+        44
+      ],
+      "logos": 2
+    },
+    {
+      "file": "06-confirm-result-390-dark.png",
+      "screen": "06-confirm-result",
+      "width": 390,
+      "theme": "dark",
+      "bytes": 117693,
+      "sha256": "9c0b90598881998c2a3f8fa79049e360b2147137eda95079ee3d5402b93551f5",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        52,
+        52,
+        52
+      ],
+      "logos": 2
+    },
+    {
+      "file": "06-confirm-result-320-light.png",
+      "screen": "06-confirm-result",
+      "width": 320,
+      "theme": "light",
+      "bytes": 96899,
+      "sha256": "347e843f65d92bc04da5e859d74f876e49b91285d7aa39702672d073ee77dff8",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        44,
+        44,
+        44
+      ],
+      "logos": 2
+    },
+    {
+      "file": "06-confirm-result-390-light.png",
+      "screen": "06-confirm-result",
+      "width": 390,
+      "theme": "light",
+      "bytes": 109409,
+      "sha256": "94a2329ec1d42bf7419cca708b7acc0bde631613961b3eb173e0c557a38ea741",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        52,
+        52,
+        52
+      ],
+      "logos": 2
+    },
+    {
+      "file": "07-bets-history-320-dark.png",
+      "screen": "07-bets-history",
+      "width": 320,
+      "theme": "dark",
+      "bytes": 375843,
+      "sha256": "ff0b957cbf8a1b0f45fb152e55bac2ead56e5a8688703ce6b7b9b444749a8a0e",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        44,
+        44,
+        44
+      ],
+      "logos": 8
+    },
+    {
+      "file": "07-bets-history-390-dark.png",
+      "screen": "07-bets-history",
+      "width": 390,
+      "theme": "dark",
+      "bytes": 392316,
+      "sha256": "a623cb59187cfab6c656c0cbb9fab63254498a0b5e0e5b5c1b4269fac629c585",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        52,
+        52,
+        52
+      ],
+      "logos": 8
+    },
+    {
+      "file": "07-bets-history-320-light.png",
+      "screen": "07-bets-history",
+      "width": 320,
+      "theme": "light",
+      "bytes": 403504,
+      "sha256": "1c42928e88744179fe9ec2ea0db4cfd96960c9aa281a9ddc0356f6acb97ce8ad",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        44,
+        44,
+        44
+      ],
+      "logos": 8
+    },
+    {
+      "file": "07-bets-history-390-light.png",
+      "screen": "07-bets-history",
+      "width": 390,
+      "theme": "light",
+      "bytes": 417585,
+      "sha256": "52e2048b2bf320cc723bffe254d8caece21476fd4ae4f9db8ce6987550de56b8",
+      "targets": [],
+      "fields": [],
+      "smallest": 12,
+      "circles": [],
+      "sports": [
+        52,
+        52,
+        52
+      ],
+      "logos": 8
+    },
+    {
+      "file": "08-track-bet-320-dark.png",
+      "screen": "08-track-bet",
+      "width": 320,
+      "theme": "dark",
+      "bytes": 153367,
+      "sha256": "22164f414b4cb79dcaabbf5555cc5e71c5bf254d4c151f925d80375b6cb92667",
+      "targets": [],
+      "fields": [],
+      "smallest": 14,
+      "circles": [],
+      "sports": [
+        44,
+        44,
+        44
+      ],
+      "logos": 2
+    },
+    {
+      "file": "08-track-bet-390-dark.png",
+      "screen": "08-track-bet",
+      "width": 390,
+      "theme": "dark",
+      "bytes": 162343,
+      "sha256": "83657cf8a2d6040da1e8281bb851d1821ca8211b5397e510dcc1e132b31f37a9",
+      "targets": [],
+      "fields": [],
+      "smallest": 14,
+      "circles": [],
+      "sports": [
+        52,
+        52,
+        52
+      ],
+      "logos": 2
+    },
+    {
+      "file": "08-track-bet-320-light.png",
+      "screen": "08-track-bet",
+      "width": 320,
+      "theme": "light",
+      "bytes": 133556,
+      "sha256": "6d32d8821a13487197f2ea93bcb619bede7364b18ab63009b8cf0e2628c3c2b1",
+      "targets": [],
+      "fields": [],
+      "smallest": 14,
+      "circles": [],
+      "sports": [
+        44,
+        44,
+        44
+      ],
+      "logos": 2
+    },
+    {
+      "file": "08-track-bet-390-light.png",
+      "screen": "08-track-bet",
+      "width": 390,
+      "theme": "light",
+      "bytes": 138784,
+      "sha256": "9a380626adb7985a3b36b7a711314dce4c7dafa3251386c066e495e7c041dfd4",
+      "targets": [],
+      "fields": [],
+      "smallest": 14,
+      "circles": [],
+      "sports": [
+        52,
+        52,
+        52
+      ],
+      "logos": 2
+    },
+    {
+      "file": "09-play-held-320-dark.png",
+      "screen": "09-play-held",
+      "width": 320,
+      "theme": "dark",
+      "bytes": 107128,
+      "sha256": "707baf176addc6d275fcdc295cfaf2341541f23f81c5b829c4609cce3f329646",
+      "targets": [],
+      "fields": [],
+      "smallest": 13,
+      "circles": [],
+      "sports": [
+        44,
+        44,
+        44
+      ],
+      "logos": 0
+    },
+    {
+      "file": "09-play-held-390-dark.png",
+      "screen": "09-play-held",
+      "width": 390,
+      "theme": "dark",
+      "bytes": 120347,
+      "sha256": "89f4264dce80c19e58a697e0e8ba85c008b63fde871befc55474f899aa1895e1",
+      "targets": [],
+      "fields": [],
+      "smallest": 13,
+      "circles": [],
+      "sports": [
+        52,
+        52,
+        52
+      ],
+      "logos": 0
+    },
+    {
+      "file": "09-play-held-320-light.png",
+      "screen": "09-play-held",
+      "width": 320,
+      "theme": "light",
+      "bytes": 125848,
+      "sha256": "0fc99475e47141ea0d50b5aff321d0b9c0b361d118fb1de782f59674436f6bb7",
+      "targets": [],
+      "fields": [],
+      "smallest": 13,
+      "circles": [],
+      "sports": [
+        44,
+        44,
+        44
+      ],
+      "logos": 0
+    },
+    {
+      "file": "09-play-held-390-light.png",
+      "screen": "09-play-held",
+      "width": 390,
+      "theme": "light",
+      "bytes": 144902,
+      "sha256": "dc1e34b82e571595bb384e9de9ec4f2e9bbd36129031122ef937903b8caf121a",
+      "targets": [],
+      "fields": [],
+      "smallest": 13,
+      "circles": [],
+      "sports": [
+        52,
+        52,
+        52
+      ],
+      "logos": 0
+    }
+  ]
+}

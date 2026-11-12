@@ -7,7 +7,7 @@ import { cx } from '../ui/cx.js';
 import { APP_RELOAD_COPY } from '../../appView.js';
 import { useShell } from './context.js';
 import { navigateSport } from '../nba/route.js';
-import { EplAccessContext, sportOptions } from '../epl/route.js';
+import { EplAccessContext, NBA_ON_SWITCH, sportOptions } from '../epl/route.js';
 import { SportNavigationContext, sportSwitchHash } from '../sportSwitch.js';
 import { SHELL_COPY, TABS, TAB_INFO, leagueLabel, tabBadge } from './tabs.js';
 import { PrismBrand } from '../ui/PrismBrand.jsx';
@@ -15,6 +15,7 @@ import { HomeBrand } from '../home/HomeBrand.jsx';
 import homeNfl from '../ui/brand-assets/nfl.png';
 import homePremierDark from '../ui/brand-assets/premier-league-white.svg';
 import homePremierLight from '../ui/brand-assets/premier-league-purple.svg';
+import homeNba from '../ui/brand-assets/nba.png';
 
 // Four primary destinations, using the shared original icon language.
 const TAB_ICONS = { home: 'house', play: 'target', bets: 'ticket', research: 'chart' };
@@ -41,16 +42,25 @@ export function TopBar({ leagueName, you, onHome, onLeague, onMenu, compact = fa
   );
 }
 
+export const SPORT_NAMES = Object.freeze({ nfl: 'National Football League', epl: 'Premier League', nba: 'National Basketball Association' });
+/** One league's official mark (each in its own circle); the Premier League lion has a dark and a light file. */
+function LeagueMark({ sport, dark, light }) {
+  if (sport === 'epl') return <><img className={dark} src={homePremierDark} alt=""/><img className={light} src={homePremierLight} alt=""/></>;
+  return <img src={sport === 'nba' ? homeNba : homeNfl} alt=""/>;
+}
+
 /**
- * The NFL/EPL selector, a plain row right after the top bar. NBA is hidden from this navigation. It stays out of the sticky
- * bar so the bar keeps its --gx-size-topbar height, which sticky headings and focus scroll margins rely on.
+ * The sport selector, a plain row right after the top bar (or the compact header's marks). NBA joins it only with
+ * NBA_ON_SWITCH, except that while NBA shows its circle is drawn selected. It stays out of the sticky bar so the bar keeps
+ * its --gx-size-topbar height, which sticky headings and focus scroll margins rely on.
  */
 export function SportControls({ marks = false }) {
   const epl = useContext(EplAccessContext);
   const { sport, change } = useContext(SportNavigationContext);
   const choose=value=>change?change(value):navigateSport(sportSwitchHash(value,window.location.hash));
-  if(marks)return <nav className="gx-home-sports" aria-label="Sports"><div className="gx-hstack gx-gap-8" role="group" aria-label="Sport">{sportOptions(epl).map(option=><button key={option.value} type="button" className="gx-home-sport" aria-label={option.value==='nfl'?'National Football League':'Premier League'} aria-pressed={sport===option.value} onClick={()=>choose(option.value)}>{option.value==='nfl'?<img src={homeNfl} alt=""/>:<><img className="gx-home-pl-dark" src={homePremierDark} alt=""/><img className="gx-home-pl-light" src={homePremierLight} alt=""/></>}</button>)}</div></nav>;
-  return <nav className="gx-sport-controls" aria-label="Sports"><div className="gx-hstack gx-gap-8" role="group" aria-label="Sport">{sportOptions(epl).map(option=><button key={option.value} type="button" className="gx-sport-mark" aria-label={option.value==='nfl'?'National Football League':'Premier League'} title={option.value==='nfl'?'National Football League':'Premier League'} aria-pressed={sport===option.value} onClick={()=>choose(option.value)}>{option.value==='nfl'?<img src={homeNfl} alt=""/>:<><img className="gx-prism-dark" src={homePremierDark} alt=""/><img className="gx-prism-light" src={homePremierLight} alt=""/></>}</button>)}</div></nav>;
+  const options=sportOptions(epl,NBA_ON_SWITCH||sport==='nba');
+  if(marks)return <nav className="gx-home-sports" aria-label="Sports"><div className="gx-hstack gx-gap-8" role="group" aria-label="Sport" data-count={options.length}>{options.map(option=><button key={option.value} type="button" className="gx-home-sport" aria-label={SPORT_NAMES[option.value]} aria-pressed={sport===option.value} onClick={()=>choose(option.value)}><LeagueMark sport={option.value} dark="gx-home-pl-dark" light="gx-home-pl-light"/></button>)}</div></nav>;
+  return <nav className="gx-sport-controls" aria-label="Sports"><div className="gx-hstack gx-gap-8" role="group" aria-label="Sport" data-count={options.length}>{options.map(option=><button key={option.value} type="button" className="gx-sport-mark" aria-label={SPORT_NAMES[option.value]} title={SPORT_NAMES[option.value]} aria-pressed={sport===option.value} onClick={()=>choose(option.value)}><LeagueMark sport={option.value} dark="gx-prism-dark" light="gx-prism-light"/></button>)}</div></nav>;
 }
 
 /** Shared detail navigation stays above the destination's own title. */

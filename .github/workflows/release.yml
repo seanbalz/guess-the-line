@@ -50,17 +50,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ github.sha }}
           path: control
           persist-credentials: false
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
       - name: Reject non-main dispatch and invalid input
         run: node --input-type=module -e "import { validateRequest } from './control/scripts/release-preflight.mjs'; validateRequest(process.env)"
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ inputs.source_sha }}
           fetch-depth: 0
@@ -75,7 +75,7 @@ jobs:
         run: |
           echo 'Source and exact-commit CI verified. No protected credentials were requested, no hosted readiness was checked, and nothing was deployed.' >> "$GITHUB_STEP_SUMMARY"
           echo 'Required production configuration is listed in docs/SHARED_DEPLOYMENT.md. Use readiness after environment setup to verify hosted state.' >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: release-source-${{ github.run_id }}
           path: evidence/source.json
@@ -96,18 +96,18 @@ jobs:
       CLOUDFLARE_PAGES_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
       WRANGLER_SEND_METRICS: 'false'
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ github.sha }}
           path: control
           persist-credentials: false
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ inputs.source_sha }}
           fetch-depth: 0
           path: source
           persist-credentials: false
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
           cache: npm
@@ -216,7 +216,7 @@ jobs:
           echo 'Signed-in acceptance and real-phone verification remain separate. Record successful deployment identifiers in a dated repository release record.' >> "$GITHUB_STEP_SUMMARY"
       - name: Save allowlisted release evidence (no credentials or private state)
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: release-evidence-${{ github.run_id }}
           path: |

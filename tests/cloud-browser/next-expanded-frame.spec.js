@@ -35,7 +35,8 @@ async function compact(page,context,theme,width) {
   await expect(root(page)).not.toHaveClass(/gx-home-design/);
   await expect(page.locator('.gx-topbar')).toHaveCSS('position','relative');
   await expect(page.locator('.gx-sport-controls,.gx-league-btn')).toHaveCount(0);
-  await expect(page.locator('.gx-home-sport').first()).toHaveCSS('width','52px');
+  // D-85: three league circles (NBA is on the switch, item 6) are 44px below 360px wide; otherwise 52px.
+  await expect(page.locator('.gx-home-sport').first()).toHaveCSS('width',width<360&&await page.locator('.gx-home-sport').count()===3?'44px':'52px');
   const sport=page.getByRole('button',{name:context.startsWith('epl-')?'Premier League':'National Football League',exact:true});
   await expect(sport).toHaveAttribute('aria-pressed','true');
   const proof=await page.evaluate(()=>{

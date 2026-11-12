@@ -1,30 +1,108 @@
 # Decision log
 
-## D-84 — Prism Glass stands; the rest of the D-69 overhaul closes unmerged (November 11, 2026)
+## D-85 — NBA: N1 first, then nightly Guess the Spread; official NBA logos; 31-credit cap; all members play; records backfill; NBA on the switch (November 11, 2026)
 
-Status: decided. No code, release or migration.
+Status: decided; N1 merged (PR #542) and deployed as Pages `b8019df1` on November 12, 2026 UTC
+([release record](RELEASE_2026_11_12_NBA_N1.md)); NBA joins the sport switch by item 6. Numbered D-85 because
+D-84 is taken by open PR #540. Sean answered in the captain session on November 11, 2026, on
+the [NBA build-out proposal](superpowers/specs/2026-11-10-nba-buildout-design.md):
 
-Sean answered **"Prism Glass stands (Recommended)"** on November 11, 2026, in the D-69 design session. The question:
-"Prism Glass (live since Nov 7–8) already restyled Bets, Menu, EPL and Play, overlapping D-69 step 4 (Bets, branch
-pushed as WIP), step 5 (Menu/EPL) and B1 Play polish. Which should the rest of the overhaul follow?" The option he
-picked read: "Close step 4, step 5 and B1 without merging. Step 4's only keepers, the bet moments and the server-clock
-fix, could come later as small PRs on main if you want them."
+1. **Scope.** Sean: **"Guess the Spread"**. Build N1 (NBA in the Prism shell, plus the tracker
+   fixes) first, then nightly Guess the Spread (N3). The zero-credit Pick'em alternative is not
+   taken.
+2. **Badges.** Sean: **"Approve badges"**, immediately corrected by **"we need nba logo and team
+   logos not letters"**. NBA uses the official NBA league logo and the official logos of all 30
+   NBA teams, not the letters-only text badges and original "NBA" text badge the proposal drew.
+   The 44 px league circles below 360 px wide (three 52 px circles do not fit beside the G and
+   the avatar there) stay approved. NBA stays off the production sport switch
+   (`NBA_ON_SWITCH = false` in `web/src/next/epl/route.js`) until Sean says otherwise.
+3. **Credit cap and pause threshold.** Sean: **"Approve 31 / 100"**. NBA may spend at most 31
+   Odds API credits a month, and NBA pauses when the shared conservative remaining falls below
+   100 credits. NBA is always the lane that is refused, never NFL or EPL. Recorded for N2; nothing
+   is built or applied here.
+4. **Who plays.** Sean: **"All community members"**. Every Community member may play NBA Guess
+   the Spread (the `gtl_nba_player` rule), like EPL's open access, with one shared NBA standings.
+   Recorded for N3; nothing is built or applied here.
+5. **Records backfill.** Sean: **"Backfill once, free"** (spec question 6). Team W–L records
+   on NBA pick cards may use one backfill of the earlier regular-season game days that storage
+   lacks: a few free BALLDONTLIE Games requests, run once, through the existing 5-minute TTL,
+   15 s lease and 35 s global cooldown, and no Odds API credit. Records are still computed when
+   read from stored finals only; after the backfill, a team with a game day still missing shows
+   "—", never a partial count (D-62 rule 8). The backfill is not repeated, and no record read
+   calls the provider. Recorded for N3; nothing is built or run here, and the run rides N3's
+   Sean-gated apply and deploy.
+6. **NBA on the switch.** Sean: **"Yes, show NBA"** (spec question 5), answering "Show NBA on the
+   sport switch now?" after the N1 release, with the live NBA Home and the 320 px capture of the
+   switch with NBA on in front of him. `NBA_ON_SWITCH` is now `true`: NFL and EPL screens show the
+   NBA circle (not selected) after NFL and EPL, three 44 px circles below 360 px wide. NBA needs
+   no access check (the tracker is private to each member). This ends the October 29 hide; the
+   flag stays so NBA can be hidden again on Sean's word. Frontend only: no migration, API change
+   or credit.
 
-The approved Prism Glass compositions set the layouts for Home, Play, Research, Bets, Menu and the EPL shell
-([confirmed rollout](CONFIRMED_VISUAL_ROLLOUT_2026_11_07.md), [Prism release](RELEASE_2026_11_08_PRISM_ROLLOUT.md)).
-D-69 is superseded where it disagrees:
+**Logo basis (the D-46 and November 7 league-mark precedent, extended unchanged).** The 30 team
+logos are self-hosted 128 px downscaled copies of ESPN CDN images
+(`a.espncdn.com/i/teamlogos/nba/500/<code>.png`); the league mark is the NBA logoman from
+`a.espncdn.com/i/teamlogos/leagues/500/nba.png`, self-hosted at 144 px beside the NFL shield and
+Premier League lion. Each file was downloaded into its own new, empty directory outside the
+repository, checked there (real PNG, RGBA, all four corners transparent, checked by eye against
+the team names) and only then copied in; no artwork was edited. Free public sources only; no Odds
+API credit or new provider call. Rights, on every record: "Third-party trademark; used only to
+identify the team/league; no affiliation, endorsement or license claimed." The notice "NBA and
+team names, logos and marks are trademarks of the NBA and its teams; used here only to identify
+the teams. No endorsement." is on the Terms page beside the NFL and Premier League notices and
+at the foot of NBA Research › Games. Records: [the register](TEAM_LOGO_SOURCES.md#nba-team-logos),
+`web/public/team-logos/nba/sources.json` and `web/src/next/ui/brand-assets/sources.json`.
 
-- **Steps 1–3** (Play, Home, Research) shipped on November 4. Their release records stay as history.
-- **Step 4 (Bets)** is the branch `claude/overhaul-step4-bets` at `6266ef47`. It is pushed, never merged, and kept for
-  reference only:
-  - It holds a merge of `main` at `5105abed`, unreviewed and untested.
-  - Its commit `90310c32` folds the approved Prism Bets landing into D-69 tiles; it must not reach `main`.
-- **Step 5 (Menu and Premier League)** was planned on November 4 and never built.
-- **B1 Play polish**, the design-audit fixes made on the pre-Prism Play, is closed. A fix that still applies is redone on
-  Prism's Play when Sean asks for it.
-- **Available on request, not adopted:**
-  - step 4's Bets moments (a tracked bet win small, a loss quiet, through the moments engine);
-  - the same-render fix in `web/src/next/home/useServerNow.js`.
+**League-keyed lookup.** Thirteen NBA codes are also NFL codes (ATL CHI CLE DAL DEN DET HOU IND
+LAC MIA MIN PHI WAS). NBA screens use `resolveNbaTeamLogo` (`NbaTeamBadge`) only, never
+`resolveTeamMark` or `resolveTeamBadge`; a test proves each colliding code draws the NBA file.
+Each mark has its own glass circle; letters show only while a logo loads or if it fails.
+
+**Switch display.** With the flag off, NFL and EPL screens show no NBA circle. While a saved
+`#nba` link shows NBA, its circle is drawn selected so the member sees where they are, as the v1
+NBA header did. Sean turned NBA on for NFL and EPL screens with item 6.
+
+**Not answered:** the stale Codex worktree (spec question 8).
+**Not built:** N2, N3 and N4 (decisions 3, 4 and 5 are records only). Every
+migration, deploy, schedule and the physical-iPhone check stay Sean-gated.
+
+## D-84 — Prism Glass stays; D-69 steps 4 and 5 and the B1 Play polish stop (November 11, 2026)
+
+Status: decided. Nothing is applied, deployed or merged. Sean gave the same ruling in two sessions on November 11,
+2026:
+- In the operating session, he answered **"Yes, keep Prism"** to "Stop D-69 steps 4 and 5 and keep Prism Glass for
+  Bets and Menu?". He then answered **"Yes, stop B1"** to "Stop the B1 Play polish too, since Prism already redesigned
+  Play?".
+- In the step 4 design session, he chose **"Prism Glass stands (Recommended)"**. That option read: close step 4, step
+  5 and B1 without merging; the bet moments and the server-clock fix could come later as small PRs if he wants them.
+
+**Why it came up.** D-69 steps 1 to 3 (Play, Home and Research) were released on November 4. Step 4 (Bets) was built
+the same day on its own branch, and it stopped unmerged when its session hit a usage limit. On November 7 and 8 Sean
+approved and released the Prism Glass redesign:
+- Home: [the Home release](RELEASE_2026_11_07_APPROVED_HOME.md).
+- Play and Score, an approved Bets landing with four more Bets compositions, the Menu variants and the Premier League
+  shell: [the rollout checklist](CONFIRMED_VISUAL_ROLLOUT_2026_11_07.md),
+  [the Bets closeout](PRISM_BETS_CLOSEOUT_2026_11_07.md) and
+  [the November 8 release](RELEASE_2026_11_08_PRISM_ROLLOUT.md).
+
+On November 11, step 4 resumed and merged `main`. Its commit `90310c32` folded the approved Prism Bets landing into
+step 4's tiles, which would have replaced a design Sean had approved. The operating session paused it and asked.
+
+**Ruling:**
+- Prism Glass is the design for Home, Play, Bets and the Menu. Later work on those screens starts from it.
+- D-69 step 4 (Bets) and step 5 (Menu and Premier League) stop. Neither is merged or released.
+- B1, the design audit's Play polish, stops too. It was built on the Play screens from before Prism. Any fix in it
+  that still applies is redone on Prism's Play, as a small PR of its own.
+- Step 4's bet moments and the server-clock fix can come later as small PRs, if Sean asks for them.
+- Step 4's work is kept, unmerged, on `claude/overhaul-step4-bets`, at `6266ef47` when it was paused. That commit
+  includes the unfinished port as a WIP commit. The step 5 plan stays in the design session's notes, not in this
+  repository.
+
+**Unchanged:**
+- Steps 1 to 3 as released.
+- Their build decisions in D-69, which Sean has not approved. A decision about a screen that Prism replaced, such as
+  step 2's H1A Home card, no longer applies. The rest stay open. This ruling does not re-check each one.
+- Every game rule. This is a layout ruling only.
 
 ## D-83 — Premier League draft order: your confirmed import wins over the Tuesday recheck (November 11, 2026)
 
@@ -471,8 +549,8 @@ remain required. Player pick deadlines and locks are unchanged.
 
 ## D-69 — Design overhaul: Moments, nesting cards on every tab, next move first (November 2, 2026)
 
-Superseded where it disagrees by [D-84](#d-84--prism-glass-stands-the-rest-of-the-d-69-overhaul-closes-unmerged-november-11-2026)
-(November 11, 2026): Prism Glass sets the layouts. Steps 4 and 5 and B1 closed unmerged.
+Superseded where it disagrees by [D-84](#d-84--prism-glass-stays-d-69-steps-4-and-5-and-the-b1-play-polish-stop-november-11-2026)
+(November 11, 2026): Prism Glass sets the layouts, and steps 4 and 5 and B1 stopped unmerged.
 
 Sean asked on October 26 for "a page by page node by node overhaul" because the app "doesn't have interactive and
 motion and game type features". On November 2 he answered five questions, one at a time, on a mockup canvas

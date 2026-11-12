@@ -1,26 +1,125 @@
 # Guess The Line — current completion register
 
-## D-69 overhaul closed under Prism Glass (D-84) — November 11, 2026
+## Security warning remediation — November 11, 2026
 
-Sean ruled "Prism Glass stands (Recommended)" ([D-84](DECISIONS.md)). No code, release or migration.
+Owner: Sean Balsiger. Version 1. Branch `codex/security-warning-fixes-2026-11-11`,
+based on freshly fetched `main` at `248108cb2f57fb9565e48f44920b502f5315796a`.
+This records source changes and local evidence; merge and deployment are separate.
 
-- **Closed unmerged:**
-  - D-69 step 4 (Bets), at `6266ef47` on `claude/overhaul-step4-bets`. It is reference only: its tests, browser suite
-    and whole-branch review never ran on its merge of `main`.
-  - Step 5 (Menu and EPL), which was only planned.
-  - B1 Play polish.
-- **Step 3 (Research) signed-in readback**, owed since November 4, comes from the hosted logs, 24 hours to about 17:10
-  UTC on November 11. Every signed-in `gtl-api` call on Research's routes returned 200 (204 for preflights):
-  - `GET /personal`: 53, slowest 3.0 s;
-  - `/lines/research`: 16, slowest 2.6 s;
-  - `/lines/game`: 12, slowest 1.4 s;
-  - `/lines/assessments`: 8, slowest 3.9 s;
-  - `/lines/teams`: 3;
-  - `/personal/notes`: 3;
-  - `/lines/research-links`: 2.
+- The [previous audit](https://github.com/seanbalz/guess-the-line/actions/runs/42988129446)
+  reported 43 mutable action references and five dynamic Python URL calls, plus
+  the Git object SHA-1 warning already addressed in PR #536. All **45** current
+  external action references (including two in the Playwright composite action)
+  now use full commit hashes, resolved with `git ls-remote` against the original
+  publishers' existing tags. Version comments retain the selected tags; this
+  does not intentionally upgrade action versions. The action-pin regression
+  test covers workflows and composite actions.
+- All five Python callers use `scripts/public_download.py`: exact initial URL
+  allowlists, HTTPS with explicit certificate and hostname verification, no embedded credentials
+  or custom ports, bounded reads and at most five redirects. Each redirect is
+  checked before connecting; only the explicit GitHub release CDN is additionally
+  allowed for nflverse downloads. The historical CSV and ESPN crest fetches have
+  no additional redirect hosts. Source hashes, parser validation and immutable
+  evidence writes remain in place. One narrow `HTTPSConnection` audit annotation
+  covers Semgrep's pre-Python-3.4.3 compatibility warning: the project requires
+  Python 3.10+, explicitly supplies `ssl.create_default_context()`, and tests
+  `check_hostname` plus `CERT_REQUIRED`. No scan rule is globally disabled.
+- Regression evidence: the tampered-manifest local-file test and action-pin test
+  both failed before the fixes and pass afterward. All 172 Python model tests
+  pass with the pinned historical CSV present (zero skips), including 14 new
+  download security tests. The nine snapshot tests and 15 focused workflow tests
+  pass. The full local suite passes: 3,225 Node tests and 1,011 Vitest tests, with
+  zero skips. Typecheck, build and Brand QA pass (Python UTF-8 mode on Windows).
+- Read-only network checks passed for the pinned historical CSV, the nflverse
+  schedule release and metadata, and one existing ESPN crest URL. No source
+  manifest, shipped image, player record or production service was changed.
+- The audit trigger now includes model code, scripts and all GitHub workflow/
+  composite-action changes. [PR #549](https://github.com/seanbalz/guess-the-line/pull/549)
+  carries this work. The [first fresh audit](https://github.com/seanbalz/guess-the-line/actions/runs/43131382094)
+  at `79a4f5fa81ec104f86121f597fc51ba11ae5f44b` cleared the original findings and
+  found only the HTTPS compatibility audit warning addressed above. Trivy found
+  zero high/critical findings. Both the old and fresh Semgrep reports contain
+  24 engine diagnostics (partial parsing, a matching error, and generated-bundle
+  timeouts); a zero finding count does not establish complete scan coverage.
+  The final audit is available through the PR's security checks after this update.
 
-  No CPU-limit or error-level function log was found. The window's 401s were the signed-out probe runs. These calls
-  came from the live Research, which is Prism's since November 8, not only step 3's screens.
+## NBA N1 released — November 12, 2026 UTC (November 11 Pacific)
+
+Sean merged PR #542 and said "Yes, deploy". `frontend` run
+[43124865004](https://github.com/seanbalz/guess-the-line/actions/runs/43124865004) from `main` at
+`cac63e7a` shipped Pages `b8019df1` (176 assets checked); `gtl-api` stays v55 and history stays 86
+rows. Signed-in view: `#nba/home` drew NBA in the Prism shell with the official logos;
+`nba/games` and `nba/read` answered 200 on v55; no 5xx. NBA stays off the switch. Sean also
+answered "Backfill once, free" for NBA records (D-85 item 5, PR #544). Physical-iPhone check not
+done. [Release record](RELEASE_2026_11_12_NBA_N1.md).
+
+## Sign-in hooks split, redesign stage 76 as code only — November 11, 2026
+
+Sean chose "Keep Prism, code only": the sign-in, recovery, invitation and name screens keep the Prism look
+released November 8, so nothing changes on screen. `AuthGate.jsx` now holds `useAuthSession()` and
+`useSignInForm()`, and every form call to Supabase Auth goes through `web/src/signInCalls.js`. D-65 removed the
+`gtl.app` flag, so there is no `NextSignIn` chunk. The new browser spec `next-auth.spec.js` passed 7 of 7 on the
+unchanged AuthGate before the split, and again after it with `google-sign-in.spec.js` (18 of 18). The Vitest file
+`next-sign-in.test.jsx` has 14 tests. Not released; a release goes through the shared workflow.
+
+## NBA N1: NBA in the Prism shell with official logos — November 11, 2026
+
+Sean chose "Guess the Spread" (N1 first, then N3) and replaced the letter badges with "we need nba
+logo and team logos not letters" (D-85). Branch `claude/nba-n1-2026-11-11` builds milestone N1 of
+[the NBA build-out](superpowers/specs/2026-11-10-nba-buildout-design.md). Pages only: no migration,
+API change, provider call or credit.
+
+- **Shell.** `NBA_SHELL` (`web/src/next/nba/NbaShell.jsx`, `shellRoute.js`, `nbaFrameContext`) puts NBA
+  in the same frame, menu and tab bar as NFL and EPL: Home, Play (held until N3), Bets › Open and
+  History, Research › Games. The v1 header, account panel and three-button nav are retired. The NBA
+  mount reads only `lobby`, `nba/games` and `nba/read` (no NFL week, roster or community read).
+- **Links.** `#nba/games`, `#nba/bets`, `#nba/history` and any unknown `#nba/...` land on their new
+  place with `replaceState`; Back never returns to the old address.
+- **Logos (D-85).** The official NBA league logo and all 30 team logos, self-hosted under the D-46
+  rule with source URL, retrieval time, SHA-256 and rights per file
+  ([register](TEAM_LOGO_SOURCES.md#nba-team-logos)); league-keyed `NbaTeamBadge`, so the 13 codes
+  shared with NFL never draw an NFL logo. NBA notice on the Terms page and NBA Research.
+- **Switch.** `NBA_ON_SWITCH = false`: no NBA circle on NFL or EPL screens; while NBA shows, its circle
+  is drawn selected. Three circles are 44 px below 360 px wide.
+- **Tracker fixes.** Whole American prices (+102 for 49.5% Novig; the stored value and original input
+  are kept); "Needs your result" suggests a result only from a linked BALLDONTLIE final
+  (`shared/nba-grade.mjs`) and saves only on the owner's tap through `/nba/save`, reason "Confirmed
+  from final score"; the Track bet editor is a shell sheet whose draft guard is the shell's.
+- **Evidence.** [37 real-build phone captures](../design/nba-n1-2026-11-11/README.md) at 320 and 390 px,
+  Dark and Light, plus one review-only 320 px capture with the switch flag forced on locally.
+
+Sean also answered "Approve 31 / 100" (NBA cap 31 credits a month, pause below 100 shared
+remaining) and "All community members" (every Community member plays NBA Guess the Spread, one
+shared standings); both are recorded in D-85 for N2 and N3 and not built.
+
+Verification (executed on Windows): node 3,224 pass / 0 skipped; vitest 1,011 pass; typecheck clean;
+`build:cloud` built; Brand QA passed; NBA, capture and persona browser specs 10 pass (1 local-only
+capture skipped); 126 related shell, EPL and sport-switch browser tests pass.
+
+Not done at the time: merge, Pages deploy, NBA on the switch, N2 to N4, the physical-iPhone check
+and Sean's review of the captures. **Update:** merged (PR #542) and deployed (Pages `b8019df1`, see
+the section above); question 6 is answered ("Backfill once, free"). Spec questions 5 (switch timing)
+and 8 (stale Codex worktree) stay open.
+
+## D-84: Prism Glass stays; D-69 steps 4 and 5 and B1 stop — November 11, 2026
+
+Sean: "Yes, keep Prism" and "Yes, stop B1", and "Prism Glass stands (Recommended)" in the step 4 session
+([D-84](DECISIONS.md)). D-69 step 4 (Bets), step 5 (Menu and Premier League) and the B1 Play polish are stopped,
+not merged and not released. Prism Glass stays the design for Home, Play, Bets and the Menu. Step 4's work is kept,
+unmerged, on `claude/overhaul-step4-bets` (`6266ef47`, which includes a WIP commit). Nothing on the live site changed.
+
+**Step 3 (Research) signed-in readback**, owed since November 4, comes from the hosted logs, 24 hours to about 17:10
+UTC on November 11. Every signed-in `gtl-api` call on Research's routes returned 200 (204 for preflights):
+- `GET /personal`: 53, slowest 3.0 s;
+- `/lines/research`: 16, slowest 2.6 s;
+- `/lines/game`: 12, slowest 1.4 s;
+- `/lines/assessments`: 8, slowest 3.9 s;
+- `/lines/teams`: 3;
+- `/personal/notes`: 3;
+- `/lines/research-links`: 2.
+
+No CPU-limit or error-level function log was found. The window's 401s were the signed-out probe runs. These calls
+came from the live Research, which has been Prism's since November 8, not only step 3's screens.
 
 ## Stat corrections release and M-33 to M-35 applied — November 11, 2026 UTC
 

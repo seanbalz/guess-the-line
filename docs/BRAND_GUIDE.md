@@ -1,5 +1,19 @@
 # GUESS THE LINE — BRAND & DESIGN SYSTEM v1.0
 
+## NBA marks: official league and team logos — November 11, 2026 (D-85)
+
+Sean: "Approve badges", immediately corrected by "we need nba logo and team logos not
+letters". NBA screens show the official NBA league logo and the official logo of each of
+the 30 teams, each in its own glass circle like every NFL and Premier League mark; the
+G keeps no circle. The proposal's letters-only badges and "NBA" text badge are
+superseded; letters hold a circle only while its logo loads or if it fails. Look NBA
+teams up by NBA code only (`resolveNbaTeamLogo`, `NbaTeamBadge`): 13 codes are also NFL
+codes. Below 360 px wide, three league circles are 44 px. NBA stays off the production
+sport switch (`NBA_ON_SWITCH = false`) until Sean says otherwise. Marks identify the
+league and teams only, under the NBA trademark notice; sources, hashes and rights are in
+[the logo register](TEAM_LOGO_SOURCES.md#nba-team-logos). This is not deployment or
+physical-phone acceptance.
+
 ## Approved shared Prism foundation — November 7, 2026
 
 Sean authorized the remaining selected visual updates after reviewing the November
@@ -444,7 +458,7 @@ integration, light-surface treatment and small-icon adaptation remain pending.
 It does not select a replacement app palette or change existing shipped assets.
 
 Status: canonical for all product UI, documents, dashboards, presentations, notifications, iOS, and agent-generated assets. Updated 2026-10-08.
-The new app (D-38, `web/src/next/`) follows the [D-38 section](#d-38-redesign-system-the-new-app--october-14-2026) at the end of this guide. Since D-65 (October 28, 2026) it is the only app; the old app is no longer built or served. Everything above is the old app's legacy styling, which only the sign-in screen (until build plan stage 76) and the local engineering dashboard still use.
+The new app (D-38, `web/src/next/`) follows the [D-38 section](#d-38-redesign-system-the-new-app--october-14-2026) at the end of this guide. Since D-65 (October 28, 2026) it is the only app; the old app is no longer built or served. Everything above is the old app's legacy styling, which only the local engineering dashboard still uses. The sign-in screen keeps some of its class names under the Prism access styles (`web/src/next/me/accessPrism.css`, November 7, 2026); build plan stage 76 was finished as code only on November 11, 2026.
 
 ## Balanced logo refinement — October 29, 2026
 

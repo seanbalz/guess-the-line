@@ -59,7 +59,7 @@ async function frameProof(page, { access, epl, failed }) {
   await expect(sport(page, 'National Football League')).toHaveAttribute('aria-pressed', String(!epl));
   await expect(sport(page, 'Premier League')).toHaveCount(access ? 1 : 0);
   if (access) await expect(sport(page, 'Premier League')).toHaveAttribute('aria-pressed', String(epl));
-  await expect(page.getByRole('button', { name: /^(NBA|National Basketball Association)$/ })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /^(NBA|National Basketball Association)$/ })).toHaveAttribute('aria-pressed', 'false');
   await expect(page.locator('.gx-league-btn')).toHaveAccessibleName(`League: ${epl ? 'FEPL' : 'Community'}. Switch league`);
   await expect(page.locator('.gx-app')).not.toHaveAttribute('inert', '');
   const proof = await page.evaluate(() => {

@@ -1,0 +1,103 @@
+/* NBA in Prism Glass (milestone N1; mockups 01 to 09). Shared Prism tokens only; loaded with the NBA shell. */
+.gx.gx-nba .gx-nba-meta { margin: 0; color: var(--gx-text-2); font: 500 13px/1.6 var(--gx-font-body); overflow-wrap: anywhere; }
+.gx.gx-nba .gx-nba-strong { margin: 0; color: var(--gx-text-1); font: 600 17px/1.5 var(--gx-font-body); overflow-wrap: anywhere; }
+.gx.gx-nba .gx-nba-h2 { margin: 0; color: var(--gx-text-1); font: 600 20px/1.4 var(--gx-font-body); letter-spacing: -0.2px; }
+.gx.gx-nba .gx-nba-row { display: flex; gap: var(--gx-space-3); align-items: center; justify-content: space-between; min-width: 0; }
+.gx.gx-nba .gx-nba-stack { display: flex; flex-direction: column; gap: var(--gx-space-4); min-width: 0; }
+.gx.gx-nba :is(.gx-nba-home, .gx-nba-play, .gx-nba-bets, .gx-nba-research) { display: flex; flex-direction: column; gap: var(--gx-space-4); min-width: 0; }
+.gx.gx-nba :is(.gx-nba-home, .gx-nba-play, .gx-nba-bets, .gx-nba-research) > :is(h1, p) { margin: 0; }
+.gx.gx-nba .gx-card { border-radius: 28px; }
+.gx.gx-nba :is(.gx-nba-tonight, .gx-nba-queue, .gx-nba-coming, .gx-nba-held, .gx-nba-state, .gx-nba-ticket, .gx-nba-game, .gx-nba-totals, .gx-nba-final, .gx-nba-suggested) { display: flex; flex-direction: column; gap: var(--gx-space-3); min-width: 0; }
+.gx.gx-nba :is(.gx-nba-tonight, .gx-nba-queue, .gx-nba-held, .gx-nba-state, .gx-nba-coming) p { margin: 0; }
+
+/* Team logos in their own glass circles, and the codes beside them. */
+.gx.gx-nba .gx-nba-matchup { display: inline-flex; align-items: center; gap: var(--gx-space-2); min-width: 0; flex-wrap: wrap; }
+.gx.gx-nba .gx-nba-matchup b { font: 700 16px/1.2 var(--gx-font-num); color: var(--gx-text-1); font-variant-numeric: tabular-nums; }
+.gx.gx-nba .gx-nba-at { color: var(--gx-text-2); font: 500 14px/1 var(--gx-font-body); }
+.gx.gx-nba .gx-nba-legs { display: flex; flex-wrap: wrap; gap: var(--gx-space-2) var(--gx-space-4); }
+.gx .gx-nba-badge .gx-team-img { top: 10%; left: 10%; width: 80%; height: 80%; }
+.gx .gx-nba-league-mark { background: var(--gx-card-face); }
+
+/* Home */
+.gx.gx-nba .gx-nba-rows { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.gx.gx-nba .gx-nba-rows li { display: flex; align-items: center; justify-content: space-between; gap: var(--gx-space-3); min-height: 48px; padding-block: var(--gx-space-2); border-top: 1px solid var(--gx-border); }
+.gx.gx-nba .gx-nba-rows li:first-child { border-top: 0; }
+.gx.gx-nba .gx-nba-queue-item { display: flex; flex-direction: column; gap: var(--gx-space-2); padding-block: var(--gx-space-2); border-top: 1px solid var(--gx-border); }
+.gx.gx-nba .gx-nba-queue-item:first-of-type { border-top: 0; }
+.gx.gx-nba .gx-nba-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-3); }
+.gx.gx-nba .gx-nba-tile { display: flex; flex-direction: column; gap: var(--gx-space-1); min-width: 0; padding: var(--gx-space-4); border: 1px solid var(--gx-border-strong); border-radius: 20px; background: var(--gx-glass); box-shadow: var(--gx-glass-shadow); }
+.gx.gx-nba .gx-nba-tile strong { font: 600 24px/1.3 var(--gx-font-num); color: var(--gx-text-1); overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.gx.gx-nba .gx-nba-tile strong.gx-c-win { color: var(--gx-win); }
+.gx.gx-nba .gx-nba-tile strong.gx-c-loss { color: var(--gx-loss); }
+.gx.gx-nba .gx-nba-held { align-items: flex-start; }
+.gx.gx-nba .gx-nba-held > .gx-ic, .gx.gx-nba .gx-nba-coming .gx-ic { color: var(--gx-accent-ink); }
+
+/* Result chips and the queue's actions */
+.gx.gx-nba .gx-nba-result { display: flex; flex-direction: column; align-items: flex-start; gap: var(--gx-space-2); }
+.gx.gx-nba .gx-nba-chip { display: inline-flex; align-items: center; gap: var(--gx-space-2); max-width: 100%; margin: 0; padding: 6px 12px; border: 1px solid var(--gx-border-strong); border-radius: var(--gx-radius-pill); background: var(--gx-glass); color: var(--gx-text-1); font: 600 14px/1.4 var(--gx-font-body); overflow-wrap: anywhere; }
+.gx.gx-nba .gx-nba-chip--win { border-color: var(--gx-win); background: var(--gx-win-tint); }
+.gx.gx-nba .gx-nba-chip--wait { border-color: var(--gx-pending); background: var(--gx-pending-tint); }
+.gx.gx-nba .gx-nba-chip .gx-ic { flex: none; }
+.gx.gx-nba .gx-nba-result .gx-btn { align-self: stretch; }
+
+/* Ticket receipts */
+.gx.gx-nba .gx-nba-ticket-top, .gx.gx-nba .gx-nba-ticket-title { display: flex; align-items: center; justify-content: space-between; gap: var(--gx-space-3); }
+.gx.gx-nba .gx-nba-ticket-title h3 { margin: 0; font: 600 18px/1.4 var(--gx-font-body); color: var(--gx-text-1); overflow-wrap: anywhere; min-width: 0; }
+.gx.gx-nba .gx-nba-ticket-title .gx-icon-btn { flex: none; margin-right: -10px; }
+.gx.gx-nba .gx-nba-selection { margin: 0; font: 600 17px/1.4 var(--gx-font-num); color: var(--gx-text-1); font-variant-numeric: tabular-nums; }
+.gx.gx-nba .gx-nba-selection span { color: var(--gx-text-2); font-weight: 500; }
+.gx.gx-nba .gx-nba-money { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--gx-space-3); padding-top: var(--gx-space-3); border-top: 1px solid var(--gx-border); }
+.gx.gx-nba .gx-nba-money > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.gx.gx-nba .gx-nba-money > div:last-child { text-align: right; }
+.gx.gx-nba .gx-nba-money strong { font: 600 24px/1.2 var(--gx-font-num); color: var(--gx-text-1); overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.gx.gx-nba .gx-nba-money strong.gx-c-win { color: var(--gx-win); }
+.gx.gx-nba .gx-nba-money strong.gx-c-loss { color: var(--gx-loss); }
+.gx.gx-nba .gx-nba-arrow { color: var(--gx-text-2); margin-bottom: 4px; }
+.gx.gx-nba .gx-nba-details { display: flex; flex-direction: column; gap: var(--gx-space-2); }
+.gx.gx-nba .gx-nba-details summary { min-height: var(--gx-size-touch); display: flex; align-items: center; cursor: pointer; font: 600 16px/1.4 var(--gx-font-body); color: var(--gx-text-1); }
+.gx.gx-nba .gx-nba-details :is(p, li) { margin: 0; font: 500 14px/1.6 var(--gx-font-body); color: var(--gx-text-2); overflow-wrap: anywhere; }
+.gx.gx-nba .gx-nba-details ul { margin: 0; padding-left: var(--gx-space-5); }
+.gx.gx-nba .gx-nba-details[open] > * + * { margin-top: var(--gx-space-2); }
+.gx.gx-nba .gx-nba-audit { padding-block: var(--gx-space-2); border-top: 1px solid var(--gx-border); }
+
+/* Filters and form fields (History filters, the Track bet sheet) */
+.gx.gx-nba .gx-nba-filters, .gx.gx-nba .gx-nba-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gx-space-3); }
+.gx.gx-nba .gx-nba-wide { grid-column: 1 / -1; }
+.gx.gx-nba .gx-nba-field { display: flex; flex-direction: column; gap: var(--gx-space-2); min-width: 0; color: var(--gx-text-1); font: 600 16px/1.4 var(--gx-font-body); }
+.gx.gx-nba .gx-nba-field :is(input, select, textarea) { width: 100%; min-width: 0; min-height: var(--gx-size-touch); font: 500 16px/1.4 var(--gx-font-body); color: var(--gx-text-1); background: var(--gx-glass); border: 1px solid var(--gx-border-strong); border-radius: 16px; padding: var(--gx-space-2) var(--gx-space-3); }
+.gx.gx-nba .gx-nba-field textarea { min-height: 88px; resize: vertical; }
+.gx.gx-nba .gx-nba-stack fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
+.gx.gx-nba .gx-nba-leg { gap: var(--gx-space-3); }
+.gx.gx-nba .gx-nba-editor :is(p, h3) { margin: 0; }
+.gx.gx-nba .gx-nba-error { margin: 0; color: var(--gx-loss); font: 600 16px/1.5 var(--gx-font-body); }
+
+/* Research › Games */
+.gx.gx-nba .gx-nba-dates { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gx-space-2); }
+.gx.gx-nba .gx-nba-dates .gx-chip { justify-content: center; min-width: 0; padding-inline: var(--gx-space-2); }
+/* The approved Prism Play selection: outline, tint and check, never a solid lime fill. */
+.gx.gx-nba .gx-nba-dates .gx-chip { border: 1px solid var(--gx-glass-line); background: var(--gx-glass); box-shadow: var(--gx-glass-shadow); color: var(--gx-text-1); }
+.gx.gx-nba .gx-nba-dates .gx-chip--on { border-color: var(--gx-accent-ink); color: var(--gx-accent-ink); background: var(--gx-accent-tint); }
+.gx.gx-nba .gx-nba-observed { align-items: center; flex-wrap: wrap; }
+.gx.gx-nba .gx-nba-observed p { flex: 1 1 180px; }
+.gx.gx-nba .gx-nba-group { display: flex; flex-direction: column; gap: var(--gx-space-3); }
+.gx.gx-nba .gx-nba-score { display: flex; justify-content: space-between; gap: var(--gx-space-3); }
+.gx.gx-nba .gx-nba-score span { display: inline-flex; align-items: baseline; gap: var(--gx-space-2); }
+.gx.gx-nba .gx-nba-score b { font: 600 15px/1.2 var(--gx-font-num); color: var(--gx-text-2); font-variant-numeric: tabular-nums; }
+.gx.gx-nba .gx-nba-score strong { font: 600 26px/1.2 var(--gx-font-num); color: var(--gx-text-1); font-variant-numeric: tabular-nums; }
+.gx.gx-nba .gx-nba-game .gx-nba-row { align-items: center; flex-wrap: wrap; row-gap: var(--gx-space-2); }
+.gx.gx-nba .gx-nba-game .gx-nba-matchup, .gx.gx-nba .gx-nba-rows .gx-nba-matchup { flex-wrap: nowrap; }
+.gx.gx-nba .gx-nba-notice { padding-top: var(--gx-space-2); }
+
+/* Sheets */
+.gx .gx-nba-sheet .gx-nba-graded { display: flex; flex-direction: column; gap: var(--gx-space-2); margin: 0; padding: 0; list-style: none; }
+.gx .gx-nba-sheet .gx-nba-graded li { display: flex; justify-content: space-between; align-items: center; gap: var(--gx-space-3); min-height: 44px; font: 600 16px/1.4 var(--gx-font-body); color: var(--gx-text-1); }
+.gx .gx-nba-sheet .gx-nba-suggested { border-color: var(--gx-accent-ink); background: linear-gradient(var(--gx-accent-tint), var(--gx-accent-tint)), var(--gx-card-face); }
+.gx .gx-nba-sheet .gx-nba-suggested p, .gx .gx-nba-sheet .gx-nba-final p { margin: 0; }
+
+@media (max-width: 350px) {
+  .gx.gx-nba .gx-nba-filters, .gx.gx-nba .gx-nba-grid { grid-template-columns: 1fr; }
+}
+@media (forced-colors: active) {
+  .gx.gx-nba .gx-nba-chip, .gx.gx-nba .gx-nba-tile { border: 1px solid CanvasText; }
+  .gx.gx-nba .gx-nba-dates .gx-chip--on { border-color: Highlight; outline: 1px solid Highlight; }
+}
