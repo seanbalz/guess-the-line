@@ -217,8 +217,12 @@ for the same account and week.
 The tab uses the existing Player Props build flag, NFL Play frame and shared
 bottom bar. Local browser checks cover both themes at 320px and 390px, Back,
 direct reload, touch targets, horizontal overflow and bottom bar clearance.
-Release target is the frontend with `VITE_GTL_PLAYER_PROPS=on` and the existing
-Player Props API active. The tab uses the already applied D-82 schema.
+
+**Verified live at 9:24 p.m. Pacific.** The frontend release shipped from
+`6a3e02e9701ed7f8a74dc5f48ffaeb9996c1c39c` to Pages `eee359a9`.
+All 176 production assets matched, all 519 signed-out checks denied access,
+and the eight aggregate preservation hashes matched before and after.
+[Release evidence](RELEASE_2026_11_11_PLAYER_PROPS_PLAY_TAB.md)
 
 ## Security warning remediation — November 11, 2026
 
