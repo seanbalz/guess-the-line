@@ -9,7 +9,8 @@
 //          read spent no credit (gtl_nba_lines_plan decides). gtl_nba_begin_lines_read reserves 1 credit under the shared
 //          budget row and lease, or records why NBA is refused (31-credit monthly cap, pause below 100, another collector's
 //          lease); only a reservation makes the one 1-credit basketball_nba spreads request (DraftKings, FanDuel, BetMGM, with
-//          BetRivers standing in, D-74). gtl_nba_finish_lines_read stores every game's line, qualified or not.
+//          BetRivers standing in, D-74). gtl_nba_finish_lines_read stores every game's line, qualified or not. A read never
+//          begins in the hour before an NFL kickoff (D-85 item 7): SQL moves it earlier, or the run stops as nfl_window.
 // Nothing due means no provider request at all. Every write goes through service RPCs; HTTP replies and logs carry counts and
 // fixed reasons only, never a key, URL, provider text or line.
 import { readRunBody } from './odds-refresh.mjs';
@@ -27,11 +28,11 @@ export const NBA_JOBS_RPCS = Object.freeze(['gtl_nba_claim_job', 'gtl_nba_finish
   'gtl_nba_publish_slate', 'gtl_nba_lines_due', 'gtl_nba_begin_lines_read', 'gtl_nba_finish_lines_read']);
 /** Kept in step with gtl_nba_finish_job (tests/nba-jobs.test.mjs checks the SQL names every one). */
 export const NBA_SKIP_REASONS = Object.freeze(['not_due', 'nothing_due', 'source_busy', 'nba_paused', 'cost_review', 'budget_unknown', 'shared_paused',
-  'nba_cap', 'nba_pause', 'odds_busy']);
+  'nba_cap', 'nba_pause', 'odds_busy', 'nfl_window']);
 export const NBA_FAIL_REASONS = Object.freeze(['source_unavailable', 'write_failed', 'provider_failed', 'job_failed']);
 /** gtl_nba_begin_lines_read's refusals, as run reasons. */
 export const NBA_REFUSALS = Object.freeze({ nba_paused: 'nba_paused', cost_review: 'cost_review', budget_unknown: 'budget_unknown',
-  shared_paused: 'shared_paused', cap: 'nba_cap', pause: 'nba_pause', busy: 'odds_busy' });
+  shared_paused: 'shared_paused', cap: 'nba_cap', pause: 'nba_pause', busy: 'odds_busy', nfl_window: 'nfl_window' });
 /** The approved limits (D-85 item 3). SQL is the authority; the worker never asks for more. */
 export const NBA_MONTHLY_CAP = 31;
 export const NBA_PAUSE_BELOW = 100;
@@ -140,6 +141,8 @@ const providerId = gameId => `nba-${String(gameId).split(':')[2]}`;
 async function linesJob(ctx) {
   const due = await write(ctx, 'gtl_nba_lines_due', ctx.run);
   if (!due) stop('nothing_due');
+  // Inside the hour before an NFL kickoff nothing begins; the read follows once the window has passed (D-85 item 7).
+  if (due.state === 'wait') stop('nfl_window', { gameDate: due.gameDate, attempt: due.attempt });
   if (!ctx.sources.oddsReady) stop('source_unavailable');
   const begun = await write(ctx, 'gtl_nba_begin_lines_read', { ...ctx.run, p_game_date: due.gameDate });
   if (begun?.status === 'not_due') stop('nothing_due');

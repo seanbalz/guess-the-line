@@ -182,7 +182,8 @@ his physical-iPhone check.
 Not merged, applied, deployed or scheduled.** The migration is M-49, `20261112040000_gtl_nba_slate_lines.sql`, because open
 PR #555 already takes M-48. It waits for Sean's own "apply M-49"
 ([apply packet](../../MIGRATION_APPLY_PACKET_2026_11_12_NBA_N2.md)). The `gtl-nba-jobs` worker is not deployed, and no
-schedule row exists. No provider was called while building it: every test uses local doubles.
+schedule row exists. No provider was called while building it: every test uses local doubles. Sean then added the NFL
+hour ("Yes, avoid that hour", D-85 item 7): the lines read never begins in the 60 minutes before an NFL kickoff.
 
 - **Durable slate.** A machine-only `gtl-nba-jobs` worker (the gtl-epl-jobs and
   M-30 one-run-capability pattern) runs a `slate` job at 9:00 AM and 3:00 PM PT:
@@ -201,6 +202,18 @@ schedule row exists. No provider was called while building it: every test uses l
   the NBA monthly cap (31, approved by Sean on November 11, 2026, D-85) and pause
   NBA when the shared conservative remaining falls below 100 (approved, D-85). NBA
   is always the lane that is refused.
+- **The NFL hour (D-85 item 7, added after the build).** Sean: "Yes, avoid that hour". The first lines read and its one retry
+  never begin inside [K − 60 min, K) for any published NFL kickoff K (`gtl_weekly_slates`, which the NFL save and odds paths
+  read). Thursday Night Football is the case that matters: players are saving picks, and an NFL collection they start while NBA
+  holds the shared lease would be told "busy".
+  - **Planned time inside a window.** It moves earlier, so that a whole five-minute cron slot ends before the window opens
+    (`gtl_nba_nfl_clear`). It must still come before the NBA lock.
+  - **A read that reaches a window anyway.** It is refused as `nfl_window`, with no credit and no lease. If a time before the
+    NBA lock is clear, it runs after the window; if not, the refusal is recorded as the attempt.
+  - **Weeks not yet published.** Before the Monday open, and in the off-season, there is no window; NFL has nothing to collect
+    for such a week either.
+  - **Moved kickoffs.** A published week never changes, so a kickoff moved after publication keeps its published window.
+  - **Shadow gate.** A day that loses its read to a window fails like any other day.
 - **Linking.** `shared/nba-teams.mjs` maps the 30 teams across both providers;
   unmatched events stay unlinked and counted. Lock time is the earlier of the
   two start times; an in-progress or final BALLDONTLIE status closes the game at
@@ -215,7 +228,8 @@ schedule row exists. No provider was called while building it: every test uses l
   and `gtl_nba_job_runs`; service_role-only functions `gtl_nba_publish_slate`,
   `gtl_nba_begin_lines_read`, `gtl_nba_finish_lines_read`,
   `gtl_nba_lines_due`, `gtl_dispatch_nba_jobs`, `gtl_nba_claim_job`,
-  `gtl_nba_finish_job`. RLS on, no anon/authenticated grants, no delete grants,
+  `gtl_nba_finish_job` (as built, also `gtl_nba_shadow_gate` and the helpers `gtl_nba_lines_plan`,
+  `gtl_nba_month_spent` and `gtl_nba_nfl_clear`). RLS on, no anon/authenticated grants, no delete grants,
   append-only triggers. Schedule rows in `supabase/admin/nba_jobs_cron.sql`,
   inserted disabled; Sean runs it.
 - **Tests.** PGlite: lines append-only; the cap refuses the 32nd credit; an NBA

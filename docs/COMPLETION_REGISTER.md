@@ -33,6 +33,14 @@ called.**
   spelled differently. These names are assumed from the provider's naming, not checked live; a name
   that differs leaves an event unmatched and counted. The web bundle is byte-identical to `main`'s
   (184 files, executed).
+- **The NFL hour (D-85 item 7).** You answered "Yes, avoid that hour" to "Should NBA's daily lines
+  read stay out of the hour before any NFL kickoff?".
+  - The read and its retry never begin in the 60 minutes before an NFL kickoff, read from the
+    published NFL weeks (`gtl_weekly_slates`).
+  - A planned time inside that hour moves earlier, to a whole cron slot before it opens.
+  - A read that reaches the hour anyway is refused as `nfl_window`, with 0 credits and no lease. It
+    runs after the window, or, when no time is clear before the NBA lock, the refusal is recorded.
+  - NFL code is unchanged.
 - **Shadow gate.** `gtl_nba_shadow_gate()` is what N3 will read. It opens after 10 consecutive
   covered game days with at least 80% of games linked and qualified, within the cap, and with no NFL
   or EPL run refused while an NBA read held its reservation.
@@ -40,18 +48,17 @@ called.**
 - **Apply packet.** [M-49 apply packet](MIGRATION_APPLY_PACKET_2026_11_12_NBA_N2.md): hashes,
   preflight, guard, verify, rollback and the order of the later steps.
 
-Verification (executed on this branch after merging `main` at `13d9f8de`; the later merge of `6a3e02e9`, PR #554, adds
-documents only):
+Verification (executed on this branch with `main` merged through `6a3e02e9`, after the NFL-hour change):
 
-- `node --test`: 3314 tests, 3313 pass, 1 fail, 0 skipped. The new suites (46 PGlite, 11 worker, 8
-  adapter, 20 boundary) all pass, as does the M-49 rollback check.
+- `node --test`: 3326 tests, 3325 pass, 1 fail, 0 skipped. The new suites (57 PGlite, 11 worker, 8
+  adapter, 21 boundary) all pass, as does the M-49 rollback check.
 - The one failure is the EPL OCR asset test. The shared `node_modules` in this checkout lacks
   `tesseract.js`, which has nothing to do with N2; CI installs it from the lockfile.
 - vitest: 1025 of 1025 pass. Typecheck and Brand QA pass.
 - `build:cloud` fails here for the same missing `tesseract.js`. Without the OCR copy, the build
   passes and its output is byte-identical to `main`'s.
 - Breaking each SQL rule on purpose (append-only, cap, pause, lease, final, start time, no delete,
-  retry, gate, closure) made its test fail.
+  retry, gate, closure, and seven NFL-hour rules) made its test fail.
 - Not run: `check:cloud`, because there is no `.env.cloud` here.
 
 **Waiting on you, each its own word, in order:**

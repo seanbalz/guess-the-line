@@ -19,8 +19,9 @@
 --   No schedule row is created here; the admin file creates both rows disabled.
 -- * Functions, all security invoker with search_path='', service-only (the dispatcher is cron's alone):
 --   gtl_dispatch_nba_jobs, gtl_nba_claim_job, gtl_nba_finish_job, gtl_nba_publish_slate, gtl_nba_lines_due,
---   gtl_nba_begin_lines_read, gtl_nba_finish_lines_read, the shadow gate N3 reads (gtl_nba_shadow_gate) and two helpers
---   (gtl_nba_lines_plan, gtl_nba_month_spent).
+--   gtl_nba_begin_lines_read, gtl_nba_finish_lines_read, the shadow gate N3 reads (gtl_nba_shadow_gate) and three helpers
+--   (gtl_nba_lines_plan, gtl_nba_month_spent, gtl_nba_nfl_clear).
+-- It also reads gtl_weekly_slates (the published NFL weeks) for the NFL hour below, and changes nothing there.
 --
 -- The credit rule (D-85 item 3). Every NBA paid read reserves 1 credit on the shared gtl_odds_budget row, under that row's lock
 -- and lease, in the same lock order as the NFL and EPL collectors. NBA is refused, and NFL and EPL never are because of NBA:
@@ -28,7 +29,16 @@
 --   pause  the shared conservative remaining minus this credit would fall below 100 (so NBA never takes it under 100, far above
 --          the 50-credit reserve every collector keeps);
 --   busy   any other collector holds the shared lease, expired or not (NBA never clears another lane's lease).
--- Every refusal is recorded as an attempt that spent nothing. A read whose provider reports a cost above its reservation pauses
+-- Every refusal is recorded as an attempt that spent nothing.
+--
+-- The NFL hour (D-85 item 7, Sean, November 11, 2026: "Yes, avoid that hour"). A lines read, the first and its one retry, never
+-- begins in the 60 minutes before any NFL kickoff, [K - 60 min, K), when NFL players save picks and the NFL collectors read lines
+-- (Thursday Night Football is the usual case). A planned read that falls in such a window moves earlier, so that a whole
+-- five-minute cron slot ends before the window opens (gtl_nba_nfl_clear). A read that has to wait in a window is refused as
+-- nfl_window with nothing reserved and runs after the window, before the NBA lock; when no time before the lock is clear, the
+-- refusal is recorded as the attempt (0 credits). Kickoffs come from gtl_weekly_slates, the published NFL weeks the NFL save and
+-- odds paths read. A week not published yet (the Monday open, the off-season) has no window, and NFL has nothing to collect for
+-- it either; a published week never changes, so a kickoff moved after publication keeps its published window. A read whose provider reports a cost above its reservation pauses
 -- NBA for the rest of the month (cost_review) without touching the shared pause flag.
 --
 -- Rerunnable: tables and indexes are created only if missing, functions are create or replace with these exact argument lists,
@@ -140,7 +150,7 @@ create table if not exists public.gtl_nba_line_attempts (
   game_date date not null,
   attempt smallint not null check(attempt in (1,2)),
   status text not null check(status in ('running','finished','refused')),
-  refusal text check(refusal in ('nba_paused','cost_review','budget_unknown','shared_paused','cap','pause','busy')),
+  refusal text check(refusal in ('nba_paused','cost_review','budget_unknown','shared_paused','cap','pause','busy','nfl_window')),
   reserved_credits smallint not null check(reserved_credits in (0,1)),
   observed_cost integer check(observed_cost between 0 and 1000),
   remaining_before integer,
@@ -271,12 +281,42 @@ language sql stable security invoker set search_path='' as $$
       where r.recorded_at>=p_month_start and r.recorded_at<p_month_start+interval '1 month'),0))::integer
 $$;
 
--- The lines read due at p_stamp, or null: the earliest Pacific game day (yesterday to tomorrow) that still has an open, linked
--- game, once it is 90 minutes before that day's first tip-off (attempt 1), or 30 minutes after a first attempt that spent no
--- credit (attempt 2, the only retry). It reads only stored rows and never calls a provider.
+-- The NFL hour (D-85 item 7): every published NFL kickoff K closes [K - 60 min, K) to NBA's paid read.
+--   p_earlier true:  the latest time at or before p_at whose whole five-minute cron slot [x, x + 5 min) meets no window, so a
+--                    planned read inside a window moves earlier and still gets one cron run before the window opens.
+--   p_earlier false: p_at itself when it is in no window, else the first instant after the run of windows that contains it.
+-- Kickoffs are the published NFL weeks' signatures (gtl_weekly_slates), in epoch seconds, as the NFL odds paths read them.
+create or replace function public.gtl_nba_nfl_clear(p_at timestamptz,p_earlier boolean) returns timestamptz
+language plpgsql stable security invoker set search_path='' as $$
+declare x timestamptz:=p_at; k timestamptz; i integer:=0;
+begin
+  if p_at is null or p_earlier is null then return null; end if;
+  loop
+    i:=i+1;
+    exit when i>64;
+    with kickoffs as (select to_timestamp((g->>'kickoff')::double precision) t from public.gtl_weekly_slates s
+        cross join lateral jsonb_array_elements(case when jsonb_typeof(s.signature->'games')='array' then s.signature->'games' else '[]'::jsonb end) g
+        where jsonb_typeof(g->'kickoff')='number')
+    select case when p_earlier then min(t) else max(t) end into k from kickoffs
+      where t>x and (case when p_earlier then t-interval '60 minutes'<x+interval '5 minutes' else t-interval '60 minutes'<=x end);
+    exit when k is null;
+    x:=case when p_earlier then k-interval '65 minutes' else k end;
+  end loop;
+  return x;
+end $$;
+
+-- The lines read at p_stamp for the earliest Pacific game day (yesterday to tomorrow) that still has an open, linked game, or
+-- null when none is due. It reads only stored rows and never calls a provider. A day's read is planned 90 minutes before its
+-- first tip-off (attempt 1), or 30 minutes after a first attempt that spent no credit (attempt 2, the only retry); either moves
+-- earlier out of the NFL hour (dueAt). state says what may happen now:
+--   due     a read may begin;
+--   wait    p_stamp is inside an NFL hour and a clear time comes before an open game's lock: nothing may begin yet (nfl_window);
+--   refuse  p_stamp is inside an NFL hour and no clear time comes before any open game's lock: the attempt is recorded as
+--           refused (nfl_window, 0 credits).
 create or replace function public.gtl_nba_lines_plan(p_stamp timestamptz) returns jsonb
 language plpgsql stable security invoker set search_path='' as $$
 declare today date; d date; first_tip timestamptz; a1 public.gtl_nba_line_attempts; a2 public.gtl_nba_line_attempts; v_attempt integer;
+  planned timestamptz; due_at timestamptz; clear_at timestamptz; v_state text;
 begin
   if p_stamp is null then return null; end if;
   today:=(p_stamp at time zone 'America/Los_Angeles')::date;
@@ -288,17 +328,23 @@ begin
     select * into a1 from public.gtl_nba_line_attempts x where x.game_date=d and x.attempt=1;
     select * into a2 from public.gtl_nba_line_attempts x where x.game_date=d and x.attempt=2;
     if a1.id is null then
-      if p_stamp>=first_tip-interval '90 minutes' then v_attempt:=1; end if;
-    elsif a2.id is null and a1.status<>'running' and p_stamp>=a1.requested_at+interval '30 minutes'
+      v_attempt:=1; planned:=first_tip-interval '90 minutes'; due_at:=public.gtl_nba_nfl_clear(planned,true);
+    elsif a2.id is null and a1.status<>'running'
       and (case when a1.status='refused' then 0 else coalesce(a1.observed_cost,a1.reserved_credits) end)=0 then
-      v_attempt:=2;
+      v_attempt:=2; planned:=a1.requested_at+interval '30 minutes';
+      due_at:=greatest(public.gtl_nba_nfl_clear(planned,true),a1.requested_at+interval '5 minutes');
     end if;
-    if v_attempt is not null then
-      return jsonb_build_object('gameDate',d,'attempt',v_attempt,'firstTipAt',first_tip,'games',(select jsonb_agg(jsonb_build_object(
+    if v_attempt is null or p_stamp<due_at then continue; end if;
+    clear_at:=public.gtl_nba_nfl_clear(p_stamp,false);
+    v_state:=case when clear_at<=p_stamp then 'due'
+      when exists(select 1 from public.gtl_nba_games g where g.game_date=d and g.status='scheduled' and g.closed_at is null
+        and g.lock_at>clear_at and g.odds_event_id is not null) then 'wait' else 'refuse' end;
+    return jsonb_build_object('state',v_state,'gameDate',d,'attempt',v_attempt,'firstTipAt',first_tip,'plannedAt',planned,'dueAt',due_at,
+      'nflClearAt',case when v_state='due' then null else clear_at end,
+      'games',(select jsonb_agg(jsonb_build_object(
           'gameId',g.game_id,'home',g.home,'away',g.away,'oddsEventId',g.odds_event_id,'commenceTime',g.odds_commence_at,'lockAt',g.lock_at)
           order by g.lock_at,g.game_id)
         from public.gtl_nba_games g where g.game_date=d and g.status='scheduled' and g.closed_at is null and g.lock_at>p_stamp and g.odds_event_id is not null));
-    end if;
   end loop;
   return null;
 end $$;
@@ -306,7 +352,8 @@ end $$;
 -- ---------- the gtl-nba-jobs run queue (cloud/nba-jobs.mjs) ----------
 -- ADMIN ONLY: pg_cron calls the dispatcher (supabase/admin/nba_jobs_cron.sql) and pg_net must be enabled beforehand. A run is
 -- queued only when something is due: the slate in the 9 AM and 3 PM Pacific hours (cron fires at both UTC offsets), the lines
--- read when gtl_nba_lines_plan names a game day. One run per job and five-minute slot; the token authorizes just that run, for
+-- read when gtl_nba_lines_plan says due (or refuse, so a day the NFL hour leaves no time for is recorded), never while it waits
+-- out an NFL hour. One run per job and five-minute slot; the token authorizes just that run, for
 -- five minutes, and only its hash is kept. A queued or running run older than ten minutes is timed out by the next dispatch.
 create or replace function public.gtl_dispatch_nba_jobs(p_job text) returns jsonb
 language plpgsql security invoker set search_path='' as $$
@@ -318,7 +365,9 @@ begin
   update public.gtl_nba_job_runs set status='failed',reason='worker_timeout',finished_at=stamp
     where job=cfg.job and status in ('queued','running') and coalesce(claimed_at,started_at)<stamp-interval '10 minutes';
   if (cfg.job='slate' and extract(hour from stamp at time zone 'America/Los_Angeles') not in (9,15))
-    or (cfg.job='lines' and public.gtl_nba_lines_plan(stamp) is null) then return jsonb_build_object('status','not_due'); end if;
+    or (cfg.job='lines' and coalesce(public.gtl_nba_lines_plan(stamp)->>'state','none') not in ('due','refuse')) then
+    return jsonb_build_object('status','not_due');
+  end if;
   token:=encode(sha256(convert_to(gen_random_uuid()::text||gen_random_uuid()::text||gen_random_uuid()::text,'UTF8')),'hex');
   insert into public.gtl_nba_job_runs(job,slot_start,capability_hash)
     values(cfg.job,date_bin(interval '5 minutes',stamp,timestamptz '2000-01-01 00:00:00+00'),encode(sha256(convert_to(token,'UTF8')),'hex'))
@@ -365,7 +414,7 @@ begin
   if run.claimed_at<clock_timestamp()-interval '10 minutes' then raise exception 'GTL_SCHEDULE_EXPIRED' using errcode='P0001'; end if;
   state:=case when p_reason is null then 'succeeded'
     when p_reason in ('not_due','nothing_due','source_busy','nba_paused','cost_review','budget_unknown','shared_paused','nba_cap','nba_pause',
-      'odds_busy') then 'skipped'
+      'odds_busy','nfl_window') then 'skipped'
     when p_reason in ('source_unavailable','write_failed','provider_failed','job_failed') then 'failed' end;
   if state is null or (p_detail is not null and (jsonb_typeof(p_detail)<>'object' or octet_length(p_detail::text)>4096)) then
     raise exception 'GTL_SCHEDULE_RUN' using errcode='P0001';
@@ -483,7 +532,8 @@ end $$;
 -- Reserves the one credit of a lines read, or records why NBA is refused (D-85 item 3; see the header). The shared budget row is
 -- locked first, as every NFL and EPL collector does, so reservations from every lane (and two NBA runs) serialize on it; NBA's
 -- own row is only read (the worker cannot change it). The lease (30 seconds) is the shared one NFL and research collections
--- hold. Due is decided again under the lock.
+-- hold. Due is decided again under the lock, at the database's clock: inside an NFL hour (D-85 item 7) nothing is reserved and
+-- the shared lease is not taken; the read is refused as nfl_window, recorded as the attempt only when no clear time is left.
 create or replace function public.gtl_nba_begin_lines_read(p_run uuid,p_claim uuid,p_game_date date) returns jsonb
 language plpgsql security invoker set search_path='' as $$
 declare b public.gtl_odds_budget; nb public.gtl_nba_budget; stamp timestamptz; plan jsonb; v_attempt integer; spent integer; cap integer;
@@ -506,10 +556,15 @@ begin
   plan:=public.gtl_nba_lines_plan(stamp);
   if plan is null or (plan->>'gameDate')::date<>p_game_date then return jsonb_build_object('status','not_due'); end if;
   v_attempt:=(plan->>'attempt')::integer;
+  -- A run that reaches here inside an NFL hour (a late cron, a slow worker) waits it out: no attempt, credit or lease.
+  if plan->>'state'='wait' then
+    return jsonb_build_object('status','refused','reason','nfl_window','recorded',false,'attempt',v_attempt,'gameDate',p_game_date,'clearAt',plan->'nflClearAt');
+  end if;
   month_start:=date_trunc('month',stamp at time zone 'UTC') at time zone 'UTC';
   spent:=public.gtl_nba_month_spent(month_start);
   cap:=least(coalesce(nb.monthly_cap,0),31); pause:=greatest(coalesce(nb.pause_below,100),100);
   refusal:=case
+    when plan->>'state'='refuse' then 'nfl_window'
     when nb.id is null or nb.paused then 'nba_paused'
     when exists(select 1 from public.gtl_nba_line_attempts x where x.requested_at>=month_start and x.error='unexpected_cost')
       or exists(select 1 from public.gtl_nba_slate_reads r where r.recorded_at>=month_start and r.events_cost>0) then 'cost_review'
@@ -526,7 +581,7 @@ begin
       stamp,stamp+interval '30 seconds',case when refusal is null then null else stamp end)
     returning * into a;
   if refusal is not null then
-    return jsonb_build_object('status','refused','reason',refusal,'attemptId',a.id,'attempt',v_attempt,'gameDate',p_game_date,'spent',spent,'cap',cap);
+    return jsonb_build_object('status','refused','reason',refusal,'recorded',true,'attemptId',a.id,'attempt',v_attempt,'gameDate',p_game_date,'spent',spent,'cap',cap);
   end if;
   update public.gtl_odds_budget set conservative_remaining=conservative_remaining-1,lease_token=held,lease_until=a.expires_at,updated_at=stamp
     where provider='the-odds-api';
@@ -638,7 +693,8 @@ end $$;
 -- line collected before its lock; postponed and canceled games are left out. An NFL refresh run that was refused
 -- (collection_busy or budget_guard), or an EPL job run refused for budget_guard, while an NBA read held its reservation, counts
 -- as refused because of NBA. (An NFL collection a player starts is refused with an error, not a stored run, so it cannot be
--- counted here.)
+-- counted here; D-85 item 7 keeps NBA's read out of the hour before every NFL kickoff, when players save.) A day that lost its read
+-- to the NFL hour is not excused: it has no qualified lines and fails like any other, and its day lists nflWindowRefusals.
 create or replace function public.gtl_nba_shadow_gate() returns jsonb
 language plpgsql stable security invoker set search_path='' as $$
 declare stamp timestamptz:=clock_timestamp(); today date; d date; i integer; n integer; good integer; streak integer:=0; days jsonb:='[]';
@@ -654,7 +710,8 @@ begin
         where l.game_id=g.game_id and l.qualified and l.collected_at<g.lock_at))
       into n,good from public.gtl_nba_games g where g.game_date=d and g.status not in ('postponed','canceled');
     if n=0 then continue; end if;
-    days:=days||jsonb_build_object('gameDate',d,'games',n,'linkedAndQualified',good,'passed',good*5>=n*4);
+    days:=days||jsonb_build_object('gameDate',d,'games',n,'linkedAndQualified',good,'passed',good*5>=n*4,
+      'nflWindowRefusals',(select count(*) from public.gtl_nba_line_attempts x where x.game_date=d and x.refusal='nfl_window'));
     if good*5<n*4 then stopped:='below_share'; exit; end if;
     streak:=streak+1; last_day:=coalesce(last_day,d); first_day:=d;
     if streak>=10 then stopped:=null; exit; end if;
@@ -681,14 +738,14 @@ revoke all on function public.gtl_dispatch_nba_jobs(text) from public,anon,authe
 
 -- Every other function is service-only; create or replace keeps privileges, so each grant is restated.
 revoke all on function public.gtl_nba_append_only(),public.gtl_nba_games_guard(),public.gtl_nba_attempts_guard(),
-  public.gtl_nba_month_spent(timestamptz),public.gtl_nba_lines_plan(timestamptz),public.gtl_nba_claim_job(text,uuid),
-  public.gtl_nba_finish_job(uuid,uuid,text,jsonb),public.gtl_nba_publish_slate(uuid,uuid,date,timestamptz,jsonb,jsonb),
-  public.gtl_nba_lines_due(uuid,uuid),public.gtl_nba_begin_lines_read(uuid,uuid,date),
-  public.gtl_nba_finish_lines_read(uuid,uuid,jsonb,text,jsonb),public.gtl_nba_shadow_gate()
+  public.gtl_nba_month_spent(timestamptz),public.gtl_nba_nfl_clear(timestamptz,boolean),public.gtl_nba_lines_plan(timestamptz),
+  public.gtl_nba_claim_job(text,uuid),public.gtl_nba_finish_job(uuid,uuid,text,jsonb),
+  public.gtl_nba_publish_slate(uuid,uuid,date,timestamptz,jsonb,jsonb),public.gtl_nba_lines_due(uuid,uuid),
+  public.gtl_nba_begin_lines_read(uuid,uuid,date),public.gtl_nba_finish_lines_read(uuid,uuid,jsonb,text,jsonb),public.gtl_nba_shadow_gate()
   from public,anon,authenticated;
 grant execute on function public.gtl_nba_append_only(),public.gtl_nba_games_guard(),public.gtl_nba_attempts_guard(),
-  public.gtl_nba_month_spent(timestamptz),public.gtl_nba_lines_plan(timestamptz),public.gtl_nba_claim_job(text,uuid),
-  public.gtl_nba_finish_job(uuid,uuid,text,jsonb),public.gtl_nba_publish_slate(uuid,uuid,date,timestamptz,jsonb,jsonb),
-  public.gtl_nba_lines_due(uuid,uuid),public.gtl_nba_begin_lines_read(uuid,uuid,date),
-  public.gtl_nba_finish_lines_read(uuid,uuid,jsonb,text,jsonb),public.gtl_nba_shadow_gate()
+  public.gtl_nba_month_spent(timestamptz),public.gtl_nba_nfl_clear(timestamptz,boolean),public.gtl_nba_lines_plan(timestamptz),
+  public.gtl_nba_claim_job(text,uuid),public.gtl_nba_finish_job(uuid,uuid,text,jsonb),
+  public.gtl_nba_publish_slate(uuid,uuid,date,timestamptz,jsonb,jsonb),public.gtl_nba_lines_due(uuid,uuid),
+  public.gtl_nba_begin_lines_read(uuid,uuid,date),public.gtl_nba_finish_lines_read(uuid,uuid,jsonb,text,jsonb),public.gtl_nba_shadow_gate()
   to service_role;

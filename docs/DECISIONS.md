@@ -1,6 +1,6 @@
 # Decision log
 
-## D-85 — NBA: N1 first, then nightly Guess the Spread; official NBA logos; 31-credit cap; all members play; records backfill; NBA on the switch (November 11, 2026)
+## D-85 — NBA: N1 first, then nightly Guess the Spread; official NBA logos; 31-credit cap; all members play; records backfill; NBA on the switch; NBA's lines read stays out of the NFL hour (November 11, 2026)
 
 Status: decided; N1 merged (PR #542) and deployed as Pages `b8019df1` on November 12, 2026 UTC
 ([release record](RELEASE_2026_11_12_NBA_N1.md)); NBA joined the sport switch by item 6 (PR #546, live in Pages
@@ -39,6 +39,27 @@ the [NBA build-out proposal](superpowers/specs/2026-11-10-nba-buildout-design.md
    no access check (the tracker is private to each member). This ends the October 29 hide; the
    flag stays so NBA can be hidden again on Sean's word. Frontend only: no migration, API change
    or credit.
+7. **NBA's lines read stays out of the NFL hour.** Sean: **"Yes, avoid that hour"** (November 11,
+   2026, captain session), answering "Should NBA's daily lines read stay out of the hour before any
+   NFL kickoff?".
+   - **Why it came up.** The N2 build found that NBA's paid read holds the shared Odds API lease
+     for about 1 to 2 seconds (30 at most). An NFL collection a player starts in that moment is
+     answered "busy, try again". Thursday is when this can happen: NBA's first tip-off can put its
+     read in the afternoon, when players are saving picks before Thursday Night Football.
+   - **Rule.** The first read and its one retry never begin in the 60 minutes before any NFL
+     kickoff, [K − 60 min, K), for every published NFL game K. A planned time inside such a window
+     moves earlier, so that a whole five-minute cron slot ends before the window opens. The read
+     must still come before the NBA lock.
+   - **Inside a window.** A read that reaches the window anyway (a late cron, a slow worker) is
+     refused as `nfl_window`. It reserves nothing and does not take the lease, and it runs after the
+     window if a time before the NBA lock is clear. When no time before the lock is clear, the
+     refusal is recorded as the attempt, with 0 credits.
+   - **Where the kickoffs come from.** `gtl_weekly_slates`, the published NFL weeks that the NFL
+     save and odds paths read. A week not published yet (before the Monday open, or the
+     off-season) has no window; NFL then has nothing to collect for it either.
+   - **Shadow gate.** A day that loses its read to the window is not excused: it fails like any
+     other day, and lists its `nfl_window` refusals.
+   - **What changes.** Built into unapplied M-49 on PR #558. NFL and EPL code is unchanged.
 
 **Logo basis (the D-46 and November 7 league-mark precedent, extended unchanged).** The 30 team
 logos are self-hosted 128 px downscaled copies of ESPN CDN images
@@ -64,8 +85,8 @@ Each mark has its own glass circle; letters show only while a logo loads or if i
 NBA header did. Sean turned NBA on for NFL and EPL screens with item 6.
 
 **Not answered:** the stale Codex worktree (spec question 8).
-**Not built:** N2, N3 and N4 (decisions 3, 4 and 5 are records only). Every
-migration, deploy, schedule and the physical-iPhone check stay Sean-gated.
+**Not built:** N3 and N4 (decisions 4 and 5 are records only). N2, with decisions 3 and 7, is built on PR #558
+and not applied or deployed. Every migration, deploy, schedule and the physical-iPhone check stay Sean-gated.
 
 ## D-84 — Prism Glass stays; D-69 steps 4 and 5 and the B1 Play polish stop (November 11, 2026)
 

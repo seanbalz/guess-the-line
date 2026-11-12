@@ -16,7 +16,8 @@
 --                                             credit. At most 31 credits a calendar month (UTC); refused while the shared
 --                                             conservative remaining would fall below 100, or while any other collector holds
 --                                             the shared lease. Kept off the minutes of the NFL refresh (06:15, 18:15) and the
---                                             EPL paid runs (:47, :41, :23).
+--                                             EPL paid runs (:47, :41, :23). Never in the 60 minutes before an NFL kickoff
+--                                             (D-85 item 7): the dispatcher moves the read earlier or waits the hour out.
 
 -- 1. The two schedule rows, created disabled. Replace <project-ref> with the hosted project's reference.
 insert into public.gtl_nba_jobs_schedule(job,enabled,endpoint) values

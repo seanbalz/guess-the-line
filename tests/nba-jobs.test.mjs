@@ -59,7 +59,7 @@ async function run({ job, service, net = network(), keys = {} }) {
 }
 
 const GAME = { gameId: 'NBA:balldontlie:9', home: 'LAC', away: 'PHX', oddsEventId: 'evt9', commenceTime: iso(Date.now() + HOUR), lockAt: iso(Date.now() + HOUR) };
-const due = { gameDate: '2026-11-12', attempt: 1, firstTipAt: GAME.lockAt, games: [GAME] };
+const due = { state: 'due', gameDate: '2026-11-12', attempt: 1, firstTipAt: GAME.lockAt, games: [GAME] };
 const ready = { status: 'ready', attemptId: ATTEMPT, lease: LEASE, attempt: 1, gameDate: due.gameDate, remainingCredits: 400, reserveCredits: 100, games: [GAME] };
 const providerEvent = () => ({ id: 'evt9', sport_key: 'basketball_nba', home_team: nbaOddsApiName('LAC'), away_team: nbaOddsApiName('PHX'), commence_time: GAME.commenceTime });
 const pricedEvent = () => ({ ...providerEvent(), bookmakers: ['draftkings', 'fanduel', 'betmgm'].map((key, i) => ({ key, last_update: iso(Date.now() - 20_000), markets: [{ key: 'spreads', last_update: iso(Date.now() - 20_000),
@@ -109,6 +109,8 @@ test('nothing due means no network call: no due day, a lost race, and every refu
   const cases = [
     [{ gtl_nba_lines_due: null }, 'nothing_due', ['gtl_nba_claim_job', 'gtl_nba_lines_due', 'gtl_nba_finish_job']],
     [{ gtl_nba_lines_due: due, gtl_nba_begin_lines_read: { status: 'not_due' } }, 'nothing_due', ['gtl_nba_claim_job', 'gtl_nba_lines_due', 'gtl_nba_begin_lines_read', 'gtl_nba_finish_job']],
+    // D-85 item 7: inside the hour before an NFL kickoff the run stops before it reserves anything.
+    [{ gtl_nba_lines_due: { ...due, state: 'wait', nflClearAt: GAME.lockAt } }, 'nfl_window', ['gtl_nba_claim_job', 'gtl_nba_lines_due', 'gtl_nba_finish_job']],
     ...Object.entries(NBA_REFUSALS).map(([refusal, reason]) => [{ gtl_nba_lines_due: due, gtl_nba_begin_lines_read: { status: 'refused', reason: refusal, attempt: 1, gameDate: due.gameDate } }, reason,
       ['gtl_nba_claim_job', 'gtl_nba_lines_due', 'gtl_nba_begin_lines_read', 'gtl_nba_finish_job']]),
   ];

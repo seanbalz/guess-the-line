@@ -19,6 +19,7 @@ export const rpcChecks = Object.freeze([
   ['gtl_nba_shadow_gate', {}],
   ['gtl_nba_lines_plan', { p_stamp: null }],
   ['gtl_nba_month_spent', { p_month_start: null }],
+  ['gtl_nba_nfl_clear', { p_at: null, p_earlier: true }],
 ]);
 // Until M-49 is applied, each of these answers the exact "does not exist" reply and is reported as awaiting deploy. The apply
 // record removes every entry; from then on a missing piece is an unexpected 404 and every probe must deny.

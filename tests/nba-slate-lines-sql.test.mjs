@@ -29,11 +29,13 @@ const NET = "create schema net;create table net.outbox(id bigserial primary key,
   + "create function net.http_post(url text,body jsonb,headers jsonb,timeout_milliseconds integer) returns bigint language sql as "
   + "'insert into net.outbox(url,body,headers) values(url,body,headers) returning id';";
 
-/** A database with every migration, or (world) the Community fixture world with every migration, for NFL collections. */
-async function database(t, { world = false, defaults = false } = {}) {
+/** A database with every migration, or (world) the Community fixture world with every migration, for NFL collections. The
+ * world's NFL week kicks off at `deadline` and an hour later; by default six hours out, so no test's "now" is in an NFL hour
+ * (D-85 item 7) unless it puts one there. */
+async function database(t, { world = false, defaults = false, deadline = iso(Date.now() + 6 * HOUR) } = {}) {
   let db, nflUser = null;
   if (world) {
-    const w = await createCommunityWorld({ migrations: ALL, games: 2, troyBallots: false });
+    const w = await createCommunityWorld({ migrations: ALL, games: 2, troyBallots: false, deadline });
     db = w.db; nflUser = ACCOUNTS.sean.id;
   } else {
     db = new PGlite();
@@ -73,10 +75,16 @@ async function database(t, { world = false, defaults = false } = {}) {
       p_summary: { events: 0, linkedEvents: 0, unmatchedEvents: 0, unknownTeamEvents: 0, eventsCost: 0, eventsRead: true, quota: null, ...summary } });
   };
   const stored = gameId => one('select *,game_date::text as day from public.gtl_nba_games where game_id=$1', [gameId]);
-  const begin = async gameDate => { const { run } = await claimed('lines'); return rpc('gtl_nba_begin_lines_read', { ...run, p_game_date: gameDate ?? await today() }); };
+  // The game day defaults to the one the plan names now (a game an hour or two out may fall on tomorrow's Pacific date).
+  const begin = async gameDate => { const { run } = await claimed('lines'); const due = gameDate ?? (await rpc('gtl_nba_lines_plan', { p_stamp: iso(Date.now()) }))?.gameDate ?? await today(); return rpc('gtl_nba_begin_lines_read', { ...run, p_game_date: due }); };
   const budget = () => one("select conservative_remaining,paused,lease_token::text,lease_until from public.gtl_odds_budget where provider='the-odds-api'");
   const count = async (table, where = 'true', args = []) => (await one(`select count(*)::int n from public.${table} where ${where}`, args)).n;
-  return { db, as, rpc, one, today, queue, claimed, publish, stored, begin, budget, count, nflUser };
+  /** Publishes an NFL week whose games kick off at `kickoffs` (ms), as gtl_publish_week stores its signature (epoch seconds). */
+  let nflWeeks = 0;
+  const nflWeek = kickoffs => db.query('insert into public.gtl_weekly_slates(season,week,signature) values(2099,$1,$2)', [++nflWeeks,
+    JSON.stringify({ season: 2099, week: nflWeeks, games: kickoffs.map((k, i) => ({ id: `NFL-${nflWeeks}-${i}`, away: 'AAA', home: 'BBB', kickoff: k / 1000 })) })]);
+  const plan = at => rpc('gtl_nba_lines_plan', { p_stamp: iso(at) });
+  return { db, as, rpc, one, today, queue, claimed, publish, stored, begin, budget, count, nflUser, nflWeek, plan };
 }
 
 /** A slate row as the worker sends it (shared/nba-slate.mjs linkNbaSlate). */
@@ -499,6 +507,16 @@ test('the shadow gate opens only after 10 consecutive covered game days at 80%, 
     const g = await gate(f);
     assert.deepEqual([g.consecutiveGameDays, g.open, g.stoppedBy], [5, false, 'not_covered']);
   });
+  await t.test('a game day that lost its read to the NFL hour is not excused: it fails and says why', async t2 => {
+    const f = await database(t2);
+    await seedDays(f, [[1, 0], ...Array.from({ length: 10 }, (_, i) => [i + 2, 5])]);
+    const day = (await f.one("select ((clock_timestamp() at time zone 'America/Los_Angeles')::date-1)::text d")).d;
+    const { runId } = await f.queue('lines');
+    await f.db.query(`insert into public.gtl_nba_line_attempts(run_id,game_date,attempt,status,refusal,reserved_credits,requested_at,expires_at,finished_at)
+      values($1,$2::date,2,'refused','nfl_window',0,clock_timestamp(),clock_timestamp(),clock_timestamp())`, [runId, day]);
+    const g = await gate(f);
+    assert.deepEqual([g.consecutiveGameDays, g.open, g.stoppedBy, g.days[0].nflWindowRefusals, g.refusedBecauseOfNba], [0, false, 'below_share', 1, 0]);
+  });
   await t.test('an EPL run refused for budget while an NBA read held its reservation keeps the gate closed', async t2 => {
     const f = await database(t2);
     await seedDays(f, Array.from({ length: 10 }, (_, i) => [i + 1, 5]));
@@ -525,6 +543,113 @@ test('the rollback revokes every N2 entry point and write from the service role 
     await assert.rejects(f.as('service_role', sql), /permission denied/, sql);
   }
   assert.equal((await f.as('service_role', 'select count(*)::int n from public.gtl_nba_lines')).rows[0].n, 1, 'evidence stays readable');
+});
+
+// ---------- the NFL hour (D-85 item 7: "Yes, avoid that hour") ----------
+// Every published NFL kickoff K closes [K - 60 min, K) to NBA's lines read. gtl_nba_lines_plan is read at chosen database
+// stamps, so each boundary is checked exactly; begin and the dispatcher run at the database's own clock.
+
+test('the NFL hour: a planned read inside a TNF-style window moves earlier, to a whole cron slot before the window opens', { skip }, async t => {
+  const f = await database(t);
+  const tip = Date.now() + 4 * HOUR, planned = tip - 90 * MIN, kickoff = planned + 30 * MIN; // window [planned - 30 min, planned + 30 min)
+  await f.nflWeek([kickoff]);
+  await f.publish([row(1, { start: tip })]);
+  assert.equal(await f.plan(kickoff - 66 * MIN), null, 'not before the moved time');
+  const moved = await f.plan(kickoff - 65 * MIN);
+  assert.deepEqual([moved.state, moved.attempt, ms(moved.dueAt), ms(moved.plannedAt)], ['due', 1, kickoff - 65 * MIN, planned]);
+  assert.equal((await f.plan(kickoff - 61 * MIN)).state, 'due', 'the whole five-minute slot before the window is clear');
+  const inside = await f.plan(kickoff - 60 * MIN);
+  assert.deepEqual([inside.state, ms(inside.nflClearAt)], ['wait', kickoff], 'from K - 60 minutes nothing may begin');
+  assert.equal((await f.plan(kickoff - MIN)).state, 'wait');
+  assert.equal((await f.plan(kickoff)).state, 'due', 'once the NFL game has kicked off, the read may still run before the NBA lock');
+  await t.test('a planned time 2 minutes before a window opens still moves to a whole cron slot before it', async t2 => {
+    const g = await database(t2);
+    await g.nflWeek([planned + 62 * MIN]); // window opens at planned + 2 min: a cron run in [planned, planned + 5) could land in it
+    await g.publish([row(1, { start: tip })]);
+    assert.equal(ms((await g.plan(planned)).dueAt), planned - 3 * MIN);
+  });
+  await t.test('chained windows (a Sunday 1:05 and 1:25 slate) move it before the earlier one', async t2 => {
+    const g = await database(t2);
+    await g.nflWeek([kickoff, kickoff - 20 * MIN]);
+    await g.publish([row(1, { start: tip })]);
+    assert.equal(ms((await g.plan(kickoff - 85 * MIN)).dueAt), kickoff - 85 * MIN);
+    assert.equal((await g.plan(kickoff - 80 * MIN)).state, 'wait');
+  });
+});
+
+test('the NFL hour: a cron firing inside the window is refused with 0 credits and does not take the shared lease', { skip }, async t => {
+  await t.test('a clear time comes before the NBA lock: refused as nfl_window, nothing recorded, and the read follows the window', async t2 => {
+    const f = await database(t2);
+    await f.nflWeek([Date.now() + 20 * MIN]);
+    await f.publish([row(1, { start: Date.now() + 60 * MIN })]);
+    const dispatched = (await f.db.query("select public.gtl_dispatch_nba_jobs('lines') value")).rows[0].value;
+    assert.deepEqual(dispatched, { status: 'not_due' }, 'the dispatcher queues nothing inside the window');
+    const before = await f.budget();
+    const refused = await f.begin();
+    assert.deepEqual([refused.status, refused.reason, refused.recorded], ['refused', 'nfl_window', false]);
+    assert.deepEqual(await f.budget(), before, 'no credit reserved and no lease taken');
+    assert.equal(await f.count('gtl_nba_line_attempts'), 0, 'the day keeps its read and its retry');
+    assert.equal((await f.plan(Date.now() + 20 * MIN)).state, 'due', 'after the kickoff the read is due');
+  });
+  await t.test('no clear time before the NBA lock: the refusal is recorded as the attempt, with 0 credits', async t2 => {
+    const f = await database(t2);
+    await f.nflWeek([Date.now() + 40 * MIN]);
+    await f.publish([row(1, { start: Date.now() + 15 * MIN })]);
+    assert.equal((await f.db.query("select public.gtl_dispatch_nba_jobs('lines') value")).rows[0].value.status, 'queued', 'queued so the refusal is recorded');
+    const before = await f.budget();
+    const refused = await f.begin();
+    assert.deepEqual([refused.status, refused.reason, refused.recorded], ['refused', 'nfl_window', true]);
+    assert.deepEqual(await f.budget(), before);
+    assert.deepEqual(await f.one('select status,refusal,reserved_credits,lease from public.gtl_nba_line_attempts'), { status: 'refused', refusal: 'nfl_window', reserved_credits: 0, lease: null });
+    assert.equal(await f.rpc('gtl_nba_month_spent', { p_month_start: (await f.one("select (date_trunc('month',clock_timestamp() at time zone 'UTC') at time zone 'UTC') m")).m }), 0);
+  });
+});
+
+test('the NFL hour: the one retry respects it too, moving earlier or waiting the window out', { skip }, async t => {
+  const f = await database(t);
+  const now = Date.now(), kickoff = now + 60 * MIN; // window [now, now + 60 min) holds the retry's planned time, now + 10 min
+  await f.nflWeek([kickoff]);
+  await f.publish([row(1, { start: now + 3 * HOUR })]);
+  const { runId } = await f.queue('lines');
+  await f.db.query(`insert into public.gtl_nba_line_attempts(run_id,game_date,attempt,status,refusal,reserved_credits,requested_at,expires_at,finished_at)
+    values($1,$2::date,1,'refused','busy',0,$3,$3::timestamptz+interval '30 seconds',$3)`, [runId, (await f.stored('NBA:balldontlie:1')).day, iso(now - 20 * MIN)]);
+  assert.equal(await f.plan(kickoff - 66 * MIN), null);
+  const retry = await f.plan(kickoff - 65 * MIN);
+  assert.deepEqual([retry.state, retry.attempt, ms(retry.plannedAt), ms(retry.dueAt)], ['due', 2, now + 10 * MIN, kickoff - 65 * MIN],
+    'moved 15 minutes earlier, out of the window');
+  assert.equal((await f.plan(now + 10 * MIN)).state, 'wait', 'its planned time is inside the window');
+  const refused = await f.begin();
+  assert.deepEqual([refused.reason, refused.recorded, refused.attempt], ['nfl_window', false, 2], 'a late cron inside the window begins nothing');
+  assert.equal((await f.plan(kickoff)).state, 'due');
+});
+
+test('the NFL hour: a day with no NFL game near it is unchanged', { skip }, async t => {
+  const f = await database(t);
+  const tip = Date.now() + 80 * MIN;
+  await f.publish([row(1, { start: tip })]);
+  const plain = await f.plan(Date.now());
+  assert.deepEqual([plain.state, ms(plain.dueAt), ms(plain.plannedAt)], ['due', tip - 90 * MIN, tip - 90 * MIN], 'no NFL week published');
+  await f.nflWeek([Date.now() + 2 * DAY, Date.now() - 2 * DAY]);
+  const far = await f.plan(Date.now());
+  assert.deepEqual([far.state, ms(far.dueAt)], ['due', tip - 90 * MIN], 'NFL games two days away change nothing');
+  assert.equal((await f.begin()).status, 'ready');
+  await t.test('a window opening right after the planned five-minute slot changes nothing', async t2 => {
+    const g = await database(t2);
+    await g.publish([row(1, { start: tip })]);
+    await g.nflWeek([tip - 90 * MIN + 65 * MIN]);
+    assert.deepEqual([(await g.plan(tip - 90 * MIN)).state, ms((await g.plan(tip - 90 * MIN)).dueAt)], ['due', tip - 90 * MIN]);
+  });
+});
+
+test('the NFL hour: NFL claims are unaffected; inside the hour NBA is refused and the NFL collection begins', { skip }, async t => {
+  const f = await database(t, { world: true, deadline: iso(Date.now() + 30 * MIN) });
+  await f.publish([row(1, { start: Date.now() + 2 * HOUR })]);
+  const refused = await f.begin();
+  assert.deepEqual([refused.status, refused.reason], ['refused', 'nfl_window']);
+  assert.equal((await f.budget()).lease_token, null);
+  const nfl = await f.rpc('gtl_begin_odds_collection', { p_user: f.nflUser, p_request: randomUUID(), p_operation: 'collect' });
+  assert.equal(nfl.replay, false); assert.ok(nfl.lease);
+  assert.equal((await f.budget()).conservative_remaining, 398, 'NFL reserved its two credits; NBA reserved none');
 });
 
 // ---------- the worker against the real SQL (local provider doubles only) ----------
