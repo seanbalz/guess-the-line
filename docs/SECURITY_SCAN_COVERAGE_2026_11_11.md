@@ -5,6 +5,8 @@ Owner: Sean Balsiger · Version 1 · November 11, 2026 Pacific
 Status: PR #549 merged. Diagnostic investigation completed locally; the remedies
 below are a follow-up plan, not changes to application code or scanner policy.
 No production deployment, migration, account change or external issue submission.
+[PR #551](https://github.com/seanbalz/guess-the-line/pull/551) publishes this report
+and the completion entry; it remains open and unmerged.
 
 ## Verified merge
 
@@ -188,7 +190,7 @@ Original hosted artifacts remain under
 Closeout artifacts, reproduction scripts, isolated Semgrep installation, resolved
 rules, source-blob inventory and experimental copies are under
 `C:/Users/sbals/outputs/security-closeout-20261111`. They contain no production
-credentials or player data. They are local evidence, not published source changes.
+credentials or private player data. They are local evidence, not published source changes.
 
 | Local report | SHA-256 |
 | --- | --- |

@@ -27,7 +27,9 @@ with zero findings/diagnostics. Neither experiment proves full-repository covera
 The baseline had the same diagnostic counts but one different timeout rule ID.
 
 Branch `codex/security-scan-coverage-2026-11-11`, based on fresh main at the merge
-commit, publishes the report and this entry only. Implementation, scanner-coverage
+commit, publishes the report and this entry only in
+[PR #551](https://github.com/seanbalz/guess-the-line/pull/551), left open and unmerged.
+Implementation, scanner-coverage
 gates and missing PR path triggers remain planned; no blanket exclusions or rule
 suppressions were added. Local artifacts are retained under
 `C:/Users/sbals/outputs/security-closeout-20261111`. This follow-up is not authorized
