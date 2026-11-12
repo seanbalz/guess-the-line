@@ -1,5 +1,14 @@
 # Guess The Line — current completion register
 
+## Player Props pregame launch preparation - November 11, 2026 Pacific
+
+Sean requested the approved weekly Player Props guessing flow to launch.
+The [pilot](https://github.com/seanbalz/guess-the-line/pull/548) stored 31
+verified offers and references across two games. Scoring the separate paper
+record awaits final stats. The [release procedure](SHARED_DEPLOYMENT.md#player-props-pregame-activation)
+adds an opt-in frontend deploy step for the API flag. The reviewed database
+switch and verified production release still need to run.
+
 ## Security warning remediation — November 11, 2026
 
 Owner: Sean Balsiger. Version 1. Branch `codex/security-warning-fixes-2026-11-11`,
