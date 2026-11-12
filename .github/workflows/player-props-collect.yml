@@ -60,10 +60,10 @@ jobs:
       ALLOW_ABOVE_SIX: ${{ inputs.allow_above_six }}
       DRY_RUN: ${{ inputs.dry_run }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
       - name: Build the request file and print the credit cost
@@ -80,7 +80,7 @@ jobs:
           GTL_RESEARCH_SERVICE_ROLE_KEY: ${{ secrets.GTL_PROPS_SERVICE_ROLE_KEY }}
           GTL_RESEARCH_ODDS_API_KEY: ${{ secrets.GTL_PROPS_ODDS_API_KEY }}
         run: node scripts/player-props-collect.mjs collect
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: player-props-collect-summary

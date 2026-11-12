@@ -21,7 +21,6 @@ import io
 import json
 import pathlib
 import re
-import urllib.request
 
 _CORE = importlib.util.spec_from_file_location('gtl_replay_source_core', pathlib.Path(__file__).with_name('replay_sources.py'))
 core = importlib.util.module_from_spec(_CORE)
@@ -114,12 +113,10 @@ def get_public(url, maximum):
     allowed = {source_url(s) for s in SOURCES} | {metadata_url(s) for s in SOURCES}
     if url not in allowed:
         raise ValueError('Only explicit public current-source URLs are allowed.')
-    request = urllib.request.Request(url, headers={'User-Agent': 'GuessTheLine-current-source-audit/1'})
-    with urllib.request.urlopen(request, timeout=60) as response:
-        raw = response.read(maximum + 1)
-    if len(raw) > maximum:
-        raise ValueError('Public response exceeds its size bound.')
-    return raw
+    return core.public_download.fetch_public_bytes(
+        url, allowed_urls=allowed, maximum=maximum,
+        user_agent='GuessTheLine-current-source-audit/1',
+        redirect_hosts={'release-assets.githubusercontent.com'})
 
 
 def release_asset(metadata, source):

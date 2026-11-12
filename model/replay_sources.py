@@ -15,14 +15,17 @@ import csv
 import datetime as dt
 import gzip
 import hashlib
+import importlib.util
 import io
 import json
 import math
 import pathlib
 import re
-import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+_DOWNLOAD = importlib.util.spec_from_file_location('gtl_public_download', ROOT / 'scripts' / 'public_download.py')
+public_download = importlib.util.module_from_spec(_DOWNLOAD)
+_DOWNLOAD.loader.exec_module(public_download)
 DATA_DIR = ROOT / '.local' / 'replay-data'
 VERSION = 'gtl-replay-source-audit-1'
 SUPPORTED_SEASONS = frozenset(range(2022, 2027))
@@ -120,12 +123,10 @@ def get_public(url, maximum):
     allowed.update(f"https://api.github.com/repos/nflverse/nflverse-data/releases/tags/{s['tag']}" for s in SOURCES.values())
     if url not in allowed:
         raise ValueError('Only allowlisted public source URLs may be fetched.')
-    request = urllib.request.Request(url, headers={'User-Agent': 'GuessTheLine-source-audit/1'})
-    with urllib.request.urlopen(request, timeout=60) as response:
-        data = response.read(maximum + 1)
-    if len(data) > maximum:
-        raise ValueError('Public response exceeds the audit size limit.')
-    return data
+    return public_download.fetch_public_bytes(
+        url, allowed_urls=allowed, maximum=maximum,
+        user_agent='GuessTheLine-source-audit/1',
+        redirect_hosts={'release-assets.githubusercontent.com'})
 
 
 def fetch_source(source, season, now=None):
