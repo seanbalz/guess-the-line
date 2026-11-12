@@ -1,5 +1,60 @@
 # Guess The Line — current completion register
 
+## NBA N2 built on a branch: slate and capped spread lines, server only — November 12, 2026 UTC
+
+Owner: Sean Balsiger. Version 1. Sean said "Yes, build N2" on November 11, 2026. It was built on
+branch `claude/nba-n2-2026-11-12` from `main` at `acbe8406`
+([spec, N2](superpowers/specs/2026-11-10-nba-buildout-design.md#n2-slate-and-capped-spread-lines-server-only-players-see-nothing)).
+**Players see nothing. Nothing is merged, applied, deployed or scheduled, and no provider was
+called.**
+
+- **Migration M-49** `20261112040000_gtl_nba_slate_lines.sql`, written and not applied. The spec
+  assumed M-48, but open PR #555 already takes M-48. It adds eight service-only tables with RLS on
+  and no browser grants: the games, append-only observations, slate reads and lines, the lines
+  reservations, a one-row NBA budget, the schedule and the runs. Nobody the API runs as can delete,
+  and append-only triggers refuse even the owner. Your credit rule is enforced in SQL (D-85
+  item 3): at most 31 credits a calendar month (UTC), and NBA is refused when the shared remaining
+  would fall below 100, or while any NFL, EPL or research collection holds the shared lease. NBA is
+  always the lane refused. A final never regresses. A start time, the lock and the link never move
+  once passed. An in-progress or final status closes a game at once.
+- **Worker `gtl-nba-jobs`** (`cloud/nba-jobs.mjs`), not deployed.
+  - The slate job runs at 9:00 AM and 3:00 PM Pacific. It makes one BALLDONTLIE request through the
+    existing lease and cooldown, or reuses a fresh cached range, plus one free Odds API `/events`
+    read. It links games by team and time and counts unmatched events.
+  - The lines job runs once per game day, 90 minutes before the first tip-off. It makes one 1-credit
+    `basketball_nba` spreads read from DraftKings, FanDuel and BetMGM, with BetRivers standing in. It
+    retries once, 30 minutes later, only if the first read spent nothing.
+  - Nothing due means no provider request.
+- **Odds adapter.** `cloud/odds-provider.mjs` takes `sport` and `markets`. The NFL default is
+  byte-identical to `main`: the same requests and the same reply, compared against `main`'s file on
+  a fixture (executed).
+- **Teams.** `shared/nba-teams.mjs` maps all 30 teams across both providers. Only the Clippers are
+  spelled differently. These names are assumed from the provider's naming, not checked live; a name
+  that differs leaves an event unmatched and counted. The web bundle is byte-identical to `main`'s
+  (184 files, executed).
+- **Shadow gate.** `gtl_nba_shadow_gate()` is what N3 will read. It opens after 10 consecutive
+  covered game days with at least 80% of games linked and qualified, within the cap, and with no NFL
+  or EPL run refused while an NBA read held its reservation.
+- **Schedule file.** `supabase/admin/nba_jobs_cron.sql` creates both rows disabled.
+- **Apply packet.** [M-49 apply packet](MIGRATION_APPLY_PACKET_2026_11_12_NBA_N2.md): hashes,
+  preflight, guard, verify, rollback and the order of the later steps.
+
+Verification (executed on this branch): see the PR for exact counts. Not run: `check:cloud` (no
+`.env.cloud` here). `build:cloud` and one OCR asset test cannot pass in this checkout, because the
+shared `node_modules` lacks `tesseract.js` (EPL OCR, unrelated to N2); CI installs it from the
+lockfile.
+
+**Waiting on you, each its own word, in order:**
+
+1. Merge the PR.
+2. "apply M-49".
+3. Deploy the worker (the release workflow needs an `nba-jobs` target first, a separate reviewed
+   change).
+4. Create the schedule rows.
+5. Enable `slate`, then `lines`.
+
+N3 waits for the shadow gate to open.
+
 ## Security closeout merged; scan coverage investigated — November 11, 2026
 
 Owner: Sean Balsiger. Version 1. [PR #549](https://github.com/seanbalz/guess-the-line/pull/549)

@@ -1,7 +1,7 @@
 # Guess the Line NBA build-out — design proposal
 
 Status: **N1 approved, merged (PR #542) and deployed (Pages `b8019df1`, November 12, 2026
-UTC; NBA on the switch by Sean's "Yes, show NBA", D-85 item 6); N2 to N4 still proposals.** On November 11, 2026 Sean chose "Guess the Spread" (N1 first, then N3),
+UTC; NBA on the switch by Sean's "Yes, show NBA", D-85 item 6); N2 built on a branch, not applied or deployed (see the N2 status line); N3 and N4 still proposals.** On November 11, 2026 Sean chose "Guess the Spread" (N1 first, then N3),
 replaced the letter badges with official NBA league and team logos, approved the 31-credit
 cap and 100-credit pause threshold, opened NBA Guess the Spread to all Community
 members and allowed one free records backfill (D-85; see "Waiting on Sean"). No migration
@@ -178,6 +178,12 @@ his physical-iPhone check.
 
 ## N2: Slate and capped spread lines (server only; players see nothing)
 
+**Status (November 12, 2026 UTC): built on branch `claude/nba-n2-2026-11-12` on Sean's "Yes, build N2" (November 11).
+Not merged, applied, deployed or scheduled.** The migration is M-49, `20261112040000_gtl_nba_slate_lines.sql`, because open
+PR #555 already takes M-48. It waits for Sean's own "apply M-49"
+([apply packet](../../MIGRATION_APPLY_PACKET_2026_11_12_NBA_N2.md)). The `gtl-nba-jobs` worker is not deployed, and no
+schedule row exists. No provider was called while building it: every test uses local doubles.
+
 - **Durable slate.** A machine-only `gtl-nba-jobs` worker (the gtl-epl-jobs and
   M-30 one-run-capability pattern) runs a `slate` job at 9:00 AM and 3:00 PM PT:
   one BALLDONTLIE request for date−1 to date+1 and one free Odds API `/events`
@@ -202,7 +208,7 @@ his physical-iPhone check.
 - **Shadow gate.** The N3 writer stays off until 10 consecutive game days show
   at least 80% of games linked and qualified, NBA credits at or under the cap,
   and nothing refused to NFL or EPL because of NBA.
-- **Migration M-48 (assumed number) `gtl_nba_slate_lines`.** `gtl_nba_games`
+- **Migration M-49 `gtl_nba_slate_lines` (built; the spec assumed M-48, which PR #555 took).** `gtl_nba_games`
   (a final never returns to scheduled; a start time moves only before it has
   passed), append-only `gtl_nba_game_observations` and `gtl_nba_lines`,
   `gtl_nba_line_attempts`, one-row `gtl_nba_budget`, `gtl_nba_jobs_schedule`
@@ -352,7 +358,7 @@ Spread to the same card without a new table.
    first, then nightly Guess the Spread (N3); the zero-credit Pick'em is not taken.
 2. ~~Credit cap.~~ **Answered November 11, 2026 (D-85): "Approve 31 / 100".** NBA's
    Odds API cap is 31 credits a month and NBA pauses when the shared conservative
-   remaining is below 100; NBA is always the refused lane. For N2; not built.
+   remaining is below 100; NBA is always the refused lane. For N2: built on a branch, not applied (see the N2 status).
 3. ~~Who plays.~~ **Answered November 11, 2026 (D-85): "All community members".**
    Every Community member may play NBA Guess the Spread (the `gtl_nba_player` rule),
    like EPL's open access, with one shared NBA standings. For N3; not built.

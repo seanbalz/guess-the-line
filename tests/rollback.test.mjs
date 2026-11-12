@@ -122,6 +122,12 @@ test('the rollback convention: each file names a migration, restores exactly the
             'revokeallonfunctionpublic.gtl_nba_claim_games(date,boolean)frompublic,anon,authenticated,service_role',
             'revokeallonfunctionpublic.gtl_nba_finish_games(date,uuid,jsonb)frompublic,anon,authenticated,service_role',
           ],
+          // M-49 NBA N2 slate and lines: every new service entry point, and the service role's writes to the N2 tables.
+          // The dispatcher has no grant to revoke; every game, observation, attempt, line and run stays.
+          '20261112040000_gtl_nba_slate_lines.sql': [
+            'revokeexecuteonfunctionpublic.gtl_nba_claim_job(text,uuid),public.gtl_nba_finish_job(uuid,uuid,text,jsonb),public.gtl_nba_publish_slate(uuid,uuid,date,timestamptz,jsonb,jsonb),public.gtl_nba_lines_due(uuid,uuid),public.gtl_nba_begin_lines_read(uuid,uuid,date),public.gtl_nba_finish_lines_read(uuid,uuid,jsonb,text,jsonb),public.gtl_nba_shadow_gate(),public.gtl_nba_lines_plan(timestamptz),public.gtl_nba_month_spent(timestamptz)fromservice_role',
+            'revokeinsert,updateonpublic.gtl_nba_games,public.gtl_nba_game_observations,public.gtl_nba_slate_reads,public.gtl_nba_line_attempts,public.gtl_nba_lines,public.gtl_nba_job_runsfromservice_role',
+          ],
         };
         assert.ok(Object.hasOwn(reviewedOffSwitches, file), `${file}: new RPC off switches require explicit review`);
         assert.deepEqual(statements.map(statement => statement.replace(/\s/g, '').toLowerCase()), reviewedOffSwitches[file]);
