@@ -220,6 +220,29 @@ spends again, because its request IDs are new.
 6. After the games are final, run **Player Props jobs** `results` with write off. Then run it
    with write and record_while_dark on.
 
+### Player Props pregame activation
+
+Sean requested the pregame launch on November 11 Pacific. Players can lock
+guesses against fresh sportsbook lines before kickoff and see accuracy at
+lock-in. The paper record updates after verified final stats arrive. The
+[Week 10 pilot evidence](https://github.com/seanbalz/guess-the-line/pull/548)
+covers quote collection and offer storage. Final result verification continues
+after the games.
+
+For the protected `frontend` deploy, set the repository variable
+`VITE_GTL_PLAYER_PROPS` to `on` and select `sync_player_props_api`. This sets
+the `GTL_PLAYER_PROPS` Edge Function flag to match the build after the hosted
+preflight. Use an exact CI-verified source containing the approved Player
+Props screens and verify the signed-out denials and production assets. Then
+confirm fresh references for the current slate and apply the reviewed,
+reversible `live_lock_in` setting. The existing migrations supply the schema.
+
+To pause lock-in, set `live_lock_in` to false and preserve stored guesses.
+A protected frontend redeploy with the repository flag off and
+`sync_player_props_api` selected hides the entry point and closes the API
+routes. Continue collection within the approved free scope and retain the
+existing six-hour reference age limit.
+
 ## Release train (Sean, October 28, 2026)
 
 Several sessions work on GTL at once. To stop duplicate fixes and one release per PR, Sean set these rules:

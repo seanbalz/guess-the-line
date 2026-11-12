@@ -89,6 +89,12 @@ export function validateRequest(env) {
   assert.match(env.RELEASE_SHA || '', /^[a-f0-9]{40}$/, 'Use a full lowercase 40-character source SHA.');
   assert.ok(TARGETS.includes(env.RELEASE_TARGET), 'Choose frontend, api, api-and-frontend, push-reminders, points-jobs, league-features, fantasy-ingest, results-refresh, epl-jobs, ops-alerts, or odds-refresh.');
   assert.ok(['check-only', 'readiness', 'deploy'].includes(env.RELEASE_MODE), 'Unknown release mode.');
+  const syncProps = env.RELEASE_SYNC_PLAYER_PROPS_API ?? 'false';
+  assert.ok(['true', 'false'].includes(syncProps), 'Invalid Player Props API sync input.');
+  if (syncProps === 'true') {
+    assert.ok(env.RELEASE_MODE === 'deploy' && env.RELEASE_TARGET === 'frontend',
+      'Sync the Player Props API flag only in a frontend deploy.');
+  }
   if (env.GITHUB_ACTIONS === 'true') {
     assert.equal(env.GITHUB_EVENT_NAME, 'workflow_dispatch', 'Releases are manual only.');
     assert.equal(env.GITHUB_REF, 'refs/heads/main', 'Dispatch the workflow from main.');
@@ -317,6 +323,11 @@ export async function verifyRelease(cwd, env, before, fetchImpl = fetch) {
   assert.equal(migrationDigest(rows[0]?.migrations), before.migrationHistorySha256, 'Migration history changed during release.');
   const { checkCloudBoundary } = await import(pathToFileURL(path.join(cwd, 'scripts/check-cloud-boundary.mjs')));
   const boundary = await checkCloudBoundary({ url: env.VITE_SUPABASE_URL, key: env.VITE_SUPABASE_PUBLISHABLE_KEY, fetchImpl, log: () => {} });
+  if (env.RELEASE_SYNC_PLAYER_PROPS_API === 'true' && env.VITE_GTL_PLAYER_PROPS === 'on') {
+    assert.ok(!boundary.awaiting.some(({ name }) => /^(GET|POST) props\//.test(name)),
+      'Player Props routes must deny signed-out requests after the API flag is enabled.');
+  }
+
   let pages = null;
   if (scope.pages) {
     const result = await jsonRequest(`https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}/pages/projects/guess-the-line/deployments?env=production`, env.CLOUDFLARE_API_TOKEN, {}, fetchImpl);

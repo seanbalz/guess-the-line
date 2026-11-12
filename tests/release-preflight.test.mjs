@@ -90,6 +90,22 @@ test('release dispatch rejects PRs, branches, forks, abbreviations and unreviewe
   assert.throws(() => validateRequest({ ...deploy, RELEASE_COMPATIBLE: 'false' }));
 });
 
+test('the Player Props API flag can be synced only by a reviewed frontend deploy', () => {
+  const toggle = { RELEASE_SYNC_PLAYER_PROPS_API: 'true' };
+  assert.throws(() => validateRequest(request(toggle)), /Player Props API flag.*frontend deploy/);
+  assert.throws(() => validateRequest(request({ ...toggle, RELEASE_MODE: 'readiness' })), /Player Props API flag.*frontend deploy/);
+  const deploy = request({
+    ...toggle,
+    RELEASE_MODE: 'deploy',
+    RELEASE_CARD: `https://github.com/${REPOSITORY}/pull/1`,
+    RELEASE_HISTORY_SHA256: 'b'.repeat(64),
+    RELEASE_COMPATIBLE: 'true',
+  });
+  validateRequest(deploy);
+  assert.throws(() => validateRequest({ ...deploy, RELEASE_TARGET: 'api-and-frontend' }), /Player Props API flag.*frontend deploy/);
+  assert.throws(() => validateRequest({ ...deploy, RELEASE_SYNC_PLAYER_PROPS_API: 'on' }), /Invalid Player Props API sync input/);
+});
+
 test('CI gate refuses wrong SHA, PR-only evidence, skipped jobs and a newer failed rerun', () => {
   assert.equal(successfulRun([ciRun()], jobs, sha, 'test.yml').runId, 1);
   for (const change of [{ head_sha: 'b'.repeat(40) }, { event: 'pull_request' }, { head_branch: 'feature' }, { status: 'in_progress' }, { conclusion: 'failure' }, { repository: { full_name: 'fork/repo' } }]) {
@@ -280,10 +296,11 @@ function productionSteps() {
 /** Evaluates the small GitHub expression subset the release steps use; anything else fails the test rather than guessing. */
 function stepRuns(condition, inputs) {
   if (!condition) return true;
-  assert.match(condition, /^(?:\s+|inputs\.(?:mode|target)|'[a-z-]+'|==|!=|&&|\|\||[()]|always\(\))+$/, `Unsupported step condition: ${condition}`);
+  assert.match(condition, /^(?:\s+|inputs\.(?:mode|target|sync_player_props_api)|'[a-z-]+'|==|!=|&&|\|\||[()]|always\(\))+$/, `Unsupported step condition: ${condition}`);
   return Function('inputs', `return (${condition.replace(/always\(\)/g, 'true').replace(/(==|!=)/g, '$1=')});`)(inputs);
 }
-const stepsRun = (mode, target) => productionSteps().filter(step => stepRuns(step.if, { mode, target }));
+const stepsRun = (mode, target, sync_player_props_api = false) =>
+  productionSteps().filter(step => stepRuns(step.if, { mode, target, sync_player_props_api }));
 const deployCommands = (mode, target) => stepsRun(mode, target).map(step => step.run).filter(run => / deploy /.test(run || ''));
 
 test('release.yml offers exactly the preflight targets, both worker targets included', () => {
@@ -321,6 +338,23 @@ test('each target deploys only its own component; the worker targets never deplo
   assert.equal(productionSteps().filter(step => /epl-jobs/.test(step.if || '')).length, 1, 'no other step selects epl-jobs');
   assert.equal(deploySteps.find(step => step.run === RESULTS_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'results-refresh'");
   assert.equal(deploySteps.find(step => step.run === WORKER_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'push-reminders'");
+});
+
+test('the Player Props flag step runs after hosted preflight only on an opted-in frontend deploy', () => {
+  const isPropsSync = step => step.name === 'Set the reviewed Player Props API flag';
+  assert.ok(!stepsRun('deploy', 'frontend').some(isPropsSync));
+  for (const mode of ['check-only', 'readiness']) {
+    assert.ok(!stepsRun(mode, 'frontend', true).some(isPropsSync));
+  }
+  for (const target of TARGETS.filter(name => name !== 'frontend')) {
+    assert.ok(!stepsRun('deploy', target, true).some(isPropsSync));
+  }
+  const steps = stepsRun('deploy', 'frontend', true);
+  const flag = steps.findIndex(isPropsSync);
+  const preflight = steps.findIndex(step => step.name === 'Read-only hosted preflight and schedule evidence');
+  const pages = steps.findIndex(step => step.run === PAGES_DEPLOY);
+  assert.ok(preflight >= 0 && flag > preflight && pages > flag);
+  assert.deepEqual(steps[flag].env, { SUPABASE_ACCESS_TOKEN: '${{ secrets.SUPABASE_ACCESS_TOKEN }}' });
 });
 
 test('each worker deploy mirrors the API deploy step: same checkout directory, same single secret, project ref from the environment', () => {
