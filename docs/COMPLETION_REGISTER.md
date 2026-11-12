@@ -1,5 +1,39 @@
 # Guess The Line — current completion register
 
+## Security closeout merged; scan coverage investigated — November 11, 2026
+
+Owner: Sean Balsiger. Version 1. [PR #549](https://github.com/seanbalz/guess-the-line/pull/549)
+merged under Sean's conditional authorization at 5:32:52 PM Pacific. Reviewed head
+`844f935b5ebab20a5fa53ec1acc188b84ef17c16`; merge commit
+`0643ec05a831cb763521249f86a6c269ac39668d`. All 14 checks passed, including all nine
+required checks. No approving review was required; there were no reviews or
+unresolved threads. No protection was bypassed. Fresh closeout checks passed:
+14 Python download tests, 15 workflow tests, publisher action-pin verification
+and Brand QA. The separately owned main checkout passed `sync:pull` and
+`sync:check` at the merge commit, clean and zero ahead/behind. No deployment.
+
+The [coverage investigation and follow-up plan](SECURITY_SCAN_COVERAGE_2026_11_11.md)
+reproduced all 24 Semgrep diagnostics with 1.185.0. All 21 affected files are
+unchanged between the PR head and merge. Babel accepted all affected JavaScript/
+JSX, parse5 accepted both HTML files, and 21 existing active-module tests passed.
+No application syntax defect or exploitable vulnerability was established.
+
+Temporary copies cleared the 20 parsing warnings and one matching error through
+specific syntax normalizations; the frozen v62 tracker and repository source were
+untouched. A 60-second targeted run resolved the three bundle timeouts but exposed
+one additional valid fractional-conditional parser issue. Normalizing that one
+token in a separate copy preserved its Babel AST and let those three rules finish
+with zero findings/diagnostics. Neither experiment proves full-repository coverage.
+The baseline had the same diagnostic counts but one different timeout rule ID.
+
+Branch `codex/security-scan-coverage-2026-11-11`, based on fresh main at the merge
+commit, publishes the report and this entry only in
+[PR #551](https://github.com/seanbalz/guess-the-line/pull/551), left open and unmerged.
+Implementation, scanner-coverage
+gates and missing PR path triggers remain planned; no blanket exclusions or rule
+suppressions were added. Local artifacts are retained under
+`C:/Users/sbals/outputs/security-closeout-20261111`. This follow-up is not authorized
+to merge by #549's authorization, and production deployment remains separate.
 ## Premier League feature request reconciled with live release — November 11, 2026 Pacific
 
 The [fresh verification record](EPL_FEATURES_LIVE_VERIFICATION_2026_11_11.md) reconciles
