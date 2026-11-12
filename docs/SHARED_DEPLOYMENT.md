@@ -220,6 +220,17 @@ spends again, because its request IDs are new.
 6. After the games are final, run **Player Props jobs** `results` with write off. Then run it
    with write and record_while_dark on.
 
+### On-demand Player Props refresh
+
+After M-48 and the matching API release, a signed-in lock attempt can refresh
+passing, rushing or receiving yards for an offered game before kickoff. The
+API uses the existing `THE_ODDS_API_KEY` and a verified weekly NFL roster.
+Each request covers one game and stat. Manual collections and automatic
+refreshes share 12 prop credits per season and week, including unsuccessful
+reservations, and the 50-credit reserve. When the cap or quote availability
+prevents a lock, the app keeps the draft. Add `player-props-refresh` to
+`GTL_FEATURE_OFF` to pause automatic collection.
+
 ### Player Props pregame activation
 
 Sean requested the pregame launch on November 11 Pacific. Players can lock

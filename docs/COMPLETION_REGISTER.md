@@ -109,6 +109,31 @@ record awaits final stats. The [release procedure](SHARED_DEPLOYMENT.md#player-p
 adds an opt-in frontend deploy step for the API flag. The reviewed database
 switch and verified production release still need to run.
 
+## On-demand Player Props refresh — November 11, 2026 Pacific
+
+Sean approved on-demand collection with up to 12 Player Props credits per NFL
+week. Manual collections and refreshes share that total and the existing
+50-credit reserve. Week 10 used six credits to seed its two pilot games.
+
+The lock-in flow reuses a qualifying reference from the last six hours. If it
+needs a refresh, the server verifies the offered game and athlete against the
+published slate and weekly roster, then requests the selected yardage stat for
+that game. The shared reservation applies a five-minute cooldown per game and
+stat. If a qualifying quote is still unavailable, the draft remains available
+for another attempt before kickoff.
+
+The source check verified the published checksum and loaded 2,253 Week 10
+roster records. Concurrent attempts reused one credential-free roster load in
+the local test. [nflverse weekly roster release](https://github.com/nflverse/nflverse-data/releases/tag/weekly_rosters)
+
+The read-only hosted check on November 12 at 03:28 UTC confirmed Week 10, six
+reserved credits, the service-only research RPC, the active Player Props
+capability and 86 migration records. The new M-48 RPC is pending. The release
+requires the named apply of `20261112031000_gtl_player_props_refresh.sql`, a fresh
+preservation check and the protected API release. `GTL_FEATURE_OFF` accepts
+`player-props-refresh` to pause automatic collection. The tested M-48 rollback
+restores the prior reservation function and preserves the collection ledger.
+
 ## Direct Player Props tab in NFL Play — November 11, 2026 Pacific
 
 Sean approved the Light and Dark mockups with Player Props beside Overview,

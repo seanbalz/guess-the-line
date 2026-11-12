@@ -9,14 +9,15 @@
 //   3. App: the build flag VITE_GTL_PLAYER_PROPS=on (web/src/next/props/flag.js). Otherwise no prop control renders and
 //      no /props request is made.
 // An unapplied schema (PostgREST 404 PGRST202) reads as off, so an old client and the Spread/Total routes are unaffected.
-// The GTL_FEATURE_OFF secret's `player-props` switch pauses the writers; reads keep working.
+// The GTL_FEATURE_OFF secret's `player-props` switch pauses the writers. `player-props-refresh` pauses collection
+// on lock-in while draft saves, reads, and locks with retained references keep working.
 //
 // Every reply is rebuilt field by field. Only the signed-in owner's drafts and locks are ever returned, and an unlocked
 // selection never carries a market number (the entry screen hides it). /props/shared is the one reader of other members'
 // guesses: locked ones only, values and names only, and only for a selection the viewer locked in or whose event kicked
 // off (D-31/D-39 reveal rules; supabase/migrations/20261110180000_gtl_player_props_shared.sql). Until that migration is
-// applied it answers available:false, so an old schema and old clients are unaffected. No provider is called here: the lock-in reference
-// comes from already retained research quotes (cloud/player-prop-receipts.mjs).
+// applied it answers available:false, so an old schema and old clients are unaffected. Lock-in references come from
+// retained research quotes. A lock refused for a missing reference can request one bounded server-side refresh.
 import { UUID_PATTERN } from './lobby.mjs';
 import { PLAYER_PROPS_FEATURE, PROP_POSITIONS, propSelection, propStat, validPropGuess, validPropLine, validSeason, validWeek,
   validEventId, validPlayerId, PROP_RESULT_STATES } from '../shared/player-props.mjs';
@@ -177,17 +178,35 @@ async function propsLock({ body, user, service, featureOff, uuid }) {
   const capability = await service.rpc('gtl_props_capability', {});
   if (!record(capability) || capability.ready !== true) throw providerPropsError('GTL_PROPS_OFF');
   // The draft is saved in its own call first, so a refused lock (no qualifying reference, a lost race) never loses it.
-  try { await service.rpc('gtl_props_save_draft', writeArgs(user, uuid(), input)); }
+  let draftSaved = false;
+  try {
+    await service.rpc('gtl_props_save_draft', writeArgs(user, uuid(), input));
+    draftSaved = true;
+  }
   catch (error) { if (error?.code !== 'GTL_PROPS_LOCKED') throw error; }
   const { selection } = input;
-  const board = boardView(await service.rpc('gtl_props_board', { p_user: user.id, p_season: selection.season, p_week: selection.week }), selection);
-  const offer = board.offers.find(o => o.eventId === selection.eventId && o.playerId === selection.playerId && o.stat === selection.stat);
-  // Refresh the reference from retained quotes only (no provider call). Its outcome does not decide: the SQL writer
-  // accepts only a qualifying recorded reference and otherwise refuses with GTL_PROPS_REFERENCE_UNAVAILABLE.
-  if (offer && !offer.closed && typeof service.references?.referenceForLock === 'function') {
-    try { await service.references.referenceForLock({ ...offer, season: selection.season, week: selection.week }); } catch { /* Unavailable stays explicit below. */ }
+  const { offers } = boardView(await service.rpc('gtl_props_board', { p_user: user.id, p_season: selection.season, p_week: selection.week }), selection);
+  const match = offers.find(o => o.eventId === selection.eventId && o.playerId === selection.playerId && o.stat === selection.stat);
+  const offer = match && !match.closed ? { ...match, season: selection.season, week: selection.week } : null;
+  async function retainReference() {
+    if (!offer) return;
+    try { await service.references?.referenceForLock(offer); } catch { /* The SQL writer decides if a reference is usable. */ }
   }
-  const saved = savedView(await service.rpc('gtl_props_lock_in', writeArgs(user, input.requestId, input)), input);
+  await retainReference();
+  const lockArgs = writeArgs(user, input.requestId, input);
+  let raw;
+  try { raw = await service.rpc('gtl_props_lock_in', lockArgs); }
+  catch (error) {
+    if (error?.code !== 'GTL_PROPS_REFERENCE_UNAVAILABLE' || !draftSaved || !offer || featureOff.has('player-props-refresh')
+      || typeof service.refreshForLock !== 'function') throw error;
+    let refreshed;
+    try { refreshed = await service.refreshForLock({ offer, requestId: uuid() }); }
+    catch { throw error; }
+    if (!refreshed) throw error;
+    await retainReference();
+    raw = await service.rpc('gtl_props_lock_in', lockArgs);
+  }
+  const saved = savedView(raw, input);
   if (saved.status !== 'locked' || saved.guess !== input.guess) throw providerPropsError('GTL_PROPS_LOCKED');
   return saved;
 }

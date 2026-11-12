@@ -59,6 +59,8 @@ export const rpcChecks = Object.freeze([
   ...PROP_RPCS,
   ...PROP_JOB_RPCS,
   ...PROP_SHARED_RPCS,
+  // M-48: on-demand refresh service entry point. This request names no published week or verified offer.
+  ['gtl_props_begin_refresh', { p_request: missingId, p_season: 0, p_week: 0, p_event_id: 'boundary', p_player_id: 'boundary', p_stat: 'player_pass_yds' }],
   // M-32: service-only. No real actor/event, valid guess, or clock is supplied to a writer.
   ['gtl_epl_moneyline_distance', { p_guess: -100, p_real: 100 }],
   ['gtl_epl_guess_json', { p_g: null, p_kickoff: null, p_at: null }],
@@ -205,8 +207,9 @@ export const workerChecks = Object.freeze([
 export const awaitingDeploy = Object.freeze({
   ...eplOpsAwaiting,
   // M-45 to M-47's tables and RPCs left with their November 10, 2026 apply record (RELEASE_2026_11_10_MIGRATIONS_M41_M47.md);
-  // only the Player Props routes wait, for the separately approved GTL_PLAYER_PROPS switch.
+  // their Player Props routes wait for the separately approved GTL_PLAYER_PROPS switch.
   ...Object.fromEntries(PROP_ROUTES.map(([route]) => [`gtl-api/${route}`, PROP_ROUTE_FLAG])),
+  'rpc/gtl_props_begin_refresh': '20261112031000 (M-48 Player Props on-demand refresh; named Gate M apply pending)',
   // M-33 (20261029151727) is hosted as 20261111171228 since November 11, 2026, after the gtl-api v55 release from 5105abed
   // (RELEASE_2026_11_11_STAT_CORRECTIONS_M33_M35.md): its table and three RPCs left this list and must deny.
 });
