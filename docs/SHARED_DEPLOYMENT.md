@@ -162,9 +162,9 @@ allowlisted and checked against the existing production project/account.
 | Variable | `VITE_SUPABASE_PUBLISHABLE_KEY` | Existing public `sb_publishable_…` browser key; not a service-role key |
 | Variable | `CLOUDFLARE_ACCOUNT_ID` | `83bd659d712e968e7a61efa14107465a` |
 | Variable | `CLOUDFLARE_PAGES_PROJECT` | `guess-the-line` |
-| Secret | `SUPABASE_ACCESS_TOKEN` | A dedicated project-scoped token permitting database read-only preflight and Edge Function read/deploy. Required even for frontend readiness because the schedule/history gate is hosted. |
+| Secret | `SUPABASE_ACCESS_TOKEN` | A dedicated project-scoped token permitting database read-only preflight and Edge Function read/deploy. Required even for frontend readiness because the schedule/history gate is hosted. The optional Player Props flag sync also needs permission to set an Edge Function secret. |
 | Secret | `CLOUDFLARE_API_TOKEN` | Dedicated Cloudflare Pages Edit token for this account; required for frontend or combined releases, not API-only or worker (`push-reminders`, `points-jobs`, `league-features`, `fantasy-ingest`, `epl-jobs`, `ops-alerts`, `odds-refresh`) releases |
-| Variable (optional) | `VITE_GTL_PLAYER_PROPS` | D-82 Player Props app flag. Leave it **unset** (or `off`): the Pages build is then byte-identical to a build without it. `on` builds the flag in; any other value fails the release before the build. Setting it is Sean's word, only after the `gtl-api` secret `GTL_PLAYER_PROPS` and `live_lock_in` (docs/PLAYER_PROPS_READINESS_TASK2_2026-11-10.md, step 6), and it takes effect only with the next Pages deploy. |
+| Variable (optional) | `VITE_GTL_PLAYER_PROPS` | D-82 Player Props app flag. Leave it **unset** (or `off`): the Pages build is then byte-identical to a build without it. `on` builds the flag in; any other value fails the release before the build. Set it for the authorized [Player Props pregame activation](#player-props-pregame-activation). It takes effect with the next Pages deploy. |
 
 Create dedicated tokens in the providers' secure interfaces, then enter them
 directly into GitHub environment secrets. Do not paste them into a task, commit
@@ -219,6 +219,31 @@ spends again, because its request IDs are new.
    run it with write and record_while_dark on.
 6. After the games are final, run **Player Props jobs** `results` with write off. Then run it
    with write and record_while_dark on.
+
+### Player Props pregame activation
+
+Sean requested the pregame launch on November 11 Pacific. Players can lock
+guesses against fresh sportsbook lines before kickoff and see accuracy at
+lock-in. The paper record updates after verified final stats arrive. The
+[Week 10 pilot evidence](https://github.com/seanbalz/guess-the-line/pull/548)
+covers quote collection and offer storage. Final result verification continues
+after the games.
+
+For the protected `frontend` deploy, set the repository variable
+`VITE_GTL_PLAYER_PROPS` to `on` and select `sync_player_props_api`. This sets
+the `GTL_PLAYER_PROPS` Edge Function flag to match the build after the hosted
+preflight. Use an exact CI-verified source containing the approved Player
+Props screens and verify the signed-out denials and production assets. Then
+confirm fresh references for the current slate and apply the reviewed,
+reversible `live_lock_in` setting. The existing migrations supply the schema.
+
+To pause lock-in, set `live_lock_in` to false and preserve stored guesses.
+A protected frontend redeploy with the repository flag off and
+`sync_player_props_api` selected hides the entry point and closes the API
+routes. If a deploy fails after the API flag step, read the current API
+response and Pages deployment separately. Keep lock-in paused while
+restoring the flags and the previous frontend. Continue collection within
+the approved free scope and the existing six-hour reference age limit.
 
 ## Release train (Sean, October 28, 2026)
 

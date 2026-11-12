@@ -34,6 +34,14 @@ gates and missing PR path triggers remain planned; no blanket exclusions or rule
 suppressions were added. Local artifacts are retained under
 `C:/Users/sbals/outputs/security-closeout-20261111`. This follow-up is not authorized
 to merge by #549's authorization, and production deployment remains separate.
+## Player Props pregame launch preparation - November 11, 2026 Pacific
+
+Sean requested the approved weekly Player Props guessing flow to launch.
+The [pilot](https://github.com/seanbalz/guess-the-line/pull/548) stored 31
+verified offers and references across two games. Scoring the separate paper
+record awaits final stats. The [release procedure](SHARED_DEPLOYMENT.md#player-props-pregame-activation)
+adds an opt-in frontend deploy step for the API flag. The reviewed database
+switch and verified production release still need to run.
 
 ## Security warning remediation — November 11, 2026
 
@@ -135,6 +143,27 @@ Not done at the time: merge, Pages deploy, NBA on the switch, N2 to N4, the phys
 and Sean's review of the captures. **Update:** merged (PR #542) and deployed (Pages `b8019df1`, see
 the section above); question 6 is answered ("Backfill once, free"). Spec questions 5 (switch timing)
 and 8 (stale Codex worktree) stay open.
+
+## D-84: Prism Glass stays; D-69 steps 4 and 5 and B1 stop — November 11, 2026
+
+Sean: "Yes, keep Prism" and "Yes, stop B1", and "Prism Glass stands (Recommended)" in the step 4 session
+([D-84](DECISIONS.md)). D-69 step 4 (Bets), step 5 (Menu and Premier League) and the B1 Play polish are stopped,
+not merged and not released. Prism Glass stays the design for Home, Play, Bets and the Menu. Step 4's work is kept,
+unmerged, on `claude/overhaul-step4-bets` (`6266ef47`, which includes a WIP commit). Nothing on the live site changed.
+
+**Step 3 (Research) signed-in readback**, owed since November 4, comes from the hosted logs, 24 hours to about 17:10
+UTC on November 11. Every signed-in `gtl-api` call on Research's routes returned 200 (204 for preflights):
+- `GET /personal`: 53, slowest 3.0 s;
+- `/lines/research`: 16, slowest 2.6 s;
+- `/lines/game`: 12, slowest 1.4 s;
+- `/lines/assessments`: 8, slowest 3.9 s;
+- `/lines/teams`: 3;
+- `/personal/notes`: 3;
+- `/lines/research-links`: 2.
+
+No CPU-limit or error-level function log was found. The window's 401s were the signed-out probe runs. These calls
+came from the live Research, which has been Prism's since November 8, not only step 3's screens.
+
 ## Stat corrections release and M-33 to M-35 applied — November 11, 2026 UTC
 
 Sean said "Yes, deploy" for the D-83 stat-corrections card and the M-33 to M-35 applies, after
@@ -384,14 +413,20 @@ acceptance is not established by the release.
 ## Gap period follow-up fixes and mockups — November 9, 2026
 
 The [post-release review and fix evidence](GAP_PERIOD_FOLLOWUP_REVIEW_2026_11_09.md)
-record both PR #505 follow-ups fixed locally: period/applied-range intent survives
+record both PR #505 follow-ups fixed and deployed: period/applied-range intent survives
 recommendation-week changes and Refresh lines, and expanded records include all
 rows when the period grows. The existing account and read guards remain. Both
 regressions failed before the fixes and passed after; 22 unique recommendation
 browser cases, 39 Node checks, six UI checks and build/QA passed. Actual-component
 [Dark/Light mockups](../design/gap-period-fixes-2026-11-09/index.html) use synthetic
-data. Owner review, exact CI, merge, protected deploy and real-phone acceptance
-remain separate. PR #507 still owns the prior release-evidence reconciliation.
+data. Sean approved the mockups. PR #510 merged at
+`3d7bbc12d3eeb8692d5c133ed4cba68b43eeb8bc`; November 11 Pacific readback confirms
+both fixes remain in release source `cac63e7a0d10a38b4badc41c663a763b5301aee4`.
+[Release 43124865004](https://github.com/seanbalz/guess-the-line/actions/runs/43124865004)
+passed exact-source CI and verified all 176 production assets; the
+[batch release record](RELEASE_2026_11_12_NBA_N1.md) preserves its evidence.
+No duplicate deployment was dispatched. Fresh signed-in Gap and real-phone
+acceptance remain separate. PR #507 records the original PR #505 release.
 
 ## Comparable NFL gap scale checked locally — November 9, 2026
 
