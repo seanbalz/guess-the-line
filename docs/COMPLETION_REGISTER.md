@@ -379,14 +379,20 @@ acceptance is not established by the release.
 ## Gap period follow-up fixes and mockups — November 9, 2026
 
 The [post-release review and fix evidence](GAP_PERIOD_FOLLOWUP_REVIEW_2026_11_09.md)
-record both PR #505 follow-ups fixed locally: period/applied-range intent survives
+record both PR #505 follow-ups fixed and deployed: period/applied-range intent survives
 recommendation-week changes and Refresh lines, and expanded records include all
 rows when the period grows. The existing account and read guards remain. Both
 regressions failed before the fixes and passed after; 22 unique recommendation
 browser cases, 39 Node checks, six UI checks and build/QA passed. Actual-component
 [Dark/Light mockups](../design/gap-period-fixes-2026-11-09/index.html) use synthetic
-data. Owner review, exact CI, merge, protected deploy and real-phone acceptance
-remain separate. PR #507 still owns the prior release-evidence reconciliation.
+data. Sean approved the mockups. PR #510 merged at
+`3d7bbc12d3eeb8692d5c133ed4cba68b43eeb8bc`; November 11 Pacific readback confirms
+both fixes remain in release source `cac63e7a0d10a38b4badc41c663a763b5301aee4`.
+[Release 43124865004](https://github.com/seanbalz/guess-the-line/actions/runs/43124865004)
+passed exact-source CI and verified all 176 production assets; the
+[batch release record](RELEASE_2026_11_12_NBA_N1.md) preserves its evidence.
+No duplicate deployment was dispatched. Fresh signed-in Gap and real-phone
+acceptance remain separate. PR #507 records the original PR #505 release.
 
 ## Comparable NFL gap scale checked locally — November 9, 2026
 

@@ -1,6 +1,36 @@
 # Gap period follow-up review — November 9, 2026
 
-Owner: Sean Balsiger · Version 2 · Status: both findings fixed locally; not deployed.
+Owner: Sean Balsiger · Version 3 · Status: both findings merged and verified in production.
+
+## Release closeout — November 11, 2026 Pacific
+
+Sean approved the mockups and requested "Merge and deploy". Readback found
+[PR #510](https://github.com/seanbalz/guess-the-line/pull/510) already merged on
+November 9 at `3d7bbc12d3eeb8692d5c133ed4cba68b43eeb8bc` (implementation
+`dfc4d50ce20e4edaf9704b1575408d0293b92de8`). That merge is an ancestor of the
+latest successful frontend release source,
+`cac63e7a0d10a38b4badc41c663a763b5301aee4`. Comparing the three changed modules
+confirms the account-scoped period preference, controlled period hook and
+boolean expansion remain present; the hook is unchanged. Subsequent gap-scale
+and Player Props changes remain intact.
+
+[Release run 43124865004](https://github.com/seanbalz/guess-the-line/actions/runs/43124865004)
+passed its exact-source CI gate, hosted preflight, frontend deployment and live
+verification. Its downloaded `verified.json`, checked at
+`2026-11-12T00:11:11.320Z` (November 11 Pacific), records Pages
+`b8019df1-f084-4ce7-bbb8-99757902b6dd`, all 176 production assets matched, and
+frontend digest `988570448bcc405ffb3233ca6118ab0994372cc138a5bb584281db76a12dd461`.
+The [durable release record](RELEASE_2026_11_12_NBA_N1.md) preserves the complete
+batch evidence and limits. This closes the stale "not deployed" status; no
+additional production run was necessary or dispatched for this readback.
+
+The release kept API v55 and migration history unchanged (86 rows, digest
+`5dd179dce5d388163cb6f17b6b84aa6b5cdfe8666298fd9284a7a6e29871b382`). Its boundary
+report records 514 denials and five documented Player Props probes awaiting
+the feature flag, not five successful denials. This establishes the fixes'
+presence in verified deployed assets. Fresh signed-in Gap interaction and
+physical-phone acceptance were not performed during this closeout; the local
+behavioral regression evidence below remains the interaction evidence.
 
 ## Implementation and mockup update
 
@@ -15,8 +45,8 @@ collapse control remains accurate. This adds no persistent browser storage.
 [Dark overview](../design/gap-period-fixes-2026-11-09/dark-overview.png) and
 [Light overview](../design/gap-period-fixes-2026-11-09/light-overview.png) use actual
 app components with synthetic local accounts, slates, references and finals.
-The original appearance and grading rules remain unchanged. User review, exact
-CI, merge and protected frontend deployment remain separate.
+The fixes preserve the original appearance and grading rules. Sean's mockup
+approval, merge and deployed-source verification are recorded above.
 
 Verification of the fixes:
 
