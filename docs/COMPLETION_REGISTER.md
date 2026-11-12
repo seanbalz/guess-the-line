@@ -1,5 +1,31 @@
 # Guess The Line — current completion register
 
+## Security coverage stage 1 prepared — November 11, 2026 Pacific
+
+Owner: Sean Balsiger. Version 1. Branch `codex/security-coverage-gates-2026-11-11`
+starts from fresh main at `acbe8406a88481bc8b60045668b035c614bf059e`, the verified
+#551 merge from final head `4833cc685ced1d650a2243fff63989a652083396`.
+No other open PR or committed fix duplicates this work. The
+[updated investigation](SECURITY_SCAN_COVERAGE_2026_11_11.md#stage-1-implementation--november-11-2026-pacific)
+records this staged implementation and the earlier report's provenance.
+
+Every PR now triggers both audits on its actual head. Semgrep 1.185.0 records
+resolved rule bytes/hashes/version IDs, source/engine/budgets, findings and full
+diagnostic/scanned/skipped inventories. Its summary labels incomplete coverage
+explicitly; missing/bad scan evidence fails. Findings/diagnostics remain
+report-only, with no new exclusions or suppressions. Trivy's version output is
+retained too; its previously observed skipped Rego module remains a review item.
+Two workflow snippets and two active-module regexes receive behavior-preserving
+normalizations. Design/generated/legacy source and frozen v62 files are unchanged.
+
+Local checks pass: 11 reporter tests, 14 HTTPS tests, 30 Node tests, Brand QA,
+regex AST equivalence, three Bash syntax checks and aggregate success/failure
+behavior. Unchanged-main scan: zero findings, 27 diagnostics. Initial dirty-source
+scan: zero findings, 19 diagnostics (16 partial parses, three bundle timeouts),
+with the five targeted parser/matching issues removed. Transient timeout changes
+are not counted as fixes. Clean exact-head hosted evidence remains a separate
+verification step; this entry does not claim merge or deployment.
+
 ## Security closeout merged; scan coverage investigated — November 11, 2026
 
 Owner: Sean Balsiger. Version 1. [PR #549](https://github.com/seanbalz/guess-the-line/pull/549)
@@ -28,12 +54,14 @@ The baseline had the same diagnostic counts but one different timeout rule ID.
 
 Branch `codex/security-scan-coverage-2026-11-11`, based on fresh main at the merge
 commit, publishes the report and this entry only in
-[PR #551](https://github.com/seanbalz/guess-the-line/pull/551), left open and unmerged.
-Implementation, scanner-coverage
-gates and missing PR path triggers remain planned; no blanket exclusions or rule
+[PR #551](https://github.com/seanbalz/guess-the-line/pull/551), initially left open
+and unmerged. It subsequently merged at `acbe8406a88481bc8b60045668b035c614bf059e`
+from head `4833cc685ced1d650a2243fff63989a652083396`; stage 1 above supersedes the
+earlier implementation plan. At original publication, scanner-coverage
+gates and missing PR path triggers remained planned; no blanket exclusions or rule
 suppressions were added. Local artifacts are retained under
-`C:/Users/sbals/outputs/security-closeout-20261111`. This follow-up is not authorized
-to merge by #549's authorization, and production deployment remains separate.
+`C:/Users/sbals/outputs/security-closeout-20261111`. #549's authorization did not
+authorize that follow-up merge in this chat; production deployment remains separate.
 ## Premier League feature request reconciled with live release — November 11, 2026 Pacific
 
 The [fresh verification record](EPL_FEATURES_LIVE_VERIFICATION_2026_11_11.md) reconciles

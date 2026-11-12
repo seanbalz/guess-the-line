@@ -92,7 +92,9 @@ jobs:
       - name: Install Chromium for Playwright
         uses: ./.github/actions/playwright-chromium
       - name: Cloud browser suite, shard ${{ matrix.shard }} of 4
-        run: npx playwright test --config playwright.cloud.config.js --shard=${{ matrix.shard }}/4 tests/cloud-browser/*.spec.js
+        env:
+          TEST_SHARD: ${{ matrix.shard }}
+        run: npx playwright test --config playwright.cloud.config.js --shard="$TEST_SHARD/4" tests/cloud-browser/*.spec.js
       - name: Save browser evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7

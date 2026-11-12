@@ -2,11 +2,82 @@
 
 Owner: Sean Balsiger · Version 1 · November 11, 2026 Pacific
 
-Status: PR #549 merged. Diagnostic investigation completed locally; the remedies
-below are a follow-up plan, not changes to application code or scanner policy.
-No production deployment, migration, account change or external issue submission.
-[PR #551](https://github.com/seanbalz/guess-the-line/pull/551) publishes this report
-and the completion entry; it remains open and unmerged.
+Status update: [PR #551](https://github.com/seanbalz/guess-the-line/pull/551) merged
+as `acbe8406a88481bc8b60045668b035c614bf059e` on November 11 at 7:36:32 PM Pacific
+(November 12, 03:36:32 UTC), from final head
+`4833cc685ced1d650a2243fff63989a652083396`. Its original publication below was
+documentation only and left unmerged at that time. Later main integrations and
+the merge supersede the earlier open status; they did not implement the remedies.
+
+## Stage 1 implementation — November 11, 2026 Pacific
+
+Sean authorized Project coordination to continue the security work. Branch
+`codex/security-coverage-gates-2026-11-11` starts from the verified #551 merge.
+Remote PRs and commits were checked for duplicate fixes before implementation.
+This stage addresses the workflow and two active modules; design, legacy JSX,
+generated bundles and frozen artifacts retain their explicit coverage limits.
+No new PR merge, deployment, migration, account change or third-party message is
+authorized or performed by this stage.
+
+- Both scanners now run on every PR, including changes confined to `web`,
+  `shared`, `design`, `planning` or documents. They check out the actual PR head
+  rather than relying on GitHub's synthetic merge SHA. Manual/weekly runs use
+  their requested workflow SHA. Permissions remain read-only, with no production
+  secrets or automatic fixes.
+- Semgrep is fixed at 1.185.0. `scripts/security_audit.py` verifies the source SHA
+  and clean CI checkout, downloads the same two public packs through the bounded
+  HTTPS helper, saves their original bytes, hashes and rule version IDs, and
+  scans those saved rules without rewriting their IDs. Safe YAML decoding also
+  accepts JSON; the registry serves different formats to different clients.
+  Rules remain current at retrieval time, not permanently pinned to old packs.
+- The artifact contains the raw report, verbose log, manifest, Markdown summary
+  and `coverage.json`: findings, diagnostic file/type/rule/message hashes, scanned
+  paths, skipped reasons/rules and tracked paths absent from the scanned list.
+  Missing/malformed/empty reports, wrong engines, execution/setup failures or a
+  nonzero scanner exit fail evidence generation. Existing findings and scanner
+  diagnostics remain report-only; limitations produce a visible warning and a
+  **limited** label, not a clean-coverage claim. A diagnostic regression gate is
+  still a later step, not silently enabled or treated as passed here.
+- Budgets are explicit: five seconds per rule, three timeouts before abandoning
+  a file, 1,000,000-byte file limit and two workers. No rule or file exclusion was
+  added. Skipped and scanned lists can overlap for partially analyzed files;
+  tracked-but-not-scanned paths also include unsupported/non-code files.
+- Matrix shard and aggregate result values now enter Bash through quoted
+  environment variables; the event notice uses `GITHUB_EVENT_NAME`. The required
+  success gate still rejects failed, cancelled, skipped and empty results.
+  `cloud/epl-standings.mjs` and `shared/ops-alert.mjs` spell the literal opening
+  `<` in their regexes as `\x3c`. No matching behavior changes.
+- Trivy retains its existing pinned action and scan policy. Its engine/database
+  version output is now included with the report. Earlier job logs show Trivy
+  0.70.0 and a skipped Rego module requiring a newer engine. This is an additional
+  coverage limit to review, not something a zero high/critical count resolves.
+
+Local validation: 11 evidence-reporter tests, 14 HTTPS boundary tests, 30 focused
+Node tests, Brand QA and diff checks pass. The new workflow/report tests first
+failed against the missing behavior. Both regex modules have equivalent
+normalized Babel ASTs; three edited Bash snippets pass `bash -n`, and executing
+the aggregate gate returns success only for `success`. Frozen v62 files are
+byte-for-byte unchanged in Git.
+
+The fresh unchanged-main baseline scanned 1,775 files with zero findings and
+**27 diagnostics**: 20 partial parses, one matching error and six timeouts. Three
+extra local timeouts compared with the earlier report involved a preview build,
+the research bridge and `shared/trends.mjs`; timeout fingerprints vary with
+runtime conditions. The initial staged-source scan (dirty checkout, not final
+head evidence) scanned 1,776 files with zero findings and **19 diagnostics**:
+16 partial parses and three bundle timeouts. The five targeted parsing/matching
+diagnostics are removed; disappearing incidental timeouts are not claimed as
+source fixes. Resolved packs contain 560 and 225 entries, 690 unique rule IDs.
+The exact clean candidate scan and hosted artifacts are recorded through the
+follow-up PR checks. Local draft evidence lives under
+`C:/Users/sbals/outputs/security-coverage-gates-20261111` and this worktree's
+ignored `.local/security-audit-*` folders.
+
+Remaining work: normalize editable design/legacy source with equivalence checks;
+retain frozen artifacts unchanged; review the bundle with disclosed supplemental
+coverage; inspect the oversize/ignored inventory; make diagnostic changes a
+separate reviewed gate; and address Trivy's engine/policy compatibility. The
+earlier investigation and experimental results below remain historical evidence.
 
 ## Verified merge
 
@@ -209,5 +280,6 @@ semgrep scan --config p/owasp-top-ten --config p/security-audit --metrics=off --
 ```
 
 Use Semgrep 1.185.0 and the reviewed source SHA above. Record the resolved rules
-when repeating this command; the current remote packs may change. This report's
-follow-up PR carries documentation only and has no authorization to merge itself.
+when repeating this command; the current remote packs may change. At original
+publication #551 carried documentation only and had no merge authorization in
+this chat; the verified subsequent merge is recorded at the top.
