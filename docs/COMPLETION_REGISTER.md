@@ -3,7 +3,8 @@
 ## NBA N2 built on a branch: slate and capped spread lines, server only — November 12, 2026 UTC
 
 Owner: Sean Balsiger. Version 1. Sean said "Yes, build N2" on November 11, 2026. It was built on
-branch `claude/nba-n2-2026-11-12` from `main` at `acbe8406`
+branch `claude/nba-n2-2026-11-12` from `main` at `acbe8406`, in
+[PR #558](https://github.com/seanbalz/guess-the-line/pull/558), which is open and not merged
 ([spec, N2](superpowers/specs/2026-11-10-nba-buildout-design.md#n2-slate-and-capped-spread-lines-server-only-players-see-nothing)).
 **Players see nothing. Nothing is merged, applied, deployed or scheduled, and no provider was
 called.**

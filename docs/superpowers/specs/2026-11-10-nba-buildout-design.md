@@ -178,7 +178,7 @@ his physical-iPhone check.
 
 ## N2: Slate and capped spread lines (server only; players see nothing)
 
-**Status (November 12, 2026 UTC): built on branch `claude/nba-n2-2026-11-12` on Sean's "Yes, build N2" (November 11).
+**Status (November 12, 2026 UTC): built on branch `claude/nba-n2-2026-11-12` ([PR #558](https://github.com/seanbalz/guess-the-line/pull/558)) on Sean's "Yes, build N2" (November 11).
 Not merged, applied, deployed or scheduled.** The migration is M-49, `20261112040000_gtl_nba_slate_lines.sql`, because open
 PR #555 already takes M-48. It waits for Sean's own "apply M-49"
 ([apply packet](../../MIGRATION_APPLY_PACKET_2026_11_12_NBA_N2.md)). The `gtl-nba-jobs` worker is not deployed, and no
