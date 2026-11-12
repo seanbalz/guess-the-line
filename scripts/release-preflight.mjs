@@ -4,6 +4,7 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { apiChecks } from './boundary/guess.mjs';
 
 export const REPOSITORY = 'seanbalz/guess-the-line';
 export const PROJECT = 'onmrgvcehkflfaizvedl';
@@ -138,6 +139,25 @@ export function appBuildFlags(env) {
   if (value === undefined || value === '' || value === 'off') return '';
   assert.equal(value, 'on', 'Set the VITE_GTL_PLAYER_PROPS variable to on or off, or leave it unset.');
   return 'VITE_GTL_PLAYER_PROPS=on\n';
+}
+
+/** Sync exactly one feature flag after the protected production preflight. */
+export async function syncPlayerPropsApi(env, fetchImpl = fetch) {
+  validateRequest(env);
+  assert.equal(env.GITHUB_ACTIONS, 'true', 'The Player Props API flag requires the protected release workflow.');
+  assert.equal(env.RELEASE_SYNC_PLAYER_PROPS_API, 'true', 'Select the Player Props API flag sync input.');
+  assert.equal(env.SUPABASE_PROJECT_REF, PROJECT, 'Unexpected Supabase project.');
+  assert.ok(env.SUPABASE_ACCESS_TOKEN, 'Missing SUPABASE_ACCESS_TOKEN.');
+  const value = env.VITE_GTL_PLAYER_PROPS ?? 'off';
+  assert.ok(['on', 'off'].includes(value), 'Invalid Player Props build flag.');
+  const response = await fetchImpl(`https://api.supabase.com/v1/projects/${PROJECT}/secrets`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${env.SUPABASE_ACCESS_TOKEN}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify([{ name: 'GTL_PLAYER_PROPS', value }]),
+    redirect: 'error',
+    signal: AbortSignal.timeout(15000),
+  });
+  assert.equal(response.status, 201, 'Could not set the Player Props API flag. Check the production token scope.');
 }
 
 export async function jsonRequest(url, token, options = {}, fetchImpl = fetch) {
@@ -323,9 +343,20 @@ export async function verifyRelease(cwd, env, before, fetchImpl = fetch) {
   assert.equal(migrationDigest(rows[0]?.migrations), before.migrationHistorySha256, 'Migration history changed during release.');
   const { checkCloudBoundary } = await import(pathToFileURL(path.join(cwd, 'scripts/check-cloud-boundary.mjs')));
   const boundary = await checkCloudBoundary({ url: env.VITE_SUPABASE_URL, key: env.VITE_SUPABASE_PUBLISHABLE_KEY, fetchImpl, log: () => {} });
-  if (env.RELEASE_SYNC_PLAYER_PROPS_API === 'true' && env.VITE_GTL_PLAYER_PROPS === 'on') {
-    assert.ok(!boundary.awaiting.some(({ name }) => /^(GET|POST) props\//.test(name)),
-      'Player Props routes must deny signed-out requests after the API flag is enabled.');
+  let playerPropsApi;
+  if (env.RELEASE_SYNC_PLAYER_PROPS_API === 'true') {
+    const enabled = env.VITE_GTL_PLAYER_PROPS === 'on';
+    const props = apiChecks.filter(([route]) => route.startsWith('props/'));
+    for (const [route, body] of props) {
+      const response = await fetchImpl(`${env.VITE_SUPABASE_URL}/functions/v1/gtl-api/${route}`, {
+        headers: { apikey: env.VITE_SUPABASE_PUBLISHABLE_KEY, 'Content-Type': 'application/json' },
+        method: 'POST', body: JSON.stringify(body), redirect: 'error', signal: AbortSignal.timeout(15000),
+      });
+      const result = await response.json().catch(() => null);
+      assert.ok(response.status === (enabled ? 401 : 404) && result?.error === (enabled ? 'Sign in to continue.' : 'Not found.'),
+        `Player Props API ${route} did not confirm the ${enabled ? 'enabled' : 'disabled'} state.`);
+    }
+    playerPropsApi = { enabled, checked: props.length };
   }
 
   let pages = null;
@@ -356,6 +387,7 @@ export async function verifyRelease(cwd, env, before, fetchImpl = fetch) {
     pages = { id: deployment.id, url: deployment.url, productionUrl: 'https://guess-the-line.pages.dev', deploymentUrlAccess: deploymentAccess, checkedUrls: bases, checkedAssetsPerUrl: served.length, frontendSha256: manifest.frontendSha256 };
   }
   return { requestedSource: env.RELEASE_SHA, target: env.RELEASE_TARGET, checkedAt: new Date().toISOString(), api, pages, boundary,
+    ...(playerPropsApi ? { playerPropsApi } : {}),
     ...workerReport,
     apiDeploymentMetadataVerified: true, apiSourceVerified: false, apiBundleMatchesCheckout: 'not-independently-verified',
     apiSourceLimitation: 'The deploy command uses the clean requested checkout. The remote bundle digest is recorded, but remote API bytes have not been independently matched to that checkout. API source acceptance remains a manual release-record gate.',
