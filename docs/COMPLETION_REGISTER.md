@@ -1,6 +1,44 @@
 # Guess The Line — current completion register
 
+## NBA N2 live: M-49 applied, `gtl-nba-jobs` deployed, slate on — November 12, 2026 UTC
+
+Sean said "Yes, merge it", then "Yes, all three", answering "Apply M-49, deploy the NBA job and
+switch on its schedule after the merge?" (November 11 Pacific). The
+[release and apply record](RELEASE_2026_11_12_NBA_N2_M49.md) has every hash and readback. Players
+see nothing: N2 is server only.
+
+- **Merges.** PR #558 (N2) merged as `2345d78f` at 05:51:12 UTC. PR #560 (the `nba-jobs` release
+  target) merged as `635e15cc`. CI on `635e15cc`: Tests, Dashboard checks and Brand QA all passed.
+- **Apply** (SQL editor in your signed-in Chrome, Gate M, one guarded transaction, about 05:53 UTC):
+
+| Ledger | What | Hosted version |
+| --- | --- | --- |
+| M-49 | NBA slate and capped spread lines | `20261112055355` |
+
+- **History** went from 86 to 87. The new digest is
+  `d0bcee513cb5be6d8d0ddb6115f2949f451953aa8c3c875ff006f4866533e2f3`.
+- **Scores, settled results, the NFL weeks and the shared budget row** hashed the same before and
+  after inside the transaction. The 14 new functions and 8 new tables matched the packet: service
+  only, RLS on, no browser access, no service delete. The NBA budget row is cap 31, pause below 100,
+  not paused.
+- **Worker.** `nba-jobs` run
+  [43169209526](https://github.com/seanbalz/guess-the-line/actions/runs/43169209526) from
+  `635e15cc` created `gtl-nba-jobs` v1 (ACTIVE, `verify_jwt` false). `gtl-api` v56 is unchanged.
+  Signed out, the worker answered 401 with a made-up run and with an empty request.
+- **Schedule.** `slate` is on (cron `0 16,17,22,23 * * *`); its first run is due at 17:00 UTC on
+  November 12 (9:00 AM Pacific). `lines` is off: its cron fires, but its disabled row means each call
+  posts nothing. It stays off until a slate run has stored a game day.
+- **Records** (this PR): M-49 moved to `APPLIED`, so only M-48 is not hosted. M-49's 19 table and RPC
+  probes left `awaitingDeploy` and must deny, and the `gtl-nba-jobs` worker probe joined
+  `workerChecks`.
+- **Not done or verified:** the first slate run; switching on `lines` (at most 31 credits a month);
+  a real lines read; the shadow gate's 10 game days before N3; the physical-iPhone check.
+  `check:cloud` was not run from this branch (no `.env.cloud` here).
+
 ## NBA N2 built on a branch: slate and capped spread lines, server only — November 12, 2026 UTC
+
+**Update November 12, 2026 UTC:** merged, applied, deployed and `slate` on; `lines` off. See the
+entry above.
 
 Owner: Sean Balsiger. Version 1. Sean said "Yes, build N2" on November 11, 2026. It was built on
 branch `claude/nba-n2-2026-11-12` from `main` at `acbe8406`, in

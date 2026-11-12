@@ -151,8 +151,10 @@ Order matters. Apply and record M-49 first, then run this target, as
 worker's capability arrives with M-49. A call with no token is refused either way, but before M-49 a call with a
 wrong token gets "temporarily unavailable" (503) instead of "Unauthorized." (401). After the deploy, add the worker's
 probe (`['scheduled nba jobs', 'gtl-nba-jobs', { runId: missingId }]`) to `workerChecks` in
-`scripts/boundary/bets.mjs`. Until then the boundary checks do not call `gtl-nba-jobs`. Running
-`supabase/admin/nba_jobs_cron.sql` (both schedule rows, created disabled) and enabling each job stay separate steps.
+`scripts/boundary/bets.mjs`. Running `supabase/admin/nba_jobs_cron.sql` (both schedule rows, created disabled) and
+enabling each job stay separate steps. **Done November 12, 2026 UTC:** M-49 was applied, run 43169209526 created
+`gtl-nba-jobs` v1 from `635e15cc`, the probe joined `workerChecks`, and `slate` is on with `lines` off
+([record](RELEASE_2026_11_12_NBA_N2_M49.md)).
 
 The workflow does not apply SQL, run `db push`, deploy collector functions other than through `odds-refresh`,
 change cron schedules or data budgets, or flip the default app. Existing
@@ -164,7 +166,8 @@ and worker targets: protected API and frontend runs are verified; the
 `ops-alerts` (November 3, created v1), `push-reminders` again (v6) and `odds-refresh` (November 3, v6 to v7) have run;
 `epl-jobs` has run (October 29, run 40937265809 from `d891291c`, worker v3; [record](RELEASE_2026_10_29_EPL_MONEYLINE.md)).
 `fantasy-ingest` has run too (October 28, run 40699619045, `gtl-fantasy-ingest` created at v1; [record](RELEASE_2026_10_28_D59_TRENDS.md)).
-`nba-jobs` is covered by local tests only until its first run. Existing dated release records remain historical evidence of the
+`nba-jobs` has run (November 12, 2026 UTC, run 43169209526 from `635e15cc`, `gtl-nba-jobs` created at v1;
+[record](RELEASE_2026_11_12_NBA_N2_M49.md)). Existing dated release records remain historical evidence of the
 Mac mini releases.
 
 ## One-time configuration
@@ -393,7 +396,7 @@ verification requires:
 - the migration-history digest is unchanged;
 - the signed-out boundary checks pass, including `gtl-push-reminders` refusing a
   call with no machine token or an invalid one (`gtl-fantasy-ingest` is not probed
-  until its `workerChecks` entry is added after its first deploy, and neither is `gtl-nba-jobs`);
+  until its `workerChecks` entry is added after its first deploy; `gtl-nba-jobs` is probed since its first deploy);
 - Pages is neither deployed nor read: the report has `pages: null`.
 
 The report adds `pushReminders` with `pushRemindersSourceVerified: false`, or

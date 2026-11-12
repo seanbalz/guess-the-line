@@ -1,14 +1,14 @@
-// NBA build-out N2 (M-49, supabase/migrations/20261112040000_gtl_nba_slate_lines.sql; NOT applied) on local PGlite with every
-// repo migration (ALL). It never connects to the hosted project and never calls a provider: BALLDONTLIE and The Odds API are
-// local doubles counted by the end-to-end tests, and pg_net is a local outbox (as tests/epl-jobs-sql.test.mjs does). Every
-// game, team pairing, time and line is synthetic.
+// NBA build-out N2 (M-49, supabase/migrations/20261112040000_gtl_nba_slate_lines.sql; hosted as 20261112055355 on November 12,
+// 2026 UTC, RELEASE_2026_11_12_NBA_N2_M49.md) on local PGlite with every repo migration (ALL). It never connects to the hosted
+// project and never calls a provider: BALLDONTLIE and The Odds API are local doubles counted by the end-to-end tests, and pg_net
+// is a local outbox (as tests/epl-jobs-sql.test.mjs does). Every game, team pairing, time and line is synthetic.
 // Optional disposable PostgreSQL runtime.
 // Install: npm install --prefix .local/sql-check --no-audit --no-fund --save-exact @electric-sql/pglite@0.5.8
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
-import { ALL, NOT_HOSTED, PRELUDE, REQUIRES, ROLLBACK_DIR, migrationSql, version } from './migrations.mjs';
+import { ALL, APPLIED, NOT_HOSTED, PRELUDE, REQUIRES, ROLLBACK_DIR, migrationSql, version } from './migrations.mjs';
 import { createNbaJobsHandler, createNbaSources, NBA_FAIL_REASONS, NBA_SKIP_REASONS } from '../cloud/nba-jobs.mjs';
 import { nbaOddsApiName, nbaTeam } from '../shared/nba-teams.mjs';
 import { pacificDate } from '../shared/nba-slate.mjs';
@@ -106,10 +106,12 @@ async function seedSpent(f, credits) {
     select $1,date '2020-01-01'+i,1,'finished',1,1,clock_timestamp(),clock_timestamp(),clock_timestamp(),gen_random_uuid() from generate_series(1,$2) i`, [runId, credits]);
 }
 
-test('M-49 is registered as written and not applied: NOT_HOSTED, no REQUIRES, an off-switch rollback, ledger number in its header', () => {
+test('M-49 is registered as hosted: APPLIED, not NOT_HOSTED, no REQUIRES, an off-switch rollback, ledger number in its header', () => {
   assert.ok(ALL.includes(MIGRATION));
-  assert.ok(NOT_HOSTED.includes(version(MIGRATION)));
-  assert.equal(REQUIRES[version(MIGRATION)], undefined, 'it needs no unapplied file');
+  // Hosted as 20261112055355 on November 12, 2026 UTC (RELEASE_2026_11_12_NBA_N2_M49.md).
+  assert.ok(APPLIED.includes(version(MIGRATION)));
+  assert.ok(!NOT_HOSTED.includes(version(MIGRATION)));
+  assert.equal(REQUIRES[version(MIGRATION)], undefined, 'it needed no unapplied file');
   assert.ok(fs.existsSync(`${ROLLBACK_DIR}${MIGRATION}`));
   const sql = fs.readFileSync(`supabase/migrations/${MIGRATION}`, 'utf8');
   assert.match(sql, /^-- M-49 gtl_nba_slate_lines/);
