@@ -3,7 +3,8 @@
 ## D-85 — NBA: N1 first, then nightly Guess the Spread; official NBA logos; 31-credit cap; all members play; records backfill; NBA on the switch (November 11, 2026)
 
 Status: decided; N1 merged (PR #542) and deployed as Pages `b8019df1` on November 12, 2026 UTC
-([release record](RELEASE_2026_11_12_NBA_N1.md)); NBA joins the sport switch by item 6. Numbered D-85 because
+([release record](RELEASE_2026_11_12_NBA_N1.md)); NBA joined the sport switch by item 6 (PR #546, live in Pages
+`060f35c4`). Numbered D-85 because
 D-84 is taken by open PR #540. Sean answered in the captain session on November 11, 2026, on
 the [NBA build-out proposal](superpowers/specs/2026-11-10-nba-buildout-design.md):
 

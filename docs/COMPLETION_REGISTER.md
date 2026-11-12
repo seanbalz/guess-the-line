@@ -1,5 +1,18 @@
 # Guess The Line — current completion register
 
+## NBA on the sport switch released — November 12, 2026 UTC (November 11 Pacific)
+
+Sean said "Yes, show NBA" (D-85 item 6), then "Just deploy latest main instead" and "deploy".
+PR #546 (`NBA_ON_SWITCH = true`) merged as `875c9ceb`. `frontend` run
+[43146347808](https://github.com/seanbalz/guess-the-line/actions/runs/43146347808) from `main`
+at `1aaf32d3` shipped Pages `060f35c4` (176 assets; boundary 519/519 denied). The release also
+carries #543, #549, #540, #541, #550 and #552. `gtl-api` is v56, unchanged here, and history
+stays 86 rows. The Player Props flag was not touched (`sync_player_props_api` false).
+
+Signed-in view: NFL Home shows NFL, Premier League and NBA, and tapping NBA opens NBA Home. Reads
+answer 200 on v56 with no 5xx. The physical-iPhone check is not done.
+[Release record](RELEASE_2026_11_12_NBA_N1.md#second-release-nba-on-the-sport-switch--november-12-2026-utc-november-11-pacific).
+
 ## Security closeout merged; scan coverage investigated — November 11, 2026
 
 Owner: Sean Balsiger. Version 1. [PR #549](https://github.com/seanbalz/guess-the-line/pull/549)
@@ -34,6 +47,7 @@ gates and missing PR path triggers remain planned; no blanket exclusions or rule
 suppressions were added. Local artifacts are retained under
 `C:/Users/sbals/outputs/security-closeout-20261111`. This follow-up is not authorized
 to merge by #549's authorization, and production deployment remains separate.
+
 ## Premier League feature request reconciled with live release — November 11, 2026 Pacific
 
 The [fresh verification record](EPL_FEATURES_LIVE_VERIFICATION_2026_11_11.md) reconciles

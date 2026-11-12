@@ -2,9 +2,9 @@
 
 ## Where things stand — 2026-11-10
 
-**Update November 12, 2026 UTC:** the frontend is Pages `b8019df1` from `cac63e7a` (NBA N1, PR #542),
-`frontend` run 43124865004; `gtl-api` stays v55 and history 86 rows
-([release record](../docs/RELEASE_2026_11_12_NBA_N1.md)).
+**Update November 12, 2026 UTC:** the frontend is Pages `060f35c4` from `1aaf32d3` (`frontend` run
+43146347808). It includes NBA N1 (PR #542) and NBA on the sport switch (PR #546). `gtl-api` is v56
+and history 86 rows ([release record](../docs/RELEASE_2026_11_12_NBA_N1.md)).
 
 Checked on November 10, 2026 at 21:24 UTC from `main` at `3ddc36d8`, the merged PRs, the release
 runs (`gh`) and read-only hosted reads through the Supabase connector. Only counts and states were
