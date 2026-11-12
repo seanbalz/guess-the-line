@@ -2,6 +2,7 @@
 import hashlib
 import importlib.util
 import pathlib
+import ssl
 import tempfile
 import unittest
 from unittest.mock import Mock, patch
@@ -30,7 +31,13 @@ class PublicDownloadTests(unittest.TestCase):
         with patch.object(download.http.client, 'HTTPSConnection') as connection:
             connection.return_value.getresponse.return_value = reply
             self.assertEqual(self.fetch(), b'0123456789')
-            connection.assert_called_once_with('github.com', timeout=60)
+            connection.assert_called_once()
+            self.assertEqual(connection.call_args.args, ('github.com',))
+            self.assertEqual(connection.call_args.kwargs['timeout'], 60)
+            context = connection.call_args.kwargs.get('context')
+            self.assertIsInstance(context, ssl.SSLContext)
+            self.assertTrue(context.check_hostname)
+            self.assertEqual(context.verify_mode, ssl.CERT_REQUIRED)
             connection.return_value.request.assert_called_once_with(
                 'GET', '/nflverse/nflverse-data/releases/download/schedules/games.csv',
                 headers={'User-Agent': 'GTL-test'})

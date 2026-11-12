@@ -2,9 +2,10 @@
 
 Callers supply exact initial URLs and, only where needed, explicit CDN hosts.
 No file/FTP handlers, automatic redirects, cookies or proxy environment are used.
-HTTPSConnection keeps Python's default certificate and hostname verification.
+Python 3.10+ is required; TLS explicitly verifies certificates and hostnames.
 """
 import http.client
+import ssl
 from urllib.parse import urljoin, urlsplit
 
 
@@ -31,7 +32,8 @@ def fetch_public_bytes(url, *, allowed_urls, maximum, user_agent, timeout=60,
         parsed = _https_url(url)
         if url not in allowed_urls and parsed.hostname not in redirect_hosts:
             raise ValueError('Public download redirect destination is not allowed.')
-        connection = http.client.HTTPSConnection(parsed.hostname, timeout=timeout)
+        # Audited for Python 3.10+: explicit verified TLS, covered by the SSLContext regression test.
+        connection = http.client.HTTPSConnection(parsed.hostname, timeout=timeout, context=ssl.create_default_context())  # nosemgrep: python.lang.security.audit.httpsconnection-detected.httpsconnection-detected
         try:
             target = parsed.path or '/'
             if parsed.query:

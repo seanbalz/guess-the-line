@@ -15,23 +15,33 @@ This records source changes and local evidence; merge and deployment are separat
   does not intentionally upgrade action versions. The action-pin regression
   test covers workflows and composite actions.
 - All five Python callers use `scripts/public_download.py`: exact initial URL
-  allowlists, HTTPS with default certificate verification, no embedded credentials
+  allowlists, HTTPS with explicit certificate and hostname verification, no embedded credentials
   or custom ports, bounded reads and at most five redirects. Each redirect is
   checked before connecting; only the explicit GitHub release CDN is additionally
   allowed for nflverse downloads. The historical CSV and ESPN crest fetches have
   no additional redirect hosts. Source hashes, parser validation and immutable
-  evidence writes remain in place. No new warning suppression was added.
+  evidence writes remain in place. One narrow `HTTPSConnection` audit annotation
+  covers Semgrep's pre-Python-3.4.3 compatibility warning: the project requires
+  Python 3.10+, explicitly supplies `ssl.create_default_context()`, and tests
+  `check_hostname` plus `CERT_REQUIRED`. No scan rule is globally disabled.
 - Regression evidence: the tampered-manifest local-file test and action-pin test
   both failed before the fixes and pass afterward. All 172 Python model tests
   pass with the pinned historical CSV present (zero skips), including 14 new
   download security tests. The nine snapshot tests and 15 focused workflow tests
-  pass. Typecheck and Brand QA pass (Python UTF-8 mode on Windows).
+  pass. The full local suite passes: 3,225 Node tests and 1,011 Vitest tests, with
+  zero skips. Typecheck, build and Brand QA pass (Python UTF-8 mode on Windows).
 - Read-only network checks passed for the pinned historical CSV, the nflverse
   schedule release and metadata, and one existing ESPN crest URL. No source
   manifest, shipped image, player record or production service was changed.
 - The audit trigger now includes model code, scripts and all GitHub workflow/
-  composite-action changes. Fresh hosted Semgrep/Trivy results and full-suite
-  completion will be recorded after the branch checks finish.
+  composite-action changes. [PR #549](https://github.com/seanbalz/guess-the-line/pull/549)
+  carries this work. The [first fresh audit](https://github.com/seanbalz/guess-the-line/actions/runs/43131382094)
+  at `79a4f5fa81ec104f86121f597fc51ba11ae5f44b` cleared the original findings and
+  found only the HTTPS compatibility audit warning addressed above. Trivy found
+  zero high/critical findings. Both the old and fresh Semgrep reports contain
+  24 engine diagnostics (partial parsing, a matching error, and generated-bundle
+  timeouts); a zero finding count does not establish complete scan coverage.
+  The final audit is available through the PR's security checks after this update.
 
 ## NBA N1 released — November 12, 2026 UTC (November 11 Pacific)
 
