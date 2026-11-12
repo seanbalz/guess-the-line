@@ -100,6 +100,14 @@ Not done at the time: merge, Pages deploy, NBA on the switch, N2 to N4, the phys
 and Sean's review of the captures. **Update:** merged (PR #542) and deployed (Pages `b8019df1`, see
 the section above); question 6 is answered ("Backfill once, free"). Spec questions 5 (switch timing)
 and 8 (stale Codex worktree) stay open.
+
+## D-84: Prism Glass stays; D-69 steps 4 and 5 and B1 stop — November 11, 2026
+
+Sean: "Yes, keep Prism" and "Yes, stop B1", and "Prism Glass stands (Recommended)" in the step 4 session
+([D-84](DECISIONS.md)). D-69 step 4 (Bets), step 5 (Menu and Premier League) and the B1 Play polish are stopped,
+not merged and not released. Prism Glass stays the design for Home, Play, Bets and the Menu. Step 4's work is kept,
+unmerged, on `claude/overhaul-step4-bets` (`6266ef47`, which includes a WIP commit). Nothing on the live site changed.
+
 ## Stat corrections release and M-33 to M-35 applied — November 11, 2026 UTC
 
 Sean said "Yes, deploy" for the D-83 stat-corrections card and the M-33 to M-35 applies, after
