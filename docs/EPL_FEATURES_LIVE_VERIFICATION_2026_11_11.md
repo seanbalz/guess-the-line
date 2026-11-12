@@ -26,7 +26,9 @@ The [November 10 release](RELEASE_2026_11_10_FINAL_BATCH.md) shipped the feature
 code and jobs worker. The [M-41 to M-47 apply record](RELEASE_2026_11_10_MIGRATIONS_M41_M47.md)
 records the three feature migrations and the later result-job enablement.
 The [November 11 release](RELEASE_2026_11_11_STAT_CORRECTIONS_M33_M35.md) shipped
-API v55 and the latest recorded Pages build, then applied M-33 to M-35.
+API v55 and Pages `dc662a68`, then applied M-33 to M-35. The subsequent
+[NBA frontend release](RELEASE_2026_11_12_NBA_N1.md) shipped Pages `b8019df1`
+from `cac63e7a`; API v55 and the EPL migrations remain unchanged.
 
 These dated records supersede older statements that the feature migrations were
 unapplied or the result schedule was disabled. This audit did not independently
