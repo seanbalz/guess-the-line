@@ -1,13 +1,13 @@
 # Guess The Line — current completion register
 
-## Player Props pregame launch preparation - November 11, 2026 Pacific
+## Player Props pregame guessing live - November 11, 2026 Pacific
 
-Sean requested the approved weekly Player Props guessing flow to launch.
-The [pilot](https://github.com/seanbalz/guess-the-line/pull/548) stored 31
-verified offers and references across two games. Scoring the separate paper
-record awaits final stats. The [release procedure](SHARED_DEPLOYMENT.md#player-props-pregame-activation)
-adds an opt-in frontend deploy step for the API flag. The reviewed database
-switch and verified production release still need to run.
+The approved Player Props flow is live under Play, Your guesses. The
+[frontend release](https://github.com/seanbalz/guess-the-line/actions/runs/43143702762)
+and the database readback verified lock-in and 31 fresh Week 10 offers across
+two games. Players see accuracy at lock-in. The separate paper record awaits
+verified final stats. The [release record](RELEASE_2026_11_12_PLAYER_PROPS.md)
+documents the source, quote expiry, verification and rollback.
 
 ## Security warning remediation — November 11, 2026
 
