@@ -108,6 +108,19 @@ Sean: "Yes, keep Prism" and "Yes, stop B1", and "Prism Glass stands (Recommended
 not merged and not released. Prism Glass stays the design for Home, Play, Bets and the Menu. Step 4's work is kept,
 unmerged, on `claude/overhaul-step4-bets` (`6266ef47`, which includes a WIP commit). Nothing on the live site changed.
 
+**Step 3 (Research) signed-in readback**, owed since November 4, comes from the hosted logs, 24 hours to about 17:10
+UTC on November 11. Every signed-in `gtl-api` call on Research's routes returned 200 (204 for preflights):
+- `GET /personal`: 53, slowest 3.0 s;
+- `/lines/research`: 16, slowest 2.6 s;
+- `/lines/game`: 12, slowest 1.4 s;
+- `/lines/assessments`: 8, slowest 3.9 s;
+- `/lines/teams`: 3;
+- `/personal/notes`: 3;
+- `/lines/research-links`: 2.
+
+No CPU-limit or error-level function log was found. The window's 401s were the signed-out probe runs. These calls
+came from the live Research, which has been Prism's since November 8, not only step 3's screens.
+
 ## Stat corrections release and M-33 to M-35 applied — November 11, 2026 UTC
 
 Sean said "Yes, deploy" for the D-83 stat-corrections card and the M-33 to M-35 applies, after

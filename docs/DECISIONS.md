@@ -549,6 +549,9 @@ remain required. Player pick deadlines and locks are unchanged.
 
 ## D-69 — Design overhaul: Moments, nesting cards on every tab, next move first (November 2, 2026)
 
+Superseded where it disagrees by [D-84](#d-84--prism-glass-stays-d-69-steps-4-and-5-and-the-b1-play-polish-stop-november-11-2026)
+(November 11, 2026): Prism Glass sets the layouts, and steps 4 and 5 and B1 stopped unmerged.
+
 Sean asked on October 26 for "a page by page node by node overhaul" because the app "doesn't have interactive and
 motion and game type features". On November 2 he answered five questions, one at a time, on a mockup canvas
 ([GTL Design Overhaul Mockups](https://claude.ai/artifact/YBJmR5XUV59juyGKPGphJ7), private):
