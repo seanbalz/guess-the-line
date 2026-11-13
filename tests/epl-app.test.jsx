@@ -24,13 +24,13 @@ const pressed = html => buttons(html).filter(button => button.selected).map(butt
 const render = route => renderToStaticMarkup(<div className="gx"><EplView route={route} onRoute={() => {}}/></div>);
 
 describe('sport switch', () => {
-  it('the new app shows EPL only when the account has EPL access', () => {
+  it('the new app shows EPL only when the account has EPL access (NBA, on the switch since D-85 item 6, needs no access)', () => {
     const without = renderToStaticMarkup(<div className="gx"><SportControls/></div>);
-    expect(buttons(without).map(button => button.name)).toEqual(['National Football League']);
+    expect(buttons(without).map(button => button.name)).toEqual(['National Football League', 'National Basketball Association']);
     const hidden = renderToStaticMarkup(<EplAccessContext.Provider value={false}><div className="gx"><SportControls/></div></EplAccessContext.Provider>);
-    expect(buttons(hidden).map(button => button.name)).toEqual(['National Football League']);
+    expect(buttons(hidden).map(button => button.name)).toEqual(['National Football League', 'National Basketball Association']);
     const shown = renderToStaticMarkup(<EplAccessContext.Provider value={true}><div className="gx"><SportControls/></div></EplAccessContext.Provider>);
-    expect(buttons(shown).map(button => button.name)).toEqual(['National Football League', 'Premier League']);
+    expect(buttons(shown).map(button => button.name)).toEqual(['National Football League', 'Premier League', 'National Basketball Association']);
     expect(pressed(shown)).toEqual(['National Football League']);
     expect(markupProblems(shown)).toEqual([]);
   });
@@ -47,12 +47,17 @@ describe('sport switch', () => {
       expect(buttons(hidden).map(button => button.name)).toEqual(['National Football League', 'National Basketball Association']);
     }
   });
-  it('contract (D-85): NBA_ON_SWITCH is false, so NFL and EPL screens show no NBA circle', () => {
+  it('contract (D-85 item 6): NBA_ON_SWITCH is on, so NFL and EPL screens offer the NBA circle, not selected', () => {
     for (const sport of ['nfl', 'epl']) {
-      const html = renderToStaticMarkup(<EplAccessContext.Provider value={true}><SportNavigationContext.Provider value={{ sport }}><div className="gx"><SportControls marks/></div></SportNavigationContext.Provider></EplAccessContext.Provider>);
-      expect(buttons(html).map(button => button.name)).not.toContain('National Basketball Association');
-      expect(html).toContain('data-count="2"');
+      for (const marks of [true, false]) {
+        const html = renderToStaticMarkup(<EplAccessContext.Provider value={true}><SportNavigationContext.Provider value={{ sport }}><div className="gx"><SportControls marks={marks}/></div></SportNavigationContext.Provider></EplAccessContext.Provider>);
+        expect(buttons(html).map(button => button.name)).toEqual(['National Football League', 'Premier League', 'National Basketball Association']);
+        expect(pressed(html)).toEqual([sport === 'epl' ? 'Premier League' : 'National Football League']);
+        expect(html).toContain('data-count="3"');
+      }
     }
+    const noEpl = renderToStaticMarkup(<EplAccessContext.Provider value={false}><SportNavigationContext.Provider value={{ sport: 'nfl' }}><div className="gx"><SportControls marks/></div></SportNavigationContext.Provider></EplAccessContext.Provider>);
+    expect(buttons(noEpl).map(button => button.name)).toEqual(['National Football League', 'National Basketball Association']);
   });
   it('the EPL app header has EPL selected', () => {
     const html = renderToStaticMarkup(<EplAccessContext.Provider value={true}><SportNavigationContext.Provider value={{ sport: 'epl' }}><div className="gx"><SportControls/></div></SportNavigationContext.Provider></EplAccessContext.Provider>);

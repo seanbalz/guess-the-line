@@ -35,8 +35,10 @@ export const PRELUDE = "set timezone to 'UTC';create role anon;create role authe
 /** Repo migrations that are not applied to the hosted project, by version (the filename's 14-digit timestamp). */
 // M-41 and M-42 to M-47 left this list with their November 10, 2026 apply record (RELEASE_2026_11_10_MIGRATIONS_M41_M47.md).
 // M-33, M-34 and M-35 left it with their November 11, 2026 apply record (RELEASE_2026_11_11_STAT_CORRECTIONS_M33_M35.md).
-// Every repo migration is hosted today; the next migration PR adds its version here.
-export const NOT_HOSTED = [];
+// M-49 (NBA N2, 20261112040000) left it with its November 12, 2026 UTC apply record (RELEASE_2026_11_12_NBA_N2_M49.md).
+export const NOT_HOSTED = [
+  20261112031000, // M-48 Player Props on-demand refresh and weekly research reservation cap.
+];
 /**
  * Migrations after the stage 3 cut-off that replace a function but ship without a supabase/rollback/ file because
  * they are fix-forward only (Gate M step 9: M-13, M-21 and M-23 add themselves here). By version.
@@ -201,4 +203,5 @@ export const APPLIED = [
   20261110130000, // M-45 gtl_player_props: hosted as 20261110204106 on November 10, 2026 (SQL editor, Gate M; dark); see RELEASE_2026_11_10_MIGRATIONS_M41_M47.md.
   20261110160000, // M-46 gtl_player_props_jobs: hosted as 20261110204207 on November 10, 2026 (SQL editor, Gate M; jobs off); see RELEASE_2026_11_10_MIGRATIONS_M41_M47.md.
   20261110180000, // M-47 gtl_player_props_shared: hosted as 20261110204307 on November 10, 2026 (SQL editor, Gate M; dark); see RELEASE_2026_11_10_MIGRATIONS_M41_M47.md.
+  20261112040000, // M-49 gtl_nba_slate_lines: hosted as 20261112055355 on November 12, 2026 UTC (SQL editor, Gate M); see RELEASE_2026_11_12_NBA_N2_M49.md.
 ];

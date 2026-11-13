@@ -1,8 +1,11 @@
 // Boundary probes for Bets: Virtual Units picks and settlement, and the shared real-slip tracker
 // (D-36 "Real slips"). Joined by scripts/check-cloud-boundary.mjs (see guess.mjs).
 import { missingId, missingLeague } from './fixtures.mjs';
+import * as nbaJobs from './nba-jobs.mjs';
 
 export const tables = Object.freeze([
+  // NBA N2 (M-49, hosted November 12, 2026 UTC): the gtl-nba-jobs slate and lines storage (scripts/boundary/nba-jobs.mjs).
+  ...nbaJobs.tables,
   'social_weeks', 'social_commits', 'social_follows', 'social_follow_receipts', 'virtual_units_picks', 'virtual_units_settlements', 'results_refresh_schedule', 'results_refresh_runs',
 ]);
 
@@ -14,6 +17,7 @@ export const rpcChecks = Object.freeze([
   ['gtl_nba_finish_games', { p_date: '2026-10-21', p_token: missingId, p_games: null }],
   ['gtl_nba_read_bets', { p_user_id: missingId, p_filters: {}, p_cursor: null, p_ticket_id: null }],
   ['gtl_nba_save_bet', { p_user_id: missingId, p_operation_id: missingId, p_ticket: {}, p_expected_revision: 0, p_reason: null }],
+  ...nbaJobs.rpcChecks,
   ['gtl_dispatch_results_refresh', {}],
   ['gtl_claim_results_refresh', {p_token:'0'.repeat(64),p_run:missingId}],
   ['gtl_complete_results_refresh', {p_run:missingId,p_claim:missingId,p_reason:null}],
@@ -59,6 +63,8 @@ export const apiChecks = Object.freeze([
 
 export const workerChecks = Object.freeze([
   ['scheduled results refresh', 'gtl-results-refresh', {runId:missingId}],
+  // NBA N2: the slate and lines worker, deployed as gtl-nba-jobs v1 on November 12, 2026 UTC (RELEASE_2026_11_12_NBA_N2_M49.md).
+  ['scheduled nba jobs', 'gtl-nba-jobs', { runId: missingId }],
 ]);
 
 // M-10 and both NBA migrations are hosted and /bets/read and /nba/* are deployed since October 22, 2026 (RELEASE_2026_10_22_MIGRATIONS.md).
@@ -68,4 +74,8 @@ export const workerChecks = Object.freeze([
 // release (RELEASE_2026_10_29_M11.md).
 // M-41 is hosted as 20261110203637 since November 10, 2026, after the compatible API/Pages release from 1ba75282
 // (RELEASE_2026_11_10_MIGRATIONS_M41_M47.md); its two capability RPCs left this list.
-export const awaitingDeploy = Object.freeze({});
+export const awaitingDeploy = Object.freeze({
+  // NBA N2 (M-49, 20261112040000) is hosted as 20261112055355 since November 12, 2026 UTC (RELEASE_2026_11_12_NBA_N2_M49.md):
+  // nba-jobs.mjs lists nothing awaiting, so its tables and RPCs must deny.
+  ...nbaJobs.awaitingDeploy,
+});

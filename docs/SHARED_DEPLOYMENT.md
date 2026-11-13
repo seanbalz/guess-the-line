@@ -1,6 +1,6 @@
 # Guess The Line shared production releases
 
-Owner: Sean Balsiger · Version 2 · October 15, 2026, updated October 26, 2026 (`push-reminders` and `points-jobs` targets), October 27, 2026 (`league-features`), October 28, 2026 (`fantasy-ingest` and `epl-jobs`) and November 3, 2026 (`ops-alerts` and `odds-refresh`)
+Owner: Sean Balsiger · Version 2 · October 15, 2026, updated October 26, 2026 (`push-reminders` and `points-jobs` targets), October 27, 2026 (`league-features`), October 28, 2026 (`fantasy-ingest` and `epl-jobs`), November 3, 2026 (`ops-alerts` and `odds-refresh`) and November 11, 2026 (`nba-jobs`)
 
 The manual **Shared production release** workflow gives a local or online agent
 the same release path: an exact GitHub commit, successful CI, Sean's production
@@ -29,7 +29,7 @@ not a claim that administrators cannot override repository settings.
 | `readiness` | Protected environment secrets, after approval | Builds and scans the frontend, reads hosted schedule and migration history, validates fresh published schedule evidence and probes signed-out boundaries. Produces the migration-history digest for review; does not deploy. |
 | `deploy` | Protected environment secrets, after approval | Repeats readiness, compares the reviewed migration digest, deploys the selected component(s), then verifies metadata, boundaries and, for targets that upload Pages, served frontend bytes. |
 
-Targets are `frontend`, `api`, `api-and-frontend`, `push-reminders`, `points-jobs`, `league-features`, `fantasy-ingest`, `epl-jobs`, `ops-alerts`, or `odds-refresh`. The combined target deploys
+Targets are `frontend`, `api`, `api-and-frontend`, `push-reminders`, `points-jobs`, `league-features`, `fantasy-ingest`, `epl-jobs`, `ops-alerts`, `odds-refresh`, or `nba-jobs`. The combined target deploys
 only `gtl-api`, then only `.local/cloud-dist` to the existing Pages production
 project. Choose it only when that order is compatible. A reply-shape change that
 needs tolerant Pages first uses two separately approved runs, frontend then API.
@@ -47,6 +47,7 @@ There is no automatic deploy on push, pull request, merge, or schedule.
 | `epl-jobs` | Only the `gtl-epl-jobs` Edge Function (the EPL Pick a Team slate, results and settle jobs worker); its first deploy creates it | No |
 | `ops-alerts` | Only the `gtl-ops-alerts` Edge Function (the item 22 Supabase job alerts push worker); its first deploy creates it | No |
 | `odds-refresh` | Only the existing `gtl-odds-refresh` Edge Function (the D-17 odds collector); a deploy updates it | No |
+| `nba-jobs` | Only the `gtl-nba-jobs` Edge Function (the NBA N2 slate and spread lines worker); its first deploy creates it | No |
 
 Every deploy step's condition names the targets it serves; none selects by
 exclusion, so a target reaches only its own deploy step.
@@ -137,6 +138,24 @@ version the preflight recorded in its hosted function list); the source check re
 entry file, and its caller presents a one-run capability checked in SQL. A deploy changes only the worker's code: its
 cron (`gtl-odds-every-12-hours`), schedule row, provider secrets and credit budget stay as they are.
 
+`nba-jobs` was added November 11, 2026, after Sean approved deploying the NBA jobs worker ("Yes, all three"). It
+deploys only `gtl-nba-jobs` (`supabase/functions/gtl-nba-jobs/index.ts`, `cloud/nba-jobs.mjs`, NBA N2), which stores
+the NBA game slate and its spread lines (at most 31 Odds API credits a month). It follows `ops-alerts` exactly: the source
+check requires `[functions.gtl-nba-jobs] verify_jwt = false` and the entry file, its first deploy may create the
+function (the preflight records `nbaJobsBefore`), and verification applies the create or the update rule. Its caller
+presents a one-run capability checked in SQL. It reads `THE_ODDS_API_KEY` and `BALLDONTLIE_API_KEY`, which `gtl-api`
+already reads, so it needs no new secret.
+
+Order matters. Apply and record M-49 first, then run this target, as
+[the M-49 apply packet](MIGRATION_APPLY_PACKET_2026_11_12_NBA_N2.md) (section 6) sets out. The SQL that checks the
+worker's capability arrives with M-49. A call with no token is refused either way, but before M-49 a call with a
+wrong token gets "temporarily unavailable" (503) instead of "Unauthorized." (401). After the deploy, add the worker's
+probe (`['scheduled nba jobs', 'gtl-nba-jobs', { runId: missingId }]`) to `workerChecks` in
+`scripts/boundary/bets.mjs`. Running `supabase/admin/nba_jobs_cron.sql` (both schedule rows, created disabled) and
+enabling each job stay separate steps. **Done November 12, 2026 UTC:** M-49 was applied, run 43169209526 created
+`gtl-nba-jobs` v1 from `635e15cc`, the probe joined `workerChecks`, and `slate` is on with `lines` off
+([record](RELEASE_2026_11_12_NBA_N2_M49.md)).
+
 The workflow does not apply SQL, run `db push`, deploy collector functions other than through `odds-refresh`,
 change cron schedules or data budgets, or flip the default app. Existing
 [Gate M](REDESIGN_BUILD_PLAN.md#42-gate-m-applying-a-migration) and
@@ -146,7 +165,9 @@ and worker targets: protected API and frontend runs are verified; the
 `push-reminders` and `points-jobs` targets have run (October 26) and `league-features` (October 27);
 `ops-alerts` (November 3, created v1), `push-reminders` again (v6) and `odds-refresh` (November 3, v6 to v7) have run;
 `epl-jobs` has run (October 29, run 40937265809 from `d891291c`, worker v3; [record](RELEASE_2026_10_29_EPL_MONEYLINE.md)).
-`fantasy-ingest` has run too (October 28, run 40699619045, `gtl-fantasy-ingest` created at v1; [record](RELEASE_2026_10_28_D59_TRENDS.md)). Existing dated release records remain historical evidence of the
+`fantasy-ingest` has run too (October 28, run 40699619045, `gtl-fantasy-ingest` created at v1; [record](RELEASE_2026_10_28_D59_TRENDS.md)).
+`nba-jobs` has run (November 12, 2026 UTC, run 43169209526 from `635e15cc`, `gtl-nba-jobs` created at v1;
+[record](RELEASE_2026_11_12_NBA_N2_M49.md)). Existing dated release records remain historical evidence of the
 Mac mini releases.
 
 ## One-time configuration
@@ -162,9 +183,9 @@ allowlisted and checked against the existing production project/account.
 | Variable | `VITE_SUPABASE_PUBLISHABLE_KEY` | Existing public `sb_publishable_…` browser key; not a service-role key |
 | Variable | `CLOUDFLARE_ACCOUNT_ID` | `83bd659d712e968e7a61efa14107465a` |
 | Variable | `CLOUDFLARE_PAGES_PROJECT` | `guess-the-line` |
-| Secret | `SUPABASE_ACCESS_TOKEN` | A dedicated project-scoped token permitting database read-only preflight and Edge Function read/deploy. Required even for frontend readiness because the schedule/history gate is hosted. |
-| Secret | `CLOUDFLARE_API_TOKEN` | Dedicated Cloudflare Pages Edit token for this account; required for frontend or combined releases, not API-only or worker (`push-reminders`, `points-jobs`, `league-features`, `fantasy-ingest`, `epl-jobs`, `ops-alerts`, `odds-refresh`) releases |
-| Variable (optional) | `VITE_GTL_PLAYER_PROPS` | D-82 Player Props app flag. Leave it **unset** (or `off`): the Pages build is then byte-identical to a build without it. `on` builds the flag in; any other value fails the release before the build. Setting it is Sean's word, only after the `gtl-api` secret `GTL_PLAYER_PROPS` and `live_lock_in` (docs/PLAYER_PROPS_READINESS_TASK2_2026-11-10.md, step 6), and it takes effect only with the next Pages deploy. |
+| Secret | `SUPABASE_ACCESS_TOKEN` | A dedicated project-scoped token permitting database read-only preflight and Edge Function read/deploy. Required even for frontend readiness because the schedule/history gate is hosted. The optional Player Props flag sync also needs permission to set an Edge Function secret. |
+| Secret | `CLOUDFLARE_API_TOKEN` | Dedicated Cloudflare Pages Edit token for this account; required for frontend or combined releases, not API-only or worker (`push-reminders`, `points-jobs`, `league-features`, `fantasy-ingest`, `epl-jobs`, `ops-alerts`, `odds-refresh`, `nba-jobs`) releases |
+| Variable (optional) | `VITE_GTL_PLAYER_PROPS` | D-82 Player Props app flag. Leave it **unset** (or `off`): the Pages build is then byte-identical to a build without it. `on` builds the flag in; any other value fails the release before the build. Set it for the authorized [Player Props pregame activation](#player-props-pregame-activation). It takes effect with the next Pages deploy. |
 
 Create dedicated tokens in the providers' secure interfaces, then enter them
 directly into GitHub environment secrets. Do not paste them into a task, commit
@@ -219,6 +240,42 @@ spends again, because its request IDs are new.
    run it with write and record_while_dark on.
 6. After the games are final, run **Player Props jobs** `results` with write off. Then run it
    with write and record_while_dark on.
+
+### On-demand Player Props refresh
+
+After M-48 and the matching API release, a signed-in lock attempt can refresh
+passing, rushing or receiving yards for an offered game before kickoff. The
+API uses the existing `THE_ODDS_API_KEY` and a verified weekly NFL roster.
+Each request covers one game and stat. Manual collections and automatic
+refreshes share 12 prop credits per season and week, including unsuccessful
+reservations, and the 50-credit reserve. When the cap or quote availability
+prevents a lock, the app keeps the draft. Add `player-props-refresh` to
+`GTL_FEATURE_OFF` to pause automatic collection.
+
+### Player Props pregame activation
+
+Sean requested the pregame launch on November 11 Pacific. Players can lock
+guesses against fresh sportsbook lines before kickoff and see accuracy at
+lock-in. The paper record updates after verified final stats arrive. The
+[Week 10 pilot evidence](https://github.com/seanbalz/guess-the-line/pull/548)
+covers quote collection and offer storage. Final result verification continues
+after the games.
+
+For the protected `frontend` deploy, set the repository variable
+`VITE_GTL_PLAYER_PROPS` to `on` and select `sync_player_props_api`. This sets
+the `GTL_PLAYER_PROPS` Edge Function flag to match the build after the hosted
+preflight. Use an exact CI-verified source containing the approved Player
+Props screens and verify the signed-out denials and production assets. Then
+confirm fresh references for the current slate and apply the reviewed,
+reversible `live_lock_in` setting. The existing migrations supply the schema.
+
+To pause lock-in, set `live_lock_in` to false and preserve stored guesses.
+A protected frontend redeploy with the repository flag off and
+`sync_player_props_api` selected hides the entry point and closes the API
+routes. If a deploy fails after the API flag step, read the current API
+response and Pages deployment separately. Keep lock-in paused while
+restoring the flags and the previous frontend. Continue collection within
+the approved free scope and the existing six-hour reference age limit.
 
 ## Release train (Sean, October 28, 2026)
 
@@ -324,26 +381,26 @@ observing metadata. Frontend asset equivalence is independently checked.
 
 For `frontend`, `api` and `api-and-frontend`, any Edge Function other than
 `gtl-api` that changes, appears or disappears during the run (either worker
-included) fails verification, as before. For `push-reminders`, `points-jobs`, `league-features`, `fantasy-ingest`, `epl-jobs`, `ops-alerts` and `odds-refresh`,
+included) fails verification, as before. For `push-reminders`, `points-jobs`, `league-features`, `fantasy-ingest`, `epl-jobs`, `ops-alerts`, `odds-refresh` and `nba-jobs`,
 verification requires:
 
 - the target's worker is ACTIVE, `verify_jwt` is false, and its `ezbr_sha256`
   bundle digest is present;
 - for `push-reminders` and `odds-refresh`, its version went up by exactly one; for `points-jobs`,
-  `league-features`, `fantasy-ingest`, `epl-jobs` and `ops-alerts`, version 1 if the preflight recorded it absent
+  `league-features`, `fantasy-ingest`, `epl-jobs`, `ops-alerts` and `nba-jobs`, version 1 if the preflight recorded it absent
   (created), otherwise exactly one up. A pre-deploy report without the matching
-  `pointsJobsBefore`, `leagueFeaturesBefore`, `fantasyIngestBefore`, `eplJobsBefore` or `opsAlertsBefore` record is refused;
+  `pointsJobsBefore`, `leagueFeaturesBefore`, `fantasyIngestBefore`, `eplJobsBefore`, `opsAlertsBefore` or `nbaJobsBefore` record is refused;
 - `gtl-api` is unchanged (version, status, JWT setting and bundle digest) and
   still ACTIVE with JWT verification, the other worker and every other function
   are unchanged, and no function was added or removed;
 - the migration-history digest is unchanged;
 - the signed-out boundary checks pass, including `gtl-push-reminders` refusing a
   call with no machine token or an invalid one (`gtl-fantasy-ingest` is not probed
-  until its `workerChecks` entry is added after its first deploy);
+  until its `workerChecks` entry is added after its first deploy; `gtl-nba-jobs` is probed since its first deploy);
 - Pages is neither deployed nor read: the report has `pages: null`.
 
 The report adds `pushReminders` with `pushRemindersSourceVerified: false`, or
-`pointsJobs`, `leagueFeatures` or `fantasyIngest` with their `…Created` and `…SourceVerified: false`: as with
+`pointsJobs`, `leagueFeatures`, `fantasyIngest` or `nbaJobs` with their `…Created` and `…SourceVerified: false`: as with
 the API, the worker's hosted bytes are not independently matched to the checkout.
 
 Artifact retention is 30

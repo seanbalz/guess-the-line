@@ -1,9 +1,11 @@
 // Four roots and allowlisted detail addresses. History contains navigation metadata only.
 import { DEFAULT_TAB, HOME_LAYER_IDS, LEGACY_TABS, destination, hasLayers, isTab, researchLayerOf } from './state.js';
+import { PROPS_PLAY_SECTION, playerPropsEnabled } from '../props/flag.js';
 const LEFT_ALONE = new Set(['main', 'picks-due']);
 const KEYS = new Set(['market','season','week','weekId','leagueId','accountId','period','team','matchup','scoreGame','comparisonKind','layer','item']);
-const SECTIONS = { play: ['picks','score','compare','league','points','features'], research: ['games','fantasy','trends','teams'], bets: ['active','settled','tracked','recommended','research','virtual','everyone','add'] };
+const SECTIONS = { play: ['picks','score','compare','league','points','features',PROPS_PLAY_SECTION], research: ['games','fantasy','trends','teams'], bets: ['active','settled','tracked','recommended','research','virtual','everyone','add'] };
 export function safeView(tab, view = {}) {
+  if (tab === 'play' && view.section === PROPS_PLAY_SECTION) return playerPropsEnabled() ? { section: PROPS_PLAY_SECTION } : {};
   const result = {};
   const routeKey = tab === 'bets' ? 'view' : 'section';
   if (SECTIONS[tab]?.includes(view[routeKey])) result[routeKey] = view[routeKey];

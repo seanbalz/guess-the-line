@@ -45,3 +45,26 @@ export function nbaTeam(code) {
   const key = typeof code === 'string' ? code.trim().toUpperCase() : '';
   return byCode[key] ?? null;
 }
+
+// Both providers (milestone N2, server only). BALLDONTLIE sends the code above as `abbreviation` and the name above as
+// `full_name`. The Odds API (`basketball_nba`) sends each team's full name as `home_team` / `away_team`; it is the name above
+// except where listed here. Assumed from the provider's published naming, not checked against a live response (N2 makes no
+// provider call): a name that differs never links by a guess, it leaves the event unmatched and counted. Plain functions over a
+// literal, so the web bundle, which imports this file for the board, drops all of it.
+const ODDS_API_NAME_EXCEPTIONS = { LAC: 'Los Angeles Clippers' };
+
+/** The Odds API `home_team` / `away_team` name for an NBA code, or null. */
+export function nbaOddsApiName(code) {
+  const entry = nbaTeam(code);
+  return entry ? ODDS_API_NAME_EXCEPTIONS[entry.code] ?? entry.name : null;
+}
+
+/** The NBA team an Odds API `home_team` / `away_team` names (the exact name only), or null. */
+export function nbaTeamFromOddsApi(name) {
+  return typeof name === 'string' ? NBA_TEAMS.find(entry => nbaOddsApiName(entry.code) === name) ?? null : null;
+}
+
+/** The NBA team a BALLDONTLIE team record (`{abbreviation}`, as the board normalizes it) names, or null. */
+export function nbaTeamFromBallDontLie(providerTeam) {
+  return nbaTeam(providerTeam?.abbreviation);
+}

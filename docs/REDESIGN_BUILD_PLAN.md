@@ -280,6 +280,7 @@ M-numbers are names. The apply order is the calendar in section 8. Real files ar
 | M-45 | Props | `player_props` (`20261110130000`) | D-82 storage (PR #514): six RLS tables and the `gtl_props_*` functions. **Applied and verified as hosted `20261110204106` (November 10, SQL editor); ships dark (`live_lock_in` false); [apply record](RELEASE_2026_11_10_MIGRATIONS_M41_M47.md).** | Low while dark | any | None; enabling follows the readiness audit |
 | M-46 | Props | `player_props_jobs` (`20261110160000`) | D-82 offer/result job audit tables and functions (PR #519). **Applied and verified as hosted `20261110204207` (November 10, SQL editor); jobs stay off; [apply record](RELEASE_2026_11_10_MIGRATIONS_M41_M47.md).** | Low (no writes until a reviewed write run) | any | M-45 |
 | M-47 | Props | `player_props_shared` (`20261110180000`) | D-82 shared reader `gtl_props_shared` under the D-31/D-39 reveal rules (PR #522). **Applied and verified as hosted `20261110204307` (November 10, SQL editor); dark behind `GTL_PLAYER_PROPS`; [apply record](RELEASE_2026_11_10_MIGRATIONS_M41_M47.md).** | Low (read only) | any | M-45 |
+| M-49 | NBA | `nba_slate_lines` (`20261112040000`) | NBA N2 (PR #558, D-85 items 3 and 7): eight service-only tables (games, append-only observations, slate reads and lines, the lines reservations, a one-row NBA budget, the schedule and the runs) and the `gtl-nba-jobs` worker's functions. The 31-credit monthly cap and 100-credit pause are enforced in SQL, and the lines read stays out of the hour before an NFL kickoff. Nothing replaced; the rollback file only revokes. **Applied and verified as hosted `20261112055355` (November 12 UTC, SQL editor); `gtl-nba-jobs` v1 deployed; `slate` on, `lines` off; [apply record](RELEASE_2026_11_12_NBA_N2_M49.md).** | Low (server only; players see nothing; spends credits only once `lines` is on) | any | Hosted `gtl_weekly_slates`, `gtl_odds_budget`, `gtl_odds_refresh_runs`, M-30 and the October NBA lease; no `REQUIRES` |
 
 Not in this ledger: the push migration `20261013030000` (D-28). It was applied on October 14, 2026 and is hosted under
 the same version (`APPLIED` in `tests/migrations.mjs`). Before November 3 this line said it was not hosted.
@@ -802,6 +803,14 @@ Lanes: **A** shell, Home, Me, History, commissioner · **B** Guess rules, Play, 
 **76. Sign-in skin**
 - Scope: AuthGate's logic moves into `useAuthSession()` and `useSignInForm()` with no change in behavior; `NextSignIn` (email, Google, recovery, resend, confirmation) on devices with `gtl.app = next`; the restyled name step (the logic stays in stage 11); legal links.
 - Tests: vitest `next-sign-in` (the same Supabase calls as AuthGate); the old `auth`, `google-sign-in` and `onboarding` specs untouched and green; Playwright 390 `next-auth.spec.js`; performance: the chunk loads only with the flag.
+- Built November 11 as code only (Sean: "Approve, no flag", then "Keep Prism, code only"). The look was already
+  delivered by the Prism access port (November 7, released November 8: `accessPrism.css`, `PrismBrand`, the name
+  step and the legal links), so this stage changes nothing on screen. D-65 removed the `gtl.app` flag, so there is no
+  `NextSignIn` chunk: sign-in stays in the main download, Prism's deliberate auth bridge. `AuthGate.jsx` now holds
+  `useAuthSession()` (the session, the account-boundary clean-up, sign-out of this device) and `useSignInForm()` (the
+  screens, fields, resend wait and buttons); every form call to Supabase Auth goes through `web/src/signInCalls.js`.
+  Vitest `tests/next-sign-in.test.jsx` pins each call. Playwright 390 `tests/cloud-browser/next-auth.spec.js` pins
+  each request's method, path, query and body, and it passed on the unchanged AuthGate before the split.
 
 **77. Commissioner tools page**
 - Scope: `page.commish`, admin only, linking to the old screens: Week opening, Game referees, Settle bets and challenges (with the schedule status), Odds connection, Members (Remove and Restore, with the D-23 warning), Older tools (Final scores: "Never settles bets").

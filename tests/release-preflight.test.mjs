@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { validateRequest, configuration, successfulRun, checkSource, publishedSchedule, migrationDigest, jsonRequest, livePreflight, verifyRelease, appBuildFlags, REPOSITORY, PROJECT, ACCOUNT, REQUIRED_CI, TARGETS, TARGET_DEPLOYS, PLAYER_PROPS_APP_FLAG_INPUT } from '../scripts/release-preflight.mjs';
+import { validateRequest, configuration, successfulRun, checkSource, publishedSchedule, migrationDigest, jsonRequest, livePreflight, verifyRelease, appBuildFlags, syncPlayerPropsApi, REPOSITORY, PROJECT, ACCOUNT, REQUIRED_CI, TARGETS, TARGET_DEPLOYS, PLAYER_PROPS_APP_FLAG_INPUT } from '../scripts/release-preflight.mjs';
 
 const sha = 'a'.repeat(40);
 const request = (extra = {}) => ({ RELEASE_SHA: sha, RELEASE_TARGET: 'frontend', RELEASE_MODE: 'check-only', ...extra });
@@ -30,9 +30,13 @@ test('Pages verification uses canonical HTML routes and rejects changed bytes an
   const env = request({ RELEASE_MODE: 'deploy' });
   const routes = new Map([['/', files[0]], ['/privacy', files[1]], ['/terms', files[2]], ['/about/', files[3]], ['/assets/app.js', files[4]]]);
   let corrupt = false, redirect = false, access = 'public';
+  let propsStatus = 401, propsMessage = 'Sign in to continue.';
   const served = [];
   const accessLogin = host => `https://guess-the-line-pages.cloudflareaccess.com/cdn-cgi/access/login/${host}?kid=k&redirect_url=%2F`;
   const fake = async (url, options) => {
+    if (url.startsWith(`https://${PROJECT}.supabase.co/functions/v1/gtl-api/props/`)) {
+      return { status: propsStatus, json: async () => ({ error: propsMessage }) };
+    }
     if (url.endsWith('/functions')) return { ok: true, json: async () => functions.map(f => ({ ...f, ezbr_sha256: f.bundleSha256 })) };
     if (url.endsWith('/database/query/read-only')) return { ok: true, json: async () => [{ migrations }] };
     if (url.includes('/deployments?')) return { ok: true, json: async () => ({ success: true, result: [{
@@ -60,6 +64,16 @@ test('Pages verification uses canonical HTML routes and rejects changed bytes an
   assert.equal(report.pages.deploymentUrlAccess, 'public');
   assert.equal(served.length, 10);
   assert.equal(new Set(served).size, 10);
+
+  const sync = { ...env, RELEASE_SYNC_PLAYER_PROPS_API: 'true', VITE_SUPABASE_URL: `https://${PROJECT}.supabase.co` };
+  const enabling = { ...sync, VITE_GTL_PLAYER_PROPS: 'on' };
+  assert.deepEqual((await verifyRelease(cwd, enabling, before, fake)).playerPropsApi, { enabled: true, checked: 5 });
+  await assert.rejects(verifyRelease(cwd, sync, before, fake), /did not confirm the disabled state/);
+  propsMessage = 'Invalid JWT';
+  await assert.rejects(verifyRelease(cwd, enabling, before, fake), /did not confirm the enabled state/);
+  propsStatus = 404; propsMessage = 'Not found.';
+  assert.deepEqual((await verifyRelease(cwd, sync, before, fake)).playerPropsApi, { enabled: false, checked: 5 });
+
   // Behind Cloudflare Access the deployment URL must send its own host to the Access login; production is still read in full.
   access = 'protected'; served.length = 0;
   const guarded = await verifyRelease(cwd, env, before, fake);
@@ -88,6 +102,47 @@ test('release dispatch rejects PRs, branches, forks, abbreviations and unreviewe
   validateRequest(deploy);
   assert.throws(() => validateRequest({ ...deploy, RELEASE_CARD: 'https://github.com/other/repo/issues/1' }));
   assert.throws(() => validateRequest({ ...deploy, RELEASE_COMPATIBLE: 'false' }));
+});
+
+test('the Player Props API flag can be synced only by a reviewed frontend deploy', () => {
+  const toggle = { RELEASE_SYNC_PLAYER_PROPS_API: 'true' };
+  assert.throws(() => validateRequest(request(toggle)), /Player Props API flag.*frontend deploy/);
+  assert.throws(() => validateRequest(request({ ...toggle, RELEASE_MODE: 'readiness' })), /Player Props API flag.*frontend deploy/);
+  const deploy = request({
+    ...toggle,
+    RELEASE_MODE: 'deploy',
+    RELEASE_CARD: `https://github.com/${REPOSITORY}/pull/1`,
+    RELEASE_HISTORY_SHA256: 'b'.repeat(64),
+    RELEASE_COMPATIBLE: 'true',
+  });
+  validateRequest(deploy);
+  assert.throws(() => validateRequest({ ...deploy, RELEASE_TARGET: 'api-and-frontend' }), /Player Props API flag.*frontend deploy/);
+  assert.throws(() => validateRequest({ ...deploy, RELEASE_SYNC_PLAYER_PROPS_API: 'on' }), /Invalid Player Props API sync input/);
+});
+
+test('the opt-in release sends exactly one Player Props flag to the production project', async () => {
+  const env = request({
+    RELEASE_MODE: 'deploy', RELEASE_SYNC_PLAYER_PROPS_API: 'true',
+    RELEASE_CARD: `https://github.com/${REPOSITORY}/pull/1`, RELEASE_HISTORY_SHA256: 'b'.repeat(64),
+    RELEASE_COMPATIBLE: 'true', GITHUB_ACTIONS: 'true', GITHUB_EVENT_NAME: 'workflow_dispatch',
+    GITHUB_REF: 'refs/heads/main', GITHUB_REPOSITORY: REPOSITORY,
+    SUPABASE_PROJECT_REF: PROJECT, SUPABASE_ACCESS_TOKEN: 'test-token',
+  });
+  const values = [];
+  const fake = async (url, options) => {
+    assert.equal(url, `https://api.supabase.com/v1/projects/${PROJECT}/secrets`);
+    assert.equal(options.method, 'POST');
+    const [flag, ...rest] = JSON.parse(options.body);
+    assert.equal(flag.name, 'GTL_PLAYER_PROPS');
+    assert.deepEqual(rest, []);
+    values.push(flag.value);
+    return { status: 201 };
+  };
+  await syncPlayerPropsApi({ ...env, VITE_GTL_PLAYER_PROPS: 'on' }, fake);
+  await syncPlayerPropsApi(env, fake);
+  await assert.rejects(syncPlayerPropsApi({ ...env, RELEASE_SYNC_PLAYER_PROPS_API: 'false' }, fake), /Select the Player Props API flag sync input/);
+  await assert.rejects(syncPlayerPropsApi({ ...env, SUPABASE_PROJECT_REF: 'wrong' }, fake), /Unexpected Supabase project/);
+  assert.deepEqual(values, ['on', 'off']);
 });
 
 test('CI gate refuses wrong SHA, PR-only evidence, skipped jobs and a newer failed rerun', () => {
@@ -263,7 +318,9 @@ const EPL_DEPLOY = './node_modules/.bin/supabase functions deploy gtl-epl-jobs -
 const OPS_DEPLOY = './node_modules/.bin/supabase functions deploy gtl-ops-alerts --project-ref "$SUPABASE_PROJECT_REF" --use-api';
 // November 3, 2026: the existing odds refresh worker, until now deployed only from the Mac mini; a deploy updates it.
 const ODDS_DEPLOY = './node_modules/.bin/supabase functions deploy gtl-odds-refresh --project-ref "$SUPABASE_PROJECT_REF" --use-api';
-const WORKER_TARGETS = { 'push-reminders': WORKER_DEPLOY, 'points-jobs': POINTS_DEPLOY, 'league-features': FEATURES_DEPLOY, 'fantasy-ingest': FANTASY_DEPLOY, 'results-refresh': RESULTS_DEPLOY, 'epl-jobs': EPL_DEPLOY, 'ops-alerts': OPS_DEPLOY, 'odds-refresh': ODDS_DEPLOY };
+// November 11, 2026 (Sean: "Yes, all three"): the NBA N2 jobs worker (M-49), not hosted yet, so its first deploy creates it.
+const NBA_DEPLOY = './node_modules/.bin/supabase functions deploy gtl-nba-jobs --project-ref "$SUPABASE_PROJECT_REF" --use-api';
+const WORKER_TARGETS = { 'push-reminders': WORKER_DEPLOY, 'points-jobs': POINTS_DEPLOY, 'league-features': FEATURES_DEPLOY, 'fantasy-ingest': FANTASY_DEPLOY, 'results-refresh': RESULTS_DEPLOY, 'epl-jobs': EPL_DEPLOY, 'ops-alerts': OPS_DEPLOY, 'odds-refresh': ODDS_DEPLOY, 'nba-jobs': NBA_DEPLOY };
 const PAGES_DEPLOY = './node_modules/.bin/wrangler pages deploy .local/cloud-dist --project-name "$CLOUDFLARE_PAGES_PROJECT" --branch main --commit-hash "$RELEASE_SHA" --commit-dirty=false';
 
 /** The production job's steps as release.yml declares them: name, condition, directory, step env and one-line command. */
@@ -280,16 +337,17 @@ function productionSteps() {
 /** Evaluates the small GitHub expression subset the release steps use; anything else fails the test rather than guessing. */
 function stepRuns(condition, inputs) {
   if (!condition) return true;
-  assert.match(condition, /^(?:\s+|inputs\.(?:mode|target)|'[a-z-]+'|==|!=|&&|\|\||[()]|always\(\))+$/, `Unsupported step condition: ${condition}`);
+  assert.match(condition, /^(?:\s+|inputs\.(?:mode|target|sync_player_props_api)|'[a-z-]+'|==|!=|&&|\|\||[()]|always\(\))+$/, `Unsupported step condition: ${condition}`);
   return Function('inputs', `return (${condition.replace(/always\(\)/g, 'true').replace(/(==|!=)/g, '$1=')});`)(inputs);
 }
-const stepsRun = (mode, target) => productionSteps().filter(step => stepRuns(step.if, { mode, target }));
+const stepsRun = (mode, target, sync_player_props_api = false) =>
+  productionSteps().filter(step => stepRuns(step.if, { mode, target, sync_player_props_api }));
 const deployCommands = (mode, target) => stepsRun(mode, target).map(step => step.run).filter(run => / deploy /.test(run || ''));
 
 test('release.yml offers exactly the preflight targets, both worker targets included', () => {
   const options = releaseYaml.match(/^ {6}target:\n(?: {8}.+\n)*? {8}options: \[([^\]]+)\]/m)?.[1].split(',').map(item => item.trim());
   assert.deepEqual(options, TARGETS);
-  assert.deepEqual(TARGETS, ['frontend', 'api', 'api-and-frontend', 'push-reminders', 'points-jobs', 'league-features', 'fantasy-ingest', 'results-refresh', 'epl-jobs', 'ops-alerts', 'odds-refresh']);
+  assert.deepEqual(TARGETS, ['frontend', 'api', 'api-and-frontend', 'push-reminders', 'points-jobs', 'league-features', 'fantasy-ingest', 'results-refresh', 'epl-jobs', 'ops-alerts', 'odds-refresh', 'nba-jobs']);
 });
 
 test('each target deploys only its own component; the worker targets never deploy gtl-api, Pages or each other', () => {
@@ -304,10 +362,11 @@ test('each target deploys only its own component; the worker targets never deplo
   assert.deepEqual(deployCommands('deploy', 'epl-jobs'), [EPL_DEPLOY]);
   assert.deepEqual(deployCommands('deploy', 'ops-alerts'), [OPS_DEPLOY]);
   assert.deepEqual(deployCommands('deploy', 'odds-refresh'), [ODDS_DEPLOY]);
+  assert.deepEqual(deployCommands('deploy', 'nba-jobs'), [NBA_DEPLOY]);
   for (const target of TARGETS) for (const mode of ['check-only', 'readiness']) assert.deepEqual(deployCommands(mode, target), [], `${mode} ${target} deploys nothing`);
   // Every deploy condition names the targets it serves; none selects by exclusion, so a new target reaches no deploy by default.
   const deploySteps = productionSteps().filter(step => / deploy /.test(step.run || ''));
-  assert.equal(deploySteps.length, 10);
+  assert.equal(deploySteps.length, 11);
   for (const step of deploySteps) assert.doesNotMatch(step.if, /!=/, step.name);
   assert.equal(deploySteps.find(step => step.run === POINTS_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'points-jobs'");
   assert.equal(deploySteps.find(step => step.run === FEATURES_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'league-features'");
@@ -317,10 +376,29 @@ test('each target deploys only its own component; the worker targets never deplo
   assert.equal(productionSteps().filter(step => /ops-alerts/.test(step.if || '')).length, 1, 'no other step selects ops-alerts');
   assert.equal(deploySteps.find(step => step.run === ODDS_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'odds-refresh'");
   assert.equal(productionSteps().filter(step => /odds-refresh/.test(step.if || '')).length, 1, 'no other step selects odds-refresh');
+  assert.equal(deploySteps.find(step => step.run === NBA_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'nba-jobs'");
+  assert.equal(productionSteps().filter(step => /nba-jobs/.test(step.if || '')).length, 1, 'no other step selects nba-jobs');
   assert.equal(deploySteps.filter(step => /epl-jobs/.test(step.if || '')).length, 1);
   assert.equal(productionSteps().filter(step => /epl-jobs/.test(step.if || '')).length, 1, 'no other step selects epl-jobs');
   assert.equal(deploySteps.find(step => step.run === RESULTS_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'results-refresh'");
   assert.equal(deploySteps.find(step => step.run === WORKER_DEPLOY).if, "inputs.mode == 'deploy' && inputs.target == 'push-reminders'");
+});
+
+test('the Player Props flag step runs after hosted preflight only on an opted-in frontend deploy', () => {
+  const isPropsSync = step => step.name === 'Set the reviewed Player Props API flag';
+  assert.ok(!stepsRun('deploy', 'frontend').some(isPropsSync));
+  for (const mode of ['check-only', 'readiness']) {
+    assert.ok(!stepsRun(mode, 'frontend', true).some(isPropsSync));
+  }
+  for (const target of TARGETS.filter(name => name !== 'frontend')) {
+    assert.ok(!stepsRun('deploy', target, true).some(isPropsSync));
+  }
+  const steps = stepsRun('deploy', 'frontend', true);
+  const flag = steps.findIndex(isPropsSync);
+  const preflight = steps.findIndex(step => step.name === 'Read-only hosted preflight and schedule evidence');
+  const pages = steps.findIndex(step => step.run === PAGES_DEPLOY);
+  assert.ok(preflight >= 0 && flag > preflight && pages > flag);
+  assert.deepEqual(steps[flag].env, { SUPABASE_ACCESS_TOKEN: '${{ secrets.SUPABASE_ACCESS_TOKEN }}' });
 });
 
 test('each worker deploy mirrors the API deploy step: same checkout directory, same single secret, project ref from the environment', () => {
@@ -374,6 +452,7 @@ test('the worker targets are accepted with the same dispatch and deploy requirem
   assert.throws(() => validateRequest(request({ RELEASE_TARGET: 'gtl-fantasy-ingest' })));
   assert.throws(() => validateRequest(request({ RELEASE_TARGET: 'gtl-epl-jobs' })));
   assert.throws(() => validateRequest(request({ RELEASE_TARGET: 'gtl-ops-alerts' })));
+  assert.throws(() => validateRequest(request({ RELEASE_TARGET: 'gtl-nba-jobs' })));
 });
 
 test('configuration: the worker targets need no Cloudflare values; the other targets need exactly what they did', () => {
@@ -385,6 +464,7 @@ test('configuration: the worker targets need no Cloudflare values; the other tar
   assert.deepEqual(configuration({}, 'fantasy-ingest').missing, supabaseNames);
   assert.deepEqual(configuration({}, 'epl-jobs').missing, supabaseNames);
   assert.deepEqual(configuration({}, 'ops-alerts').missing, supabaseNames);
+  assert.deepEqual(configuration({}, 'nba-jobs').missing, supabaseNames);
   assert.deepEqual(configuration({}, 'api').missing, supabaseNames);
   assert.deepEqual(configuration({}, 'frontend').missing, [...supabaseNames, ...cloudflareNames]);
   assert.deepEqual(configuration({}, 'api-and-frontend').missing, [...supabaseNames, ...cloudflareNames]);
@@ -520,6 +600,20 @@ test('a worker target\'s source must hold its entry file and keep it on its mach
     await assert.rejects(checkSource(cwd, request({ RELEASE_SHA: commitWith(source), RELEASE_TARGET: 'odds-refresh' }), fake), error, label);
   }
   assert.equal(calls, 48);
+
+  // nba-jobs: the same two requirements, for gtl-nba-jobs.
+  const nba = { ...odds, 'gtl-nba-jobs': 'false' }, nbaEntries = [...oddsEntries, 'gtl-nba-jobs'];
+  const nbaReady = commitWith({ workers: nba, entries: nbaEntries });
+  assert.equal((await checkSource(cwd, request({ RELEASE_SHA: nbaReady, RELEASE_TARGET: 'nba-jobs' }), fake)).target, 'nba-jobs');
+  assert.equal(calls, 54);
+  for (const [label, source, error] of [
+    ['no config entry (a source from before the worker landed)', { workers: odds, entries: nbaEntries }, /gtl-nba-jobs at verify_jwt = false \(its one-run capability is checked in SQL\)/],
+    ['gateway JWT verification on', { workers: { ...nba, 'gtl-nba-jobs': 'true' }, entries: nbaEntries }, /gtl-nba-jobs at verify_jwt = false/],
+    ['no entry file', { workers: nba, entries: oddsEntries }, /supabase\/functions\/gtl-nba-jobs\/index\.ts/],
+  ]) {
+    await assert.rejects(checkSource(cwd, request({ RELEASE_SHA: commitWith(source), RELEASE_TARGET: 'nba-jobs' }), fake), error, label);
+  }
+  assert.equal(calls, 54);
 });
 
 /** A verify/preflight fixture: a boundary checker that passes unless a test sets globalThis.gtlBoundaryFailure. */
@@ -851,6 +945,70 @@ test('supabase/config.toml registers gtl-odds-refresh with gateway JWT verificat
   const config = fs.readFileSync(new URL('../supabase/config.toml', import.meta.url), 'utf8');
   assert.match(config, /\[functions\.gtl-odds-refresh\]\n(?:#.*\n)*verify_jwt = false/);
   assert.deepEqual(TARGET_DEPLOYS['odds-refresh'], { edgeFunction: 'gtl-odds-refresh', pages: false });
+});
+
+test('supabase/config.toml registers gtl-nba-jobs with gateway JWT verification off', () => {
+  const config = fs.readFileSync(new URL('../supabase/config.toml', import.meta.url), 'utf8');
+  assert.match(config, /\[functions\.gtl-nba-jobs\]\n(?:#.*\n)*verify_jwt = false/);
+  assert.deepEqual(TARGET_DEPLOYS['nba-jobs'], { edgeFunction: 'gtl-nba-jobs', pages: false, createsOnFirstDeploy: true });
+});
+
+const NBA_JOBS_FN = Object.freeze({ slug: 'gtl-nba-jobs', version: 1, status: 'ACTIVE', verify_jwt: false, bundleSha256: 'e'.repeat(64) });
+
+// Contract (November 11, 2026): nba-jobs follows ops-alerts. The preflight records whether gtl-nba-jobs exists; with it
+// absent the deploy may create only version 1, once it exists a deploy goes exactly one version up, and no other target
+// may create it. The signed-out boundary checks still run after the deploy.
+test('nba-jobs: the preflight records whether the worker exists, and verification takes the create or the update rule', async t => {
+  const { cwd, state, fake, before: base, migrations } = hostedFixture(t);
+  t.mock.method(Date, 'now', () => Date.parse('2026-10-28T20:00:00Z'));
+  const env = request({ RELEASE_TARGET: 'nba-jobs', RELEASE_MODE: 'deploy', RELEASE_HISTORY_SHA256: migrationDigest(migrations), SUPABASE_PROJECT_REF: PROJECT, VITE_SUPABASE_URL: `https://${PROJECT}.supabase.co`, VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test', SUPABASE_ACCESS_TOKEN: 'private-value' });
+  const absent = await livePreflight(cwd, env, fake);
+  assert.deepEqual(absent.nbaJobsBefore, { present: false, version: null });
+  assert.equal(absent.previousPages, null);
+  assert.ok(!JSON.stringify(absent).includes('private-value'));
+  assert.ok(!('nbaJobsBefore' in await livePreflight(cwd, { ...env, RELEASE_TARGET: 'ops-alerts' }, fake)), 'only its own target records it');
+  const created = (values = {}) => bySlug([...base.functions, { ...NBA_JOBS_FN, ...values }]);
+  state.functions = created({ version: 2 });
+  assert.deepEqual((await livePreflight(cwd, env, fake)).nbaJobsBefore, { present: true, version: 2 });
+
+  // First deploy: created ACTIVE at version 1 with JWT off and a digest; every other function unchanged.
+  const before = { ...base, nbaJobsBefore: { present: false, version: null } };
+  state.functions = created();
+  const report = await verifyRelease(cwd, env, before, fake);
+  assert.deepEqual(report.nbaJobs, NBA_JOBS_FN);
+  assert.equal(report.nbaJobsCreated, true);
+  assert.equal(report.nbaJobsSourceVerified, false);
+  assert.equal(report.pages, null, 'the frontend is not deployed or checked');
+  for (const [values, error] of [
+    [{ verify_jwt: true }, /NBA jobs worker must be ACTIVE with gateway JWT verification off \(its one-run capability is checked in SQL\)/],
+    [{ version: 2 }, /first NBA jobs worker deploy to create version 1/],
+    [{ status: 'BOOTING' }, /NBA jobs worker must be ACTIVE/],
+    [{ bundleSha256: null }, /NBA jobs worker bundle digest/],
+  ]) {
+    state.functions = created(values);
+    await assert.rejects(verifyRelease(cwd, env, before, fake), error, JSON.stringify(values));
+  }
+  state.functions = base.functions;
+  await assert.rejects(verifyRelease(cwd, env, before, fake), /NBA jobs worker must be ACTIVE/, 'the deploy created nothing');
+  state.functions = created().map(item => item.slug === 'gtl-api' ? { ...item, version: 32 } : item);
+  await assert.rejects(verifyRelease(cwd, env, before, fake), /API changed during nba-jobs-only release/);
+  state.functions = created().map(item => item.slug === 'gtl-push-reminders' ? { ...item, version: 5 } : item);
+  await assert.rejects(verifyRelease(cwd, env, before, fake), /Another Edge function changed/);
+  state.functions = created();
+  globalThis.gtlBoundaryFailure = 'anonymous gtl_nba_claim_job RPC: unexpected 200';
+  await assert.rejects(verifyRelease(cwd, env, before, fake), /gtl_nba_claim_job/);
+  delete globalThis.gtlBoundaryFailure;
+  await assert.rejects(verifyRelease(cwd, env, base, fake), /pre-deploy report/, 'a report without the nbaJobsBefore record');
+  await assert.rejects(verifyRelease(cwd, env, { ...base, opsAlertsBefore: { present: false, version: null } }, fake), /pre-deploy report/, 'another worker\'s record');
+  // Only this target may create it: the same appearance fails an ops-alerts run.
+  await assert.rejects(verifyRelease(cwd, { ...env, RELEASE_TARGET: 'ops-alerts' }, { ...base, opsAlertsBefore: { present: false, version: null } }, fake), /Another Edge function changed/);
+
+  // Update: an existing worker needs exactly one version up.
+  const existing = { ...base, functions: created(), nbaJobsBefore: { present: true, version: 1 } };
+  state.functions = created({ version: 2, bundleSha256: 'f'.repeat(64) });
+  assert.equal((await verifyRelease(cwd, env, existing, fake)).nbaJobsCreated, false);
+  state.functions = created({ version: 3 });
+  await assert.rejects(verifyRelease(cwd, env, existing, fake), /exactly one NBA jobs worker version/);
 });
 
 // D-82 (Sean, November 11, 2026: "lets turn these on"): release.yml can pass the repository variable VITE_GTL_PLAYER_PROPS

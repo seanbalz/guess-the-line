@@ -18,6 +18,7 @@ const adapter = createSupabaseAdapter({
   reviewedResearchFeed: Deno.env.get('GTL_RESEARCH_REVIEWED_FEED'),
   researchSnapshotLoader: createResearchDataLoader({ fallback: loadResearchSnapshot }),
   eplMoneylineRefreshForLock,
+  playerPropsOddsKey: oddsKey,
 });
 
 const nbaGames = createNbaGamesService({ apiKey: Deno.env.get('BALLDONTLIE_API_KEY'), cache: adapter.nbaGamesCache });

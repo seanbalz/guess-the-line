@@ -68,7 +68,8 @@ const ROSTER_REQUIRED = ['season', 'week', 'game_type', 'gsis_id', 'team', 'posi
  * valid GSIS ID is kept under its own row key so its name still counts when another player's name is checked.
  */
 export function propWeekRoster(rosterCsv, { season, week }) {
-  const rows = parseFantasyCsv(rosterCsv, ROSTER_REQUIRED).filter(row => Number(row.season) === season && Number(row.week) === week && row.game_type === 'REG');
+  const rows = parseFantasyCsv(rosterCsv, ROSTER_REQUIRED, get => Number(get('season')) === season && Number(get('week')) === week && get('game_type') === 'REG'
+    ? { gsis_id: get('gsis_id'), team: get('team'), position: get('position'), status: get('status'), full_name: get('full_name') } : null);
   const people = new Map();
   rows.forEach((row, index) => {
     const valid = validPlayerId(row.gsis_id), id = valid ? row.gsis_id : `row:${index}`;

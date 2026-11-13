@@ -4,6 +4,7 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { apiChecks } from './boundary/guess.mjs';
 
 export const REPOSITORY = 'seanbalz/guess-the-line';
 export const PROJECT = 'onmrgvcehkflfaizvedl';
@@ -16,6 +17,7 @@ export const RESULTS_REFRESH = 'gtl-results-refresh';
 export const EPL_JOBS = 'gtl-epl-jobs';
 export const OPS_ALERTS = 'gtl-ops-alerts';
 export const ODDS_REFRESH = 'gtl-odds-refresh';
+export const NBA_JOBS = 'gtl-nba-jobs';
 /**
  * What each target deploys: at most one Edge Function (with its supabase/config.toml settings) and whether Pages is
  * uploaded. createsOnFirstDeploy lets a target's first deploy create its function; every other target updates one.
@@ -45,6 +47,9 @@ export const TARGET_DEPLOYS = Object.freeze({
   // November 3, 2026: the D-17 odds refresh worker, hosted since October 2026 and until now deployed only from the Mac mini
   // (M-37's mismatch notes wait on it). It exists, so a deploy updates it.
   'odds-refresh': Object.freeze({ edgeFunction: ODDS_REFRESH, pages: false }),
+  // Sean, November 11, 2026 ("Yes, all three"): the NBA N2 / M-49 slate and capped spread lines worker, not hosted yet, so
+  // its first deploy creates it.
+  'nba-jobs': Object.freeze({ edgeFunction: NBA_JOBS, pages: false, createsOnFirstDeploy: true }),
 });
 export const TARGETS = Object.keys(TARGET_DEPLOYS);
 const deploys = target => { assert.ok(Object.hasOwn(TARGET_DEPLOYS, target), 'Unknown release target.'); return TARGET_DEPLOYS[target]; };
@@ -60,6 +65,7 @@ const WORKERS = Object.freeze({
   [EPL_JOBS]: Object.freeze({ key: 'eplJobs', name: 'EPL jobs worker', auth: ONE_RUN }),
   [OPS_ALERTS]: Object.freeze({ key: 'opsAlerts', name: 'ops alerts worker', auth: ONE_RUN }),
   [ODDS_REFRESH]: Object.freeze({ key: 'oddsRefresh', name: 'odds refresh worker', auth: ONE_RUN }),
+  [NBA_JOBS]: Object.freeze({ key: 'nbaJobs', name: 'NBA jobs worker', auth: ONE_RUN }),
 });
 /** The worker a target deploys, or null for gtl-api and frontend targets. */
 const workerFor = scope => {
@@ -87,8 +93,14 @@ const fail = message => { throw new Error(message); };
 
 export function validateRequest(env) {
   assert.match(env.RELEASE_SHA || '', /^[a-f0-9]{40}$/, 'Use a full lowercase 40-character source SHA.');
-  assert.ok(TARGETS.includes(env.RELEASE_TARGET), 'Choose frontend, api, api-and-frontend, push-reminders, points-jobs, league-features, fantasy-ingest, results-refresh, epl-jobs, ops-alerts, or odds-refresh.');
+  assert.ok(TARGETS.includes(env.RELEASE_TARGET), 'Choose frontend, api, api-and-frontend, push-reminders, points-jobs, league-features, fantasy-ingest, results-refresh, epl-jobs, ops-alerts, odds-refresh, or nba-jobs.');
   assert.ok(['check-only', 'readiness', 'deploy'].includes(env.RELEASE_MODE), 'Unknown release mode.');
+  const syncProps = env.RELEASE_SYNC_PLAYER_PROPS_API ?? 'false';
+  assert.ok(['true', 'false'].includes(syncProps), 'Invalid Player Props API sync input.');
+  if (syncProps === 'true') {
+    assert.ok(env.RELEASE_MODE === 'deploy' && env.RELEASE_TARGET === 'frontend',
+      'Sync the Player Props API flag only in a frontend deploy.');
+  }
   if (env.GITHUB_ACTIONS === 'true') {
     assert.equal(env.GITHUB_EVENT_NAME, 'workflow_dispatch', 'Releases are manual only.');
     assert.equal(env.GITHUB_REF, 'refs/heads/main', 'Dispatch the workflow from main.');
@@ -132,6 +144,25 @@ export function appBuildFlags(env) {
   if (value === undefined || value === '' || value === 'off') return '';
   assert.equal(value, 'on', 'Set the VITE_GTL_PLAYER_PROPS variable to on or off, or leave it unset.');
   return 'VITE_GTL_PLAYER_PROPS=on\n';
+}
+
+/** Sync exactly one feature flag after the protected production preflight. */
+export async function syncPlayerPropsApi(env, fetchImpl = fetch) {
+  validateRequest(env);
+  assert.equal(env.GITHUB_ACTIONS, 'true', 'The Player Props API flag requires the protected release workflow.');
+  assert.equal(env.RELEASE_SYNC_PLAYER_PROPS_API, 'true', 'Select the Player Props API flag sync input.');
+  assert.equal(env.SUPABASE_PROJECT_REF, PROJECT, 'Unexpected Supabase project.');
+  assert.ok(env.SUPABASE_ACCESS_TOKEN, 'Missing SUPABASE_ACCESS_TOKEN.');
+  const value = env.VITE_GTL_PLAYER_PROPS ?? 'off';
+  assert.ok(['on', 'off'].includes(value), 'Invalid Player Props build flag.');
+  const response = await fetchImpl(`https://api.supabase.com/v1/projects/${PROJECT}/secrets`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${env.SUPABASE_ACCESS_TOKEN}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify([{ name: 'GTL_PLAYER_PROPS', value }]),
+    redirect: 'error',
+    signal: AbortSignal.timeout(15000),
+  });
+  assert.equal(response.status, 201, 'Could not set the Player Props API flag. Check the production token scope.');
 }
 
 export async function jsonRequest(url, token, options = {}, fetchImpl = fetch) {
@@ -317,6 +348,22 @@ export async function verifyRelease(cwd, env, before, fetchImpl = fetch) {
   assert.equal(migrationDigest(rows[0]?.migrations), before.migrationHistorySha256, 'Migration history changed during release.');
   const { checkCloudBoundary } = await import(pathToFileURL(path.join(cwd, 'scripts/check-cloud-boundary.mjs')));
   const boundary = await checkCloudBoundary({ url: env.VITE_SUPABASE_URL, key: env.VITE_SUPABASE_PUBLISHABLE_KEY, fetchImpl, log: () => {} });
+  let playerPropsApi;
+  if (env.RELEASE_SYNC_PLAYER_PROPS_API === 'true') {
+    const enabled = env.VITE_GTL_PLAYER_PROPS === 'on';
+    const props = apiChecks.filter(([route]) => route.startsWith('props/'));
+    for (const [route, body] of props) {
+      const response = await fetchImpl(`${env.VITE_SUPABASE_URL}/functions/v1/gtl-api/${route}`, {
+        headers: { apikey: env.VITE_SUPABASE_PUBLISHABLE_KEY, 'Content-Type': 'application/json' },
+        method: 'POST', body: JSON.stringify(body), redirect: 'error', signal: AbortSignal.timeout(15000),
+      });
+      const result = await response.json().catch(() => null);
+      assert.ok(response.status === (enabled ? 401 : 404) && result?.error === (enabled ? 'Sign in to continue.' : 'Not found.'),
+        `Player Props API ${route} did not confirm the ${enabled ? 'enabled' : 'disabled'} state.`);
+    }
+    playerPropsApi = { enabled, checked: props.length };
+  }
+
   let pages = null;
   if (scope.pages) {
     const result = await jsonRequest(`https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}/pages/projects/guess-the-line/deployments?env=production`, env.CLOUDFLARE_API_TOKEN, {}, fetchImpl);
@@ -345,6 +392,7 @@ export async function verifyRelease(cwd, env, before, fetchImpl = fetch) {
     pages = { id: deployment.id, url: deployment.url, productionUrl: 'https://guess-the-line.pages.dev', deploymentUrlAccess: deploymentAccess, checkedUrls: bases, checkedAssetsPerUrl: served.length, frontendSha256: manifest.frontendSha256 };
   }
   return { requestedSource: env.RELEASE_SHA, target: env.RELEASE_TARGET, checkedAt: new Date().toISOString(), api, pages, boundary,
+    ...(playerPropsApi ? { playerPropsApi } : {}),
     ...workerReport,
     apiDeploymentMetadataVerified: true, apiSourceVerified: false, apiBundleMatchesCheckout: 'not-independently-verified',
     apiSourceLimitation: 'The deploy command uses the clean requested checkout. The remote bundle digest is recorded, but remote API bytes have not been independently matched to that checkout. API source acceptance remains a manual release-record gate.',
@@ -355,7 +403,7 @@ export async function verifyRelease(cwd, env, before, fetchImpl = fetch) {
 export async function main(args, env = process.env) {
   const [command, ...rest] = args;
   if (!command || command === '--help') {
-    console.log('Usage: node scripts/release-preflight.mjs <source|configuration|live|verify> [--source DIR] [--out FILE] [--before FILE]\nInputs: RELEASE_SHA (full SHA), RELEASE_TARGET (frontend|api|api-and-frontend|push-reminders|points-jobs|league-features|fantasy-ingest|results-refresh|epl-jobs|ops-alerts|odds-refresh), RELEASE_MODE (check-only|readiness|deploy). Deploy also requires RELEASE_CARD, RELEASE_HISTORY_SHA256, RELEASE_COMPATIBLE=true.\nsource reads Git and GitHub CI; configuration reports missing names only; live uses protected credentials for read-only schedule/history and boundary checks; verify checks deployed metadata/assets. This helper never deploys or applies SQL.');
+    console.log('Usage: node scripts/release-preflight.mjs <source|configuration|live|verify> [--source DIR] [--out FILE] [--before FILE]\nInputs: RELEASE_SHA (full SHA), RELEASE_TARGET (frontend|api|api-and-frontend|push-reminders|points-jobs|league-features|fantasy-ingest|results-refresh|epl-jobs|ops-alerts|odds-refresh|nba-jobs), RELEASE_MODE (check-only|readiness|deploy). Deploy also requires RELEASE_CARD, RELEASE_HISTORY_SHA256, RELEASE_COMPATIBLE=true.\nsource reads Git and GitHub CI; configuration reports missing names only; live uses protected credentials for read-only schedule/history and boundary checks; verify checks deployed metadata/assets. This helper never deploys or applies SQL.');
     return;
   }
   assert.ok(['source', 'configuration', 'live', 'verify'].includes(command), 'Unknown preflight command.');

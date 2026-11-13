@@ -481,6 +481,10 @@ test('static: only the existing collector modules call the provider or the colle
     // scores), which reuse readQuota and spend from the same gtl_odds_budget through gtl_epl_reserve_credits (50-credit
     // reserve), and the Edge function that hands them the key. They call no NFL collection RPC.
     'cloud/epl-sources.mjs', 'supabase/functions/gtl-epl-jobs/index.ts',
+    // NBA N2 (M-49, D-85 item 3): the gtl-nba-jobs worker's own basketball_nba reads (the free /events read and the 1-credit
+    // spreads read), which reserve through gtl_nba_begin_lines_read on the same gtl_odds_budget row and lease (31-credit
+    // monthly cap, refused below 100), and the Edge function that hands them the key. They call no NFL collection RPC.
+    'cloud/nba-jobs.mjs', 'supabase/functions/gtl-nba-jobs/index.ts',
   ];
   const found = [];
   const walk = dir => {

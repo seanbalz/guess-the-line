@@ -1,11 +1,12 @@
 # Guess the Line NBA build-out — design proposal
 
 Status: **N1 approved, merged (PR #542) and deployed (Pages `b8019df1`, November 12, 2026
-UTC; NBA still off the switch); N2 to N4 still proposals.** On November 11, 2026 Sean chose "Guess the Spread" (N1 first, then N3),
+UTC; NBA on the switch by Sean's "Yes, show NBA", D-85 item 6); N2 live on the server since November 12, 2026 UTC (M-49 applied, `gtl-nba-jobs` deployed, slate on, lines off; see the N2 status line); N3 and N4 still proposals.** On November 11, 2026 Sean chose "Guess the Spread" (N1 first, then N3),
 replaced the letter badges with official NBA league and team logos, approved the 31-credit
 cap and 100-credit pause threshold, opened NBA Guess the Spread to all Community
-members and allowed one free records backfill (D-85; see "Waiting on Sean"). No migration
-is applied; the N1 release is [recorded](../../RELEASE_2026_11_12_NBA_N1.md).
+members and allowed one free records backfill (D-85; see "Waiting on Sean"). N1 applied no
+migration; the N1 release is [recorded](../../RELEASE_2026_11_12_NBA_N1.md), and N2's M-49 apply
+and worker release are [recorded](../../RELEASE_2026_11_12_NBA_N2_M49.md).
 Owner: Sean Balsiger. Date: November 10, 2026.
 Phone mockups: [design/nba-buildout-2026-11-10](../../../design/nba-buildout-2026-11-10/README.md)
 (48 captures, 320 and 390 px, Dark and Light, synthetic data).
@@ -131,7 +132,8 @@ Mockups 01 to 09.
    to NFL logos. The official NBA league logo sits in its own league circle of the
    sport switch (52 px; 44 px below 360 px wide when three circles show).
 5. **Switch flag.** `sportOptions()` gains an NBA row behind the source constant
-   `NBA_ON_SWITCH = false`; it turns on only on Sean's word.
+   `NBA_ON_SWITCH`, built `false`; it turns on only on Sean's word. Sean said "Yes, show
+   NBA" on November 11, 2026 (D-85 item 6), so it is now `true`.
 6. **Price display.** Whole American odds (+102). The stored eight-decimal value
    is never rewritten; details show the original input ("49.5% Novig").
 7. **"Needs your result" queue.** A pure `shared/nba-grade.mjs` (modeled on
@@ -177,6 +179,16 @@ his physical-iPhone check.
 
 ## N2: Slate and capped spread lines (server only; players see nothing)
 
+**Status (November 12, 2026 UTC): live on the server; players see nothing.** Sean said "Yes, merge it", then "Yes, all
+three" (November 11 Pacific). [PR #558](https://github.com/seanbalz/guess-the-line/pull/558) merged as `2345d78f`. M-49
+(`20261112040000_gtl_nba_slate_lines.sql`) is hosted as `20261112055355` (history 87 rows). `gtl-nba-jobs` v1 is deployed
+(run 43169209526 from `635e15cc`). The `slate` schedule is on, with its first run due 17:00 UTC November 12; `lines` is off
+until a slate run has stored a game day. No real lines read has happened, and the shadow gate has not opened
+([release record](../../RELEASE_2026_11_12_NBA_N2_M49.md), [apply packet](../../MIGRATION_APPLY_PACKET_2026_11_12_NBA_N2.md)).
+It was built on branch `claude/nba-n2-2026-11-12` on Sean's "Yes, build N2" (November 11). The migration is M-49 because
+PR #555 already took M-48. No provider was called while building it: every test uses local doubles. Sean then added the NFL
+hour ("Yes, avoid that hour", D-85 item 7): the lines read never begins in the 60 minutes before an NFL kickoff.
+
 - **Durable slate.** A machine-only `gtl-nba-jobs` worker (the gtl-epl-jobs and
   M-30 one-run-capability pattern) runs a `slate` job at 9:00 AM and 3:00 PM PT:
   one BALLDONTLIE request for date−1 to date+1 and one free Odds API `/events`
@@ -194,6 +206,18 @@ his physical-iPhone check.
   the NBA monthly cap (31, approved by Sean on November 11, 2026, D-85) and pause
   NBA when the shared conservative remaining falls below 100 (approved, D-85). NBA
   is always the lane that is refused.
+- **The NFL hour (D-85 item 7, added after the build).** Sean: "Yes, avoid that hour". The first lines read and its one retry
+  never begin inside [K − 60 min, K) for any published NFL kickoff K (`gtl_weekly_slates`, which the NFL save and odds paths
+  read). Thursday Night Football is the case that matters: players are saving picks, and an NFL collection they start while NBA
+  holds the shared lease would be told "busy".
+  - **Planned time inside a window.** It moves earlier, so that a whole five-minute cron slot ends before the window opens
+    (`gtl_nba_nfl_clear`). It must still come before the NBA lock.
+  - **A read that reaches a window anyway.** It is refused as `nfl_window`, with no credit and no lease. If a time before the
+    NBA lock is clear, it runs after the window; if not, the refusal is recorded as the attempt.
+  - **Weeks not yet published.** Before the Monday open, and in the off-season, there is no window; NFL has nothing to collect
+    for such a week either.
+  - **Moved kickoffs.** A published week never changes, so a kickoff moved after publication keeps its published window.
+  - **Shadow gate.** A day that loses its read to a window fails like any other day.
 - **Linking.** `shared/nba-teams.mjs` maps the 30 teams across both providers;
   unmatched events stay unlinked and counted. Lock time is the earlier of the
   two start times; an in-progress or final BALLDONTLIE status closes the game at
@@ -201,14 +225,15 @@ his physical-iPhone check.
 - **Shadow gate.** The N3 writer stays off until 10 consecutive game days show
   at least 80% of games linked and qualified, NBA credits at or under the cap,
   and nothing refused to NFL or EPL because of NBA.
-- **Migration M-48 (assumed number) `gtl_nba_slate_lines`.** `gtl_nba_games`
+- **Migration M-49 `gtl_nba_slate_lines` (hosted as `20261112055355` since November 12, 2026 UTC; the spec assumed M-48, which PR #555 took).** `gtl_nba_games`
   (a final never returns to scheduled; a start time moves only before it has
   passed), append-only `gtl_nba_game_observations` and `gtl_nba_lines`,
   `gtl_nba_line_attempts`, one-row `gtl_nba_budget`, `gtl_nba_jobs_schedule`
   and `gtl_nba_job_runs`; service_role-only functions `gtl_nba_publish_slate`,
   `gtl_nba_begin_lines_read`, `gtl_nba_finish_lines_read`,
   `gtl_nba_lines_due`, `gtl_dispatch_nba_jobs`, `gtl_nba_claim_job`,
-  `gtl_nba_finish_job`. RLS on, no anon/authenticated grants, no delete grants,
+  `gtl_nba_finish_job` (as built, also `gtl_nba_shadow_gate` and the helpers `gtl_nba_lines_plan`,
+  `gtl_nba_month_spent` and `gtl_nba_nfl_clear`). RLS on, no anon/authenticated grants, no delete grants,
   append-only triggers. Schedule rows in `supabase/admin/nba_jobs_cron.sql`,
   inserted disabled; Sean runs it.
 - **Tests.** PGlite: lines append-only; the cap refuses the 32nd credit; an NBA
@@ -259,7 +284,7 @@ Mockups 10 and 11 (preview only).
   `_CLOSED` 409 with the kept draft, `_UNCERTAIN` 503 with `readbackRequired`.
   `GTL_FEATURE_OFF=nba-guess` stops the writer. Aggregation stays in SQL (an Edge
   CPU limit was hit before on v31 trends).
-- **Migration M-49 (assumed number) `gtl_nba_guess`.** `gtl_nba_guesses`
+- **Migration M-50 (assumed number; N2 took M-49) `gtl_nba_guess`.** `gtl_nba_guesses`
   (primary key event, user, market; half-point check; draft or locked; reference
   value/observed/source all-or-none; points), insert-only
   `gtl_nba_guess_history`, append-only `gtl_nba_game_voids`; functions
@@ -282,7 +307,7 @@ Mockups 10 and 11 (preview only).
   forged owner ignored, pre-tip reveal denied, non-commissioner void denied. UI:
   ported EPL guessModel state tests and the picker's NBA range. Browser: draft,
   lock, reveal and standings in PGlite.
-- **Acceptance.** M-49 applied on Sean's approval, API deployed, shadow gate
+- **Acceptance.** M-50 (assumed) applied on Sean's approval, API deployed, shadow gate
   passed, writer on; signed-in 2xx on all four routes and the D-31 probes pass;
   Sean's first real night produces correct references and points (counts and
   states only).
@@ -351,7 +376,7 @@ Spread to the same card without a new table.
    first, then nightly Guess the Spread (N3); the zero-credit Pick'em is not taken.
 2. ~~Credit cap.~~ **Answered November 11, 2026 (D-85): "Approve 31 / 100".** NBA's
    Odds API cap is 31 credits a month and NBA pauses when the shared conservative
-   remaining is below 100; NBA is always the refused lane. For N2; not built.
+   remaining is below 100; NBA is always the refused lane. For N2: live since November 12, 2026 UTC, enforced by hosted M-49 (see the N2 status).
 3. ~~Who plays.~~ **Answered November 11, 2026 (D-85): "All community members".**
    Every Community member may play NBA Guess the Spread (the `gtl_nba_player` rule),
    like EPL's open access, with one shared NBA standings. For N3; not built.
@@ -360,15 +385,23 @@ Spread to the same card without a new table.
    and team logos replace the letter badges and the "NBA" text badge; the 44 px
    league circles below 360 px wide are approved. N1 is built on that basis
    ([real-build captures](../../../design/nba-n1-2026-11-11/README.md)).
-5. When NBA appears on the sport switch (`NBA_ON_SWITCH`).
+5. ~~Switch timing.~~ **Answered November 11, 2026 (D-85 item 6): "Yes, show NBA".**
+   `NBA_ON_SWITCH` is `true`; NFL and EPL screens offer the NBA circle.
 6. ~~Team records.~~ **Answered November 11, 2026 (D-85): "Backfill once, free".**
    One backfill of the earlier regular-season game days storage lacks (a few free
    BALLDONTLIE Games requests, once, through the existing TTL, 15 s lease and 35 s
    cooldown; no Odds API credit). Days still missing afterwards show "—". For N3;
    not built or run.
 7. Every migration apply, deploy and schedule enable; one real production save;
-   the physical-iPhone check.
-8. The stale Codex NBA worktree under
-   `C:\Users\sbals\.codex\worktrees\private-nba-storage` (branch
-   `codex/nba-section-design`, last commit October 21, 15 uncommitted paths;
-   executed with a read-only `git status --no-optional-locks`). It is untouched.
+   the physical-iPhone check. **November 11, 2026 (Pacific): "Yes, all three"** for N2: M-49
+   applied, `gtl-nba-jobs` deployed and the `slate` schedule on
+   ([release record](../../RELEASE_2026_11_12_NBA_N2_M49.md)). Still open: `lines` after a slate
+   run stores a game day, N3's and N4's applies and deploys, one real production save and the
+   physical-iPhone check.
+8. ~~The stale Codex NBA worktree.~~ **Answered November 11, 2026: "Yes, save and remove".**
+   The worktree under `C:\Users\sbals\.codex\worktrees\private-nba-storage` (branch
+   `codex/nba-section-design`, last commit October 21; 15 uncommitted paths when this proposal
+   was written) had its uncommitted changes archived to
+   `C:\Users\sbals\betting-repo-worktrees\_local-archive-2026-11-10\codex-private-nba-storage-2026-11-12`:
+   a patch of 10 tracked files, 12 untracked files and the ignored output. The worktree was then
+   removed. The branch `codex/nba-section-design` is kept.

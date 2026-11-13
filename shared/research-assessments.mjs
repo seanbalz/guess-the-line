@@ -29,13 +29,14 @@ export function submittedResearchLink(value) {
     || !ASSESSMENT_SOURCES.some(s => s.id === sourceId)) throw new TypeError('Use a post from a selected research source.');
   return { sourceId, url: `https://x.com/${sourceId}/status/${match[2]}` };
 }
+export const validResearchPropLine = line => finite(line) && line >= 0 && line <= 10000 && Number.isInteger(line * 2);
 export function validResearchSelection(s) {
   if (!object(s) || !RESEARCH_MARKETS.includes(s.market) || !text(s.key, 100) || !/^[a-z0-9_]+$/.test(s.key) || !text(s.unit, 60)) return false;
   if (s.market === 'spread') return s.unit === 'points' && ['spreads', 'alternate_spreads'].includes(s.key) && ['home', 'away'].includes(s.side) && finite(s.line) && Math.abs(s.line) <= 100 && Number.isInteger(s.line * 2);
   if (s.market === 'total') return s.unit === 'points' && ['totals', 'alternate_totals'].includes(s.key) && ['over', 'under'].includes(s.side) && finite(s.line) && s.line >= 0 && s.line <= 200 && Number.isInteger(s.line * 2);
   if (s.market === 'moneyline') return s.key === 'h2h' && s.unit === 'win' && ['home', 'away'].includes(s.side) && s.line === null;
   return researchMarketUnit(s.key) === s.unit && token(s.playerId) && text(s.playerName, 100)
-    && ['over', 'under', 'yes', 'no'].includes(s.side) && (s.line === null ? ['yes', 'no'].includes(s.side) : finite(s.line) && s.line >= 0 && s.line <= 10000 && Number.isInteger(s.line * 2));
+    && ['over', 'under', 'yes', 'no'].includes(s.side) && (s.line === null ? ['yes', 'no'].includes(s.side) : validResearchPropLine(s.line));
 }
 export const selectionKey = s => JSON.stringify([s.market, s.key, s.side, s.line, s.playerId ?? null, s.unit]);
 const selection = s => ({ market: s.market, key: s.key, side: s.side, line: s.line, unit: s.unit, ...(s.market === 'prop' ? { playerId: s.playerId, playerName: s.playerName } : {}) });

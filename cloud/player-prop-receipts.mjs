@@ -1,10 +1,7 @@
 // D-82 Player Props quote and actual-result receipts. Server only.
 //
-// Quotes: a lock-in reference is built ONLY from quotes already retained by the existing, separately authorized research
-// intake (cloud/research-provider.mjs collectResearchQuotes, reserved against the shared free budget and lease in
-// gtl_begin_research_quotes). This module never calls a provider, never reserves credits and never starts a collector,
-// so no page view or lock can become a collection loop. When the retained quotes do not qualify, the answer is an
-// explicit `unavailable` with a reason: the draft is kept and nothing is fabricated or repaired with another quote.
+// Quotes: a lock-in reference is built only from a capture retained in the shared research fetch ledger. This module
+// reads the ledger and checks the reference. When retained quotes do not qualify, it returns `unavailable` with a reason.
 //
 // Results: a raw weekly player-stat row (the audited nflverse columns in shared/player-props.mjs) becomes a receipt only
 // for the exact event and stable player ID. A missing row is not a zero, and a zero is final only with participation
@@ -73,8 +70,8 @@ export function retainedPropQuotes(fetchRows) {
 
 /**
  * The lock-in reference source for gtl-api. `rows(table, query, max)` is the adapter's service-role table reader and
- * `rpc(name, body)` the Player Props RPC caller. It reads at most the latest twenty finished fetches of the offer's game
- * from the last six hours and records a qualifying reference through gtl_props_record_reference, which checks it again.
+ * `rpc(name, body)` the Player Props RPC caller. It uses the latest successful capture of the game and stat, matching
+ * the research reader's withdrawal rule for a successful empty capture. The SQL writer checks the reference again.
  */
 export function createPropReferenceSource({ rows, rpc, clock = Date.now }) {
   return {
@@ -85,8 +82,8 @@ export function createPropReferenceSource({ rows, rpc, clock = Date.now }) {
       try {
         fetched = await rows('gtl_research_quote_fetches', {
           select: 'status,error,quote_payload', season: `eq.${offer.season}`, week: `eq.${offer.week}`, game_id: `eq.${propGameId(offer)}`,
-          status: 'eq.finished', started_at: `gte.${new Date(now - PROP_REFERENCE_MAX_AGE_MS).toISOString()}`,
-          order: 'started_at.desc,request_id.desc', limit: '20' }, 20);
+          markets: `cs.{${offer.stat}}`, status: 'eq.finished', error: 'is.null', started_at: `gte.${new Date(now - PROP_REFERENCE_MAX_AGE_MS).toISOString()}`,
+          order: 'started_at.desc,request_id.desc', limit: '1' }, 1);
       } catch { return unavailable('source_unavailable'); }
       const built = propReferenceFromQuotes(retainedPropQuotes(fetched), { offer, now });
       if (built.status !== 'qualified') return built;

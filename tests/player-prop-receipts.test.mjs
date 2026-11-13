@@ -57,7 +57,8 @@ test('reference source reads retained rows only and records through the SQL writ
     rpc: async (name, body) => { rpcs.push([name, body]); return {}; } });
   const ref = await source.referenceForLock(OFFER);
   assert.equal(ref.status, 'qualified');
-  assert.equal(reads[0][0], 'gtl_research_quote_fetches'); assert.equal(reads[0][1].game_id, 'eq.DAL-PHI'); assert.equal(reads[0][2], 20);
+  assert.equal(reads[0][0], 'gtl_research_quote_fetches'); assert.equal(reads[0][1].game_id, 'eq.DAL-PHI');
+  assert.equal(reads[0][1].markets, 'cs.{player_reception_yds}'); assert.equal(reads[0][1].error, 'is.null'); assert.equal(reads[0][2], 1);
   assert.deepEqual(rpcs.map(([name]) => name), ['gtl_props_record_reference']);
   assert.equal(rpcs[0][1].p_line, 67.5);
   const none = createPropReferenceSource({ clock: () => NOW, rows: async () => [], rpc: async () => assert.fail('nothing to record') });

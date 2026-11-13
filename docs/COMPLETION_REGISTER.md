@@ -12,11 +12,316 @@ hashes matched for saved picks, guesses, queues, bonuses, order and other weeks.
 
 The frontend follow-up distinguishes missing fixtures/prices, links empty Bets to
 guessing, and opens Research on available standings when its opponent is unverified.
-Local verification: 66 focused Vitest tests pass; production build and typecheck
+Local verification: 79 focused Vitest tests pass; production build and typecheck
 pass; Brand document QA and whitespace checks pass; all 18 selected browser tests
 pass, including Bets navigation, Research section choice, privacy and three-way
 entry. UI changes are not deployed; the live schedule repair is already
 applied. No migration or API/worker deployment is required.
+
+## NBA N2 live: M-49 applied, `gtl-nba-jobs` deployed, slate on — November 12, 2026 UTC
+
+Sean said "Yes, merge it", then "Yes, all three", answering "Apply M-49, deploy the NBA job and
+switch on its schedule after the merge?" (November 11 Pacific). The
+[release and apply record](RELEASE_2026_11_12_NBA_N2_M49.md) has every hash and readback. Players
+see nothing: N2 is server only.
+
+- **Merges.** PR #558 (N2) merged as `2345d78f` at 05:51:12 UTC. PR #560 (the `nba-jobs` release
+  target) merged as `635e15cc`. CI on `635e15cc`: Tests, Dashboard checks and Brand QA all passed.
+- **Apply** (SQL editor in your signed-in Chrome, Gate M, one guarded transaction, about 05:53 UTC):
+
+| Ledger | What | Hosted version |
+| --- | --- | --- |
+| M-49 | NBA slate and capped spread lines | `20261112055355` |
+
+- **History** went from 86 to 87. The new digest is
+  `d0bcee513cb5be6d8d0ddb6115f2949f451953aa8c3c875ff006f4866533e2f3`.
+- **Scores, settled results, the NFL weeks and the shared budget row** hashed the same before and
+  after inside the transaction. The 14 new functions and 8 new tables matched the packet: service
+  only, RLS on, no browser access, no service delete. The NBA budget row is cap 31, pause below 100,
+  not paused.
+- **Worker.** `nba-jobs` run
+  [43169209526](https://github.com/seanbalz/guess-the-line/actions/runs/43169209526) from
+  `635e15cc` created `gtl-nba-jobs` v1 (ACTIVE, `verify_jwt` false). `gtl-api` v56 is unchanged.
+  Signed out, the worker answered 401 with a made-up run and with an empty request.
+- **Schedule.** `slate` is on (cron `0 16,17,22,23 * * *`); its first run is due at 17:00 UTC on
+  November 12 (9:00 AM Pacific). `lines` is off: its cron fires, but its disabled row means each call
+  posts nothing. It stays off until a slate run has stored a game day.
+- **Records** (this PR): M-49 moved to `APPLIED`, so only M-48 is not hosted. M-49's 19 table and RPC
+  probes left `awaitingDeploy` and must deny, and the `gtl-nba-jobs` worker probe joined
+  `workerChecks`.
+- **Not done or verified:** the first slate run; switching on `lines` (at most 31 credits a month);
+  a real lines read; the shadow gate's 10 game days before N3; the physical-iPhone check.
+  `check:cloud` was not run from this branch (no `.env.cloud` here).
+
+## NBA N2 built on a branch: slate and capped spread lines, server only — November 12, 2026 UTC
+
+**Update November 12, 2026 UTC:** merged, applied, deployed and `slate` on; `lines` off. See the
+entry above.
+
+Owner: Sean Balsiger. Version 1. Sean said "Yes, build N2" on November 11, 2026. It was built on
+branch `claude/nba-n2-2026-11-12` from `main` at `acbe8406`, in
+[PR #558](https://github.com/seanbalz/guess-the-line/pull/558), which is open and not merged
+([spec, N2](superpowers/specs/2026-11-10-nba-buildout-design.md#n2-slate-and-capped-spread-lines-server-only-players-see-nothing)).
+**Players see nothing. Nothing is merged, applied, deployed or scheduled, and no provider was
+called.**
+
+- **Migration M-49** `20261112040000_gtl_nba_slate_lines.sql`, written and not applied. The spec
+  assumed M-48, but open PR #555 already takes M-48. It adds eight service-only tables with RLS on
+  and no browser grants: the games, append-only observations, slate reads and lines, the lines
+  reservations, a one-row NBA budget, the schedule and the runs. Nobody the API runs as can delete,
+  and append-only triggers refuse even the owner. Your credit rule is enforced in SQL (D-85
+  item 3): at most 31 credits a calendar month (UTC), and NBA is refused when the shared remaining
+  would fall below 100, or while any NFL, EPL or research collection holds the shared lease. NBA is
+  always the lane refused. A final never regresses. A start time, the lock and the link never move
+  once passed. An in-progress or final status closes a game at once.
+- **Worker `gtl-nba-jobs`** (`cloud/nba-jobs.mjs`), not deployed.
+  - The slate job runs at 9:00 AM and 3:00 PM Pacific. It makes one BALLDONTLIE request through the
+    existing lease and cooldown, or reuses a fresh cached range, plus one free Odds API `/events`
+    read. It links games by team and time and counts unmatched events.
+  - The lines job runs once per game day, 90 minutes before the first tip-off. It makes one 1-credit
+    `basketball_nba` spreads read from DraftKings, FanDuel and BetMGM, with BetRivers standing in. It
+    retries once, 30 minutes later, only if the first read spent nothing.
+  - Nothing due means no provider request.
+- **Odds adapter.** `cloud/odds-provider.mjs` takes `sport` and `markets`. The NFL default is
+  byte-identical to `main`: the same requests and the same reply, compared against `main`'s file on
+  a fixture (executed).
+- **Teams.** `shared/nba-teams.mjs` maps all 30 teams across both providers. Only the Clippers are
+  spelled differently. These names are assumed from the provider's naming, not checked live; a name
+  that differs leaves an event unmatched and counted. The web bundle is byte-identical to `main`'s
+  (184 files, executed).
+- **The NFL hour (D-85 item 7).** You answered "Yes, avoid that hour" to "Should NBA's daily lines
+  read stay out of the hour before any NFL kickoff?".
+  - The read and its retry never begin in the 60 minutes before an NFL kickoff, read from the
+    published NFL weeks (`gtl_weekly_slates`).
+  - A planned time inside that hour moves earlier, to a whole cron slot before it opens.
+  - A read that reaches the hour anyway is refused as `nfl_window`, with 0 credits and no lease. It
+    runs after the window, or, when no time is clear before the NBA lock, the refusal is recorded.
+  - NFL code is unchanged.
+- **Shadow gate.** `gtl_nba_shadow_gate()` is what N3 will read. It opens after 10 consecutive
+  covered game days with at least 80% of games linked and qualified, within the cap, and with no NFL
+  or EPL run refused while an NBA read held its reservation.
+- **Schedule file.** `supabase/admin/nba_jobs_cron.sql` creates both rows disabled.
+- **Apply packet.** [M-49 apply packet](MIGRATION_APPLY_PACKET_2026_11_12_NBA_N2.md): hashes,
+  preflight, guard, verify, rollback and the order of the later steps.
+
+Verification (executed on this branch with `main` merged through `6a3e02e9`, after the NFL-hour change):
+
+- `node --test`: 3326 tests, 3325 pass, 1 fail, 0 skipped. The new suites (57 PGlite, 11 worker, 8
+  adapter, 21 boundary) all pass, as does the M-49 rollback check.
+- The one failure is the EPL OCR asset test. The shared `node_modules` in this checkout lacks
+  `tesseract.js`, which has nothing to do with N2; CI installs it from the lockfile.
+- vitest: 1025 of 1025 pass. Typecheck and Brand QA pass.
+- `build:cloud` fails here for the same missing `tesseract.js`. Without the OCR copy, the build
+  passes and its output is byte-identical to `main`'s.
+- Breaking each SQL rule on purpose (append-only, cap, pause, lease, final, start time, no delete,
+  retry, gate, closure, and seven NFL-hour rules) made its test fail.
+- Not run: `check:cloud`, because there is no `.env.cloud` here.
+
+**Waiting on you, each its own word, in order:**
+
+1. Merge the PR.
+2. "apply M-49".
+3. Deploy the worker (the release workflow needs an `nba-jobs` target first, a separate reviewed
+   change).
+4. Create the schedule rows.
+5. Enable `slate`, then `lines`.
+
+N3 waits for the shadow gate to open.
+
+## Security coverage stage 1 published — November 11, 2026 Pacific
+
+Owner: Sean Balsiger. Version 1. Branch `codex/security-coverage-gates-2026-11-11`
+starts from fresh main at `acbe8406a88481bc8b60045668b035c614bf059e`, the verified
+#551 merge from final head `4833cc685ced1d650a2243fff63989a652083396`.
+No other open PR or committed fix duplicates this work. The
+[updated investigation](SECURITY_SCAN_COVERAGE_2026_11_11.md#stage-1-implementation--november-11-2026-pacific)
+records this staged implementation and the earlier report's provenance.
+
+Every PR now triggers both audits on its actual head. Semgrep 1.185.0 records
+resolved rule bytes/hashes/version IDs, source/engine/budgets, findings and full
+diagnostic/scanned/skipped inventories. Its summary labels incomplete coverage
+explicitly; missing/bad scan evidence fails. Findings/diagnostics remain
+report-only, with no new exclusions or suppressions. Trivy's version output is
+retained too; its previously observed skipped Rego module remains a review item.
+Two workflow snippets and two active-module regexes receive behavior-preserving
+normalizations. Design/generated/legacy source and frozen v62 files are unchanged.
+
+Local checks pass: 11 reporter tests, 14 HTTPS tests, 30 Node tests, Brand QA,
+regex AST equivalence, three Bash syntax checks and aggregate success/failure
+behavior. Unchanged-main scan: zero findings, 27 diagnostics. Initial dirty-source
+scan: zero findings, 19 diagnostics (16 partial parses, three bundle timeouts),
+with the five targeted parser/matching issues removed. Transient timeout changes
+are not counted as fixes. [PR #556](https://github.com/seanbalz/guess-the-line/pull/556)
+publishes implementation commit `4166395a02ed740059e1616631a9ade25e36bd53`.
+Its clean local and [hosted scan](https://github.com/seanbalz/guess-the-line/actions/runs/43151668317)
+both have zero findings and 19 diagnostics across 1,776 scanned paths; Trivy
+reports zero high/critical findings and retains the explicit Rego compatibility
+warning. Raw evidence hashes and skipped scope are in the investigation. A final
+Trivy cache-directory correction and evidence update receive fresh PR checks.
+The branch passed `sync:check`, clean and zero ahead/behind, at `4166395a`; final
+commit/check status is recorded in the PR handoff. No merge or deployment.
+
+## NBA on the sport switch released — November 12, 2026 UTC (November 11 Pacific)
+
+Sean said "Yes, show NBA" (D-85 item 6), then "Just deploy latest main instead" and "deploy".
+PR #546 (`NBA_ON_SWITCH = true`) merged as `875c9ceb`. `frontend` run
+[43146347808](https://github.com/seanbalz/guess-the-line/actions/runs/43146347808) from `main`
+at `1aaf32d3` shipped Pages `060f35c4` (176 assets; boundary 519/519 denied). The release also
+carries #543, #549, #540, #541, #550 and #552. `gtl-api` is v56, unchanged here, and history
+stays 86 rows. The Player Props flag was not touched (`sync_player_props_api` false).
+
+Signed-in view: NFL Home shows NFL, Premier League and NBA, and tapping NBA opens NBA Home. Reads
+answer 200 on v56 with no 5xx. The physical-iPhone check is not done.
+[Release record](RELEASE_2026_11_12_NBA_N1.md#second-release-nba-on-the-sport-switch--november-12-2026-utc-november-11-pacific).
+
+## Security closeout merged; scan coverage investigated — November 11, 2026
+
+Owner: Sean Balsiger. Version 1. [PR #549](https://github.com/seanbalz/guess-the-line/pull/549)
+merged under Sean's conditional authorization at 5:32:52 PM Pacific. Reviewed head
+`844f935b5ebab20a5fa53ec1acc188b84ef17c16`; merge commit
+`0643ec05a831cb763521249f86a6c269ac39668d`. All 14 checks passed, including all nine
+required checks. No approving review was required; there were no reviews or
+unresolved threads. No protection was bypassed. Fresh closeout checks passed:
+14 Python download tests, 15 workflow tests, publisher action-pin verification
+and Brand QA. The separately owned main checkout passed `sync:pull` and
+`sync:check` at the merge commit, clean and zero ahead/behind. No deployment.
+
+The [coverage investigation and follow-up plan](SECURITY_SCAN_COVERAGE_2026_11_11.md)
+reproduced all 24 Semgrep diagnostics with 1.185.0. All 21 affected files are
+unchanged between the PR head and merge. Babel accepted all affected JavaScript/
+JSX, parse5 accepted both HTML files, and 21 existing active-module tests passed.
+No application syntax defect or exploitable vulnerability was established.
+
+Temporary copies cleared the 20 parsing warnings and one matching error through
+specific syntax normalizations; the frozen v62 tracker and repository source were
+untouched. A 60-second targeted run resolved the three bundle timeouts but exposed
+one additional valid fractional-conditional parser issue. Normalizing that one
+token in a separate copy preserved its Babel AST and let those three rules finish
+with zero findings/diagnostics. Neither experiment proves full-repository coverage.
+The baseline had the same diagnostic counts but one different timeout rule ID.
+
+Branch `codex/security-scan-coverage-2026-11-11`, based on fresh main at the merge
+commit, publishes the report and this entry only in
+[PR #551](https://github.com/seanbalz/guess-the-line/pull/551), initially left open
+and unmerged. It subsequently merged at `acbe8406a88481bc8b60045668b035c614bf059e`
+from head `4833cc685ced1d650a2243fff63989a652083396`; stage 1 above supersedes the
+earlier implementation plan. At original publication, scanner-coverage
+gates and missing PR path triggers remained planned; no blanket exclusions or rule
+suppressions were added. Local artifacts are retained under
+`C:/Users/sbals/outputs/security-closeout-20261111`. #549's authorization did not
+authorize that follow-up merge in this chat; production deployment remains separate.
+
+## Premier League feature request reconciled with live release — November 11, 2026 Pacific
+
+The [fresh verification record](EPL_FEATURES_LIVE_VERIFICATION_2026_11_11.md) reconciles
+Sean's November 9 request and subsequent approval to proceed with the already merged
+and released work: optional three-way guessing, gap-ranked recommended bets,
+reviewed Sleeper screenshot imports, and Pick a Team winner announcements.
+
+Read-only hosted checks at approximately November 12, 00:44–00:46 UTC confirm the
+three-way capability, applied M-42 to M-44 and M-33 to M-35, API v55, jobs v4 and
+the active 15-minute results cron. The first announcement job succeeded with two
+winners, one opted-in push sent and zero failures. Focused local tests: 38 passed,
+zero failed or skipped. This is verification, not another release or migration apply.
+
+There are still zero confirmed screenshot imports. A real import and resulting
+next draft/first-turn notice, plus physical-phone acceptance, remain unverified.
+Winner publication waits for verified finals and is not guaranteed at the final
+whistle. The older EPL task checkout's unpublished commits and files were preserved.
+## Player Props pregame launch preparation - November 11, 2026 Pacific
+
+Sean requested the approved weekly Player Props guessing flow to launch.
+The [pilot](https://github.com/seanbalz/guess-the-line/pull/548) stored 31
+verified offers and references across two games. Scoring the separate paper
+record awaits final stats. The [release procedure](SHARED_DEPLOYMENT.md#player-props-pregame-activation)
+adds an opt-in frontend deploy step for the API flag. The reviewed database
+switch and verified production release still need to run.
+
+## On-demand Player Props refresh — November 11, 2026 Pacific
+
+Sean approved on-demand collection with up to 12 Player Props credits per NFL
+week. Manual collections and refreshes share that total and the existing
+50-credit reserve. Week 10 used six credits to seed its two pilot games.
+
+The lock-in flow reuses a qualifying reference from the last six hours. If it
+needs a refresh, the server verifies the offered game and athlete against the
+published slate and weekly roster, then requests the selected yardage stat for
+that game. The shared reservation applies a five-minute cooldown per game and
+stat. If a qualifying quote is still unavailable, the draft remains available
+for another attempt before kickoff.
+
+The source check verified the published checksum and loaded 2,253 Week 10
+roster records. Concurrent attempts reused one credential-free roster load in
+the local test. [nflverse weekly roster release](https://github.com/nflverse/nflverse-data/releases/tag/weekly_rosters)
+
+The read-only hosted check on November 12 at 03:28 UTC confirmed Week 10, six
+reserved credits, the service-only research RPC, the active Player Props
+capability and 86 migration records. The new M-48 RPC is pending. The release
+requires the named apply of `20261112031000_gtl_player_props_refresh.sql`, a fresh
+preservation check and the protected API release. `GTL_FEATURE_OFF` accepts
+`player-props-refresh` to pause automatic collection. The tested M-48 rollback
+restores the prior reservation function and preserves the collection ledger.
+
+## Direct Player Props tab in NFL Play — November 11, 2026 Pacific
+
+Sean approved the Light and Dark mockups with Player Props beside Overview,
+above Your picks. The tab opens the existing athlete picker for the current
+published week. Browser Back returns to Overview and closes the prop info
+dialog. Reopening the picker refreshes the board and keeps the guess in progress
+for the same account and week.
+
+The tab uses the existing Player Props build flag, NFL Play frame and shared
+bottom bar. Local browser checks cover both themes at 320px and 390px, Back,
+direct reload, touch targets, horizontal overflow and bottom bar clearance.
+
+**Verified live at 9:24 p.m. Pacific.** The frontend release shipped from
+`6a3e02e9701ed7f8a74dc5f48ffaeb9996c1c39c` to Pages `eee359a9`.
+All 176 production assets matched, all 519 signed-out checks denied access,
+and the eight aggregate preservation hashes matched before and after.
+[Release evidence](RELEASE_2026_11_11_PLAYER_PROPS_PLAY_TAB.md)
+
+## Security warning remediation — November 11, 2026
+
+Owner: Sean Balsiger. Version 1. Branch `codex/security-warning-fixes-2026-11-11`,
+based on freshly fetched `main` at `248108cb2f57fb9565e48f44920b502f5315796a`.
+This records source changes and local evidence; merge and deployment are separate.
+
+- The [previous audit](https://github.com/seanbalz/guess-the-line/actions/runs/42988129446)
+  reported 43 mutable action references and five dynamic Python URL calls, plus
+  the Git object SHA-1 warning already addressed in PR #536. All **45** current
+  external action references (including two in the Playwright composite action)
+  now use full commit hashes, resolved with `git ls-remote` against the original
+  publishers' existing tags. Version comments retain the selected tags; this
+  does not intentionally upgrade action versions. The action-pin regression
+  test covers workflows and composite actions.
+- All five Python callers use `scripts/public_download.py`: exact initial URL
+  allowlists, HTTPS with explicit certificate and hostname verification, no embedded credentials
+  or custom ports, bounded reads and at most five redirects. Each redirect is
+  checked before connecting; only the explicit GitHub release CDN is additionally
+  allowed for nflverse downloads. The historical CSV and ESPN crest fetches have
+  no additional redirect hosts. Source hashes, parser validation and immutable
+  evidence writes remain in place. One narrow `HTTPSConnection` audit annotation
+  covers Semgrep's pre-Python-3.4.3 compatibility warning: the project requires
+  Python 3.10+, explicitly supplies `ssl.create_default_context()`, and tests
+  `check_hostname` plus `CERT_REQUIRED`. No scan rule is globally disabled.
+- Regression evidence: the tampered-manifest local-file test and action-pin test
+  both failed before the fixes and pass afterward. All 172 Python model tests
+  pass with the pinned historical CSV present (zero skips), including 14 new
+  download security tests. The nine snapshot tests and 15 focused workflow tests
+  pass. The full local suite passes: 3,225 Node tests and 1,011 Vitest tests, with
+  zero skips. Typecheck, build and Brand QA pass (Python UTF-8 mode on Windows).
+- Read-only network checks passed for the pinned historical CSV, the nflverse
+  schedule release and metadata, and one existing ESPN crest URL. No source
+  manifest, shipped image, player record or production service was changed.
+- The audit trigger now includes model code, scripts and all GitHub workflow/
+  composite-action changes. [PR #549](https://github.com/seanbalz/guess-the-line/pull/549)
+  carries this work. The [first fresh audit](https://github.com/seanbalz/guess-the-line/actions/runs/43131382094)
+  at `79a4f5fa81ec104f86121f597fc51ba11ae5f44b` cleared the original findings and
+  found only the HTTPS compatibility audit warning addressed above. Trivy found
+  zero high/critical findings. Both the old and fresh Semgrep reports contain
+  24 engine diagnostics (partial parsing, a matching error, and generated-bundle
+  timeouts); a zero finding count does not establish complete scan coverage.
+  The final audit is available through the PR's security checks after this update.
 
 ## NBA N1 released — November 12, 2026 UTC (November 11 Pacific)
 
@@ -27,6 +332,15 @@ rows. Signed-in view: `#nba/home` drew NBA in the Prism shell with the official 
 `nba/games` and `nba/read` answered 200 on v55; no 5xx. NBA stays off the switch. Sean also
 answered "Backfill once, free" for NBA records (D-85 item 5, PR #544). Physical-iPhone check not
 done. [Release record](RELEASE_2026_11_12_NBA_N1.md).
+
+## Sign-in hooks split, redesign stage 76 as code only — November 11, 2026
+
+Sean chose "Keep Prism, code only": the sign-in, recovery, invitation and name screens keep the Prism look
+released November 8, so nothing changes on screen. `AuthGate.jsx` now holds `useAuthSession()` and
+`useSignInForm()`, and every form call to Supabase Auth goes through `web/src/signInCalls.js`. D-65 removed the
+`gtl.app` flag, so there is no `NextSignIn` chunk. The new browser spec `next-auth.spec.js` passed 7 of 7 on the
+unchanged AuthGate before the split, and again after it with `google-sign-in.spec.js` (18 of 18). The Vitest file
+`next-sign-in.test.jsx` has 14 tests. Not released; a release goes through the shared workflow.
 
 ## NBA N1: NBA in the Prism shell with official logos — November 11, 2026
 
@@ -66,6 +380,27 @@ Not done at the time: merge, Pages deploy, NBA on the switch, N2 to N4, the phys
 and Sean's review of the captures. **Update:** merged (PR #542) and deployed (Pages `b8019df1`, see
 the section above); question 6 is answered ("Backfill once, free"). Spec questions 5 (switch timing)
 and 8 (stale Codex worktree) stay open.
+
+## D-84: Prism Glass stays; D-69 steps 4 and 5 and B1 stop — November 11, 2026
+
+Sean: "Yes, keep Prism" and "Yes, stop B1", and "Prism Glass stands (Recommended)" in the step 4 session
+([D-84](DECISIONS.md)). D-69 step 4 (Bets), step 5 (Menu and Premier League) and the B1 Play polish are stopped,
+not merged and not released. Prism Glass stays the design for Home, Play, Bets and the Menu. Step 4's work is kept,
+unmerged, on `claude/overhaul-step4-bets` (`6266ef47`, which includes a WIP commit). Nothing on the live site changed.
+
+**Step 3 (Research) signed-in readback**, owed since November 4, comes from the hosted logs, 24 hours to about 17:10
+UTC on November 11. Every signed-in `gtl-api` call on Research's routes returned 200 (204 for preflights):
+- `GET /personal`: 53, slowest 3.0 s;
+- `/lines/research`: 16, slowest 2.6 s;
+- `/lines/game`: 12, slowest 1.4 s;
+- `/lines/assessments`: 8, slowest 3.9 s;
+- `/lines/teams`: 3;
+- `/personal/notes`: 3;
+- `/lines/research-links`: 2.
+
+No CPU-limit or error-level function log was found. The window's 401s were the signed-out probe runs. These calls
+came from the live Research, which has been Prism's since November 8, not only step 3's screens.
+
 ## Stat corrections release and M-33 to M-35 applied — November 11, 2026 UTC
 
 Sean said "Yes, deploy" for the D-83 stat-corrections card and the M-33 to M-35 applies, after
@@ -315,14 +650,20 @@ acceptance is not established by the release.
 ## Gap period follow-up fixes and mockups — November 9, 2026
 
 The [post-release review and fix evidence](GAP_PERIOD_FOLLOWUP_REVIEW_2026_11_09.md)
-record both PR #505 follow-ups fixed locally: period/applied-range intent survives
+record both PR #505 follow-ups fixed and deployed: period/applied-range intent survives
 recommendation-week changes and Refresh lines, and expanded records include all
 rows when the period grows. The existing account and read guards remain. Both
 regressions failed before the fixes and passed after; 22 unique recommendation
 browser cases, 39 Node checks, six UI checks and build/QA passed. Actual-component
 [Dark/Light mockups](../design/gap-period-fixes-2026-11-09/index.html) use synthetic
-data. Owner review, exact CI, merge, protected deploy and real-phone acceptance
-remain separate. PR #507 still owns the prior release-evidence reconciliation.
+data. Sean approved the mockups. PR #510 merged at
+`3d7bbc12d3eeb8692d5c133ed4cba68b43eeb8bc`; November 11 Pacific readback confirms
+both fixes remain in release source `cac63e7a0d10a38b4badc41c663a763b5301aee4`.
+[Release 43124865004](https://github.com/seanbalz/guess-the-line/actions/runs/43124865004)
+passed exact-source CI and verified all 176 production assets; the
+[batch release record](RELEASE_2026_11_12_NBA_N1.md) preserves its evidence.
+No duplicate deployment was dispatched. Fresh signed-in Gap and real-phone
+acceptance remain separate. PR #507 records the original PR #505 release.
 
 ## Comparable NFL gap scale checked locally — November 9, 2026
 

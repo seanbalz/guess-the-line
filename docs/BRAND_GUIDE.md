@@ -458,7 +458,7 @@ integration, light-surface treatment and small-icon adaptation remain pending.
 It does not select a replacement app palette or change existing shipped assets.
 
 Status: canonical for all product UI, documents, dashboards, presentations, notifications, iOS, and agent-generated assets. Updated 2026-10-08.
-The new app (D-38, `web/src/next/`) follows the [D-38 section](#d-38-redesign-system-the-new-app--october-14-2026) at the end of this guide. Since D-65 (October 28, 2026) it is the only app; the old app is no longer built or served. Everything above is the old app's legacy styling, which only the sign-in screen (until build plan stage 76) and the local engineering dashboard still use.
+The new app (D-38, `web/src/next/`) follows the [D-38 section](#d-38-redesign-system-the-new-app--october-14-2026) at the end of this guide. Since D-65 (October 28, 2026) it is the only app; the old app is no longer built or served. Everything above is the old app's legacy styling, which only the local engineering dashboard still uses. The sign-in screen keeps some of its class names under the Prism access styles (`web/src/next/me/accessPrism.css`, November 7, 2026); build plan stage 76 was finished as code only on November 11, 2026.
 
 ## Balanced logo refinement — October 29, 2026
 
