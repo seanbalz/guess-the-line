@@ -149,6 +149,8 @@ test('open board stays read-only, a claim enables only its owner queue, and Fant
     ].sort((a, b) => a.owner_id.localeCompare(b.owner_id)));
     await expect.poll(() => world.replies.filter(r => r.path === 'epl/draft/read').at(-1).body.myQueue).toEqual(['ARS']);
     await page.getByRole('button', { name: 'Research', exact: true }).click();
+    await expect(page.locator('[data-epl-fantasy="standings"] .gx-epl-fx-standings li')).toHaveCount(3);
+    await page.getByRole('button', { name: 'Matchup', exact: true }).click();
     await expect(page.getByText('Matchup unavailable this week', { exact: true })).toBeVisible();
     await expect(page.getByText("Sleeper doesn't list this league's matchups.", { exact: false })).toBeVisible();
     await expect(page.getByText('Your projection · Adam', { exact: true })).toBeVisible();
@@ -175,6 +177,8 @@ test('a competing claim refreshes the read-only board; unlinked Fantasy and Just
     await enter(page);
     await expect(page.getByRole('button', { name: 'Adam', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Research', exact: true }).click();
+    await expect(page.locator('[data-epl-fantasy="standings"] .gx-epl-fx-standings li')).toHaveCount(3);
+    await page.getByRole('button', { name: 'Matchup', exact: true }).click();
     await expect(page.getByText("You don't have a team in this league, so there's no matchup to show.", { exact: true })).toBeVisible();
     expect(world.replies.find(r => r.path === 'epl/fantasy/read').body.viewer).toBe(null);
     await expect(page.getByText('Your projection', { exact: false })).toHaveCount(0);
@@ -233,6 +237,8 @@ test('automatic alias linking survives reload without duplicate audit; Fantasy r
     await signIn(page, 'troy', { navigate: false });
     await page.getByRole('button', { name: /^(EPL|Premier League)$/ }).click();
     await page.getByRole('button', { name: 'Research', exact: true }).click();
+    await expect(page.locator('[data-epl-fantasy="standings"] li[aria-current="true"]')).toHaveAttribute('data-owner', EVAN);
+    await page.getByRole('button', { name: 'Matchup', exact: true }).click();
     await expect(page.getByText('Your projection · Evan', { exact: true })).toBeVisible();
     release();
     await expect(page.getByText('Your projection · Sean', { exact: true })).toHaveCount(0);

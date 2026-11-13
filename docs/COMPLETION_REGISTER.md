@@ -13,10 +13,14 @@ hashes matched for saved picks, guesses, queues, bonuses, order and other weeks.
 The frontend follow-up distinguishes missing fixtures/prices, links empty Bets to
 guessing, and opens Research on available standings when its opponent is unverified.
 Local verification: 79 focused Vitest tests pass; production build and typecheck
-pass; Brand document QA and whitespace checks pass; all 18 selected browser tests
+pass; Brand document QA and whitespace checks pass; all 21 selected browser tests
 pass, including Bets navigation, Research section choice, privacy and three-way
 entry. UI changes are not deployed; the live schedule repair is already
-applied. No migration or API/worker deployment is required.
+applied. No migration or API/worker deployment is required. [PR #562](https://github.com/seanbalz/guess-the-line/pull/562)
+contains the changes. Its first CI run passed every check except three browser
+assertions that assumed the old Research landing. Those now check populated
+Standings before explicitly opening Matchup; all three pass locally. The updated
+head still needs its own green CI before merge.
 
 ## NBA N2 live: M-49 applied, `gtl-nba-jobs` deployed, slate on — November 12, 2026 UTC
 
