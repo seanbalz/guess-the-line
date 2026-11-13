@@ -92,6 +92,33 @@ test('shared shell wires the EPL week and children, guards drafts once, and clea
   } finally { await world.db.close(); }
 });
 
+test('empty Bets opens guessing and Research opens populated standings without hiding Matchup', async ({ page, baseURL }) => {
+  const world = await fixture(page, baseURL);
+  try {
+    await page.route('**/functions/v1/gtl-api/epl/bets/read', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+      available: true, season: 2026, week: 17, ownerId: 'manager-luke', asOf: '2099-10-30T12:00:00Z', locked: 0, unpriced: 0, withoutGap: 0, items: [],
+    }) }));
+    await page.route('**/functions/v1/gtl-api/epl/fantasy/read', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+      week: 17, viewer: 'manager-luke', capturedAt: '2099-10-30T12:00:00Z',
+      matchup: { unavailable: true, reason: 'no-repeat', week: 17, starters: [], recent: [] },
+      standings: [{ ownerId: 'manager-luke', name: 'Luke Fixture', wins: 3, losses: 2, total: 123, sleeperTotal: 123, bonus: 0 }],
+    }) }));
+    await page.goto('/#epl/bets'); await signIn(page, 'luke', { navigate: false });
+    await page.getByRole('button', { name: 'Go to Guess the Line', exact: true }).click();
+    await expect(page.getByLabel('Your moneyline price', { exact: true })).toBeVisible();
+    await page.goBack();
+    await expect(page.getByRole('button', { name: 'Go to Guess the Line', exact: true })).toBeVisible();
+    await page.getByRole('navigation', { name: 'Main', exact: true }).getByRole('button', { name: 'Research', exact: true }).click();
+    await expect(page.locator('[data-epl-fantasy="standings"]')).toContainText('Luke Fixture');
+    await page.getByRole('button', { name: 'Matchup', exact: true }).click();
+    await expect(page.getByText('Matchup unavailable this week', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Standings', exact: true }).click();
+    await expect(page.locator('[data-epl-fantasy="standings"]')).toContainText('Luke Fixture');
+    expect(world.calls.filter(c => c.action === 'guess/save')).toEqual([]);
+    expect(world.errors).toEqual([]);
+  } finally { await world.db.close(); }
+});
+
 test('shared profile sign-out/account remount never draws the previous manager’s saved moneyline draft', async ({ page, baseURL }) => {
   const world = await fixture(page, baseURL);
   try {
@@ -132,7 +159,7 @@ test('Prism native moneyline recovery and leaderboard states keep entry paused a
   await captureEpl(page,'moneyline-stale','epl-moneyline-stale');
   for(const scenario of ['unavailable','failed','loading']){
    mode=scenario;await page.reload();
-   if(scenario==='unavailable')await expect(page.getByText('Moneyline guessing isn’t available this week.',{exact:true})).toBeVisible();
+   if(scenario==='unavailable')await expect(page.getByText('Waiting for verified moneyline prices',{exact:true})).toBeVisible();
    else if(scenario==='failed')await expect(page.locator('[data-epl-section="guess"] .gx-empty')).toBeVisible();
    else await expect(page.locator('[data-epl-section="guess"] .gx-skel')).toBeVisible();
    await captureEpl(page,`moneyline-${scenario}`,`epl-moneyline-${scenario}`);release?.();release=null;

@@ -34,7 +34,7 @@ test('EPL tab navigation opens the default Play section and preserves explicit s
     await nav.getByRole('button', { name: 'Play', exact: true }).click();
     await expect(draft).toBeVisible();
     await page.getByRole('button', { name: 'Guess the Line', exact: true }).click();
-    await expect(page.getByText('Moneyline guessing isn’t available this week.', { exact: true })).toBeVisible();
+    await expect(page.getByText('Waiting for this matchweek’s fixtures', { exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Pick a Team', exact: true }).click();
     await expect(draft).toBeVisible();
     await page.goBack();

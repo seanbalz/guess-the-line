@@ -45,7 +45,7 @@ export function RecommendationCard({ item, id }) {
   </Card>;
 }
 
-export function BetsList({ data, onReload, busy }) {
+export function BetsList({ data, onReload, busy, onOpenGuess, onOpenPick }) {
   if (!data.available) return <section className="gx-empty gx-epl-shell-notice"><p className="gx-t-body">{UNAVAILABLE[data.reason] ?? UNAVAILABLE.other}</p></section>;
   return <div className="gx-epl-bets">
     <Card as="section" aria-labelledby="epl-bets-about"><h2 className="gx-t-section" id="epl-bets-about">From your locked guesses · Matchweek <span className="gx-t-n-m">{data.week}</span></h2>
@@ -54,14 +54,16 @@ export function BetsList({ data, onReload, busy }) {
     </Card>
     {!data.ownerId ? <p className="gx-t-body">Link an FEPL manager in Pick a Team to get recommendations from your own guesses.</p>
       : data.items.length ? <ol className="gx-epl-bet-list">{data.items.map((item, index) => <li key={item.eventId}><RecommendationCard item={item} id={`epl-bet-${index}`}/></li>)}</ol>
-      : <p className="gx-t-body">{data.locked ? 'No favorable gaps right now.' : 'Lock moneyline guesses on upcoming matches to see recommendations.'}</p>}
+      : <p className="gx-t-body">{!data.locked ? 'Lock moneyline guesses on upcoming matches to see recommendations.' : data.unpriced === data.locked ? 'Waiting for verified prices for your locked guesses.' : 'No favorable gaps right now.'}</p>}
+    {!data.items.length && data.ownerId && onOpenGuess ? <Button onClick={onOpenGuess}>Go to Guess the Line</Button> : null}
+    {!data.ownerId && onOpenPick ? <Button onClick={onOpenPick}>Open Pick a Team</Button> : null}
     {data.ownerId && (data.withoutGap || data.unpriced) ? <p data-epl-text="metadata" className="gx-t-meta">{data.withoutGap} locked {data.withoutGap === 1 ? 'guess has' : 'guesses have'} no favorable gap · {data.unpriced} without a stored price yet</p> : null}
     <Button variant="secondary" disabled={busy} onClick={onReload}>{busy ? 'Loading…' : 'Refresh saved prices'}</Button>
   </div>;
 }
 
 /** Account-scoped: `accountId` keys the read, so a previous account's recommendations never flash. */
-export default function EplBets({ api = eplApi, accountId }) {
+export default function EplBets({ api = eplApi, accountId, onOpenGuess, onOpenPick }) {
   const key = accountId ?? '';
   const [state, setState] = useState({ key: null, status: 'loading' }), [retry, setRetry] = useState(0);
   const shown = state.key === key ? state : { status: 'loading' };
@@ -76,5 +78,5 @@ export default function EplBets({ api = eplApi, accountId }) {
   }, [api, key, retry]);
   if (shown.status === 'loading') return <Skeleton label="Loading EPL Bets" shape="panels" count={2}/>;
   if (shown.status === 'error') return <section className="gx-empty"><p>{shown.error?.status === 401 ? 'Sign in again to read your recommendations.' : 'Could not load recommendations. Try again.'}</p><Button onClick={() => setRetry(n => n + 1)}>Try again</Button></section>;
-  return <BetsList data={shown.data} busy={shown.busy} onReload={() => setRetry(n => n + 1)}/>;
+  return <BetsList data={shown.data} busy={shown.busy} onReload={() => setRetry(n => n + 1)} onOpenGuess={onOpenGuess} onOpenPick={onOpenPick}/>;
 }

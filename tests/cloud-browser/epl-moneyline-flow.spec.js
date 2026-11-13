@@ -350,7 +350,7 @@ test('EPL Home keeps moneyline recovery explanations readable while Pick a Team 
     await expect(page.getByText('Moneyline progress is unavailable. Pick a Team is still available above.', { exact: true })).toBeVisible();
     await captureEpl(page, 'home-moneyline-failed', 'epl-home-turn moneyline recovery', { representative: true, forced: true });
     mode = 'unavailable'; await page.reload();
-    await expect(page.getByText('Moneyline guessing isn’t available this week.', { exact: true })).toBeVisible();
+    await expect(page.getByText('Waiting for verified moneyline prices.', { exact: true })).toBeVisible();
     await captureEpl(page, 'home-moneyline-unavailable', 'epl-home-turn moneyline unavailable', { forced: true });
     await expect(page.getByRole('button', { name: /^(Open Pick a Team|Make your pick)$/ })).toBeEnabled();
     expect(world.errors).toEqual([]);
