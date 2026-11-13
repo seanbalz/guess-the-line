@@ -454,7 +454,12 @@ Branch `claude/props-pilot-collect-2026-11-11` lets the hidden D-82 pilot run wi
   counts a collection. The run order is in
   [the readiness record](PLAYER_PROPS_READINESS_TASK2_2026-11-10.md#the-exact-pilot-run-order).
 
-Nothing was set, dispatched, spent, written or deployed. `live_lock_in` and `GTL_PLAYER_PROPS` stay off.
+The [November 11 Pacific pilot](PLAYER_PROPS_READINESS_TASK2_2026-11-10.md#week-10-pilot-collection-and-offer-receipts)
+ran after Sean added the repository secrets. The GitHub dry run built two requests for six credits
+and reserved zero. The collection reserved six credits and retained 198 quotes. The offers job
+recorded 31 offers and 31 references across two games, plus 34 eligibility reviews. Hosted readback
+confirmed those counts and `live_lock_in = false`. Result verification awaits final scores and
+qualifying stats from the pilot games.
 
 ## Player Props pilot input builder and app-flag pass-through — November 11, 2026
 
