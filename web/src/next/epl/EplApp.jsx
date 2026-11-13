@@ -30,7 +30,7 @@ export function EplScreen() {
 /** Sport content only; header, profile, menus, offline state and tab bar are all Shell's. */
 export function EplView({ route, onRoute, api = eplApi, accountId, onDirtyChange }) {
   return route.tab === 'play' ? <EplPlay route={route} onRoute={onRoute} api={api} accountId={accountId} onDirtyChange={onDirtyChange}/>
-    : route.tab === 'bets' ? <EplBets api={api} accountId={accountId}/>
+    : route.tab === 'bets' ? <EplBets api={api} accountId={accountId} onRoute={onRoute}/>
     : route.tab === 'research' ? <EplResearch api={api}/>
     : <EplHome key={accountId} accountId={accountId} api={api} onOpenPick={() => onRoute({ tab: 'play', section: 'pick' })}
       onOpenGuess={() => onRoute({ tab: 'play', section: 'guess' })}/>;
@@ -55,9 +55,10 @@ function EplResearch({ api }) {
   </div>;
 }
 
-function EplBets({ api, accountId }) {
+function EplBets({ api, accountId, onRoute }) {
   return <div className="gx-screen" data-epl-section="bets">
     <h1 className="gx-t-title">{EPL_COPY.tabs.bets}</h1>
-    <EplBetsRecommendations key={accountId} api={api} accountId={accountId}/>
+    <EplBetsRecommendations key={accountId} api={api} accountId={accountId}
+      onOpenGuess={() => onRoute?.({ tab: 'play', section: 'guess' })} onOpenPick={() => onRoute?.({ tab: 'play', section: 'pick' })}/>
   </div>;
 }

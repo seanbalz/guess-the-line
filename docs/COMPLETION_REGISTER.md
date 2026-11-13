@@ -1,5 +1,23 @@
 # Guess The Line — current completion register
 
+## EPL tab availability — November 12, 2026
+
+Sean reported empty/closed Bets, Research and Play. MW11 had an empty November
+11–18 fixture window during the international break. A guarded correction through
+the existing week-window writer extended it to November 25 and set the verified
+first kickoff to November 21 at 12:30 UTC. Normal fixture and price-check jobs
+succeeded: 10 matches, moneyline gate open, four free-tier credits used. Preservation
+hashes matched for saved picks, guesses, queues, bonuses, order and other weeks.
+[Investigation and applied repair evidence](EPL_TAB_AVAILABILITY_2026_11_12.md).
+
+The frontend follow-up distinguishes missing fixtures/prices, links empty Bets to
+guessing, and opens Research on available standings when its opponent is unverified.
+Local verification: 66 focused Vitest tests pass; production build and typecheck
+pass; Brand document QA and whitespace checks pass; all 18 selected browser tests
+pass, including Bets navigation, Research section choice, privacy and three-way
+entry. UI changes are not deployed; the live schedule repair is already
+applied. No migration or API/worker deployment is required.
+
 ## NBA N1 released — November 12, 2026 UTC (November 11 Pacific)
 
 Sean merged PR #542 and said "Yes, deploy". `frontend` run

@@ -19,6 +19,6 @@ export function HomeMoneylineProgress({ state, onOpenGuess }) {
   </>;
   return <>
     <Button variant="secondary" block onClick={onOpenGuess}>Open moneyline guesses</Button>
-    <p className="gx-t-body gx-c-2">{state.reason === 'prices_not_verified' ? 'Moneyline guessing isn’t available this week.' : 'Moneyline progress is unavailable. Pick a Team is still available above.'}</p>
+    <p className="gx-t-body gx-c-2">{state.reason === 'no_fixtures' ? 'Waiting for this matchweek’s fixtures.' : state.reason === 'prices_not_verified' ? 'Waiting for verified moneyline prices.' : 'Moneyline progress is unavailable. Pick a Team is still available above.'}</p>
   </>;
 }

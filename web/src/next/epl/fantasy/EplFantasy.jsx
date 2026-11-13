@@ -18,7 +18,10 @@ export { FANTASY_COPY, fantasyProblem };
 export const FANTASY_SECTIONS = Object.freeze(['matchup', 'standings', 'rosters', 'insights']);
 const PANELS = { matchup: MatchupPanel, standings: StandingsPanel, rosters: RostersPanel, insights: InsightsPanel };
 
-export function EplFantasyView({ state, section = 'matchup', onSection, onRetry }) {
+export function EplFantasyView({ state, section, onSection, onRetry }) {
+  // A missing verified opponent must not make the whole Research landing look unavailable.
+  // A deliberate tab choice always wins, including Matchup while it is still pending.
+  section ??= state?.data?.matchup?.unavailable && state.data.standings?.length ? 'standings' : 'matchup';
   const options = FANTASY_SECTIONS.map(value => ({ value, label: FANTASY_COPY.sections[value] }));
   const Panel = PANELS[section] ?? MatchupPanel;
   let body;
@@ -59,7 +62,7 @@ export function useEplFantasy(api) {
 }
 
 export function EplFantasy({ api = eplApi }) {
-  const [section, setSection] = useState('matchup');
+  const [section, setSection] = useState(null);
   const { state, reload } = useEplFantasy(api);
   return <EplFantasyView state={state} section={section} onSection={setSection} onRetry={reload}/>;
 }

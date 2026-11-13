@@ -6,7 +6,7 @@ const validContext = context => typeof context.accountId === 'string' && context
 /** Keep only this account's own locked progress for the draft's authoritative EPL season/week. */
 export function homeMoneylineProgress(data, context) {
   if (!validContext(context) || !validBoard(data) || data.season !== context.season || data.week !== context.week) throw new Error('Invalid moneyline context.');
-  if (!data.available) return { status: 'unavailable', reason: data.reason === 'schema_unavailable' ? 'schema_unavailable' : 'prices_not_verified' };
+  if (!data.available) return { status: 'unavailable', reason: data.reason === 'schema_unavailable' ? 'schema_unavailable' : !data.fixtures.length ? 'no_fixtures' : 'prices_not_verified' };
   if (data.ownerId !== context.ownerId) throw new Error('Moneyline manager changed.');
   if (!data.ownerId) return { status: 'readonly' };
   const fixtures = new Set(data.fixtures.map(f => f.eventId));
