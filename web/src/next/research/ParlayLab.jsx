@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import PropModelPanels from './PropModelPanels.jsx';
 import { buildWeeklyProps, propCategory } from '../../../../shared/parlay-research.mjs';
-import { propStat } from '../../../../shared/player-props.mjs';
+import { researchMarketLabel } from '../../../../shared/research-markets.mjs';
 import { Button } from '../ui/index.js';
 
 const categories = ['All props', 'Touchdowns', 'Passing', 'Rushing', 'Receiving', 'Other props'];
@@ -11,8 +11,8 @@ const time = value => Number.isFinite(Date.parse(value)) ? new Date(value).toLoc
 function PropRow({ a, rank, onOpen }) {
   const support = a.evidence.find(e => e.eligible && e.stance === 'support' && e.sourceUrl);
   const sources = [...new Map(a.evidence.filter(e=>e.eligible&&e.stance==='support'&&e.sourceUrl).map(e=>[e.sourceUrl,e])).values()];
-  const stat = propStat(a.selection.key)?.label || propCategory(a);
-  const selection = `${a.selection.side} ${Number.isFinite(a.selection.line) ? a.selection.line : ''} ${stat}`.trim();
+  const stat = researchMarketLabel(a.selection.key);
+  const selection = stat ? [a.selection.side, Number.isFinite(a.selection.line) ? String(a.selection.line) : null, stat].filter(Boolean).join(' ') : a.title;
   return <li className="gx-weekly-prop">
     <article aria-labelledby={`weekly-prop-${rank}`}>
       <header className="gx-weekly-prop-head">

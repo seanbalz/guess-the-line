@@ -128,3 +128,11 @@ Frontend only; no API change, migration, feature flag or collection. The existin
 retry 43741373546 collected 244 quotes using all six authorized credits. These
 are dated observations, not perpetual line availability. Another paid refresh is
 not authorized. See the [design](superpowers/specs/2026-11-15-weekly-top-props-design.md).
+
+
+The market-label repair uses the complete research-market catalog for individual
+selections. Binary first/last/anytime TD labels, alternate lines, quarter-specific
+passing, combined statistics and longest-play yard units keep their distinctions;
+a discovery category is never substituted for the selection's exact identity.
+Regression coverage includes detail/back navigation and visible expiry/kickoff
+removal followed by a reread of the same expired research.

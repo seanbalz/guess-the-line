@@ -1,5 +1,21 @@
 # Guess The Line — current completion register
 
+## Weekly props market labels and navigation — November 15, 2026
+
+The board now names every supported research market, rather than falling back
+to the narrower guessing-mode catalog or a broad category. Sacks, first/last/
+anytime touchdown scorer, alternate yards, first-quarter passing, combined stats
+and longest-play yard units remain distinct. Unknown labels retain the supplied
+selection title. Source, price, reveal and freshness rules are unchanged.
+
+Added regressions for these labels and coverage of the full research catalog.
+The mixed-market browser fixture exercises phone/desktop layout, source details,
+full research with browser Back/Forward and in-app return, plus quote-expiry and
+kickoff boundaries followed by a published-research reread. Fixtures use no live
+providers. Final validation and hosted CI state belong in the task handoff.
+Updates target [draft PR566](https://github.com/seanbalz/guess-the-line/pull/566);
+no merge, deployment, migration, API flag change or additional collection.
+
 ## Weekly top props replacement — November 15, 2026
 
 Sean redirected the Parlay Lab toward a clear weekly list of up to twenty
@@ -16,8 +32,9 @@ and Brand QA pass. The broad Node run completed 3,403 tests: 3,393 passed; nine
 localhost socket denials and one unloaded font weight failed. The font weight
 was corrected, and all 65 tests across the seven affected files passed on rerun
 with socket access. The final committed board passed its browser spec again.
-Automatic approval review blocked publishing the replacement branch before
-execution. No new PR, hosted CI or production deployment exists for this change.
+Automatic approval review initially blocked publication. Sean subsequently
+authorized publishing the replacement branch and opening draft PR566. That draft
+is published; hosted CI and review do not establish a production deployment.
 This entry is not a deployment claim.
 
 ## Parlay Lab usability fixes — November 15, 2026

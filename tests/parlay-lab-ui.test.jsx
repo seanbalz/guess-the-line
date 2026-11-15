@@ -31,6 +31,22 @@ describe('weekly props board',()=>{
    expect(html).toContain('https://x.com/rotobot_ai/status/1000001');
    expect(html).toContain('not win probability');
  });
+ it.each([
+   ['player_sacks','sacks','over',0.5,'over 0.5 Sacks'],
+   ['player_1st_td','touchdowns','yes',null,'yes First touchdown scorer'],
+   ['player_last_td','touchdowns','yes',null,'yes Last touchdown scorer'],
+   ['player_anytime_td','touchdowns','no',null,'no Anytime touchdown scorer'],
+   ['player_rush_yds_alternate','yards','over',30.5,'over 30.5 Rushing yards (alternate)'],
+   ['player_pass_yds_q1','yards','under',50.5,'under 50.5 First-quarter passing yards'],
+   ['player_pass_rush_yds','yards','over',250.5,'over 250.5 Passing + rushing yards'],
+   ['player_reception_longest','yards','over',20.5,'over 20.5 Longest reception (yards)'],
+ ])('preserves exact market identity for %s',(key,unit,side,line,label)=>{
+   const data=buildResearchAssessments({...fixture(),now:NOW});
+   const a=data.assessments.find(a=>a.selection.market==='prop');
+   a.selection={...a.selection,key,unit,side,line};
+   data.assessments=[a];
+   expect(render(data)).toContain(`class="gx-weekly-selection">${label}</p>`);
+ });
  it('does not promote ineligible evidence',()=>{
    const data=buildResearchAssessments({...fixture(),now:NOW});
    data.assessments.forEach(a=>a.evidence.forEach(e=>{e.eligible=false;e.statement='UNVERIFIED CLAIM';}));
