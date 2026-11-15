@@ -21,7 +21,7 @@ test('Parlay model controls paginate, scope position/category, change matchup pe
     await page.goto('/#bets/research'); await signIn(page, 'luke', { navigate: false });
     const lab = page.locator('section[aria-labelledby="gx-parlay-title"]');
     const projected = lab.locator('.gx-parlay-compare');
-    await expect(lab.getByRole('heading', { name: 'Suggested parlays', exact: true })).toBeVisible();
+    await expect(lab.getByRole('heading', { name: "This week's top props", exact: true })).toBeVisible();
     await lab.getByRole('button', {name:'Projections',exact:true}).click();
     await expect(lab.getByRole('heading', { name: 'Player projections', exact: true })).toBeVisible();
     await expect.poll(() => reads).toBeGreaterThan(0);

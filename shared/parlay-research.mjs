@@ -68,6 +68,41 @@ export function propCategory(a) {
   return 'Other props';
 }
 
+// Weekly research priorities, not a probability model. Consume only the API's
+// already reveal-gated assessments; never infer support from a price/model gap.
+export function buildWeeklyProps(assessments, { now } = {}) {
+  if (!Number.isFinite(now)) return [];
+  const candidates = (assessments ?? []).flatMap(a => {
+    if (a.selection?.market !== 'prop' || !a.selection.playerId || !a.selection.key) return [];
+    const offers = (a.offers?.length ? a.offers : [a.quote]).filter(q => q?.book && q.source
+      && Number.isFinite(q.odds) && Math.abs(q.odds) >= 100
+      && !parlayLegStatus({ ...a, quote:q }, now)
+      && now - Date.parse(q.observedAt) < 3600000);
+    offers.sort((a,b) => b.odds-a.odds || Date.parse(b.observedAt)-Date.parse(a.observedAt) || a.book.localeCompare(b.book));
+    if (!offers.length) return [];
+    const coverage = new Map();
+    for (const e of a.evidence ?? []) {
+      if (!e.eligible || e.stance !== 'support' || !e.sourceUrl || !e.datasetId) continue;
+      const sample = Number.isFinite(e.sample?.count) ? Math.max(0,Math.min(8,e.sample.count)) : 0;
+      coverage.set(e.datasetId, Math.max(coverage.get(e.datasetId) ?? 0,sample));
+    }
+    return [{ ...a, quote:offers[0], offers, researchPriority:{ datasets:coverage.size,
+      sampleCoverage:Math.min(40,[...coverage.values()].reduce((a,b)=>a+b,0)) } }];
+  });
+  candidates.sort((a,b) => b.researchPriority.datasets-a.researchPriority.datasets
+    || b.researchPriority.sampleCoverage-a.researchPriority.sampleCoverage
+    || Date.parse(b.quote.observedAt)-Date.parse(a.quote.observedAt)
+    || a.id.localeCompare(b.id));
+  const seen = new Set();
+  return candidates.filter(a => {
+    // Do not fill twenty places with the same player/stat at different lines,
+    // books or sides. Keep the first by the disclosed research priority.
+    const id = JSON.stringify([a.gameId,a.selection.playerId,a.selection.key.replace(/_alternate$/, ''),a.selection.unit]);
+    if (seen.has(id)) return false;
+    seen.add(id); return true;
+  }).slice(0,20);
+}
+
 function researchCompleteness(a) {
   const support = (a.evidence ?? []).filter(e => e.eligible && e.stance === 'support');
   return new Set(support.map(e => e.datasetId)).size * 100 + Math.min(40, support.reduce((n, e) => n + Math.min(8, e.sample?.count ?? 0), 0));

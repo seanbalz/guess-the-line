@@ -6,19 +6,46 @@ import PropModelPanels from '../web/src/next/research/PropModelPanels.jsx';
 import { buildResearchAssessments } from '../shared/research-assessments.mjs';
 import { fixture, NOW } from './fixtures/research-assessments.mjs';
 const render=data=>renderToStaticMarkup(<ParlayLab data={data} renderDetail={()=> <p>Evidence detail</p>} onOpen={()=>{}}/>);
-describe('price-first Parlay Lab',()=>{
- it('defaults to ideas, with deliberate projection and matchup destinations',()=>{
+describe('weekly props board',()=>{
+ it('defaults to individual props with projection and matchup destinations',()=>{
    const html=render(buildResearchAssessments({...fixture(),now:NOW}));
-   for(const text of ['Parlay Lab','Ideas','Projections','Matchups','Suggested parlays','Why it fits','Risk to watch'])expect(html).toContain(text);
+   for(const text of ['Weekly props','Top props','Projections','Matchups','Why this prop','Risk to watch','How these are ranked'])expect(html).toContain(text);
    expect(html).not.toContain('78.4');
    expect(html).not.toContain('Schedule order');
-   expect(html.indexOf('Suggested parlays')).toBeLessThan(html.indexOf('Individual prop research'));
+   expect(html).not.toContain('Ticket size');
+   expect(html).not.toContain('Suggested parlays');
  });
  it('gives honest empty state instead of counterfeit priced picks',()=>{
    const html=render({now:new Date(NOW).toISOString(),assessments:[]});
-   expect(html).toContain('No ready-to-review ticket yet');
-   expect(html).toContain('Current sportsbook prop lines are unavailable');
+   expect(html).toContain('No eligible props right now');
+   expect(html).toContain('Fresh sportsbook lines and sourced supporting research are required');
    expect(html).not.toContain('Synthetic Receiver');
+ });
+ it('shows up to twenty individually priced props with sources rather than bundled legs',()=>{
+   const data=buildResearchAssessments({...fixture(),now:NOW});
+   const a=data.assessments.find(a=>a.selection.market==='prop');
+   data.assessments=Array.from({length:25},(_,i)=>({...a,id:`prop-${i}`,routeId:`prop-${i}`,selection:{...a.selection,playerId:`player-${i}`,playerName:`Player ${i}`}}));
+   const html=render(data);
+   expect((html.match(/class="gx-weekly-prop"/g)||[]).length).toBe(20);
+   expect(html).toContain('DraftKings'); expect(html).toContain('Recorded');
+   expect(html).toContain('https://x.com/rotobot_ai/status/1000001');
+   expect(html).toContain('not win probability');
+ });
+ it.each([
+   ['player_sacks','sacks','over',0.5,'over 0.5 Sacks'],
+   ['player_1st_td','touchdowns','yes',null,'yes First touchdown scorer'],
+   ['player_last_td','touchdowns','yes',null,'yes Last touchdown scorer'],
+   ['player_anytime_td','touchdowns','no',null,'no Anytime touchdown scorer'],
+   ['player_rush_yds_alternate','yards','over',30.5,'over 30.5 Rushing yards (alternate)'],
+   ['player_pass_yds_q1','yards','under',50.5,'under 50.5 First-quarter passing yards'],
+   ['player_pass_rush_yds','yards','over',250.5,'over 250.5 Passing + rushing yards'],
+   ['player_reception_longest','yards','over',20.5,'over 20.5 Longest reception (yards)'],
+ ])('preserves exact market identity for %s',(key,unit,side,line,label)=>{
+   const data=buildResearchAssessments({...fixture(),now:NOW});
+   const a=data.assessments.find(a=>a.selection.market==='prop');
+   a.selection={...a.selection,key,unit,side,line};
+   data.assessments=[a];
+   expect(render(data)).toContain(`class="gx-weekly-selection">${label}</p>`);
  });
  it('does not promote ineligible evidence',()=>{
    const data=buildResearchAssessments({...fixture(),now:NOW});

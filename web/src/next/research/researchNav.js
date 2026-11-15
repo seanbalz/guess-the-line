@@ -4,7 +4,7 @@
 import { teamOf } from '../../../../shared/lines-view.mjs';
 import { RESEARCH_LAYERS } from '../shell/state.js';
 
-export const RESEARCH_NAMES = Object.freeze({ title: 'Research', parlay: 'Parlay Lab', games: 'Games', trends: 'Trends', fantasy: 'Fantasy', teams: 'Teams' });
+export const RESEARCH_NAMES = Object.freeze({ title: 'Research', parlay: 'Weekly props', games: 'Games', trends: 'Trends', fantasy: 'Fantasy', teams: 'Teams' });
 export const gameRowId = id => `gx-l-row-${id}`;
 export const teamRowId = code => `gx-r-team-${code}`;
 export const tileId = key => `gx-r-tile-${key}`;

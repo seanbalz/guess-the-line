@@ -1,5 +1,42 @@
 # Guess The Line — current completion register
 
+## Weekly props market labels and navigation — November 15, 2026
+
+The board now names every supported research market, rather than falling back
+to the narrower guessing-mode catalog or a broad category. Sacks, first/last/
+anytime touchdown scorer, alternate yards, first-quarter passing, combined stats
+and longest-play yard units remain distinct. Unknown labels retain the supplied
+selection title. Source, price, reveal and freshness rules are unchanged.
+
+Added regressions for these labels and coverage of the full research catalog.
+The mixed-market browser fixture exercises phone/desktop layout, source details,
+full research with browser Back/Forward and in-app return, plus quote-expiry and
+kickoff boundaries followed by a published-research reread. Fixtures use no live
+providers. Final validation and hosted CI state belong in the task handoff.
+Updates target [draft PR566](https://github.com/seanbalz/guess-the-line/pull/566);
+no merge, deployment, migration, API flag change or additional collection.
+
+## Weekly top props replacement — November 15, 2026
+
+Sean redirected the Parlay Lab toward a clear weekly list of up to twenty
+individual props. Ticket-size controls and generated parlay cards are replaced
+with ranked selections, book/line/price/times, sourced rationale and risk.
+Alternate lines/books do not fill extra places; freshness, reveal and conflict
+checks remain. Projections and Matchups retain their own views. PR565 release
+is stopped. No additional paid collection, API change, migration or flag change.
+See [the current design](superpowers/specs/2026-11-15-weekly-top-props-design.md)
+and [method](PARLAY_LAB.md#superseding-direction-weekly-top-20-props--november-15-2026).
+Local validation: 1,047 Vitest tests, 11 focused Node tests, both browser specs
+(320/390/1440 px, dark/light, axe), typecheck, cloud build, bundle privacy scan
+and Brand QA pass. The broad Node run completed 3,403 tests: 3,393 passed; nine
+localhost socket denials and one unloaded font weight failed. The font weight
+was corrected, and all 65 tests across the seven affected files passed on rerun
+with socket access. The final committed board passed its browser spec again.
+Automatic approval review initially blocked publication. Sean subsequently
+authorized publishing the replacement branch and opening draft PR566. That draft
+is published; hosted CI and review do not establish a production deployment.
+This entry is not a deployment claim.
+
 ## Parlay Lab usability fixes — November 15, 2026
 
 Offer-driven research, same-book ideas with per-leg prices, price-first tabbed
