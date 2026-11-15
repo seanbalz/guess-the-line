@@ -747,3 +747,40 @@ test('Monday recap: #home?layer=recap keeps its week, market and one game; Back 
   assert.equal(reduce(game, { type: 'go', tab: 'play', view: { section: 'score' } }).views.play.item, undefined);
   assert.equal(reduce(reduce(game, { type: 'tab', tab: 'play' }), { type: 'tab', tab: 'home' }).views.home.item, undefined);
 });
+
+test('Parlay Lab is directly addressable in Research without replacing legacy bet research', () => {
+  assert.deepEqual(placeFromFragment('#research/parlay?assessment=prop.abc'), { tab: 'research', view: { section: 'parlay', assessment: 'prop.abc' } });
+  assert.equal(fragmentFor('research', { section: 'parlay', assessment: 'prop.abc' }), '#research/parlay?assessment=prop.abc');
+  assert.deepEqual(placeFromFragment('#bets/research?assessment=prop.abc'), { tab: 'bets', view: { view: 'research', assessment: 'prop.abc' } });
+  assert.equal(placeFromFragment('#research/parlay?assessment=%3Cscript%3E').view.assessment, undefined);
+  assert.equal(placeFromFragment('#research/trends?assessment=prop.abc').view.assessment, undefined);
+});
+
+test('Parlay Lab detail supports Back/Forward, repeated navigation and tab reset', async () => {
+  const win = fakeWindow('https://gtl.test/#research');
+  const a = app(win);
+  a.dispatch({ type: 'go', tab: 'research', view: { section: 'parlay' } });
+  a.dispatch({ type: 'go', tab: 'research', view: { section: 'parlay', assessment: 'prop.abc' } });
+  assert.equal(win.location.hash, '#research/parlay?assessment=prop.abc');
+  win.history.back(); await settle();
+  assert.equal(win.location.hash, '#research/parlay');
+  assert.equal(a.state.views.research.assessment, undefined);
+  win.history.forward(); await settle();
+  assert.equal(a.state.views.research.assessment, 'prop.abc');
+  a.dispatch({ type: 'tab', tab: 'research' });
+  assert.equal(win.location.hash, '#research');
+  assert.equal(a.state.views.research.assessment, undefined);
+  a.dispatch({ type: 'go', tab: 'research', view: { section: 'parlay' } });
+  const depth = a.state.trail.length;
+  a.dispatch({ type: 'go', tab: 'research', view: { section: 'parlay' } });
+  assert.equal(a.state.trail.length, depth);
+  a.connection.disconnect();
+});
+
+test('Back after loading a Parlay Lab detail link closes detail before leaving Lab', () => {
+  const state = initialState(placeFromFragment('#research/parlay?assessment=prop.abc'));
+  const back = reduce(state, { type: 'back' });
+  assert.equal(back.views.research.section, 'parlay');
+  assert.equal(back.views.research.assessment, undefined);
+  assert.equal(reduce(back, { type: 'back' }).views.research.section, undefined);
+});

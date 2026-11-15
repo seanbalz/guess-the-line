@@ -76,3 +76,27 @@ and frontend. No migration, paid provider, provider quota increase or secrets
 change. Follow the protected release-captain workflow and verify final production
 assets. A PR merge is not deployment. Earlier PR scaffolding was superseded by
 this functional baseline; model limitations above remain intentional.
+
+## November 15 repair: price-first mobile workspace
+
+The Lab now opens on Ideas, with separate Projections and Matchups tabs rather
+than stacking every model panel above the tickets. Same-book tickets show each
+leg's selection, individual odds, book, quote time, supporting rationale and risk.
+Combined odds remain unavailable unless the sportsbook actually quotes a ticket;
+no product of unrelated prices is represented as an executable quote. Alternate
+book offers remain visible for comparison. An in-memory session shortlist is
+explicitly labeled temporary, not a saved wager or persistent watchlist.
+
+A dedicated `labOnly` research rendering avoids the old Assessed bets nesting and
+filters. Existing Bets assessment access remains. Missing prices have a clear
+empty state and show available individual prop research; locked games offer a
+Play action. Model baselines are labeled historical, with methodology expandable.
+Matchups select one statistic and display observed allowance, rank and coverage;
+no synthetic portraits, driver scores, confidence bands or favorable labels are
+introduced to mimic the illustrative mockup. Verified team marks replace portraits.
+
+Local verification: 13 focused component tests, TypeScript, production build and
+brand QA passed. Browser interaction assertions were updated for tabs, pagination,
+position chips and matchup period. Local browser execution is blocked by Chromium
+socket restrictions, so mobile visual/interaction acceptance requires the hosted
+browser run before this change is called production-ready.

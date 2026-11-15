@@ -38,6 +38,18 @@ describe('research assessments remain distinct from guess gaps', () => {
     const expired = expireAssessments(data, 3600000); expect(expired.assessments[0].color).toBe('gray'); expect(expired.assessments[0].quote).toBeNull();
     expect(data.assessments[0].color).toBe('yellow');
   });
+  it('expires alternate book offers and advances server time for parlay composition', () => {
+    const data = buildResearchAssessments({ ...fixture(), now: NOW });
+    const a = data.assessments[0];
+    const first = { ...a.quote, expiresAt: new Date(NOW + 1000).toISOString() };
+    const second = { ...a.quote, book: 'fanduel', expiresAt: new Date(NOW + 2000).toISOString() };
+    a.quote = first; a.offers = [first, second];
+    const halfway = expireAssessments(data, 1000);
+    expect(halfway.now).toBe(new Date(NOW + 1000).toISOString());
+    expect(halfway.assessments[0].offers).toHaveLength(1);
+    expect(halfway.assessments[0].quote.book).toBe('fanduel');
+    expect(expireAssessments(data, 2000).assessments[0].offers).toEqual([]);
+  });
   it('retains opaque nested addresses while rejecting an unknown or overlong assessment key', () => {
     const view = { view: 'research', matchup: 'SEA-DEN', assessment: 'fixture-over' };
     expect(placeFromFragment(fragmentFor('bets', view)).view).toEqual(view);

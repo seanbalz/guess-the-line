@@ -2,45 +2,34 @@ import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import ParlayLab from '../web/src/next/research/ParlayLab.jsx';
+import PropModelPanels from '../web/src/next/research/PropModelPanels.jsx';
 import { buildResearchAssessments } from '../shared/research-assessments.mjs';
 import { fixture, NOW } from './fixtures/research-assessments.mjs';
-
-describe('Parlay Lab', () => {
-  it('renders checked prop evidence and cautions, with empty combinations instead of forced picks', () => {
-    const data = buildResearchAssessments({...fixture(), now: NOW});
-    const html = renderToStaticMarkup(<ParlayLab data={data} renderDetail={() => <p>Evidence detail</p>} onOpen={() => {}}/>);
-    for (const text of ['Parlay Lab', 'Projection center', 'Matchup spotlight', 'No eligible baseline projections', 'Position vs defense', 'Open matchup source', 'The case', 'The caution', 'Evidence detail', 'Not enough current']) expect(html).toContain(text);
-    expect(html).not.toContain('guaranteed');
-    expect(html).toContain('Yards per route');
-    expect(html).not.toContain('78.4');
-  });
-  it('does not expose hidden props from an empty server view', () => {
-    const html = renderToStaticMarkup(<ParlayLab data={{now: new Date(NOW).toISOString(), assessments: []}} renderDetail={() => null} onOpen={() => {}}/>);
-    expect(html).toContain('No checked props'); expect(html).not.toContain('Synthetic Receiver');
-  });
-  it('never highlights ineligible matchup metrics or fabricates a model', () => {
-    const data = buildResearchAssessments({...fixture(), now: NOW});
-    const prop = data.assessments.find(a => a.selection.market === 'prop');
-    prop.evidence.forEach(e => { e.eligible = false; e.metric.value = 9876.5; });
-    const html = renderToStaticMarkup(<ParlayLab data={data} renderDetail={() => null} onOpen={() => {}}/>);
-    expect(html).toContain('No qualifying matchup evidence');
-    expect(html).not.toContain('9876.5');
-    expect(html).toContain('No eligible baseline projections');
-  });
-  it('bounds each card section while preserving the full assessed list elsewhere', () => {
-    const data = buildResearchAssessments({...fixture(), now: NOW});
-    const prop = data.assessments.find(a => a.selection.market === 'prop');
-    data.assessments = Array.from({length: 15}, (_, i) => ({...prop, id: `fixture-${i}`}));
-    const html = renderToStaticMarkup(<ParlayLab data={data} renderDetail={() => null} onOpen={() => {}}/>);
-    expect((html.match(/Open matchup source/g) ?? []).length).toBe(6);
-    expect((html.match(/Open full research/g) ?? []).length).toBe(6);
-  });
-  it('renders binary touchdown markets without inventing a numeric threshold', () => {
-    const data = buildResearchAssessments({...fixture(), now: NOW});
-    const prop = data.assessments.find(a => a.selection.market === 'prop');
-    prop.selection = {...prop.selection, key: 'player_anytime_td', side: 'yes', line: null, unit: 'touchdown'};
-    const html = renderToStaticMarkup(<ParlayLab data={data} renderDetail={() => null} onOpen={() => {}}/>);
-    expect(html).toContain('Touchdowns');
-    expect(html).not.toContain('yes null');
-  });
+const render=data=>renderToStaticMarkup(<ParlayLab data={data} renderDetail={()=> <p>Evidence detail</p>} onOpen={()=>{}}/>);
+describe('price-first Parlay Lab',()=>{
+ it('defaults to ideas, with deliberate projection and matchup destinations',()=>{
+   const html=render(buildResearchAssessments({...fixture(),now:NOW}));
+   for(const text of ['Parlay Lab','Ideas','Projections','Matchups','Suggested parlays','Why it fits','Risk to watch'])expect(html).toContain(text);
+   expect(html).not.toContain('78.4');
+   expect(html).not.toContain('Schedule order');
+   expect(html.indexOf('Suggested parlays')).toBeLessThan(html.indexOf('Individual prop research'));
+ });
+ it('gives honest empty state instead of counterfeit priced picks',()=>{
+   const html=render({now:new Date(NOW).toISOString(),assessments:[]});
+   expect(html).toContain('No ready-to-review ticket yet');
+   expect(html).toContain('Current sportsbook prop lines are unavailable');
+   expect(html).not.toContain('Synthetic Receiver');
+ });
+ it('does not promote ineligible evidence',()=>{
+   const data=buildResearchAssessments({...fixture(),now:NOW});
+   data.assessments.forEach(a=>a.evidence.forEach(e=>{e.eligible=false;e.statement='UNVERIFIED CLAIM';}));
+   expect(render(data)).not.toContain('UNVERIFIED CLAIM');
+ });
+ it('renders locked games with actionable explanation',()=>{
+   expect(render({now:new Date(NOW).toISOString(),assessments:[],coverage:{games:[{closed:false,spreadAccessible:false,totalAccessible:false}]}})).toContain('Lock both Spread and Total');
+ });
+ it('does not render projections in matchup mode',()=>{
+   const html=renderToStaticMarkup(<PropModelPanels research={null} assessments={[]} category="All props" view="matchups"/>);
+   expect(html).toContain('Matchup spotlight');expect(html).not.toContain('Player projections');expect(html).toContain('Matchup rankings unavailable');
+ });
 });

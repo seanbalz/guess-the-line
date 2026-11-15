@@ -1,5 +1,13 @@
 # Guess The Line — current completion register
 
+## Parlay Lab usability fixes — November 15, 2026
+
+Offer-driven research, same-book ideas with per-leg prices, price-first tabbed
+mobile cards, session shortlist and a direct Research entry are integrated
+locally. [Integration QA and remaining gates](PARLAY_INTEGRATION_QA_2026_11_15.md).
+Not deployed or live-data accepted; fresh captures, refreshed baseline periods,
+mobile browser acceptance and protected exact-source release remain required.
+
 ## EPL tab availability — November 12, 2026
 
 Sean reported empty/closed Bets, Research and Play. MW11 had an empty November
