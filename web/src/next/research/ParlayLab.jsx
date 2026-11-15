@@ -24,7 +24,7 @@ export default function ParlayLab({ data, renderDetail, onOpen }) {
     <div className="gx-parlay-grid">{cards.slice(0, 6).map(a => <article className="gx-parlay-card gx-vstack gx-gap-12" key={a.id}>
       <h4 className="gx-t-section">{a.selection.playerName ?? a.title}</h4>
       <p className="gx-t-meta">{propCategory(a)} · {a.gameId.replace('-', ' at ')}</p>
-      <dl className="gx-parlay-compare"><div><dt>Projection</dt><dd>Unavailable</dd></div><div><dt>Market line</dt><dd>{a.quote ? `${a.selection.side} ${a.selection.line} ${a.selection.unit ?? ''}` : 'Unavailable'}</dd></div></dl>
+      <dl className="gx-parlay-compare"><div><dt>Projection</dt><dd>Unavailable</dd></div><div><dt>Market line</dt><dd>{a.quote ? a.selection.line === null ? `${a.selection.side} · ${a.selection.unit ?? 'binary prop'}` : `${a.selection.side} ${a.selection.line} ${a.selection.unit ?? ''}` : 'Unavailable'}</dd></div></dl>
       <p className="gx-t-meta">Range unavailable · {a.quote ? `${a.quote.source} · Recorded ${time(a.quote.observedAt)}` : 'No current quote'}</p>
       <Button variant="secondary" onClick={() => onOpen(a.routeId)}>View research</Button>
     </article>)}</div>

@@ -36,4 +36,12 @@ describe('Parlay Lab', () => {
     expect((html.match(/Open matchup source/g) ?? []).length).toBe(6);
     expect((html.match(/Open full research/g) ?? []).length).toBe(6);
   });
+  it('renders binary touchdown markets without inventing a numeric threshold', () => {
+    const data = buildResearchAssessments({...fixture(), now: NOW});
+    const prop = data.assessments.find(a => a.selection.market === 'prop');
+    prop.selection = {...prop.selection, key: 'player_anytime_td', side: 'yes', line: null, unit: 'touchdown'};
+    const html = renderToStaticMarkup(<ParlayLab data={data} renderDetail={() => null} onOpen={() => {}}/>);
+    expect(html).toContain('yes · touchdown');
+    expect(html).not.toContain('yes null');
+  });
 });
