@@ -1,5 +1,16 @@
 # Guess The Line — current completion register
 
+## Same-game Parlay Lab research — November 15, 2026
+
+Adds distinct-player same-game and mixed-game ideas, explicit game-mix filtering,
+correlation warnings and unquoted combined-price disclosure. Existing sourced
+evidence, freshness, same-book and server reveal boundaries stay in place.
+No wagers, migration, paid collection or deployment. See [Parlay Lab](PARLAY_LAB.md).
+Local verification: 1,047 Vitest tests pass; focused Node suite has 58 passes
+and 2 skipped; typecheck, cloud build, Brand QA and diff checks pass. Independent
+review cleared the first/last-TD incompatibility and alternate-line search
+regressions after fixes. Hosted CI and browser acceptance remain release gates.
+
 ## Parlay Lab usability fixes — November 15, 2026
 
 Offer-driven research, same-book ideas with per-leg prices, price-first tabbed

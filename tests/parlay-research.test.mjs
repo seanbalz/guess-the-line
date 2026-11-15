@@ -10,9 +10,9 @@ test('composes 2/3 legs without probabilities or calculated payout and flags sha
   assert.equal(idea.legs.length, 3); assert.equal(idea.combinedOdds, null); assert.equal(idea.probability, null); assert.equal(idea.sharedEvidence, true);
   assert.equal(JSON.stringify(rows), before);
 });
-test('does not compose different books, same games, same players or duplicates', () => {
+test('does not compose different books, same players or duplicates', () => {
   assert.equal(buildParlayIdeas([leg('a'), leg('b', 'b', 'draftkings')], { now }).length, 0);
-  assert.equal(buildParlayIdeas([leg('a','game'),leg('b','game')], { now }).length, 0);
+  assert.equal(buildParlayIdeas([leg('a','game'),leg('b','game')], { now, gameMode:'cross-game' }).length, 0);
   const a = leg('a'), b = leg('b'); b.selection.playerId = 'a';
   assert.equal(buildParlayIdeas([a,b], { now }).length, 0);
   assert.equal(buildParlayIdeas([a, {...a}], { now }).length, 0);
@@ -40,10 +40,56 @@ test('common-book alternative preserved when individual best books differ; ratio
 });
 test('ranking cannot starve a compatible game beyond the former 90-offer cutoff', () => {
   const rows = Array.from({length:91}, (_,i) => leg(`p${String(i).padStart(3,'0')}`, i<90?'SEA-DEN':'DAL-PHI'));
-  const ideas = buildParlayIdeas(rows,{now});
+  const ideas = buildParlayIdeas(rows,{gameMode:'cross-game',now});
   assert.equal(ideas.length,6);
   assert.ok(ideas.every(idea=>new Set(idea.legs.map(a=>a.gameId)).size===2));
-  assert.equal(buildParlayIdeas(rows,{now,size:3}).length,0);
+  assert.equal(buildParlayIdeas(rows,{gameMode:'cross-game',now,size:3}).length,0);
   rows.push(leg('z-third','NYG-WAS'));
-  assert.equal(buildParlayIdeas(rows,{now,size:3}).length,6);
+  assert.equal(buildParlayIdeas(rows,{gameMode:'cross-game',now,size:3}).length,6);
+});
+
+test('same-game player ideas disclose correlation and never calculate a joint price', () => {
+  const rows=[leg('a','g'),leg('b','g'),leg('c','g'),leg('d','other')];
+  const ideas=buildParlayIdeas(rows,{now,size:3,gameMode:'same-game'});
+  assert.equal(ideas.length,1);
+  assert.equal(ideas[0].gameType,'same-game');
+  assert.equal(ideas[0].combinedOdds,null); assert.equal(ideas[0].probability,null);
+  assert.match(ideas[0].risks.join(' '),/correlated/);
+  assert.match(ideas[0].risks.join(' '),/do not confirm.*accepts/);
+  assert.ok(buildParlayIdeas(rows,{now,size:3}).some(i=>i.gameType==='mixed-game'));
+  assert.deepEqual(buildParlayIdeas(rows,{now,gameMode:'invalid'}),[]);
+});
+test('same-game rejects contradictory/alternate player legs and unidentified or team selections', () => {
+  const a=leg('a','g'), b=leg('b','g');
+  for(const change of [x=>x.selection.playerId='a', x=>x.selection.playerId=null, x=>x.selection.market='spread']) {
+    const other=structuredClone(b); change(other);
+    assert.equal(buildParlayIdeas([a,other],{now,gameMode:'same-game'}).length,0);
+  }
+  const opposite=structuredClone(a); opposite.id='opposite'; opposite.selection.side='under';
+  assert.equal(buildParlayIdeas([a,opposite],{now}).length,0);
+});
+test('same-game still requires fresh quotes at one book and supplied reveal-gated evidence', () => {
+  const a=leg('a','g'), b=leg('b','g','draftkings');
+  assert.equal(buildParlayIdeas([a,b],{now,gameMode:'same-game'}).length,0);
+  b.offers=[{...b.quote,book:a.quote.book}];
+  assert.equal(buildParlayIdeas([a,b],{now,gameMode:'same-game'}).length,1);
+  b.offers[0].expiresAt=new Date(now).toISOString();
+  assert.equal(buildParlayIdeas([a,b],{now,gameMode:'same-game'}).length,0);
+});
+
+test('different players cannot both be first or last TD scorer in one game', () => {
+  for (const key of ['player_1st_td','player_last_td']) {
+    const a=leg('a','g'), b=leg('b','g');
+    a.selection.key=key; b.selection.key=`${key}_alternate`;
+    assert.equal(buildParlayIdeas([a,b],{now}).length,0);
+    b.gameId='other'; assert.equal(buildParlayIdeas([a,b],{now}).length,1);
+  }
+});
+
+test('alternate lines for only two players cannot fill a three-leg ticket', () => {
+  const rows=Array.from({length:1000},(_,i)=>{
+    const a=leg(`line${i}`,'g'); a.selection.playerId=`player${i%2}`; a.selection.line=i; return a;
+  });
+  assert.equal(buildParlayIdeas(rows,{now,size:3}).length,0);
+  assert.equal(buildParlayIdeas(rows,{now,size:3,gameMode:'same-game'}).length,0);
 });

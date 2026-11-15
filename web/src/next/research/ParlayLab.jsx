@@ -22,11 +22,11 @@ function Leg({a, onOpen}) {
 }
 export default function ParlayLab({ data, renderDetail, onOpen, onUnlock, onRefresh }) {
   const [category, setCategory] = useState('All props'), [size, setSize] = useState(2), [tab,setTab]=useState('Ideas');
-  const [saved,setSaved]=useState([]);
+  const [saved,setSaved]=useState([]), [gameMode,setGameMode]=useState('all');
   const now = Date.parse(data.now);
   const props = data.assessments.filter(a => a.selection.market === 'prop');
   const cards = props.filter(a => category === 'All props' || propCategory(a) === category);
-  const ideas = buildParlayIdeas(cards, { now, size });
+  const ideas = buildParlayIdeas(cards, { now, size, gameMode });
   const locked=(data.coverage?.games||[]).some(g=>!g.closed&&(!g.spreadAccessible||!g.totalAccessible));
   const toggle=idea=>setSaved(list=>list.some(i=>i.id===idea.id)?list.filter(i=>i.id!==idea.id):[...list,idea]);
   return <section className="gx-lab gx-vstack gx-gap-12" aria-labelledby="gx-parlay-title">
@@ -34,10 +34,12 @@ export default function ParlayLab({ data, renderDetail, onOpen, onUnlock, onRefr
     <div className="gx-lab-tabs" role="group" aria-label="Parlay Lab sections">{['Ideas','Projections','Matchups'].map(t=><button type="button" key={t} aria-pressed={t===tab} onClick={()=>setTab(t)}>{t}</button>)}</div>
     <div className="gx-lab-controls"><label className="gx-ra-select gx-t-meta">Category<select aria-label="Research board" value={category} onChange={e=>setCategory(e.target.value)}>{categories.map(c=><option key={c}>{c}</option>)}</select></label>{tab==='Ideas'?<label className="gx-ra-select gx-t-meta">Ticket size<select aria-label="Legs" value={size} onChange={e=>setSize(Number(e.target.value))}><option value={2}>2 legs</option><option value={3}>3 legs</option></select></label>:null}</div>
     {tab==='Ideas'?<>
+      <label className="gx-ra-select gx-t-meta">Game mix<select aria-label="Game mix" value={gameMode} onChange={e=>setGameMode(e.target.value)}><option value="all">All combinations</option><option value="same-game">Same game</option><option value="cross-game">Different games</option></select></label>
       <div className="gx-lab-section-heading"><h3 className="gx-t-section">Suggested parlays</h3><span className="gx-t-meta">{ideas.length} available</span></div>
-      <p className="gx-t-meta">Same book. Different games. Source-backed research, not guaranteed winners.</p>
+      <p className="gx-t-meta">Same book. Same-game and cross-game ideas. Source-backed research, not guaranteed winners.</p>
       <div className="gx-parlay-grid">{ideas.map((idea,index)=><article className="gx-parlay-card gx-lab-ticket" key={idea.id}>
-        <header className="gx-lab-ticket-head"><div><p className="gx-t-label">{size}-LEG IDEA {index+1}</p><h3 className="gx-t-section">{idea.source}</h3></div><span className="gx-lab-badge">Research lean</span></header>
+        <header className="gx-lab-ticket-head"><div><p className="gx-t-label">{size}-LEG IDEA {index+1} · {idea.gameType==='same-game'?'Same game':idea.gameType==='mixed-game'?'Mixed games':'Different games'}</p><h3 className="gx-t-section">{idea.source}</h3></div><span className="gx-lab-badge">Research lean</span></header>
+        {idea.gameType!=='cross-game'?<p className="gx-t-meta">Correlated legs. The sportsbook must confirm this combination and its actual price.</p>:null}
         {idea.why?.length ? <p className="gx-lab-thesis gx-t-body">{idea.why[0]}</p> : null}
         {idea.legs.map(a=><Leg key={a.id} a={a} onOpen={onOpen}/>)}
         <footer className="gx-lab-ticket-footer"><div className="gx-lab-section-heading"><span className="gx-t-meta">Combined sportsbook price</span><strong>Not quoted</strong></div><p className="gx-t-meta">Verify this combination at {idea.source}. One losing leg can lose the ticket.</p><Button variant="primary" block onClick={()=>toggle(idea)}>{saved.some(i=>i.id===idea.id)?'Remove from shortlist':'Shortlist this idea'}</Button><details className="gx-ra-evidence"><summary>Price & correlation caveats</summary>{idea.risks?.map(r=><p className="gx-t-meta" key={r}>{r}</p>)}<p className="gx-t-meta">Quotes expire {time(idea.expiresAt)}. No combined payout or joint probability is calculated. Different games are not necessarily independent.{idea.sharedEvidence?' These legs share underlying evidence.':''}</p></details></footer>
