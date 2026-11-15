@@ -40,7 +40,7 @@ describe('the Research landing', () => {
     expect(textOf(byAttr(html, 'data-research', 'hero-line')[0])).toBe('Sun 1:25 PM PT · 2 of 3 kicked off');
     expect((html.match(/gx-btn--primary/g) || [])).toHaveLength(1);
     const primary = nodes(html).filter(n => n.tag === 'button' && (n.attrs.class ?? '').includes('gx-btn--primary'));
-    expect(primary.map(textOf)).toEqual(['Open Parlay Lab']);
+    expect(primary.map(textOf)).toEqual(['Open Weekly props']);
     expect(primary[0].attrs.id, 'a stable id for Back’s focus').toBe('gx-r-tile-parlay');
     const tiles = nodes(html).filter(n => n.tag === 'button' && (n.attrs.class ?? '').includes('gx-tile'));
     expect(tiles.map(t => t.attrs.id)).toEqual(['gx-r-tile-games', 'gx-r-tile-trends', 'gx-r-tile-fantasy', 'gx-r-tile-teams']);
@@ -58,7 +58,7 @@ describe('the Research landing', () => {
     expect([...walk(skeleton)].filter(n => (n.attrs?.class ?? '').split(' ').includes('gx-skel-tile'))).toHaveLength(4);
     expect(byAttr(html, 'data-research', 'tiles')).toHaveLength(0);
     expect(byAttr(html, 'data-research', 'parlay')).toHaveLength(1);
-    expect(html).toContain('Open Parlay Lab');
+    expect(html).toContain('Open Weekly props');
     expect(skeleton.attrs.role).toBe('status');
     expect(textOf(skeleton)).toContain('Loading this week’s games…');
   });
@@ -84,7 +84,7 @@ describe('a week with nothing published', () => {
     expect(markupProblems(html)).toEqual([]);
     expect(byAttr(html, 'data-research', 'failed')).toHaveLength(0);
     expect(textOf([...walk(byAttr(html, 'data-research', 'hero')[0])].find(n => n.tag === 'h2'))).toBe('No week is open yet');
-    expect(nodes(html).filter(n => n.tag === 'button' && (n.attrs.class ?? '').includes('gx-btn--primary')).map(textOf)).toEqual(['Open Parlay Lab', 'Open trends']);
+    expect(nodes(html).filter(n => n.tag === 'button' && (n.attrs.class ?? '').includes('gx-btn--primary')).map(textOf)).toEqual(['Open Weekly props', 'Open trends']);
     expect(nodes(html).filter(n => n.tag === 'button' && (n.attrs.class ?? '').includes('gx-tile')).map(n => nameFrom(n))[0]).toBe('Games, no week open');
     expect(html).not.toContain('could not refresh');
   });

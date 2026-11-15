@@ -46,11 +46,11 @@ export function ResearchLanding() {
   const retry = () => app.refresh({ only: ['personal'] });
   return <section className="gx-screen gx-r-landing" data-landing="research">
     <div className="gx-focus-heading"><h1 className="gx-t-title">{RESEARCH_NAMES.title}</h1></div>
-    <Card className="gx-r-notebook" data-research="parlay" aria-label="Parlay Lab">
-      <p className="gx-t-label gx-c-2">Ideas · Projections · Matchups</p>
+    <Card className="gx-r-notebook" data-research="parlay" aria-label="Weekly props">
+      <p className="gx-t-label gx-c-2">Top props · Projections · Matchups</p>
       <h2 className="gx-t-title">{RESEARCH_NAMES.parlay}</h2>
-      <p className="gx-t-body">Compare available sportsbook lines, explore suggested combinations, and see the reasoning and risks.</p>
-      <Button id={tileId('parlay')} variant="primary" block onClick={() => openSection(shell, 'parlay')}>Open Parlay Lab</Button>
+      <p className="gx-t-body">Review up to 20 individual props for the week, with sportsbook prices, sourced reasoning and risks.</p>
+      <Button id={tileId('parlay')} variant="primary" block onClick={() => openSection(shell, 'parlay')}>Open Weekly props</Button>
     </Card>
     {hero && next ? <Card className="gx-r-notebook gx-r-hero" data-research="hero" data-kind={hero.kind} aria-labelledby={titleId}>
       <p id={titleId} className="gx-t-label gx-c-2">Matchup notebook · Week {hero.week}</p><h2 className="gx-t-title">Know the matchup.</h2>

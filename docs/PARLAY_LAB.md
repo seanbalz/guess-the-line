@@ -100,3 +100,31 @@ brand QA passed. Browser interaction assertions were updated for tabs, paginatio
 position chips and matchup period. Local browser execution is blocked by Chromium
 socket restrictions, so mobile visual/interaction acceptance requires the hosted
 browser run before this change is called production-ready.
+
+## Superseding direction: weekly top 20 props — November 15, 2026
+
+Sean rejected the Parlay Lab layout and prebuilt combinations, requesting the
+week's top 20 individual props instead. The `research/parlay` route remains for
+existing links; its visible title and Research launcher become **Weekly props**.
+PR565's pending same-game merge/deploy request is stopped and is not approved.
+
+The default view is a numbered list of up to twenty unique game/player/stat/unit
+picks. Each row exposes the exact selection, individual line and price, book,
+recorded/expiry times, sourced supporting rationale and risk. Sources and book
+comparisons expand within the row; Full research keeps the existing detail and
+Back navigation. No ticket size, generated combinations or combined pricing.
+
+The visible ranking explanation calls this research priority, not probability or
+profit: supporting dataset count, documented sample coverage (up to eight per
+dataset and forty total), quote recency, then stable ID. Repeated claims from
+one dataset count once. Alternate lines/sides/books cannot fill extra places.
+Category filters narrow the weekly twenty and preserve their overall ranks.
+Pregame, one-hour quote freshness, source/reveal checks and conflict exclusions
+remain. Show fewer than twenty whenever these checks leave fewer candidates.
+Projections retain their historical baseline limitations; Matchups remain
+separate descriptive position-versus-defense context.
+
+Frontend only; no API change, migration, feature flag or collection. The existing
+retry 43741373546 collected 244 quotes using all six authorized credits. These
+are dated observations, not perpetual line availability. Another paid refresh is
+not authorized. See the [design](superpowers/specs/2026-11-15-weekly-top-props-design.md).

@@ -1,5 +1,22 @@
 # Guess The Line — current completion register
 
+## Weekly top props replacement — November 15, 2026
+
+Sean redirected the Parlay Lab toward a clear weekly list of up to twenty
+individual props. Ticket-size controls and generated parlay cards are replaced
+with ranked selections, book/line/price/times, sourced rationale and risk.
+Alternate lines/books do not fill extra places; freshness, reveal and conflict
+checks remain. Projections and Matchups retain their own views. PR565 release
+is stopped. No additional paid collection, API change, migration or flag change.
+See [the current design](superpowers/specs/2026-11-15-weekly-top-props-design.md)
+and [method](PARLAY_LAB.md#superseding-direction-weekly-top-20-props--november-15-2026).
+Local validation: 1,047 Vitest tests, 11 focused Node tests, both browser specs
+(320/390/1440 px, dark/light, axe), typecheck, cloud build, bundle privacy scan
+and Brand QA pass. Broad Node validation is still running; six localhost-socket
+failures passed when the three affected files were rerun with socket access.
+Hosted exact-SHA CI and protected frontend release remain pending. This entry
+is not a deployment claim.
+
 ## Parlay Lab usability fixes — November 15, 2026
 
 Offer-driven research, same-book ideas with per-leg prices, price-first tabbed

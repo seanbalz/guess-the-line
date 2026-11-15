@@ -6,19 +6,30 @@ import PropModelPanels from '../web/src/next/research/PropModelPanels.jsx';
 import { buildResearchAssessments } from '../shared/research-assessments.mjs';
 import { fixture, NOW } from './fixtures/research-assessments.mjs';
 const render=data=>renderToStaticMarkup(<ParlayLab data={data} renderDetail={()=> <p>Evidence detail</p>} onOpen={()=>{}}/>);
-describe('price-first Parlay Lab',()=>{
- it('defaults to ideas, with deliberate projection and matchup destinations',()=>{
+describe('weekly props board',()=>{
+ it('defaults to individual props with projection and matchup destinations',()=>{
    const html=render(buildResearchAssessments({...fixture(),now:NOW}));
-   for(const text of ['Parlay Lab','Ideas','Projections','Matchups','Suggested parlays','Why it fits','Risk to watch'])expect(html).toContain(text);
+   for(const text of ['Weekly props','Top props','Projections','Matchups','Why this prop','Risk to watch','How these are ranked'])expect(html).toContain(text);
    expect(html).not.toContain('78.4');
    expect(html).not.toContain('Schedule order');
-   expect(html.indexOf('Suggested parlays')).toBeLessThan(html.indexOf('Individual prop research'));
+   expect(html).not.toContain('Ticket size');
+   expect(html).not.toContain('Suggested parlays');
  });
  it('gives honest empty state instead of counterfeit priced picks',()=>{
    const html=render({now:new Date(NOW).toISOString(),assessments:[]});
-   expect(html).toContain('No ready-to-review ticket yet');
-   expect(html).toContain('Current sportsbook prop lines are unavailable');
+   expect(html).toContain('No eligible props right now');
+   expect(html).toContain('Fresh sportsbook lines and sourced supporting research are required');
    expect(html).not.toContain('Synthetic Receiver');
+ });
+ it('shows up to twenty individually priced props with sources rather than bundled legs',()=>{
+   const data=buildResearchAssessments({...fixture(),now:NOW});
+   const a=data.assessments.find(a=>a.selection.market==='prop');
+   data.assessments=Array.from({length:25},(_,i)=>({...a,id:`prop-${i}`,routeId:`prop-${i}`,selection:{...a.selection,playerId:`player-${i}`,playerName:`Player ${i}`}}));
+   const html=render(data);
+   expect((html.match(/class="gx-weekly-prop"/g)||[]).length).toBe(20);
+   expect(html).toContain('DraftKings'); expect(html).toContain('Recorded');
+   expect(html).toContain('https://x.com/rotobot_ai/status/1000001');
+   expect(html).toContain('not win probability');
  });
  it('does not promote ineligible evidence',()=>{
    const data=buildResearchAssessments({...fixture(),now:NOW});

@@ -14,7 +14,7 @@ const ResearchAssessments = lazy(() => import('./Assessments.jsx'));
 
 export function Research() {
   const section = useShell().state.views.research.section;
-  if (section === 'parlay') return <Suspense fallback={<Skeleton label="Loading Parlay Lab…" shape="panels" count={2}/>}><ResearchAssessments routeScope="research" labOnly/></Suspense>;
+  if (section === 'parlay') return <Suspense fallback={<Skeleton label="Loading Weekly props…" shape="panels" count={2}/>}><ResearchAssessments routeScope="research" labOnly/></Suspense>;
   if (section === 'games') return <GamesScreen/>;
   if (section === 'trends') return <TrendsPage/>;
   if (section === 'fantasy') return <FantasyPage/>;
