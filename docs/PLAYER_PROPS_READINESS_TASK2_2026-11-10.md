@@ -375,3 +375,54 @@ instead, because the failure may have come after a reservation.
 
 `live_lock_in`, `GTL_PLAYER_PROPS` and `VITE_GTL_PLAYER_PROPS` are not part of this order. Each
 stays off until Sean's separate word.
+
+### Week 10 pilot readiness readback
+
+At 00:44–00:47 UTC November 12 (November 11 Pacific), the GTL connection returned
+86 hosted migrations, including all three Player Props versions. The capability
+row had `live_lock_in = false`. Research fetches, offers, references, guesses,
+results and review/check records each counted zero. The shared budget had a
+recent preflight, room for six credits above the reserve, and no active lease
+or pause at the time of the read.
+
+The latest published slate was 2026 Week 10. Its November 11 18:15 UTC core
+snapshot had 14 matched games. The production request builder ran locally against
+a read-only projection of that snapshot and the current size- and digest-verified
+nflverse schedule and roster. It selected two games with 58 eligible roster
+entries and planned two requests at three credits each. The schedule digest was
+`d10922778a11525cf00597ff56f934964a37cdea45b42a189d409357d2f4ed13` and the roster
+digest was `e864647adeca43c6d84665f9387096dea79b787afbbf2cc11c3a6add63579d71`.
+The local run reserved zero credits. All 16 existing builder and collection tests
+passed at `cac63e7a0d10a38b4badc41c663a763b5301aee4`.
+
+At that readback, GitHub listed the URL secret and the other two entries were
+still pending. Sean later added `GTL_PROPS_SERVICE_ROLE_KEY` and
+`GTL_PROPS_ODDS_API_KEY`. All three names were verified before
+`GTL_PLAYER_PROPS_JOBS` was enabled.
+
+### Week 10 pilot collection and offer receipts
+
+All four runs used `main` at `fc2a942a9ad8705365cfec47257a3e108166b5f3`
+on November 11 Pacific (November 12 UTC). The pilot covered passing, rushing
+and receiving yards across two games.
+
+| Run | Verified outcome |
+| --- | --- |
+| [Collect dry run](https://github.com/seanbalz/guess-the-line/actions/runs/43134637274) | Built two requests from 58 roster entries. Six credits planned, zero reserved. |
+| [Collect](https://github.com/seanbalz/guess-the-line/actions/runs/43134800622) | Collected both requests and retained 198 quotes with six credits reserved. |
+| [Offers dry run](https://github.com/seanbalz/guess-the-line/actions/runs/43134921802) | 31 of 34 candidates qualified. The other three lacked a required book. |
+| [Offers write](https://github.com/seanbalz/guess-the-line/actions/runs/43135049798) | Recorded 31 offers, 31 references and 34 eligibility reviews. |
+
+Hosted readback at 01:32:41 UTC confirmed 31 offers, 31 references and 34
+reviews. Guesses and results each counted zero. The `anon` and `authenticated`
+roles had no direct read access to the prop tables or execute access to the
+prop functions. The lock-in capability was off.
+
+| Kickoff (Pacific) | Offers | Earliest qualifying stats release (Pacific) |
+| --- | ---: | --- |
+| Thursday, November 12 at 5:15 p.m. | 21 | Thursday, November 12 at 8:15 p.m. |
+| Sunday, November 15 at 6:30 a.m. | 10 | Sunday, November 15 at 9:30 a.m. |
+
+Run the results dry run and write after final scores and verified stats are
+available. The pilot references age out before either kickoff. Player access
+still needs fresh qualifying lines and the reviewed activation checks.
