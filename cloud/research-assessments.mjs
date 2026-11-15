@@ -1,3 +1,4 @@
+import { projectPropResearch } from '../shared/project-prop-research.mjs';
 import { ASSESSMENT_SOURCES, buildResearchAssessments, validateAssessmentSnapshot, accessibleResearchCandidate } from '../shared/research-assessments.mjs';
 import { projectPlayStatistics } from '../shared/research-play-statistics.mjs';
 import { finalAvailableAt, sha256 } from '../shared/trends-research-candidates.mjs';
@@ -94,7 +95,7 @@ export async function readAssessments({ service, board, userId, now, gameId, mar
   const publicPlays = projectPlayStatistics(existing?.playStatistics, board, clock());
   const importedPlays = projectPlayStatistics(data.playStatistics, board, clock());
   const playStatistics = [...publicPlays, ...importedPlays.filter(s => !publicPlays.some(p => p.gameId === s.gameId))];
-  return { ...reply, assessments: reply.assessments.map(a => ({ ...a, routeId: routes.get(a.id) })), statistics: existing?.statistics ?? [], playStatistics, sourceCoverage: snapshotStatus,
+  return { ...reply, assessments: reply.assessments.map(a => ({ ...a, routeId: routes.get(a.id) })), statistics: existing?.statistics ?? [], playStatistics, propResearch: projectPropResearch(history?.status === 'fresh' && existing?.propResearch?.source?.schedule?.semanticSha256 === history?.scheduleSha256 ? existing.propResearch : null, { ...board, games }, clock()), sourceCoverage: snapshotStatus,
     coverage: {
       history: { status: history?.status ?? 'unavailable', generatedAt: history?.snapshotAsOf ?? null, fetchedAt: history?.fetchedAt ?? null, latestCompleted: history?.latestCompleted ?? null, reasons: history?.reasons ?? ['source_unavailable'] },
       games: games.map(g => ({ id: g.id, kickoff: g.kickoff, spreadAccessible: g.spread.visible, totalAccessible: g.total.visible, closed: g.started || Date.parse(g.kickoff) <= clock() })),

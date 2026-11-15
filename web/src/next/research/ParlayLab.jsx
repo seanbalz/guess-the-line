@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import PropModelPanels from './PropModelPanels.jsx';
 import { buildParlayIdeas, parlayLegStatus, propCategory } from '../../../../shared/parlay-research.mjs';
 import { Button } from '../ui/index.js';
 
@@ -19,16 +20,7 @@ export default function ParlayLab({ data, renderDetail, onOpen }) {
     <p className="gx-t-body">Read the case. Check the price. Know what could go wrong.</p>
     <p className="gx-t-meta">NFL player props · research leans, not predictions or guarantees. No wagers are placed here.</p>
     <div className="gx-ra-filters"><label className="gx-ra-select gx-t-body">Research board<select value={category} onChange={e => setCategory(e.target.value)}>{categories.map(c => <option key={c}>{c}</option>)}</select></label></div>
-    <h3 className="gx-t-section">Projection center</h3>
-    <p className="gx-t-body">No qualified projection model is connected. Market lines are not forecasts; projection ranges and model edge remain unavailable.</p>
-    <div className="gx-parlay-grid">{cards.slice(0, 6).map(a => <article className="gx-parlay-card gx-vstack gx-gap-12" key={a.id}>
-      <h4 className="gx-t-section">{a.selection.playerName ?? a.title}</h4>
-      <p className="gx-t-meta">{propCategory(a)} · {a.gameId.replace('-', ' at ')}</p>
-      <dl className="gx-parlay-compare"><div><dt>Projection</dt><dd>Unavailable</dd></div><div><dt>Market line</dt><dd>{a.quote ? a.selection.line === null ? `${a.selection.side} · ${a.selection.unit ?? 'binary prop'}` : `${a.selection.side} ${a.selection.line} ${a.selection.unit ?? ''}` : 'Unavailable'}</dd></div></dl>
-      <p className="gx-t-meta">Range unavailable · {a.quote ? `${a.quote.source} · Recorded ${time(a.quote.observedAt)}` : 'No current quote'}</p>
-      <Button variant="secondary" onClick={() => onOpen(a.routeId)}>View research</Button>
-    </article>)}</div>
-    {!cards.length ? <p className="gx-t-body">No revealed player markets to compare yet.</p> : null}
+    <PropModelPanels research={data.propResearch} assessments={props} category={category}/>
     <h3 className="gx-t-section">Matchup spotlight</h3>
     <p className="gx-t-meta">Source-reported matchup drivers, not a defense ranking or a prediction. Position splits and season/last-five comparisons are shown only when established by the source.</p>
     <div className="gx-parlay-grid">{matchups.map(({a, e}) => <article className="gx-parlay-card gx-parlay-spotlight gx-vstack gx-gap-12" key={`${a.id}:${e.id}`}>

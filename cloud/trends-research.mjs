@@ -1,3 +1,4 @@
+import { projectPropResearch } from '../shared/project-prop-research.mjs';
 // Authenticated projection only. Full family evaluation is an offline operation;
 // requests read a compact prepared snapshot and verify its completed-source hash.
 import * as T from '../shared/trends.mjs';
@@ -89,7 +90,8 @@ export function createResearchProvider({ loadSchedule, loadSnapshot = async () =
     const hashMatches = snapshotShape && data && await fingerprint(data, preparedAt) === prepared.source.completedSha256;
     // Memoize only immutable public source data, shared across viewers. A target
     // match alone cannot certify rest/travel after another scheduled game moves.
-    const scheduleHashMatches = snapshotShape && data && await (data.scheduleFingerprint ??= sha256(scheduleSourceText(data.rows))) === prepared.source.scheduleSha256;
+    const scheduleFingerprint = data ? await (data.scheduleFingerprint ??= sha256(scheduleSourceText(data.rows))) : null;
+    const scheduleHashMatches = snapshotShape && data && scheduleFingerprint === prepared.source.scheduleSha256;
     // Quote age, kickoff, source visibility and snapshot eligibility all share
     // this authoritative decision time, after every asynchronous preparation.
     const decisionAt = clock(), now = new Date(decisionAt).toISOString();
@@ -101,7 +103,7 @@ export function createResearchProvider({ loadSchedule, loadSnapshot = async () =
     const hasSeason = data?.rows.some(r => Number(r.season) === board.season) === true;
     const fresh = !!(validSnapshot && hashMatches && scheduleHashMatches && !observationBoundaryChanged && !failed && hasSeason && !missingFinals && board.season === prepared.season);
     const history = { status: !data || !validSnapshot ? 'unavailable' : fresh ? 'fresh' : 'stale', source: T.TRENDS_SOURCE,
-      sourceSha256: data?.sha256 ?? null, snapshotSha256: validSnapshot ? prepared.source.sha256 : null,
+      sourceSha256: data?.sha256 ?? null, scheduleSha256: scheduleFingerprint, snapshotSha256: validSnapshot ? prepared.source.sha256 : null,
       fetchedAt: data ? new Date(data.fetchedAt).toISOString() : null, snapshotAsOf: validSnapshot ? prepared.generatedAt : null,
       latestCompleted: validSnapshot ? prepared.source.latestCompleted : null,
       periodAnchor: validSnapshot ? prepared.generatedAt : null,
@@ -165,6 +167,8 @@ export function createResearchProvider({ loadSchedule, loadSnapshot = async () =
     }).sort((a, b) => a.id.localeCompare(b.id));
     return { version: RESEARCH_VERSION, season: board.season, week: board.week, now, history, ...publicSources, shortlist, candidates, games, explore,
       statistics: data ? matchupStatistics(board, data.rows, decisionAt, finalAvailableAt) : [],
+      // A new generatedAt cannot revive an old source or changed schedule.
+      propResearch: projectPropResearch(fresh && prepared?.propResearch?.source?.schedule?.semanticSha256 === scheduleFingerprint ? prepared.propResearch : null, { ...board, games: selectedGames }, decisionAt),
       playStatistics: projectPlayStatistics((prepared?.playStatistics ?? []).filter(s => s.week === board.week && board.games.some(g => g.id === s.gameId && Date.parse(g.kickoff) === Date.parse(s.kickoff))), board, decisionAt),
       filters: { period: options.period, market: options.market ?? null, family: options.family ?? null, team: options.team ?? null, periods: RESEARCH_PERIODS, families: [...new Set(candidates.map(c => c.family))].sort() } };
   } };
