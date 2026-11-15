@@ -14,7 +14,7 @@ export default function PropModelPanels({research,assessments,category}){
   return <>
     <h3 className="gx-t-section">Projection center</h3>
     <p className="gx-t-body">Experimental baseline: last eight recorded appearances, minimum five. Not adjusted for injuries, role, opponent or price. A gap to the market is not a betting edge.</p>
-    <label className="gx-ra-select gx-t-body">Position<select value={position} onChange={e=>setPosition(e.target.value)}>{['All','QB','RB','WR','TE'].map(p=><option key={p}>{p}</option>)}</select></label>
+    <label className="gx-ra-select gx-t-body">Position<select aria-label="Position" value={position} onChange={e=>setPosition(e.target.value)}>{['All','QB','RB','WR','TE'].map(p=><option key={p}>{p}</option>)}</select></label>
     <div className="gx-parlay-grid">{forecasts.slice(shownPage*6,shownPage*6+6).map(({g,p,m})=>{
       const b=m.baseline,quote=assessments.find(a=>a.gameId===g.gameId&&a.selection.playerId===p.playerId&&a.selection.key===m.key&&a.selection.unit===m.unit&&a.quote)?.quote;
       const quoted=quote?assessments.find(a=>a.quote===quote):null;
@@ -32,7 +32,7 @@ export default function PropModelPanels({research,assessments,category}){
     {!forecasts.length?<p className="gx-t-body">No eligible baseline projections in this view. Source coverage, five prior appearances and both game reveal gates are required; no sample projections are substituted.</p>:null}
     <h3 className="gx-t-section">Position vs defense</h3>
     <p className="gx-t-body">Highest observed totals allowed per game to a position, ranked within each statistic. Descriptive, not opponent-adjusted: higher allowance does not guarantee a favorable matchup or betting value.</p>
-    <label className="gx-ra-select gx-t-body">Matchup period<select value={period} onChange={e=>setPeriod(e.target.value)}><option value="season">Season</option><option value="last5">Last five defense games</option></select></label>
+    <label className="gx-ra-select gx-t-body">Matchup period<select aria-label="Matchup period" value={period} onChange={e=>setPeriod(e.target.value)}><option value="season">Season</option><option value="last5">Last five defense games</option></select></label>
     <div className="gx-parlay-grid">{matchups.slice(0,6).map(({p,m,match})=><article className="gx-parlay-card gx-parlay-spotlight gx-vstack gx-gap-12" key={`${p.position}:${p.opponent}:${m.key}`}>
       <h4 className="gx-t-section">{p.position} vs {p.opponent}</h4><p className="gx-t-body">{propStat(m.key)?.label}: <strong>{value(match.meanAllowed)} {m.unit}</strong> allowed per covered game</p>
       <p className="gx-t-meta">Rank {match.rank} of {match.rankedDefenses} covered defenses · highest allowance first; ties share a rank.</p>

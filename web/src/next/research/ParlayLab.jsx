@@ -19,7 +19,7 @@ export default function ParlayLab({ data, renderDetail, onOpen }) {
     <h2 className="gx-t-section" id="gx-parlay-title">Parlay Lab</h2>
     <p className="gx-t-body">Read the case. Check the price. Know what could go wrong.</p>
     <p className="gx-t-meta">NFL player props · research leans, not predictions or guarantees. No wagers are placed here.</p>
-    <div className="gx-ra-filters"><label className="gx-ra-select gx-t-body">Research board<select value={category} onChange={e => setCategory(e.target.value)}>{categories.map(c => <option key={c}>{c}</option>)}</select></label></div>
+    <div className="gx-ra-filters"><label className="gx-ra-select gx-t-body">Research board<select aria-label="Research board" value={category} onChange={e => setCategory(e.target.value)}>{categories.map(c => <option key={c}>{c}</option>)}</select></label></div>
     <PropModelPanels research={data.propResearch} assessments={props} category={category}/>
     <h3 className="gx-t-section">Matchup spotlight</h3>
     <p className="gx-t-meta">Source-reported matchup drivers, not a defense ranking or a prediction. Position splits and season/last-five comparisons are shown only when established by the source.</p>
@@ -55,7 +55,7 @@ export default function ParlayLab({ data, renderDetail, onOpen }) {
     </div>
     {!cards.length ? <p className="gx-t-body" role="status">No checked props in this category yet. Both Guess markets must be open for a game; unavailable research is never filled with invented picks.</p> : null}
     <h3 className="gx-t-section">Suggested combinations</h3>
-    <label className="gx-ra-select gx-t-body">Legs<select value={size} onChange={e => setSize(Number(e.target.value))}><option value={2}>2 legs</option><option value={3}>3 legs</option></select></label>
+    <label className="gx-ra-select gx-t-body">Legs<select aria-label="Legs" value={size} onChange={e => setSize(Number(e.target.value))}><option value={2}>2 legs</option><option value={3}>3 legs</option></select></label>
     <p className="gx-t-meta">Schedule order, not an edge ranking. Current same-book leans from different games only; opposing evidence excludes a leg. This uses retained best quotes, so coverage can be incomplete.</p>
     <div className="gx-parlay-grid">{ideas.map(idea => <article className="gx-parlay-card gx-vstack gx-gap-12" key={idea.id}>
       <h4 className="gx-t-section">{size}-leg research idea · {idea.source}</h4>
