@@ -49,8 +49,13 @@ position filtering and six-card pagination; other sections show up to six cards.
 Rank denominator, covered/selected games and missing-game counts stay visible.
 
 Ideas require sourced eligible support, current pregame individual quotes, no
-eligible opposing claim/conflict, the same book and different games/players.
-They use only retained best quotes, so coverage is incomplete. Combined ticket
+eligible opposing claim/conflict, the same book and distinct players. All
+combinations is the default; Same game and Different games filters are available.
+Same-game ideas require identified player props, never anonymous props or team
+markets. One selection per player excludes opposite sides and alternate lines.
+Retained per-book offers are considered, but coverage remains incomplete.
+Same-game and mixed-game ideas visibly disclose shared-game correlation and that
+individual offers do not establish sportsbook acceptance or a combined price. Combined ticket
 availability, combined odds, payout, probability and expected value are not
 invented. No combination persistence or automated wagering is implemented.
 

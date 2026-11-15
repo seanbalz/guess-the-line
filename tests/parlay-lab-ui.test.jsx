@@ -9,10 +9,18 @@ const render=data=>renderToStaticMarkup(<ParlayLab data={data} renderDetail={()=
 describe('price-first Parlay Lab',()=>{
  it('defaults to ideas, with deliberate projection and matchup destinations',()=>{
    const html=render(buildResearchAssessments({...fixture(),now:NOW}));
-   for(const text of ['Parlay Lab','Ideas','Projections','Matchups','Suggested parlays','Why it fits','Risk to watch'])expect(html).toContain(text);
+   for(const text of ['Game mix','All combinations','Same game','Different games','Parlay Lab','Ideas','Projections','Matchups','Suggested parlays','Why it fits','Risk to watch'])expect(html).toContain(text);
    expect(html).not.toContain('78.4');
    expect(html).not.toContain('Schedule order');
    expect(html.indexOf('Suggested parlays')).toBeLessThan(html.indexOf('Individual prop research'));
+ });
+ it('shows same-game correlation and unavailable joint pricing beside the ticket',()=>{
+   const assessment=id=>({id,gameId:'SEA-DEN',color:'yellow',kickoff:'2026-11-15T20:00:00Z',title:`${id} over 20.5`,selection:{market:'prop',playerId:id,playerName:id,key:'player_rush_yds',line:20.5,side:'over'},quote:{book:'fanduel',source:'FanDuel',odds:-110,observedAt:'2026-11-15T17:50:00Z',expiresAt:'2026-11-15T18:50:00Z'},evidence:[{eligible:true,stance:'support',sourceUrl:'https://example.com',statement:'Historical sample',datasetId:'sample'}]});
+   const html=render({now:'2026-11-15T18:00:00Z',assessments:[assessment('one'),assessment('two')]});
+   expect(html).toContain('2-LEG IDEA 1 · Same game');
+   expect(html).toContain('Correlated legs. The sportsbook must confirm');
+   expect(html).toContain('Combined sportsbook price');expect(html).toContain('Not quoted');
+   expect(html).toContain('multiplying leg odds is not a valid quote');
  });
  it('gives honest empty state instead of counterfeit priced picks',()=>{
    const html=render({now:new Date(NOW).toISOString(),assessments:[]});
