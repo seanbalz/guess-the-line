@@ -113,6 +113,11 @@ function projectEvidence(e, review) {
       unit: text(e.metric.unit, 60) ? e.metric.unit : null, denominator: text(e.metric.denominator, 120) ? e.metric.denominator : null } : null,
     datasetId: e.datasetId, groupKey: e.groupKey, assumptions: e.assumptions };
 }
+function projectQuote(q, c) {
+  return { book: q.book, source: q.source, sourceUrl: 'https://the-odds-api.com/', odds: q.odds,
+    observedAt: q.observedAt, capturedAt: q.capturedAt,
+    expiresAt: new Date(Math.min(Date.parse(c.kickoff), Date.parse(q.observedAt) + QUOTE_LIFETIME[c.selection.market])).toISOString() };
+}
 /** Filters apply AFTER access checks. Closed data cannot affect order, counts, IDs or filters. */
 export function buildResearchAssessments({ board, snapshot, now = Date.now(), gameId, market, color } = {}) {
   if (!object(board) || !Array.isArray(board.games) || !finite(now)) throw new TypeError('Invalid research scope.');
@@ -144,15 +149,46 @@ export function buildResearchAssessments({ board, snapshot, now = Date.now(), ga
     const tone = !quote || closed || !support.length && !against.length ? 'gray' : support.length ? 'yellow' : 'red';
     const reasons = [...(!quote ? ['current_quote_unavailable'] : []), ...(closed ? ['pregame_closed'] : []), ...(!support.length && !against.length ? ['supporting_evidence_unavailable'] : []),
       ...(support.length && against.length ? ['conflicting_evidence'] : [])];
-    if (market && c.selection.market !== market || color && tone !== color) continue;
     rows.push({ id: c.id, gameId: c.gameId, kickoff: c.kickoff, title: c.title, selection: selection(c.selection), color: tone, label: ASSESSMENT_LABELS[tone], reasons,
-      quote: quote ? { book: quote.book, source: quote.source, sourceUrl: 'https://the-odds-api.com/', odds: quote.odds, observedAt: quote.observedAt, capturedAt: quote.capturedAt,
-        expiresAt: new Date(Math.min(Date.parse(c.kickoff), Date.parse(quote.observedAt) + QUOTE_LIFETIME[c.selection.market])).toISOString() } : null,
+      quote: quote ? projectQuote(quote, c) : null,
+      offers: closed ? [] : [...new Map(quotes.map(q => [q.book, projectQuote(q, c)])).values()],
       evidence, evidenceGroups: groups.size, hasConflicts: support.length > 0 && against.length > 0 });
   }
+  // Consolidate only already reveal-gated records. A generated candidate must
+  // not hide an imported opposing claim about the exact same betting terms.
+  // Keep route IDs stable, and never pull evidence from an inaccessible record.
+  const bySelection = new Map();
+  for (const row of rows) {
+    const key = JSON.stringify([row.gameId, selectionKey(row.selection)]);
+    if (!bySelection.has(key)) bySelection.set(key, []);
+    bySelection.get(key).push(row);
+  }
+  for (const peers of bySelection.values()) {
+    if (peers.length < 2) continue;
+    const unique = new Map();
+    for (const peer of peers) for (const e of peer.evidence) {
+      const { id, ...claim } = e;
+      const key = JSON.stringify(claim);
+      if (!unique.has(key)) unique.set(key, { ...e, id: `${peer.id}:${id}` });
+    }
+    const evidence = [...unique.values()];
+    const support = evidence.some(e => e.eligible && e.stance === 'support');
+    const against = evidence.some(e => e.eligible && e.stance === 'oppose');
+    for (const row of peers) {
+      row.evidence = evidence;
+      row.evidenceGroups = new Set(evidence.filter(e => e.eligible).map(e => e.datasetId)).size;
+      row.hasConflicts = support && against;
+      row.color = !row.quote || row.reasons.includes('pregame_closed') || !support && !against ? 'gray' : support ? 'yellow' : 'red';
+      row.label = ASSESSMENT_LABELS[row.color];
+      row.reasons = row.reasons.filter(r => !['conflicting_evidence', 'supporting_evidence_unavailable'].includes(r));
+      if (row.hasConflicts) row.reasons.push('conflicting_evidence');
+      if (!support && !against) row.reasons.push('supporting_evidence_unavailable');
+    }
+  }
+  const filteredRows = rows.filter(row => (!market || row.selection.market === market) && (!color || row.color === color));
   // Qualitative research is unranked: schedule/name order is not a fabricated edge score.
-  rows.sort((a, b) => Date.parse(a.kickoff) - Date.parse(b.kickoff) || a.gameId.localeCompare(b.gameId) || a.title.localeCompare(b.title) || a.id.localeCompare(b.id));
-  return { ...empty, status: 'ready', generatedAt: data.generatedAt, assessments: rows, sources: empty.sources.map(s => {
+  filteredRows.sort((a, b) => Date.parse(a.kickoff) - Date.parse(b.kickoff) || a.gameId.localeCompare(b.gameId) || a.title.localeCompare(b.title) || a.id.localeCompare(b.id));
+  return { ...empty, status: 'ready', generatedAt: data.generatedAt, assessments: filteredRows, sources: empty.sources.map(s => {
     const state = data.sources.find(x => x.id === s.id);
     return { ...s, status: state?.status === 'available' && stamp(state.checkedAt) && Date.parse(state.checkedAt) <= now ? 'available' : 'unavailable', checkedAt: stamp(state?.checkedAt) && Date.parse(state.checkedAt) <= now ? state.checkedAt : null };
   }) };

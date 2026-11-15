@@ -6,8 +6,14 @@ export function expireAssessments(data, elapsed) {
   if (!data) return data;
   const at = Date.parse(data.now) + Math.max(0, elapsed);
   const board = {season:data.season,week:data.week,games:(data.propResearch?.games??[]).map(g=>({id:g.gameId,kickoff:g.kickoff,awayCode:g.gameId.split('-')[0],homeCode:g.gameId.split('-')[1],spread:{visible:true},total:{visible:true}}))};
-  return { ...data, propResearch: projectPropResearch(data.propResearch,board,at), assessments: data.assessments.map(a => a.quote && at >= Date.parse(a.quote.expiresAt)
-    ? { ...a, color: 'gray', label: 'Insufficient evidence', quote: null, reasons: [...new Set([...a.reasons, 'current_quote_unavailable'])] } : a) };
+  const current = (q, a) => q && at < Date.parse(q.expiresAt) && at < Date.parse(a.kickoff) && Date.parse(q.observedAt) <= at;
+  const assessments = data.assessments.map(a => {
+    const offers = (a.offers ?? (a.quote ? [a.quote] : [])).filter(q => current(q, a));
+    const quote = current(a.quote, a) ? a.quote : offers[0] ?? null;
+    return quote ? { ...a, quote, offers } : { ...a, color: 'gray', label: 'Insufficient evidence', quote: null, offers: [],
+      reasons: [...new Set([...(a.reasons ?? []), 'current_quote_unavailable'])] };
+  });
+  return { ...data, now: new Date(at).toISOString(), propResearch: projectPropResearch(data.propResearch,board,at), assessments };
 }
 export function useAssessments({ app, personal, shown, gameId, market, color }) {
   const access = useRef({ data: personal?.data, version: 0 });
@@ -23,7 +29,7 @@ export function useAssessments({ app, personal, shown, gameId, market, color }) 
     linesApi('assessments', JSON.parse(body), controller.signal).then(data => {
       if (controller.signal.aborted || current.current !== scope) return;
       setReply({ scope, data, started, status: 'ready' });
-      const due = Math.min(...[...data.assessments.flatMap(a => [Date.parse(a.kickoff), Date.parse(a.quote?.expiresAt)]),...(data.propResearch?.games??[]).map(g=>Date.parse(g.kickoff)),Date.parse(data.propResearch?.generatedAt)+86400000].filter(at => Number.isFinite(at) && at > Date.parse(data.now)));
+      const due = Math.min(...[...data.assessments.flatMap(a => [Date.parse(a.kickoff), Date.parse(a.quote?.expiresAt), ...(a.offers ?? []).map(q => Date.parse(q.expiresAt))]),...(data.propResearch?.games??[]).map(g=>Date.parse(g.kickoff)),Date.parse(data.propResearch?.generatedAt)+86400000].filter(at => Number.isFinite(at) && at > Date.parse(data.now)));
       if (Number.isFinite(due)) timer = setTimeout(reload, Math.min(2147483647, Math.max(0, due - Date.parse(data.now) - (performance.now() - started) + 1)));
     }).catch(error => {
       if (controller.signal.aborted || current.current !== scope) return;

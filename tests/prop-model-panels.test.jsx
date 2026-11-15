@@ -36,14 +36,14 @@ function fixture({ observations = 8, constant = null, quote = true } = {}) {
     quote: quote ? { source: 'Synthetic Book', observedAt: at, odds: -110 } : null }];
   return { research: projectPropResearch(raw, board, NOW), assessments, raw, board };
 }
-const render = ({ research, assessments }, category = 'All props') => renderToStaticMarkup(<PropModelPanels research={research} assessments={assessments} category={category}/>);
+const render = ({ research, assessments }, category = 'All props') => ['projections','matchups'].map(view=>renderToStaticMarkup(<PropModelPanels research={research} assessments={assessments} category={category} view={view}/>)).join('');
 
 describe('Prop model panels', () => {
   it('shows the calculated baseline beside the exact player/stat/unit quote, not a betting edge', () => {
     const data = fixture(); expect(data.research.status).toBe('available');
     const html = render(data);
-    expect(html).toContain('53.5'); expect(html).toContain('over 65.5 yards');
-    expect(html).toContain('Synthetic Book'); expect(html).toContain('8 recorded appearances');
+    expect(html).toContain('53.5'); expect(html).toContain('over 65.5');
+    expect(html).toContain('Synthetic Book'); expect(html).toContain('8 appearances');
     expect(html).toContain('3 chronological holdouts');
     expect(html).toContain('A gap to the market is not a betting edge');
     expect(html).toContain('Not adjusted for injuries, role, opponent or price');
@@ -53,12 +53,12 @@ describe('Prop model panels', () => {
     data.assessments.push({ ...fixture().assessments[0], selection: { ...data.assessments[0].selection, playerId: '00-OTHER' } });
     data.assessments.push({ ...fixture().assessments[0], selection: { ...data.assessments[0].selection, unit: 'receptions' } });
     const html = render(data);
-    expect(html).toContain('53.5'); expect(html).toContain('Market line</dt><dd>Unavailable');
+    expect(html).toContain('53.5'); expect(html).toContain('Sportsbook line</dt><dd>—');
     expect(html).not.toContain('over 65.5'); expect(html).not.toContain('Synthetic Book');
   });
   it('withholds an empirical range below20 holdouts and renders retrospective limitations and sources', () => {
     const html = render(fixture());
-    expect(html).toContain('Range unavailable: fewer than 20 historical holdouts');
+    expect(html).toContain('Range unavailable · fewer than 20 holdouts');
     expect(html).not.toContain('Empirical residual range:');
     expect(html).toContain('Retrospective chronological holdout');
     expect(html).toContain('not archived real-time editions');
@@ -70,26 +70,26 @@ describe('Prop model panels', () => {
     const data = fixture({ observations: 25, constant: 7 });
     expect(data.research.games[0].players[0].markets[0].baseline.holdout.count).toBe(20);
     const html = render(data);
-    expect(html).toContain('Empirical residual range: 7.0–7.0 yards. Not calibrated coverage.');
+    expect(html).toContain('Empirical residual range · 7.0–7.0 yards');
     expect(html).toContain('20 chronological holdouts');
     expect(html).not.toContain('Range unavailable:');
   });
   it('renders actual aggregate rank, covered-game denominator and player sample without favorable claims', () => {
     const html = render(fixture());
-    expect(html).toContain('WR vs DEN'); expect(html).toContain('100.0 yards');
-    expect(html).toContain('Rank 1 of 2 covered defenses');
-    expect(html).toContain('3 covered / 3 selected games'); expect(html).toContain('6 player appearances');
+    expect(html).toContain('WR vs DEN'); expect(html).toContain('100.0');
+    expect(html).toContain('#1');
+    expect(html).toContain('Coverage: 3 of 3 games'); expect(html).toContain('6 player appearances');
     expect(html).toContain('0 missing games');
-    expect(html).toContain('Totals across published players at this position, not a prediction for one player');
-    expect(html).toContain('Descriptive, not opponent-adjusted');
+    expect(html).toContain('This does not predict one player');
+    expect(html).toContain('Not opponent-adjusted');
     expect(html).not.toContain('Favorable matchup');
   });
   it('respects an unavailable projected view and category scope without substituting sample players', () => {
     const data = fixture(), gated = projectPropResearch(data.raw, { ...data.board, games: [] }, NOW);
     const hidden = render({ ...data, research: gated });
-    expect(hidden).toContain('No eligible baseline projections'); expect(hidden).not.toContain('Synthetic Receiver'); expect(hidden).not.toContain('WR vs DEN');
+    expect(hidden).toContain('No eligible player projections'); expect(hidden).not.toContain('Synthetic Receiver'); expect(hidden).not.toContain('WR vs DEN');
     const filtered = render(data, 'Passing');
-    expect(filtered).toContain('Position-defense rankings unavailable'); expect(filtered).not.toContain('Synthetic Receiver'); expect(filtered).not.toContain('over 65.5');
+    expect(filtered).toContain('Matchup rankings unavailable'); expect(filtered).not.toContain('Synthetic Receiver'); expect(filtered).not.toContain('over 65.5');
   });
   it('expires targets at their exact kickoff without exposing player or matchup metadata', () => {
     const data = fixture(), target = new Date(NOW + 2 * 3600000).toISOString();

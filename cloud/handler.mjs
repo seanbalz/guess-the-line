@@ -509,7 +509,7 @@ export function createSupabaseAdapter({ url, anonKey, serviceRoleKey, fetchImpl 
     nbaGamesCache: createNbaGamesCache(groupRpc(providerNbaError, ['gtl_nba_claim_games', 'gtl_nba_finish_games'])),
     trends: createTrendsService({ rpc: groupRpc(providerLinesError).rpc, readSeason: createSeasonReader({ fetchImpl }), clock }),
     fantasy: createFantasyService({ fetchImpl, clock }),
-    lines: { ...groupRpc(providerLinesError), research: createResearchProvider({ loadSchedule: publicResearchHistory, loadSnapshot: researchSnapshotLoader, reviewedFeed: reviewedResearchFeed, clock, venues: researchVenues, corrections: researchCorrections }), teams: createTeamSeasonProvider({ loadSchedule: publicSchedule, clock }) }, bets: { ...groupRpc(providerBetsError), recommendationState }, league: groupRpc(providerLeagueError), me: groupRpc(providerMeError),
+    lines: { ...groupRpc(providerLinesError), retainedResearchQuotes: query => restRows('gtl_research_quote_fetches', query, 501), research: createResearchProvider({ loadSchedule: publicResearchHistory, loadSnapshot: researchSnapshotLoader, reviewedFeed: reviewedResearchFeed, clock, venues: researchVenues, corrections: researchCorrections }), teams: createTeamSeasonProvider({ loadSchedule: publicSchedule, clock }) }, bets: { ...groupRpc(providerBetsError), recommendationState }, league: groupRpc(providerLeagueError), me: groupRpc(providerMeError),
     feed: groupRpc(providerFeedError),
     points: groupRpc(providerPointsError, POINTS_RPCS),
     features: groupRpc(providerFeaturesError, FEATURES_RPCS),

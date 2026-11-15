@@ -54,7 +54,11 @@ function baseline(raw, asOf) {
   }
   return { status: raw.status, reason: raw.reason,
     method: { id: 'last-eight-appearances-mean-v1', label: 'Experimental appearance-mean baseline', window: 8, minimumSample: 5 },
-    projection: raw.projection, sample: raw.sample, trainingGameIds: [...raw.trainingGameIds], lastObservationAt: raw.lastObservationAt,
+    projection: raw.projection, sample: raw.sample,
+    trainingPeriod: raw.trainingPeriod && stamp(raw.trainingPeriod.from) && stamp(raw.trainingPeriod.to)
+      && Date.parse(raw.trainingPeriod.from) <= Date.parse(raw.trainingPeriod.to) && Date.parse(raw.trainingPeriod.to) <= Date.parse(raw.lastObservationAt)
+      ? { from: raw.trainingPeriod.from, to: raw.trainingPeriod.to } : null,
+    trainingGameIds: [...raw.trainingGameIds], lastObservationAt: raw.lastObservationAt,
     holdout: { count: h.count, mae: h.mae, bias: h.bias, intervalMinimum: 20 }, interval, excluded: raw.excluded,
     limitations: [...BASELINE_LIMITS] };
 }

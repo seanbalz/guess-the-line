@@ -46,11 +46,17 @@ export function ResearchLanding() {
   const retry = () => app.refresh({ only: ['personal'] });
   return <section className="gx-screen gx-r-landing" data-landing="research">
     <div className="gx-focus-heading"><h1 className="gx-t-title">{RESEARCH_NAMES.title}</h1></div>
+    <Card className="gx-r-notebook" data-research="parlay" aria-label="Parlay Lab">
+      <p className="gx-t-label gx-c-2">Ideas · Projections · Matchups</p>
+      <h2 className="gx-t-title">{RESEARCH_NAMES.parlay}</h2>
+      <p className="gx-t-body">Compare available sportsbook lines, explore suggested combinations, and see the reasoning and risks.</p>
+      <Button id={tileId('parlay')} variant="primary" block onClick={() => openSection(shell, 'parlay')}>Open Parlay Lab</Button>
+    </Card>
     {hero && next ? <Card className="gx-r-notebook gx-r-hero" data-research="hero" data-kind={hero.kind} aria-labelledby={titleId}>
       <p id={titleId} className="gx-t-label gx-c-2">Matchup notebook · Week {hero.week}</p><h2 className="gx-t-title">Know the matchup.</h2>
       <div className="gx-r-hero-matchup"><span><TeamMark code={next.awayCode} size={48} decorative/><strong>{teamOf(next.awayCode).nick}</strong></span><span className="gx-t-meta gx-c-2">at</span><span><TeamMark code={next.homeCode} size={48} decorative/><strong>{teamOf(next.homeCode).nick}</strong></span></div>
       <p className="gx-t-meta gx-c-2" data-research="hero-line">{fmtWhen(next.kickoff)} · {hero.line}</p>
-      <Button id={HERO_ACTION_ID} variant="primary" block onClick={() => openSection(shell, 'games', gameView(next.id))}>Open game</Button>
+      <Button id={HERO_ACTION_ID} variant="secondary" block onClick={() => openSection(shell, 'games', gameView(next.id))}>Open game</Button>
     </Card> : hero ? <NextMoveCard className="gx-r-hero" data-research="hero" data-kind={hero.kind} eyebrow={hero.eyebrow} title={hero.title}
       picture={hero.meter ? <Meter value={hero.meter.done} max={hero.meter.of}/> : null} line={hero.line} lineProps={{ 'data-research': 'hero-line' }}
       action={{ id: HERO_ACTION_ID, label: hero.action, onClick: () => openSection(shell, hero.target) }}/>

@@ -17,7 +17,7 @@ const LIMITATIONS = Object.freeze([
 ]);
 const method = Object.freeze({ id: 'last-eight-appearances-mean-v1', label: 'Experimental appearance-mean baseline', window: WINDOW, minimumSample: MIN_TRAIN });
 const base = () => ({ status: 'unavailable', reason: null, method, projection: null, sample: 0, trainingGameIds: [],
-  lastObservationAt: null, holdout: { count: 0, mae: null, bias: null, intervalMinimum: MIN_INTERVAL },
+  lastObservationAt: null, trainingPeriod: null, holdout: { count: 0, mae: null, bias: null, intervalMinimum: MIN_INTERVAL },
   interval: null, excluded: 0, limitations: [...LIMITATIONS] });
 
 /**
@@ -62,6 +62,7 @@ export function buildPropBaselineProjection({ rows, playerId, gameId, kickoff, a
   if (ordered.some((row, i) => i > 0 && row.played === ordered[i - 1].played)) return { ...result, reason: 'conflicting_game_times' };
   const training = ordered.slice(-WINDOW);
   result.sample = training.length;
+  result.trainingPeriod = training.length ? { from: new Date(training[0].played).toISOString(), to: new Date(Math.max(...training.map(r => r.available))).toISOString() } : null;
   result.trainingGameIds = training.map(row => row.gameId);
   result.lastObservationAt = ordered.length ? new Date(Math.max(...ordered.map(row => row.available))).toISOString() : null;
   if (training.length < MIN_TRAIN) return { ...result, reason: 'insufficient_history' };

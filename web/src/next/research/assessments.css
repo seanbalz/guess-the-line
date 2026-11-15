@@ -28,3 +28,43 @@
 .gx .gx-parlay-spotlight { border-color: var(--gx-accent-ink); }
 .gx .gx-parlay-compare { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gx-space-3);margin:0;font-size:16px; }
 .gx .gx-parlay-compare dd {margin:0;overflow-wrap:anywhere;font-weight:600;}
+/* Parlay Lab: compact, price-first Prism research, not an editorial wall. */
+.gx .gx-lab { gap: var(--gx-space-4); }
+.gx .gx-lab-intro { padding-block: var(--gx-space-2); }
+.gx .gx-lab-intro .gx-t-label { color: var(--gx-accent-ink); }
+.gx .gx-lab-intro :where(p,h2) { margin: 0; }
+.gx .gx-lab-tabs { display: flex; padding: var(--gx-space-1); border: 1px solid var(--gx-border-strong); background: var(--gx-surface-2); border-radius: var(--gx-radius-lg); }
+.gx .gx-lab-tabs button { flex: 1; min-width: 0; min-height: var(--gx-size-touch); padding: var(--gx-space-2); border: 0; border-radius: var(--gx-radius-lg); background: transparent; color: var(--gx-text-1); font: inherit; font-weight: 600; cursor: pointer; }
+.gx .gx-lab-tabs button[aria-pressed="true"] { background: var(--gx-accent-ink); color: var(--gx-surface-1); }
+.gx .gx-lab-controls { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: var(--gx-space-3); }
+.gx .gx-lab-controls select { font-size: 16px; }
+.gx .gx-lab-section-heading,.gx .gx-lab-leg-top { display: flex; align-items: center; justify-content: space-between; gap: var(--gx-space-3); }
+.gx .gx-lab-ticket { padding: 0; overflow: hidden; }
+.gx .gx-lab-ticket-head { display: flex; align-items: center; justify-content: space-between; gap: var(--gx-space-2); padding: var(--gx-space-4); background: var(--gx-surface-3); border-bottom: 1px solid var(--gx-border-strong); }
+.gx .gx-lab-badge { font-size: 13px; padding: var(--gx-space-2); border: 1px solid var(--gx-border-strong); border-radius: var(--gx-radius-lg); }
+.gx .gx-lab-leg { padding: var(--gx-space-4); display: grid; gap: var(--gx-space-2); border-bottom: 1px dashed var(--gx-border-strong); }
+.gx .gx-lab-price { font-size: 24px; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--gx-accent-ink); }
+.gx .gx-lab-selection { font-weight: 600; font-size: 16px; }
+.gx .gx-lab-reason { font-size: 14px; line-height: 1.45; }
+.gx .gx-lab-reason .gx-t-label { color: var(--gx-accent-ink); }
+.gx .gx-lab-risk .gx-t-label { color: var(--gx-text-2); }
+.gx .gx-lab-link { background: transparent; border: none; padding: 0; cursor: pointer; justify-self: start; }
+.gx .gx-lab-ticket-footer { display: grid; gap: var(--gx-space-3); padding: var(--gx-space-4); }
+.gx .gx-lab-empty { display: grid; gap: var(--gx-space-3); text-align: center; }
+.gx .gx-lab-empty-mark { font-size: 40px; color: var(--gx-accent-ink); }
+.gx .gx-lab-projection,.gx .gx-lab-matchup { display: grid; gap: var(--gx-space-3); }
+.gx .gx-lab-player { display: flex; align-items: center; gap: var(--gx-space-3); }
+.gx .gx-lab-player > div { min-width: 0; }
+.gx .gx-lab-projection .gx-parlay-compare { padding-block: var(--gx-space-2); }
+.gx .gx-lab-projection .gx-parlay-compare dd { font-size: 28px; line-height: 1.2; }
+.gx .gx-lab-projection .gx-parlay-compare > div:first-child dd { color: var(--gx-accent-ink); }
+.gx .gx-lab-market { display: flex; align-items: baseline; gap: var(--gx-space-2); flex-wrap: wrap; }
+.gx .gx-lab-market strong { font-size: 20px; }
+.gx .gx-lab-market .gx-t-meta { flex-basis: 100%; }
+.gx .gx-lab-range { height: 8px; border-radius: var(--gx-radius-lg); background: var(--gx-surface-3); overflow: hidden; }
+.gx .gx-lab-range span { display: block; height: 100%; width: 100%; background: var(--gx-data); border-radius: inherit; }
+.gx .gx-lab-number { font-size: 32px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.gx .gx-lab-featured { border: 2px solid var(--gx-accent-ink); }
+@media (max-width: 359px) { .gx .gx-lab-controls { grid-template-columns: 1fr; } .gx .gx-lab-ticket-head { flex-wrap: wrap; } }
+.gx .gx-lab .gx-parlay-card { background: var(--gx-hero-card), var(--gx-surface-2); box-shadow: var(--gx-glass-shadow); }
+.gx .gx-lab-thesis { padding: var(--gx-space-4); }

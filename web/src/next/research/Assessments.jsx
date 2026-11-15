@@ -122,14 +122,14 @@ export function ResearchLinkIntake({ accountId, onDirty }) {
   </details>;
 }
 
-export default function ResearchAssessments({ onDirty, onTrack }) {
-  const lines = useLinesData(), shell = useShell(), route = shell.state.views.bets;
+export default function ResearchAssessments({ onDirty, onTrack, labOnly = false, routeScope = 'bets' }) {
+  const lines = useLinesData(), shell = useShell(), route = shell.state.views[routeScope];
   const [market, setMarket] = useState(''), [color, setColor] = useState(''), [limit, setLimit] = useState(20);
   const gameId = route.matchup || undefined;
   // The server chooses the latest published account week, independently of a private league's week.
   const read = useAssessments({ ...lines, shown: undefined, gameId, market: market || undefined, color: color || undefined });
   const data = read.data, a = data?.assessments.find(a => a.routeId === route.assessment);
-  const select = id => shell.go('bets', { view: 'research', ...(gameId ? { matchup: gameId } : {}), assessment: id ?? null });
+  const select = id => shell.go(routeScope, { ...(routeScope === 'research' ? {section:'parlay'} : {view:'research'}), ...(gameId ? { matchup: gameId } : {}), assessment: id ?? null });
   const chooseGame = id => { setLimit(20); shell.go('bets', { view: 'research', matchup: id || null, assessment: null }); };
   const rows = (data?.assessments ?? []).filter(a => !color || a.color === color);
   const track = a => {
@@ -138,17 +138,18 @@ export default function ResearchAssessments({ onDirty, onTrack }) {
     onTrack?.({ season: data.season, week: data.week, kind: 'single', legs: [leg], odds: a.quote.odds, source: a.quote.source, quotedAt: a.quote.observedAt, stakeUnits: null });
   };
   return <section className="gx-screen gx-ra" aria-labelledby="gx-ra-title">
-    <header className="gx-ra-heading"><h1 id="gx-ra-title" className="gx-t-title">Research recommendations</h1><InfoButton {...INFO}/></header>
-    <Button variant="secondary" onClick={() => shell.go('bets', { view: 'recommended' })}>Your guess vs. market</Button>
+    <header className="gx-ra-heading"><h1 id="gx-ra-title" className="gx-t-title">{labOnly ? 'Research' : 'Research recommendations'}</h1><InfoButton {...INFO}/></header>
+    {!labOnly ? <Button variant="secondary" onClick={() => shell.go('bets', { view: 'recommended' })}>Your guess vs. market</Button> : null}
     {data ? <p className="gx-t-meta">{data.season} · Week {data.week}</p> : null}
     {gameId ? <Button variant="secondary" onClick={() => chooseGame('')}>All games research</Button> : null}
-    {!a ? <div className="gx-ra-filters"><Select label="Market" value={market} onChange={v => { setMarket(v); setLimit(20); }} options={[[ '', 'All markets'], ['spread', 'Spreads'], ['total', 'Totals'], ['moneyline', 'Moneylines'], ['prop', 'Player props']]}/>
+    {!a && !labOnly ? <div className="gx-ra-filters"><Select label="Market" value={market} onChange={v => { setMarket(v); setLimit(20); }} options={[[ '', 'All markets'], ['spread', 'Spreads'], ['total', 'Totals'], ['moneyline', 'Moneylines'], ['prop', 'Player props']]}/>
       <Select label="Assessment" value={color} onChange={v => { setColor(v); setLimit(20); }} options={[[ '', 'All assessments'], ...Object.entries(ASSESSMENT_LABELS)]}/></div> : null}
     {read.status === 'loading' ? <Skeleton label="Loading research assessments…" shape="panels" count={2}/> : read.status === 'error' ? <div><p role="status" className="gx-t-body">Research is unavailable right now.</p><Button variant="secondary" onClick={read.reload}>Retry research</Button></div> : null}
-    {data ? <Nest label="Research assessments" title={a ? a.title : gameId ? gameId.replace('-', ' at ') : 'Assessed bets'} layer={a?.id ?? 'list'}
+    {data && labOnly ? <>{a ? <><Button variant="secondary" onClick={()=>select(null)}>Back to Parlay Lab</Button><h2 className="gx-t-section">{a.title}</h2><AssessmentDetail assessment={a}/></> : <ParlayLab data={data} renderDetail={row=><AssessmentDetail assessment={row}/>} onOpen={select} onUnlock={()=>shell.go('play')} onRefresh={read.reload}/>}<ResearchCoverage data={data}/></> : data ? <Nest label="Research assessments" title={a ? a.title : gameId ? gameId.replace('-', ' at ') : 'Assessed bets'} layer={a?.id ?? 'list'}
       lips={a ? [{ key: 'list', label: 'Assessed bets', onOpen: () => select(null) }] : []}>
       {a ? <AssessmentDetail assessment={a} onTrack={onTrack ? track : null}/> : <>
-        <ParlayLab data={data} renderDetail={row => <AssessmentDetail assessment={row}/>} onOpen={select}/>
+        <ParlayLab data={data} renderDetail={row => <AssessmentDetail assessment={row}/>} onOpen={select} onUnlock={() => shell.go('play')} onRefresh={read.reload}/>
+        {!labOnly ? <>
         <p className="gx-t-meta">Schedule order · qualitative assessments</p>
         {!rows.length ? <p className="gx-t-body" role="status">{assessmentEmptyMessage(data, { market, color })}</p> : rows.slice(0, limit).map(a => <button className="gx-ra-tile" key={a.id} type="button" data-assessment={a.color} onClick={() => select(a.routeId)}><span className="gx-t-strong">{a.title}</span><span className="gx-t-body">{a.label}</span>{a.hasConflicts ? <span className="gx-t-meta">Opposing evidence present</span> : null}</button>)}
         {rows.length > limit ? <Button variant="secondary" onClick={() => setLimit(n => n + 20)}>Show more assessments</Button> : null}
@@ -162,6 +163,7 @@ export default function ResearchAssessments({ onDirty, onTrack }) {
         </div>
         <details className="gx-ra-evidence"><summary>Source availability</summary>{data.sources.map(s => <p className="gx-t-body" key={s.id}>{s.name}{s.id === 'bookitwithtrent' ? ' · separate feed' : ''}: {s.status === 'available' ? 'Source available' : 'Automatic access unavailable'}</p>)}</details>
         <ResearchLinkIntake key={lines.app.accountId} accountId={lines.app.accountId} onDirty={onDirty}/>
+        </> : <ResearchCoverage data={data}/>}
 
       </>}
     </Nest> : null}

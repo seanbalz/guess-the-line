@@ -30,3 +30,20 @@ test('empty/reveal-gated input stays empty, limits bounded, and categories map',
   assert.equal(buildParlayIdeas([leg('a'),leg('b'),leg('c')], {now,limit:1}).length, 1);
   assert.equal(propCategory(leg('a')), 'Passing');
 });
+test('common-book alternative preserved when individual best books differ; rationale and risk visible',()=>{
+ const a=leg('a','a','fanduel'),b=leg('b','b','draftkings');
+ a.offers=[a.quote,{...a.quote,book:'betmgm'}];b.offers=[b.quote,{...b.quote,book:'betmgm'}];
+ a.evidence[0].statement='Recorded appearances support this side';
+ const [idea]=buildParlayIdeas([a,b],{now});
+ assert.equal(idea.book,'betmgm'); assert.equal(idea.why.length,1); assert.ok(idea.risks.length);
+ assert.match(idea.rankingLabel,/not win probability/);
+});
+test('ranking cannot starve a compatible game beyond the former 90-offer cutoff', () => {
+  const rows = Array.from({length:91}, (_,i) => leg(`p${String(i).padStart(3,'0')}`, i<90?'SEA-DEN':'DAL-PHI'));
+  const ideas = buildParlayIdeas(rows,{now});
+  assert.equal(ideas.length,6);
+  assert.ok(ideas.every(idea=>new Set(idea.legs.map(a=>a.gameId)).size===2));
+  assert.equal(buildParlayIdeas(rows,{now,size:3}).length,0);
+  rows.push(leg('z-third','NYG-WAS'));
+  assert.equal(buildParlayIdeas(rows,{now,size:3}).length,6);
+});

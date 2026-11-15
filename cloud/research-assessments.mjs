@@ -1,5 +1,6 @@
+import { readRetainedPropOffers, propOfferCandidates } from './parlay-offer-candidates.mjs';
 import { projectPropResearch } from '../shared/project-prop-research.mjs';
-import { ASSESSMENT_SOURCES, buildResearchAssessments, validateAssessmentSnapshot, accessibleResearchCandidate } from '../shared/research-assessments.mjs';
+import { ASSESSMENT_SOURCES, buildResearchAssessments, validateAssessmentSnapshot, accessibleResearchCandidate, selectionKey } from '../shared/research-assessments.mjs';
 import { projectPlayStatistics } from '../shared/research-play-statistics.mjs';
 import { finalAvailableAt, sha256 } from '../shared/trends-research-candidates.mjs';
 
@@ -86,6 +87,20 @@ export async function readAssessments({ service, board, userId, now, gameId, mar
       }
     }
   }));
+  const propResearch = projectPropResearch(existing?.history?.status === 'fresh' && existing?.propResearch?.source?.schedule?.semanticSha256 === existing?.history?.scheduleSha256
+    ? existing.propResearch : null, { ...board, games: board.games.filter(g => !gameId || g.id === gameId) }, clock());
+  const propOffers = await readRetainedPropOffers(service, board, clock(), gameId);
+  data.quotes.push(...propOffers.quotes.slice(0, Math.max(0, 5000 - data.quotes.length)));
+  const offerCandidates = propOfferCandidates(propOffers.quotes, propResearch, clock());
+  const propCapacity = Math.max(0, 500 - data.candidates.length);
+  for (const candidate of offerCandidates) {
+    if (data.candidates.length >= 500) break;
+    if (!candidateIds.has(candidate.id)) { data.candidates.push(candidate); candidateIds.add(candidate.id); }
+  }
+  // Keep only offers used by bounded candidates, avoiding an unrelated large
+  // provider capture invalidating the whole 2 MB response snapshot.
+  const selectionIds = new Set(data.candidates.map(c => `${c.gameId}:${selectionKey(c.selection)}`));
+  data.quotes = data.quotes.filter(q => q?.selection && selectionIds.has(`${q.gameId}:${selectionKey(q.selection)}`));
   // History contains opaque navigation IDs, never a player name, claim or line.
   const routes = new Map(await Promise.all(data.candidates.filter(c => accessibleResearchCandidate(board, c, gameId))
     .map(async c => [c.id, `r-${(await sha256(JSON.stringify([board.season, board.week, c.id]))).slice(0, 24)}`])));
@@ -95,10 +110,11 @@ export async function readAssessments({ service, board, userId, now, gameId, mar
   const publicPlays = projectPlayStatistics(existing?.playStatistics, board, clock());
   const importedPlays = projectPlayStatistics(data.playStatistics, board, clock());
   const playStatistics = [...publicPlays, ...importedPlays.filter(s => !publicPlays.some(p => p.gameId === s.gameId))];
-  return { ...reply, assessments: reply.assessments.map(a => ({ ...a, routeId: routes.get(a.id) })), statistics: existing?.statistics ?? [], playStatistics, propResearch: projectPropResearch(history?.status === 'fresh' && existing?.propResearch?.source?.schedule?.semanticSha256 === history?.scheduleSha256 ? existing.propResearch : null, { ...board, games }, clock()), sourceCoverage: snapshotStatus,
+  return { ...reply, assessments: reply.assessments.map(a => ({ ...a, routeId: routes.get(a.id) })), statistics: existing?.statistics ?? [], playStatistics, propResearch, sourceCoverage: snapshotStatus,
     coverage: {
       history: { status: history?.status ?? 'unavailable', generatedAt: history?.snapshotAsOf ?? null, fetchedAt: history?.fetchedAt ?? null, latestCompleted: history?.latestCompleted ?? null, reasons: history?.reasons ?? ['source_unavailable'] },
       games: games.map(g => ({ id: g.id, kickoff: g.kickoff, spreadAccessible: g.spread.visible, totalAccessible: g.total.visible, closed: g.started || Date.parse(g.kickoff) <= clock() })),
+      propOffers: { status: propOffers.status, truncated: offerCandidates.length > propCapacity, count: reply.assessments.filter(a => a.selection.market === 'prop' && a.quote).length },
       currentQuotes: reply.assessments.some(a => a.quote !== null),
       externalEvidence: snapshotStatus,
       playStatistics: playStatistics.some(s => s.teams.some(t => t.metrics.some(m => m.value !== null))) ? 'available' : 'unavailable',
