@@ -41,3 +41,24 @@ remain visible; distinct games do not prove statistical independence.
   start because the execution environment denied `socket()`, including a reviewed
   escalation attempt. No visual acceptance is claimed. Temporary fixture pages
   were removed and are not part of the change.
+
+## Approved concept follow-through (November 15)
+
+The source now includes a Projection center and highlighted Matchup spotlight,
+following the approved illustrative mockup without importing its invented player
+values, ranges, photos or rankings. A qualified model remains absent: projection,
+range and edge are explicitly unavailable. The existing checked current quote
+supplies the market side/line only. This is UI scaffolding, not delivered model
+predictions. Matchup cards require eligible, source-backed `matchup` evidence and
+show its reported metric, denominator, sample, period, as-of time and attribution.
+No player position, defense ranking, favorable grade, season or last-five split
+is inferred. Ineligible evidence stays out of the spotlight; the complete
+assessment remains accessible. Each section is capped at six cards, and category
+selection now also scopes parlay combinations. Retained-best-quote coverage
+remains incomplete by design, not a full sportsbook combinator.
+
+Follow-through typecheck, focused render/composition tests, cloud build, bundle
+privacy scan and Brand QA passed locally. Full aggregate validation and hosted
+CI must be checked on the final commit before merging. Browser/phone acceptance
+is still outstanding. Deployment follows the protected shared release captain
+workflow; a merged PR is not itself a deployment.

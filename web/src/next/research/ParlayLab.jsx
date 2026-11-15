@@ -12,14 +12,40 @@ export default function ParlayLab({ data, renderDetail, onOpen }) {
   const now = Date.parse(data.now);
   const props = data.assessments.filter(a => a.selection.market === 'prop');
   const cards = props.filter(a => category === 'All props' || propCategory(a) === category);
-  const ideas = buildParlayIdeas(props, { now, size });
+  const ideas = buildParlayIdeas(cards, { now, size });
+  const matchups = cards.flatMap(a => a.evidence.filter(e => e.eligible && e.family === 'matchup' && e.sourceUrl).map(e => ({ a, e }))).slice(0, 6);
   return <section className="gx-vstack gx-gap-12" aria-labelledby="gx-parlay-title">
     <h2 className="gx-t-section" id="gx-parlay-title">Parlay Lab</h2>
     <p className="gx-t-body">Read the case. Check the price. Know what could go wrong.</p>
     <p className="gx-t-meta">NFL player props · research leans, not predictions or guarantees. No wagers are placed here.</p>
     <div className="gx-ra-filters"><label className="gx-ra-select gx-t-body">Research board<select value={category} onChange={e => setCategory(e.target.value)}>{categories.map(c => <option key={c}>{c}</option>)}</select></label></div>
+    <h3 className="gx-t-section">Projection center</h3>
+    <p className="gx-t-body">No qualified projection model is connected. Market lines are not forecasts; projection ranges and model edge remain unavailable.</p>
+    <div className="gx-parlay-grid">{cards.slice(0, 6).map(a => <article className="gx-parlay-card gx-vstack gx-gap-12" key={a.id}>
+      <h4 className="gx-t-section">{a.selection.playerName ?? a.title}</h4>
+      <p className="gx-t-meta">{propCategory(a)} · {a.gameId.replace('-', ' at ')}</p>
+      <dl className="gx-parlay-compare"><div><dt>Projection</dt><dd>Unavailable</dd></div><div><dt>Market line</dt><dd>{a.quote ? `${a.selection.side} ${a.selection.line} ${a.selection.unit ?? ''}` : 'Unavailable'}</dd></div></dl>
+      <p className="gx-t-meta">Range unavailable · {a.quote ? `${a.quote.source} · Recorded ${time(a.quote.observedAt)}` : 'No current quote'}</p>
+      <Button variant="secondary" onClick={() => onOpen(a.routeId)}>View research</Button>
+    </article>)}</div>
+    {!cards.length ? <p className="gx-t-body">No revealed player markets to compare yet.</p> : null}
+    <h3 className="gx-t-section">Matchup spotlight</h3>
+    <p className="gx-t-meta">Source-reported matchup drivers, not a defense ranking or a prediction. Position splits and season/last-five comparisons are shown only when established by the source.</p>
+    <div className="gx-parlay-grid">{matchups.map(({a, e}) => <article className="gx-parlay-card gx-parlay-spotlight gx-vstack gx-gap-12" key={`${a.id}:${e.id}`}>
+      <h4 className="gx-t-section">{a.title}</h4><p className="gx-t-meta">{a.gameId.replace('-', ' at ')} · {e.stance === 'oppose' ? 'Counterevidence' : e.stance === 'support' ? 'Supporting matchup evidence' : 'Matchup context'}</p>
+      <p className="gx-t-body">{e.statement}</p>
+      <p className="gx-t-body">{e.metric.name}: <strong>{e.metric.value} {e.metric.unit}</strong></p>
+      <p className="gx-t-meta">{e.metric.denominator} · Sample: {e.sample.count} {e.sample.unit}</p>
+      <p className="gx-t-meta">Period: {time(e.period.from)} to {time(e.period.to)} · Data through {time(e.asOf)}</p>
+      <p className="gx-t-meta">{e.label}. {parlayLegStatus(a, now) ?? 'Qualitative lean only; favorable evidence does not establish betting value.'}</p>
+      <a className="gx-ra-link" href={e.sourceUrl} target="_blank" rel="noreferrer">Open matchup source</a>
+      <Button variant="secondary" onClick={() => onOpen(a.routeId)}>Review all evidence</Button>
+    </article>)}</div>
+    {!matchups.length ? <p className="gx-t-body">No qualifying matchup evidence in this view. No favorable labels, ranks or position splits are inferred.</p> : null}
+    <h3 className="gx-t-section">Research board</h3>
+    <p className="gx-t-meta">Showing up to six cards per section. Full assessed list remains below.</p>
     <div className="gx-parlay-grid">
-      {cards.map(a => {
+      {cards.slice(0, 6).map(a => {
         const support = a.evidence.find(e => e.eligible && e.stance === 'support');
         const opposition = a.evidence.find(e => e.eligible && e.stance === 'oppose');
         const status = parlayLegStatus(a, now);

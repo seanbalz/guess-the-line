@@ -24,3 +24,7 @@
 .gx .gx-parlay-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: var(--gx-space-3); }
 .gx .gx-parlay-card { min-width: 0; padding: var(--gx-space-4); border: 1px solid var(--gx-border-strong); border-radius: var(--gx-radius-lg); background: var(--gx-surface-2); }
 .gx .gx-parlay-card :where(h3,h4,p) { margin: 0; }
+
+.gx .gx-parlay-spotlight { border-color: var(--gx-accent-ink); }
+.gx .gx-parlay-compare { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gx-space-3);margin:0;font-size:var(--gx-body-size,16px); }
+.gx .gx-parlay-compare dd {margin:0;overflow-wrap:anywhere;font-weight:600;}
