@@ -12,10 +12,13 @@ See [the current design](superpowers/specs/2026-11-15-weekly-top-props-design.md
 and [method](PARLAY_LAB.md#superseding-direction-weekly-top-20-props--november-15-2026).
 Local validation: 1,047 Vitest tests, 11 focused Node tests, both browser specs
 (320/390/1440 px, dark/light, axe), typecheck, cloud build, bundle privacy scan
-and Brand QA pass. Broad Node validation is still running; six localhost-socket
-failures passed when the three affected files were rerun with socket access.
-Hosted exact-SHA CI and protected frontend release remain pending. This entry
-is not a deployment claim.
+and Brand QA pass. The broad Node run completed 3,403 tests: 3,393 passed; nine
+localhost socket denials and one unloaded font weight failed. The font weight
+was corrected, and all 65 tests across the seven affected files passed on rerun
+with socket access. The final committed board passed its browser spec again.
+Automatic approval review blocked publishing the replacement branch before
+execution. No new PR, hosted CI or production deployment exists for this change.
+This entry is not a deployment claim.
 
 ## Parlay Lab usability fixes — November 15, 2026
 
