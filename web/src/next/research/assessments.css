@@ -84,10 +84,10 @@
 .gx .gx-weekly-quote { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: var(--gx-space-3); padding-block: var(--gx-space-3); border-block: 1px solid var(--gx-border-strong); }
 .gx .gx-weekly-quote > div { display: grid; gap: var(--gx-space-1); }
 .gx .gx-weekly-quote > div:last-child { text-align: right; }
-.gx .gx-weekly-selection { font-size: 20px; font-weight: 650; line-height: 1.35; text-transform: capitalize; }
+.gx .gx-weekly-selection { font-size: 20px; font-weight: 600; line-height: 1.35; text-transform: capitalize; }
 .gx .gx-weekly-book { display: grid; gap: var(--gx-space-1); }
 .gx .gx-weekly-case { display: grid; gap: var(--gx-space-3); }
-.gx .gx-weekly-case h5 { font: inherit; font-size: 16px; font-weight: 650; margin-bottom: var(--gx-space-1); }
+.gx .gx-weekly-case h5 { font: inherit; font-size: 16px; font-weight: 600; margin-bottom: var(--gx-space-1); }
 .gx .gx-weekly-case p { font-size: 16px; line-height: 1.5; }
 .gx .gx-weekly-evidence { display: flex; flex-wrap: wrap; gap: var(--gx-space-3); align-items: start; border-top: 1px solid var(--gx-border-strong); padding-top: var(--gx-space-2); }
 .gx .gx-weekly-evidence > details { flex: 1; min-width: min(100%, 180px); }
