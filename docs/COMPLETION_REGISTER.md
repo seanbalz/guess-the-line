@@ -6279,3 +6279,13 @@ authorization, concurrency/readback, free-quota, schedule/source and grading
 gates remain; the busy final dialog also retains keyboard scrolling while its
 actions are disabled. Independent review/integration and physical-phone/hosted
 acceptance remain separate. No push, PR, merge, deployment or migration apply.
+
+## Parlay Lab research MVP — November 15, 2026
+
+Branch `codex/parlay-lab` adds a source-backed NFL prop board and conservative
+same-book, different-game 2–3-leg research ideas to Bets → Research. Existing
+reveal gates, quote expiry and source checks remain in force. No invented joint
+odds/probability, wagering, paid API or hosted changes. [Scope and verification](PARLAY_LAB.md)
+record passing typecheck, build, 1,031 Vitest tests, four new composition tests
+and Brand QA, plus 13 missing-PGlite full-suite failures and the blocked local
+Chromium visual check. This is implementation/review work, not release acceptance.
