@@ -6,13 +6,15 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { gzipSync, gunzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
-import { createResearchSnapshot, finalAvailableAt, RESEARCH_PERIODS } from '../shared/trends-research-candidates.mjs';
+import { createResearchSnapshot, finalAvailableAt, RESEARCH_PERIODS, scheduleSourceText } from '../shared/trends-research-candidates.mjs';
 import { TRENDS_SOURCE, parseCsvRows, rowPlayed } from '../shared/trends.mjs';
 import { observedPlayStatistics } from '../shared/research-play-statistics.mjs';
 import { appCode, easternToUtc } from '../shared/nfl-schedule.mjs';
 import { validatePublicResearchSnapshot, validateResearchIndex, MAX_RESEARCH_DECODED_BYTES, MAX_RESEARCH_FILE_BYTES } from '../shared/research-data.mjs';
 import { snapshotModule } from './prepare-trends-research.mjs';
 import { parseFantasyCsv } from '../shared/fantasy-build.mjs';
+import { buildPropResearch } from '../shared/prop-research-build.mjs';
+import { createPropSources } from './player-props-sources.mjs';
 
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -32,7 +34,7 @@ export function buildPlayResearch({ csv, plays, season, now, sourceHash }) {
     return { gameId: `${appCode(r.away_team)}-${appCode(r.home_team)}`, week: Number(r.week), kickoff, teams };
   });
 }
-export async function buildResearchRelease({ csv, plays, pbpHash, season, now, registry, venues, corrections }) {
+export async function buildResearchRelease({ csv, plays, pbpHash, season, now, registry, venues, corrections, propResearch = null }) {
   const rows = parseCsvRows(csv).rows;
   if (!rows.some(r => Number(r.season) === season) || rows.some(r => Number(r.season) === season && !rowPlayed(r) && Date.parse(finalAvailableAt(r.gameday)) <= Date.parse(now))) throw new Error('Current season finals are incomplete.');
   const snapshot = await createResearchSnapshot({ csv, now, season, registry, venues, corrections });
@@ -45,7 +47,7 @@ export async function buildResearchRelease({ csv, plays, pbpHash, season, now, r
   const index = { version: 1, season, generatedAt: now, source: snapshot.source, pbpSha256: pbpHash, files: [] };
   const files = new Map();
   for (const period of RESEARCH_PERIODS) {
-    const data = { ...snapshot, candidates: snapshot.candidates.map(c => ({ ...c, periods: { [period]: c.periods[period] } })), playStatistics };
+    const data = { ...snapshot, candidates: snapshot.candidates.map(c => ({ ...c, periods: { [period]: c.periods[period] } })), playStatistics, ...(propResearch ? {propResearch} : {}) };
     validatePublicResearchSnapshot(data, { season, period, now: Date.parse(now) });
     const json = JSON.stringify(data);
     if (Buffer.byteLength(json) > MAX_RESEARCH_DECODED_BYTES) throw new Error('Research payload exceeds the decoded limit.');
@@ -83,7 +85,7 @@ export async function download(url, limit, { name, fetchImpl = fetch, attempts =
 }
 async function main() {
   const { values } = parseArgs({ options: { season: { type: 'string' }, out: { type: 'string', default: '.local/research-release' }, schedule: { type: 'string' }, pbp: { type: 'string' }, now: { type: 'string' } } });
-  const now = values.now ?? new Date().toISOString(), date = new Date(now), season = Number(values.season ?? (date.getUTCFullYear() - (date.getUTCMonth() < 2 ? 1 : 0)));
+  let now = values.now ?? new Date().toISOString(); const date = new Date(now), season = Number(values.season ?? (date.getUTCFullYear() - (date.getUTCMonth() < 2 ? 1 : 0)));
   if (!Number.isSafeInteger(season) || season < 2002 || season > 2100 || !Number.isFinite(date.getTime())) throw new Error('Invalid season/time.');
   const dir = path.resolve(root, values.out);
   if (!dir.startsWith(path.join(root, '.local') + path.sep)) throw new Error('Use an ignored .local output directory.');
@@ -95,7 +97,16 @@ async function main() {
   const read = async name => JSON.parse(await fs.readFile(path.join(root, 'shared', name), 'utf8'));
   const [registry, venues, corrections] = await Promise.all(['trends-registry.json', 'nfl-venues.json', 'trends-corrections.json'].map(read));
   const plays = parseFantasyCsv(gunzipSync(pbp, { maxOutputLength: 150_000_000 }).toString('utf8'), ['game_id', 'posteam', 'play_type', 'qb_dropback', 'rush_attempt', 'pass_attempt', 'sack']);
-  const result = await buildResearchRelease({ csv: schedule.toString('utf8'), plays, pbpHash: sha(pbp), season, now, registry, venues, corrections });
+  let propResearch = null;
+  try {
+    const reader = createPropSources({season});
+    const [stats, rosters, verifiedSchedule] = await Promise.all(['stats','rosters','schedule'].map(key => reader.read(key)));
+    const source = Object.fromEntries([['stats',stats],['rosters',rosters],['schedule',verifiedSchedule]].map(([key,s])=>[key,{url:s.url,sha256:s.sha256,updatedAt:s.updatedAt,retrievedAt:s.retrievedAt}]));
+    source.schedule.semanticSha256 = sha(Buffer.from(scheduleSourceText(parseCsvRows(verifiedSchedule.text).rows)));
+    now = values.now ?? new Date().toISOString();
+    propResearch = buildPropResearch({statsCsv:stats.text,rostersCsv:rosters.text,scheduleCsv:verifiedSchedule.text,season,now,source});
+  } catch { console.error('Player baseline/matchup sources unavailable; existing research continues without projections.'); }
+  const result = await buildResearchRelease({ propResearch, csv: schedule.toString('utf8'), plays, pbpHash: sha(pbp), season, now, registry, venues, corrections });
   for (const [file, bytes] of result.files) await fs.writeFile(path.join(dir, file), bytes);
   await fs.writeFile(path.join(dir, 'receipt.json'), JSON.stringify(result.receipt, null, 2) + '\n');
   // Retain exact source receipts for reproducibility; never upload raw source inputs.

@@ -7,6 +7,7 @@ import { Button, InfoButton, Skeleton } from '../ui/index.js';
 import { Nest } from '../ui/Nest.jsx';
 import { useAssessments } from './useAssessments.js';
 import './assessments.css';
+import ParlayLab from './ParlayLab.jsx';
 
 const INFO = {
   title: 'About research recommendations',
@@ -147,6 +148,7 @@ export default function ResearchAssessments({ onDirty, onTrack }) {
     {data ? <Nest label="Research assessments" title={a ? a.title : gameId ? gameId.replace('-', ' at ') : 'Assessed bets'} layer={a?.id ?? 'list'}
       lips={a ? [{ key: 'list', label: 'Assessed bets', onOpen: () => select(null) }] : []}>
       {a ? <AssessmentDetail assessment={a} onTrack={onTrack ? track : null}/> : <>
+        <ParlayLab data={data} renderDetail={row => <AssessmentDetail assessment={row}/>} onOpen={select}/>
         <p className="gx-t-meta">Schedule order · qualitative assessments</p>
         {!rows.length ? <p className="gx-t-body" role="status">{assessmentEmptyMessage(data, { market, color })}</p> : rows.slice(0, limit).map(a => <button className="gx-ra-tile" key={a.id} type="button" data-assessment={a.color} onClick={() => select(a.routeId)}><span className="gx-t-strong">{a.title}</span><span className="gx-t-body">{a.label}</span>{a.hasConflicts ? <span className="gx-t-meta">Opposing evidence present</span> : null}</button>)}
         {rows.length > limit ? <Button variant="secondary" onClick={() => setLimit(n => n + 20)}>Show more assessments</Button> : null}
